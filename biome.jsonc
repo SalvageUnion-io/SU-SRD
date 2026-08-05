@@ -1,10 +1,18 @@
-// Biome replaces ESLint + Prettier for JS/TS/TSX/JSON/CSS (see PR description
-// for full migration notes). Two carve-outs stay on Prettier, both because
-// Biome (as of 2.5.3) genuinely doesn't parse the language yet, not by
-// preference — see https://biomejs.dev/internals/language-support/:
-//   - Markdown & YAML: parsing/formatting "in development", not shipped.
-//     Prettier still runs on **/*.md and **/*.{yml,yaml} (root scripts +
-//     lefthook's format-prose command).
+// Biome is the repo's SINGLE formatter and linter — ESLint and Prettier are
+// both gone. Prettier's last two jobs were removed in the post-Astro
+// streamline:
+//   - As a CLI over **/*.md and **/*.{yml,yaml}. Biome still does not parse
+//     either language (verified against 2.5.7: it returns .md/.yaml stdin
+//     untouched — https://biomejs.dev/internals/language-support/), so those
+//     files are now formatted by NOTHING. That is the accepted trade for a
+//     single-formatter toolchain; restore a step in lefthook.yml if Biome
+//     ships the formatters.
+//   - As a LIBRARY inside the salvageunion-reference generators, which format
+//     committed artifacts in-process. Those now shell out to this same pinned
+//     Biome binary (packages/salvageunion-reference/tools/formatWithBiome.ts),
+//     so generated output cannot drift from `format:check`. The swap was
+//     byte-for-byte identical across all 66 declaration files and every
+//     schema — the formatter settings below were already Prettier-equivalent.
 // The second carve-out used to be Astro (apps/srd/src/**/*.astro), excluded
 // because Biome's .astro support is experimental. apps/srd no longer contains
 // any .astro files — it builds through the in-house SSG in apps/srd/ssg — so

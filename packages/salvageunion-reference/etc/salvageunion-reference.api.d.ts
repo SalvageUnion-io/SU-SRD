@@ -747,112 +747,112 @@ export declare const lazyModelMap: {
 };
 export declare const SCHEMA_REGISTRY: {
     readonly abilities: {
-        readonly model: "Abilities";
-        readonly display: "Ability";
+        readonly model: 'Abilities';
+        readonly display: 'Ability';
     };
     readonly 'ability-tree-requirements': {
-        readonly model: "AbilityTreeRequirements";
-        readonly display: "Ability Tree Requirement";
+        readonly model: 'AbilityTreeRequirements';
+        readonly display: 'Ability Tree Requirement';
     };
     readonly actions: {
-        readonly model: "Actions";
-        readonly display: "Action";
+        readonly model: 'Actions';
+        readonly display: 'Action';
     };
     readonly chassis: {
-        readonly model: "Chassis";
-        readonly display: "Chassis";
+        readonly model: 'Chassis';
+        readonly display: 'Chassis';
     };
     readonly classes: {
-        readonly model: "Classes";
-        readonly display: "Class";
+        readonly model: 'Classes';
+        readonly display: 'Class';
     };
     readonly 'crawler-bays': {
-        readonly model: "CrawlerBays";
-        readonly display: "Crawler Bay";
+        readonly model: 'CrawlerBays';
+        readonly display: 'Crawler Bay';
     };
     readonly 'crawler-tech-levels': {
-        readonly model: "CrawlerTechLevels";
-        readonly display: "Crawler Tech Level";
+        readonly model: 'CrawlerTechLevels';
+        readonly display: 'Crawler Tech Level';
     };
     readonly crawlers: {
-        readonly model: "Crawlers";
-        readonly display: "Crawler";
+        readonly model: 'Crawlers';
+        readonly display: 'Crawler';
     };
     readonly creatures: {
-        readonly model: "Creatures";
-        readonly display: "Creature";
+        readonly model: 'Creatures';
+        readonly display: 'Creature';
     };
     readonly distances: {
-        readonly model: "Distances";
-        readonly display: "Distance";
+        readonly model: 'Distances';
+        readonly display: 'Distance';
     };
     readonly drones: {
-        readonly model: "Drones";
-        readonly display: "Drone";
+        readonly model: 'Drones';
+        readonly display: 'Drone';
     };
     readonly equipment: {
-        readonly model: "Equipment";
-        readonly display: "Equipment";
+        readonly model: 'Equipment';
+        readonly display: 'Equipment';
     };
     readonly factions: {
-        readonly model: "Factions";
-        readonly display: "Faction";
+        readonly model: 'Factions';
+        readonly display: 'Faction';
     };
     readonly guides: {
-        readonly model: "Guides";
-        readonly display: "Guide";
+        readonly model: 'Guides';
+        readonly display: 'Guide';
     };
     readonly keywords: {
-        readonly model: "Keywords";
-        readonly display: "Keyword";
+        readonly model: 'Keywords';
+        readonly display: 'Keyword';
     };
     readonly meld: {
-        readonly model: "Meld";
-        readonly display: "Meld";
+        readonly model: 'Meld';
+        readonly display: 'Meld';
     };
     readonly modules: {
-        readonly model: "Modules";
-        readonly display: "Module";
+        readonly model: 'Modules';
+        readonly display: 'Module';
     };
     readonly npcs: {
-        readonly model: "NPCs";
-        readonly display: "NPC";
+        readonly model: 'NPCs';
+        readonly display: 'NPC';
     };
     readonly 'roll-tables': {
-        readonly model: "RollTables";
-        readonly display: "Roll Table";
+        readonly model: 'RollTables';
+        readonly display: 'Roll Table';
     };
     readonly squads: {
-        readonly model: "Squads";
-        readonly display: "Squad";
+        readonly model: 'Squads';
+        readonly display: 'Squad';
     };
     readonly systems: {
-        readonly model: "Systems";
-        readonly display: "System";
+        readonly model: 'Systems';
+        readonly display: 'System';
     };
     readonly 'bio-titans': {
-        readonly model: "BioTitans";
-        readonly display: "Bio-Titan";
+        readonly model: 'BioTitans';
+        readonly display: 'Bio-Titan';
     };
     readonly traits: {
-        readonly model: "Traits";
-        readonly display: "Trait";
+        readonly model: 'Traits';
+        readonly display: 'Trait';
     };
     readonly vehicles: {
-        readonly model: "Vehicles";
-        readonly display: "Vehicle";
+        readonly model: 'Vehicles';
+        readonly display: 'Vehicle';
     };
     readonly sources: {
-        readonly model: "Sources";
-        readonly display: "Source";
+        readonly model: 'Sources';
+        readonly display: 'Source';
     };
     readonly 'tech-levels': {
-        readonly model: "TechLevels";
-        readonly display: "Tech Level";
+        readonly model: 'TechLevels';
+        readonly display: 'Tech Level';
     };
     readonly 'catalog-categories': {
-        readonly model: "CatalogCategories";
-        readonly display: "Catalog Category";
+        readonly model: 'CatalogCategories';
+        readonly display: 'Catalog Category';
         readonly entity: false;
     };
 };
@@ -1056,8 +1056,8 @@ import type { SearchOptions, SearchResult } from './search.js';
 export type * from './types/index.js';
 export type { EntitySchemaName, SchemaToEntityMap };
 export declare const EntitySchemaNames: Set<keyof SchemaToEntityMap>;
-export declare const SchemaToModelMap: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["model"]; };
-export declare const SchemaToDisplayName: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["display"]; };
+export declare const SchemaToModelMap: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['model']; };
+export declare const SchemaToDisplayName: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]['display']; };
 /**
  * Main ORM class with static model accessors
  *
@@ -2540,10 +2540,6 @@ type ModelLike<T extends RefEntity> = {
 export declare function resolveRef<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null;
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
 export declare function resolveChassisRef(ref: string): ({
-    id: string;
-    name: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
     structurePoints: number;
     energyPoints: number;
     heatCapacity: number;
@@ -2552,9 +2548,83 @@ export declare function resolveChassisRef(ref: string): ({
     cargoCapacity: number;
     techLevel: number | "B" | "N";
     salvageValue: number;
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    id: string;
+    blackMarket?: boolean | undefined;
+    name: string;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+        booklet?: string | undefined;
+        page: number;
+    }[] | undefined;
     chassisAbilities: string[];
     patterns: {
         name: string;
+        content?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        legalStarting?: boolean | undefined;
+        hidden?: boolean | undefined;
+        source?: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!" | undefined;
+        page?: number | undefined;
+        booklet?: string | undefined;
+        additionalSources?: {
+            source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+            booklet?: string | undefined;
+            page: number;
+        }[] | undefined;
         systems: {
             name: string;
             count?: number | undefined;
@@ -2565,165 +2635,52 @@ export declare function resolveChassisRef(ref: string): ({
             count?: number | undefined;
             preselectedChoices?: Record<string, string> | undefined;
         }[];
-        content?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-            value?: string | {
-                label: string | number;
-                value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
-                unit?: string | undefined;
-                perTechLevel?: number | undefined;
-            }[] | undefined;
-            label?: string | undefined;
-            level?: number | undefined;
-            lead?: boolean | undefined;
-            choiceId?: string | undefined;
-            items?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-                value?: string | {
-                    label: string | number;
-                    value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
-                    unit?: string | undefined;
-                    perTechLevel?: number | undefined;
-                }[] | undefined;
-                label?: string | undefined;
-                level?: number | undefined;
-            }[] | undefined;
-        }[] | undefined;
-        legalStarting?: boolean | undefined;
-        hidden?: boolean | undefined;
-        source?: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag" | undefined;
-        page?: number | undefined;
-        booklet?: string | undefined;
-        additionalSources?: {
-            source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-            page: number;
-            booklet?: string | undefined;
-        }[] | undefined;
         drones?: {
             name: string;
+            ref?: string | undefined;
             systems: string[];
             modules: string[];
-            ref?: string | undefined;
         }[] | undefined;
     }[];
-    hasArtwork?: boolean | undefined;
-    content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-        value?: string | {
-            label: string | number;
-            value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
-            unit?: string | undefined;
-            perTechLevel?: number | undefined;
-        }[] | undefined;
-        label?: string | undefined;
-        level?: number | undefined;
-        lead?: boolean | undefined;
-        choiceId?: string | undefined;
-        items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-            value?: string | {
-                label: string | number;
-                value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
-                unit?: string | undefined;
-                perTechLevel?: number | undefined;
-            }[] | undefined;
-            label?: string | undefined;
-            level?: number | undefined;
-        }[] | undefined;
-    }[] | undefined;
-    blackMarket?: boolean | undefined;
-    booklet?: string | undefined;
-    additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
-        booklet?: string | undefined;
-    }[] | undefined;
 } & {
     schemaName: string;
 }) | null;
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
 export declare function resolveSystemRef(ref: string): ({
-    id: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
-    name: string;
-    techLevel: number | "B" | "N";
-    slotsRequired: number;
-    salvageValue: number;
-    actions: string[];
-    hasArtwork?: boolean | undefined;
-    content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-        value?: string | {
-            label: string | number;
-            value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
-            unit?: string | undefined;
-            perTechLevel?: number | undefined;
-        }[] | undefined;
-        label?: string | undefined;
-        level?: number | undefined;
-        lead?: boolean | undefined;
-        choiceId?: string | undefined;
-        items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-            value?: string | {
-                label: string | number;
-                value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
-                unit?: string | undefined;
-                perTechLevel?: number | undefined;
-            }[] | undefined;
-            label?: string | undefined;
-            level?: number | undefined;
-        }[] | undefined;
-    }[] | undefined;
-    blackMarket?: boolean | undefined;
-    booklet?: string | undefined;
-    additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
-        booklet?: string | undefined;
-    }[] | undefined;
-    traits?: {
-        type: string;
-        amount?: string | number | undefined;
-    }[] | undefined;
     structurePoints?: number | undefined;
     energyPoints?: number | undefined;
     heatCapacity?: number | undefined;
     systemSlots?: number | undefined;
     moduleSlots?: number | undefined;
     cargoCapacity?: number | undefined;
+    techLevel: number | "B" | "N";
+    slotsRequired: number;
+    salvageValue: number;
     recommended?: boolean | undefined;
     count?: number | undefined;
     contributions?: {
-        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
         amount: number | {
-            perTechLevel: number;
             flat?: number | undefined;
+            perTechLevel: number;
         } | {
-            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+            fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
         };
-        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+        target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
         stacks?: boolean | undefined;
         voidWhen?: "damaged" | "destroyed" | undefined;
-        duration?: "permanent" | "activated" | undefined;
+        duration?: "activated" | "permanent" | undefined;
         note?: string | undefined;
     }[] | undefined;
     appliedEffects?: ({
         op: "addTrait";
         value: string;
         amount?: string | number | undefined;
-        target?: "self" | "hostMech" | undefined;
+        target?: "hostMech" | "self" | undefined;
     } | {
         op: "removeTrait";
         value: string;
-        target?: "self" | "hostMech" | undefined;
+        target?: "hostMech" | "self" | undefined;
     } | {
         op: "setRange";
         value: string | number;
@@ -2732,84 +2689,88 @@ export declare function resolveSystemRef(ref: string): ({
         value: string | number;
         unit?: string | undefined;
     })[] | undefined;
+    actions: string[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    id: string;
+    blackMarket?: boolean | undefined;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+        booklet?: string | undefined;
+        page: number;
+    }[] | undefined;
+    name: string;
+    traits?: {
+        amount?: string | number | undefined;
+        type: string;
+    }[] | undefined;
 } & {
     schemaName: string;
 }) | null;
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
 export declare function resolveModuleRef(ref: string): ({
-    id: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
-    name: string;
-    techLevel: number | "B" | "N";
-    slotsRequired: number;
-    salvageValue: number;
-    actions: string[];
-    hasArtwork?: boolean | undefined;
-    content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-        value?: string | {
-            label: string | number;
-            value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
-            unit?: string | undefined;
-            perTechLevel?: number | undefined;
-        }[] | undefined;
-        label?: string | undefined;
-        level?: number | undefined;
-        lead?: boolean | undefined;
-        choiceId?: string | undefined;
-        items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-            value?: string | {
-                label: string | number;
-                value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
-                unit?: string | undefined;
-                perTechLevel?: number | undefined;
-            }[] | undefined;
-            label?: string | undefined;
-            level?: number | undefined;
-        }[] | undefined;
-    }[] | undefined;
-    blackMarket?: boolean | undefined;
-    booklet?: string | undefined;
-    additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
-        booklet?: string | undefined;
-    }[] | undefined;
     structurePoints?: number | undefined;
     energyPoints?: number | undefined;
     heatCapacity?: number | undefined;
     systemSlots?: number | undefined;
     moduleSlots?: number | undefined;
     cargoCapacity?: number | undefined;
+    techLevel: number | "B" | "N";
+    slotsRequired: number;
+    salvageValue: number;
     recommended?: boolean | undefined;
     count?: number | undefined;
     contributions?: {
-        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
         amount: number | {
-            perTechLevel: number;
             flat?: number | undefined;
+            perTechLevel: number;
         } | {
-            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+            fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
         };
-        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+        target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
         stacks?: boolean | undefined;
         voidWhen?: "damaged" | "destroyed" | undefined;
-        duration?: "permanent" | "activated" | undefined;
+        duration?: "activated" | "permanent" | undefined;
         note?: string | undefined;
     }[] | undefined;
     appliedEffects?: ({
         op: "addTrait";
         value: string;
         amount?: string | number | undefined;
-        target?: "self" | "hostMech" | undefined;
+        target?: "hostMech" | "self" | undefined;
     } | {
         op: "removeTrait";
         value: string;
-        target?: "self" | "hostMech" | undefined;
+        target?: "hostMech" | "self" | undefined;
     } | {
         op: "setRange";
         value: string | number;
@@ -2818,6 +2779,45 @@ export declare function resolveModuleRef(ref: string): ({
         value: string | number;
         unit?: string | undefined;
     })[] | undefined;
+    actions: string[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    id: string;
+    blackMarket?: boolean | undefined;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+        booklet?: string | undefined;
+        page: number;
+    }[] | undefined;
+    name: string;
 } & {
     schemaName: string;
 }) | null;
@@ -2826,79 +2826,40 @@ export declare function resolveModuleRef(ref: string): ({
  * cross-schema name collision, matching the historical lookup order.
  */
 export declare function resolveInstalledRef(ref: string): ({
-    id: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
-    name: string;
-    techLevel: number | "B" | "N";
-    slotsRequired: number;
-    salvageValue: number;
-    actions: string[];
-    hasArtwork?: boolean | undefined;
-    content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-        value?: string | {
-            label: string | number;
-            value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
-            unit?: string | undefined;
-            perTechLevel?: number | undefined;
-        }[] | undefined;
-        label?: string | undefined;
-        level?: number | undefined;
-        lead?: boolean | undefined;
-        choiceId?: string | undefined;
-        items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-            value?: string | {
-                label: string | number;
-                value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
-                unit?: string | undefined;
-                perTechLevel?: number | undefined;
-            }[] | undefined;
-            label?: string | undefined;
-            level?: number | undefined;
-        }[] | undefined;
-    }[] | undefined;
-    blackMarket?: boolean | undefined;
-    booklet?: string | undefined;
-    additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
-        booklet?: string | undefined;
-    }[] | undefined;
     structurePoints?: number | undefined;
     energyPoints?: number | undefined;
     heatCapacity?: number | undefined;
     systemSlots?: number | undefined;
     moduleSlots?: number | undefined;
     cargoCapacity?: number | undefined;
+    techLevel: number | "B" | "N";
+    slotsRequired: number;
+    salvageValue: number;
     recommended?: boolean | undefined;
     count?: number | undefined;
     contributions?: {
-        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
         amount: number | {
-            perTechLevel: number;
             flat?: number | undefined;
+            perTechLevel: number;
         } | {
-            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+            fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
         };
-        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+        target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
         stacks?: boolean | undefined;
         voidWhen?: "damaged" | "destroyed" | undefined;
-        duration?: "permanent" | "activated" | undefined;
+        duration?: "activated" | "permanent" | undefined;
         note?: string | undefined;
     }[] | undefined;
     appliedEffects?: ({
         op: "addTrait";
         value: string;
         amount?: string | number | undefined;
-        target?: "self" | "hostMech" | undefined;
+        target?: "hostMech" | "self" | undefined;
     } | {
         op: "removeTrait";
         value: string;
-        target?: "self" | "hostMech" | undefined;
+        target?: "hostMech" | "self" | undefined;
     } | {
         op: "setRange";
         value: string | number;
@@ -2907,6 +2868,45 @@ export declare function resolveInstalledRef(ref: string): ({
         value: string | number;
         unit?: string | undefined;
     })[] | undefined;
+    actions: string[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    id: string;
+    blackMarket?: boolean | undefined;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+        booklet?: string | undefined;
+        page: number;
+    }[] | undefined;
+    name: string;
 } & {
     schemaName: string;
 }) | null;
@@ -2925,19 +2925,52 @@ export declare function resolveInstalledRef(ref: string): ({
  * a linear scan.
  */
 export declare function resolveCrawlerRef(ref: string): ({
-    id: string;
-    name: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
-    npc: {
-        position: string;
-        hitPoints: number;
-        content?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    id: string;
+    blackMarket?: boolean | undefined;
+    name: string;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+        booklet?: string | undefined;
+        page: number;
+    }[] | undefined;
+    npc: {
+        position: string;
+        content?: {
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -2946,11 +2979,11 @@ export declare function resolveCrawlerRef(ref: string): ({
             lead?: boolean | undefined;
             choiceId?: string | undefined;
             items?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                 value?: string | {
                     label: string | number;
                     value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
                     unit?: string | undefined;
                     perTechLevel?: number | undefined;
                 }[] | undefined;
@@ -2958,15 +2991,16 @@ export declare function resolveCrawlerRef(ref: string): ({
                 level?: number | undefined;
             }[] | undefined;
         }[] | undefined;
+        hitPoints: number;
         choices?: {
             id: string;
             name: string;
             content?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                 value?: string | {
                     label: string | number;
                     value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
                     unit?: string | undefined;
                     perTechLevel?: number | undefined;
                 }[] | undefined;
@@ -2975,11 +3009,11 @@ export declare function resolveCrawlerRef(ref: string): ({
                 lead?: boolean | undefined;
                 choiceId?: string | undefined;
                 items?: {
-                    type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                    type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                     value?: string | {
                         label: string | number;
                         value?: string | number | undefined;
-                        type?: "keyword" | "trait" | "cost" | undefined;
+                        type?: "cost" | "keyword" | "trait" | undefined;
                         unit?: string | undefined;
                         perTechLevel?: number | undefined;
                     }[] | undefined;
@@ -2989,12 +3023,8 @@ export declare function resolveCrawlerRef(ref: string): ({
             }[] | undefined;
             rollTable?: string | undefined;
             schemaEntities?: string[] | undefined;
-            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
             customSystemOptions?: {
-                techLevel: number | "B" | "N";
-                slotsRequired: number;
-                salvageValue: number;
-                actions: string[];
                 structurePoints?: number | undefined;
                 energyPoints?: number | undefined;
                 heatCapacity?: number | undefined;
@@ -3002,31 +3032,34 @@ export declare function resolveCrawlerRef(ref: string): ({
                 moduleSlots?: number | undefined;
                 cargoCapacity?: number | undefined;
                 name?: string | undefined;
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
                 recommended?: boolean | undefined;
                 count?: number | undefined;
                 contributions?: {
-                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     amount: number | {
-                        perTechLevel: number;
                         flat?: number | undefined;
+                        perTechLevel: number;
                     } | {
-                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     };
-                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                     stacks?: boolean | undefined;
                     voidWhen?: "damaged" | "destroyed" | undefined;
-                    duration?: "permanent" | "activated" | undefined;
+                    duration?: "activated" | "permanent" | undefined;
                     note?: string | undefined;
                 }[] | undefined;
                 appliedEffects?: ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3035,6 +3068,7 @@ export declare function resolveCrawlerRef(ref: string): ({
                     value: string | number;
                     unit?: string | undefined;
                 })[] | undefined;
+                actions: string[];
             }[] | undefined;
             multiSelect?: boolean | undefined;
             choiceOptions?: {
@@ -3045,11 +3079,11 @@ export declare function resolveCrawlerRef(ref: string): ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3082,11 +3116,11 @@ export declare function resolveCrawlerRef(ref: string): ({
                         op: "addTrait";
                         value: string;
                         amount?: string | number | undefined;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "removeTrait";
                         value: string;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "setRange";
                         value: string | number;
@@ -3098,7 +3132,7 @@ export declare function resolveCrawlerRef(ref: string): ({
                 }[];
             } | {
                 kind: "catalog";
-                schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+                schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
                 entities?: string[] | undefined;
                 filter?: {
                     field?: string | undefined;
@@ -3110,10 +3144,6 @@ export declare function resolveCrawlerRef(ref: string): ({
             } | {
                 kind: "systemVariant";
                 options: {
-                    techLevel: number | "B" | "N";
-                    slotsRequired: number;
-                    salvageValue: number;
-                    actions: string[];
                     structurePoints?: number | undefined;
                     energyPoints?: number | undefined;
                     heatCapacity?: number | undefined;
@@ -3121,31 +3151,34 @@ export declare function resolveCrawlerRef(ref: string): ({
                     moduleSlots?: number | undefined;
                     cargoCapacity?: number | undefined;
                     name?: string | undefined;
+                    techLevel: number | "B" | "N";
+                    slotsRequired: number;
+                    salvageValue: number;
                     recommended?: boolean | undefined;
                     count?: number | undefined;
                     contributions?: {
-                        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                         amount: number | {
-                            perTechLevel: number;
                             flat?: number | undefined;
+                            perTechLevel: number;
                         } | {
-                            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                            fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                         };
-                        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                        target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                         stacks?: boolean | undefined;
                         voidWhen?: "damaged" | "destroyed" | undefined;
-                        duration?: "permanent" | "activated" | undefined;
+                        duration?: "activated" | "permanent" | undefined;
                         note?: string | undefined;
                     }[] | undefined;
                     appliedEffects?: ({
                         op: "addTrait";
                         value: string;
                         amount?: string | number | undefined;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "removeTrait";
                         value: string;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "setRange";
                         value: string | number;
@@ -3154,6 +3187,7 @@ export declare function resolveCrawlerRef(ref: string): ({
                         value: string | number;
                         unit?: string | undefined;
                     })[] | undefined;
+                    actions: string[];
                 }[];
             } | undefined;
             cardinality?: {
@@ -3166,42 +3200,8 @@ export declare function resolveCrawlerRef(ref: string): ({
         }[] | undefined;
     };
     actions: string[];
-    hasArtwork?: boolean | undefined;
-    content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-        value?: string | {
-            label: string | number;
-            value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
-            unit?: string | undefined;
-            perTechLevel?: number | undefined;
-        }[] | undefined;
-        label?: string | undefined;
-        level?: number | undefined;
-        lead?: boolean | undefined;
-        choiceId?: string | undefined;
-        items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
-            value?: string | {
-                label: string | number;
-                value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
-                unit?: string | undefined;
-                perTechLevel?: number | undefined;
-            }[] | undefined;
-            label?: string | undefined;
-            level?: number | undefined;
-        }[] | undefined;
-    }[] | undefined;
-    blackMarket?: boolean | undefined;
-    booklet?: string | undefined;
-    additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
-        booklet?: string | undefined;
-    }[] | undefined;
     mutations?: {
-        type: "weapon_slots" | "max_sp_bonus";
+        type: "max_sp_bonus" | "weapon_slots";
         value: number;
     }[] | undefined;
 } & {
@@ -3209,17 +3209,13 @@ export declare function resolveCrawlerRef(ref: string): ({
 }) | null;
 /** Resolve a crawler-bay ref (slug; legacy name/id tolerated). See `resolveCrawlerRef`. */
 export declare function resolveCrawlerBayRef(ref: string): ({
-    id: string;
-    name: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
     hasArtwork?: boolean | undefined;
     content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
         value?: string | {
             label: string | number;
             value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
             unit?: string | undefined;
             perTechLevel?: number | undefined;
         }[] | undefined;
@@ -3228,11 +3224,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
         lead?: boolean | undefined;
         choiceId?: string | undefined;
         items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -3240,24 +3236,27 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    id: string;
     blackMarket?: boolean | undefined;
+    name: string;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
     booklet?: string | undefined;
     additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
         booklet?: string | undefined;
+        page: number;
     }[] | undefined;
     expansion?: boolean | undefined;
     damagedEffect?: string | undefined;
     npc?: {
         position: string;
-        hitPoints: number;
         content?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -3266,11 +3265,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             lead?: boolean | undefined;
             choiceId?: string | undefined;
             items?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                 value?: string | {
                     label: string | number;
                     value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
                     unit?: string | undefined;
                     perTechLevel?: number | undefined;
                 }[] | undefined;
@@ -3278,15 +3277,16 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 level?: number | undefined;
             }[] | undefined;
         }[] | undefined;
+        hitPoints: number;
         choices?: {
             id: string;
             name: string;
             content?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                 value?: string | {
                     label: string | number;
                     value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
                     unit?: string | undefined;
                     perTechLevel?: number | undefined;
                 }[] | undefined;
@@ -3295,11 +3295,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 lead?: boolean | undefined;
                 choiceId?: string | undefined;
                 items?: {
-                    type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                    type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                     value?: string | {
                         label: string | number;
                         value?: string | number | undefined;
-                        type?: "keyword" | "trait" | "cost" | undefined;
+                        type?: "cost" | "keyword" | "trait" | undefined;
                         unit?: string | undefined;
                         perTechLevel?: number | undefined;
                     }[] | undefined;
@@ -3309,12 +3309,8 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             }[] | undefined;
             rollTable?: string | undefined;
             schemaEntities?: string[] | undefined;
-            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
             customSystemOptions?: {
-                techLevel: number | "B" | "N";
-                slotsRequired: number;
-                salvageValue: number;
-                actions: string[];
                 structurePoints?: number | undefined;
                 energyPoints?: number | undefined;
                 heatCapacity?: number | undefined;
@@ -3322,31 +3318,34 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 moduleSlots?: number | undefined;
                 cargoCapacity?: number | undefined;
                 name?: string | undefined;
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
                 recommended?: boolean | undefined;
                 count?: number | undefined;
                 contributions?: {
-                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     amount: number | {
-                        perTechLevel: number;
                         flat?: number | undefined;
+                        perTechLevel: number;
                     } | {
-                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     };
-                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                     stacks?: boolean | undefined;
                     voidWhen?: "damaged" | "destroyed" | undefined;
-                    duration?: "permanent" | "activated" | undefined;
+                    duration?: "activated" | "permanent" | undefined;
                     note?: string | undefined;
                 }[] | undefined;
                 appliedEffects?: ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3355,6 +3354,7 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                     value: string | number;
                     unit?: string | undefined;
                 })[] | undefined;
+                actions: string[];
             }[] | undefined;
             multiSelect?: boolean | undefined;
             choiceOptions?: {
@@ -3365,11 +3365,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3402,11 +3402,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                         op: "addTrait";
                         value: string;
                         amount?: string | number | undefined;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "removeTrait";
                         value: string;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "setRange";
                         value: string | number;
@@ -3418,7 +3418,7 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 }[];
             } | {
                 kind: "catalog";
-                schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+                schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
                 entities?: string[] | undefined;
                 filter?: {
                     field?: string | undefined;
@@ -3430,10 +3430,6 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             } | {
                 kind: "systemVariant";
                 options: {
-                    techLevel: number | "B" | "N";
-                    slotsRequired: number;
-                    salvageValue: number;
-                    actions: string[];
                     structurePoints?: number | undefined;
                     energyPoints?: number | undefined;
                     heatCapacity?: number | undefined;
@@ -3441,31 +3437,34 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                     moduleSlots?: number | undefined;
                     cargoCapacity?: number | undefined;
                     name?: string | undefined;
+                    techLevel: number | "B" | "N";
+                    slotsRequired: number;
+                    salvageValue: number;
                     recommended?: boolean | undefined;
                     count?: number | undefined;
                     contributions?: {
-                        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                         amount: number | {
-                            perTechLevel: number;
                             flat?: number | undefined;
+                            perTechLevel: number;
                         } | {
-                            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                            fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                         };
-                        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                        target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                         stacks?: boolean | undefined;
                         voidWhen?: "damaged" | "destroyed" | undefined;
-                        duration?: "permanent" | "activated" | undefined;
+                        duration?: "activated" | "permanent" | undefined;
                         note?: string | undefined;
                     }[] | undefined;
                     appliedEffects?: ({
                         op: "addTrait";
                         value: string;
                         amount?: string | number | undefined;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "removeTrait";
                         value: string;
-                        target?: "self" | "hostMech" | undefined;
+                        target?: "hostMech" | "self" | undefined;
                     } | {
                         op: "setRange";
                         value: string | number;
@@ -3474,6 +3473,7 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                         value: string | number;
                         unit?: string | undefined;
                     })[] | undefined;
+                    actions: string[];
                 }[];
             } | undefined;
             cardinality?: {
@@ -3495,11 +3495,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
         id: string;
         name: string;
         content?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -3508,11 +3508,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             lead?: boolean | undefined;
             choiceId?: string | undefined;
             items?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                 value?: string | {
                     label: string | number;
                     value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
                     unit?: string | undefined;
                     perTechLevel?: number | undefined;
                 }[] | undefined;
@@ -3522,12 +3522,8 @@ export declare function resolveCrawlerBayRef(ref: string): ({
         }[] | undefined;
         rollTable?: string | undefined;
         schemaEntities?: string[] | undefined;
-        schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+        schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
         customSystemOptions?: {
-            techLevel: number | "B" | "N";
-            slotsRequired: number;
-            salvageValue: number;
-            actions: string[];
             structurePoints?: number | undefined;
             energyPoints?: number | undefined;
             heatCapacity?: number | undefined;
@@ -3535,31 +3531,34 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             moduleSlots?: number | undefined;
             cargoCapacity?: number | undefined;
             name?: string | undefined;
+            techLevel: number | "B" | "N";
+            slotsRequired: number;
+            salvageValue: number;
             recommended?: boolean | undefined;
             count?: number | undefined;
             contributions?: {
-                stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                 amount: number | {
-                    perTechLevel: number;
                     flat?: number | undefined;
+                    perTechLevel: number;
                 } | {
-                    fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                 };
-                target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                 stacks?: boolean | undefined;
                 voidWhen?: "damaged" | "destroyed" | undefined;
-                duration?: "permanent" | "activated" | undefined;
+                duration?: "activated" | "permanent" | undefined;
                 note?: string | undefined;
             }[] | undefined;
             appliedEffects?: ({
                 op: "addTrait";
                 value: string;
                 amount?: string | number | undefined;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "removeTrait";
                 value: string;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "setRange";
                 value: string | number;
@@ -3568,6 +3567,7 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 value: string | number;
                 unit?: string | undefined;
             })[] | undefined;
+            actions: string[];
         }[] | undefined;
         multiSelect?: boolean | undefined;
         choiceOptions?: {
@@ -3578,11 +3578,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 op: "addTrait";
                 value: string;
                 amount?: string | number | undefined;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "removeTrait";
                 value: string;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "setRange";
                 value: string | number;
@@ -3615,11 +3615,11 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3631,7 +3631,7 @@ export declare function resolveCrawlerBayRef(ref: string): ({
             }[];
         } | {
             kind: "catalog";
-            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
             entities?: string[] | undefined;
             filter?: {
                 field?: string | undefined;
@@ -3643,10 +3643,6 @@ export declare function resolveCrawlerBayRef(ref: string): ({
         } | {
             kind: "systemVariant";
             options: {
-                techLevel: number | "B" | "N";
-                slotsRequired: number;
-                salvageValue: number;
-                actions: string[];
                 structurePoints?: number | undefined;
                 energyPoints?: number | undefined;
                 heatCapacity?: number | undefined;
@@ -3654,31 +3650,34 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                 moduleSlots?: number | undefined;
                 cargoCapacity?: number | undefined;
                 name?: string | undefined;
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
                 recommended?: boolean | undefined;
                 count?: number | undefined;
                 contributions?: {
-                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     amount: number | {
-                        perTechLevel: number;
                         flat?: number | undefined;
+                        perTechLevel: number;
                     } | {
-                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     };
-                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                     stacks?: boolean | undefined;
                     voidWhen?: "damaged" | "destroyed" | undefined;
-                    duration?: "permanent" | "activated" | undefined;
+                    duration?: "activated" | "permanent" | undefined;
                     note?: string | undefined;
                 }[] | undefined;
                 appliedEffects?: ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3687,6 +3686,7 @@ export declare function resolveCrawlerBayRef(ref: string): ({
                     value: string | number;
                     unit?: string | undefined;
                 })[] | undefined;
+                actions: string[];
             }[];
         } | undefined;
         cardinality?: {
@@ -3706,11 +3706,11 @@ export declare function resolveActionRef(ref: string): ({
     id: string;
     name: string;
     content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
         value?: string | {
             label: string | number;
             value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
             unit?: string | undefined;
             perTechLevel?: number | undefined;
         }[] | undefined;
@@ -3719,11 +3719,11 @@ export declare function resolveActionRef(ref: string): ({
         lead?: boolean | undefined;
         choiceId?: string | undefined;
         items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -3741,11 +3741,11 @@ export declare function resolveActionRef(ref: string): ({
     salvageValue?: number | undefined;
     displayName?: string | undefined;
     activationCost?: number | "X" | undefined;
-    range?: ("Close" | "Medium" | "Long" | "Far")[] | undefined;
-    actionType?: "Long" | "Passive" | "Free" | "Reaction" | "Turn" | "Short" | "DownTime" | undefined;
+    range?: ("Close" | "Far" | "Long" | "Medium")[] | undefined;
+    actionType?: "DownTime" | "Free" | "Long" | "Passive" | "Reaction" | "Short" | "Turn" | undefined;
     traits?: {
-        type: string;
         amount?: string | number | undefined;
+        type: string;
     }[] | undefined;
     damage?: {
         damageType: "HP" | "SP";
@@ -3755,11 +3755,11 @@ export declare function resolveActionRef(ref: string): ({
         id: string;
         name: string;
         content?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -3768,11 +3768,11 @@ export declare function resolveActionRef(ref: string): ({
             lead?: boolean | undefined;
             choiceId?: string | undefined;
             items?: {
-                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
                 value?: string | {
                     label: string | number;
                     value?: string | number | undefined;
-                    type?: "keyword" | "trait" | "cost" | undefined;
+                    type?: "cost" | "keyword" | "trait" | undefined;
                     unit?: string | undefined;
                     perTechLevel?: number | undefined;
                 }[] | undefined;
@@ -3782,12 +3782,8 @@ export declare function resolveActionRef(ref: string): ({
         }[] | undefined;
         rollTable?: string | undefined;
         schemaEntities?: string[] | undefined;
-        schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+        schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
         customSystemOptions?: {
-            techLevel: number | "B" | "N";
-            slotsRequired: number;
-            salvageValue: number;
-            actions: string[];
             structurePoints?: number | undefined;
             energyPoints?: number | undefined;
             heatCapacity?: number | undefined;
@@ -3795,31 +3791,34 @@ export declare function resolveActionRef(ref: string): ({
             moduleSlots?: number | undefined;
             cargoCapacity?: number | undefined;
             name?: string | undefined;
+            techLevel: number | "B" | "N";
+            slotsRequired: number;
+            salvageValue: number;
             recommended?: boolean | undefined;
             count?: number | undefined;
             contributions?: {
-                stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                 amount: number | {
-                    perTechLevel: number;
                     flat?: number | undefined;
+                    perTechLevel: number;
                 } | {
-                    fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                 };
-                target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                 stacks?: boolean | undefined;
                 voidWhen?: "damaged" | "destroyed" | undefined;
-                duration?: "permanent" | "activated" | undefined;
+                duration?: "activated" | "permanent" | undefined;
                 note?: string | undefined;
             }[] | undefined;
             appliedEffects?: ({
                 op: "addTrait";
                 value: string;
                 amount?: string | number | undefined;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "removeTrait";
                 value: string;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "setRange";
                 value: string | number;
@@ -3828,6 +3827,7 @@ export declare function resolveActionRef(ref: string): ({
                 value: string | number;
                 unit?: string | undefined;
             })[] | undefined;
+            actions: string[];
         }[] | undefined;
         multiSelect?: boolean | undefined;
         choiceOptions?: {
@@ -3838,11 +3838,11 @@ export declare function resolveActionRef(ref: string): ({
                 op: "addTrait";
                 value: string;
                 amount?: string | number | undefined;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "removeTrait";
                 value: string;
-                target?: "self" | "hostMech" | undefined;
+                target?: "hostMech" | "self" | undefined;
             } | {
                 op: "setRange";
                 value: string | number;
@@ -3875,11 +3875,11 @@ export declare function resolveActionRef(ref: string): ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3891,7 +3891,7 @@ export declare function resolveActionRef(ref: string): ({
             }[];
         } | {
             kind: "catalog";
-            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles")[] | undefined;
             entities?: string[] | undefined;
             filter?: {
                 field?: string | undefined;
@@ -3903,10 +3903,6 @@ export declare function resolveActionRef(ref: string): ({
         } | {
             kind: "systemVariant";
             options: {
-                techLevel: number | "B" | "N";
-                slotsRequired: number;
-                salvageValue: number;
-                actions: string[];
                 structurePoints?: number | undefined;
                 energyPoints?: number | undefined;
                 heatCapacity?: number | undefined;
@@ -3914,31 +3910,34 @@ export declare function resolveActionRef(ref: string): ({
                 moduleSlots?: number | undefined;
                 cargoCapacity?: number | undefined;
                 name?: string | undefined;
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
                 recommended?: boolean | undefined;
                 count?: number | undefined;
                 contributions?: {
-                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    stat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     amount: number | {
-                        perTechLevel: number;
                         flat?: number | undefined;
+                        perTechLevel: number;
                     } | {
-                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        fromStat: "cargoCapacity" | "energyPoints" | "heatCapacity" | "inventorySlots" | "maxAp" | "maxHp" | "moduleSlots" | "structurePoints" | "systemSlots";
                     };
-                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    target?: "crawler" | "pilot" | "pilotedMech" | "self" | undefined;
                     stacks?: boolean | undefined;
                     voidWhen?: "damaged" | "destroyed" | undefined;
-                    duration?: "permanent" | "activated" | undefined;
+                    duration?: "activated" | "permanent" | undefined;
                     note?: string | undefined;
                 }[] | undefined;
                 appliedEffects?: ({
                     op: "addTrait";
                     value: string;
                     amount?: string | number | undefined;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "removeTrait";
                     value: string;
-                    target?: "self" | "hostMech" | undefined;
+                    target?: "hostMech" | "self" | undefined;
                 } | {
                     op: "setRange";
                     value: string | number;
@@ -3947,6 +3946,7 @@ export declare function resolveActionRef(ref: string): ({
                     value: string | number;
                     unit?: string | undefined;
                 })[] | undefined;
+                actions: string[];
             }[];
         } | undefined;
         cardinality?: {
@@ -3960,725 +3960,719 @@ export declare function resolveActionRef(ref: string): ({
     table?: {
         type: "standard";
         '1': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '11-19': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '6-10': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '2-5': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | {
         type: "alternate";
         '1': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '19-20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '11-18': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '6-10': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '2-5': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | {
         '1': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '2': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '3': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '4': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '5': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '6': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '7': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '8': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '9': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '10': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '11': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '12': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '13': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '14': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '15': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '16': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '17': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '18': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '19': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         type: "flat";
     } | {
         type: "dramatic";
         '20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | {
         type: "duos";
         '1-2': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '3-4': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '5-6': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '7-8': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '9-10': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '11-12': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '13-14': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '15-16': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '17-18': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '19-20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | {
         type: "bio-chassis";
         '1': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '2-3': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '4-5': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '6-8': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '9-10': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '11-19': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | {
         type: "columns";
         '1-4': {
             '1': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '2': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '3': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '4': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '5': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '6': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '7': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '8': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '9': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '10': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '11': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '12': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '13': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '14': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '15': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '16': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '17': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '18': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '19': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '20': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
         };
         '5-8': {
             '1': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '2': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '3': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '4': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '5': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '6': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '7': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '8': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '9': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '10': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '11': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '12': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '13': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '14': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '15': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '16': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '17': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '18': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '19': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '20': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
         };
         '9-12': {
             '1': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '2': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '3': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '4': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '5': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '6': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '7': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '8': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '9': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '10': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '11': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '12': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '13': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '14': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '15': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '16': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '17': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '18': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '19': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '20': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
         };
         '13-16': {
             '1': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '2': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '3': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '4': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '5': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '6': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '7': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '8': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '9': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '10': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '11': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '12': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '13': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '14': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '15': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '16': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '17': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '18': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '19': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '20': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
         };
         '17-20': {
             '1': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '2': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '3': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '4': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '5': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '6': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '7': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '8': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '9': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '10': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '11': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '12': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '13': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '14': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '15': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '16': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '17': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '18': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '19': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
             '20': {
-                value: string;
                 label?: string | undefined;
+                value: string;
             };
         };
     } | {
         type: "salvage-cache";
         '1': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '2-3': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '4-5': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '6-7': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '8-9': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '10-11': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '12-13': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '14-15': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '16-17': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '18-19': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | {
         type: "octet";
         '1': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '2-4': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '5-7': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '8-10': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '11-13': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '14-16': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '17-19': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
         '20': {
-            value: string;
             label?: string | undefined;
+            value: string;
         };
     } | undefined;
     tableName?: string | undefined;
     hidden?: boolean | undefined;
     activationCurrency?: "EP or AP" | "SP or HP" | "Variable" | undefined;
-    source?: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag" | undefined;
+    source?: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!" | undefined;
     page?: number | undefined;
-    actionSource?: "abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles" | undefined;
+    actionSource?: "abilities" | "ability-tree-requirements" | "bio-titans" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "factions" | "guides" | "keywords" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "systems" | "tech-levels" | "traits" | "vehicles" | undefined;
     drone?: string | undefined;
 } & {
     schemaName: string;
 }) | null;
 /** Resolve a pilot `classRef` (slug; legacy name/id tolerated). */
 export declare function resolveClassRef(ref: string): ({
-    id: string;
-    name: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
-    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
-    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
     hasArtwork?: boolean | undefined;
     content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
         value?: string | {
             label: string | number;
             value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
             unit?: string | undefined;
             perTechLevel?: number | undefined;
         }[] | undefined;
@@ -4687,11 +4681,11 @@ export declare function resolveClassRef(ref: string): ({
         lead?: boolean | undefined;
         choiceId?: string | undefined;
         items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -4699,31 +4693,30 @@ export declare function resolveClassRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    id: string;
     blackMarket?: boolean | undefined;
+    name: string;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
     booklet?: string | undefined;
     additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
         booklet?: string | undefined;
+        page: number;
     }[] | undefined;
     hybrid?: boolean | undefined;
+    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
 } & {
     schemaName: string;
 }) | ({
-    id: string;
-    name: string;
-    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-    page: number;
-    maxAbilities: number;
-    advanceable: boolean;
-    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
     hasArtwork?: boolean | undefined;
     content?: {
-        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
         value?: string | {
             label: string | number;
             value?: string | number | undefined;
-            type?: "keyword" | "trait" | "cost" | undefined;
+            type?: "cost" | "keyword" | "trait" | undefined;
             unit?: string | undefined;
             perTechLevel?: number | undefined;
         }[] | undefined;
@@ -4732,11 +4725,11 @@ export declare function resolveClassRef(ref: string): ({
         lead?: boolean | undefined;
         choiceId?: string | undefined;
         items?: {
-            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            type: "choice" | "datavalues" | "flavor" | "heading" | "hint" | "label" | "list-item" | "paragraph";
             value?: string | {
                 label: string | number;
                 value?: string | number | undefined;
-                type?: "keyword" | "trait" | "cost" | undefined;
+                type?: "cost" | "keyword" | "trait" | undefined;
                 unit?: string | undefined;
                 perTechLevel?: number | undefined;
             }[] | undefined;
@@ -4744,13 +4737,20 @@ export declare function resolveClassRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    id: string;
     blackMarket?: boolean | undefined;
+    name: string;
+    source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
+    page: number;
     booklet?: string | undefined;
     additionalSources?: {
-        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
-        page: number;
+        source: "False Flag" | "Mech Monday" | "Rainmaker" | "Reclamation of the Wastes" | "Relics of a Time Gone By" | "Salvage Union Starter Set" | "Salvage Union Workshop Manual" | "Thatcher's Mech Base" | "The Hive" | "We Were Here First!";
         booklet?: string | undefined;
+        page: number;
     }[] | undefined;
+    maxAbilities: number;
+    advanceable: boolean;
+    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
     advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
     legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
 } & {
@@ -5480,22 +5480,22 @@ export declare const AbilitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5506,22 +5506,22 @@ export declare const AbilitySchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5534,31 +5534,31 @@ export declare const AbilitySchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -5604,18 +5604,19 @@ export declare const AbilitySchema: z.ZodObject<{
     }>;
     level: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"L">, z.ZodLiteral<"G">]>;
     mechActionType: z.ZodOptional<z.ZodEnum<{
+        DownTime: "DownTime";
+        Free: "Free";
         Long: "Long";
         Passive: "Passive";
-        Free: "Free";
         Reaction: "Reaction";
-        Turn: "Turn";
         Short: "Short";
-        DownTime: "DownTime";
+        Turn: "Turn";
     }>>;
     grants: z.ZodOptional<z.ZodArray<z.ZodObject<{
         schema: z.ZodUnion<readonly [z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -5625,18 +5626,17 @@ export declare const AbilitySchema: z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>, z.ZodLiteral<"choice">]>;
@@ -5650,37 +5650,37 @@ export declare const AbilitySchema: z.ZodObject<{
     actions: z.ZodArray<z.ZodString>;
     contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
         stat: z.ZodEnum<{
-            structurePoints: "structurePoints";
+            cargoCapacity: "cargoCapacity";
             energyPoints: "energyPoints";
             heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
             inventorySlots: "inventorySlots";
+            maxAp: "maxAp";
+            maxHp: "maxHp";
+            moduleSlots: "moduleSlots";
+            structurePoints: "structurePoints";
+            systemSlots: "systemSlots";
         }>;
         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
             flat: z.ZodOptional<z.ZodNumber>;
             perTechLevel: z.ZodNumber;
         }, z.core.$strict>, z.ZodObject<{
             fromStat: z.ZodEnum<{
-                structurePoints: "structurePoints";
+                cargoCapacity: "cargoCapacity";
                 energyPoints: "energyPoints";
                 heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
                 inventorySlots: "inventorySlots";
+                maxAp: "maxAp";
+                maxHp: "maxHp";
+                moduleSlots: "moduleSlots";
+                structurePoints: "structurePoints";
+                systemSlots: "systemSlots";
             }>;
         }, z.core.$strict>]>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
+            crawler: "crawler";
             pilot: "pilot";
             pilotedMech: "pilotedMech";
-            crawler: "crawler";
+            self: "self";
         }>>;
         stacks: z.ZodOptional<z.ZodBoolean>;
         voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -5688,8 +5688,8 @@ export declare const AbilitySchema: z.ZodObject<{
             destroyed: "destroyed";
         }>>;
         duration: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
             activated: "activated";
+            permanent: "permanent";
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
@@ -5701,22 +5701,22 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5727,22 +5727,22 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5755,31 +5755,31 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -5831,22 +5831,22 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
     name: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5857,22 +5857,22 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5893,18 +5893,18 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
     activationCost: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"X">]>>;
     range: z.ZodOptional<z.ZodArray<z.ZodEnum<{
         Close: "Close";
-        Medium: "Medium";
-        Long: "Long";
         Far: "Far";
+        Long: "Long";
+        Medium: "Medium";
     }>>>;
     actionType: z.ZodOptional<z.ZodEnum<{
+        DownTime: "DownTime";
+        Free: "Free";
         Long: "Long";
         Passive: "Passive";
-        Free: "Free";
         Reaction: "Reaction";
-        Turn: "Turn";
         Short: "Short";
-        DownTime: "DownTime";
+        Turn: "Turn";
     }>>;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
@@ -5922,22 +5922,22 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5948,22 +5948,22 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -5977,6 +5977,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -5986,18 +5987,17 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -6016,37 +6016,37 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -6054,8 +6054,8 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -6064,15 +6064,15 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -6094,15 +6094,15 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -6137,15 +6137,15 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -6161,6 +6161,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -6170,18 +6171,17 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -6213,37 +6213,37 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -6251,8 +6251,8 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -6261,15 +6261,15 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -6998,21 +6998,22 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         Variable: "Variable";
     }>>;
     source: z.ZodOptional<z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     actionSource: z.ZodOptional<z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -7022,18 +7023,17 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>>;
@@ -7051,22 +7051,22 @@ export declare const BioTitanSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7077,22 +7077,22 @@ export declare const BioTitanSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7105,31 +7105,31 @@ export declare const BioTitanSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -7145,25 +7145,33 @@ export declare const BioTitanSchema: z.ZodObject<{
  * Mech chassis definitions
  */
 export declare const ChassisSchema: z.ZodObject<{
+    structurePoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    energyPoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    heatCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    systemSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    moduleSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    cargoCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    techLevel: z.ZodNonOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>>;
+    salvageValue: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7174,22 +7182,22 @@ export declare const ChassisSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7202,64 +7210,56 @@ export declare const ChassisSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
-    structurePoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    energyPoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    heatCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    systemSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    moduleSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    cargoCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    techLevel: z.ZodNonOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>>;
-    salvageValue: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
     chassisAbilities: z.ZodArray<z.ZodString>;
     patterns: z.ZodArray<z.ZodLazy<z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7270,22 +7270,22 @@ export declare const ChassisSchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7297,31 +7297,31 @@ export declare const ChassisSchema: z.ZodObject<{
         legalStarting: z.ZodOptional<z.ZodBoolean>;
         hidden: z.ZodOptional<z.ZodBoolean>;
         source: z.ZodOptional<z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>>;
         page: z.ZodOptional<z.ZodNumber>;
         booklet: z.ZodOptional<z.ZodString>;
         additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
             source: z.ZodEnum<{
-                "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-                "Salvage Union Starter Set": "Salvage Union Starter Set";
-                "Reclamation of the Wastes": "Reclamation of the Wastes";
-                "The Hive": "The Hive";
-                "Thatcher's Mech Base": "Thatcher's Mech Base";
-                "Relics of a Time Gone By": "Relics of a Time Gone By";
-                "Mech Monday": "Mech Monday";
-                "We Were Here First!": "We Were Here First!";
-                Rainmaker: "Rainmaker";
                 "False Flag": "False Flag";
+                "Mech Monday": "Mech Monday";
+                Rainmaker: "Rainmaker";
+                "Reclamation of the Wastes": "Reclamation of the Wastes";
+                "Relics of a Time Gone By": "Relics of a Time Gone By";
+                "Salvage Union Starter Set": "Salvage Union Starter Set";
+                "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+                "Thatcher's Mech Base": "Thatcher's Mech Base";
+                "The Hive": "The Hive";
+                "We Were Here First!": "We Were Here First!";
             }>;
             booklet: z.ZodOptional<z.ZodString>;
             page: z.ZodNumber;
@@ -7351,22 +7351,22 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7377,22 +7377,22 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7405,31 +7405,31 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -7554,22 +7554,22 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7580,22 +7580,22 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7608,31 +7608,31 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -7738,22 +7738,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7764,22 +7764,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7792,31 +7792,31 @@ export declare const CrawlerBaySchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -7827,22 +7827,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         position: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7853,22 +7853,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7883,22 +7883,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             name: z.ZodString;
             content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7909,22 +7909,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 choiceId: z.ZodOptional<z.ZodString>;
                 items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                        paragraph: "paragraph";
-                        heading: "heading";
-                        "list-item": "list-item";
-                        label: "label";
-                        datavalues: "datavalues";
-                        hint: "hint";
-                        flavor: "flavor";
                         choice: "choice";
+                        datavalues: "datavalues";
+                        flavor: "flavor";
+                        heading: "heading";
+                        hint: "hint";
+                        label: "label";
+                        "list-item": "list-item";
+                        paragraph: "paragraph";
                     }>>>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                         label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                         type: z.ZodOptional<z.ZodEnum<{
+                            cost: "cost";
                             keyword: "keyword";
                             trait: "trait";
-                            cost: "cost";
                         }>>;
                         unit: z.ZodOptional<z.ZodString>;
                         perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -7938,6 +7938,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -7947,18 +7948,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -7977,37 +7977,37 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -8015,8 +8015,8 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -8025,15 +8025,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -8055,15 +8055,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -8098,15 +8098,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                         value: z.ZodString;
                         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"removeTrait">;
                         value: z.ZodString;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"setRange">;
@@ -8122,6 +8122,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                     abilities: "abilities";
                     "ability-tree-requirements": "ability-tree-requirements";
+                    "bio-titans": "bio-titans";
                     chassis: "chassis";
                     classes: "classes";
                     "crawler-bays": "crawler-bays";
@@ -8131,18 +8132,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     distances: "distances";
                     drones: "drones";
                     equipment: "equipment";
+                    factions: "factions";
                     guides: "guides";
                     keywords: "keywords";
-                    factions: "factions";
                     meld: "meld";
                     modules: "modules";
                     npcs: "npcs";
                     "roll-tables": "roll-tables";
                     sources: "sources";
                     squads: "squads";
-                    "tech-levels": "tech-levels";
                     systems: "systems";
-                    "bio-titans": "bio-titans";
+                    "tech-levels": "tech-levels";
                     traits: "traits";
                     vehicles: "vehicles";
                 }>>>;
@@ -8174,37 +8174,37 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     count: z.ZodOptional<z.ZodNumber>;
                     contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                         stat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                             flat: z.ZodOptional<z.ZodNumber>;
                             perTechLevel: z.ZodNumber;
                         }, z.core.$strict>, z.ZodObject<{
                             fromStat: z.ZodEnum<{
-                                structurePoints: "structurePoints";
+                                cargoCapacity: "cargoCapacity";
                                 energyPoints: "energyPoints";
                                 heatCapacity: "heatCapacity";
-                                systemSlots: "systemSlots";
-                                moduleSlots: "moduleSlots";
-                                cargoCapacity: "cargoCapacity";
-                                maxHp: "maxHp";
-                                maxAp: "maxAp";
                                 inventorySlots: "inventorySlots";
+                                maxAp: "maxAp";
+                                maxHp: "maxHp";
+                                moduleSlots: "moduleSlots";
+                                structurePoints: "structurePoints";
+                                systemSlots: "systemSlots";
                             }>;
                         }, z.core.$strict>]>;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
+                            crawler: "crawler";
                             pilot: "pilot";
                             pilotedMech: "pilotedMech";
-                            crawler: "crawler";
+                            self: "self";
                         }>>;
                         stacks: z.ZodOptional<z.ZodBoolean>;
                         voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -8212,8 +8212,8 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                             destroyed: "destroyed";
                         }>>;
                         duration: z.ZodOptional<z.ZodEnum<{
-                            permanent: "permanent";
                             activated: "activated";
+                            permanent: "permanent";
                         }>>;
                         note: z.ZodOptional<z.ZodString>;
                     }, z.core.$strict>>>;
@@ -8222,15 +8222,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                         value: z.ZodString;
                         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"removeTrait">;
                         value: z.ZodString;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"setRange">;
@@ -8266,22 +8266,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8292,22 +8292,22 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8321,6 +8321,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -8330,18 +8331,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -8360,37 +8360,37 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -8398,8 +8398,8 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -8408,15 +8408,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -8438,15 +8438,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -8481,15 +8481,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -8505,6 +8505,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -8514,18 +8515,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -8557,37 +8557,37 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -8595,8 +8595,8 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -8605,15 +8605,15 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -8646,22 +8646,22 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8672,22 +8672,22 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8700,31 +8700,31 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -8743,22 +8743,22 @@ export declare const CrawlerSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8769,22 +8769,22 @@ export declare const CrawlerSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8797,31 +8797,31 @@ export declare const CrawlerSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -8830,22 +8830,22 @@ export declare const CrawlerSchema: z.ZodObject<{
         position: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8856,22 +8856,22 @@ export declare const CrawlerSchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8886,22 +8886,22 @@ export declare const CrawlerSchema: z.ZodObject<{
             name: z.ZodString;
             content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8912,22 +8912,22 @@ export declare const CrawlerSchema: z.ZodObject<{
                 choiceId: z.ZodOptional<z.ZodString>;
                 items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                        paragraph: "paragraph";
-                        heading: "heading";
-                        "list-item": "list-item";
-                        label: "label";
-                        datavalues: "datavalues";
-                        hint: "hint";
-                        flavor: "flavor";
                         choice: "choice";
+                        datavalues: "datavalues";
+                        flavor: "flavor";
+                        heading: "heading";
+                        hint: "hint";
+                        label: "label";
+                        "list-item": "list-item";
+                        paragraph: "paragraph";
                     }>>>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                         label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                         type: z.ZodOptional<z.ZodEnum<{
+                            cost: "cost";
                             keyword: "keyword";
                             trait: "trait";
-                            cost: "cost";
                         }>>;
                         unit: z.ZodOptional<z.ZodString>;
                         perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -8941,6 +8941,7 @@ export declare const CrawlerSchema: z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -8950,18 +8951,17 @@ export declare const CrawlerSchema: z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -8980,37 +8980,37 @@ export declare const CrawlerSchema: z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -9018,8 +9018,8 @@ export declare const CrawlerSchema: z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -9028,15 +9028,15 @@ export declare const CrawlerSchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -9058,15 +9058,15 @@ export declare const CrawlerSchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -9101,15 +9101,15 @@ export declare const CrawlerSchema: z.ZodObject<{
                         value: z.ZodString;
                         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"removeTrait">;
                         value: z.ZodString;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"setRange">;
@@ -9125,6 +9125,7 @@ export declare const CrawlerSchema: z.ZodObject<{
                 schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                     abilities: "abilities";
                     "ability-tree-requirements": "ability-tree-requirements";
+                    "bio-titans": "bio-titans";
                     chassis: "chassis";
                     classes: "classes";
                     "crawler-bays": "crawler-bays";
@@ -9134,18 +9135,17 @@ export declare const CrawlerSchema: z.ZodObject<{
                     distances: "distances";
                     drones: "drones";
                     equipment: "equipment";
+                    factions: "factions";
                     guides: "guides";
                     keywords: "keywords";
-                    factions: "factions";
                     meld: "meld";
                     modules: "modules";
                     npcs: "npcs";
                     "roll-tables": "roll-tables";
                     sources: "sources";
                     squads: "squads";
-                    "tech-levels": "tech-levels";
                     systems: "systems";
-                    "bio-titans": "bio-titans";
+                    "tech-levels": "tech-levels";
                     traits: "traits";
                     vehicles: "vehicles";
                 }>>>;
@@ -9177,37 +9177,37 @@ export declare const CrawlerSchema: z.ZodObject<{
                     count: z.ZodOptional<z.ZodNumber>;
                     contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                         stat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                             flat: z.ZodOptional<z.ZodNumber>;
                             perTechLevel: z.ZodNumber;
                         }, z.core.$strict>, z.ZodObject<{
                             fromStat: z.ZodEnum<{
-                                structurePoints: "structurePoints";
+                                cargoCapacity: "cargoCapacity";
                                 energyPoints: "energyPoints";
                                 heatCapacity: "heatCapacity";
-                                systemSlots: "systemSlots";
-                                moduleSlots: "moduleSlots";
-                                cargoCapacity: "cargoCapacity";
-                                maxHp: "maxHp";
-                                maxAp: "maxAp";
                                 inventorySlots: "inventorySlots";
+                                maxAp: "maxAp";
+                                maxHp: "maxHp";
+                                moduleSlots: "moduleSlots";
+                                structurePoints: "structurePoints";
+                                systemSlots: "systemSlots";
                             }>;
                         }, z.core.$strict>]>;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
+                            crawler: "crawler";
                             pilot: "pilot";
                             pilotedMech: "pilotedMech";
-                            crawler: "crawler";
+                            self: "self";
                         }>>;
                         stacks: z.ZodOptional<z.ZodBoolean>;
                         voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -9215,8 +9215,8 @@ export declare const CrawlerSchema: z.ZodObject<{
                             destroyed: "destroyed";
                         }>>;
                         duration: z.ZodOptional<z.ZodEnum<{
-                            permanent: "permanent";
                             activated: "activated";
+                            permanent: "permanent";
                         }>>;
                         note: z.ZodOptional<z.ZodString>;
                     }, z.core.$strict>>>;
@@ -9225,15 +9225,15 @@ export declare const CrawlerSchema: z.ZodObject<{
                         value: z.ZodString;
                         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"removeTrait">;
                         value: z.ZodString;
                         target: z.ZodOptional<z.ZodEnum<{
-                            self: "self";
                             hostMech: "hostMech";
+                            self: "self";
                         }>>;
                     }, z.core.$strict>, z.ZodObject<{
                         op: z.ZodLiteral<"setRange">;
@@ -9261,8 +9261,8 @@ export declare const CrawlerSchema: z.ZodObject<{
     actions: z.ZodArray<z.ZodString>;
     mutations: z.ZodOptional<z.ZodArray<z.ZodObject<{
         type: z.ZodEnum<{
-            weapon_slots: "weapon_slots";
             max_sp_bonus: "max_sp_bonus";
+            weapon_slots: "weapon_slots";
         }>;
         value: z.ZodNumber;
     }, z.core.$strict>>>;
@@ -9271,25 +9271,30 @@ export declare const CrawlerSchema: z.ZodObject<{
  * Creatures and wildlife
  */
 export declare const CreatureSchema: z.ZodObject<{
+    actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+        type: z.ZodString;
+    }, z.core.$strict>>>;
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9300,22 +9305,22 @@ export declare const CreatureSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9328,39 +9333,34 @@ export declare const CreatureSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
-    }, z.core.$strict>>>;
-    actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-        type: z.ZodString;
     }, z.core.$strict>>>;
     hitPoints: z.ZodNumber;
 }, z.core.$strict>;
@@ -9373,53 +9373,53 @@ export declare const DistanceSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9430,22 +9430,22 @@ export declare const DistanceSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9464,31 +9464,31 @@ export declare const TechLevelEntitySchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -9496,22 +9496,22 @@ export declare const TechLevelEntitySchema: z.ZodObject<{
     techLevel: z.ZodNumber;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9522,22 +9522,22 @@ export declare const TechLevelEntitySchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9555,92 +9555,6 @@ export declare const TechLevelEntitySchema: z.ZodObject<{
  * Actions" entry — and equipped `modules`, mirroring a mech statblock.
  */
 export declare const DroneSchema: z.ZodObject<{
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    id: z.ZodString;
-    blackMarket: z.ZodOptional<z.ZodBoolean>;
-    name: z.ZodString;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
-    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
-            "False Flag": "False Flag";
-        }>;
-        booklet: z.ZodOptional<z.ZodString>;
-        page: z.ZodNumber;
-    }, z.core.$strict>>>;
     structurePoints: z.ZodOptional<z.ZodNumber>;
     techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
     salvageValue: z.ZodOptional<z.ZodNumber>;
@@ -9654,6 +9568,92 @@ export declare const DroneSchema: z.ZodObject<{
     systemSlots: z.ZodOptional<z.ZodNumber>;
     moduleSlots: z.ZodOptional<z.ZodNumber>;
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
+                keyword: "keyword";
+                trait: "trait";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
+                    keyword: "keyword";
+                    trait: "trait";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
+    id: z.ZodString;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
+    name: z.ZodString;
+    source: z.ZodEnum<{
+        "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        source: z.ZodEnum<{
+            "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
+        }>;
+        booklet: z.ZodOptional<z.ZodString>;
+        page: z.ZodNumber;
+    }, z.core.$strict>>>;
     actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
     modules: z.ZodOptional<z.ZodArray<z.ZodString>>;
     bonusPerTechLevel: z.ZodOptional<z.ZodObject<{
@@ -9671,22 +9671,22 @@ export declare const DroneSchema: z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9697,22 +9697,22 @@ export declare const DroneSchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -9726,6 +9726,7 @@ export declare const DroneSchema: z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -9735,18 +9736,17 @@ export declare const DroneSchema: z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -9765,37 +9765,37 @@ export declare const DroneSchema: z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -9803,8 +9803,8 @@ export declare const DroneSchema: z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -9813,15 +9813,15 @@ export declare const DroneSchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -9843,15 +9843,15 @@ export declare const DroneSchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -9886,15 +9886,15 @@ export declare const DroneSchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -9910,6 +9910,7 @@ export declare const DroneSchema: z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -9919,18 +9920,17 @@ export declare const DroneSchema: z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -9962,37 +9962,37 @@ export declare const DroneSchema: z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -10000,8 +10000,8 @@ export declare const DroneSchema: z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -10010,15 +10010,15 @@ export declare const DroneSchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -10047,25 +10047,32 @@ export declare const DroneSchema: z.ZodObject<{
  * Pilot equipment and gear
  */
 export declare const EquipmentSchema: z.ZodObject<{
+    structurePoints: z.ZodOptional<z.ZodNumber>;
+    energyPoints: z.ZodOptional<z.ZodNumber>;
+    heatCapacity: z.ZodOptional<z.ZodNumber>;
+    systemSlots: z.ZodOptional<z.ZodNumber>;
+    moduleSlots: z.ZodOptional<z.ZodNumber>;
+    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+    salvageValue: z.ZodOptional<z.ZodNumber>;
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10076,22 +10083,22 @@ export declare const EquipmentSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10104,42 +10111,35 @@ export declare const EquipmentSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
-    structurePoints: z.ZodOptional<z.ZodNumber>;
-    energyPoints: z.ZodOptional<z.ZodNumber>;
-    heatCapacity: z.ZodOptional<z.ZodNumber>;
-    systemSlots: z.ZodOptional<z.ZodNumber>;
-    moduleSlots: z.ZodOptional<z.ZodNumber>;
-    cargoCapacity: z.ZodOptional<z.ZodNumber>;
-    salvageValue: z.ZodOptional<z.ZodNumber>;
     techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
     actions: z.ZodArray<z.ZodString>;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
@@ -10161,22 +10161,22 @@ export declare const EquipmentSchema: z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10187,22 +10187,22 @@ export declare const EquipmentSchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10216,6 +10216,7 @@ export declare const EquipmentSchema: z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -10225,18 +10226,17 @@ export declare const EquipmentSchema: z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -10255,37 +10255,37 @@ export declare const EquipmentSchema: z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -10293,8 +10293,8 @@ export declare const EquipmentSchema: z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -10303,15 +10303,15 @@ export declare const EquipmentSchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -10333,15 +10333,15 @@ export declare const EquipmentSchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -10376,15 +10376,15 @@ export declare const EquipmentSchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -10400,6 +10400,7 @@ export declare const EquipmentSchema: z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -10409,18 +10410,17 @@ export declare const EquipmentSchema: z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -10452,37 +10452,37 @@ export declare const EquipmentSchema: z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -10490,8 +10490,8 @@ export declare const EquipmentSchema: z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -10500,15 +10500,15 @@ export declare const EquipmentSchema: z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -10542,31 +10542,31 @@ export declare const FactionSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -10580,6 +10580,7 @@ export declare const FactionSchema: z.ZodObject<{
         schema: z.ZodOptional<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -10589,54 +10590,53 @@ export declare const FactionSchema: z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>;
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         page: z.ZodNumber;
         quantity: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strict>>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10647,22 +10647,22 @@ export declare const FactionSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10681,53 +10681,53 @@ export declare const KeywordSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10738,22 +10738,22 @@ export declare const KeywordSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10770,22 +10770,22 @@ export declare const MeldSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10796,22 +10796,22 @@ export declare const MeldSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -10824,31 +10824,31 @@ export declare const MeldSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -10866,92 +10866,6 @@ export declare const MeldSchema: z.ZodObject<{
  * Mech modules
  */
 export declare const ModuleSchema: z.ZodObject<{
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    id: z.ZodString;
-    blackMarket: z.ZodOptional<z.ZodBoolean>;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
-    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
-            "False Flag": "False Flag";
-        }>;
-        booklet: z.ZodOptional<z.ZodString>;
-        page: z.ZodNumber;
-    }, z.core.$strict>>>;
-    name: z.ZodString;
     structurePoints: z.ZodOptional<z.ZodNumber>;
     energyPoints: z.ZodOptional<z.ZodNumber>;
     heatCapacity: z.ZodOptional<z.ZodNumber>;
@@ -10965,37 +10879,37 @@ export declare const ModuleSchema: z.ZodObject<{
     count: z.ZodOptional<z.ZodNumber>;
     contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
         stat: z.ZodEnum<{
-            structurePoints: "structurePoints";
+            cargoCapacity: "cargoCapacity";
             energyPoints: "energyPoints";
             heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
             inventorySlots: "inventorySlots";
+            maxAp: "maxAp";
+            maxHp: "maxHp";
+            moduleSlots: "moduleSlots";
+            structurePoints: "structurePoints";
+            systemSlots: "systemSlots";
         }>;
         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
             flat: z.ZodOptional<z.ZodNumber>;
             perTechLevel: z.ZodNumber;
         }, z.core.$strict>, z.ZodObject<{
             fromStat: z.ZodEnum<{
-                structurePoints: "structurePoints";
+                cargoCapacity: "cargoCapacity";
                 energyPoints: "energyPoints";
                 heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
                 inventorySlots: "inventorySlots";
+                maxAp: "maxAp";
+                maxHp: "maxHp";
+                moduleSlots: "moduleSlots";
+                structurePoints: "structurePoints";
+                systemSlots: "systemSlots";
             }>;
         }, z.core.$strict>]>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
+            crawler: "crawler";
             pilot: "pilot";
             pilotedMech: "pilotedMech";
-            crawler: "crawler";
+            self: "self";
         }>>;
         stacks: z.ZodOptional<z.ZodBoolean>;
         voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -11003,8 +10917,8 @@ export declare const ModuleSchema: z.ZodObject<{
             destroyed: "destroyed";
         }>>;
         duration: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
             activated: "activated";
+            permanent: "permanent";
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
@@ -11013,15 +10927,15 @@ export declare const ModuleSchema: z.ZodObject<{
         value: z.ZodString;
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"removeTrait">;
         value: z.ZodString;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"setRange">;
@@ -11032,30 +10946,25 @@ export declare const ModuleSchema: z.ZodObject<{
         unit: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>], "op">>>;
     actions: z.ZodArray<z.ZodString>;
-}, z.core.$strict>;
-/**
- * Non-player characters and people
- */
-export declare const NPCSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -11066,22 +10975,118 @@ export declare const NPCSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
+    id: z.ZodString;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
+    source: z.ZodEnum<{
+        "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        source: z.ZodEnum<{
+            "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
+        }>;
+        booklet: z.ZodOptional<z.ZodString>;
+        page: z.ZodNumber;
+    }, z.core.$strict>>>;
+    name: z.ZodString;
+}, z.core.$strict>;
+/**
+ * Non-player characters and people
+ */
+export declare const NPCSchema: z.ZodObject<{
+    actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+        type: z.ZodString;
+    }, z.core.$strict>>>;
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
+                keyword: "keyword";
+                trait: "trait";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
                     cost: "cost";
+                    keyword: "keyword";
+                    trait: "trait";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -11094,39 +11099,34 @@ export declare const NPCSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
-    }, z.core.$strict>>>;
-    actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-        type: z.ZodString;
     }, z.core.$strict>>>;
     hitPoints: z.ZodNumber;
     damageType: z.ZodOptional<z.ZodEnum<{
@@ -11144,31 +11144,31 @@ export declare const RollTableSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -11872,22 +11872,22 @@ export declare const RollTableSchema: z.ZodObject<{
     }, z.core.$strict>], "type">;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -11898,22 +11898,22 @@ export declare const RollTableSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -11930,22 +11930,22 @@ export declare const SquadSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -11956,22 +11956,22 @@ export declare const SquadSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -11984,31 +11984,31 @@ export declare const SquadSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -12028,96 +12028,6 @@ export declare const SquadSchema: z.ZodObject<{
  * Mech systems
  */
 export declare const SystemSchema: z.ZodObject<{
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    id: z.ZodString;
-    blackMarket: z.ZodOptional<z.ZodBoolean>;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
-    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
-            "False Flag": "False Flag";
-        }>;
-        booklet: z.ZodOptional<z.ZodString>;
-        page: z.ZodNumber;
-    }, z.core.$strict>>>;
-    name: z.ZodString;
-    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-        type: z.ZodString;
-    }, z.core.$strict>>>;
     structurePoints: z.ZodOptional<z.ZodNumber>;
     energyPoints: z.ZodOptional<z.ZodNumber>;
     heatCapacity: z.ZodOptional<z.ZodNumber>;
@@ -12131,37 +12041,37 @@ export declare const SystemSchema: z.ZodObject<{
     count: z.ZodOptional<z.ZodNumber>;
     contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
         stat: z.ZodEnum<{
-            structurePoints: "structurePoints";
+            cargoCapacity: "cargoCapacity";
             energyPoints: "energyPoints";
             heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
             inventorySlots: "inventorySlots";
+            maxAp: "maxAp";
+            maxHp: "maxHp";
+            moduleSlots: "moduleSlots";
+            structurePoints: "structurePoints";
+            systemSlots: "systemSlots";
         }>;
         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
             flat: z.ZodOptional<z.ZodNumber>;
             perTechLevel: z.ZodNumber;
         }, z.core.$strict>, z.ZodObject<{
             fromStat: z.ZodEnum<{
-                structurePoints: "structurePoints";
+                cargoCapacity: "cargoCapacity";
                 energyPoints: "energyPoints";
                 heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
                 inventorySlots: "inventorySlots";
+                maxAp: "maxAp";
+                maxHp: "maxHp";
+                moduleSlots: "moduleSlots";
+                structurePoints: "structurePoints";
+                systemSlots: "systemSlots";
             }>;
         }, z.core.$strict>]>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
+            crawler: "crawler";
             pilot: "pilot";
             pilotedMech: "pilotedMech";
-            crawler: "crawler";
+            self: "self";
         }>>;
         stacks: z.ZodOptional<z.ZodBoolean>;
         voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -12169,8 +12079,8 @@ export declare const SystemSchema: z.ZodObject<{
             destroyed: "destroyed";
         }>>;
         duration: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
             activated: "activated";
+            permanent: "permanent";
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
@@ -12179,15 +12089,15 @@ export declare const SystemSchema: z.ZodObject<{
         value: z.ZodString;
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"removeTrait">;
         value: z.ZodString;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"setRange">;
@@ -12198,63 +12108,25 @@ export declare const SystemSchema: z.ZodObject<{
         unit: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>], "op">>>;
     actions: z.ZodArray<z.ZodString>;
-}, z.core.$strict>;
-/**
- * Traits and special properties
- */
-export declare const TraitEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    id: z.ZodString;
-    blackMarket: z.ZodOptional<z.ZodBoolean>;
-    name: z.ZodString;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
-    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
-            "False Flag": "False Flag";
-        }>;
-        booklet: z.ZodOptional<z.ZodString>;
-        page: z.ZodNumber;
-    }, z.core.$strict>>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12265,22 +12137,150 @@ export declare const TraitEntitySchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
+    id: z.ZodString;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
+    source: z.ZodEnum<{
+        "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        source: z.ZodEnum<{
+            "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
+        }>;
+        booklet: z.ZodOptional<z.ZodString>;
+        page: z.ZodNumber;
+    }, z.core.$strict>>>;
+    name: z.ZodString;
+    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+        type: z.ZodString;
+    }, z.core.$strict>>>;
+}, z.core.$strict>;
+/**
+ * Traits and special properties
+ */
+export declare const TraitEntitySchema: z.ZodObject<{
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    id: z.ZodString;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
+    name: z.ZodString;
+    source: z.ZodEnum<{
+        "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        source: z.ZodEnum<{
+            "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
+        }>;
+        booklet: z.ZodOptional<z.ZodString>;
+        page: z.ZodNumber;
+    }, z.core.$strict>>>;
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
+                keyword: "keyword";
+                trait: "trait";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
                     cost: "cost";
+                    keyword: "keyword";
+                    trait: "trait";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12299,38 +12299,37 @@ export declare const TraitEntitySchema: z.ZodObject<{
  * `modules` field — a vehicle carries neither (the schema is strict).
  */
 export declare const VehicleSchema: z.ZodObject<{
+    structurePoints: z.ZodOptional<z.ZodNumber>;
+    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
+    salvageValue: z.ZodOptional<z.ZodNumber>;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
         type: z.ZodString;
     }, z.core.$strict>>>;
-    structurePoints: z.ZodOptional<z.ZodNumber>;
     energyPoints: z.ZodOptional<z.ZodNumber>;
     heatCapacity: z.ZodOptional<z.ZodNumber>;
     systemSlots: z.ZodOptional<z.ZodNumber>;
     moduleSlots: z.ZodOptional<z.ZodNumber>;
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
-    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
-    salvageValue: z.ZodOptional<z.ZodNumber>;
-    name: z.ZodString;
-    id: z.ZodString;
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12341,22 +12340,22 @@ export declare const VehicleSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12365,34 +12364,35 @@ export declare const VehicleSchema: z.ZodObject<{
             level: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
+    id: z.ZodString;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
+    name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    blackMarket: z.ZodOptional<z.ZodBoolean>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -12406,22 +12406,22 @@ export declare const GuideSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12432,22 +12432,22 @@ export declare const GuideSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12460,74 +12460,74 @@ export declare const GuideSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
     guideType: z.ZodEnum<{
         "character-creation": "character-creation";
-        "mech-creation": "mech-creation";
         "crawler-creation": "crawler-creation";
-        progression: "progression";
         downtime: "downtime";
         gameplay: "gameplay";
+        "mech-creation": "mech-creation";
+        progression: "progression";
     }>;
     guideColor: z.ZodDefault<z.ZodString>;
     steps: z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
         stepType: z.ZodEnum<{
-            "select-one": "select-one";
-            "select-many": "select-many";
             freeform: "freeform";
-            "roll-table": "roll-table";
             info: "info";
+            "roll-table": "roll-table";
+            "select-many": "select-many";
+            "select-one": "select-one";
             "sub-guide": "sub-guide";
         }>;
         section: z.ZodOptional<z.ZodString>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12538,22 +12538,22 @@ export declare const GuideSchema: z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12565,6 +12565,7 @@ export declare const GuideSchema: z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -12574,18 +12575,17 @@ export declare const GuideSchema: z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>, z.ZodLiteral<"actions">]>>>;
@@ -12601,15 +12601,15 @@ export declare const GuideSchema: z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -12652,22 +12652,22 @@ export declare const SourceEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12678,22 +12678,22 @@ export declare const SourceEntitySchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -12706,31 +12706,31 @@ export declare const SourceEntitySchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -12747,6 +12747,7 @@ export declare const CatalogCategorySchema: z.ZodObject<{
     schemas: z.ZodArray<z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -12756,18 +12757,17 @@ export declare const CatalogCategorySchema: z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>>;
@@ -12783,59 +12783,59 @@ import { z } from '../zod.js';
  * The source book or expansion for this content
  */
 export declare const SourceSchema: z.ZodEnum<{
-    "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-    "Salvage Union Starter Set": "Salvage Union Starter Set";
-    "Reclamation of the Wastes": "Reclamation of the Wastes";
-    "The Hive": "The Hive";
-    "Thatcher's Mech Base": "Thatcher's Mech Base";
-    "Relics of a Time Gone By": "Relics of a Time Gone By";
-    "Mech Monday": "Mech Monday";
-    "We Were Here First!": "We Were Here First!";
-    Rainmaker: "Rainmaker";
     "False Flag": "False Flag";
+    "Mech Monday": "Mech Monday";
+    Rainmaker: "Rainmaker";
+    "Reclamation of the Wastes": "Reclamation of the Wastes";
+    "Relics of a Time Gone By": "Relics of a Time Gone By";
+    "Salvage Union Starter Set": "Salvage Union Starter Set";
+    "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+    "Thatcher's Mech Base": "Thatcher's Mech Base";
+    "The Hive": "The Hive";
+    "We Were Here First!": "We Were Here First!";
 }>;
 /**
  * Type of content block for rendering structured text
  */
 export declare const ContentTypeSchema: z.ZodEnum<{
-    paragraph: "paragraph";
-    heading: "heading";
-    "list-item": "list-item";
-    label: "label";
-    datavalues: "datavalues";
-    hint: "hint";
-    flavor: "flavor";
     choice: "choice";
+    datavalues: "datavalues";
+    flavor: "flavor";
+    heading: "heading";
+    hint: "hint";
+    label: "label";
+    "list-item": "list-item";
+    paragraph: "paragraph";
 }>;
 /**
  * Individual range value
  */
 export declare const RangeItemSchema: z.ZodEnum<{
     Close: "Close";
-    Medium: "Medium";
-    Long: "Long";
     Far: "Far";
+    Long: "Long";
+    Medium: "Medium";
 }>;
 /**
  * Range bands for abilities and weapons
  */
 export declare const RangeSchema: z.ZodArray<z.ZodEnum<{
     Close: "Close";
-    Medium: "Medium";
-    Long: "Long";
     Far: "Far";
+    Long: "Long";
+    Medium: "Medium";
 }>>;
 /**
  * Type of action required to use an ability
  */
 export declare const ActionTypeSchema: z.ZodEnum<{
+    DownTime: "DownTime";
+    Free: "Free";
     Long: "Long";
     Passive: "Passive";
-    Free: "Free";
     Reaction: "Reaction";
-    Turn: "Turn";
     Short: "Short";
-    DownTime: "DownTime";
+    Turn: "Turn";
 }>;
 /**
  * Type of damage
@@ -12898,6 +12898,7 @@ export declare const TreeSchema: z.ZodEnum<{
 export declare const SchemaNameSchema: z.ZodEnum<{
     abilities: "abilities";
     "ability-tree-requirements": "ability-tree-requirements";
+    "bio-titans": "bio-titans";
     chassis: "chassis";
     classes: "classes";
     "crawler-bays": "crawler-bays";
@@ -12907,18 +12908,17 @@ export declare const SchemaNameSchema: z.ZodEnum<{
     distances: "distances";
     drones: "drones";
     equipment: "equipment";
+    factions: "factions";
     guides: "guides";
     keywords: "keywords";
-    factions: "factions";
     meld: "meld";
     modules: "modules";
     npcs: "npcs";
     "roll-tables": "roll-tables";
     sources: "sources";
     squads: "squads";
-    "tech-levels": "tech-levels";
     systems: "systems";
-    "bio-titans": "bio-titans";
+    "tech-levels": "tech-levels";
     traits: "traits";
     vehicles: "vehicles";
 }>;
@@ -13049,22 +13049,22 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
     name: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -13075,22 +13075,22 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -13111,18 +13111,18 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
     activationCost: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"X">]>>;
     range: z.ZodOptional<z.ZodArray<z.ZodEnum<{
         Close: "Close";
-        Medium: "Medium";
-        Long: "Long";
         Far: "Far";
+        Long: "Long";
+        Medium: "Medium";
     }>>>;
     actionType: z.ZodOptional<z.ZodEnum<{
+        DownTime: "DownTime";
+        Free: "Free";
         Long: "Long";
         Passive: "Passive";
-        Free: "Free";
         Reaction: "Reaction";
-        Turn: "Turn";
         Short: "Short";
-        DownTime: "DownTime";
+        Turn: "Turn";
     }>>;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
@@ -13140,22 +13140,22 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -13166,22 +13166,22 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -13195,6 +13195,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -13204,18 +13205,17 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -13234,37 +13234,37 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -13272,8 +13272,8 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -13282,15 +13282,15 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -13312,15 +13312,15 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -13355,15 +13355,15 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -13379,6 +13379,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -13388,18 +13389,17 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -13431,37 +13431,37 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -13469,8 +13469,8 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -13479,15 +13479,15 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -14216,21 +14216,22 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         Variable: "Variable";
     }>>;
     source: z.ZodOptional<z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     actionSource: z.ZodOptional<z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -14240,18 +14241,17 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>>;
@@ -14282,15 +14282,15 @@ export declare const ChoiceOptionSchema: z.ZodObject<{
         value: z.ZodString;
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"removeTrait">;
         value: z.ZodString;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"setRange">;
@@ -14319,22 +14319,22 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     name: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -14345,22 +14345,22 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -14374,6 +14374,7 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -14383,18 +14384,17 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>>>;
@@ -14413,37 +14413,37 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
         count: z.ZodOptional<z.ZodNumber>;
         contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
             stat: z.ZodEnum<{
-                structurePoints: "structurePoints";
+                cargoCapacity: "cargoCapacity";
                 energyPoints: "energyPoints";
                 heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
                 inventorySlots: "inventorySlots";
+                maxAp: "maxAp";
+                maxHp: "maxHp";
+                moduleSlots: "moduleSlots";
+                structurePoints: "structurePoints";
+                systemSlots: "systemSlots";
             }>;
             amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                 flat: z.ZodOptional<z.ZodNumber>;
                 perTechLevel: z.ZodNumber;
             }, z.core.$strict>, z.ZodObject<{
                 fromStat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
             }, z.core.$strict>]>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
+                crawler: "crawler";
                 pilot: "pilot";
                 pilotedMech: "pilotedMech";
-                crawler: "crawler";
+                self: "self";
             }>>;
             stacks: z.ZodOptional<z.ZodBoolean>;
             voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -14451,8 +14451,8 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
                 destroyed: "destroyed";
             }>>;
             duration: z.ZodOptional<z.ZodEnum<{
-                permanent: "permanent";
                 activated: "activated";
+                permanent: "permanent";
             }>>;
             note: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>>;
@@ -14461,15 +14461,15 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
             value: z.ZodString;
             amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"removeTrait">;
             value: z.ZodString;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"setRange">;
@@ -14491,15 +14491,15 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
             value: z.ZodString;
             amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"removeTrait">;
             value: z.ZodString;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"setRange">;
@@ -14534,15 +14534,15 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -14558,6 +14558,7 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -14567,18 +14568,17 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -14610,37 +14610,37 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -14648,8 +14648,8 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -14658,15 +14658,15 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -14698,22 +14698,22 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     name: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -14724,22 +14724,22 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -14753,6 +14753,7 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -14762,18 +14763,17 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>>>;
@@ -14792,37 +14792,37 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         count: z.ZodOptional<z.ZodNumber>;
         contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
             stat: z.ZodEnum<{
-                structurePoints: "structurePoints";
+                cargoCapacity: "cargoCapacity";
                 energyPoints: "energyPoints";
                 heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
                 inventorySlots: "inventorySlots";
+                maxAp: "maxAp";
+                maxHp: "maxHp";
+                moduleSlots: "moduleSlots";
+                structurePoints: "structurePoints";
+                systemSlots: "systemSlots";
             }>;
             amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                 flat: z.ZodOptional<z.ZodNumber>;
                 perTechLevel: z.ZodNumber;
             }, z.core.$strict>, z.ZodObject<{
                 fromStat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
             }, z.core.$strict>]>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
+                crawler: "crawler";
                 pilot: "pilot";
                 pilotedMech: "pilotedMech";
-                crawler: "crawler";
+                self: "self";
             }>>;
             stacks: z.ZodOptional<z.ZodBoolean>;
             voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -14830,8 +14830,8 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
                 destroyed: "destroyed";
             }>>;
             duration: z.ZodOptional<z.ZodEnum<{
-                permanent: "permanent";
                 activated: "activated";
+                permanent: "permanent";
             }>>;
             note: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>>;
@@ -14840,15 +14840,15 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
             value: z.ZodString;
             amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"removeTrait">;
             value: z.ZodString;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"setRange">;
@@ -14870,15 +14870,15 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
             value: z.ZodString;
             amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"removeTrait">;
             value: z.ZodString;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"setRange">;
@@ -14913,15 +14913,15 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -14937,6 +14937,7 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -14946,18 +14947,17 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -14989,37 +14989,37 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -15027,8 +15027,8 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -15037,15 +15037,15 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -15086,22 +15086,22 @@ import { z } from '../../zod.js';
  */
 export declare const ContentBlockSchema: z.ZodLazy<z.ZodObject<{
     type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-        paragraph: "paragraph";
-        heading: "heading";
-        "list-item": "list-item";
-        label: "label";
-        datavalues: "datavalues";
-        hint: "hint";
-        flavor: "flavor";
         choice: "choice";
+        datavalues: "datavalues";
+        flavor: "flavor";
+        heading: "heading";
+        hint: "hint";
+        label: "label";
+        "list-item": "list-item";
+        paragraph: "paragraph";
     }>>>;
     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
         label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
         type: z.ZodOptional<z.ZodEnum<{
+            cost: "cost";
             keyword: "keyword";
             trait: "trait";
-            cost: "cost";
         }>>;
         unit: z.ZodOptional<z.ZodString>;
         perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15112,22 +15112,22 @@ export declare const ContentBlockSchema: z.ZodLazy<z.ZodObject<{
     choiceId: z.ZodOptional<z.ZodString>;
     items: z.ZodOptional<z.ZodArray<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15141,22 +15141,22 @@ export declare const ContentBlockSchema: z.ZodLazy<z.ZodObject<{
  */
 export declare const ContentSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-        paragraph: "paragraph";
-        heading: "heading";
-        "list-item": "list-item";
-        label: "label";
-        datavalues: "datavalues";
-        hint: "hint";
-        flavor: "flavor";
         choice: "choice";
+        datavalues: "datavalues";
+        flavor: "flavor";
+        heading: "heading";
+        hint: "hint";
+        label: "label";
+        "list-item": "list-item";
+        paragraph: "paragraph";
     }>>>;
     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
         label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
         type: z.ZodOptional<z.ZodEnum<{
+            cost: "cost";
             keyword: "keyword";
             trait: "trait";
-            cost: "cost";
         }>>;
         unit: z.ZodOptional<z.ZodString>;
         perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15167,22 +15167,22 @@ export declare const ContentSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     choiceId: z.ZodOptional<z.ZodString>;
     items: z.ZodOptional<z.ZodArray<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15208,15 +15208,15 @@ import { z } from '../../zod.js';
  * which the mech-only shape could express.
  */
 export declare const ContributionStatSchema: z.ZodEnum<{
-    structurePoints: "structurePoints";
+    cargoCapacity: "cargoCapacity";
     energyPoints: "energyPoints";
     heatCapacity: "heatCapacity";
-    systemSlots: "systemSlots";
-    moduleSlots: "moduleSlots";
-    cargoCapacity: "cargoCapacity";
-    maxHp: "maxHp";
-    maxAp: "maxAp";
     inventorySlots: "inventorySlots";
+    maxAp: "maxAp";
+    maxHp: "maxHp";
+    moduleSlots: "moduleSlots";
+    structurePoints: "structurePoints";
+    systemSlots: "systemSlots";
 }>;
 /**
  * Whose stat a contribution changes.
@@ -15228,10 +15228,10 @@ export declare const ContributionStatSchema: z.ZodEnum<{
  * could express.
  */
 export declare const ContributionTargetSchema: z.ZodEnum<{
-    self: "self";
+    crawler: "crawler";
     pilot: "pilot";
     pilotedMech: "pilotedMech";
-    crawler: "crawler";
+    self: "self";
 }>;
 /**
  * How much a contribution is worth.
@@ -15247,15 +15247,15 @@ export declare const ContributionAmountSchema: z.ZodUnion<readonly [z.ZodNumber,
     perTechLevel: z.ZodNumber;
 }, z.core.$strict>, z.ZodObject<{
     fromStat: z.ZodEnum<{
-        structurePoints: "structurePoints";
+        cargoCapacity: "cargoCapacity";
         energyPoints: "energyPoints";
         heatCapacity: "heatCapacity";
-        systemSlots: "systemSlots";
-        moduleSlots: "moduleSlots";
-        cargoCapacity: "cargoCapacity";
-        maxHp: "maxHp";
-        maxAp: "maxAp";
         inventorySlots: "inventorySlots";
+        maxAp: "maxAp";
+        maxHp: "maxHp";
+        moduleSlots: "moduleSlots";
+        structurePoints: "structurePoints";
+        systemSlots: "systemSlots";
     }>;
 }, z.core.$strict>]>;
 /**
@@ -15275,37 +15275,37 @@ export declare const ContributionAmountSchema: z.ZodUnion<readonly [z.ZodNumber,
  */
 export declare const ContributionSchema: z.ZodObject<{
     stat: z.ZodEnum<{
-        structurePoints: "structurePoints";
+        cargoCapacity: "cargoCapacity";
         energyPoints: "energyPoints";
         heatCapacity: "heatCapacity";
-        systemSlots: "systemSlots";
-        moduleSlots: "moduleSlots";
-        cargoCapacity: "cargoCapacity";
-        maxHp: "maxHp";
-        maxAp: "maxAp";
         inventorySlots: "inventorySlots";
+        maxAp: "maxAp";
+        maxHp: "maxHp";
+        moduleSlots: "moduleSlots";
+        structurePoints: "structurePoints";
+        systemSlots: "systemSlots";
     }>;
     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
         flat: z.ZodOptional<z.ZodNumber>;
         perTechLevel: z.ZodNumber;
     }, z.core.$strict>, z.ZodObject<{
         fromStat: z.ZodEnum<{
-            structurePoints: "structurePoints";
+            cargoCapacity: "cargoCapacity";
             energyPoints: "energyPoints";
             heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
             inventorySlots: "inventorySlots";
+            maxAp: "maxAp";
+            maxHp: "maxHp";
+            moduleSlots: "moduleSlots";
+            structurePoints: "structurePoints";
+            systemSlots: "systemSlots";
         }>;
     }, z.core.$strict>]>;
     target: z.ZodOptional<z.ZodEnum<{
-        self: "self";
+        crawler: "crawler";
         pilot: "pilot";
         pilotedMech: "pilotedMech";
-        crawler: "crawler";
+        self: "self";
     }>>;
     stacks: z.ZodOptional<z.ZodBoolean>;
     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -15313,8 +15313,8 @@ export declare const ContributionSchema: z.ZodObject<{
         destroyed: "destroyed";
     }>>;
     duration: z.ZodOptional<z.ZodEnum<{
-        permanent: "permanent";
         activated: "activated";
+        permanent: "permanent";
     }>>;
     note: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
@@ -15330,8 +15330,8 @@ import { z } from '../../zod.js';
  */
 export declare const CrawlerMutationSchema: z.ZodObject<{
     type: z.ZodEnum<{
-        weapon_slots: "weapon_slots";
         max_sp_bonus: "max_sp_bonus";
+        weapon_slots: "weapon_slots";
     }>;
     value: z.ZodNumber;
 }, z.core.$strict>;
@@ -15352,8 +15352,8 @@ import { z } from '../../zod.js';
  * flies, which is wrong rather than merely incomplete.
  */
 export declare const EffectTargetSchema: z.ZodEnum<{
-    self: "self";
     hostMech: "hostMech";
+    self: "self";
 }>;
 /**
  * A single mechanical effect of a choice option, discriminated by `op` so each
@@ -15371,15 +15371,15 @@ export declare const ChoiceEffectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     value: z.ZodString;
     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
     target: z.ZodOptional<z.ZodEnum<{
-        self: "self";
         hostMech: "hostMech";
+        self: "self";
     }>>;
 }, z.core.$strict>, z.ZodObject<{
     op: z.ZodLiteral<"removeTrait">;
     value: z.ZodString;
     target: z.ZodOptional<z.ZodEnum<{
-        self: "self";
         hostMech: "hostMech";
+        self: "self";
     }>>;
 }, z.core.$strict>, z.ZodObject<{
     op: z.ZodLiteral<"setRange">;
@@ -15404,22 +15404,22 @@ export declare const BaseEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15430,22 +15430,22 @@ export declare const BaseEntitySchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15458,31 +15458,31 @@ export declare const BaseEntitySchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -15495,22 +15495,22 @@ export declare const AdvancedClassSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15521,22 +15521,22 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15549,31 +15549,31 @@ export declare const AdvancedClassSchema: z.ZodObject<{
     blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -15670,32 +15670,32 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
     stepType: z.ZodEnum<{
-        "select-one": "select-one";
-        "select-many": "select-many";
         freeform: "freeform";
-        "roll-table": "roll-table";
         info: "info";
+        "roll-table": "roll-table";
+        "select-many": "select-many";
+        "select-one": "select-one";
         "sub-guide": "sub-guide";
     }>;
     section: z.ZodOptional<z.ZodString>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15706,22 +15706,22 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15733,6 +15733,7 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
     schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -15742,18 +15743,17 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>, z.ZodLiteral<"actions">]>>>;
@@ -15769,15 +15769,15 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
             value: z.ZodString;
             amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"removeTrait">;
             value: z.ZodString;
             target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
                 hostMech: "hostMech";
+                self: "self";
             }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"setRange">;
@@ -15816,11 +15816,11 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
  */
 export declare const GuideTypeSchema: z.ZodEnum<{
     "character-creation": "character-creation";
-    "mech-creation": "mech-creation";
     "crawler-creation": "crawler-creation";
-    progression: "progression";
     downtime: "downtime";
     gameplay: "gameplay";
+    "mech-creation": "mech-creation";
+    progression: "progression";
 }>;
 //# sourceMappingURL=guides.d.ts.map
 // === lib/schemas/objects/npc.d.ts ===
@@ -15836,22 +15836,22 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
     position: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15862,22 +15862,22 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15892,22 +15892,22 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         name: z.ZodString;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15918,22 +15918,22 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
             choiceId: z.ZodOptional<z.ZodString>;
             items: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
                     choice: "choice";
+                    datavalues: "datavalues";
+                    flavor: "flavor";
+                    heading: "heading";
+                    hint: "hint";
+                    label: "label";
+                    "list-item": "list-item";
+                    paragraph: "paragraph";
                 }>>>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     type: z.ZodOptional<z.ZodEnum<{
+                        cost: "cost";
                         keyword: "keyword";
                         trait: "trait";
-                        cost: "cost";
                     }>>;
                     unit: z.ZodOptional<z.ZodString>;
                     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -15947,6 +15947,7 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
+            "bio-titans": "bio-titans";
             chassis: "chassis";
             classes: "classes";
             "crawler-bays": "crawler-bays";
@@ -15956,18 +15957,17 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
             distances: "distances";
             drones: "drones";
             equipment: "equipment";
+            factions: "factions";
             guides: "guides";
             keywords: "keywords";
-            factions: "factions";
             meld: "meld";
             modules: "modules";
             npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
-            "tech-levels": "tech-levels";
             systems: "systems";
-            "bio-titans": "bio-titans";
+            "tech-levels": "tech-levels";
             traits: "traits";
             vehicles: "vehicles";
         }>>>;
@@ -15986,37 +15986,37 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
             count: z.ZodOptional<z.ZodNumber>;
             contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
+                    cargoCapacity: "cargoCapacity";
                     energyPoints: "energyPoints";
                     heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
                     inventorySlots: "inventorySlots";
+                    maxAp: "maxAp";
+                    maxHp: "maxHp";
+                    moduleSlots: "moduleSlots";
+                    structurePoints: "structurePoints";
+                    systemSlots: "systemSlots";
                 }>;
                 amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                     flat: z.ZodOptional<z.ZodNumber>;
                     perTechLevel: z.ZodNumber;
                 }, z.core.$strict>, z.ZodObject<{
                     fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                 }, z.core.$strict>]>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
+                    crawler: "crawler";
                     pilot: "pilot";
                     pilotedMech: "pilotedMech";
-                    crawler: "crawler";
+                    self: "self";
                 }>>;
                 stacks: z.ZodOptional<z.ZodBoolean>;
                 voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -16024,8 +16024,8 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                     destroyed: "destroyed";
                 }>>;
                 duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
                     activated: "activated";
+                    permanent: "permanent";
                 }>>;
                 note: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -16034,15 +16034,15 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -16064,15 +16064,15 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
                 target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
                     hostMech: "hostMech";
+                    self: "self";
                 }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
@@ -16107,15 +16107,15 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -16131,6 +16131,7 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
+                "bio-titans": "bio-titans";
                 chassis: "chassis";
                 classes: "classes";
                 "crawler-bays": "crawler-bays";
@@ -16140,18 +16141,17 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                 distances: "distances";
                 drones: "drones";
                 equipment: "equipment";
+                factions: "factions";
                 guides: "guides";
                 keywords: "keywords";
-                factions: "factions";
                 meld: "meld";
                 modules: "modules";
                 npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
-                "tech-levels": "tech-levels";
                 systems: "systems";
-                "bio-titans": "bio-titans";
+                "tech-levels": "tech-levels";
                 traits: "traits";
                 vehicles: "vehicles";
             }>>>;
@@ -16183,37 +16183,37 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                 count: z.ZodOptional<z.ZodNumber>;
                 contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
                     stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
+                        cargoCapacity: "cargoCapacity";
                         energyPoints: "energyPoints";
                         heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
                         inventorySlots: "inventorySlots";
+                        maxAp: "maxAp";
+                        maxHp: "maxHp";
+                        moduleSlots: "moduleSlots";
+                        structurePoints: "structurePoints";
+                        systemSlots: "systemSlots";
                     }>;
                     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
                         flat: z.ZodOptional<z.ZodNumber>;
                         perTechLevel: z.ZodNumber;
                     }, z.core.$strict>, z.ZodObject<{
                         fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
+                            cargoCapacity: "cargoCapacity";
                             energyPoints: "energyPoints";
                             heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
                             inventorySlots: "inventorySlots";
+                            maxAp: "maxAp";
+                            maxHp: "maxHp";
+                            moduleSlots: "moduleSlots";
+                            structurePoints: "structurePoints";
+                            systemSlots: "systemSlots";
                         }>;
                     }, z.core.$strict>]>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
+                        crawler: "crawler";
                         pilot: "pilot";
                         pilotedMech: "pilotedMech";
-                        crawler: "crawler";
+                        self: "self";
                     }>>;
                     stacks: z.ZodOptional<z.ZodBoolean>;
                     voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -16221,8 +16221,8 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                         destroyed: "destroyed";
                     }>>;
                     duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
                         activated: "activated";
+                        permanent: "permanent";
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
@@ -16231,15 +16231,15 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
                     target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
                         hostMech: "hostMech";
+                        self: "self";
                     }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
@@ -16299,22 +16299,22 @@ export declare const PatternSchema: z.ZodLazy<z.ZodObject<{
     name: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
             choice: "choice";
+            datavalues: "datavalues";
+            flavor: "flavor";
+            heading: "heading";
+            hint: "hint";
+            label: "label";
+            "list-item": "list-item";
+            paragraph: "paragraph";
         }>>>;
         value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
             label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
             type: z.ZodOptional<z.ZodEnum<{
+                cost: "cost";
                 keyword: "keyword";
                 trait: "trait";
-                cost: "cost";
             }>>;
             unit: z.ZodOptional<z.ZodString>;
             perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -16325,22 +16325,22 @@ export declare const PatternSchema: z.ZodLazy<z.ZodObject<{
         choiceId: z.ZodOptional<z.ZodString>;
         items: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
                 choice: "choice";
+                datavalues: "datavalues";
+                flavor: "flavor";
+                heading: "heading";
+                hint: "hint";
+                label: "label";
+                "list-item": "list-item";
+                paragraph: "paragraph";
             }>>>;
             value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
                 label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
                 value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
                 type: z.ZodOptional<z.ZodEnum<{
+                    cost: "cost";
                     keyword: "keyword";
                     trait: "trait";
-                    cost: "cost";
                 }>>;
                 unit: z.ZodOptional<z.ZodString>;
                 perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -16352,31 +16352,31 @@ export declare const PatternSchema: z.ZodLazy<z.ZodObject<{
     legalStarting: z.ZodOptional<z.ZodBoolean>;
     hidden: z.ZodOptional<z.ZodBoolean>;
     source: z.ZodOptional<z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
             "False Flag": "False Flag";
+            "Mech Monday": "Mech Monday";
+            Rainmaker: "Rainmaker";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "The Hive": "The Hive";
+            "We Were Here First!": "We Were Here First!";
         }>;
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
@@ -16495,9 +16495,9 @@ export declare const DataValueSchema: z.ZodObject<{
     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
     type: z.ZodOptional<z.ZodEnum<{
+        cost: "cost";
         keyword: "keyword";
         trait: "trait";
-        cost: "cost";
     }>>;
     unit: z.ZodOptional<z.ZodString>;
     perTechLevel: z.ZodOptional<z.ZodNumber>;
@@ -16530,6 +16530,7 @@ export declare const FormationMechSchema: z.ZodObject<{
     schema: z.ZodOptional<z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -16539,32 +16540,31 @@ export declare const FormationMechSchema: z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>>;
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     page: z.ZodNumber;
     quantity: z.ZodOptional<z.ZodNumber>;
@@ -16576,6 +16576,7 @@ export declare const GrantSchema: z.ZodObject<{
     schema: z.ZodUnion<readonly [z.ZodEnum<{
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
+        "bio-titans": "bio-titans";
         chassis: "chassis";
         classes: "classes";
         "crawler-bays": "crawler-bays";
@@ -16585,18 +16586,17 @@ export declare const GrantSchema: z.ZodObject<{
         distances: "distances";
         drones: "drones";
         equipment: "equipment";
+        factions: "factions";
         guides: "guides";
         keywords: "keywords";
-        factions: "factions";
         meld: "meld";
         modules: "modules";
         npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
-        "tech-levels": "tech-levels";
         systems: "systems";
-        "bio-titans": "bio-titans";
+        "tech-levels": "tech-levels";
         traits: "traits";
         vehicles: "vehicles";
     }>, z.ZodLiteral<"choice">]>;
@@ -16608,6 +16608,7 @@ export declare const GrantSchema: z.ZodObject<{
 export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum<{
     abilities: "abilities";
     "ability-tree-requirements": "ability-tree-requirements";
+    "bio-titans": "bio-titans";
     chassis: "chassis";
     classes: "classes";
     "crawler-bays": "crawler-bays";
@@ -16617,18 +16618,17 @@ export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum
     distances: "distances";
     drones: "drones";
     equipment: "equipment";
+    factions: "factions";
     guides: "guides";
     keywords: "keywords";
-    factions: "factions";
     meld: "meld";
     modules: "modules";
     npcs: "npcs";
     "roll-tables": "roll-tables";
     sources: "sources";
     squads: "squads";
-    "tech-levels": "tech-levels";
     systems: "systems";
-    "bio-titans": "bio-titans";
+    "tech-levels": "tech-levels";
     traits: "traits";
     vehicles: "vehicles";
 }>, z.ZodLiteral<"actions">]>;
@@ -16648,16 +16648,16 @@ import { z } from '../../zod.js';
  */
 export declare const AdditionalSourceSchema: z.ZodObject<{
     source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
         "False Flag": "False Flag";
+        "Mech Monday": "Mech Monday";
+        Rainmaker: "Rainmaker";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "The Hive": "The Hive";
+        "We Were Here First!": "We Were Here First!";
     }>;
     booklet: z.ZodOptional<z.ZodString>;
     page: z.ZodNumber;
@@ -16687,37 +16687,37 @@ export declare const SystemModuleSchema: z.ZodObject<{
     count: z.ZodOptional<z.ZodNumber>;
     contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
         stat: z.ZodEnum<{
-            structurePoints: "structurePoints";
+            cargoCapacity: "cargoCapacity";
             energyPoints: "energyPoints";
             heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
             inventorySlots: "inventorySlots";
+            maxAp: "maxAp";
+            maxHp: "maxHp";
+            moduleSlots: "moduleSlots";
+            structurePoints: "structurePoints";
+            systemSlots: "systemSlots";
         }>;
         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
             flat: z.ZodOptional<z.ZodNumber>;
             perTechLevel: z.ZodNumber;
         }, z.core.$strict>, z.ZodObject<{
             fromStat: z.ZodEnum<{
-                structurePoints: "structurePoints";
+                cargoCapacity: "cargoCapacity";
                 energyPoints: "energyPoints";
                 heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
                 inventorySlots: "inventorySlots";
+                maxAp: "maxAp";
+                maxHp: "maxHp";
+                moduleSlots: "moduleSlots";
+                structurePoints: "structurePoints";
+                systemSlots: "systemSlots";
             }>;
         }, z.core.$strict>]>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
+            crawler: "crawler";
             pilot: "pilot";
             pilotedMech: "pilotedMech";
-            crawler: "crawler";
+            self: "self";
         }>>;
         stacks: z.ZodOptional<z.ZodBoolean>;
         voidWhen: z.ZodOptional<z.ZodEnum<{
@@ -16725,8 +16725,8 @@ export declare const SystemModuleSchema: z.ZodObject<{
             destroyed: "destroyed";
         }>>;
         duration: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
             activated: "activated";
+            permanent: "permanent";
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
@@ -16735,15 +16735,15 @@ export declare const SystemModuleSchema: z.ZodObject<{
         value: z.ZodString;
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"removeTrait">;
         value: z.ZodString;
         target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
             hostMech: "hostMech";
+            self: "self";
         }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"setRange">;

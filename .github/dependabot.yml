@@ -12,7 +12,7 @@
 # drift.
 #
 # GROUPING STRATEGY: this repo intentionally rides bleeding-edge majors
-# (TypeScript 6, ESLint 10, Astro 7, Vite 8). Minor/patch bumps are grouped
+# (TypeScript 7, Biome 2, Vite 8, React 19). Minor/patch bumps are grouped
 # (one PR for dev-deps, one for prod-deps) to keep churn manageable. MAJOR bumps
 # are consolidated into a SINGLE `major-updates` PR rather than one-per-dep-per-
 # directory: the same dependency (e.g. Vite) lives in several workspace

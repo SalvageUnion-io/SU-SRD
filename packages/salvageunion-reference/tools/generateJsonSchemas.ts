@@ -7,11 +7,11 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import * as prettier from 'prettier'
 // The canonical schema-id -> Zod map lives in ModelFactory (one registry,
 // audit item 23) — the generator no longer keeps its own copy.
 import { zodSchemaMap } from '../lib/ModelFactory.js'
 import { z } from '../lib/zod.js'
+import { formatWithBiome } from './formatWithBiome.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -33,9 +33,6 @@ function schemaIdToFilename(schemaId: string): string {
 async function generateSchemas() {
   console.log('Generating JSON Schema files from Zod schemas...\n')
 
-  // Resolve Prettier config from project root
-  const prettierConfig = await prettier.resolveConfig(schemasDir)
-
   for (const [schemaId, zodSchema] of Object.entries(entitySchemaMap)) {
     try {
       console.log(`Generating ${schemaId}...`)
@@ -56,13 +53,11 @@ async function generateSchemas() {
         items: itemSchema,
       }
 
-      // Format with Prettier using project config and write to file
+      // Format with Biome using the repo config and write to file. `schemas/`
+      // is NOT biome-ignored, so the real path works as the stdin path here.
       const filename = schemaIdToFilename(schemaId)
       const filepath = join(schemasDir, filename)
-      const formatted = await prettier.format(JSON.stringify(arraySchema), {
-        ...prettierConfig,
-        parser: 'json',
-      })
+      const formatted = formatWithBiome(JSON.stringify(arraySchema), filepath)
       writeFileSync(filepath, formatted)
 
       console.log(`✓ Generated ${filename}`)

@@ -68,20 +68,26 @@ function assertEntryPointsMatch(): string[] {
   return entries
 }
 
-// Locate the TypeScript 6 ("typescript-classic") compiler by walking up from
-// the package dir until a node_modules/typescript-classic/bin/tsc is found.
+// Locate the TypeScript compiler by walking up from the package dir until a
+// node_modules/typescript/bin/tsc is found.
+//
+// This uses the repo's real TypeScript (7.x), NOT the `typescript-classic`
+// alias it used to reach for. Only the tsc *binary* is needed here — the
+// program is driven entirely through `--project`, never the compiler API — and
+// TS 7 emits byte-identical declarations for this project, so there was no
+// reason to keep a second compiler alive for it. (`tools/check-architecture.ts`
+// is a different story: it needs the classic compiler API, which TS 7 does not
+// expose. See the note on `typescript-classic` in the root package.json.)
 function findTsc(): string {
   let dir = packageDir
   while (true) {
-    const candidate = join(dir, 'node_modules', 'typescript-classic', 'bin', 'tsc')
+    const candidate = join(dir, 'node_modules', 'typescript', 'bin', 'tsc')
     if (existsSync(candidate)) return candidate
     const parent = dirname(dir)
     if (parent === dir) break
     dir = parent
   }
-  throw new Error(
-    `Could not locate node_modules/typescript-classic/bin/tsc walking up from ${packageDir}`
-  )
+  throw new Error(`Could not locate node_modules/typescript/bin/tsc walking up from ${packageDir}`)
 }
 
 // Recursively collect every *.d.ts under a directory, excluding *.test.d.ts.

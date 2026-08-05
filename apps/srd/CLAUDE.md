@@ -26,9 +26,10 @@ ephemerally/non-editably
 - **Tooling:** **Biome** for lint/format (`bun run lint`, `bun run format`) and
   **TypeScript 7** for `bun run typecheck` — srd's old `typescript@6.0.3` pin is
   gone, it now uses the repo's TS 7. (The _root_ `typescript-classic` alias
-  deliberately remains: `tools/check-architecture.ts` and
-  `packages/salvageunion-reference/tools/generateApiReport.ts` need the TS 6
-  compiler API. Astro was never its only consumer.)
+  deliberately remains, but for exactly ONE consumer now:
+  `tools/check-architecture.ts`, which needs the classic compiler API that TS 7
+  does not expose. `generateApiReport.ts` moved to TS 7 — it only ever needed
+  the `tsc` binary. Astro was never a consumer of either.)
 - **Deployment:** Netlify (static)
 
 ## Architecture

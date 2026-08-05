@@ -26,7 +26,7 @@ hooks — if `bun install` succeeds, your hooks are installed.
 
 ## Git hooks (Lefthook)
 
-- **pre-commit** — `biome check --write` + a narrow `prettier` fallback (Markdown/YAML only) on staged files (parallel).
+- **pre-commit** — `biome check --write` on staged files (parallel). Biome is the only formatter; Markdown and YAML are not formatted by tooling (Biome cannot parse them yet), so keep those tidy by hand.
 - **pre-push** — `typecheck`, `test`, `validate:all`, `knip` (parallel).
 
 Typecheck runs on **push**, not commit (a full fan-out across five workspaces is
