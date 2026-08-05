@@ -146,7 +146,7 @@ export const Default: Story = () => (
     <Badge shape="stamp" size="full" as="span">
       Rendering Matrix
     </Badge>
-    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-wk-muted">
       <span className="font-bold text-ink">What to use, when.</span> Every UI <em>role</em> — the
       job a piece of data does on screen — maps to exactly one primitive, with a live render of
       each; the rule tailors it to context. Instances collapse into their role (ruleset §2).
@@ -166,11 +166,11 @@ export const Default: Story = () => (
           {rows.map((row) => (
             <tr key={`${row.role}-${row.when}`} className="border-b border-ink/12 align-top">
               <td className="p-2 font-bold">{row.role}</td>
-              <td className="p-2 text-ink-2">{row.when}</td>
+              <td className="p-2 text-wk-muted">{row.when}</td>
               <td className="p-2">
                 <code className="rounded-badge bg-ink/8 px-1 py-0.5 text-[12px]">{row.use}</code>
               </td>
-              <td className="max-w-[14rem] p-2 text-ink-2">{row.rule}</td>
+              <td className="max-w-[14rem] p-2 text-wk-muted">{row.rule}</td>
               <td className="p-2">{row.example}</td>
             </tr>
           ))}

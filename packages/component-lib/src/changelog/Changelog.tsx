@@ -71,7 +71,7 @@ export function Changelog({ entries, className }: ChangelogProps) {
             }
           >
             {entry.items.length > 0 && (
-              <ul className="ml-4 list-disc space-y-1 font-body text-sm text-ink-2 marker:text-wk-muted">
+              <ul className="ml-4 list-disc space-y-1 font-body text-sm text-wk-muted marker:text-wk-muted">
                 {entry.items.map((item) => (
                   <li key={item}>
                     <InlineMarkdown text={item} />

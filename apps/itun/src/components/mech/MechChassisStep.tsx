@@ -176,7 +176,7 @@ export function MechChassisStep({
                 <p className="m-0 font-cond text-sm font-bold uppercase tracking-caps text-ink">
                   Custom build
                 </p>
-                <p className="m-0 mt-1 font-body text-caption text-ink-2">
+                <p className="m-0 mt-1 font-body text-caption text-wk-muted">
                   No prefill — craft your Systems and Modules by hand in the next steps.
                 </p>
               </div>

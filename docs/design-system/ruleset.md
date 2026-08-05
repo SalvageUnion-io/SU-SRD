@@ -296,32 +296,38 @@ The redline pip sits at the **70% law**.
 
 ## 5. The irreducible set — 11 atoms + 1 technique
 
-Everything renders from these. The "instruments" (StatBlock, MiniStat,
-VitalGauge) are **named compositions**, not atoms.
+**These are an ONTOLOGY, not a component roster.** They name the kinds of thing
+the UI is made of; the right-hand column names what implements each one today.
+Read the barrel (`packages/component-lib/src/index.ts`) for the roster — six of
+these names have never been symbols, and this table previously read as though
+they were, in a document that also declares itself Canon over the components.
 
-| #   | Atom                        | Is                                                             |
-| --- | --------------------------- | -------------------------------------------------------------- |
-| 1   | **Stamp**                   | ink block, paper text — the atom of labeling                   |
-| 2   | **Frame**                   | bordered container; weights only from `--bw-*`                 |
-| —   | **StampSeam** _(technique)_ | the border-riding placement (§7)                               |
-| 3   | **Badge**                   | the stamp-chip family                                          |
-| 4   | **Well**                    | labeled value box, read/edit × number/text                     |
-| 5   | **Gauge**                   | segmented current/max track                                    |
-| 6   | **Btn**                     | rust action — the ONLY mutator                                 |
-| 7   | **Slab**                    | section stamp + leader rule                                    |
-| 8   | **RollTable**               | banded d20 map (+ its description)                             |
-| 9   | **ConditionSwatch**         | tri-state categorical glyph                                    |
-| 10  | **SlotGrid**                | dashed addressable cargo cells                                 |
-| 11  | **Icons**                   | hand-drawn `currentColor` glyph set (gear/clock · pennant · X) |
+The "instruments" (StatBlock, MiniStat, VitalGauge) are **named compositions**,
+not atoms.
+
+| #   | Atom                        | Is                                                             | Implemented by                  |
+| --- | --------------------------- | -------------------------------------------------------------- | ------------------------------- |
+| 1   | **Stamp**                   | ink block, paper text — the atom of labeling                   | `Badge shape="stamp"`           |
+| 2   | **Frame**                   | bordered container; weights only from `--bw-*`                 | `Card` / `Panel`                |
+| —   | **StampSeam** _(technique)_ | the border-riding placement (§7)                               | `STAMP_SEAM` (chrome/stampSeam) |
+| 3   | **Badge**                   | the stamp-chip family                                          | `Badge`                         |
+| 4   | **Well**                    | labeled value box, read/edit × number/text                     | `Stat` (vertical anatomy)       |
+| 5   | **Gauge**                   | segmented current/max track                                    | `VitalGauge`                    |
+| 6   | **Btn**                     | rust action — the ONLY mutator                                 | `Button` / `buttonVariants`     |
+| 7   | **Slab**                    | section stamp + leader rule                                    | `Slab`                          |
+| 8   | **RollTable**               | banded d20 map (+ its description)                             | `RollTable`                     |
+| 9   | **ConditionSwatch**         | tri-state categorical glyph                                    | `ConditionSwatch`               |
+| 10  | **SlotGrid**                | dashed addressable cargo cells                                 | `SlotGrid`                      |
+| 11  | **Icons**                   | hand-drawn `currentColor` glyph set (gear/clock · pennant · X) | `lucide-react` + local glyphs   |
 
 ### Composition tree
 
 ```
 Card   = Frame(3px, tone) + band + [Badge · StampSeam] + body + expand + foot
-Stat   = the labeled-value primitive: vertical (Well) | horizontal (=ValueDisplay);
+Stat   = the labeled-value primitive: vertical (Well) | horizontal;
                 read|edit · +max · +label · +pips · mini
 VitalGauge    = Stamp + numeral (+ Well edit) + Gauge(bar)
-StatControl   = Well(number, edit) + StepBtn×2
+Stat(edit)    = Well(number, edit) + StepButton×2
 StatusBadge   = Badge(tone) + ConditionSwatch
 Tally         = (ConditionSwatch + count) × 3
 RollTable✦    = Card + SRD description + banded table

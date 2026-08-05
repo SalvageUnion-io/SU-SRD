@@ -72,7 +72,17 @@ const EASE_MS = 200
 const DRAG_SLOP = 5
 
 /** §10.2: reduced-motion users get instant snaps — no ease, no inertia coast.
- * Read live (not cached) so an OS-level toggle applies without a remount. */
+ * Read live (not cached) so an OS-level toggle applies without a remount.
+ *
+ * This is the one motion check in the repo that is deliberately JS, and it
+ * cannot defer to the `@media (prefers-reduced-motion: reduce)` backstop in
+ * theme.css. That backstop works by collapsing `animation-duration` and
+ * `transition-duration`; the dial's motion is neither. It is a
+ * `requestAnimationFrame` loop, so CSS never sees it, and the two call sites
+ * below are logic branches rather than styling — `easeTo` skips the rAF ease
+ * and commits immediately, and pointer-release skips `coast()` and snaps to the
+ * nearest item. Delete this and a reduced-motion user still gets the full
+ * inertia coast, with nothing in CSS able to stop it. */
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true

@@ -45,7 +45,7 @@ export const Default: Story = () => {
             />
           }
         />
-        <p className="mt-2 font-body text-caption text-ink-2">
+        <p className="mt-2 font-body text-caption text-wk-muted">
           {editing ? 'Editing — fields show the dashed cue.' : 'Read-only.'}
         </p>
       </div>

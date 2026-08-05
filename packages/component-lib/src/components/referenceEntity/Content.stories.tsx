@@ -33,7 +33,7 @@ function Row({
   return (
     <div className="flex flex-col gap-1.5">
       <div className={`${width} bg-paper p-3`}>{children}</div>
-      <code className="font-body text-nano text-ink-2">{label}</code>
+      <code className="font-body text-nano text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -41,7 +41,7 @@ function Row({
 /** Every content-block type — headings, paragraphs, list-items, hints, labels. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       Renders a content-block array: headings, paragraphs, list-items, hints, and EFFECT/ON-CRITICAL
       labels. compact tightens spacing.
     </p>

@@ -393,7 +393,7 @@ export function CrawlerBuilder({
                   to create the Union Crawler they share. Your Crawler type provides a unique
                   Ability that only it can do, as well as a special NPC who resides on the Crawler
                   and confers their own bonuses.{' '}
-                  <span className="text-ink-2">
+                  <span className="text-wk-muted">
                     (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
                     {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
                   </span>

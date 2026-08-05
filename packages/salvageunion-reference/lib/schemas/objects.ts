@@ -55,6 +55,7 @@ export {
   DataValueSchema,
   MechanicalEntitySchema,
   StatsSchema,
+  StructurePointsSchema,
   TraitSchema,
 } from './objects/primitives.js'
 export {

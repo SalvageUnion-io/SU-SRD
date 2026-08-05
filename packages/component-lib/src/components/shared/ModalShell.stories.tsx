@@ -26,13 +26,13 @@ function Trigger({ tone, label }: { tone?: 'action' | 'danger'; label: string })
         description={`${name} details`}
       >
         <div className="p-4">
-          <Text as="p" className="text-sm text-ink-2">
+          <Text as="p" className="text-sm text-wk-muted">
             Structure {chassis?.structurePoints} · Cargo {chassis?.cargoCapacity} · Tech Level{' '}
             {chassis?.techLevel}
           </Text>
         </div>
       </ModalShell>
-      <code className="font-body text-nano text-ink-2">{tone ?? 'action (default)'}</code>
+      <code className="font-body text-nano text-wk-muted">{tone ?? 'action (default)'}</code>
     </div>
   )
 }
@@ -40,7 +40,7 @@ function Trigger({ tone, label }: { tone?: 'action' | 'danger'; label: string })
 /** The dialog shell — action (default) vs danger tone. Click a trigger; Esc / backdrop / × close it. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       A centered dialog on the Card shell. `tone` picks the header: 'action' (pilot blue) for
       constructive flows, 'danger' (adversary rust, light close button) for destructive confirms.
       Modals overlay, so open one to see it.

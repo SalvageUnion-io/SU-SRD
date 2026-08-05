@@ -126,6 +126,12 @@ function OgCardResolved() {
   )
 }
 
+/**
+ * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the
+ * build-time screenshot script, never hydrated in a user's browser, so a
+ * boundary would have no one to protect. The boundary is for islands that
+ * resolve reference data at runtime.
+ */
 export function OgCardIsland() {
   return (
     <GameDataGate fallback={null}>

@@ -1,6 +1,7 @@
 import type { NavDrawerItem } from 'component-lib'
 import { Badge, NavDrawer } from 'component-lib'
 import { ITUN_URL } from '../../lib/constants'
+import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
 type SchemaLink = {
@@ -48,7 +49,7 @@ const SRD_BRAND = (
  * drawer chrome lives in component-lib; this island supplies the SRD-specific
  * data + search behaviour.
  */
-export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProps) {
+function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) {
   const isActive = (path: string) => currentPath.startsWith(path)
 
   const navItems: NavDrawerItem[] = [
@@ -70,5 +71,21 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
       search={<SearchIsland />}
       navItems={navItems}
     />
+  )
+}
+
+/**
+ * Wrapped, like its sibling `SearchIsland`. All three of these hydrate together
+ * inside `TopNavigation.astro`, and only the first was protected — so a render
+ * error in the mobile search or the mobile nav took the header with it, which
+ * is exactly the blank-page failure `IslandErrorBoundary` exists to contain.
+ * The boundary also reports through `captureException`, so a crash here is now
+ * visible in production rather than only to the person it happened to.
+ */
+export function MobileNavIsland(props: Parameters<typeof MobileNavIslandBody>[0]) {
+  return (
+    <IslandErrorBoundary>
+      <MobileNavIslandBody {...props} />
+    </IslandErrorBoundary>
   )
 }

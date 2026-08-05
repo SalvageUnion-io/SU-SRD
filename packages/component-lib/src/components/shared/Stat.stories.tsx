@@ -29,7 +29,7 @@ function Cell({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div className="flex min-h-[52px] items-center">{children}</div>
-      <code className="text-nano text-ink-2">{label}</code>
+      <code className="text-nano text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -37,7 +37,7 @@ function Cell({ label, children }: { label: string; children: ReactNode }) {
 function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-4 bg-paper p-5 font-body text-ink">
-      <p className="max-w-2xl text-xs leading-relaxed text-ink-2">{rule}</p>
+      <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">{rule}</p>
       <div className="flex flex-wrap items-start gap-x-6 gap-y-5">{children}</div>
     </div>
   )

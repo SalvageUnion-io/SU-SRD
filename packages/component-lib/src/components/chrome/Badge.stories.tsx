@@ -222,7 +222,7 @@ export const Stamps: Story = () => (
         <Badge shape="stamp" seam className="left-3">
           Systems
         </Badge>
-        <p className="m-0 font-body text-sm text-ink-2">
+        <p className="m-0 font-body text-sm text-wk-muted">
           A framed body; the stamp straddles the top border.
         </p>
       </div>

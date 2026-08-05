@@ -8,7 +8,7 @@
  */
 
 import { z } from '../../zod.js'
-import { NonNegativeIntegerSchema, PositiveIntegerSchema, TechLevelSchema } from '../common.js'
+import { NonNegativeIntegerSchema, TechLevelSchema } from '../common.js'
 import { DamageTypeSchema } from '../enums.js'
 
 /**
@@ -26,11 +26,32 @@ export const TraitSchema = z
   .describe('Special traits and properties of items, systems, or abilities')
 
 /**
+ * Structure Points on a stat block — the ONE declaration, composed everywhere.
+ *
+ * It was previously spelled four ways for the same concept: `NonNegativeInteger`
+ * here, `PositiveInteger` on `MechanicalEntitySchema` (same field, same
+ * `describe()`), and two inline `z.number().int()` copies in `entities.ts`, one
+ * positive and one not. So whether a stat block could carry 0 depended on which
+ * schema happened to validate it.
+ *
+ * It can. A destroyed or fully-salvaged chassis at 0 SP is a real game state,
+ * and the derived-stat code already clamps to 0 rather than treating it as
+ * impossible — so `positive()` was the outlier, not the rule. No shipped record
+ * carries 0 today (checked), which is why widening is purely permissive.
+ *
+ * NOT for the SP *modifier* on an action: that is signed (`-2 SP` is a normal
+ * effect) and is declared separately in `objects/actions.ts`.
+ */
+export const StructurePointsSchema = NonNegativeIntegerSchema.describe(
+  'Structure points (mech health)'
+)
+
+/**
  * Statistics for mechs, chassis, and vehicles
  */
 export const StatsSchema = z
   .object({
-    structurePoints: NonNegativeIntegerSchema.describe('Structure points (mech health)').optional(),
+    structurePoints: StructurePointsSchema.optional(),
     energyPoints: NonNegativeIntegerSchema.describe(
       'Energy points for powering systems'
     ).optional(),
@@ -72,7 +93,7 @@ export const CombatEntitySchema = z
  */
 export const MechanicalEntitySchema = z
   .object({
-    structurePoints: PositiveIntegerSchema.describe('Structure points (mech health)').optional(),
+    structurePoints: StructurePointsSchema.optional(),
     techLevel: TechLevelSchema.optional(),
     salvageValue: NonNegativeIntegerSchema.describe('Scrap value when salvaged').optional(),
     systems: z.array(z.string()).describe('Installed system names').optional(),

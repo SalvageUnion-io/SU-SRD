@@ -107,7 +107,7 @@ function HeaderNote(): ReactNode {
       </code>
       <ul className="flex flex-col gap-0.5">
         {RULES.map((rule) => (
-          <li key={rule} className="font-body text-nano text-ink-2">
+          <li key={rule} className="font-body text-nano text-wk-muted">
             · {rule}
           </li>
         ))}
@@ -120,7 +120,7 @@ function HeaderNote(): ReactNode {
 function ActionSpecCard({ spec }: { spec: ActionSpec }): ReactNode {
   return (
     <div className="flex flex-col gap-1.5">
-      <code className="font-body text-nano text-ink-2">{spec.parentLabel}</code>
+      <code className="font-body text-nano text-wk-muted">{spec.parentLabel}</code>
       <ReferenceEntityCard
         data={spec.action}
         hostTone={parentToneBase(spec.parent)}
@@ -176,7 +176,7 @@ export const Badge: Story = () => (
     </code>
     {SPECS.map((spec) => (
       <div key={spec.parentLabel} className="flex flex-col items-start gap-1.5">
-        <code className="font-body text-nano text-ink-2">{spec.parentLabel}</code>
+        <code className="font-body text-nano text-wk-muted">{spec.parentLabel}</code>
         <ReferenceEntityCard
           data={spec.action}
           hostTone={parentToneBase(spec.parent)}

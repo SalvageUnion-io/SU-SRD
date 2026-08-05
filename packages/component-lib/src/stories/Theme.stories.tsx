@@ -456,7 +456,7 @@ function PipRows({ max, label }: { max: number; label: string }) {
         ))}
       </div>
       <div className="text-xs font-bold text-ink">
-        max = {max} <span className="font-normal text-ink-2">({label})</span>
+        max = {max} <span className="font-normal text-wk-muted">({label})</span>
       </div>
     </div>
   )

@@ -503,6 +503,27 @@ export function checkSupersededAdrCitations(root: string): CheckResult {
  * omitted from this list until a repo-wide audit found eight dead symbols
  * across them, including a worked import example that no longer compiled.
  */
+/**
+ * Backticked PascalCase names that are NOT component-lib symbols, with why.
+ *
+ * The check attributes a backticked name in a component-lib block to
+ * component-lib. That is the right default, but a few names in
+ * `docs/design-system/` are correctly backticked as literals while belonging to
+ * something else — Ladle's own API and its nav taxonomy. Un-backticking them
+ * would be worse: they ARE identifiers, just not ours.
+ *
+ * Keep this list short. A name here is a claim that it belongs to a different
+ * owner, not a way to silence a real dead symbol.
+ */
+const NOT_COMPONENT_LIB_SYMBOLS = new Map<string, string>([
+  ['Story', "@ladle/react's story type, not a component"],
+  ['Foundations', 'Ladle nav namespace (a story `title:` prefix)'],
+  ['Atoms', 'Ladle nav namespace'],
+  ['Compositions', 'Ladle nav namespace'],
+  ['Containers', 'Ladle nav namespace'],
+  ['Legacy', 'Ladle nav namespace — the unrefreshed holding pen'],
+])
+
 function componentLibSymbolDocs(root: string): string[] {
   return [
     'CLAUDE.md',
@@ -511,6 +532,13 @@ function componentLibSymbolDocs(root: string): string[] {
     'docs/architecture/package-contracts.md',
     'packages/component-lib/CLAUDE.md',
     'packages/component-lib/README.md',
+    // `docs/design-system/` declares itself Canon over the components — the
+    // ruleset says outright "if a component contradicts a rule here, the
+    // component is wrong, never the reverse". A canon doc naming components
+    // that do not exist is the worst version of this drift, and §5's atom
+    // roster had six such names plus a composition tree citing two deleted
+    // ones. Policed here now that §5 states its implementing symbols.
+    ...markdownIn(root, 'docs/design-system'),
   ].filter((doc) => existsSync(join(root, doc)))
 }
 
@@ -641,6 +669,7 @@ export function checkComponentLibSymbolNames(root: string): CheckResult {
         const symbol = match[1]!
         if (symbol.length < 2 || !/[a-z]/.test(symbol)) continue
         if (known.has(symbol) || siblingExports.has(symbol)) continue
+        if (NOT_COMPONENT_LIB_SYMBOLS.has(symbol)) continue
         failures.push(
           `${doc}:${lineOf(block, match.index)} attributes \`${symbol}\` to component-lib, but it is ` +
             `neither exported from packages/component-lib/src/index.ts nor a file under ` +

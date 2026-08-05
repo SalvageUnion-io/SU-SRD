@@ -73,7 +73,7 @@ function NpcRow({
         className={cn(
           'm-0 min-w-0',
           grow && 'flex-1',
-          !plain && 'font-body text-note leading-snug text-ink-2'
+          !plain && 'font-body text-note leading-snug text-wk-muted'
         )}
       >
         {children}

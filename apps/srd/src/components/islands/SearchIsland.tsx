@@ -160,7 +160,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
             className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg"
           >
             {!ready ? (
-              <div className="px-4 py-3 text-sm text-ink-2">Loading search index…</div>
+              <div className="px-4 py-3 text-sm text-wk-muted">Loading search index…</div>
             ) : results.length > 0 ? (
               results.map((result, index) => (
                 <a
@@ -174,11 +174,11 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
                   }`}
                 >
                   <div className="font-medium text-ink">{result.title}</div>
-                  <div className="mt-0.5 text-xs text-ink-2">{result.group}</div>
+                  <div className="mt-0.5 text-xs text-wk-muted">{result.group}</div>
                 </a>
               ))
             ) : (
-              <div className="px-4 py-3 text-sm text-ink-2">No results found</div>
+              <div className="px-4 py-3 text-sm text-wk-muted">No results found</div>
             )}
           </div>
         )}

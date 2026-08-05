@@ -25,7 +25,7 @@ function Row({
   return (
     <div className="flex flex-col gap-1.5">
       <div className={width}>{children}</div>
-      <code className="font-body text-nano text-ink-2">{label}</code>
+      <code className="font-body text-nano text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -34,7 +34,7 @@ function Row({
 export const Default: Story = () =>
   table ? (
     <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-      <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+      <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
         The banded d20 roll table. showCommand adds the rust Roll control + command name;
         size=&quot;compact&quot; tightens for rails/tooltips; disabled suppresses the Roll action
         (Reference surface); titleSelect turns the header title into the surface&apos;s table picker

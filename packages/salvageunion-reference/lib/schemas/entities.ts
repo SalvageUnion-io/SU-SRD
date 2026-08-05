@@ -29,6 +29,7 @@ import {
   NpcSchema,
   PatternSchema,
   StatsSchema,
+  StructurePointsSchema,
   SystemModuleSchema,
   TableSchema,
   TraitSchema,
@@ -96,7 +97,7 @@ export const MetaActionSchema = ActionSchema.describe(
  * Structure Points (derived at the display layer).
  */
 export const BioTitanSchema = BaseEntitySchema.extend({
-  structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
+  structurePoints: StructurePointsSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
@@ -200,7 +201,7 @@ export const CrawlerBaySchema = BaseEntitySchema.extend({
  */
 export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
   techLevel: z.number().int().positive().describe('Tech level (1-6)'),
-  structurePoints: z.number().int().nonnegative().describe('Structure points at this tech level'),
+  structurePoints: StructurePointsSchema.describe('Structure points at this tech level'),
   upkeepCost: z
     .number()
     .int()
@@ -350,12 +351,9 @@ export const MeldSchema = BaseEntitySchema.extend({
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
   salvageValue: z.number().int().nonnegative().describe('Scrap value when salvaged').optional(),
   hitPoints: z.number().int().nonnegative().describe('Hit points of this meld creature').optional(),
-  structurePoints: z
-    .number()
-    .int()
-    .positive()
-    .describe('Structure points of this meld creature')
-    .optional(),
+  structurePoints: StructurePointsSchema.describe(
+    'Structure points of this meld creature'
+  ).optional(),
 })
   .strict()
   .describe('Meld-infected creatures')

@@ -223,7 +223,7 @@
       },
       "structurePoints": {
         "type": "integer",
-        "exclusiveMinimum": 0,
+        "minimum": 0,
         "maximum": 9007199254740991,
         "description": "Structure points of this bio-titan"
       },

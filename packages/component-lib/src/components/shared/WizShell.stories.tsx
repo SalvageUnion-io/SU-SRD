@@ -33,7 +33,7 @@ export const Default: Story = () => {
         onCancel={() => {}}
         submitLabel="Create Pilot ✦"
       >
-        <p className="font-body text-sm text-ink-2">
+        <p className="font-body text-sm text-wk-muted">
           Choose from your Class's ability list. Each ability defines what your Pilot can do outside
           the cockpit.
         </p>

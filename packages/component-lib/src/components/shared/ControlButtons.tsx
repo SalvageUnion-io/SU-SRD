@@ -120,7 +120,7 @@ function ControlButton({
           RUNG_INLINE_PADDING.mini,
           RUNG_TYPE.mini.label,
           isDisabled
-            ? 'cursor-not-allowed border-wk-muted text-ink-2'
+            ? 'cursor-not-allowed border-wk-muted text-wk-muted'
             : danger
               ? 'cursor-pointer border-status-bad bg-status-bad text-paper hover:brightness-110'
               : 'cursor-pointer border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
@@ -160,7 +160,7 @@ function ControlButton({
       <span
         className={cn(
           segmentClasses,
-          isDisabled ? 'bg-wk-faint text-ink-2' : !hasCustomColors && VARIANT[variant].bg,
+          isDisabled ? 'bg-wk-faint text-wk-muted' : !hasCustomColors && VARIANT[variant].bg,
           !isDisabled && !hasCustomColors && VARIANT[variant].text
         )}
         style={{
@@ -176,7 +176,7 @@ function ControlButton({
         <span
           className={cn(
             segmentClasses,
-            isDisabled ? 'bg-wk-muted text-ink-2' : VARIANT[variant].inverseBg,
+            isDisabled ? 'bg-wk-muted text-wk-muted' : VARIANT[variant].inverseBg,
             !isDisabled && VARIANT[variant].inverseText
           )}
           style={{ lineHeight: 1 }}

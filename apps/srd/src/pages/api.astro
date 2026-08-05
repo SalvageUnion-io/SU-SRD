@@ -61,7 +61,7 @@ const baseUrl = SITE_URL
         <!-- Schema data array -->
         <Panel soft>
           <div class="border-b-chrome border-wk-faint px-5 py-3">
-            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-wk-muted">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>.json
             </p>
@@ -95,7 +95,7 @@ const baseUrl = SITE_URL
         <!-- JSON Schema definition -->
         <Panel soft>
           <div class="border-b-chrome border-wk-faint px-5 py-3">
-            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-wk-muted">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>.schema.json
             </p>
@@ -131,7 +131,7 @@ const baseUrl = SITE_URL
         <!-- Individual entity -->
         <Panel soft>
           <div class="border-b-chrome border-wk-faint px-5 py-3">
-            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-wk-muted">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>/item/<span class="text-rust">{'{itemId}'}</span>.json
             </p>
@@ -202,7 +202,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
                     </a>
                   </td>
                   <td class="px-4 py-2 font-medium">{schema.displayNamePlural}</td>
-                  <td class="px-4 py-2 text-ink-2 hidden sm:table-cell">{schema.description}</td>
+                  <td class="px-4 py-2 text-wk-muted hidden sm:table-cell">{schema.description}</td>
                   <td class="px-4 py-2 text-right font-body">{schema.itemCount}</td>
                 </tr>
               ))}

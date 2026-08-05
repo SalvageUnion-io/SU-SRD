@@ -20,7 +20,7 @@ const crawlerName = SalvageUnionReference.Crawlers.all()[0]?.name ?? 'Union Craw
 function Stage({ rule, children }: { rule: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-4 bg-wk-bg p-5 font-body text-ink">
-      <p className="max-w-2xl text-xs leading-relaxed text-ink-2">{rule}</p>
+      <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">{rule}</p>
       <div className="max-w-md">{children}</div>
     </div>
   )
@@ -61,7 +61,7 @@ export const CrewLead: Story = () => (
           <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps text-ink">
             Keepsake
           </dt>
-          <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
+          <dd className="m-0 min-w-0 font-body text-note leading-snug text-wk-muted">
             A cracked brass compass
           </dd>
         </div>
@@ -69,7 +69,7 @@ export const CrewLead: Story = () => (
           <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps text-ink">
             Motto
           </dt>
-          <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
+          <dd className="m-0 min-w-0 font-body text-note leading-snug text-wk-muted">
             Never strand the crew.
           </dd>
         </div>

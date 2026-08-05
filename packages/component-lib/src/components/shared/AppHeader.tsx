@@ -25,7 +25,7 @@ import { NavDrawer } from './NavDrawer'
 
 // SRD search-field treatment, matching the shared SearchField chrome exactly so
 // the trigger button reads as the same search bar.
-const SEARCH_BOX = `flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-rust ${FOCUS_RING} lg:w-64`
+const SEARCH_BOX = `flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-wk-muted transition-colors hover:border-rust ${FOCUS_RING} lg:w-64`
 
 const DESKTOP_NAV: AppBarNavItem[] = [
   { label: 'About', href: '/about' },

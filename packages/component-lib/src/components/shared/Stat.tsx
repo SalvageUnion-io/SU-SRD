@@ -398,7 +398,7 @@ function HorizontalValue({
         >
           {value}
           {max !== undefined && (
-            <span className={cn('font-normal', inverse ? 'text-paper/70' : 'text-ink-2')}>
+            <span className={cn('font-normal', inverse ? 'text-paper/70' : 'text-wk-muted')}>
               /{max}
             </span>
           )}
@@ -492,7 +492,7 @@ function ValueBox({
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
   const trueBg = inverse ? 'bg-ink' : 'bg-paper'
   const trueValueColor = inverse ? 'text-paper' : 'text-ink'
-  const mutedMaxColor = inverse ? 'text-paper/70' : 'text-ink-2'
+  const mutedMaxColor = inverse ? 'text-paper/70' : 'text-wk-muted'
   const trueBorderColor = STATE_BORDER[state]
 
   useEffect(() => {

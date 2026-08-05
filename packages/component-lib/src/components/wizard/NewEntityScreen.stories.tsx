@@ -315,7 +315,7 @@ function NewEntityScreen({
         style={{ background: 'var(--ground)' }}
       >
         <div className="grid min-h-[220px] place-items-center p-8">
-          <p className="max-w-md text-center font-body text-sm text-ink-2">
+          <p className="max-w-md text-center font-body text-sm text-wk-muted">
             <span className="font-cond font-bold uppercase tracking-caps text-ink">
               Guided {KIND_LABEL[kind]} wizard
             </span>{' '}
@@ -347,7 +347,7 @@ function NewEntityScreen({
           setMode(undefined)
         }}
       />
-      <p className="px-6 pb-6 font-body text-caption text-ink-2" aria-live="polite">
+      <p className="px-6 pb-6 font-body text-caption text-wk-muted" aria-live="polite">
         Created id: {createdId ?? 'none'}
       </p>
     </>

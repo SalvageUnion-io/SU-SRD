@@ -25,7 +25,7 @@ function Row({ label, skin, children }: { label: string; skin: string; children:
   return (
     <div className="flex flex-col gap-1.5">
       <div className={`${skin} max-w-md`}>{children}</div>
-      <code className="text-nano text-ink-2">{label}</code>
+      <code className="text-nano text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -33,7 +33,7 @@ function Row({ label, skin, children }: { label: string; skin: string; children:
 /** Every VitalGauge variant on one page — read-only through overridden-max. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
-    <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">
       The segmented current/max gauge. readOnly is a static read-out; onChange makes segments
       click-to-set; dense auto-engages at max ≥ 12; danger redlines from a segment index; caption /
       subLabel annotate; an overridden max shows the hand-pinned cap + revert.
@@ -93,7 +93,7 @@ export const Default: Story = () => (
  *  the same primitive the dashboard now renders in place of its bespoke gauge. */
 export const Compact: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
-    <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl text-xs leading-relaxed text-wk-muted">
       The single-row compact gauge: label, one segment row, and value/max on one line — no big
       numeral, caption, or multi-row split. Filled segments use the sheet's <code>--tone</code>, and
       Heat redlines at its danger index. The dashboard instruments render this (dark instrument
@@ -133,7 +133,7 @@ export const Compact: Story = () => (
           style={HEAT_TONE}
         />
       </div>
-      <code className="text-nano text-ink-2">compact · instrument surface (dark ground)</code>
+      <code className="text-nano text-wk-muted">compact · instrument surface (dark ground)</code>
     </div>
   </div>
 )

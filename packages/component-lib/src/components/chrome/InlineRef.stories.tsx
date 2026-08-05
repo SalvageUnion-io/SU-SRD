@@ -18,7 +18,7 @@ const systemHref = `/systems/${systemSlug}`
 /** Navigable vs inert references, in prose and standalone — on one page. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       An in-prose entity reference: navigable (rust border, a real keyboard-reachable link, from
       `href`) or inert (ink dashed border — only summons a tooltip).
     </p>
@@ -36,11 +36,11 @@ export const Default: Story = () => (
         <InlineRef href={systemHref} title={systemName}>
           {systemName}
         </InlineRef>
-        <code className="font-body text-nano text-ink-2">navigable (href)</code>
+        <code className="font-body text-nano text-wk-muted">navigable (href)</code>
       </div>
       <div className="flex flex-col gap-1.5">
         <InlineRef title="No such entity">Phantom System</InlineRef>
-        <code className="font-body text-nano text-ink-2">inert</code>
+        <code className="font-body text-nano text-wk-muted">inert</code>
       </div>
     </div>
   </div>

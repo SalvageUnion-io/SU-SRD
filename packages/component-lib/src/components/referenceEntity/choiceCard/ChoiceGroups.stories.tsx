@@ -44,7 +44,7 @@ function Row({
   return (
     <div className="flex flex-col gap-1.5">
       <div className={width}>{children}</div>
-      <code className="font-body text-nano text-ink-2">{label}</code>
+      <code className="font-body text-nano text-wk-muted">{label}</code>
     </div>
   )
 }
@@ -52,7 +52,7 @@ function Row({
 /** Each choice type × its states — exclusive, multi-select (capped), free-text. */
 export const Types: Story = () => (
   <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       Exclusive (single-select), multi-select (with a scalesWithField cap counter), and free-text
       choices — unselected vs a pre-seeded controlled selection.
     </p>
@@ -96,7 +96,7 @@ export const Types: Story = () => (
 /** All choice types together on one granted card — full and compact. */
 export const Composed: Story = () => (
   <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       Multiple choices as they render on a real granted-equipment card; compact tightens for
       listings.
     </p>

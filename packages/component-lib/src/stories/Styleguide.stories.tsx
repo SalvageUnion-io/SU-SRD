@@ -20,12 +20,12 @@ function SectionHeading({ children }: { children: ReactNode }) {
 }
 
 function Prose({ children }: { children: ReactNode }) {
-  return <p className="max-w-[68ch] text-sm leading-relaxed text-ink-2">{children}</p>
+  return <p className="max-w-[68ch] text-sm leading-relaxed text-wk-muted">{children}</p>
 }
 
 function Rule({ children }: { children: ReactNode }) {
   return (
-    <li className="max-w-[68ch] text-sm leading-relaxed text-ink-2">
+    <li className="max-w-[68ch] text-sm leading-relaxed text-wk-muted">
       <span className="text-ink">{children}</span>
     </li>
   )
@@ -105,7 +105,7 @@ function GroupRow({ stamp, body }: { stamp: string; body: string }) {
       <div className="w-[120px] shrink-0">
         <Stamp>{stamp}</Stamp>
       </div>
-      <p className="max-w-[60ch] text-sm leading-relaxed text-ink-2">{body}</p>
+      <p className="max-w-[60ch] text-sm leading-relaxed text-wk-muted">{body}</p>
     </div>
   )
 }
@@ -213,7 +213,7 @@ export const Contributing: Story = () => (
         <Stamp>Reference</Stamp>
         <Caption>full contributor guide</Caption>
       </div>
-      <p className="max-w-[52ch] text-sm leading-relaxed text-ink-2">
+      <p className="max-w-[52ch] text-sm leading-relaxed text-wk-muted">
         The complete reference — config options, the GlobalProvider, addons, visual-regression, and
         the load-bearing version pin — lives at{' '}
         <code className="text-ink">docs/design-system/ladle-styleguide.md</code>.

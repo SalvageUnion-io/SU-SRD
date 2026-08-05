@@ -50,7 +50,7 @@ You are designing for a Bun monorepo with:
 
 Three current sources, in this order:
 
-1. **`docs/design-system/ruleset.md`** — canon. The governing laws: one kind × one context = one primitive; the rendering matrix; the colour/tracking/border/radius token layer; the irreducible set of **11 atoms + 1 technique** (Stamp, Frame, StampSeam, Badge, Well, Gauge, Btn, Slab, RollTable, ConditionSwatch, SlotGrid, Icons) and the composition tree above them. If a component contradicts it, the component is wrong.
+1. **`docs/design-system/ruleset.md`** — canon. The governing laws: one kind × one context = one primitive; the rendering matrix; the colour/tracking/border/radius token layer; the irreducible set of **11 atoms + 1 technique** and the composition tree above them. Those atom names are an **ontology, not a roster** — several (Stamp, Frame, Well, Btn, Icons) name a KIND of thing and are implemented by a differently-named component. §5 now carries an "Implemented by" column mapping each to what actually renders it; read that, and the barrel, rather than reaching for an atom name as an import. If a component contradicts it, the component is wrong.
 2. **`docs/architecture/display-system.md`** — there is **no** layered display stack. There are **two card shells**, deliberately separate and not being merged: `ReferenceEntityCard` (THE renderer for every SRD entity, in both apps, owning entity recursion) and `Card` (the generic four-band header/sub-header/body/footer container everything else composes — `ModalShell`, `SheetSection`, `Callout`, `Skeleton`, app panels).
 3. **The barrel** — `packages/component-lib/src/index.ts` for what exists, and the defining file for a component's actual props.
 

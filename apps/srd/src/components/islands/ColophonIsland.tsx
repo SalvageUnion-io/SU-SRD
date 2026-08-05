@@ -18,6 +18,11 @@ type ColophonIslandProps = {
  * (This replaces the former KofiButtonIsland, which hydrated the button alone
  * back when the support section stood on its own.)
  */
+/**
+ * Deliberately NOT wrapped in `IslandErrorBoundary`: this renders static
+ * prose with no SRD data and no async work, so there is nothing here that can
+ * throw at render. The boundary is for islands that resolve reference data.
+ */
 export function ColophonIsland({ aboutMarkdown, llmMarkdown }: ColophonIslandProps) {
   return <Colophon aboutMarkdown={aboutMarkdown} llmMarkdown={llmMarkdown} kofiCode="C3Z82382ZC" />
 }

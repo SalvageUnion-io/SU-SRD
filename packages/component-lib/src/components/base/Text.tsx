@@ -24,6 +24,14 @@ const textVariants = cva('', {
       hint: 'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-pretty text-ink',
       // Muted italic flavour text.
       flavor:
+        // `ink-2`, not `wk-muted`, and deliberately the last such site. The two
+        // were used interchangeably for de-emphasised text purely by which app
+        // authored the file, and that split is now settled: `wk-muted` owns
+        // de-emphasised secondary copy (it is the tone with a written contrast
+        // argument covering paper, wk-bg and wk-bg-2). `ink-2` keeps only the
+        // role it is named for — the second rung of BODY ink — which is what
+        // this italic flavour variant is: prose to be read, set one step back
+        // from primary, not a de-emphasised label.
         'break-words font-normal italic leading-snug whitespace-normal text-pretty text-ink-2',
     },
   },

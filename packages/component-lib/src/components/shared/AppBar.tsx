@@ -72,7 +72,7 @@ const NAV_LINK_ACTIVE = 'text-paper'
 const BUY_BUTTON =
   'inline-flex shrink-0 items-center rounded-md border border-rust bg-rust px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-caps-snug text-paper no-underline transition-colors'
 
-const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-caps-wide text-ink-2'
+const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-caps-wide text-wk-muted'
 
 export function AppBar({
   wordmark,
@@ -191,7 +191,7 @@ export function AppBar({
               {breadcrumbs.map((item, index) => (
                 <Fragment key={item.url}>
                   {index > 0 && (
-                    <li aria-hidden="true" className="select-none text-ink-2">
+                    <li aria-hidden="true" className="select-none text-wk-muted">
                       /
                     </li>
                   )}

@@ -91,7 +91,7 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
       )}
 
       {summary.source && (
-        <p className="text-xs text-ink-2">
+        <p className="text-xs text-wk-muted">
           Source: {summary.source}
           {summary.page ? `, p. ${summary.page}` : ''}
         </p>

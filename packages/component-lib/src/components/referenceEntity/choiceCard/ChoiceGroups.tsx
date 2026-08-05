@@ -268,7 +268,9 @@ function ChoiceOptionGroup({
   const options = getChoiceCardOptions(choice)
   return (
     <div style={toneVar}>
-      {counter && !readOnly && <div className="mb-1 font-body text-nano text-ink-2">{counter}</div>}
+      {counter && !readOnly && (
+        <div className="mb-1 font-body text-nano text-wk-muted">{counter}</div>
+      )}
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
         {options.map((option) => {
           const chosen = selected.includes(option.value)
