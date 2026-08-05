@@ -1,7 +1,7 @@
 import type { NavDrawerItem } from 'component-lib'
-import { Badge, buildCatalogSections, NavDrawer } from 'component-lib'
+import { Badge, NavDrawer } from 'component-lib'
+import { NAV_CATALOG } from '../../generated/navCatalog'
 import { ITUN_URL } from '../../lib/constants'
-import { useGameData } from '../../lib/useGameData'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
@@ -19,16 +19,18 @@ type SchemaCategory = {
 }
 
 /**
- * Both props are optional and both are **deliberately not passed** by the SSG.
+ * Both props are optional and neither is passed by the SSG.
  *
  * Serialized island props on the Astro baseline totalled 18.7 MB across 1,039
  * pages, of which this island alone was 17.3 MB — the same 16.6 KB catalog blob
- * inlined into every single page. `buildCatalogSections()` is a pure function
- * and `currentPath` is `location.pathname`, so the island computes both inside
- * its own chunk: one copy, shared by every page.
+ * inlined into every single page. The catalog now ships ONCE, inside this
+ * island's own chunk, as the build-time-frozen `NAV_CATALOG`
+ * (see `ssg/genNavCatalog.ts`), and `currentPath` comes from
+ * `location.pathname`.
  *
- * They remain accepted so the (still-live) Astro `TopNavigation.astro` path and
- * the existing tests keep passing build-time values.
+ * They stay accepted because passing them is still meaningful — tests supply
+ * fixtures, and a caller that already knows the active path can skip the
+ * `location` read. Nothing in the SSG does.
  */
 type MobileNavIslandProps = {
   categories?: SchemaCategory[]
@@ -63,24 +65,19 @@ const SRD_BRAND = (
  * data + search behaviour.
  */
 function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) {
-  // Only needed when the catalog was not supplied; the hook is unconditional
-  // (rules of hooks) but `buildCatalogSections()` is only called once ready.
+  // NO reference-ORM access here, deliberately, and it took two wrong turns to
+  // get here. Calling `buildCatalogSections()` at runtime needs game data: with
+  // `useGameData()` (which defaults to `'all'`) the drawer waited on the whole
+  // ~1.4 MB corpus, and narrowing it to the two schemas the catalog reads still
+  // pulled `guides-*.js` + `catalog-categories-*.js` onto EVERY page — which
+  // `e2e/bundle-budget.e2e.ts` forbids on leaf-schema pages, and which is the
+  // 17.3 MB of HTML coming back as network requests.
   //
-  // The schema list is NARROW on purpose. This defaulted to `useGameData()`,
-  // i.e. `'all'`, which made the nav drawer — pure chrome — wait on the entire
-  // ~1.4 MB reference corpus before it could render a single category. Astro
-  // passed `categories` in as a build-time prop, so it rendered instantly;
-  // designing that prop out (the 17.3 MB win) must not buy the bytes back as
-  // latency.
-  //
-  // `buildCatalogSections()` reads `getSchemaCatalog()` (static metadata, no
-  // load), `CatalogCategories.all()`, and calls `findAllIn` for exactly ONE
-  // schema — `guides`. That was measured by instrumenting `findAllIn`, not
-  // inferred. If the catalog ever queries another schema, add it here; the
-  // symptom of getting it wrong is an empty drawer, so keep it in step.
-  const { ready } = useGameData({ schemas: ['catalog-categories', 'guides'] })
-  const resolvedCategories =
-    categories ?? (ready ? (buildCatalogSections() as SchemaCategory[]) : [])
+  // `NAV_CATALOG` is that same catalog computed at build time and frozen into
+  // this island's chunk (~13 KB of source, one shared copy). Instant, no ORM,
+  // no preload, nothing per-page. This is what DESIGN.md meant by "islands
+  // import their own static data in their own chunk".
+  const resolvedCategories = categories ?? (NAV_CATALOG as unknown as SchemaCategory[])
   const path = currentPath ?? (typeof location === 'undefined' ? '/' : location.pathname)
   const isActive = (candidate: string) => path.startsWith(candidate)
 

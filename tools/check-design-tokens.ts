@@ -289,7 +289,14 @@ function walk(dir: string): string[] {
     return out
   }
   for (const entry of entries) {
-    if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue
+    // `generated`: machine-written files are not a place a violation can be
+    // fixed — the only edit that survives is to the generator, and the literals
+    // in them are DATA rather than authored styling. apps/srd's
+    // src/generated/navCatalog.ts carries the dataset's own `catalogBg` values
+    // (including its gradients), which used to reach the browser as serialized
+    // island props and were never scanned there either.
+    if (entry === 'node_modules' || entry === 'dist' || entry === 'generated') continue
+    if (entry.startsWith('.')) continue
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) out.push(...walk(full))
     else if (SCAN_EXTENSIONS.some((ext) => entry.endsWith(ext))) out.push(full)

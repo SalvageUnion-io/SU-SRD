@@ -18,13 +18,31 @@
 
 import { readdir, stat } from 'node:fs/promises'
 import { join, relative, sep } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
 
-const DEFAULT_BASELINE = '/Users/jarvis/.claude/jobs/dbab36ff/tmp/baseline-dist'
-const DEFAULT_CANDIDATE = new URL('../dist/', import.meta.url).pathname
+/**
+ * The Astro baseline to compare against.
+ *
+ * There is no way to regenerate this from the repo any more — Astro is deleted
+ * — so the baseline is an artifact you must be handed or keep. It therefore
+ * comes from `SRD_PARITY_BASELINE`, falling back to `apps/srd/.parity-baseline`
+ * (gitignored) so a checkout has a conventional place to put one.
+ *
+ * This used to hardcode an absolute path inside the agent job directory that
+ * first produced the baseline, which made the documented "acceptance gate"
+ * exit 2 for every other person and machine.
+ */
+const DEFAULT_BASELINE =
+  process.env.SRD_PARITY_BASELINE ?? fileURLToPath(new URL('../.parity-baseline/', import.meta.url))
+
+// `fileURLToPath`, not `.pathname` — the latter stays percent-encoded, so any
+// checkout under a path with a space resolves to a directory that does not
+// exist. Every other module under ssg/ already uses fileURLToPath.
+const DEFAULT_CANDIDATE = fileURLToPath(new URL('../dist/', import.meta.url))
 
 export type Options = {
   baseline: string
@@ -281,16 +299,43 @@ export const extractMainInner = (html: string): string | null => {
 
 const sliceHead = (html: string): string => {
   const open = html.search(/<head\b/i)
-  const close = html.search(/<\/head\s*>/i)
+  const close = html.search(/<\/head\b[^>]*>/i)
   if (open === -1 || close === -1 || close < open) return html
   return html.slice(open, close)
 }
 
-/** Remove `<tag>…</tag>` blocks wholesale (scripts, styles). */
+/**
+ * Remove `<tag>…</tag>` blocks wholesale (scripts, styles).
+ *
+ * The end-tag pattern is `<\/tag\b[^>]*>`, not `<\/tag\s*>`. HTML parsers
+ * accept junk inside a closing tag — `</script\t\n foo>` closes a script — so
+ * the narrower form silently fails to match and this function then swallows
+ * everything to the NEXT well-formed `</script>`, or to end-of-string. In a
+ * comparator that is not a cosmetic bug: dropping too much of one side's
+ * `<main>` is exactly how a real content regression gets reported as "identical".
+ */
 const removeBlocks = (html: string, tagName: string): string =>
-  html.replace(new RegExp(`<${tagName}\\b[^>]*>[\\s\\S]*?<\\/${tagName}\\s*>`, 'gi'), ' ')
+  html.replace(new RegExp(`<${tagName}\\b[^>]*>[\\s\\S]*?<\\/${tagName}\\b[^>]*>`, 'gi'), ' ')
 
-const removeComments = (html: string): string => html.replace(/<!--[\s\S]*?-->/g, '')
+/**
+ * Strip HTML comments.
+ *
+ * Two subtleties, both of which a single non-global-loop `replace` gets wrong:
+ *   - a comment may be terminated by `--!>` as well as `-->`;
+ *   - once comments are removed, the surrounding text can form a NEW `<!--`
+ *     (`<!<!---->--` collapses to `<!--`), so one pass is not a fixed point.
+ * Loop to stability, and drop an unterminated trailing `<!--` outright rather
+ * than leaving it to be re-parsed as markup.
+ */
+const removeComments = (html: string): string => {
+  let out = html
+  for (;;) {
+    const next = out.replace(/<!--[\s\S]*?--!?>/g, '')
+    if (next === out) break
+    out = next
+  }
+  return out.replace(/<!--[\s\S]*$/, '')
+}
 
 /**
  * Drop the subtree of every element the matcher accepts, in one left-to-right
@@ -383,7 +428,7 @@ export const extractHeadMeta = (html: string): HeadMeta => {
     social: {},
   }
 
-  const titleMatch = /<title\b[^>]*>([\s\S]*?)<\/title\s*>/i.exec(head)
+  const titleMatch = /<title\b[^>]*>([\s\S]*?)<\/title\b[^>]*>/i.exec(head)
   if (titleMatch)
     meta.title = decodeEntities(titleMatch[1] ?? '')
       .replace(/\s+/g, ' ')
@@ -418,7 +463,11 @@ export type JsonLdBlock = { ok: true; value: unknown } | { ok: false; raw: strin
 
 export const extractJsonLd = (html: string): JsonLdBlock[] => {
   const blocks: JsonLdBlock[] = []
-  const re = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi
+  // `<\/script\b[^>]*>`, not `<\/script\s*>` — see removeBlocks. A closing tag
+  // may carry junk (`</script\t\n foo>`) and still close the element, so the
+  // narrower form runs past the real end and swallows the following markup into
+  // this block's body, which here would mean feeding JSON.parse the wrong text.
+  const re = /<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi
   let match = re.exec(html)
   while (match) {
     const attrs = parseAttrs(match[1] ?? '')

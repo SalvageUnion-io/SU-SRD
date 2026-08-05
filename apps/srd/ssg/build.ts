@@ -42,6 +42,7 @@ import { writeServiceWorker as pwaWriteServiceWorker } from './pwa'
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
+const navCatalogFile = fileURLToPath(new URL('../src/generated/navCatalog.ts', import.meta.url))
 
 plugin({
   name: 'ssg-css-stub',
@@ -166,6 +167,13 @@ async function writeServiceWorker(): Promise<void> {
 
 async function main(): Promise<void> {
   const started = Date.now()
+
+  // BEFORE vite, because the nav island imports the generated module and Vite
+  // has to bundle the current one. The file is committed too (so tests and the
+  // dev server work without a build); `ssg/__tests__/navCatalog.drift.test.ts`
+  // fails if the committed copy and this regeneration disagree.
+  const { renderNavCatalogModule } = await import('./genNavCatalog')
+  await writeFile(navCatalogFile, await renderNavCatalogModule(), 'utf-8')
 
   console.log('[ssg] vite build (client)')
   // `vite build` sets process.env.NODE_ENV='production' in THIS process, and

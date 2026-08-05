@@ -84,3 +84,7 @@ docs/rules/
 apps/itun/playwright-report
 apps/itun/test-results
 .design-bundle/
+
+# Parity baseline for ssg/parity.ts — an Astro-era dist that cannot be
+# regenerated from this repo (Astro is deleted). Kept locally, never committed.
+apps/srd/.parity-baseline/

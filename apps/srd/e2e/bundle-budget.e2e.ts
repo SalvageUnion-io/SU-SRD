@@ -21,12 +21,17 @@ type ResourceTotals = { count: number; bytes: number; names: string[] }
  *  a page load, keyed by response so redirects/duplicates aren't double
  *  counted. `names` records the chunk filenames for assert-not-present checks.
  *
- *  The prefix was `/assets/` until srd moved off Astro; Vite emits to
- *  `/assets/`. That mattered more than a rename: this whole guard silently
- *  matched NOTHING after the migration, so the budget summed 0 bytes and every
- *  assertion passed vacuously — the payload guard was dead while still
- *  reporting green. Keep this prefix in step with `build.assetsDir` in
- *  ssg/vite.config.ts, and see the zero-chunk assertion below. */
+ *  The prefix was `/_astro/` under Astro; Vite emits to `/assets/`. That
+ *  mattered more than a rename: this whole guard silently matched NOTHING after
+ *  the migration, so the budget summed 0 bytes and every assertion passed
+ *  vacuously — the payload guard was dead while still reporting green. Keep
+ *  this prefix in step with `build.assetsDir` in ssg/vite.config.ts, and see
+ *  the zero-chunk assertion below.
+ *
+ *  The chunk-name SEPARATOR changed with it, and is the same trap one level
+ *  down: Astro emitted `guides.HASH.js`, Vite emits `guides-HASH.js`, so every
+ *  `startsWith('guides.')` / `/^(actions|chassis|…)\./` check below was also
+ *  matching nothing. Both halves have to move together. */
 async function captureAstroJsTotals(
   page: import('@playwright/test').Page,
   navigate: () => Promise<unknown>
@@ -88,7 +93,7 @@ test.describe('bundle-size budget', () => {
     // roll-tables' own listing chunk) must not be among the requested files —
     // schemaPreloadDeps.ts's ALWAYS_CORE bundle for leaf schemas excludes
     // every CONTENT_BUNDLE/CHASSIS_BUNDLE-only schema.
-    const forbidden = ['chassis.', 'crawler-bays.', 'guides.', 'meld.']
+    const forbidden = ['chassis-', 'crawler-bays-', 'guides-', 'meld-']
     for (const name of forbidden) {
       expect(totals.names.some((n) => n.startsWith(name))).toBe(false)
     }
@@ -108,7 +113,7 @@ test.describe('bundle-size budget', () => {
 
     // Schemas with no chassis-pattern relationship (per CHASSIS_BUNDLE in
     // schemaPreloadDeps.ts) should never be fetched on a chassis page.
-    const forbidden = ['crawler-bays.', 'guides.', 'meld.', 'bio-titans.', 'creatures.']
+    const forbidden = ['crawler-bays-', 'guides-', 'meld-', 'bio-titans-', 'creatures-']
     for (const name of forbidden) {
       expect(totals.names.some((n) => n.startsWith(name))).toBe(false)
     }
@@ -139,7 +144,7 @@ test.describe('bundle-size budget', () => {
     // Zero salvageunion-reference schema data chunks — search runs entirely
     // against the compact index, never the ORM.
     const dataChunkPattern =
-      /^(actions|chassis|systems|modules|equipment|abilities|traits|keywords|roll-tables)\./
+      /^(actions|chassis|systems|modules|equipment|abilities|traits|keywords|roll-tables)-/
     expect(jsTotals.names.some((n) => dataChunkPattern.test(n))).toBe(false)
   })
 })
