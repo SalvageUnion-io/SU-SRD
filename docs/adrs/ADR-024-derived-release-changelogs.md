@@ -93,6 +93,18 @@ config.
   pass the suite cleanly, and land via the existing squash-only + auto-merge
   flow.
 
+- **Auto-merge is armed by the workflow, not by a human.** This sentence used to
+  read as though "the existing auto-merge flow" would pick release PRs up on its
+  own. It does not: nothing enables auto-merge on a PR unless something asks it
+  to, so the release PRs simply sat open — `srd` #688 for a day, `itun` #677 for
+  two — and `main`'s `CHANGELOG.md` fell behind by exactly that much. The
+  release-please workflow now re-arms auto-merge on every open
+  `release-please--*` PR on each run, so a release lands as soon as
+  `quality-checks` is green with no human step. It is re-asserted every run
+  rather than only on creation, because a PR ejected from the merge queue (both
+  release PRs edit `.release-please-manifest.json`, so one always rebases) loses
+  auto-merge silently; a daily `schedule:` covers the case where no push follows.
+
 ## Consequences
 
 - **Less ongoing work than today** — no per-PR prose — and **ITUN gains a

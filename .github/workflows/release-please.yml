@@ -2,6 +2,14 @@ name: release-please
 on:
   push:
     branches: [main]
+  # Self-heal without needing a push. Both open release PRs edit
+  # `.release-please-manifest.json`, so whichever merges second gets rebased —
+  # and a PR ejected from the merge queue loses its auto-merge. On push alone,
+  # that PR would sit dead until someone happened to merge something else. The
+  # daily run re-arms it on its own; workflow_dispatch is the manual kick.
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
 permissions:
   contents: write
   pull-requests: write
@@ -17,3 +25,46 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # ADR-024 says release PRs "land via the existing squash-only + auto-merge
+      # flow" — but nothing ever turned auto-merge ON, so they sat open (srd
+      # #688 for a day, itun #677 for two) while `main`'s CHANGELOG.md went
+      # stale. This is that missing half.
+      #
+      # Deliberately NOT gated on the action's `prs_created` output. That output
+      # is false whenever release-please merely refreshes an already-open PR,
+      # which is the common case, so gating on it would arm auto-merge once and
+      # never notice if it lapsed. Re-asserting on every run is idempotent and
+      # self-healing: any push to main repairs a release PR that lost its
+      # auto-merge (release-please force-pushes these branches on each update).
+      #
+      # The PAT is required, not cosmetic: `main` requires a merge queue, and
+      # GITHUB_TOKEN cannot add a PR to one. GH_REPO is required because this
+      # job never checks out the repo, so `gh` has no remote to infer.
+      - name: Keep auto-merge armed on every open release PR
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          failed=0
+          pending=$(gh pr list --state open --limit 100 \
+            --json number,headRefName,autoMergeRequest \
+            --jq '.[]
+                  | select(.headRefName | startswith("release-please--"))
+                  | select(.autoMergeRequest == null)
+                  | .number')
+          if [ -z "$pending" ]; then
+            echo "No release PR needs auto-merge armed."
+            exit 0
+          fi
+          # One bad PR (a conflict, say) must not skip the others, but the run
+          # still goes red so a broken release path is loud rather than silent.
+          for pr in $pending; do
+            echo "Arming auto-merge on #$pr"
+            gh pr merge "$pr" --auto --squash || {
+              echo "::error::Could not enable auto-merge on #$pr"
+              failed=1
+            }
+          done
+          exit "$failed"
