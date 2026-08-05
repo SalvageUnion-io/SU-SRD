@@ -96,9 +96,11 @@
       "devDependencies": {
         "@playwright/test": "1.62.0",
         "@vite-pwa/astro": "1.2.0",
+        "@vitejs/plugin-react": "^6.0.4",
         "playwright": "1.62.0",
         "sharp": "0.35.3",
         "typescript": "6.0.3",
+        "vite": "^8.1.5",
       },
     },
     "apps/su-assets": {
@@ -144,7 +146,7 @@
     },
     "packages/salvageunion-reference": {
       "name": "salvageunion-reference",
-      "version": "2.9.0",
+      "version": "2.9.1",
       "dependencies": {
         "jsonc-parser": "^3.3.1",
         "zod": "^4.4.3",

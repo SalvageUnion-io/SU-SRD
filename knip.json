@@ -20,8 +20,17 @@
       "includeEntryExports": false
     },
     "apps/srd": {
-      "entry": ["src/pages/**/*.{astro,ts,tsx}"],
-      "project": ["src/**/*.{ts,tsx,astro}"],
+      // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
+      // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
+      // *client bundle* entries, named in ssg/vite.config.ts rather than
+      // imported by anything, so knip cannot infer them.
+      "entry": [
+        "src/pages/**/*.{astro,ts,tsx}",
+        "ssg/build.ts",
+        "src/runtime/islands.client.ts",
+        "src/runtime/styles.entry.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx,astro}", "ssg/**/*.{ts,tsx}"],
       "includeEntryExports": false
     },
     "apps/itun": {

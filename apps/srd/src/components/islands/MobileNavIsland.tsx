@@ -1,6 +1,7 @@
 import type { NavDrawerItem } from 'component-lib'
-import { Badge, NavDrawer } from 'component-lib'
+import { Badge, buildCatalogSections, NavDrawer } from 'component-lib'
 import { ITUN_URL } from '../../lib/constants'
+import { useGameData } from '../../lib/useGameData'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
@@ -17,9 +18,21 @@ type SchemaCategory = {
   schemas: SchemaLink[]
 }
 
+/**
+ * Both props are optional and both are **deliberately not passed** by the SSG.
+ *
+ * Serialized island props on the Astro baseline totalled 18.7 MB across 1,039
+ * pages, of which this island alone was 17.3 MB — the same 16.6 KB catalog blob
+ * inlined into every single page. `buildCatalogSections()` is a pure function
+ * and `currentPath` is `location.pathname`, so the island computes both inside
+ * its own chunk: one copy, shared by every page.
+ *
+ * They remain accepted so the (still-live) Astro `TopNavigation.astro` path and
+ * the existing tests keep passing build-time values.
+ */
 type MobileNavIslandProps = {
-  categories: SchemaCategory[]
-  currentPath: string
+  categories?: SchemaCategory[]
+  currentPath?: string
 }
 
 const SRD_BRAND = (
@@ -50,7 +63,13 @@ const SRD_BRAND = (
  * data + search behaviour.
  */
 function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) {
-  const isActive = (path: string) => currentPath.startsWith(path)
+  // Only needed when the catalog was not supplied; the hook is unconditional
+  // (rules of hooks) but `buildCatalogSections()` is only called once ready.
+  const { ready } = useGameData()
+  const resolvedCategories =
+    categories ?? (ready ? (buildCatalogSections() as SchemaCategory[]) : [])
+  const path = currentPath ?? (typeof location === 'undefined' ? '/' : location.pathname)
+  const isActive = (candidate: string) => path.startsWith(candidate)
 
   const navItems: NavDrawerItem[] = [
     { label: 'ABOUT', href: '/about/', active: isActive('/about') },
@@ -67,7 +86,7 @@ function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) 
   return (
     <NavDrawer
       brand={SRD_BRAND}
-      categories={categories}
+      categories={resolvedCategories}
       search={<SearchIsland />}
       navItems={navItems}
     />

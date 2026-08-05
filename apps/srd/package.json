@@ -40,6 +40,8 @@
   "devDependencies": {
     "@playwright/test": "1.62.0",
     "@vite-pwa/astro": "1.2.0",
+    "@vitejs/plugin-react": "^6.0.4",
+    "vite": "^8.1.5",
     "playwright": "1.62.0",
     "sharp": "0.35.3",
     "typescript": "6.0.3"

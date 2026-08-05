@@ -41,6 +41,7 @@
   // until now they were covered by the formatter alone.
   "include": [
     "src/**/*",
+    "ssg/**/*",
     "test/**/*",
     "scripts/**/*",
     "e2e/**/*",
