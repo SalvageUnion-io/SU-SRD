@@ -38,9 +38,9 @@
     "component-lib": "workspace:*"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.0",
+    "@playwright/test": "1.62.1",
     "@vite-pwa/astro": "1.2.0",
-    "playwright": "1.62.0",
+    "playwright": "1.62.1",
     "sharp": "0.35.3",
     "typescript": "6.0.3"
   }
