@@ -42,7 +42,7 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { Badge, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
+import { Badge, BandTitle, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
 import { useId, useState } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
@@ -496,9 +496,9 @@ export function StorageManifest({
             <span className="m-0 font-cond text-xs font-bold uppercase tracking-caps text-paper">
               {side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
             </span>
-            <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
+            <BandTitle variant="mute" fill={false}>
               {side === 'mech' ? mechName : crawlerName}
-            </span>
+            </BandTitle>
           </>
         }
         cardStyle={{ className: 'shadow-[0_2px_8px_-3px_var(--color-ink-50)]' }}

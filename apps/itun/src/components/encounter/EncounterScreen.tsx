@@ -16,7 +16,7 @@
  * new instances land on the Shelf — see Roster.tsx for the same branch.
  */
 
-import { Card, EmptyState, PageShell, Skeleton } from 'component-lib'
+import { BandTitle, Card, EmptyState, PageShell, Skeleton } from 'component-lib'
 import { Users } from 'lucide-react'
 import { useState } from 'react'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
@@ -62,9 +62,9 @@ function Section({
               {title}
             </h2>
             {hint && (
-              <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
+              <BandTitle variant="mute" fill={false}>
                 {hint}
-              </span>
+              </BandTitle>
             )}
           </>
         }

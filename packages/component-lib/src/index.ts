@@ -32,6 +32,9 @@ export type { BadgeTone } from './components/chrome/Badge'
 // chip is `surface="quiet"`, the status badge is StatusBadge (domain vocabulary).
 // (use `Badge surface="outline"`/`"tone"` directly for the former Pill).
 export { Badge } from './components/chrome/Badge'
+// BandTitle — the paper-on-tone title inside a Card's header band. NOT a
+// stamp: it fills its track and truncates, where a stamp sizes to its text.
+export { BandTitle } from './components/chrome/BandTitle'
 export { Banner } from './components/chrome/Banner'
 export { Button } from './components/chrome/Button'
 export { buttonVariants } from './components/chrome/buttonVariants'

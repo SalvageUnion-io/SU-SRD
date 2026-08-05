@@ -28,6 +28,7 @@ import type { TechLevel } from 'salvageunion-reference/rules'
 import { matchesRef } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
+import { BandTitle } from '../chrome/BandTitle'
 import { Button } from '../chrome/Button'
 import { FOCUS_WITHIN } from '../chrome/interaction'
 import { PageHeading } from '../chrome/PageHeading'
@@ -432,9 +433,7 @@ export function EntitySearcher({
         bodyPadding="p-0"
         headerContent={
           <div className="flex w-full items-center gap-3">
-            <span className="min-w-0 flex-1 truncate font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
-              {title}
-            </span>
+            <BandTitle>{title}</BandTitle>
             {onClose && (
               <Button
                 variant="default"
