@@ -72,11 +72,18 @@ const HYSTERESIS = 24
  *
  * The wrap is the floor for every case this measurement declines to judge: an
  * unmeasurable band (below), no `ResizeObserver`, or a host that renders the
- * card without ever running an effect. It is NOT what a crawler sees — srd
- * gates this card behind `GameDataGate` and serves `StaticEntityContent` to
- * no-JS readers, and ITUN is client-only, so the card is never
- * server-rendered. Nor is it a visible frame: `useLayoutEffect` measures
- * before paint, so the boxes never flash on a narrow card.
+ * card without ever running an effect.
+ *
+ * That floor is load-bearing, not an edge case. srd renders most entity cards
+ * to HTML at build time and ships no JS for them (only cards carrying a real
+ * control keep an island), so on those pages the effect never runs at all and
+ * the wrap IS what the reader gets. Treat it as the real layout and the
+ * measurement as a progressive refinement for hosts that hydrate — ITUN, which
+ * is client-only, and srd's interactive minority. Anything that must be legible
+ * on a phone has to survive the wrap alone.
+ *
+ * Where the effect does run it is not a visible frame: `useLayoutEffect`
+ * measures before paint, so the boxes never flash on a narrow card.
  *
  * Measured, not breakpointed, because "enough space" is a function of the CARD's
  * width and its stat COUNT, not the viewport: a 2-stat card is fine at 320px and

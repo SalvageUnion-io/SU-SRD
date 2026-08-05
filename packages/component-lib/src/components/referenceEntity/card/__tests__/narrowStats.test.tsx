@@ -10,9 +10,11 @@
  *
  *   1. the cluster SHRINKS (so the boxes wrap onto a second row) — the floor
  *      for every case the measurement below declines to judge (an unmeasurable
- *      band, no `ResizeObserver`). It is not what a crawler sees: srd gates the
- *      card behind `GameDataGate` and serves `StaticEntityContent` to no-JS
- *      readers, and ITUN is client-only, so the card is never server-rendered;
+ *      band, no `ResizeObserver`). This is the layer srd actually ships on most
+ *      entity pages: it renders the card to HTML at build time with no client
+ *      JS, so the measurement in layer 2 never runs there and the wrap is what
+ *      the reader gets. Layer 2 refines it only on hosts that hydrate — ITUN,
+ *      and the srd cards that carry a real control;
  *   2. once mounted the header MEASURES itself and, when the boxes don't fit,
  *      swaps to the compact `[label | value]` cells with their short-form
  *      labels (SV / SYS / MODS) — the same badge anatomy a listing card uses.
