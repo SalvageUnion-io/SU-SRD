@@ -256,9 +256,12 @@ describe('barrelExports', () => {
   })
 })
 
+// These exercised Astro as the srd-anchored framework until srd moved off it.
+// The logic under test is unchanged — only the framework the fixtures name.
+// srd's tracked major is now Vite's, per FRAMEWORKS in check-doc-drift.ts.
 const MANIFEST_FIXTURE = {
   'package.json': JSON.stringify({ devDependencies: { tailwindcss: '4.3.3' } }),
-  'apps/srd/package.json': JSON.stringify({ dependencies: { astro: '^7.1.4' } }),
+  'apps/srd/package.json': JSON.stringify({ devDependencies: { vite: '^8.1.5' } }),
   'apps/itun/package.json': JSON.stringify({ dependencies: { react: '19.2.0' } }),
 }
 
@@ -266,19 +269,19 @@ describe('checkFrameworkVersions', () => {
   it('fails when a doc names a major the manifest disagrees with', () => {
     const root = fixture({
       ...MANIFEST_FIXTURE,
-      'apps/srd/README.md': 'Static SRD site. Astro 5 + React 19 islands, Tailwind v4.\n',
+      'apps/srd/README.md': 'Static SRD site. Vite 6 + React 19 islands, Tailwind v4.\n',
     })
     const { failures } = checkFrameworkVersions(root)
     expect(failures).toHaveLength(1)
     expect(failures[0]).toContain('apps/srd/README.md:1')
-    expect(failures[0]).toContain('says "Astro 5"')
-    expect(failures[0]).toContain('astro 7.x')
+    expect(failures[0]).toContain('says "Vite 6"')
+    expect(failures[0]).toContain('vite 8.x')
   })
 
   it('accepts the current major, including a dotted one', () => {
     const root = fixture({
       ...MANIFEST_FIXTURE,
-      'CLAUDE.md': 'Astro 7 with React 19.2.0+ islands and Tailwind CSS v4.\n',
+      'CLAUDE.md': 'Vite 8 with React 19.2.0+ islands and Tailwind CSS v4.\n',
     })
     expect(checkFrameworkVersions(root).failures).toEqual([])
   })
@@ -286,8 +289,8 @@ describe('checkFrameworkVersions', () => {
   it('allows an old major that is contextualised by the current one', () => {
     const root = fixture({
       ...MANIFEST_FIXTURE,
-      'docs/adrs/ADR-012-astro.md':
-        '# ADR-012\n\n> `srd` was on **Astro 5** when this was written;\n> it runs **Astro 7** today.\n',
+      'docs/adrs/ADR-031-srd-vite.md':
+        '# ADR-031\n\n> `srd` was on **Vite 6** when this was written;\n> it runs **Vite 8** today.\n',
     })
     expect(checkFrameworkVersions(root).failures).toEqual([])
   })
@@ -295,7 +298,7 @@ describe('checkFrameworkVersions', () => {
   it('reads versions stated inside ASCII diagrams', () => {
     const root = fixture({
       ...MANIFEST_FIXTURE,
-      'README.md': '# Repo\n\n```\n+--- srd (static site, Astro 5)\n```\n',
+      'README.md': '# Repo\n\n```\n+--- srd (static site, Vite 6)\n```\n',
     })
     const { failures } = checkFrameworkVersions(root)
     expect(failures).toHaveLength(1)
@@ -305,7 +308,7 @@ describe('checkFrameworkVersions', () => {
   it('fails loudly when the manifest no longer installs the framework', () => {
     const root = fixture({ 'package.json': '{}', 'apps/srd/package.json': '{}' })
     const { failures } = checkFrameworkVersions(root)
-    expect(failures.some((f) => f.includes('Could not read the installed "astro" version'))).toBe(
+    expect(failures.some((f) => f.includes('Could not read the installed "vite" version'))).toBe(
       true
     )
   })

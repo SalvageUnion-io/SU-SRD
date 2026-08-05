@@ -13,7 +13,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { BaseLayout } from '../src/layouts/BaseLayout'
 import type { CollectedIslandProps } from '../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../src/runtime/Island'
-import type { DocumentMeta, DocumentShell } from './types'
+import type { BuiltAssets, DocumentMeta, DocumentShell } from './types'
 
 /** Hashed URLs of the built client assets, read from `dist/.vite/manifest.json`. */
 export type BuildAssets = {
@@ -21,6 +21,12 @@ export type BuildAssets = {
   scripts: string[]
   /** Stylesheets to link, in order. */
   styles: string[]
+  /**
+   * Emitted URLs of the static assets under `src/assets/`. Not injected into
+   * `<head>` like the two above — these are handed to the page through
+   * `RouteContext.builtAssets`, because only the page knows where its image goes.
+   */
+  built: BuiltAssets
 }
 
 /**

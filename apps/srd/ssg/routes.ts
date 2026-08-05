@@ -29,7 +29,9 @@ import { register, registerDocument } from './render'
 
 export const routes: RouteRegistration[] = [
   register(indexPage),
-  register(notFoundPage),
+  // `@astrojs/sitemap` drops 404/500 pages itself, so the baseline sitemap has
+  // no `/404/` entry. That rule is not URL-shaped here — it is declared.
+  register(notFoundPage, { sitemap: false }),
   register(schemaListingPage),
   register(itemPage),
   register(patternPage),
@@ -40,13 +42,15 @@ export const routes: RouteRegistration[] = [
   register(aboutPage),
   register(apiPage),
   register(discordPage),
-  // Build-only screenshot surface for the per-entity og:images. Excluded from
-  // the sitemap (see the filter ssg/build.ts still owes) and noindexed.
-  register(ogCardPage),
+  // Build-only screenshot surface for the per-entity og:images. Noindexed, and
+  // `sitemap: false` keeps it out of sitemap-0.xml the way the Astro config's
+  // `!page.includes('/og-card')` filter did.
+  register(ogCardPage, { sitemap: false }),
   // SITEMAP_EXCLUDED. A standalone document (its own <html>, its own <style>,
   // none of the site's css or js) — hence `registerDocument`, not `register`.
-  // Astro's sitemap filter dropped any path containing `/greembeem`; ssg/sitemap.ts
-  // must keep dropping it. It is also noindexed.
+  // Astro's sitemap filter dropped any path containing `/greembeem`;
+  // `registerDocument` is unconditionally `sitemap: false`, and ssg/sitemap.ts
+  // still applies the URL filter on top. It is also noindexed.
   registerDocument(greembeemPage),
 
   // ---------------------------------------------------------------------

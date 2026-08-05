@@ -15,7 +15,9 @@
  * Pipeline:
  *   1. Enumerate targets via getItemStaticPaths + getPatternStaticPaths (the
  *      same sources as the routes, so every og.png path matches a real page).
- *   2. Serve the freshly-built `dist/` with `astro preview`.
+ *   2. Serve the freshly-built `dist/` with the in-house static preview server
+ *      (`ssg/preview.ts`), in-process — the same URL->file mapping `bun run
+ *      preview` and the e2e suite get.
  *   3. Drive headless chromium (Playwright). Each worker loads `/og-card/` ONCE
  *      (game-data corpus + island loaded a single time) and re-renders each
  *      entity in place via `window.__ogSetEntity` — far faster and lighter than
@@ -64,6 +66,7 @@ import {
   pickTileWidth,
 } from '../src/lib/ogCard'
 import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
+import { startPreview } from '../ssg/preview'
 
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
 const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)
@@ -73,7 +76,7 @@ const RELOAD_EVERY = Number(process.env.OG_SCREENSHOTS_RELOAD_EVERY ?? 200)
 // keeps the site-wide default og:image — a partial run is always preferable to
 // a failed deploy (see the header note).
 const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 10 * 60_000)
-// The island mounts inside an <astro-island> wrapper, so the tile is a
+// The island mounts inside its `[data-island]` placeholder, so the tile is a
 // descendant of #og-card rather than a child — match it by its own marker.
 const TILE_SELECTOR = '[data-og-tile]'
 // …but CAPTURE the padded frame, not the tile: the card is `overflow-visible`
@@ -106,7 +109,7 @@ const DIST_DIR = join(APP_ROOT, 'dist')
 // ---------------------------------------------------------------------------
 // Incremental cache.
 //
-// `astro build` wipes dist/, so "skip unchanged" needs the PNGs to survive
+// The build wipes dist/ (`emptyOutDir`), so "skip unchanged" needs the PNGs to survive
 // OUTSIDE dist: a cache dir under node_modules/.cache keyed by a manifest of
 // content hashes. Hash input = the entity's JSON + SCRIPT_VERSION — bump
 // SCRIPT_VERSION whenever the card RENDERING changes (og-card page, the
@@ -177,8 +180,8 @@ function itemHtmlPath(entity: Entity): string {
 /**
  * Point one built item page at its own og:image.
  *
- * Astro emits the site-wide default for every page, and this pass upgrades ONLY
- * the pages whose PNG actually landed in dist. That ordering is the safety
+ * The build emits the site-wide default for every page, and this pass upgrades
+ * ONLY the pages whose PNG actually landed in dist. That ordering is the safety
  * property: generation being skipped, budget-capped, or failing outright leaves
  * the default in place instead of advertising an image that 404s.
  *
@@ -208,21 +211,6 @@ function pointPageAtOgImage(entity: Entity): boolean {
 function log(msg: string) {
   // biome-ignore lint/suspicious/noConsole: build-time CLI script — progress logging to stdout is the point
   console.log(`[og-screenshots] ${msg}`)
-}
-
-/** Wait until the preview server answers, or throw after `timeoutMs`. */
-async function waitForServer(url: string, timeoutMs = 30_000): Promise<void> {
-  const deadline = Date.now() + timeoutMs
-  for (;;) {
-    try {
-      const res = await fetch(url, { method: 'HEAD' })
-      if (res.ok || res.status === 404) return
-    } catch {
-      // not up yet
-    }
-    if (Date.now() > deadline) throw new Error(`preview server did not start at ${url}`)
-    await new Promise((r) => setTimeout(r, 250))
-  }
 }
 
 async function run() {
@@ -322,18 +310,14 @@ async function run() {
     })
   }
 
-  // Serve the built site. `astro preview` honours trailingSlash + content types.
-  // Pin --host 127.0.0.1 so it binds IPv4 (its default `localhost` resolves to
-  // ::1 on some machines, which wouldn't match the 127.0.0.1 base below).
-  const preview = Bun.spawn(
-    ['bunx', 'astro', 'preview', '--host', '127.0.0.1', '--port', String(PORT)],
-    {
-      cwd: APP_ROOT,
-      stdout: 'ignore',
-      stderr: 'inherit',
-      env: process.env,
-    }
-  )
+  // Serve the built site IN-PROCESS. `ssg/preview.ts` is the same server
+  // `bun run preview` starts, so the URL->file mapping these screenshots are
+  // taken through is the one the e2e suite and Netlify agree on — and being
+  // in-process there is no spawn to fail, no binary to resolve and no
+  // start-up race to poll for (`Bun.serve` is listening when it returns).
+  // Pinned to 127.0.0.1 so it matches the base below exactly (binding
+  // `localhost` can resolve to ::1 on some machines).
+  const preview = startPreview({ port: PORT, hostname: '127.0.0.1' })
 
   type Context = Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>['newContext']>>
   type Page = import('playwright').Page
@@ -475,8 +459,6 @@ async function run() {
   }
 
   try {
-    await waitForServer(`${base}/og-card/`)
-
     const browser = await chromium.launch({
       headless: true,
       executablePath: process.env.OG_CHROME_PATH || undefined,
@@ -548,8 +530,9 @@ async function run() {
       await browser.close().catch(() => {})
     }
   } finally {
-    preview.kill()
-    await preview.exited
+    // `true` closes in-flight connections too, so a wedged chromium request
+    // can't hold the process open once the pass is over.
+    preview.stop(true)
   }
 
   writeManifest()

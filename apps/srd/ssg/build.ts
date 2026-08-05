@@ -1,12 +1,14 @@
 /**
  * build — the SSG orchestrator.
  *
- *   1. `vite build` (client only): the islands entry + the css entry, with a
- *      manifest.
- *   2. read `dist/.vite/manifest.json` -> entry JS + CSS urls.
+ *   1. `vite build` (client only): the islands entry, the css entry and the
+ *      static-asset entry, with a manifest.
+ *   2. read `dist/.vite/manifest.json` -> entry JS + CSS urls, and the emitted
+ *      url of every asset under `src/assets/`.
  *   3. enumerate `ssg/routes.ts` and render each route.
- *   4. write endpoints, sitemap, registerSW.js.        (TODO — later phase)
- *   5. workbox generateSW.                             (TODO — later phase)
+ *   4. write endpoints and the sitemap.
+ *   5. `ssg/pwa.ts`: registerSW.js, then workbox generateSW over the finished
+ *      dist — LAST, because it globs whatever steps 1-4 left there.
  *   6. `public/` is copied by Vite in step 1.
  *
  * ## The css/SSR hazard
@@ -30,6 +32,12 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build as viteBuild } from 'vite'
+// Type-only, so it is erased before Bun ever resolves `./document` — that module
+// reaches `BaseLayout` -> `component-lib` -> `*.css` and must not be loaded here
+// ahead of the css-stub plugin below.
+import type { BuildAssets } from './document'
+import { outputPathFor } from './outputPath'
+import { writeServiceWorker as pwaWriteServiceWorker } from './pwa'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
@@ -53,40 +61,50 @@ type ManifestChunk = {
 
 type Manifest = Record<string, ManifestChunk>
 
-/** Entry JS + CSS urls, in the order they should appear in `<head>`. */
-async function readAssets(): Promise<{ scripts: string[]; styles: string[] }> {
+/**
+ * Entries that exist only to pull non-JS resources through Vite. Their JS chunks
+ * are empty (or hold a discarded url string) and are deliberately never linked
+ * into a page: `styles.entry.ts` carries the css, `assets.entry.ts` carries the
+ * static files under `src/assets/`.
+ */
+const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
+
+/**
+ * Manifest keys under this prefix are static assets a page may point at, keyed
+ * by their source path relative to the Vite root. See `BuiltAssets` in
+ * `ssg/types.ts` for why the emit and the address are two separate steps.
+ */
+const BUILT_ASSET_PREFIX = 'src/assets/'
+
+/** Entry JS + CSS urls (in `<head>` order) plus the emitted `src/assets/` urls. */
+async function readAssets(): Promise<BuildAssets> {
   const manifestPath = join(distDir, '.vite', 'manifest.json')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
 
   const scripts: string[] = []
   const styles: string[] = []
+  const built: Record<string, string> = {}
 
   for (const [key, chunk] of Object.entries(manifest)) {
+    if (key.startsWith(BUILT_ASSET_PREFIX)) {
+      built[key] = `/${chunk.file}`
+      continue
+    }
     if (!chunk.isEntry) continue
     for (const css of chunk.css ?? []) {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)
     }
-    // The styles entry exists only to pull css through Vite; its JS chunk is
-    // empty and is deliberately not linked.
-    if (key.endsWith('styles.entry.ts')) continue
+    if (NON_LINKED_ENTRIES.some((entry) => key.endsWith(entry))) continue
     scripts.push(`/${chunk.file}`)
   }
 
-  return { scripts, styles }
+  return { scripts, styles, built }
 }
 
-/**
- * URL -> dist file. Must match Astro exactly (see the table in DESIGN.md):
- * `/` -> `index.html`, `/404` -> `404.html` (special-cased, NOT a directory),
- * everything else -> `<route>/index.html`.
- */
-export function outputPathFor(route: string): string {
-  if (route === '/') return 'index.html'
-  if (route === '/404') return '404.html'
-  const trimmed = route.replace(/^\/+|\/+$/g, '')
-  return join(trimmed, 'index.html')
-}
+// `outputPathFor` (URL -> dist file) lives in `./outputPath` so it can be read
+// and tested without executing this orchestrator — importing THIS module runs
+// `await main()` and kicks off a full Vite build.
 
 async function writeOutput(relativePath: string, contents: string): Promise<void> {
   const target = join(distDir, relativePath)
@@ -117,12 +135,34 @@ async function writeEndpoints(): Promise<void> {
   console.log(`[ssg] wrote ${count} endpoint(s)`)
 }
 
-// TODO(migration): sitemap-index.xml + sitemap-0.xml, reproducing Astro's
-// filter (exclude /image, /greembeem, .og.png, /og-card).
-async function writeSitemap(): Promise<void> {}
+/**
+ * `sitemap-index.xml` + `sitemap-0.xml`, replacing `@astrojs/sitemap`.
+ *
+ * `routes` is collected during the render pass above, from the registrations
+ * that declare `sitemap: true` — so a page is in the sitemap because it said so
+ * at its registration site, not because its URL happened to survive a regex.
+ * `ssg/sitemap.ts` re-applies Astro's URL filter on top as a safety net.
+ *
+ * Dynamic import for the usual reason: it reaches `./render` (and through
+ * `src/lib/constants`, the reference package), so it must load AFTER the
+ * css-stub plugin is registered.
+ */
+async function writeSitemap(routes: string[]): Promise<void> {
+  const { writeSitemap: write } = await import('./sitemap')
+  const count = await write({ routes, distDir })
+  console.log(`[ssg] wrote sitemap-index.xml + sitemap-0.xml (${count} url(s))`)
+}
 
-// TODO(migration): workbox generateSW over the finished dist + registerSW.js.
-async function writeServiceWorker(): Promise<void> {}
+/**
+ * `registerSW.js` + `sw.js` (workbox `generateSW`) over the FINISHED dist.
+ *
+ * Static import, unlike `./routes` and `./endpoints`: `ssg/pwa.ts` reaches only
+ * `workbox-build` and `node:fs`, never the app module graph, so it cannot pull a
+ * stylesheet through the SSR pass and does not need the css-stub plugin.
+ */
+async function writeServiceWorker(): Promise<void> {
+  await pwaWriteServiceWorker(distDir)
+}
 
 async function main(): Promise<void> {
   const started = Date.now()
@@ -140,23 +180,27 @@ async function main(): Promise<void> {
   else process.env.NODE_ENV = previousNodeEnv
 
   const assets = await readAssets()
-  console.log(`[ssg] assets: ${assets.scripts.length} script(s), ${assets.styles.length} style(s)`)
+  console.log(
+    `[ssg] assets: ${assets.scripts.length} script(s), ${assets.styles.length} style(s), ${Object.keys(assets.built).length} emitted asset(s)`
+  )
 
   // Dynamic, so the css-stub plugin above is already registered when the SSR
   // module graph (pages -> component-lib -> *.css) is first loaded.
   const { routes } = await import('./routes')
 
   let count = 0
+  const sitemapRoutes: string[] = []
   for (const registration of routes) {
     for (const { route, render } of registration.resolve()) {
       await writeOutput(outputPathFor(route), render(assets))
+      if (registration.sitemap) sitemapRoutes.push(route)
       count += 1
     }
   }
   console.log(`[ssg] rendered ${count} page(s)`)
 
   await writeEndpoints()
-  await writeSitemap()
+  await writeSitemap(sitemapRoutes)
   await writeServiceWorker()
 
   console.log(`[ssg] done in ${((Date.now() - started) / 1000).toFixed(1)}s`)

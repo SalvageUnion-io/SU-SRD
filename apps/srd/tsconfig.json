@@ -1,26 +1,26 @@
 {
-  // This used to extend `astro/tsconfigs/strict`, which made srd the only
-  // workspace not built on the repo base — and so the only one running without
-  // `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` and
-  // `allowSyntheticDefaultImports`, none of which Astro's preset defines. Four
-  // checks every sibling enforced were silently off here.
+  // Extends the repo base like every sibling workspace. This file previously
+  // restated a set of options inherited from `astro/tsconfigs/base.json`; with
+  // Astro gone, only the ones srd genuinely needs remain.
   //
-  // The fix is to extend the repo base like every sibling and layer Astro's
-  // needs on top, rather than swapping the base out. `astro/tsconfigs/strict`
-  // is only `base.json` + `strict: true`, and the base settings it contributed
-  // that the repo base does not are re-declared explicitly below, so nothing
-  // Astro relies on is lost. Keep them in sync if Astro's preset changes.
+  // srd is also no longer pinned to TypeScript 6. The app-level
+  // `typescript: 6.0.3` devDependency existed solely because
+  // `@astrojs/check@0.9.10` peer-depends on `^5 || ^6` — verified against the
+  // published manifest, and still true of the latest release. Removing Astro
+  // removes the pin, so this workspace now typechecks on the repo's TypeScript
+  // 7 like everything else.
+  //
+  // NOTE: the root `typescript-classic` alias (typescript@6) is NOT dead and
+  // must stay — `tools/check-architecture.ts` and
+  // `packages/salvageunion-reference/tools/generateApiReport.ts` both import it
+  // for the TS 6 compiler API. Astro was never its only consumer.
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    /* From astro/tsconfigs/base.json — Astro's requirements, restated */
     "target": "ESNext",
-    // Astro runs TypeScript directly and emits nothing from here;
-    // `allowImportingTsExtensions` is only legal alongside `noEmit`.
+    // Nothing is emitted from here; `allowImportingTsExtensions` is only legal
+    // alongside `noEmit`.
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    // `astro.config.mjs` is in `include`, so JS must be allowed — the repo base
-    // sets `allowJs: false`.
-    "allowJs": true,
     // The repo base emits declarations; this workspace emits nothing.
     "declaration": false,
     "declarationMap": false,
@@ -45,11 +45,8 @@
     "test/**/*",
     "scripts/**/*",
     "e2e/**/*",
-    "astro.config.mjs",
-    "playwright.config.ts",
-    ".astro/types.d.ts"
+    "playwright.config.ts"
   ],
-  // Astro's preset excluded `dist`. `include` is explicit here, but a stale
-  // build output must not be picked up by `astro check`.
+  // `include` is explicit, but a stale build output must never be typechecked.
   "exclude": ["dist"]
 }

@@ -72,6 +72,8 @@ export function registerEndpoint<Params extends Record<string, string>, Props>(
           props: path.props,
           url: new URL(pathname, SITE_URL),
           pathname,
+          // Endpoints are text outputs — nothing to point at an emitted image.
+          builtAssets: {},
         }
         return {
           outputPath,

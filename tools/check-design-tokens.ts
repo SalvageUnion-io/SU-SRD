@@ -30,7 +30,11 @@ const SCAN_DIRS = [
   'apps/itun/src',
 ]
 
-const SCAN_EXTENSIONS = ['.ts', '.tsx', '.astro', '.css']
+// `.astro` was here until apps/srd moved off Astro. Nothing in the repo emits
+// that extension any more, and the pages it used to cover are now .tsx — which
+// is how greembeem's deliberate Wikipedia palette became visible to this check
+// for the first time (see EXEMPTIONS).
+const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css']
 
 type Rule = {
   /** Stable id, used by the exemption list. */
@@ -159,6 +163,12 @@ const RULES: Rule[] = [
  * justification is just a silent hole in the guardrail.
  */
 const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
+  {
+    file: 'apps/srd/src/pages/greembeem.page.tsx',
+    rules: ['raw-color'],
+    reason:
+      "A deliberate Wikipedia pastiche, and the ONLY page that opts out of the site stylesheet entirely (it owns its whole <html> and loads no global.css — see ssg/routes.ts registerDocument). Its palette is Wikipedia's own — #a2a9b1 borders, #3366cc links, #f8f9fa panel fill — which is the joke; expressing it in Salvage Union tokens would make it look like the SRD and destroy the effect. These literals are not new: they lived in greembeem.astro, which the design-token checker never scanned because the old toolchain excluded *.astro outright. Bringing srd onto Vite put the file under coverage for the first time, so this exemption records a pre-existing, intentional deviation rather than sanctioning a new one.",
+  },
   {
     file: 'packages/component-lib/src/styles/theme.css',
     rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius'],

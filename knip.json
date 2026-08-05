@@ -25,12 +25,18 @@
       // *client bundle* entries, named in ssg/vite.config.ts rather than
       // imported by anything, so knip cannot infer them.
       "entry": [
-        "src/pages/**/*.{astro,ts,tsx}",
-        "ssg/build.ts",
+        // The acceptance gate for the Astro migration: a CLI run by hand and in
+        // review, imported by nothing. Without this knip reports it as a dead
+        // file and `check:all` fails.
+        "ssg/parity.ts",
+        // build/dev/preview are matched by knip's own bin/script detection from
+        // package.json, so listing them here is redundant — but parity.ts is
+        // NOT, because no package script runs it.
         "src/runtime/islands.client.ts",
-        "src/runtime/styles.entry.ts"
+        "src/runtime/styles.entry.ts",
+        "src/runtime/assets.entry.ts"
       ],
-      "project": ["src/**/*.{ts,tsx,astro}", "ssg/**/*.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"],
       "includeEntryExports": false
     },
     "apps/itun": {

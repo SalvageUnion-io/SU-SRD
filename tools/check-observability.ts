@@ -86,7 +86,10 @@ const BROWSER_APPS: BrowserApp[] = [
     name: 'srd',
     dsnEnvVar: 'PUBLIC_SENTRY_DSN',
     modulePath: 'apps/srd/src/lib/observability.ts',
-    entryPath: 'apps/srd/src/layouts/BaseLayout.astro',
+    // Was `src/layouts/BaseLayout.astro`, which carried the init as its own
+    // inline module script. With Astro gone there is a single client entry, so
+    // the init lives there — one place instead of one per layout.
+    entryPath: 'apps/srd/src/runtime/islands.client.ts',
     netlifyTomlPath: 'apps/srd/netlify.toml',
     productionUrl: 'https://salvageunion.io',
   },

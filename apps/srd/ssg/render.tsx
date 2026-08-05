@@ -64,6 +64,7 @@ export function renderRoute<Params extends Record<string, string>, Props>(
     props: resolved.path.props,
     url: new URL(pathname, SITE_URL),
     pathname,
+    builtAssets: assets.built,
   }
 
   const { meta, children, shell } = resolved.module.page(ctx)
@@ -80,7 +81,23 @@ export type ErasedRoute = {
 /** A registered page module: still knows its own types, exposes only erased routes. */
 export type RouteRegistration = {
   pattern: string
+  /**
+   * Whether this page's URLs belong in `sitemap-0.xml`.
+   *
+   * Declared at the registration site rather than re-derived from the URL, so
+   * "is this page public?" is answered once, next to the page. `ssg/sitemap.ts`
+   * still applies Astro's URL filter on top as a safety net — see its header.
+   */
+  sitemap: boolean
   resolve: () => ErasedRoute[]
+}
+
+export type RegisterOptions = {
+  /**
+   * Set `false` for a page that must not appear in the sitemap: a build-only
+   * surface, or an error page. Defaults to `true`.
+   */
+  sitemap?: boolean
 }
 
 /**
@@ -92,10 +109,12 @@ export type RouteRegistration = {
  * a uniform shape the builder can iterate.
  */
 export function register<Params extends Record<string, string>, Props>(
-  module: PageModule<Params, Props>
+  module: PageModule<Params, Props>,
+  options: RegisterOptions = {}
 ): RouteRegistration {
   return {
     pattern: module.pattern,
+    sitemap: options.sitemap ?? true,
     resolve: () =>
       resolveRoutes(module).map((resolved) => ({
         route: resolved.route,
@@ -132,6 +151,10 @@ export type DocumentPageModule = {
 export function registerDocument(module: DocumentPageModule): RouteRegistration {
   return {
     pattern: module.pattern,
+    // Never. A standalone document page is by definition not a reader-facing
+    // page of this site: both of them (greembeem, and anything written this way
+    // later) are noindex and own their whole `<html>`. There is no opt-in.
+    sitemap: false,
     resolve: () => {
       const pathname = withTrailingSlash(module.pattern)
       const ctx: RouteContext<Record<string, string>, undefined> = {
@@ -139,6 +162,9 @@ export function registerDocument(module: DocumentPageModule): RouteRegistration 
         props: undefined,
         url: new URL(pathname, SITE_URL),
         pathname,
+        // A document page gets no build assets at all (see the doc comment
+        // above) — no stylesheet, no islands entry, and no emitted images.
+        builtAssets: {},
       }
       return [
         {

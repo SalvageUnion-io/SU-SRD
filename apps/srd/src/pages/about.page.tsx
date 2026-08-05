@@ -1,7 +1,7 @@
 /**
  * `/about` — the about page. Port of `about.astro`.
  *
- * Two things carried over from the Astro original:
+ * Three things carried over from the Astro original:
  *
  * 1. The two shared markdown files are still read from disk **at build time**.
  *    This module only ever runs in the build (and in `ssg/dev.ts`, which is the
@@ -14,14 +14,20 @@
  *    navigations the script runs on every page load, so the attribute has no
  *    meaning and is deliberately dropped (same reasoning as `BaseLayout`'s
  *    `js`-class script).
+ * 3. The Eldridge Coast map is still a build-emitted, content-hashed asset
+ *    rather than an unhashed file in `public/`. `astro:assets` did that; here
+ *    the emit and the address are split — `src/runtime/assets.entry.ts` makes
+ *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of the
+ *    build manifest. See `BuiltAssets` in `ssg/types.ts`.
  */
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { PageHeading, Slab } from 'component-lib'
 import { Fragment } from 'react'
-import type { PageModule, PageResult } from '../../ssg/types'
+import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
+import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
 import { SITE_URL } from '../lib/constants'
 import { Island } from '../runtime/Island'
 
@@ -68,7 +74,9 @@ const MAP_MODAL_SCRIPT = `
     })
   `
 
-function page(): PageResult {
+function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): PageResult {
+  const eldridgeCoastMapUrl = builtAssetUrl(builtAssets, ELDRIDGE_COAST_MAP)
+
   return {
     meta: {
       title: TITLE,
@@ -344,11 +352,16 @@ function page(): PageResult {
               &times;
             </button>
             <div className="flex flex-col items-stretch gap-4">
-              {/* Astro's `<Image>` built responsive webp variants into `_astro/`.
-                  There is no equivalent asset pipeline on the SSR side, so the
-                  map ships as a single pre-encoded webp from `public/`. */}
+              {/* Astro's `<Image>` transcoded the source PNG into three hashed
+                  webp variants under `_astro/` and emitted a srcset. Vite does
+                  not transcode, so the webp is pre-encoded once at 1800px and
+                  checked in beside the PNG; Vite still hashes and emits it, and
+                  the url comes from the build manifest (see `BuiltAssets`).
+                  One size instead of two: the image only ever appears in a
+                  full-viewport lightbox, so the 1200w variant had no viewport
+                  that selected it. */}
               <img
-                src="/eldridge-coast-map.webp"
+                src={eldridgeCoastMapUrl}
                 alt={imageAltText}
                 width={1800}
                 height={1215}

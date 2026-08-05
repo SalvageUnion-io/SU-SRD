@@ -1,4 +1,4 @@
-# Netlify configuration for srd (Astro static site)
+# Netlify configuration for srd (static site, built by the in-house SSG — ssg/build.ts)
 
 [build]
   # PUBLIC_COMMIT_REF is exported from Netlify's own build-shell COMMIT_REF so
@@ -26,6 +26,11 @@
   # browser build its imported `playwright-core` expects (`bunx` resolves a
   # registry copy, which installed a mismatched build). If the Netlify image
   # ever lacks chromium's shared libs, add `--with-deps` to that script.
+  #
+  # The chain itself is unchanged by the Astro -> in-house SSG migration: the
+  # `og:generate` package script is the seam, and it now runs `bun ssg/build.ts`
+  # instead of `astro build` before the screenshot pass. Nothing here needs to
+  # know which builder produced `dist/`.
   command = "bun install --frozen-lockfile && bun --filter srd og:install-browser && PUBLIC_COMMIT_REF=\"$COMMIT_REF\" bun --filter srd og:generate"
   # Netlify resolves `publish` RELATIVE TO the site's base directory, which for
   # this site is `apps/srd` — so this must be base-relative, not root-relative.
@@ -70,7 +75,7 @@
   # Netlify's build limit that the rest of the deploy always has room.
   OG_SCREENSHOTS_BUDGET_MS = "300000"
 
-# Skip Netlify post-processing entirely — Astro/Vite already bundles and
+# Skip Netlify post-processing entirely — Vite already bundles and
 # minifies, and the build's artifacts (including the pre-rendered 1200x630
 # og-screenshot PNGs) are final; legacy Netlify processing must not rewrite
 # them. skip_processing=true supersedes the old per-type false flags, which
@@ -78,7 +83,7 @@
 [build.processing]
   skip_processing = true
 
-# Sitemap redirect (Astro generates sitemap-index.xml, not sitemap.xml)
+# Sitemap redirect (the build emits sitemap-index.xml, not sitemap.xml)
 [[redirects]]
   from = "/sitemap.xml"
   to = "/sitemap-index.xml"
@@ -113,9 +118,15 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io;"
     X-DNS-Prefetch-Control = "on"
 
-# Astro hashed assets - immutable cache
+# Hashed assets - immutable cache.
+#
+# `/assets/*`, not the old `/_astro/*`: the in-house SSG emits the client bundle
+# through Vite's default `assetsDir`, so every content-hashed JS chunk, CSS file
+# and font now lands under `dist/assets/`. Left pointing at `/_astro/*` this rule
+# would match nothing and silently stop caching the entire bundle. If
+# `ssg/vite.config.ts` ever sets a different `build.assetsDir`, change this with it.
 [[headers]]
-  for = "/_astro/*"
+  for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 

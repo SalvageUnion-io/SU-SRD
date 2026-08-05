@@ -21,6 +21,15 @@ export default defineConfig({
   base: '/',
   publicDir: fileURLToPath(new URL('../public', import.meta.url)),
   plugins: [react(), tailwindcss()],
+  // Astro exposed `PUBLIC_`-prefixed env to the client bundle; Vite's default is
+  // `VITE_`. Without this override `import.meta.env.PUBLIC_SENTRY_DSN` inlines
+  // as `undefined`, so Sentry initialises with no DSN and silently reports
+  // nothing — while the build, the bundle and the deploy all still look
+  // healthy. That is precisely the failure mode `tools/check-observability.ts`
+  // exists to catch. Renaming the vars instead would break the values already
+  // configured in the Netlify UI, so the prefix moves here rather than to the
+  // variable names.
+  envPrefix: 'PUBLIC_',
   build: {
     outDir: fileURLToPath(new URL('../dist', import.meta.url)),
     emptyOutDir: true,
@@ -29,6 +38,11 @@ export default defineConfig({
       input: {
         islands: fileURLToPath(new URL('../src/runtime/islands.client.ts', import.meta.url)),
         styles: fileURLToPath(new URL('../src/runtime/styles.entry.ts', import.meta.url)),
+        // Neither of the two below is ever linked into a page (see
+        // NON_LINKED_ENTRIES in ssg/build.ts). They are entries so that Vite
+        // processes the resources they import: `styles` the css, `assets` the
+        // static files under `src/assets/` that pages address by manifest key.
+        assets: fileURLToPath(new URL('../src/runtime/assets.entry.ts', import.meta.url)),
       },
       output: {
         manualChunks(id: string) {

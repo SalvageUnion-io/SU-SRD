@@ -45,6 +45,25 @@ export type DocumentShell = 'base' | 'bare'
 /** What a page returns: its head metadata and its body tree. */
 export type PageResult = { meta: DocumentMeta; children: ReactNode; shell?: DocumentShell }
 
+/**
+ * Content-hashed URLs of the static assets Vite emitted, keyed by each asset's
+ * source path relative to the Vite root (`src/assets/eldridge-coast-map.webp` ->
+ * `/assets/eldridge-coast-map-Bx1.webp`).
+ *
+ * This is the replacement for `astro:assets`. Astro's `<Image>` both emitted a
+ * file and handed the page its URL; here those halves are split, because the SSR
+ * pass runs under Bun and never goes through Vite. `src/runtime/assets.entry.ts`
+ * (a client-bundle entry) imports the asset so Vite emits it; `ssg/build.ts`
+ * reads the emitted URL out of `dist/.vite/manifest.json` and passes it down
+ * here. Look one up with `builtAssetUrl()` from `src/lib/builtAssets.ts` rather
+ * than indexing the record, so a missing asset throws instead of rendering an
+ * empty `src`.
+ *
+ * Empty for surfaces that get no build assets at all — endpoints, and the
+ * standalone `registerDocument` pages.
+ */
+export type BuiltAssets = Readonly<Record<string, string>>
+
 export type RouteContext<Params, Props> = {
   params: Params
   props: Props
@@ -52,6 +71,8 @@ export type RouteContext<Params, Props> = {
   url: URL
   /** Pathname with a trailing slash, e.g. /schema/chassis/item/aegis/ */
   pathname: string
+  /** Emitted URLs of assets from `src/assets/`. See `BuiltAssets`. */
+  builtAssets: BuiltAssets
 }
 
 export type StaticPath<Params, Props> = { params: Params; props: Props }

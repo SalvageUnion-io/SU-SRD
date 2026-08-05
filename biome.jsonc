@@ -5,12 +5,12 @@
 //   - Markdown & YAML: parsing/formatting "in development", not shipped.
 //     Prettier still runs on **/*.md and **/*.{yml,yaml} (root scripts +
 //     lefthook's format-prose command).
-//   - Astro (apps/srd/src/**/*.astro): support landed in v2.3.0 but
-//     is still explicitly "experimental" upstream. The OLD toolchain never
-//     covered .astro either (no prettier-plugin-astro was installed, and
-//     ESLint's srd config ignored *.astro outright) — so excluding it
-//     here preserves the status quo (zero coverage) rather than opting into
-//     an experimental linter/formatter for the first time in this PR.
+// The second carve-out used to be Astro (apps/srd/src/**/*.astro), excluded
+// because Biome's .astro support is experimental. apps/srd no longer contains
+// any .astro files — it builds through the in-house SSG in apps/srd/ssg — so
+// Biome now lints and formats every file in that app. That was one of the four
+// stated goals of the Astro migration: 2,034 lines across 17 files had zero
+// lint/format coverage under the old toolchain and are now covered.
 {
   "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
   "root": true,
@@ -37,7 +37,6 @@
       "!**/build-ladle",
       "!**/.netlify",
       "!**/.vite",
-      "!**/.astro",
       "!**/.ladle",
       "!**/coverage",
       "!**/playwright-report",
@@ -57,7 +56,6 @@
       // so keep this directory out of scope entirely, same as before.
       "!packages/salvageunion-reference/data",
       "!apps/srd/package.json",
-      "!**/*.astro",
       "!**/*.md",
       "!**/*.mdx",
       "!**/*.yml",

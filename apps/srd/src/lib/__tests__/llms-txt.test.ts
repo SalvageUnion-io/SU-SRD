@@ -1,30 +1,41 @@
 import { describe, expect, it } from 'bun:test'
-import { GET } from '../../pages/llms.txt'
+import type { RouteContext } from '../../../ssg/types'
+import { llmsTxtEndpoint } from '../../endpoints/llmsTxt'
+
+/**
+ * Was `import { GET } from '../../pages/llms.txt'` — an Astro `APIRoute`
+ * returning a `Response`. The SSG contract models a non-HTML output as an
+ * `EndpointModule` with a `contentType` and a `body()` returning a string, so
+ * the transport wrapper is gone and the content-type is declared rather than
+ * set on a header. Every assertion about the BODY below is unchanged, and
+ * `ssg/parity.ts` separately holds llms.txt byte-identical to the Astro build.
+ */
+const render = () => llmsTxtEndpoint.body({} as RouteContext<Record<string, string>, unknown>)
 
 describe('GET /llms.txt', () => {
-  it('returns a text/plain response', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
+  it('is served as text/plain', () => {
+    expect(llmsTxtEndpoint.contentType).toBe('text/plain; charset=utf-8')
   })
 
-  it('includes at least 24 entity schema IDs (no drift)', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('is emitted at the site root', () => {
+    expect(llmsTxtEndpoint.pattern).toBe('llms.txt')
+  })
+
+  it('includes at least 24 entity schema IDs (no drift)', () => {
+    const text = render()
     const schemaIdLines = text.split('\n').filter((line: string) => line.match(/^- `[a-z-]+` — /))
     expect(schemaIdLines.length).toBeGreaterThanOrEqual(24)
   })
 
-  it('includes guides, tech-levels, and crawler-tech-levels (the previously missing schemas)', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('includes guides, tech-levels, and crawler-tech-levels (the previously missing schemas)', () => {
+    const text = render()
     expect(text).toContain('`guides`')
     expect(text).toContain('`tech-levels`')
     expect(text).toContain('`crawler-tech-levels`')
   })
 
-  it('includes the verbatim licensing section', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('includes the verbatim licensing section', () => {
+    const text = render()
     expect(text).toContain(
       'Game text and mechanics are published under the Salvage Union Open Game Licence (OGL 1.0b): https://leyline.press/pages/salvage-union-open-game-licence-1-0b'
     )
@@ -39,32 +50,28 @@ describe('GET /llms.txt', () => {
     )
   })
 
-  it('includes the rules content map section', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('includes the rules content map section', () => {
+    const text = render()
     expect(text).toContain('## Rules Content Map')
     expect(text).toContain('https://salvageunion.io/schema/guides/')
     expect(text).toContain('https://salvageunion.io/schema/guides.json')
   })
 
-  it('does not include meta schema IDs in the endpoint list', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('does not include meta schema IDs in the endpoint list', () => {
+    const text = render()
     // Meta schemas should not appear in the "Available Schema IDs" section
     expect(text).not.toContain('`actions`')
     expect(text).not.toContain('`ability-tree-requirements`')
     expect(text).not.toContain('`catalog-categories`')
   })
 
-  it('does not reference fonts.googleapis.com or other external tracking', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('does not reference fonts.googleapis.com or other external tracking', () => {
+    const text = render()
     expect(text).not.toContain('fonts.googleapis.com')
   })
 
-  it('includes the standard Other Pages section', async () => {
-    const response = await GET({} as Parameters<typeof GET>[0])
-    const text = await response.text()
+  it('includes the standard Other Pages section', () => {
+    const text = render()
     expect(text).toContain('## Other Pages')
     expect(text).toContain('https://salvageunion.io/about/')
     expect(text).toContain('https://salvageunion.io/api/')
