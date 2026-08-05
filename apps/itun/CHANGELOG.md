@@ -2,6 +2,23 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.0.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.10.0...itun-v1.0.0) (2026-08-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **srd:** migrate off Astro to an in-house Vite SSG ([#689](https://github.com/SalvageUnion-io/SU-SRD/issues/689))
+
+### Features
+
+* **itun:** read a crewmate's sheet, and stamp ownership on every crew row ([#672](https://github.com/SalvageUnion-io/SU-SRD/issues/672)) ([eb678fa](https://github.com/SalvageUnion-io/SU-SRD/commit/eb678fae47334f1d8d05663b9c4f4dfa327cea1d))
+* **srd:** migrate off Astro to an in-house Vite SSG ([#689](https://github.com/SalvageUnion-io/SU-SRD/issues/689)) ([1af4019](https://github.com/SalvageUnion-io/SU-SRD/commit/1af40192f04850a99b6367cba3f36da7cfbf2252))
+
+
+### Bug Fixes
+
+* **itun:** give the Game panels a proper card header ([#678](https://github.com/SalvageUnion-io/SU-SRD/issues/678)) ([001e8af](https://github.com/SalvageUnion-io/SU-SRD/commit/001e8af4a0e9c528c26b3761a1540d4d78574978))
+
 ## [0.10.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.9.0...itun-v0.10.0) (2026-08-03)
 
 
