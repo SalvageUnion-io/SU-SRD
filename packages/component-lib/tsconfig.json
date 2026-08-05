@@ -13,5 +13,9 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "test"]
+  // `vite.config.ts` and `.ladle/components.tsx` sat outside this include, so
+  // neither was type-checked. `.ladle/components.tsx` is not incidental: it is
+  // the Suspense/preload gate every story renders behind, and a break there
+  // blanks the whole catalog.
+  "include": ["src", "test", "vite.config.ts", ".ladle/**/*"]
 }

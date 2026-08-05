@@ -37,21 +37,37 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * a purely cosmetic fix.
  */
 
-let preloadPromise: Promise<unknown> | null = null
-
-function getPreloadPromise(): Promise<unknown> {
-  if (!preloadPromise) {
-    preloadPromise = SalvageUnionReference.preload('all').then(() => {
-      if (typeof document !== 'undefined') {
-        document.body.dataset.gameDataReady = 'true'
-      }
-    })
+/**
+ * Kicked off at MODULE SCOPE, not on first render.
+ *
+ * It used to be created lazily inside `PreloadGate`, which meant the dataset
+ * fetch did not start until React had booted, mounted the provider tree and
+ * rendered down to this component. Everything before that was dead time on the
+ * critical path: the network was idle while the app was starting up.
+ *
+ * Hoisting it here starts the load during module evaluation instead, so it
+ * overlaps with React bootstrap and the rest of the entry chunk. This is the
+ * pattern `apps/srd/src/lib/gameData.ts` already uses, and module-scope
+ * `preload()` is explicitly sanctioned — `tools/check-architecture.ts` exempts
+ * `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule,
+ * calling them "the documented, correct way to eagerly bootstrap data loading".
+ *
+ * NOTE what this deliberately does NOT change: it still preloads `'all'` behind
+ * a SINGLE gate. Narrowing that to a per-route schema list is the footgun this
+ * file's doc comment above warns about (`ReferenceEntityCard` pulls traits and
+ * actions inline across schemas, so a partial preload throws "Schema not
+ * loaded" from an unrelated card), and making the preload non-blocking would
+ * require every ORM-touching component — not just this gate — to tolerate a
+ * not-ready state. Both remain out of scope; this is purely an earlier start.
+ */
+const preloadPromise: Promise<unknown> = SalvageUnionReference.preload('all').then(() => {
+  if (typeof document !== 'undefined') {
+    document.body.dataset.gameDataReady = 'true'
   }
-  return preloadPromise
-}
+})
 
 function PreloadGate({ children }: { children: ReactNode }) {
-  use(getPreloadPromise())
+  use(preloadPromise)
   return <>{children}</>
 }
 

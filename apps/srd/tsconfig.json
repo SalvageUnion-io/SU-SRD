@@ -36,7 +36,18 @@
     "skipLibCheck": true,
     "types": ["node", "bun-types"]
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*", "astro.config.mjs", ".astro/types.d.ts"],
+  // `e2e/**/*` + `playwright.config.ts`: Playwright transpiles specs without
+  // type-checking them, and biome.jsonc disables the linter for both paths, so
+  // until now they were covered by the formatter alone.
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "e2e/**/*",
+    "astro.config.mjs",
+    "playwright.config.ts",
+    ".astro/types.d.ts"
+  ],
   // Astro's preset excluded `dist`. `include` is explicit here, but a stale
   // build output must not be picked up by `astro check`.
   "exclude": ["dist"]

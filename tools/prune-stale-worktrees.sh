@@ -93,19 +93,29 @@ process() {
   if [[ -n "$(git -C "$p" status --porcelain 2>/dev/null)" ]]; then
     echo "skip (uncommitted):    $p"; ((skipped++)) || true; return 0
   fi
-  # Unpushed commits. `git worktree remove` does NOT check this — it only
-  # refuses on a dirty tree — so without this guard a worktree holding the only
-  # copy of a commit would be deleted. That risk was theoretical while the
-  # script exited early and removed nothing; fixing it made the risk real, so
-  # the guard ships in the same change.
+  # Unreachable commits. `git worktree remove` does NOT check this — it only
+  # refuses on a dirty tree — so a worktree holding the only copy of a commit
+  # could be deleted.
   #
-  # Deliberately conservative: a branch whose commits are not on ANY remote is
-  # kept. That also keeps squash-merged branches (whose content landed under a
-  # new SHA, so the originals exist nowhere by SHA) — those are safe to delete
-  # in principle, but proving it needs patch-id equivalence, and the default
-  # answer here is always "leave it".
-  if [[ -z "$(git -C "$p" branch -r --contains HEAD 2>/dev/null)" ]]; then
-    echo "skip (unpushed):       $p"; ((skipped++)) || true; return 0
+  # The guard used to require the HEAD commit to exist on a REMOTE. That was far
+  # too strict, and it made this script useless: `git worktree remove` deletes
+  # the checkout, never a ref, so as long as a local BRANCH points at HEAD the
+  # commits stay reachable in the repo afterwards. Every ordinary agent worktree
+  # is on a branch, so every one was skipped — measured on 2026-08-05, a backlog
+  # of 15 worktrees / 13 GB reported "0 candidates, 15 skipped" and the script
+  # had never reclaimed anything in its life (this on top of the `return 0` bug
+  # fixed above, which stopped it before it even got here).
+  #
+  # What actually matters is REACHABILITY AFTER REMOVAL:
+  #   - on a branch  → the branch ref survives the removal. Safe.
+  #   - detached HEAD → nothing points at the commit once the worktree is gone,
+  #                     unless some other ref already contains it. Check that.
+  head_branch="$(git -C "$p" symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+  if [[ -z "$head_branch" ]]; then
+    # Detached: keep unless another ref (any branch, local or remote) contains it.
+    if [[ -z "$(git -C "$p" branch -a --contains HEAD 2>/dev/null)" ]]; then
+      echo "skip (detached, unreachable): $p"; ((skipped++)) || true; return 0
+    fi
   fi
   if [[ "$FORCE" == "1" ]]; then
     if git worktree remove "$p" 2>/dev/null; then

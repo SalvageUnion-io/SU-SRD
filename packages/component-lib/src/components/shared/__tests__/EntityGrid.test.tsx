@@ -14,7 +14,6 @@ type StubCardProps = {
   footMeta?: Array<{ label: string; value: ReactNode }>
 }
 
-// biome-ignore lint/style/useComponentExportOnlyModules: test-local stub component; Fast Refresh does not apply to test files
 function StubCard({ footMeta }: StubCardProps) {
   return (
     <div>

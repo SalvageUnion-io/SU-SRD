@@ -39,6 +39,20 @@ pre-push:
     test:
       run: bun run test
 
+    lint:
+      # Pre-commit lints STAGED FILES ONLY, so a lint error can still reach the
+      # remote two ways it never sees: a merge/rebase conflict resolution, and
+      # anything committed with `--no-verify`. A full-tree lint is 0.45s — far
+      # cheaper than a CI round-trip to learn the same thing.
+      run: bun run lint
+
+    schemas:
+      # The likeliest avoidable CI bounce: `salvageunion-reference`'s generated
+      # artifacts (registry, JSON schemas, API report) are committed, and CI
+      # fails on drift. Nothing checked that locally, so the failure was only
+      # ever discoverable after a push. 2.4s here, minutes there.
+      run: bun run check:schemas
+
     validate:
       run: bun run validate:all
 

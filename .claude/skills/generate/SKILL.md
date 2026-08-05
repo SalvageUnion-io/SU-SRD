@@ -12,7 +12,7 @@ JSON Schema generation (`generate:json-schemas`) runs automatically as part of `
 
 Steps:
 
-1. Run `bun run build:package` from the repo root (compiles TypeScript and generates JSON schemas)
+1. Run `bun run build:package` from the repo root (regenerates the registry, JSON schemas, and the API report — the package ships TypeScript source, so nothing is compiled)
 2. Run `bun run validate:all` from the repo root to check IDs and cross-references
 3. Run `bun run typecheck` to verify types compile across all packages
 4. Report any validation or type errors

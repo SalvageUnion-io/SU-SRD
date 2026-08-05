@@ -3,10 +3,20 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "nodenext",
-    "outDir": "./dist",
-    "rootDir": "./src",
+    // This workspace never emits through tsc — `build:bot` bundles with
+    // `bun build` — so this project is a pure type-check, like every sibling.
+    // `outDir`/`rootDir` were vestigial (they belonged to the unreferenced
+    // tsconfig.build.json removed alongside this change), and `rootDir: ./src`
+    // actively blocked type-checking `test/`.
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false,
     "types": ["node", "bun-types"]
   },
-  "include": ["src/**/*.ts"],
+  // `test/env.ts` is preloaded by bunfig.toml for every test in this workspace
+  // (src/config.ts calls requireEnv at module scope), but was outside this
+  // include and so type-checked by nothing.
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

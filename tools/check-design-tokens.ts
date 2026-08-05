@@ -414,7 +414,11 @@ try {
 const regressions: string[] = []
 const improvements: string[] = []
 for (const rule of RULES) {
-  const now = counts[rule.id]
+  // `?? 0` matches the `was` line below, and is load-bearing rather than
+  // cosmetic: without it `now` is `number | undefined`, and `undefined > was`
+  // evaluates to false — so a rule that disappeared from `counts` entirely
+  // could never be reported as a regression.
+  const now = counts[rule.id] ?? 0
   const was = baseline[rule.id] ?? 0
   if (now > was) regressions.push(rule.id)
   else if (now < was) improvements.push(`${rule.id}: ${was} → ${now}`)

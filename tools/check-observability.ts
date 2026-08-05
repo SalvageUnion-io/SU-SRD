@@ -122,8 +122,8 @@ function connectSrcOfPolicy(policy: string): string | null {
 }
 
 function connectSrcOf(toml: string): string | null {
-  const csp = toml.match(/Content-Security-Policy\s*=\s*"([^"]*)"/)
-  return csp ? connectSrcOfPolicy(csp[1]) : null
+  const policy = toml.match(/Content-Security-Policy\s*=\s*"([^"]*)"/)?.[1]
+  return policy === undefined ? null : connectSrcOfPolicy(policy)
 }
 
 /**
@@ -213,9 +213,10 @@ async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
 /** Absolute-ises every `<script src>` the served HTML references. */
 function scriptUrls(html: string, origin: string): string[] {
   const re = /<script[^>]+src=["']([^"']+)["']/g
-  return [...html.matchAll(re)].map(([, src]) =>
-    src.startsWith('http') ? src : new URL(src, origin).toString()
-  )
+  return [...html.matchAll(re)]
+    .map((m) => m[1])
+    .filter((src): src is string => src !== undefined)
+    .map((src) => (src.startsWith('http') ? src : new URL(src, origin).toString()))
 }
 
 async function checkLive(app: BrowserApp): Promise<void> {

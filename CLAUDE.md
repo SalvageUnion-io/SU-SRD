@@ -93,22 +93,37 @@ bun run dev:bot          # Start Discord bot locally
 bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
-bun run test             # Run all tests, per workspace. NEVER raw `bun test` at the
-                         # root: it skips workspace bunfig preloads (fake-indexeddb,
-                         # reference preload) and fails by the hundreds
+bun run test             # Canonical: runs each workspace with its own bunfig.
+                         # This is what CI and pre-push run — prefer it.
+bun test                 # Also works now. The root bunfig.toml preloads the
+                         # UNION of the workspace preloads, so a bare root run
+                         # is green (4712 pass). It used to fail by the hundreds
+                         # (639) purely from missing preloads; that is fixed.
 bun --filter salvageunion-reference test   # Test package only
 bun --filter component-lib test              # Test shared components only
 bun --filter srd test                # Test reference site only
 bun --filter itun test         # Test ITUN app only
 
 # Code quality
+bun run check:fast       # ~12s inner loop: lint + validate:all + knip (parallel),
+                         # then typecheck. THE "did I break anything" command —
+                         # reach for this while iterating, not check:all.
 bun run lint             # Lint all packages (Biome)
 bun run format           # Format all packages (Biome; Prettier still handles Markdown/YAML)
 bun run typecheck        # TypeScript check all packages
-bun run check:all        # Full CI check (lint, format, typecheck, test, validate, knip)
+bun run check:all        # Full CI check (adds format, test, audit, tokens, styling,
+                         # schema-drift). ~35s — run before pushing, not per-edit.
 
 # Regenerate JSON schemas from Zod (the package ships TypeScript source — no compile step)
 bun run build:package
+
+# Agent worktree hygiene
+bun run reap             # Dry-run: list abandoned .claude/worktrees/ checkouts
+                         # that are safe to remove. Add --force to remove them.
+                         # Removes the CHECKOUT only, never a branch ref, so
+                         # commits on a branch survive. Run it when repo-wide
+                         # grep/find start returning duplicates — a backlog of
+                         # 15 worktrees inflated searches ~14x and held 13 GB.
 
 # Data validation
 bun run validate:all     # Check IDs, cross-references, action references
@@ -227,15 +242,16 @@ For styling bugs, check Tailwind configuration (@source paths, plugin setup) ear
 ### Pre-commit Hooks (Lefthook)
 
 Pre-commit runs: lint --fix, format (parallel). Typecheck does NOT run pre-commit.
-Pre-push runs: typecheck, test, validate:all, knip (parallel).
+Pre-push runs (parallel): typecheck, test, validate:all, knip, check:tokens,
+check:styling, lint, check:schemas.
 
 ### Project Skills (`.claude/skills/`)
 
 When to reach for which skill (overlap explained):
 
-- `/build-package` — rebuild `salvageunion-reference` only (TS compile + regenerate `schemas/*.schema.json`). Use after Zod schema or data-file edits.
+- `/build-package` — regenerate `salvageunion-reference`'s generated artifacts (registry, `schemas/*.schema.json`, API report). **There is no TypeScript compile step** — the package ships TS source. Use after Zod schema or data-file edits.
 - `/generate` — same as above **plus** `validate:all` (IDs, cross-refs, action refs). Use when you've changed JSON data and want integrity checks in one step.
-- `/validate` / `/verify` — run the full CI suite (`lint`, `format`, `typecheck`, `test`, `validate`). Both do the same thing; prefer `/validate`.
+- `/validate` / `/verify` — run the full CI suite via `check:all`. `/verify` is a literal alias of `/validate`, so they genuinely do the same thing; either name works.
 - `/a11y-scan` — WCAG 2.1 AA scan via puppeteer (srd).
 - `/commit` — conventional commit with message drafting.
 - `/deploy-bot` — deploy Discord slash commands.

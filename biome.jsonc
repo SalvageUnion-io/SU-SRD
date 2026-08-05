@@ -12,7 +12,7 @@
 //     here preserves the status quo (zero coverage) rather than opting into
 //     an experimental linter/formatter for the first time in this PR.
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
   "root": true,
   "files": {
     "ignoreUnknown": true,
@@ -201,32 +201,41 @@
         }
       },
       //
-      // --- Rules recommended-by-default in Biome that ESLint's ruleset never
-      // covered (no eslint-plugin-react or matching jsx-a11y rule existed for
-      // them) — downgraded from Biome's default "error" to "warn" so this
-      // migration stays a tooling swap, not a lint-cleanup pass (see PR
-      // description for the full rationale + per-rule finding counts). Each
-      // stays visible (not "off") as a deliberate follow-up list, not silenced.
+      // --- These were downgraded from Biome's default "error" to "warn" during
+      // the ESLint→Biome swap, so that migration stayed a tooling change rather
+      // than a lint-cleanup pass. They were explicitly "a deliberate follow-up
+      // list, not silenced" — but nothing ratcheted them, and a warning is
+      // invisible to every gate: `bun run lint` exits 0 while printing them, so
+      // CI and pre-push both pass with violations present.
+      //
+      // The burn-down is now done. The list stood at 7 warnings + 2 infos; all
+      // are fixed, so `bun run lint` reports zero. Promoting the whole set to
+      // "error" is what makes that stick — at zero violations the promotion
+      // costs nothing today and prevents the list silently regrowing.
+      //
+      // A genuinely-correct idiom that trips one of these gets a per-site
+      // `biome-ignore` WITH a reason (see StatProvenance / parseTraitReferences
+      // for the two that earned one), not a downgrade back to "warn".
       //
       "a11y": {
-        "useButtonType": "warn",
-        "useSemanticElements": "warn",
-        "useAriaPropsSupportedByRole": "warn",
-        "noStaticElementInteractions": "warn",
-        "noSvgWithoutTitle": "warn",
-        "noAriaHiddenOnFocusable": "warn",
-        "noAutofocus": "warn",
-        "useFocusableInteractive": "warn",
-        "useAriaPropsForRole": "warn",
-        "useKeyWithClickEvents": "warn"
+        "useButtonType": "error",
+        "useSemanticElements": "error",
+        "useAriaPropsSupportedByRole": "error",
+        "noStaticElementInteractions": "error",
+        "noSvgWithoutTitle": "error",
+        "noAriaHiddenOnFocusable": "error",
+        "noAutofocus": "error",
+        "useFocusableInteractive": "error",
+        "useAriaPropsForRole": "error",
+        "useKeyWithClickEvents": "error"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn",
-        "useJsxKeyInIterable": "warn",
-        "noUnsafeOptionalChaining": "warn"
+        "useExhaustiveDependencies": "error",
+        "useJsxKeyInIterable": "error",
+        "noUnsafeOptionalChaining": "error"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "warn"
+        "noDangerouslySetInnerHtml": "error"
       }
     },
     "domains": {
@@ -248,45 +257,6 @@
             "noExplicitAny": "warn"
           }
         }
-      }
-    },
-    {
-      // ESLint never covered these (see packages/salvageunion-reference/eslint.config.js
-      // ignores: lib/*.template.ts, tools/**, examples/**), but Prettier did — that
-      // package's .prettierignore only excludes dist/node_modules/.git/*.tsbuildinfo/
-      // lib/generated. Keep formatting on, linting off, to match.
-      "includes": [
-        "packages/salvageunion-reference/lib/*.template.ts",
-        "packages/salvageunion-reference/tools/**",
-        "packages/salvageunion-reference/examples/**"
-      ],
-      "linter": {
-        "enabled": false
-      }
-    },
-    {
-      // *.d.ts was ESLint-ignored repo-wide (root + salvageunion-reference configs
-      // both list '**/*.d.ts') but never Prettier-ignored.
-      "includes": ["**/*.d.ts"],
-      "linter": {
-        "enabled": false
-      }
-    },
-    {
-      // These live outside the app tsconfig project (own TS pipeline at
-      // `playwright test` time), so ESLint skipped them; Prettier still
-      // formatted them (only lib/generated + build-output dirs are
-      // Prettier-ignored). Keep formatting on, linting off, to match.
-      "includes": [
-        "apps/itun/playwright.config.ts",
-        "apps/itun/e2e/**",
-        "apps/srd/playwright.config.ts",
-        "apps/srd/e2e/**",
-        "packages/component-lib/playwright.visual.config.ts",
-        "packages/component-lib/vite.config.ts"
-      ],
-      "linter": {
-        "enabled": false
       }
     },
     {
@@ -506,22 +476,11 @@
       // preference. Rewriting any of these as `type` is a compile error, so
       // this list is a statement of fact, not a burn-down.
       //
-      // `**/*.d.ts` is listed even though an override far above already sets
-      // `linter.enabled: false` for it. That override does NOT reach
-      // apps/itun/src/vite-env.d.ts or apps/srd/src/env.d.ts: Biome applies
-      // overrides in array order, and a LATER override that supplies a
-      // `linter` object (the `apps/itun/**` and `apps/srd/**` blocks above)
-      // resets `enabled` back to true for files it also matches. Verified with
-      // `biome lint apps/itun/src/vite-env.d.ts` — 2 errors, not 0. The same
-      // hazard silently re-enables linting for the reference package's
-      // tools/**, e2e/** and playwright configs; enabling a new rule is not
-      // the place to restructure that, so the affected paths are named
-      // explicitly here and the ordering bug is left as its own fix.
-      //
-      // The three d.ts interfaces are ImportMetaEnv/ImportMeta, declaration-
-      // merged with `vite/client` — augmentation again, so permanent.
+      // `**/*.d.ts` no longer needs listing here: the three `linter.enabled:
+      // false` overrides now sort LAST in this array (see the block at the very
+      // bottom), so nothing can re-enable them. This list is now only the real
+      // source files that need the exemption.
       "includes": [
-        "**/*.d.ts",
         "apps/discord-bot/src/events/interactionCreate.ts",
         "apps/itun/src/main.tsx",
         "apps/srd/src/components/islands/OgCardIsland.tsx",
@@ -536,51 +495,88 @@
       }
     },
     {
-      // Not an exemption from the convention — a restatement of one that
-      // already exists. `packages/salvageunion-reference/tools/**` is
-      // linter-disabled wholesale by an override above (it was never covered
-      // by the old ESLint config either), but that override is reset for these
-      // files by the later `packages/salvageunion-reference/**` block — the
-      // same array-ordering hazard described in the override above. Without
-      // this entry a brand-new rule would start reporting in a directory the
-      // repo has decided not to lint at all.
-      "includes": ["packages/salvageunion-reference/tools/**"],
+      // `useComponentExportOnlyModules` is a React Fast Refresh heuristic: it
+      // wants a module to export only components so the dev server can hot-swap
+      // it. Test modules are never Fast Refresh boundaries — they run under the
+      // test runner, not the dev server — so a test declaring a local harness
+      // component alongside its cases is not the problem the rule exists to
+      // catch.
+      //
+      // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
+      // that sets the rule to "warn", because Biome applies overrides in array
+      // order and the later one wins. Placed with the other test carve-out near
+      // the top of this array, it was silently overridden back to "warn" —
+      // the same ordering trap documented in the not-linted section below.
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
       "linter": {
         "rules": {
           "style": {
-            "useConsistentTypeDefinitions": "off"
+            "useComponentExportOnlyModules": "off"
           }
         }
       }
     },
+
+    // ===================================================================
+    // NOT-LINTED PATHS — these three blocks MUST SORT LAST.
+    //
+    // Biome applies overrides in array order, and a later override that
+    // supplies a `linter` object resets `enabled` back to true for any file it
+    // also matches. These blocks used to sit near the TOP, above the
+    // `apps/itun/**`, `apps/srd/**` and `packages/salvageunion-reference/**`
+    // rule blocks — so every path below was declared unlinted and linted
+    // anyway. It was not theoretical: `biome lint
+    // packages/salvageunion-reference/tools` reported 2 warnings against a
+    // directory the repo had decided not to lint at all.
+    //
+    // The previous response to that was to re-state individual rule exemptions
+    // in extra overrides further down, which papered over one rule at a time
+    // and had to be repeated for every new rule. Sorting these last fixes the
+    // mechanism instead, so "enabled: false" simply means what it says.
+    //
+    // Keep any future not-linted path in this section, and keep this section
+    // at the bottom of the array.
+    // ===================================================================
     {
-      // TEMPORARY burn-down — delete this whole override once the list is
-      // empty. These are the last 9 non-augmentation `interface` declarations
-      // in the repo; unlike the block above they CAN and SHOULD become `type`,
-      // they just were not converted in the change that turned the rule on.
-      // The rule is enabled repo-wide regardless, so no NEW `interface` can be
-      // introduced anywhere while these are cleared:
-      //
-      //   lib/search.ts:37  SearchOptions           — public (re-exported from lib/index.ts)
-      //   lib/search.ts:199 SearchResult            — public (re-exported from lib/index.ts)
-      //   lib/ModelFactory.ts:202 EnhancedSchemaMetadata — public (re-exported from lib/index.ts)
-      //   lib/preselectedChoices.test.ts — 6 test-local shapes
-      //
-      // None of the nine extends or is merged into anything, so each is a
-      // mechanical `export interface X {` -> `export type X = {` swap. Converting
-      // the three public ones changes the DECLARATION FORM in the generated
-      // API report, so regenerate it: `bun run build:package` (CI fails on drift).
+      // ESLint never covered these (see packages/salvageunion-reference/eslint.config.js
+      // ignores: lib/*.template.ts, tools/**, examples/**), but Prettier did — that
+      // package's .prettierignore only excludes dist/node_modules/.git/*.tsbuildinfo/
+      // lib/generated. Keep formatting on, linting off, to match.
       "includes": [
-        "packages/salvageunion-reference/lib/search.ts",
-        "packages/salvageunion-reference/lib/ModelFactory.ts",
-        "packages/salvageunion-reference/lib/preselectedChoices.test.ts"
+        "packages/salvageunion-reference/lib/*.template.ts",
+        "packages/salvageunion-reference/tools/**",
+        "packages/salvageunion-reference/examples/**"
       ],
       "linter": {
-        "rules": {
-          "style": {
-            "useConsistentTypeDefinitions": "off"
-          }
-        }
+        "enabled": false
+      }
+    },
+    {
+      // *.d.ts was ESLint-ignored repo-wide (root + salvageunion-reference configs
+      // both list '**/*.d.ts') but never Prettier-ignored.
+      "includes": ["**/*.d.ts"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      // These live outside the app tsconfig project (own TS pipeline at
+      // `playwright test` time), so ESLint skipped them; Prettier still
+      // formatted them (only lib/generated + build-output dirs are
+      // Prettier-ignored). Keep formatting on, linting off, to match.
+      //
+      // NOTE: as of this change they ARE type-checked — the e2e dirs and both
+      // playwright configs joined their workspace tsconfig `include`. Linting
+      // stays off; type-checking is the coverage that was actually missing.
+      "includes": [
+        "apps/itun/playwright.config.ts",
+        "apps/itun/e2e/**",
+        "apps/srd/playwright.config.ts",
+        "apps/srd/e2e/**",
+        "packages/component-lib/vite.config.ts"
+      ],
+      "linter": {
+        "enabled": false
       }
     }
   ]

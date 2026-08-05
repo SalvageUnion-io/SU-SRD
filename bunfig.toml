@@ -3,7 +3,37 @@
 linker = 'isolated'
 
 [test]
-# Preload happydom for app tests - paths are relative to workspace root
-preload = ["./test/happydom.ts", "./test/testing-library.ts"]
-# Enable parallel test execution for faster test runs
+# Preloads for a ROOT-level `bun test` run. Paths are relative to the repo root.
+#
+# This list is deliberately the UNION of what the workspace bunfigs preload, and
+# that is the whole point: `bun test` at the repo root does NOT inherit any
+# workspace's `bunfig.toml`, it uses this one for every file it collects. When
+# this list was only happydom + testing-library, a bare `bun test` here reported
+# 639 failures and 35 errors across 343 files against a tree that was actually
+# green — purely from the two missing preloads below. Root CLAUDE.md answered
+# that with a warning ("NEVER raw `bun test` at the root"), and the checked-in
+# /verify skill then instructed exactly that anyway.
+#
+# A documented footgun that two lines of config can remove is not worth
+# documenting. `bun run test` (per-workspace, each with its own bunfig) remains
+# the canonical command — it is what CI and pre-push run — but a bare
+# `bun test` now behaves instead of lying.
+preload = [
+  # First: the bot's `src/config.ts` calls `requireEnv` at MODULE scope, so any
+  # file that transitively imports it throws on load without these. Uses `??=`,
+  # so a real local environment is never clobbered.
+  "./apps/discord-bot/test/env.ts",
+  "./test/happydom.ts",
+  "./test/testing-library.ts",
+  # The ORM refuses to serve data until preloaded; without this every test that
+  # touches SalvageUnionReference throws "Schema '<x>' not loaded".
+  "./test/reference-preload.ts",
+  # ITUN's storage layer is IndexedDB-backed and has no in-memory fallback.
+  "fake-indexeddb/auto",
+]
 
+[test.env]
+# Every workspace bunfig sets this; the root one did not, so a root-level run
+# (including `bun run test:tools`) executed under whatever NODE_ENV happened to
+# be ambient.
+NODE_ENV = "test"
