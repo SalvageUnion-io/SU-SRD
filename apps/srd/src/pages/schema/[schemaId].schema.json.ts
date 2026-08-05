@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro'
-import { getEntitySchemas } from 'salvageunion-reference'
 import { getJsonSchemaDefinition } from 'salvageunion-reference/schema-definitions'
+// From `lib/gameData`, NOT the package — importing that module is what runs the
+// build-time `preload('all')` that static generation depends on.
+import { getEntitySchemas } from '../../lib/gameData'
 
 /**
  * `getEntitySchemas()`, not the whole catalog — the JSON surface must cover the

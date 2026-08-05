@@ -1,5 +1,10 @@
 import type { APIRoute } from 'astro'
-import { getEntitySchemas, getModel } from 'salvageunion-reference'
+import { getModel } from 'salvageunion-reference'
+// From `lib/gameData`, NOT the package: importing that module is what runs the
+// build-time `preload('all')`, and `getStaticPaths` reads models during static
+// generation. Pulling this straight from the package builds a route list before
+// any schema is loaded and the build dies on "Schema not loaded".
+import { getEntitySchemas } from '../../lib/gameData'
 
 /**
  * `getEntitySchemas()`, not the whole catalog — the JSON surface must cover the
