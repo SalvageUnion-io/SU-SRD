@@ -6,8 +6,8 @@
  */
 
 import { roll } from '@randsum/roller'
-import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 import type { SURefRollTable } from 'salvageunion-reference'
+import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 /** Roll-table names for mech wizard flavor fields. */
 export const MECH_ROLL_TABLE_NAMES = {
@@ -25,7 +25,7 @@ export type MechRollTableDeps = {
 }
 
 const defaultDeps: MechRollTableDeps = {
-  findTable: (name) => SalvageUnionReference.RollTables.find((t) => t.name === name),
+  findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
   rollD20: () => roll('1d20').total,
 }
 

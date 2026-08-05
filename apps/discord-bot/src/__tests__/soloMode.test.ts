@@ -1,6 +1,4 @@
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { describe, expect, test } from 'bun:test'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
@@ -19,10 +17,6 @@ import { fakeExecute } from './fakeInteraction.js'
  * `test/env.ts` deliberately leaves `ITUN_*` unset, so this whole file runs in
  * the state a fresh deploy is in.
  */
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('with no ITUN deployment configured', () => {
   test('there is no client at all', () => {

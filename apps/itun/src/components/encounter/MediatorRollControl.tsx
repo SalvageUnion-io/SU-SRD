@@ -11,17 +11,16 @@
  * deterministic and need no preloaded reference data.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { Button } from 'component-lib'
-
-import { defaultRoll } from '../../lib/rules/heatCheck'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from '../../lib/rules/heatCheck'
+import { defaultRoll } from '../../lib/rules/heatCheck'
+import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import {
-  MEDIATOR_TABLE_LABEL,
   describeMediatorRoll,
+  MEDIATOR_TABLE_LABEL,
   performMediatorRoll,
 } from '../../lib/rules/mediatorTables'
-import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult, MediatorTableId } from '../../lib/schemas/encounterNpc'
 
 const TABLE_IDS: readonly MediatorTableId[] = ['reaction', 'morale', 'retreat']
@@ -35,7 +34,7 @@ const TABLE_HINT: Record<MediatorTableId, string> = {
 /** Production table lookup — defensive so unloaded data reads as a miss. */
 const defaultFindTable: FindRollTable = (name) => {
   try {
-    return SalvageUnionReference.RollTables.find((t) => t.name === name)
+    return SalvageUnionReference.RollTables.getByName(name)
   } catch {
     return undefined
   }

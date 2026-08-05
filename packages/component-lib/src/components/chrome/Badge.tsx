@@ -1,10 +1,11 @@
-import { forwardRef } from 'react'
 import type { ElementType, HTMLAttributes, ReactNode } from 'react'
+import { forwardRef } from 'react'
+import type { SizeRung } from '../../styles/sizing'
+import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
-import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../../styles/sizing'
 
 export type BadgeTone = 'pilot' | 'mech' | 'crawler' | 'game' | 'ok' | 'warn' | 'bad'
 /** Chip surfaces (the rounded `shape="chip"` default). */
@@ -37,7 +38,7 @@ const BADGE_SURFACE: Record<BadgeSurface, string> = {
   ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink-20 tracking-caps-snug',
   outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-caps',
   tone: 'px-[9px] border-2 tracking-caps',
-  quiet: 'px-2 bg-wk-bg-2 text-ink-2',
+  quiet: 'px-2 bg-wk-bg-2 text-wk-muted',
 }
 
 /**

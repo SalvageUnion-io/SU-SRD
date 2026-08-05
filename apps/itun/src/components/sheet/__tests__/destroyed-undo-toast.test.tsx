@@ -7,20 +7,15 @@
  * the sheet, mirroring the app-wide mount in routes/__root.tsx.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { Toaster, toast } from 'component-lib'
-
-import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { MechSheet } from '../MechSheet'
 
 afterEach(() => {
   // Sonner's toast state is module-global — clear it so toasts never leak
@@ -44,8 +39,8 @@ const fakeMech: Mech = {
   systemConditions: { [SYSTEM_SLUG]: 'damaged' },
   currentSP: 10,
   currentHeat: 2,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeChassis = {

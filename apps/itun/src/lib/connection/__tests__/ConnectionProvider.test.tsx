@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { act } from 'react'
 import { render, screen } from '@testing-library/react'
-
+import { act } from 'react'
 import { ConnectionProvider } from '../ConnectionProvider'
 import { useConnection } from '../connectionContext'
 

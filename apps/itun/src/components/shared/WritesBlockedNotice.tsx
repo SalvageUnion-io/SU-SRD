@@ -31,7 +31,7 @@ export function WritesBlockedNotice() {
     <span
       role="status"
       aria-live="polite"
-      className="inline-flex items-center gap-1.5 rounded-[4px] border-2 border-[var(--color-roll-failure)] px-2 py-1 text-badge font-bold uppercase text-[var(--color-roll-failure)]"
+      className="inline-flex items-center gap-1.5 rounded-badge border-2 border-[var(--color-roll-failure)] px-2 py-1 text-badge font-bold uppercase text-[var(--color-roll-failure)]"
     >
       <span aria-hidden="true">◆</span>
       <span>Read-only — not connected</span>

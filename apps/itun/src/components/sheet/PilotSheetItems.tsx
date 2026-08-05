@@ -5,25 +5,23 @@
  * owns all persistence.
  */
 
-import { useState } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
 import {
   Button,
+  CardRemoveButton,
   Input,
   Panel,
   ReferenceEntityCard,
-  type ReferenceEntityControl,
   Stat,
   StatusBadge,
 } from 'component-lib'
-import type { CardFootMeta, ChoiceSelections } from 'component-lib'
-
+import { useState } from 'react'
+import type { SURefAbility } from 'salvageunion-reference'
+import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
-import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { CardRemoveButton } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -326,7 +324,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   const compactInput = 'px-2 py-1.5 text-xs'
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
+    <div className="flex flex-wrap items-center gap-2 rounded-card border-chrome border-dashed border-wk-faint p-2.5">
       <Button
         size="compact"
         aria-label="Add Scrap (3 slots)"

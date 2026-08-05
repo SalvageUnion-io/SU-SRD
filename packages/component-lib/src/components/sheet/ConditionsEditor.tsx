@@ -16,9 +16,9 @@
  * affordance — chips render as plain badges (published snapshots).
  */
 
+import { cn } from '../../utils/cn'
 import { Conditions } from '../chrome/Conditions'
 import { INPUT_FOCUS } from '../chrome/interaction'
-import { cn } from '../../utils/cn'
 import { useChipDraft } from './useChipDraft'
 
 // ---------------------------------------------------------------------------

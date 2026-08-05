@@ -12,23 +12,19 @@
  *   - AppLink degrades to <a href> without a router
  */
 
-import { afterEach, beforeAll, describe, expect, mock, type Mock, test } from 'bun:test'
+import type { Mock } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
-import type { EntityLookup } from '../composition'
-import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
-import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
+import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
+import type { EntityLookup } from '../composition'
+import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
 
 // Preload chassis data so the mech preview can resolve chassis stats
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
-})
-
 afterEach(() => {
   // The publish flow now records the shared link in localStorage — clear it so
   // the revoke-ledger never leaks between tests.
@@ -53,8 +49,8 @@ const fakePilot: Pilot = {
   appearance: 'Tall, weathered.',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeMech: Mech = {
@@ -66,8 +62,8 @@ const fakeMech: Mech = {
   modules: [],
   cargoLots: [],
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 function makeEntityStore(entities: Array<Pilot | Mech>): EntityLookup {
@@ -350,7 +346,7 @@ describe('ShareSnapshotScreen — revoke / un-publish', () => {
       kind: 'pilot',
       entityId: 'pilot-1',
       name: 'Mara Vex',
-      publishedAt: new Date().toISOString(),
+      publishedAt: FIXTURE_NOW,
     })
     render(
       <ShareSnapshotScreen

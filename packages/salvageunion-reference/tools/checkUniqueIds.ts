@@ -11,8 +11,9 @@
  * this and the unified runner (tools/validate.ts) can never diverge.
  */
 
+import type { ValidationResult } from './checkUniqueIdsLogic.js'
+import { checkAllFiles } from './checkUniqueIdsLogic.js'
 import { loadAllDataFiles } from './loadData.js'
-import { checkAllFiles, type ValidationResult } from './checkUniqueIdsLogic.js'
 
 function printResults(results: ValidationResult): void {
   let hasIssues = false

@@ -1,5 +1,6 @@
-import { describe, test, expect, beforeEach, afterEach, spyOn, type Mock } from 'bun:test'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import type { Mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { GameDataGate, resetPreloadForTests } from '../useGameData'
 

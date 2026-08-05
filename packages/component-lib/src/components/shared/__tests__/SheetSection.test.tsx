@@ -13,11 +13,10 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { ControlButtons } from '../ControlButtons'
-
 import { Slab } from '../../chrome/Slab'
-import { HButton, SectionEditButton, SectionManageButton } from '../SheetSection'
+import { ControlButtons } from '../ControlButtons'
 import { cardRemoveControls } from '../editLanguage'
+import { HButton, SectionEditButton, SectionManageButton } from '../SheetSection'
 
 describe('HButton', () => {
   test('renders as a button with the design chrome and keeps the tap floor', () => {

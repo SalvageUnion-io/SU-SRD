@@ -179,7 +179,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",

@@ -9,12 +9,12 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-
-import { MechConditionsEditor } from '../MechConditionsEditor'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { MechConditionsEditor } from '../MechConditionsEditor'
 
 afterEach(() => {
   cleanup()
@@ -30,8 +30,8 @@ function makeMech(overrides: Partial<Mech>): Mech {
     modules: [],
     cargoLots: [],
     conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }

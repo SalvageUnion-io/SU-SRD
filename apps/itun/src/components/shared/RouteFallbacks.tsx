@@ -15,10 +15,8 @@
  * accessibility regression, not a consolidation.
  */
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-
 import { buttonVariants } from 'component-lib'
-
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import { AppLink } from './AppLink'
 
@@ -54,7 +52,7 @@ export function NotFoundPanel({
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
-      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
+      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-panel border-chrome border-ink bg-paper p-6 sm:p-8">
         <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
           {title}
         </h1>
@@ -84,7 +82,7 @@ export function RouteNotFound() {
 export function RoutePending() {
   return (
     <FullPageShell aria-busy="true" aria-live="polite">
-      <p className="animate-pulse font-cond text-sm font-bold uppercase tracking-caps text-wk-muted">
+      <p className="motion-safe:animate-pulse font-cond text-sm font-bold uppercase tracking-caps text-wk-muted">
         Loading…
       </p>
     </FullPageShell>

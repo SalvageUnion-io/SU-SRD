@@ -8,18 +8,13 @@
  * preload('all') runs once.
  */
 
-import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { usePlayStateStore } from '../../../stores/playStateStore'
-import { DowntimeWizard } from '../DowntimeWizard'
 import { crawlerFixture } from '../../__tests__/fixtures'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { DowntimeWizard } from '../DowntimeWizard'
 
 beforeEach(() => {
   usePlayStateStore.setState({

@@ -10,17 +10,12 @@
  * instance. Patterns are shared context-free and never go through this flow.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { describe, expect, test } from 'bun:test'
 import {
   abilityContributions,
   mechMaxSPParts,
   sumContributions,
 } from 'salvageunion-reference/rules'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('snapshot pilot context', () => {
   test('a mech derives the SAME max SP with the pilot context as on the live sheet', () => {

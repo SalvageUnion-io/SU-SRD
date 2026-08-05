@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { Button } from '../chrome/Button'
+import { useState } from 'react'
 import { cn } from '../../utils/cn'
+import { Button } from '../chrome/Button'
 import { ModalShell } from './ModalShell'
 
 /** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
@@ -205,7 +205,7 @@ export function WizShell({
           <span>{title}</span>
         </span>
       </h1>
-      {subtitle && <div className="mt-2 font-body text-caption text-ink-2">{subtitle}</div>}
+      {subtitle && <div className="mt-2 font-body text-caption text-wk-muted">{subtitle}</div>}
     </header>
   )
 
@@ -408,7 +408,7 @@ export function WizShell({
                     {title}
                   </h1>
                   {subtitle && (
-                    <div className="mt-2 font-body text-caption text-ink-2">{subtitle}</div>
+                    <div className="mt-2 font-body text-caption text-wk-muted">{subtitle}</div>
                   )}
                 </header>
                 <div className="mt-4">{children}</div>

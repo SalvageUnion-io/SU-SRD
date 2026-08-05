@@ -127,6 +127,20 @@ const RULES: Rule[] = [
     pattern: /border(?:-[trblxy])?-\[\d*\.?\d+px\]/g,
   },
   {
+    id: 'arbitrary-radius',
+    rule: 'ruleset §4.4 — the ONE radius vocabulary',
+    // The gap this closes: theme.css has said "never `rounded-[Npx]`" since the
+    // radius ladder landed, and nothing enforced it. 28 arbitrary radii
+    // accumulated, and 24 of them were EXACT ALIASES of a token that already
+    // existed — the drift was never a designer wanting a new value, it was the
+    // ladder being invisible at the call site. Same shape as the three
+    // arbitrary-* rules above, and it belongs beside them.
+    fix: 'Use the ladder: rounded-pip (1px, tracker pips) / rounded-badge (2px, the stamp-chip family) / rounded-card (3px — cards, inputs, buttons) / rounded-panel (6px — app-chrome panels & pick cards). Stamps are square: rounded-none. Pick by ROLE, not by which number is nearest.',
+    // Corner/side modifiers included (rounded-t-, rounded-tl-, rounded-ss-).
+    // Only px literals — `rounded-[var(--x)]` is indirection, not a new rung.
+    pattern: /\brounded(?:-[a-z]{1,2})?-\[\d*\.?\d+px\]/g,
+  },
+  {
     id: 'arbitrary-font-size',
     rule: 'ruleset §4.2 — one type scale',
     fix: 'Use the semantic ladder: text-nano / micro / label / label-lg / badge / note / caption / lede, then the display end — readout (17) / title (22) / display (26) / display-lg (31) / hero (38).',
@@ -147,9 +161,9 @@ const RULES: Rule[] = [
 const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
   {
     file: 'packages/component-lib/src/styles/theme.css',
-    rules: ['raw-color', 'arbitrary-border-width'],
+    rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius'],
     reason:
-      'The token definitions themselves — this file is where colour is allowed to be a literal. arbitrary-border-width is exempt for a different reason: the file authors no borders at all, it defines the --bw-* ladder. Its one match is the prose in the ladder doc-comment ("never `border-[1.5px]`") — the rule text quoting the form it forbids. Rewording the comment to dodge the regex would make the canon harder to read to satisfy a lint.',
+      'The token definitions themselves — this file is where colour is allowed to be a literal. arbitrary-border-width and arbitrary-radius are exempt for a different reason: the file authors no borders and no radii at all, it DEFINES the --bw-* and --radius-* ladders. Their only matches are the prose in each ladder doc-comment ("never `border-[1.5px]`", "never rounded-[Npx]") — the rule text quoting the form it forbids. Rewording those comments to dodge the regex would make the canon harder to read to satisfy a lint.',
   },
   {
     file: 'packages/component-lib/src/components/chrome/Slab.tsx',

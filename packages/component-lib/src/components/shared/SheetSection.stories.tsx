@@ -2,13 +2,13 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { Slab } from '../chrome/Slab'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import {
   CardRemoveButton,
   HButton,
-  SectionManageButton,
   SectionEditButton,
+  SectionManageButton,
   SheetPickerModal,
 } from './SheetSection'
 
@@ -45,7 +45,7 @@ export const Default: Story = () => {
             />
           }
         />
-        <p className="mt-2 font-body text-caption text-ink-2">
+        <p className="mt-2 font-body text-caption text-wk-muted">
           {editing ? 'Editing — fields show the dashed cue.' : 'Read-only.'}
         </p>
       </div>

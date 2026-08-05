@@ -5,7 +5,7 @@
  * ride the card's own controls overlay.
  */
 
-import { describe, test, expect } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { EntityGridRow } from '../EntityGrid'

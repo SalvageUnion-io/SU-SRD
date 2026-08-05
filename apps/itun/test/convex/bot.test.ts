@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-
-import { api, internal } from '../_generated/api'
+import { api, internal } from '../../convex/_generated/api'
 import { testConvex } from './harness'
 
 /**

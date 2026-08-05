@@ -39,7 +39,17 @@
         "src/stores/cockpitPrefsStore.ts",
         "src/stores/types.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts", "convex/*.ts"]
+      // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
+      // so that codegen does not register the harness as a deployable module.
+      // Without it knip cannot see the harness and reports `convex-test` — its
+      // only importer — as an unused devDependency.
+      // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
+      "project": [
+        "src/**/*.{ts,tsx}",
+        "netlify/**/*.ts",
+        "convex/**/*.ts",
+        "test/**/*.ts"
+      ]
     },
     "apps/su-assets": {
       "entry": ["netlify/functions/**/*.ts"],

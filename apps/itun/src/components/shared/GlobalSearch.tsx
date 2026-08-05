@@ -18,11 +18,16 @@
  * surface, alongside the AppHeader search trigger (now present on every route).
  */
 
+import type { SearchComboboxResult } from 'component-lib'
+import {
+  EmptyState,
+  INPUT_FOCUS,
+  ModalShell,
+  useDetailModal,
+  useSearchCombobox,
+} from 'component-lib'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { INPUT_FOCUS, ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
-import type { SearchComboboxResult } from 'component-lib'
-
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 
 type GlobalSearchProps = {
@@ -108,7 +113,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             role="combobox"
             aria-expanded={hasSearched && results.length > 0}
             aria-controls={listboxId}
-            className={`w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted ${INPUT_FOCUS}`}
+            className={`w-full rounded-card border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted ${INPUT_FOCUS}`}
           />
 
           {hasSearched &&
@@ -127,7 +132,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => submit(result)}
-                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-[3px] border-chrome px-3 py-2 text-left transition-colors ${
+                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
                       index === selectedIndex
                         ? 'border-rust bg-wk-bg-2'
                         : 'border-transparent hover:bg-wk-bg-2'
@@ -144,7 +149,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 ))}
               </div>
             ) : (
-              <p className="font-body text-sm text-wk-muted">No results found</p>
+              <EmptyState variant="quiet" body="No results found" />
             ))}
 
           <p className="font-body text-xs text-wk-muted">

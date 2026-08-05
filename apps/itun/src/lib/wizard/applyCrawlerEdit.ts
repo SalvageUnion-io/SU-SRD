@@ -22,15 +22,11 @@
  */
 
 import type { SURefCrawler } from 'salvageunion-reference'
-
-import type { Crawler } from '../schemas/crawler'
 import type { EntityState } from '../../stores/entityStore'
 import { WIZARD_TXN } from '../../stores/surfaceProvenance'
-import {
-  crawlerFormCrewToPatches,
-  defaultTypeNpcState,
-  type CrawlerWizardFormState,
-} from './crawlerFormState'
+import type { Crawler } from '../schemas/crawler'
+import type { CrawlerWizardFormState } from './crawlerFormState'
+import { crawlerFormCrewToPatches, defaultTypeNpcState } from './crawlerFormState'
 
 /**
  * Apply the crew/type portion of a crawler edit save.

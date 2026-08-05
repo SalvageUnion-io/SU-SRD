@@ -12,25 +12,20 @@
  * Manual print-review checklist: see cycle-2.md in the cycle records.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Sheet } from '../Sheet'
-import type { EntityLookup } from '../Sheet'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import type { EntityLookup } from '../Sheet'
+import { Sheet } from '../Sheet'
 
 // ---------------------------------------------------------------------------
 // Preload chassis data so MechSheet can resolve chassisRef
 // ---------------------------------------------------------------------------
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()
@@ -53,8 +48,8 @@ const fakePilot: Pilot = {
   appearance: 'Short, quick-eyed.',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeMech: Mech = {
@@ -77,8 +72,8 @@ const fakeMech: Mech = {
     },
   ],
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeCrawler: Crawler = {
@@ -88,8 +83,8 @@ const fakeCrawler: Crawler = {
   techLevel: 'tech-1',
   crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
   systems: ['crawler-turret'],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 // ---------------------------------------------------------------------------

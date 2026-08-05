@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { FOCUS_RING, SELECTION_RING, SELECTION_RING_INK_DOUBLE, activateOnKey } from './interaction'
+import { activateOnKey, FOCUS_RING, SELECTION_RING, SELECTION_RING_INK_DOUBLE } from './interaction'
 
 type SelProps = {
   /** Whether the selection ring is on */

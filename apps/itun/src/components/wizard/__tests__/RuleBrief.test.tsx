@@ -4,11 +4,9 @@
  * footer citation, all composed through SheetSectionCard.
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { RuleBrief } from 'component-lib'
-
-afterEach(cleanup)
 
 describe('RuleBrief', () => {
   test('renders the THE RULE stamp, the rule text, and the citation footer', () => {

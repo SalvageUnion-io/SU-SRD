@@ -1,5 +1,4 @@
 import { SRDLink } from 'component-lib'
-
 import { deepLinkTo } from '../../lib/srd-deep-link'
 
 type ViewInSRDLinkProps = {

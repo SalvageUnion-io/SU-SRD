@@ -1,7 +1,7 @@
 import { Button, Field, Input, Panel, Slab } from 'component-lib'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import { rollCrawlerName } from './crawlerRollTables'
 import type { CrawlerRollTableDeps } from './crawlerRollTables'
+import { rollCrawlerName } from './crawlerRollTables'
 
 const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
 

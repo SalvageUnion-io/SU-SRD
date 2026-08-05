@@ -13,8 +13,9 @@
  * route loaders already do).
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefClass, SURefEquipment, SURefSystem } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { CrawlerMutationInput, MechCreationBudget } from 'salvageunion-reference/rules'
 import {
   computeMechCapacity,
   crawlerWeaponSlots,
@@ -34,10 +35,10 @@ import {
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
   resolveChassisRef,
+  resolveCrawlerRef,
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import type { CrawlerMutationInput, MechCreationBudget } from 'salvageunion-reference/rules'
 import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
@@ -508,7 +509,7 @@ function crawlerTypeMutationsOf(
   typeRef: string | null
 ): readonly CrawlerMutationInput[] | undefined {
   if (typeRef === null || typeRef === '') return undefined
-  const type = SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef)
+  const type = resolveCrawlerRef(typeRef)
   return type?.mutations
 }
 
@@ -535,9 +536,7 @@ function isLegalCrawlerWeaponRef(ref: string): boolean {
 /** Resolve a stored crawler-type ref (id or name) against the SRD catalog. */
 function crawlerTypeResolves(typeRef: string | null): boolean {
   if (typeRef === null || typeRef === '') return false
-  return (
-    SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef) !== undefined
-  )
+  return resolveCrawlerRef(typeRef) !== null
 }
 
 function crawlerTypeGate(form: CrawlerWizardFormState): StepGateResult {

@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'bun:test'
-import { resolveChoiceView, type ChoiceSelections } from './resolveChoiceView.js'
+import { describe, expect, it } from 'bun:test'
+import type { ChoiceSelections } from './resolveChoiceView.js'
+import { resolveChoiceView } from './resolveChoiceView.js'
 import type {
   SURefObjectChoice,
   SURefObjectContentBlock,

@@ -16,13 +16,13 @@
  * exception is `seedDefaultCrawlerBays`, which reads the SRD bay catalog.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefCrawler } from 'salvageunion-reference'
-import type { Crawler, CrawlerNpcState, ScrapPool } from '../schemas/crawler'
-import { parseCrawlerTechLevel } from '../crawlerLevel'
-import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
-import type { ResolvedNpc } from '../crawlerRefs'
 import type { ChoiceSelections } from 'component-lib'
+import type { SURefCrawler } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { parseCrawlerTechLevel } from '../crawlerLevel'
+import type { ResolvedNpc } from '../crawlerRefs'
+import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
+import type { Crawler, CrawlerNpcState, ScrapPool } from '../schemas/crawler'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 

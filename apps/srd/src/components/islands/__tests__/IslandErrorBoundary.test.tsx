@@ -1,4 +1,4 @@
-import { describe, test, expect, spyOn } from 'bun:test'
+import { describe, expect, spyOn, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { IslandErrorBoundary } from '../IslandErrorBoundary'
 

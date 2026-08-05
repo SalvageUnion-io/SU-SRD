@@ -17,15 +17,13 @@ import { mechMaxCargo } from '../rules/derivedStats'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
-import {
-  cargoTransfer,
-  carrierCargoUsage,
-  scrapPoolBucket,
-  type CargoBoundaryState,
-  type CargoTransferAction,
-  type CargoTransferResult,
-  type CargoUsage,
+import type {
+  CargoBoundaryState,
+  CargoTransferAction,
+  CargoTransferResult,
+  CargoUsage,
 } from './cargoTransfer'
+import { cargoTransfer, carrierCargoUsage, scrapPoolBucket } from './cargoTransfer'
 
 type UseCargoOptions = {
   /** The mech side of the boundary (null/undefined when no mech is docked). */

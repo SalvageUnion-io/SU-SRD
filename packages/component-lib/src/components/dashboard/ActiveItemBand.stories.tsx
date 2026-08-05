@@ -1,14 +1,10 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
+import { Caption } from '../../stories/_harness'
 import { CountStepper } from '../chrome/CountStepper'
-import {
-  ActiveItemBand,
-  StorageBay,
-  type ActiveItemBandView,
-  type StorageLot,
-} from './ActiveItemBand'
+import type { ActiveItemBandView, StorageLot } from './ActiveItemBand'
+import { ActiveItemBand, StorageBay } from './ActiveItemBand'
 
 export default { title: 'Compositions/Dashboard/Active Item Band' }
 

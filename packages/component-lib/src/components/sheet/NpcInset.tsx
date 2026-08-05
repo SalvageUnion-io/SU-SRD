@@ -15,12 +15,11 @@
  * omit a field's handler and it renders plain text, no edit affordances.
  */
 
-import { Stat } from '../shared/Stat'
-import { cn } from '../../utils/cn'
 import type { ReactNode } from 'react'
-
-import { Inset } from '../shared/Inset'
+import { cn } from '../../utils/cn'
 import { InlineEditField } from '../chrome/InlineEditField'
+import { Inset } from '../shared/Inset'
+import { Stat } from '../shared/Stat'
 import { NpcFactsEditor } from './NpcFactsEditor'
 
 type NpcInsetProps = {
@@ -74,7 +73,7 @@ function NpcRow({
         className={cn(
           'm-0 min-w-0',
           grow && 'flex-1',
-          !plain && 'font-body text-note leading-snug text-ink-2'
+          !plain && 'font-body text-note leading-snug text-wk-muted'
         )}
       >
         {children}

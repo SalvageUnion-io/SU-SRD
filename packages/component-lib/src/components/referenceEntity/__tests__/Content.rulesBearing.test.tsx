@@ -12,7 +12,6 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-
 import { Content } from '../Content'
 
 const claim = [

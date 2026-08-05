@@ -1,12 +1,13 @@
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { convexClient } from '../lib/connection/convexClient'
+import type { ConnectionMode } from '../lib/connection/connectionMode'
 import {
   isSettlingConnection,
   resolveConnectionMode,
   usesServerOfRecord,
 } from '../lib/connection/connectionMode'
-import type { ConnectionMode } from '../lib/connection/connectionMode'
+import { convexClient } from '../lib/connection/convexClient'
+import { captureException } from '../lib/observability'
 
 /**
  * Where entity writes actually go (ADR-030 §1).
@@ -166,8 +167,13 @@ export async function mirrorWrite(
       await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
     }
   } catch (err) {
-    // Never surfaced as a failed user action: the local write stands.
+    // Never surfaced as a failed user action: the local write stands. But
+    // "don't interrupt the user" is not a reason to hide it from operators —
+    // a mirror failure means IndexedDB has diverged from Convex, the declared
+    // server of record (ADR-030), and a console line in one player's browser
+    // is not a signal anyone will ever see.
     console.warn('[itun] failed to mirror write to the server of record', err)
+    captureException(err, { source: 'mirrorWrite', type, op: op.kind })
   }
 }
 
@@ -216,7 +222,9 @@ export async function mirrorCrawlerWrite(
       await convexClient.mutation(api.entities.removeCrawlerByAppId, { appId: op.appId })
     }
   } catch (err) {
+    // See mirrorWrite: swallowed for the user, reported to operators.
     console.warn('[itun] failed to mirror crawler write to the server of record', err)
+    captureException(err, { source: 'mirrorCrawlerWrite', op: op.kind })
   }
 }
 

@@ -17,34 +17,31 @@
  * live — and hands the views resolved data via props.
  */
 
+import { buttonVariants, SheetActionsMenu } from 'component-lib'
 import { useState } from 'react'
-import { buttonVariants } from 'component-lib'
-
+import { useConnection } from '../../lib/connection/connectionContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
 import { AppLink } from '../shared/AppLink'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
-import { MoveToContainerControl } from '../container/MoveToContainerControl'
-
 import { ChangeLogDrawer } from './ChangeLogDrawer'
-import { resolveSheetComposition } from './composition'
 import type { EntityLookup } from './composition'
+import { resolveSheetComposition } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
-import { SheetActionsMenu } from 'component-lib'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
 import type { SheetPatch } from './sheetViewProps'
 import { runWrite } from './sheetWrite'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'

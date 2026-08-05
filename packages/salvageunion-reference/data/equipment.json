@@ -232,7 +232,6 @@
           "kind": "text"
         },
         "name": "Name",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -247,7 +246,6 @@
           "multiline": true
         },
         "name": "Appearance",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -691,7 +689,7 @@
             "Energy"
           ]
         },
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -807,7 +805,7 @@
             "scalesWith": "techLevel"
           }
         },
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -867,7 +865,6 @@
           "kind": "text"
         },
         "name": "Name",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -883,7 +880,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -1266,7 +1263,7 @@
             "scalesWith": "techLevel"
           }
         },
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -1309,7 +1306,6 @@
           "kind": "text"
         },
         "name": "Name",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -1371,7 +1367,6 @@
           "kind": "text"
         },
         "name": "Name",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -1386,7 +1381,6 @@
           "multiline": true
         },
         "name": "Appearance",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",

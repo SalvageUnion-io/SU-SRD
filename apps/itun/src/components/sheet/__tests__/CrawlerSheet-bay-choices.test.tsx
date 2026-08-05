@@ -24,14 +24,15 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-
-import { CrawlerSheet } from '../CrawlerSheet'
+import type { SURefCrawlerBay } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { expandCards } from '../../__tests__/expandCards'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { expandCards } from '../../__tests__/expandCards'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { patchModelRows } from '../../__tests__/patchModel'
+import { CrawlerSheet } from '../CrawlerSheet'
 
 afterEach(() => {
   cleanup()
@@ -58,7 +59,6 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
       {
         id: CHOICE_ID,
         name: 'Armament Bay Weapons System',
-        choiceType: 'permanent',
         choiceOptions: [
           { value: 'Autocannon', label: 'Autocannon' },
           { value: 'Missile Pod', label: 'Missile Pod' },
@@ -71,13 +71,7 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
 
 async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
-  SalvageUnionReference.CrawlerBays.all = mock(
-    (): Array<SURefCrawlerBay & { schemaName: string }> => MOCK_BAYS
-  )
-  return () => {
-    SalvageUnionReference.CrawlerBays.all = original
-  }
+  return patchModelRows(SalvageUnionReference.CrawlerBays, MOCK_BAYS)
 }
 
 // ---------------------------------------------------------------------------
@@ -138,8 +132,8 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
     crawlerBays: [{ bayRef: BAY_REF }],
     systems: [],
     currentSP: 25,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }

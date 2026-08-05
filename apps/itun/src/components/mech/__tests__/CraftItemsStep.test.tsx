@@ -6,17 +6,11 @@
  * Tech-1 filter and the SUGGESTED pill.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { CraftItemsStep } from '../CraftItemsStep'
 import { must } from '../../__tests__/must'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
-
-afterEach(cleanup)
+import { CraftItemsStep } from '../CraftItemsStep'
 
 function tl1System(predicate: (s: { salvageValue: number; slotsRequired: number }) => boolean) {
   const found = SalvageUnionReference.Systems.find((s) => s.techLevel === 1 && predicate(s))

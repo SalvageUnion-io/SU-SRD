@@ -3,8 +3,12 @@
  * These functions provide convenient access patterns used by consuming applications
  */
 
-import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
+import type { ModelWithMetadata } from './BaseModel.js'
 import { lazyModelMap } from './generated/schemaRegistry.generated.js'
+import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
+import type { EnhancedSchemaMetadata } from './ModelFactory.js'
+import { getSchemaCatalog } from './ModelFactory.js'
+import { getEntitySlug } from './slug.js'
 import type {
   SURefCrawler,
   SURefEntity,
@@ -12,32 +16,29 @@ import type {
   SURefObjectAdvancedClass,
   SURefObjectCrawlerMutation,
 } from './types/index.js'
-import type { ModelWithMetadata } from './BaseModel.js'
-import { getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
 import {
-  getName,
-  getDescription,
-  getSource,
-  getTree,
-  getPageReference,
-  getTechLevel,
+  getActionType,
   getAssetUrl,
+  getCargoCapacity,
   getContent,
-  getStructurePoints,
+  getDamage,
+  getDescription,
   getEnergyPoints,
   getHeatCapacity,
-  getSystemSlots,
+  getHitPoints,
   getModuleSlots,
-  getCargoCapacity,
+  getName,
+  getPageReference,
+  getRange,
   getSalvageValue,
   getSlotsRequired,
-  getHitPoints,
+  getSource,
+  getStructurePoints,
+  getSystemSlots,
+  getTechLevel,
   getTraits,
-  getActionType,
-  getRange,
-  getDamage,
+  getTree,
 } from './utilities.js'
-import { getEntitySlug } from './slug.js'
 
 /**
  * Get the display name for a schema
@@ -101,15 +102,18 @@ export function getModel(
 
 export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
   const grants = 'grants' in entity && Array.isArray(entity.grants) ? entity.grants : []
-  return grants
-    .filter((grant) => grant.schema !== 'choice')
-    .map(
-      (grant): SURefEntity | null =>
-        getModel(grant.schema.toLowerCase())?.find(
-          (e: SURefEntity) => 'name' in e && e.name === grant.name
-        ) ?? null
-    )
-    .filter((e): e is SURefEntity => e !== null)
+  return (
+    grants
+      .filter((grant) => grant.schema !== 'choice')
+      // `getByName` (the model's name index), not a `.find` predicate: this walk
+      // runs per grant per render, and the predicate form scanned the whole
+      // target schema each time.
+      .map(
+        (grant): SURefEntity | null =>
+          getModel(grant.schema.toLowerCase())?.getByName(grant.name) ?? null
+      )
+      .filter((e): e is SURefEntity => e !== null)
+  )
 }
 
 // ============================================================================
@@ -143,7 +147,7 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
 export function findCrawlerById(
   crawlerId: string
 ): (SURefCrawler & { schemaName: string }) | undefined {
-  return SalvageUnionReference.findIn('crawlers', (c) => c.id === crawlerId)
+  return SalvageUnionReference.get('crawlers', crawlerId)
 }
 
 /**
@@ -221,6 +225,27 @@ export function getEntitySchemas(): EnhancedSchemaMetadata[] {
 // ============================================================================
 
 /**
+ * Sort rank for a Tech Level: the numeric tiers 1–6 keep their own value, then
+ * Bio ('B') at 7 and Nanite ('N') at 8.
+ *
+ * This ordering is a property of the game's TAXONOMY, not of any one widget, so
+ * it lives here and every sorter composes it (`techLevelRank(a) -
+ * techLevelRank(b)`) rather than re-deriving it. A missing Tech Level ranks
+ * last — an entity with no TL has no place among the tiers, and Infinity keeps
+ * it out of the way of both the numeric run and B/N without inventing a tier
+ * for it.
+ *
+ * @param techLevel - A Tech Level (as returned by `getTechLevel`), or undefined
+ * @returns The sort rank
+ */
+
+export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number {
+  if (techLevel === 'B') return 7
+  if (techLevel === 'N') return 8
+  return typeof techLevel === 'number' ? techLevel : Number.POSITIVE_INFINITY
+}
+
+/**
  * Get unique tech levels from an array of entities, sorted correctly
  * Numeric levels ascending, then 'B', then 'N'
  * @param entities - Array of entities to extract tech levels from
@@ -233,14 +258,7 @@ export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N
     const tl = getTechLevel(entity)
     if (tl !== undefined) levels.add(tl)
   }
-  return Array.from(levels).sort((a, b) => {
-    if (typeof a === 'number' && typeof b === 'number') return a - b
-    if (typeof a === 'number') return -1
-    if (typeof b === 'number') return 1
-    if (a === 'B' && b === 'N') return -1
-    if (a === 'N' && b === 'B') return 1
-    return 0
-  })
+  return Array.from(levels).sort((a, b) => techLevelRank(a) - techLevelRank(b))
 }
 
 /**

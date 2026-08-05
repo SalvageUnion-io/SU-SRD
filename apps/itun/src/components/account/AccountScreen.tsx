@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { Button, Card, Text } from 'component-lib'
+import { Button, Card, Input, PageHeading, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
@@ -54,16 +53,18 @@ function SignedInAccount() {
       <ClaimLocalData />
       <Card>
         <div className="flex flex-col gap-3 p-4">
-          <Text as="label" className="font-cond text-xs font-bold tracking-widest uppercase">
+          <PageHeading variant="section" as="h2">
             Display name
-          </Text>
+          </PageHeading>
           <Text variant="hint" className="text-left">
             Shown on every entity you own. Defaults to your Discord name; clearing this falls back
             to it rather than to blank.
           </Text>
-          <input
+          {/* No `Field` wrapper: the card's own h2 already reads "Display
+              name", and a stamp repeating it on the input's seam would state
+              the same label twice a line apart. */}
+          <Input
             aria-label="Display name"
-            className="border-2 border-[var(--color-ink)] bg-[var(--color-paper)] px-2 py-1"
             value={value}
             onChange={(e) => setName(e.target.value)}
           />
@@ -81,9 +82,9 @@ function SignedInAccount() {
 
       <Card>
         <div className="flex flex-col gap-2 p-4">
-          <Text as="label" className="font-cond text-xs font-bold tracking-widest uppercase">
+          <PageHeading variant="section" as="h2">
             Your games
-          </Text>
+          </PageHeading>
           {games === undefined && <ConvexPending className="text-left" />}
           {games?.length === 0 && (
             <Text variant="hint" className="text-left">
@@ -105,9 +106,9 @@ function SignedInAccount() {
 
       <Card>
         <div className="flex flex-col gap-3 p-4">
-          <Text as="label" className="font-cond text-xs font-bold tracking-widest uppercase">
+          <PageHeading variant="section" as="h2">
             Your data
-          </Text>
+          </PageHeading>
           <Text variant="hint" className="text-left">
             Downloads everything you own. Crewmates' characters and the shared crawler are not
             included — you can see them, but they are not yours to take.
@@ -127,9 +128,9 @@ function SignedInAccount() {
 
       <Card>
         <div className="flex flex-col gap-3 p-4">
-          <Text as="label" className="font-cond text-xs font-bold tracking-widest uppercase">
+          <PageHeading variant="section" as="h2">
             Delete account
-          </Text>
+          </PageHeading>
           <Text variant="hint" className="text-left">
             Your pilots and mechs are deleted. Games you are in survive — the shared crawler stays,
             and if you organise a game the role passes to the longest-standing member. Download your
@@ -195,9 +196,7 @@ function AccountBody() {
 export function AccountScreen() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-      <Text as="h1" className="font-cond text-2xl font-bold tracking-wide uppercase">
-        Account
-      </Text>
+      <PageHeading className="w-fit">Account</PageHeading>
       {isConvexConfigured ? (
         <AccountBody />
       ) : (

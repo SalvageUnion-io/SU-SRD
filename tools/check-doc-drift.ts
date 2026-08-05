@@ -49,7 +49,7 @@
  * that gets deleted.
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, extname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -494,27 +494,59 @@ export function checkSupersededAdrCitations(root: string): CheckResult {
 // Check 5: every component-lib symbol named in a live-instruction doc exists
 // ---------------------------------------------------------------------------
 
-/** The docs that describe component-lib's public surface as it is now. */
+/**
+ * The docs that describe component-lib's public surface as it is now.
+ *
+ * The package's own CLAUDE.md and README.md are the two most drift-prone docs
+ * in the set — they sit next to the code, so they read as authoritative, and
+ * they are where hand-maintained component rosters accumulate. Both were
+ * omitted from this list until a repo-wide audit found eight dead symbols
+ * across them, including a worked import example that no longer compiled.
+ */
+/**
+ * Backticked PascalCase names that are NOT component-lib symbols, with why.
+ *
+ * The check attributes a backticked name in a component-lib block to
+ * component-lib. That is the right default, but a few names in
+ * `docs/design-system/` are correctly backticked as literals while belonging to
+ * something else — Ladle's own API and its nav taxonomy. Un-backticking them
+ * would be worse: they ARE identifiers, just not ours.
+ *
+ * Keep this list short. A name here is a claim that it belongs to a different
+ * owner, not a way to silence a real dead symbol.
+ */
+const NOT_COMPONENT_LIB_SYMBOLS = new Map<string, string>([
+  ['Story', "@ladle/react's story type, not a component"],
+  ['Foundations', 'Ladle nav namespace (a story `title:` prefix)'],
+  ['Atoms', 'Ladle nav namespace'],
+  ['Compositions', 'Ladle nav namespace'],
+  ['Containers', 'Ladle nav namespace'],
+  ['Legacy', 'Ladle nav namespace — the unrefreshed holding pen'],
+])
+
 function componentLibSymbolDocs(root: string): string[] {
   return [
     'CLAUDE.md',
     ...markdownIn(root, '.claude/rules'),
     ...markdownIn(root, '.claude/agents'),
     'docs/architecture/package-contracts.md',
+    'packages/component-lib/CLAUDE.md',
+    'packages/component-lib/README.md',
+    // `docs/design-system/` declares itself Canon over the components — the
+    // ruleset says outright "if a component contradicts a rule here, the
+    // component is wrong, never the reverse". A canon doc naming components
+    // that do not exist is the worst version of this drift, and §5's atom
+    // roster had six such names plus a composition tree citing two deleted
+    // ones. Policed here now that §5 states its implementing symbols.
+    ...markdownIn(root, 'docs/design-system'),
   ].filter((doc) => existsSync(join(root, doc)))
 }
 
-/** Every name a barrel file re-exports. */
-export function barrelExports(root: string, relPath: string): Set<string> {
-  const barrelPath = join(root, relPath)
-  const names = new Set<string>()
-  if (!existsSync(barrelPath)) return names
+/** Every name a TypeScript source exports, whether re-exported or declared. */
+function exportedNamesIn(source: string, into: Set<string>): Set<string> {
+  const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
 
-  const source = readFileSync(barrelPath, 'utf-8')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/[^\n]*/g, '')
-
-  for (const match of source.matchAll(/export\s+(?:type\s+)?\{([\s\S]*?)\}/g)) {
+  for (const match of stripped.matchAll(/export\s+(?:type\s+)?\{([\s\S]*?)\}/g)) {
     // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
     for (const entry of match[1]!.split(',')) {
       const parts = entry
@@ -522,15 +554,53 @@ export function barrelExports(root: string, relPath: string): Set<string> {
         .replace(/^type\s+/, '')
         .split(/\s+as\s+/)
       const name = (parts.at(-1) ?? '').trim()
-      if (name) names.add(name)
+      if (name) into.add(name)
     }
   }
-  for (const match of source.matchAll(
+  for (const match of stripped.matchAll(
     /export\s+(?:declare\s+)?(?:const|let|function|class|type|interface|enum)\s+([A-Za-z0-9_$]+)/g
   )) {
     // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
-    names.add(match[1]!)
+    into.add(match[1]!)
   }
+
+  return into
+}
+
+/** Every name a barrel file re-exports. */
+export function barrelExports(root: string, relPath: string): Set<string> {
+  const barrelPath = join(root, relPath)
+  const names = new Set<string>()
+  if (!existsSync(barrelPath)) return names
+  return exportedNamesIn(readFileSync(barrelPath, 'utf-8'), names)
+}
+
+/**
+ * Every name exported by *any* `.ts`/`.tsx` under `dir` — not just the barrel.
+ *
+ * A doc that names an internal atom (`StepButton`, deliberately unexported) or a
+ * story-harness helper (`Caption`) is describing something that genuinely
+ * exists; check 5 asks "does this name exist in the package", not "is it
+ * public", so the barrel alone is too narrow a set to answer it.
+ */
+function exportedSymbolsUnder(root: string, dir: string): Set<string> {
+  const names = new Set<string>()
+  const full = join(root, dir)
+  if (!existsSync(full)) return names
+
+  const walk = (current: string): void => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      if (entry.name === 'node_modules') continue
+      const path = join(current, entry.name)
+      if (entry.isDirectory()) {
+        walk(path)
+        continue
+      }
+      if (!['.ts', '.tsx'].includes(extname(entry.name))) continue
+      exportedNamesIn(readFileSync(path, 'utf-8'), names)
+    }
+  }
+  walk(full)
 
   return names
 }
@@ -563,12 +633,13 @@ const BACKTICKED_SYMBOL_RE = /`([A-Z][A-Za-z0-9]*)`/g
 export function checkComponentLibSymbolNames(root: string): CheckResult {
   const known = new Set([
     ...barrelExports(root, 'packages/component-lib/src/index.ts'),
+    ...exportedSymbolsUnder(root, 'packages/component-lib/src'),
     ...componentLibSourceNames(root),
   ])
   // A block can name component-lib alongside its sibling packages ("all consumer
   // packages (`component-lib`, `srd`, `itun`) … code touching
   // `SalvageUnionReference`"). Those symbols belong to the sibling, not here.
-  const siblingExports = barrelExports(root, 'packages/salvageunion-reference/lib/index.ts')
+  const siblingExports = exportedSymbolsUnder(root, 'packages/salvageunion-reference/lib')
   const ok = 'Every component-lib symbol named in a live-instruction doc still exists.'
 
   if (known.size === 0) {
@@ -598,6 +669,7 @@ export function checkComponentLibSymbolNames(root: string): CheckResult {
         const symbol = match[1]!
         if (symbol.length < 2 || !/[a-z]/.test(symbol)) continue
         if (known.has(symbol) || siblingExports.has(symbol)) continue
+        if (NOT_COMPONENT_LIB_SYMBOLS.has(symbol)) continue
         failures.push(
           `${doc}:${lineOf(block, match.index)} attributes \`${symbol}\` to component-lib, but it is ` +
             `neither exported from packages/component-lib/src/index.ts nor a file under ` +

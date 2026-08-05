@@ -5,21 +5,15 @@
  * Mount transitions (Board / Dismount) are the only mutations in Phase 2.
  */
 
-import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { usePlayStateStore } from '../../../stores/playStateStore'
-import { ActiveItemBand } from '../ActiveItemBand'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { ActiveItemBand } from '../ActiveItemBand'
 
 const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel', chassisRef: 'unknown-chassis' })
 
 const pilot = pilotFixture({ id: 'p1', name: 'Vesh' })
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('ActiveItemBand', () => {
   beforeEach(() => {

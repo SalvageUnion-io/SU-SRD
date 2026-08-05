@@ -10,10 +10,10 @@
  * the transaction auto-commit out from under the migration.
  */
 
-import type { UpgradeTransaction } from './index'
 import { isRecord } from '../../isRecord'
 import { normalizeLegacyPilotRecord } from '../../schemas/pilot'
 import { STORE_NAMES } from '../stores'
+import type { UpgradeTransaction } from './index'
 
 export async function migrate(tx: UpgradeTransaction): Promise<void> {
   if (!tx.db.objectStoreNames.contains(STORE_NAMES.pilots)) return

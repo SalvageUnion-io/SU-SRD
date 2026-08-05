@@ -17,10 +17,10 @@
  *      exists in one and not the other cannot satisfy both, which is exactly
  *      the divergence an annotation used to hide.
  */
-import { readFileSync, readdirSync } from 'node:fs'
-import { join } from 'node:path'
-import { describe, expect, it } from 'bun:test'
 
+import { describe, expect, it } from 'bun:test'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { z } from '../zod.js'
 import {
   ActionSchema,
@@ -73,7 +73,6 @@ const CONTENT_BLOCK_KEYS = ['type', 'value', 'label', 'level', 'lead', 'choiceId
 const CHOICE_KEYS = [
   'id',
   'name',
-  'choiceType',
   'content',
   'rollTable',
   'schemaEntities',

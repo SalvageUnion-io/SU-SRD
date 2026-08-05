@@ -1,11 +1,9 @@
+import { Field, navigateControl, ReferenceEntityCard } from 'component-lib'
 import { useState } from 'react'
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityCard, navigateControl } from 'component-lib'
-
-import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
+import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
-import { Field } from 'component-lib'
 
 type NpcSource = {
   /** Stable key — the bay ref or the type ref. */

@@ -13,16 +13,11 @@
  */
 
 import { create } from 'zustand'
-
 import * as db from '../lib/db/index'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { MechPattern } from '../lib/schemas/pattern'
-import {
-  makeHydratedCollectionSlice,
-  wireCrossTabInvalidation,
-  type HydratedCollectionActions,
-  type HydratedCollectionSlice,
-} from './makeHydratedCollection'
+import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
+import { makeHydratedCollectionSlice, wireCrossTabInvalidation } from './makeHydratedCollection'
 
 /** db.create input — id/createdAt are injected by the db layer. */
 export type MechPatternCreateInput = Omit<MechPattern, 'id' | 'createdAt' | 'updatedAt'>

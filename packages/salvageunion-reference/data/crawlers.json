@@ -13,7 +13,6 @@
             "kind": "text"
           },
           "name": "Name",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -28,7 +27,6 @@
             "multiline": true
           },
           "name": "Description",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -44,7 +42,7 @@
             "orChooseOwn": true
           },
           "name": "A.I. Personality",
-          "choiceType": "permanent",
+          "lifetime": "permanent",
           "content": [
             {
               "type": "paragraph",
@@ -89,7 +87,6 @@
             "kind": "text"
           },
           "name": "Name",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -104,7 +101,6 @@
             "multiline": true
           },
           "name": "Description",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -119,7 +115,6 @@
             "multiline": true
           },
           "name": "Keepsake",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -134,7 +129,6 @@
             "multiline": true
           },
           "name": "Motto",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -199,7 +193,6 @@
             "kind": "text"
           },
           "name": "Name",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -214,7 +207,6 @@
             "multiline": true
           },
           "name": "Description",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -229,7 +221,6 @@
             "multiline": true
           },
           "name": "Keepsake",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -244,7 +235,6 @@
             "multiline": true
           },
           "name": "Motto",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -294,7 +284,6 @@
             "kind": "text"
           },
           "name": "Name",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -309,7 +298,6 @@
             "multiline": true
           },
           "name": "Description",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -324,7 +312,6 @@
             "multiline": true
           },
           "name": "Keepsake",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -339,7 +326,6 @@
             "multiline": true
           },
           "name": "Motto",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -385,7 +371,6 @@
             "kind": "text"
           },
           "name": "Name",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -400,7 +385,6 @@
             "multiline": true
           },
           "name": "Description",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -415,7 +399,6 @@
             "multiline": true
           },
           "name": "Keepsake",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",
@@ -430,7 +413,6 @@
             "multiline": true
           },
           "name": "Motto",
-          "choiceType": "freeform",
           "content": [
             {
               "type": "paragraph",

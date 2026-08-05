@@ -9,17 +9,16 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-
+import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
 import {
   _clearAllStores,
   _resetDbSingleton,
-  mechs as dbMechs,
   crawlers as dbCrawlers,
+  mechs as dbMechs,
 } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
-import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
-import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
 
 // `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
 // sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and

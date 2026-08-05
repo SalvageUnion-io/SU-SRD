@@ -9,7 +9,6 @@
  * just without a re-roll button).
  */
 import { describe, expect, test } from 'bun:test'
-
 import { buildCheckMessage } from '../commands/check.js'
 import { makeCustomId, parseCustomId, rollAgainRow, rollResultRow } from '../customId.js'
 

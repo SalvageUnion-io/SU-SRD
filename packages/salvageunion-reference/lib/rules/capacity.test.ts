@@ -4,14 +4,10 @@
  * Uses REAL data from salvageunion-reference to verify that slot math
  * is computed against actual chassis caps and system slotsRequired values.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import { computeMechCapacity } from './capacity.js'
 import type { MechInput } from './types.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
-})
 
 // ---------------------------------------------------------------------------
 // Reference data fixtures (real data — verified against chassis.json)

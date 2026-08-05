@@ -4,7 +4,7 @@
  * shared-promise pattern, but fetches a small static JSON asset instead of
  * preloading the ORM — search islands never import `salvageunion-reference`.
  */
-import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 let indexPromise: Promise<CompactSearchEntry[]> | null = null

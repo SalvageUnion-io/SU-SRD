@@ -1,20 +1,19 @@
 import { describe, expect, it } from 'bun:test'
-import { readFileSync, readdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { AllowlistEntry, OrphanResult } from './validateOrphansLogic.js'
 import {
   collectReferencedActionNames,
-  collectReferencedSystemNames,
   collectReferencedModuleNames,
+  collectReferencedSystemNames,
   findOrphanedActions,
-  findOrphanedSystems,
   findOrphanedModules,
+  findOrphanedSystems,
   findStaleRootFiles,
   partitionOrphansByAllowlist,
-  runOrphanCheck,
   ROOT_FILES,
-  type AllowlistEntry,
-  type OrphanResult,
+  runOrphanCheck,
 } from './validateOrphansLogic.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */

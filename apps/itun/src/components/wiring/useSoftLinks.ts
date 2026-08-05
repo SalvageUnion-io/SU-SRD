@@ -12,9 +12,9 @@
  */
 
 import { useSoftLinkList } from '../../hooks/queries'
-import { useEntityStore } from '../../stores/entityStore'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import type { EntityRef } from '../../lib/schemas/entity'
+import type { SoftLink } from '../../lib/schemas/softLink'
+import { useEntityStore } from '../../stores/entityStore'
 
 /** The entity types that can be endpoints in a SoftLink (excludes 'softLink' itself). */
 type AssignTarget = EntityRef

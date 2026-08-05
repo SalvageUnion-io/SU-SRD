@@ -5,23 +5,16 @@
  * cargoTransfer.test.ts.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, renderHook } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import type { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import type { useEntityStore } from '../../../stores/entityStore'
 import type { CargoLot } from '../../schemas/cargoLot'
 import { makeScrapLot } from '../../schemas/cargoLot'
 import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import { useCargo } from '../useCargo'
-
-beforeAll(async () => {
-  // mechMaxCargo resolves the chassis through the ORM (even when the ref
-  // doesn't match) — the chassis table must be loaded.
-  await SalvageUnionReference.preload(['chassis'])
-})
 
 afterEach(() => {
   cleanup()
@@ -43,8 +36,8 @@ function makeMech(cargoLots: CargoLot[]): Mech {
     cargoLots,
     conditions: [],
     maxCargoModifier: 6,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
   }
 }
 
@@ -57,8 +50,8 @@ function makeCrawler(cargoLots: CargoLot[], scrapPool: Crawler['scrapPool']): Cr
     systems: [],
     cargoLots,
     scrapPool,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
   }
 }
 

@@ -1,14 +1,14 @@
+import { EntityDetailLinkProvider, EntityHrefProvider } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
 import {
-  SalvageUnionReference,
   getEntitySlug,
   nameToSlug,
+  SalvageUnionReference,
   visiblePatterns,
 } from 'salvageunion-reference'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
-import { EntityHrefProvider, EntityDetailLinkProvider } from 'component-lib'
-import { GameDataGate } from '../../lib/useGameData'
 import { itemHref, patternHref, srdEntityHref } from '../../lib/entityHref'
+import { GameDataGate } from '../../lib/useGameData'
 import { CatalogTile } from './CatalogTile'
 
 /**
@@ -126,6 +126,12 @@ function OgCardResolved() {
   )
 }
 
+/**
+ * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the
+ * build-time screenshot script, never hydrated in a user's browser, so a
+ * boundary would have no one to protect. The boundary is for islands that
+ * resolve reference data at runtime.
+ */
 export function OgCardIsland() {
   return (
     <GameDataGate fallback={null}>

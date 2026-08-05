@@ -1,10 +1,10 @@
 import type { Story } from '@ladle/react'
-import { EntityTooltip } from './EntityTooltip'
-import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
+import { InsideTooltipContext } from '../ui/insideTooltipContext'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import { EntityTooltip } from './EntityTooltip'
 
 export default {
   title: 'Compositions/Entity/Entity Tooltip',
@@ -18,7 +18,7 @@ const chassis = SalvageUnionReference.Chassis.all()[0]
  * the §1 Tooltip context: dense, and TERMINAL. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-6 text-ink">
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       Wrap any trigger to summon an entity hovercard (schemaName + entityId). Hover each below. The
       hovercard obeys the Tooltip context law (ruleset §1): dense, and TERMINAL — no buttons, links,
       nested tooltips, or steppers, ever.
@@ -36,7 +36,7 @@ export const Default: Story = () => (
         <Stat orientation="horizontal" label={trait?.name ?? 'Trait'} />
       </EntityTooltip>
     </div>
-    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-wk-muted">
       What the popup renders, shown statically for the catalog: the DENSE catalog-extent card inside
       the terminal context. A chassis makes the law visible — its full card would carry pattern and
       system cards, expandable listings and trait hover-refs; the hovercard suppresses all of them

@@ -40,7 +40,7 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
 
 export function RosterSkeleton() {
   return (
-    <div role="status" aria-label="Loading saved builds" className="animate-pulse">
+    <div role="status" aria-label="Loading saved builds" className="motion-safe:animate-pulse">
       <div className="mt-5 grid grid-cols-1 gap-8 md:mt-6 md:grid-cols-3">
         <SkeletonColumn />
         <SkeletonColumn hiddenOnMobile />

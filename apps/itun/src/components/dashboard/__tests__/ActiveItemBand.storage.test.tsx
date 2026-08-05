@@ -4,17 +4,15 @@
  * patch with that lot removed (the explicit player-confirmed discard, ADR-007).
  */
 
-import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import type { Mech } from '../../../lib/schemas/mech'
 import { usePlayStateStore } from '../../../stores/playStateStore'
-import { ActiveItemBand } from '../ActiveItemBand'
-import type { PlayStore } from '../ActiveItemBand'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { mechFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import type { PlayStore } from '../ActiveItemBand'
+import { ActiveItemBand } from '../ActiveItemBand'
 
 const lotA: CargoLot = {
   id: 'lot-a',
@@ -58,10 +56,6 @@ function stubStore(entities: Mech[]): { store: PlayStore; calls: Call[] } {
   }).getState()
   return { store, calls }
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('ActiveItemBand cargo hold', () => {
   beforeEach(() => {

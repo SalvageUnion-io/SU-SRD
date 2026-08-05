@@ -9,7 +9,6 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-
 import { Dashboard } from '../Dashboard'
 
 // Convention (see sheet-smoke.test.tsx): toBeTruthy(), not toBeInTheDocument()

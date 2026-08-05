@@ -1,10 +1,10 @@
 import { v } from 'convex/values'
-
 import { MechSchema } from '../src/lib/schemas/mech'
 import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
-import { mutation, query } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
+import { mutation, query } from './_generated/server'
+import { loadOwnable } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 
 /**
@@ -52,17 +52,10 @@ async function requireProposalTarget(
   entityType: Doc<'changeLog'>['entityType'],
   entityId: string
 ): Promise<{ doc: Doc<'pilots'> | Doc<'mechs'>; gameId: Id<'games'> }> {
-  // `normalizeId` is what makes `entityType` load-bearing rather than
-  // decorative: a Convex id is table-tagged, but `db.get` returns a document
-  // from ANY table, so casting the string let a proposal be aimed at a row that
-  // is not a sheet at all and then read as one. An id that is not the named
-  // table's is simply not there.
-  const table = ownableTableFor(entityType)
-  const id = table === null ? null : ctx.db.normalizeId(table, entityId)
-  if (id === null) throw new Error('That entity no longer exists')
-
-  const doc = await ctx.db.get(id)
-  if (doc === null) throw new Error('That entity no longer exists')
+  // `loadOwnable` takes the unmapped `entityType` as a null table and answers
+  // "no longer exists", which is the right answer here: a log row that names no
+  // sheet table is not a proposal target at all.
+  const doc = await loadOwnable(ctx, ownableTableFor(entityType), entityId)
   if (doc.gameId === null) {
     throw new NotAuthorized('An entity on a shelf is not part of a game and cannot be proposed to')
   }

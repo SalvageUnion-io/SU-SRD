@@ -5,7 +5,6 @@
 
 import { describe, expect, test } from 'bun:test'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-
 import { linesFromBreakdown, summarizeBreakdown } from '../provenanceLines'
 
 function parts(over: Partial<StatBreakdown> = {}): StatBreakdown {

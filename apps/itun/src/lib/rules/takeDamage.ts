@@ -5,22 +5,22 @@
  * Thin re-export shim — see that module for the implementation.
  */
 
-export {
-  mechEffectiveDamage,
-  applyMechDamage,
-  criticalDamageOutcome,
-  performCriticalDamage,
-  pilotEffectiveDamage,
-  applyPilotDamage,
-  criticalInjuryOutcome,
-  performCriticalInjury,
-} from 'salvageunion-reference/rules'
 export type {
-  DamageKind,
-  MechDamageInput,
-  MechDamageEffect,
-  PilotDamageInput,
-  PilotDamageEffect,
   CriticalDamageEffect,
   CriticalInjuryEffect,
+  DamageKind,
+  MechDamageEffect,
+  MechDamageInput,
+  PilotDamageEffect,
+  PilotDamageInput,
+} from 'salvageunion-reference/rules'
+export {
+  applyMechDamage,
+  applyPilotDamage,
+  criticalDamageOutcome,
+  criticalInjuryOutcome,
+  mechEffectiveDamage,
+  performCriticalDamage,
+  performCriticalInjury,
+  pilotEffectiveDamage,
 } from 'salvageunion-reference/rules'

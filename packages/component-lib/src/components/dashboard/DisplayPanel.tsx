@@ -6,15 +6,15 @@
  * picker, the SRD Explorer, or an app-provided slot (the Actions deck).
  */
 
-import { useRef, useState, type ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import type { ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
-import { ControlButtons } from '../shared/ControlButtons'
-import { RollTable } from '../shared/RollTable'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
+import { ControlButtons } from '../shared/ControlButtons'
+import { RollTable } from '../shared/RollTable'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories'
@@ -54,8 +54,11 @@ function TablesView() {
   const seqRef = useRef(0)
 
   const selected =
-    (tableId ? tables.find((t) => t.id === tableId) : undefined) ??
-    tables.find((t) => t.name === 'Core Mechanic') ??
+    // Indexed lookups, not scans over `tables`: `BaseModel` builds an id/name
+    // index lazily, and this runs on every Display render. `tables` is still
+    // needed for the list itself and the `[0]` fallback.
+    (tableId ? SalvageUnionReference.RollTables.getById(tableId) : undefined) ??
+    SalvageUnionReference.RollTables.getByName('Core Mechanic') ??
     tables[0]
 
   return (

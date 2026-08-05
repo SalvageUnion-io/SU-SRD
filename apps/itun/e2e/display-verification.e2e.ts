@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
 
 /**

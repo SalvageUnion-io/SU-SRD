@@ -8,9 +8,8 @@
  * boolean flags (removing a flag label clears the flag — the manual clear).
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { describe, expect, test } from 'bun:test'
+import { must } from '../../__tests__/must'
 import {
   cycleCondition,
   itemEconomy,
@@ -20,11 +19,6 @@ import {
   resolveModule,
   resolveSystem,
 } from '../mechItemRules'
-import { must } from '../../__tests__/must'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['systems', 'modules', 'actions'])
-})
 
 describe('itemEconomy', () => {
   test('Smoke Machine: EP cost 2, no heat, no uses', () => {

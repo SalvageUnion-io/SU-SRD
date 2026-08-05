@@ -6,16 +6,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
 import type { CargoLot } from '../../schemas/cargoLot'
 import { makeScrapLot } from '../../schemas/cargoLot'
-import {
-  addToScrapPool,
-  cargoTransfer,
-  carrierCargoUsage,
-  scrapPoolBucket,
-  type CargoBoundaryState,
-} from '../cargoTransfer'
+import type { CargoBoundaryState } from '../cargoTransfer'
+import { addToScrapPool, cargoTransfer, carrierCargoUsage, scrapPoolBucket } from '../cargoTransfer'
 
 // ---------------------------------------------------------------------------
 // Fixtures

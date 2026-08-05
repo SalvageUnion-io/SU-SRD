@@ -23,15 +23,19 @@
  * readOnly suppresses every affordance: no foot actions, no status cycle.
  */
 
-import { useState } from 'react'
-import { Button, ModalShell, ReferenceEntityCard, StatusBadge } from 'component-lib'
 import type { CardFootMeta, ReferenceEntityControl } from 'component-lib'
-
+import {
+  Button,
+  CardRemoveButton,
+  ModalShell,
+  ReferenceEntityCard,
+  StatusBadge,
+} from 'component-lib'
+import { useState } from 'react'
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
-import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
-import { CardRemoveButton } from 'component-lib'
+import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 
 /** Stable hide literal — keeps ReferenceEntityCard's memo effective. */
 const HIDE_CHOICES = { choices: true } as const
@@ -88,7 +92,7 @@ export function MechItemCard({
     // Unresolvable slug: plain chit, never a crash. The status badge still
     // cycles so conditions stay editable for unknown items.
     return (
-      <div className="flex h-full items-center justify-between gap-2 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2">
+      <div className="flex h-full items-center justify-between gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2">
         <span className="font-body text-sm text-ink">{slug}</span>
         <span className="flex shrink-0 items-center gap-1.5">
           <StatusBadge status={condition} onClick={readOnly ? undefined : onStatusCycle} />

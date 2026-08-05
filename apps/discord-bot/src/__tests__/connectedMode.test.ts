@@ -1,7 +1,4 @@
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { buttonInteractionHandlerFor } from './helpers.js'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand, sheetCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
@@ -11,6 +8,7 @@ import { suCommand } from '../commands/su.js'
 import type { ItunClient } from '../itun/client.js'
 import type { ItunResult } from '../itun/types.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import { buttonInteractionHandlerFor } from './helpers.js'
 
 /**
  * The Game commands with an ITUN deployment configured.
@@ -20,10 +18,6 @@ import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
  * comment for why neither works. `afterEach` restores Solo, which is what every
  * other test file expects to see.
  */
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 let restore: (() => void) | null = null
 afterEach(() => {

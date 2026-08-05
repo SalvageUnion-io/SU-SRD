@@ -1,13 +1,13 @@
-import { describe, it, expect, test } from 'bun:test'
+import { describe, expect, it, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   collectTraitTypes,
   findTraitCasingIssues,
-  findUnresolvableRemoveTraitIssues,
-  findUnknownTraitTypes,
   findTraitIssues,
+  findUnknownTraitTypes,
+  findUnresolvableRemoveTraitIssues,
 } from './validateTraitsLogic.js'
 
 describe('collectTraitTypes', () => {

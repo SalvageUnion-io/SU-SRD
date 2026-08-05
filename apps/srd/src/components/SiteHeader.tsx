@@ -1,5 +1,6 @@
+import type { AppBarNavItem } from 'component-lib'
+import { AppBar } from 'component-lib'
 import type { ReactNode } from 'react'
-import { AppBar, type AppBarNavItem } from 'component-lib'
 
 /**
  * SiteHeader — the SRD reference site's masthead (app-local config over the

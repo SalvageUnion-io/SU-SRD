@@ -11,9 +11,7 @@
  * fixture database name, destroyed before/after — the shared app db is never
  * touched here.
  */
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerMaxSP } from 'salvageunion-reference/rules'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { DB_VERSION, openItunDatabase } from '../index'
@@ -25,11 +23,6 @@ const NOW = '2026-01-01T00:00:00.000Z'
 /** The Battle type's real SRD id (the migration's frozen snapshot of it). */
 const BATTLE_ID = '3d1d9f79-9c56-43fa-a4c9-6dfe10b9aac9'
 const ENGINEERING_ID = '4e317382-046b-4a35-bce8-065c6d659a7b'
-
-beforeAll(async () => {
-  // The derived-read assertions resolve the type's mutations + the TL base.
-  await SalvageUnionReference.preload(['crawlers', 'crawler-tech-levels'])
-})
 
 // ---------------------------------------------------------------------------
 // Pure rewrite semantics

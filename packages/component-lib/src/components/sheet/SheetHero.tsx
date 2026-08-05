@@ -21,12 +21,11 @@
  */
 
 import type { ReactNode, Ref } from 'react'
+import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
+import { FOCUS_RING } from '../chrome/interaction'
 import { SheetSectionCard } from '../shared/SheetSectionCard'
 import { Stat } from '../shared/Stat'
-
-import { cn } from '../../utils/cn'
-import { FOCUS_RING } from '../chrome/interaction'
 
 type HeroIdentityLine = {
   label: string

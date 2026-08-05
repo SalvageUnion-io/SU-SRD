@@ -14,7 +14,6 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
-
 import type { Mech } from '../../lib/schemas/mech'
 
 export type ActivatableEffect = {

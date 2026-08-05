@@ -19,16 +19,19 @@
  * affordance renders regardless).
  */
 
+import {
+  Badge,
+  Button,
+  ClassDetail,
+  ClassOptionList,
+  Field,
+  SheetPickerModal,
+  selectableClasses,
+} from 'component-lib'
 import { useState } from 'react'
-import { Badge, Button } from 'component-lib'
-
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
-import { ClassDetail, ClassOptionList } from 'component-lib'
-import { selectableClasses } from 'component-lib'
-import { Field } from 'component-lib'
-import { SheetPickerModal } from 'component-lib'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
@@ -57,7 +60,7 @@ function UsedChip({
     <span
       aria-hidden="true"
       className={cn(
-        'h-3 w-4 shrink-0 rounded-[2px] border-2 border-current',
+        'h-3 w-4 shrink-0 rounded-badge border-2 border-current',
         used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
       )}
     />

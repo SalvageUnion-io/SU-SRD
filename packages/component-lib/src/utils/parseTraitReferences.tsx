@@ -1,6 +1,9 @@
-import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { useMemo } from 'react'
+import {
+  parseTraitReferences as parseTraitRefs,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { InlineRef } from '../components/chrome/InlineRef'
 import { EntityTooltip } from '../components/referenceEntity/EntityTooltip'
 
@@ -59,36 +62,47 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     const nodes: ReactNode[] = []
     let currentIndex = 0
 
-    // Combined regex: trait references (both forms) and paragraph breaks.
+    // The trait grammar is parsed by the PACKAGE, not re-implemented here.
     //
-    // The name/param classes exclude their own OPENING delimiter (`[^\][]`,
-    // `[^)(]`) as well as the closing one. A trait name can never contain a
-    // bracket and a parameter never contains a paren, so this matches exactly
-    // the same strings — but it bounds every scan at the next opening
-    // delimiter. With the opener admitted, input like `[[[[[[[…` made the
-    // engine re-scan the remainder from each `[[` start, which is quadratic.
-    const combinedRegex = /\[\[\[([^\][]+)\]\s*\(([^)(]+)\)\]\]|\[\[([^\][]+)\]\]|\n\n/g
+    // There used to be three regexes for this markup — one here, one in the
+    // reference package, one in the Discord bot — and they did not agree: the
+    // package required a space in `[[[Melee] (2)]]` where both renderers
+    // accepted `[[[Melee](2)]]`, so it silently extracted nothing from the
+    // space-less form while this file resolved the trait. Since the package's
+    // parser is what builds the search index, that divergence meant a trait
+    // could render as a link and be missing from search.
+    //
+    // `parseTraitReferences` returns positions, which is exactly what node
+    // building needs, so this composes it and adds only what is genuinely
+    // presentational: the React elements, and the `\n\n` paragraph break,
+    // which is a rendering concern the package has no opinion about.
+    const refs = parseTraitRefs(text)
+    const breaks = [...text.matchAll(/\n\n/g)].map((m) => ({
+      start: m.index,
+      end: m.index + 2,
+      kind: 'break' as const,
+    }))
+    const traits = refs.map((r) => ({
+      start: r.startIndex,
+      end: r.startIndex + r.fullMatch.length,
+      kind: 'trait' as const,
+      name: r.traitName,
+      param: r.parameter,
+    }))
 
-    let match: RegExpExecArray | null = combinedRegex.exec(text)
-
-    while (match !== null) {
-      if (match.index > currentIndex) {
-        nodes.push(text.substring(currentIndex, match.index))
+    for (const seg of [...traits, ...breaks].sort((a, b) => a.start - b.start)) {
+      // A paragraph break inside a trait reference cannot happen, but a
+      // defensive skip keeps a pathological overlap from duplicating prose.
+      if (seg.start < currentIndex) continue
+      if (seg.start > currentIndex) {
+        nodes.push(text.substring(currentIndex, seg.start))
       }
-
-      if (match[0] === '\n\n') {
-        // Paragraph break: block spacer element
-        nodes.push(<span key={`break-${match.index}`} className="block h-3" />)
-      } else if (match[1] !== undefined && match[2] !== undefined) {
-        nodes.push(
-          <TraitRef key={`trait-${match.index}`} name={match[1].trim()} param={match[2].trim()} />
-        )
-      } else if (match[3] !== undefined) {
-        nodes.push(<TraitRef key={`trait-${match.index}`} name={match[3].trim()} />)
+      if (seg.kind === 'break') {
+        nodes.push(<span key={`break-${seg.start}`} className="block h-3" />)
+      } else {
+        nodes.push(<TraitRef key={`trait-${seg.start}`} name={seg.name} param={seg.param} />)
       }
-
-      currentIndex = match.index + match[0].length
-      match = combinedRegex.exec(text)
+      currentIndex = seg.end
     }
 
     if (currentIndex < text.length) {

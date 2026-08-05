@@ -17,7 +17,6 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { visiblePatterns } from 'salvageunion-reference'
-
 import { SalvageUnionReference } from '../gameData'
 import { srdPatternHref } from '../patternHref'
 import { patternStaticSummary } from '../patternSummary'

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-
-import { BOT_OPS, bearerToken, opFromPath, secretsMatch } from '../botHttp'
+import type { BotOp } from '../../convex/botHttp'
+import { BOT_OPS, bearerToken, opFromPath, secretsMatch } from '../../convex/botHttp'
 
 /**
  * The bot's HTTP door.
@@ -69,7 +69,9 @@ describe('opFromPath', () => {
     // Guards the mapping against an op being added to one list and not the
     // other, which would 404 at runtime rather than at build.
     for (const op of BOT_OPS) {
-      expect(opFromPath(`/bot/${op}`)).toBe(op)
+      // `BOT_OPS` is deliberately typed `readonly string[]` (see botHttp.ts for
+      // why widening it is load-bearing), so name the op's real type here.
+      expect(opFromPath(`/bot/${op}`)).toBe(op as BotOp)
     }
   })
 })

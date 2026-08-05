@@ -13,9 +13,10 @@
  * indexes consult ids before names. Those two orders can only disagree if some
  * id is also some other row's name or slug — which the dataset never does.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
+import type { ModelWithMetadata } from './BaseModel.js'
+import { BaseModel } from './BaseModel.js'
 import { SalvageUnionReference, SchemaToModelMap } from './index.js'
-import { BaseModel, type ModelWithMetadata } from './BaseModel.js'
 import { nameToSlug } from './nameToSlug.js'
 
 type Row = { id?: string; name?: string }
@@ -29,10 +30,6 @@ const allModels = (): Array<[string, ModelWithMetadata<Row>]> =>
   ])
 
 describe('BaseModel name/slug indexes', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('getByName answers exactly what a linear name scan answers, for every name in every schema', () => {
     let checked = 0
     for (const [schemaId, model] of allModels()) {
@@ -143,5 +140,38 @@ describe('BaseModel name/slug indexes', () => {
       }
     }
     expect(checkedKeys).toBeGreaterThan(1500)
+  })
+})
+
+/**
+ * `SalvageUnionReference.getByNameIn` is the schema-id-addressed sibling of
+ * `get` (by id) and `findEntityBySlug` (by slug). Before it existed, a caller
+ * holding only a schema id had NO indexed option and reached for
+ * `findIn(schema, (e) => e.name === x)` — the scan the package's own CLAUDE.md
+ * bans. It must answer exactly what that predicate answered.
+ */
+describe('SalvageUnionReference.getByNameIn', () => {
+  test('returns the same row as findIn with a name predicate, for every schema', () => {
+    let checked = 0
+    for (const [schemaId, model] of allModels()) {
+      for (const row of model.all()) {
+        if (typeof row.name !== 'string' || row.name === '') continue
+        const viaIndex = SalvageUnionReference.getByNameIn(
+          schemaId as Parameters<typeof SalvageUnionReference.getByNameIn>[0],
+          row.name
+        )
+        const viaScan = SalvageUnionReference.findIn(
+          schemaId as Parameters<typeof SalvageUnionReference.findIn>[0],
+          (e) => (e as Row).name === row.name
+        )
+        expect(viaIndex, `${schemaId} / ${row.name}`).toBe(viaScan as never)
+        checked++
+      }
+    }
+    expect(checked).toBeGreaterThan(500)
+  })
+
+  test('returns undefined for an absent name', () => {
+    expect(SalvageUnionReference.getByNameIn('chassis', 'No Such Chassis XYZ')).toBeUndefined()
   })
 })

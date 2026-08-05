@@ -52,35 +52,36 @@
  * readOnly suppresses every edit affordance.
  */
 
-import { useState } from 'react'
-import type { ReactNode } from 'react'
 import {
-  VitalGauge,
-  heatDangerFrom,
+  EntityGridRow,
+  EntitySearcher,
+  Field,
   FieldError,
+  heatDangerFrom,
+  MasonryColumns,
   ReferenceEntityCard,
+  SectionManageButton,
   SheetHero,
+  SheetPickerModal,
+  SheetSectionSlab,
+  VitalGauge,
 } from 'component-lib'
-
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
-import { EntitySearcher } from 'component-lib'
-import { EntityGridRow, MasonryColumns } from 'component-lib'
-import { Field } from 'component-lib'
+import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import { resolveModule, resolveSystem } from './mechItemRules'
-import { SoftWarningDialog } from '../shared/SoftWarningDialog'
-import { SectionManageButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionSlab } from 'component-lib'
-import { PartnerCard } from './PartnerCard'
-import { StorageManifest } from './StorageManifest'
 import type { ItemKind } from './mechSheetActions'
 import { pinOrUndef, useMechSheetActions } from './mechSheetActions'
 import type { ChassisLike } from './mechSheetModel'
 import { useMechSheetModel } from './mechSheetModel'
+import { PartnerCard } from './PartnerCard'
+import { StorageManifest } from './StorageManifest'
 
 type MechSheetProps = {
   mech: Mech

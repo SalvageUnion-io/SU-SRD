@@ -16,8 +16,9 @@
  */
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import type { SURefEntity, SURefEnumSchemaName, SearchResult } from 'salvageunion-reference'
+import type { SearchResult, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySchemas, search } from 'salvageunion-reference'
+import { schemaPluralLabel } from '../../utils/schemaLabels'
 
 export type SearchComboboxResult =
   | {
@@ -32,7 +33,11 @@ export type SearchComboboxResult =
       kind: 'entity'
       id: string
       title: string
-      /** Right-hand label — the schema title, 'Salvage Union ' stripped. */
+      /**
+       * Right-hand label — the schema's authored plural ('Crawler Bays'), the
+       * same string the category rows above it use, so one dropdown never
+       * spells a schema two ways.
+       */
       group: string
       schemaId: SURefEnumSchemaName
       entity: SearchResult['entity'] & SURefEntity
@@ -90,7 +95,7 @@ function toEntityResult(result: SearchResult): SearchComboboxResult {
     kind: 'entity',
     id: result.entityId,
     title: result.entityName,
-    group: result.schemaTitle.replace('Salvage Union ', ''),
+    group: schemaPluralLabel(result.schemaName),
     schemaId: result.schemaName,
     entity: result.entity,
   }

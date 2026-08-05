@@ -1,12 +1,12 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
+import { Caption } from '../../stories/_harness'
+import { cn } from '../../utils/cn'
 import { Button } from '../chrome/Button'
 import { Field, Input, Select } from '../chrome/Field'
 import { ModeDoor } from '../chrome/ModeDoor'
 import { ModalShell } from '../shared/ModalShell'
-import { cn } from '../../utils/cn'
-import { Caption } from '../../stories/_harness'
 
 export default { title: 'Compositions/Wizard/New Entity Screen' }
 
@@ -135,17 +135,15 @@ function classOptions(): RefOption[] {
   }
 }
 
-/** Sortable rank for a chassis TL (non-numeric TLs — Bio/Nanite — sort last). */
-function tlRank(tl: unknown): number {
-  return typeof tl === 'number' ? tl : Number.POSITIVE_INFINITY
-}
-
 /** All chassis, slug-valued — any Tech Level, labelled with its TL. */
 function chassisOptions(): RefOption[] {
   try {
     const all = SalvageUnionReference.Chassis.all()
     return [...all]
-      .sort((a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name))
+      .sort(
+        (a, b) =>
+          techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
+      )
       .map((c) => ({
         value: nameToSlug(c.name),
         label: `${c.name} · TL ${String(c.techLevel)}`,
@@ -317,7 +315,7 @@ function NewEntityScreen({
         style={{ background: 'var(--ground)' }}
       >
         <div className="grid min-h-[220px] place-items-center p-8">
-          <p className="max-w-md text-center font-body text-sm text-ink-2">
+          <p className="max-w-md text-center font-body text-sm text-wk-muted">
             <span className="font-cond font-bold uppercase tracking-caps text-ink">
               Guided {KIND_LABEL[kind]} wizard
             </span>{' '}
@@ -349,7 +347,7 @@ function NewEntityScreen({
           setMode(undefined)
         }}
       />
-      <p className="px-6 pb-6 font-body text-caption text-ink-2" aria-live="polite">
+      <p className="px-6 pb-6 font-body text-caption text-wk-muted" aria-live="polite">
         Created id: {createdId ?? 'none'}
       </p>
     </>

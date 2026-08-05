@@ -3,10 +3,10 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { SchemaToDisplayName } from './index.js'
-
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
 import type { SalvageUnionReference as SURefType } from './index.js'
+import { SchemaToDisplayName } from './index.js'
+
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {

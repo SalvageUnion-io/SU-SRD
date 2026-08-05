@@ -14,12 +14,11 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { useEntityStore } from '../../stores/entityStore'
 import {
+  crawlerFormToCreateInput,
   EMPTY_CRAWLER_FORM_STATE,
   EMPTY_SCRAP_POOL,
-  crawlerFormToCreateInput,
   seedDefaultCrawlerBays,
 } from './crawlerFormState'
 import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from './mechFormState'

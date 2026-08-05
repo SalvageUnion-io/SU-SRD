@@ -4,7 +4,6 @@
  * deposit/withdraw the matching crawler scrap-pool bucket.
  */
 import { describe, expect, test } from 'bun:test'
-
 import {
   CargoLotSchema,
   cargoLotsFromLegacyCargo,

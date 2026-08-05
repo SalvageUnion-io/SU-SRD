@@ -10,9 +10,8 @@
  * is up so the two base-ui dialogs never fight over the focus trap.
  */
 
-import { useEffect, useState } from 'react'
 import { Button, ModalShell } from 'component-lib'
-
+import { useEffect, useState } from 'react'
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
 
 type MechChassisPickerModalProps = {

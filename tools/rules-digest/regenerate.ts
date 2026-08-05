@@ -22,10 +22,11 @@
  *
  * Env: RULES_DIR overrides the PDF/extract dir (default `rules`).
  */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { extractAll } from '../extract-rules'
-import { manifest, SOURCE_PDF, type DocSpec } from './manifest'
+import type { DocSpec } from './manifest'
+import { manifest, SOURCE_PDF } from './manifest'
 
 const rulesDir = process.env.RULES_DIR ?? 'rules'
 const briefsDir = join(rulesDir, 'extracted', 'briefs')

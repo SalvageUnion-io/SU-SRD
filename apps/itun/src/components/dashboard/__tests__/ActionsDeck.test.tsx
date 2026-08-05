@@ -14,17 +14,16 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../../lib/rules/derivedStats'
-import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
-import { ActionsDeck } from '../ActionsDeck'
-import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
-import type { PlayStore } from '../ActiveItemBand'
+import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
+import { ActionsDeck } from '../ActionsDeck'
+import type { PlayStore } from '../ActiveItemBand'
+import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
 
 type Call = { type: string; id: string; patch: Record<string, unknown> }
 
@@ -51,7 +50,6 @@ let pilotAbility: { id: string; actionNames: string[] } | null = null
 let tableModule: { id: string; actionName: string } | null = null
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   // A system whose primary action costs EP → Activate produces a currentEP patch.
   for (const sys of SalvageUnionReference.Systems.all()) {
     if (!sys.id) continue

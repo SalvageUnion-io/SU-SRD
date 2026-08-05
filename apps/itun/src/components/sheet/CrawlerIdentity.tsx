@@ -20,11 +20,10 @@
  * card strips them to avoid double-rendering.
  */
 
+import { Field, ReferenceEntityCard, Stat } from 'component-lib'
 import { useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefMetaAction } from 'salvageunion-reference'
-import { ReferenceEntityCard } from 'component-lib'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -32,7 +31,6 @@ import { cn } from '../../lib/utils'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
-import { Field, Stat } from 'component-lib'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */

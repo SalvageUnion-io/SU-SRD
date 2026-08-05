@@ -12,9 +12,7 @@
  * The JSON-schema generator (tools/generateJsonSchemas.ts) imports
  * zodSchemaMap directly, so it is covered transitively.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
-
-import { SalvageUnionReference } from './index.js'
+import { describe, expect, test } from 'bun:test'
 import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from './ModelFactory.js'
 
 function sorted(keys: Iterable<string>): string[] {
@@ -22,10 +20,6 @@ function sorted(keys: Iterable<string>): string[] {
 }
 
 describe('schema registry consistency', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('every ModelFactory registry covers the same schema ids', () => {
     const canonical = sorted(_registryKeySets.dataLoaders)
     expect(canonical.length).toBeGreaterThan(20)

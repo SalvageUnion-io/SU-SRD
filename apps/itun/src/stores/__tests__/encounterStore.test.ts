@@ -6,11 +6,11 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
+import { SHELF } from '../../lib/container'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
-import { SHELF } from '../../lib/container'
 
 const baseNpcInput: EncounterNpcCreateInput = {
   schemaVersion: 1,
@@ -74,7 +74,7 @@ describe('encounterStore — update', () => {
         roll: 4,
         label: 'Retreat',
         value: 'The NPCs flee the fight.',
-        rolledAt: new Date().toISOString(),
+        rolledAt: FIXTURE_NOW,
       },
     })
 

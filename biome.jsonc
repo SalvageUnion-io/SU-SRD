@@ -20,6 +20,17 @@
       "apps/**",
       "packages/**",
       "tools/**",
+      // Agent worktrees are full checkouts, each carrying its own copy of THIS
+      // file with `"root": true`. Biome 2.5+ hard-errors on a nested root
+      // config, and that discovery walk is independent of the includes above —
+      // so without this line `bun run lint` / `format:check` (and therefore
+      // `check:all`) exit 1 from the repo root for anyone who has ever used the
+      // documented agent-worktree workflow. CI never saw it (fresh checkout,
+      // no worktrees), pre-commit never saw it (explicit staged paths don't
+      // trigger discovery), and pre-push doesn't run lint at all. Bare
+      // `!.claude` is the form Biome itself prescribes for ignoring a folder;
+      // `!.claude/**` also works but emits a warning.
+      "!.claude",
       "!**/node_modules",
       "!**/dist",
       "!**/build",
@@ -56,7 +67,29 @@
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": "off"
+        // Import ORDER was the last big convention asserted by nobody and held
+        // by nobody: 73 of 977 source files re-opened a bare-package import
+        // after their first relative one, and two sibling `ActionsDeck.tsx`
+        // files in the same feature disagreed with each other. No doc declared
+        // an order, so there was nothing to violate — and this assist, which
+        // fixes it mechanically, was switched off.
+        //
+        // Groups below are the order the ~93% majority already used. Blank
+        // lines between groups are preserved by the formatter, so the result
+        // reads the way the best files already do.
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              ":BUN:",
+              ":NODE:",
+              [":PACKAGE_WITH_PROTOCOL:", ":URL:"],
+              ":PACKAGE:",
+              ":ALIAS:",
+              ":PATH:"
+            ]
+          }
+        }
       }
     }
   },
@@ -112,6 +145,37 @@
           "level": "error",
           "options": { "style": "type" }
         },
+        // `.claude/rules/typescript-style.md`: "Import types with `import type`
+        // syntax". Same story as the rule above — asserted in prose, enforced
+        // by nothing, so BOTH shapes survived: 225 files use a separate
+        // `import type { … }` statement alongside a value import from the same
+        // specifier, while ~100 sites inline `{ type X, Y }`. Neither is wrong;
+        // having both for the same job is. `separatedType` is the majority
+        // form and the one the rules doc's wording implies.
+        "useImportType": {
+          "level": "error",
+          "options": { "style": "separatedType" }
+        },
+        // "Named exports everywhere except route components" (CLAUDE.md:165,
+        // react-components.md:14) — stated three times at three strengths and
+        // enforced by nothing. It turned out to be genuinely obeyed (0
+        // violations outside the two legitimate exemptions below), which is
+        // exactly why it is cheap to lock in now rather than after it drifts.
+        //
+        // The two exemptions are real framework contracts, not preferences:
+        // TanStack Router route modules, and Ladle story `meta` — both are
+        // read by their framework as a default export. Netlify Functions and
+        // the Convex http router are the same shape. All are listed as
+        // overrides at the bottom rather than suppressed per-file.
+        "noDefaultExport": "error",
+        // Prefer `const` over `let` where never reassigned, and template
+        // literals over string concatenation — both auto-fixable, both
+        // currently drifting quietly.
+        "useConst": "error",
+        "useTemplate": "error",
+        "noParameterAssign": "error",
+        "useSelfClosingElements": "error",
+        "useShorthandFunctionType": "error",
         "noRestrictedImports": {
           "level": "error",
           "options": {
@@ -255,7 +319,39 @@
       "linter": {
         "rules": {
           "style": {
-            "useComponentExportOnlyModules": "off"
+            "useComponentExportOnlyModules": "off",
+            // Ladle reads a story file's `meta` as its DEFAULT export — this is
+            // the framework's contract, not a style choice. All 107 of the
+            // repo's `export default`s outside `src/routes/` are this.
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      // The other legitimate default-export contracts, each read by a framework
+      // rather than imported by us: TanStack Router route modules, Netlify
+      // Functions handlers, the Convex http router and schema, and build/test
+      // config files. Listed here so the rule stays `error` everywhere else.
+      "includes": [
+        "apps/itun/src/routes/**",
+        "apps/*/netlify/functions/**",
+        "apps/itun/convex/http.ts",
+        "apps/itun/convex/schema.ts",
+        "**/*.config.ts",
+        "**/*.config.mts",
+        "**/*.config.js",
+        "**/*.config.mjs",
+        "**/playwright.config.ts",
+        // Ambient module declarations for asset imports (`declare module
+        // '*.md?raw'`) must re-declare the bundler's own default export — the
+        // shape is dictated by Vite, not chosen.
+        "**/*.d.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
           }
         }
       }

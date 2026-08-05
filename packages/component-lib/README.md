@@ -10,15 +10,16 @@ Shared React component library for the SURef monorepo. Consumed by `apps/srd` an
 
 ## Contents
 
-- **Theme** — colors, tech-level tokens, recipes
-- **Typography** — `Text`
-- **UI primitives** — `Toaster` / `toast`, `ModalShell`, `ReferenceEntityDisplayTooltip`
-- **Entity display system** — `Card`, `ReferenceEntityDisplay` and its slot components, the choice-card layer, and control factories (`addControl`, `deleteControl`, `navigateControl`)
-- **Shared components** — `ValueDisplay`, `StatDisplay`, `StatsBar`, `RollTable`, `FilterChip`, skeletons
-- **Utilities** — `nameToSlug`, `getEntitySlug`, `parseTraitReferences` helpers, `cn()`
+The export surface is **not enumerated here.** [`src/index.ts`](src/index.ts) is
+the public API and the only trustworthy roster — read it rather than a
+hand-maintained list, which drifts silently every time a component lands or is
+deleted (this README's list had grown six names that no longer existed).
 
-See [package-contracts.md](../../docs/architecture/package-contracts.md) for the
-full export list.
+- **The barrel** — [`src/index.ts`](src/index.ts): every export, in one file.
+- **The catalog** — `bun run ladle` from the repo root: every public visual
+  component, rendered with real SRD data.
+- **The rules** — [package-contracts.md](../../docs/architecture/package-contracts.md):
+  what may be exported and what consumers may import.
 
 ## Consuming
 
@@ -28,10 +29,11 @@ Workspace dependency:
 "component-lib": "workspace:*"
 ```
 
-Import from the barrel:
+Import from the barrel — every name below is exported from
+[`src/index.ts`](src/index.ts):
 
 ```ts
-import { ReferenceEntityDisplay, Card, Text } from 'component-lib'
+import { Card, ReferenceEntityCard, Text } from 'component-lib'
 ```
 
 ## Scripts

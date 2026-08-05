@@ -11,9 +11,8 @@
  */
 
 import type { IDBPDatabase } from 'idb'
-
-import { ChangeLogEntrySchema, ChangeLogInputSchema } from '../schemas/changeLog'
 import type { ChangeLogEntry, ChangeLogInput } from '../schemas/changeLog'
+import { ChangeLogEntrySchema, ChangeLogInputSchema } from '../schemas/changeLog'
 import { STORE_NAMES } from './stores'
 
 /** Index on `entityId` for per-entity history queries. */

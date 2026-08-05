@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-
 import { MobileSearchDialog } from './MobileSearchDialog'
 import { SearchField } from './SearchField'
 

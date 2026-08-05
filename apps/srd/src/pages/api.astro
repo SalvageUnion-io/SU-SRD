@@ -1,12 +1,11 @@
 ---
-import { PageHeading, Slab } from 'component-lib'
+import { PageHeading, Panel, Slab } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { getSchemaCatalog } from '../lib/gameData'
+import { getEntitySchemas } from '../lib/gameData'
 import { SITE_URL } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
 
-const catalog = getSchemaCatalog()
-const schemas = catalog.schemas.filter((s) => !s.meta)
+const schemas = getEntitySchemas()
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -60,9 +59,9 @@ const baseUrl = SITE_URL
         <Slab as="h2" variant="solid" label="Endpoints" />
 
         <!-- Schema data array -->
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
-            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-wk-muted">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>.json
             </p>
@@ -91,12 +90,12 @@ const baseUrl = SITE_URL
   ...
 ]</code></pre>
           </div>
-        </div>
+        </Panel>
 
         <!-- JSON Schema definition -->
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
-            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-wk-muted">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>.schema.json
             </p>
@@ -127,12 +126,12 @@ const baseUrl = SITE_URL
   {'}'}
 {'}'}</code></pre>
           </div>
-        </div>
+        </Panel>
 
         <!-- Individual entity -->
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
-            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-wk-muted">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>/item/<span class="text-rust">{'{itemId}'}</span>.json
             </p>
@@ -160,7 +159,7 @@ const baseUrl = SITE_URL
   ...
 {'}'}</code></pre>
           </div>
-        </div>
+        </Panel>
       </section>
 
       <!-- Usage example -->
@@ -181,7 +180,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
           The following schema IDs are available. Use them in the endpoint patterns above.
         </p>
 
-        <div class="overflow-hidden rounded-panel border-2 border-wk-faint">
+        <Panel soft className="overflow-hidden">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b-2 border-wk-faint bg-ink text-paper">
@@ -203,13 +202,13 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
                     </a>
                   </td>
                   <td class="px-4 py-2 font-medium">{schema.displayNamePlural}</td>
-                  <td class="px-4 py-2 text-ink-2 hidden sm:table-cell">{schema.description}</td>
+                  <td class="px-4 py-2 text-wk-muted hidden sm:table-cell">{schema.description}</td>
                   <td class="px-4 py-2 text-right font-body">{schema.itemCount}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Panel>
       </section>
 
       <!-- CORS & headers -->

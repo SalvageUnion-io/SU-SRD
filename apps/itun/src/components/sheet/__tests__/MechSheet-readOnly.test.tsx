@@ -8,20 +8,15 @@
  * never written.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { MechSheet } from '../MechSheet'
 import { makeScrapLot } from '../../../lib/schemas/cargoLot'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { MechSheet } from '../MechSheet'
 
 afterEach(() => {
   cleanup()
@@ -51,8 +46,8 @@ const fakeMech: Mech = {
   currentSP: 8,
   currentEP: 5,
   currentHeat: 2,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeCrawler = {
@@ -63,8 +58,8 @@ const fakeCrawler = {
   systems: [],
   cargoLots: [],
   scrapPool: { tl2: 5 },
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 } as Crawler
 
 function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {

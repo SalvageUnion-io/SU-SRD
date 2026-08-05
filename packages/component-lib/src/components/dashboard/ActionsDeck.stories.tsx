@@ -1,9 +1,10 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
-import { ActionsDeck, type DeckRow } from './ActionsDeck'
+import { Caption } from '../../stories/_harness'
+import type { DeckRow } from './ActionsDeck'
+import { ActionsDeck } from './ActionsDeck'
 
 export default { title: 'Compositions/Dashboard/Actions Deck' }
 

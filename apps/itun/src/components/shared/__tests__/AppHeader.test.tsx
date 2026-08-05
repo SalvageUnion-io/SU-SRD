@@ -13,7 +13,6 @@
 import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-
 import { AppHeader } from 'component-lib'
 
 describe('AppHeader', () => {

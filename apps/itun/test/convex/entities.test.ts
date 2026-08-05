@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-
-import { api } from '../_generated/api'
-import type { Id } from '../_generated/dataModel'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import { testConvex } from './harness'
 
 /**
@@ -71,6 +70,27 @@ function mechBody(over: Record<string, unknown> = {}) {
     currentHeat: 0,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+/**
+ * A minimal body that satisfies MechPatternSchema.
+ *
+ * This fixture used to be `{ id, name }`, and it passed — patterns were the one
+ * claimed kind that went in unparsed, so the test was asserting that a body
+ * nothing would later be able to read was accepted.
+ */
+function patternBody(over: Record<string, unknown> = {}) {
+  return {
+    id: 'pat1',
+    schemaVersion: 1,
+    name: 'Mule loadout',
+    chassisRef: 'mule',
+    systems: [],
+    modules: [],
+    cargoLots: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
     ...over,
   }
 }
@@ -395,7 +415,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
           type: 'pilot-to-crawler',
         },
       ],
-      mechPatterns: [{ id: 'pat1', name: 'Mule loadout' }],
+      mechPatterns: [patternBody()],
     })
 
     // The first version of this mutation took only pilots and mechs, so a
@@ -445,6 +465,21 @@ describe('claiming a legacy roster carries the whole thing', () => {
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     // Without this, the very first edit after a claim could not address its row.
     expect(rows[0]?.appId).toBe('p1')
+  })
+
+  test('a malformed pattern is skipped rather than stored unread', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    const result = await u.as.mutation(api.entities.claimLocal, {
+      pilots: [],
+      mechs: [],
+      mechPatterns: [patternBody(), { id: 'pat2', name: 'no chassis' }],
+    })
+
+    expect(result.byKind.mechPatterns).toBe(1)
+    expect(result.skipped).toBe(1)
+    const rows = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
+    expect(rows).toHaveLength(1)
   })
 
   test('a malformed crawler is skipped without costing the rest of the roster', async () => {

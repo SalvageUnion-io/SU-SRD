@@ -8,9 +8,8 @@
  */
 
 import { useEffect, useState } from 'react'
-
-import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
+import { useEntityStore } from '../../stores/entityStore'
 
 /**
  * useHydrateOnMount — the generalization for stores outside entityStore

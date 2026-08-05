@@ -1,23 +1,23 @@
-import { useMemo } from 'react'
 import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import {
-  normalizePatternName,
   getChassisAbilities,
+  normalizePatternName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Badge } from '../../chrome/Badge'
-import { Content } from '../Content'
-import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
-import { resolvePatternOverride, computeSvOverride } from './patternOverrideUtils'
-import { getReferenceEntityFontSizes, getReferenceEntitySpacing } from '../referenceEntityTypes'
-import type { PatternOverrideData } from '../referenceEntityTypes'
-import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
+import { Slab } from '../../chrome/Slab'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { Slab } from '../../chrome/Slab'
+import { Content } from '../Content'
+import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
+import type { PatternOverrideData } from '../referenceEntityTypes'
+import { getReferenceEntityFontSizes, getReferenceEntitySpacing } from '../referenceEntityTypes'
+import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
+import { computeSvOverride, resolvePatternOverride } from './patternOverrideUtils'
 
 type ChassisPatternConfig = {
   /** Override the title to the quoted pattern name */
@@ -68,7 +68,7 @@ export function useChassisPatternConfig(
     () =>
       patternOverride
         ? patternOverride.systems.flatMap((sys) => {
-            const found = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
+            const found = SalvageUnionReference.Systems.getByName(sys.name)
             if (!found) return []
             const count = sys.count ?? 1
             return Array.from({ length: count }, () => found)
@@ -81,7 +81,7 @@ export function useChassisPatternConfig(
     () =>
       patternOverride
         ? patternOverride.modules.flatMap((mod) => {
-            const found = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
+            const found = SalvageUnionReference.Modules.getByName(mod.name)
             if (!found) return []
             const count = mod.count ?? 1
             return Array.from({ length: count }, () => found)

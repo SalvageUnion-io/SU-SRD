@@ -7,7 +7,6 @@
  */
 
 import type { BadgeTone, StatState } from 'component-lib'
-
 import {
   crawlerMaxSP,
   mechMaxEP,
@@ -16,6 +15,7 @@ import {
   pilotMaxAP,
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
+import type { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -45,11 +45,28 @@ export type RailStat = {
   suffix?: string
 }
 
-/** Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12". */
-export function mechRailItems(mech: Mech): RailStat[] {
-  const maxSP = mechMaxSP(mech)
-  const maxEP = mechMaxEP(mech)
-  const maxHeat = mechMaxHeat(mech)
+/**
+ * The piloting context a mech's maxima need, assembled by `pilotingContext`
+ * (ADR-029). Typed off that helper rather than re-declared, so the rail can
+ * never drift from the one place the context is built.
+ */
+type Piloting = ReturnType<typeof pilotingContext>
+
+/**
+ * Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12".
+ *
+ * `piloting` is REQUIRED wherever a pilot is in scope: Beefcake is a pilot
+ * ability that raises the piloted mech's Max SP by 3+TechLevel (ADR-029), so a
+ * rail built without it reads a lower cap than the mech's own sheet — the
+ * pilot's assigned-mech chip and the mech sheet disagreeing about the same
+ * mech. Build it with `pilotingContext(mech, pilot?.abilities)`, never by hand.
+ * Omit it only when there is genuinely no pilot (an unlinked mech), which is
+ * the no-contribution reading an unlinked mech should show.
+ */
+export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
+  const maxSP = mechMaxSP(mech, undefined, piloting)
+  const maxEP = mechMaxEP(mech, undefined, piloting)
+  const maxHeat = mechMaxHeat(mech, undefined, piloting)
   return [
     { label: 'SP', value: mech.currentSP ?? maxSP, max: maxSP },
     { label: 'EP', value: mech.currentEP ?? maxEP, max: maxEP },

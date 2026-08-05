@@ -10,13 +10,13 @@
  * `conditions[]`. The two storage forms can never disagree on screen.
  */
 
+import { ConditionsEditor } from 'component-lib'
 import { unifiedMechConditions } from '../../lib/rules/derivedStats'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
-import { ConditionsEditor } from 'component-lib'
-import { mechConditionsPatch } from './mechItemRules'
-import { freshEntity } from './controlPrimitives'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { freshEntity } from './controlPrimitives'
+import { mechConditionsPatch } from './mechItemRules'
 
 type MechConditionsEditorProps = {
   mech: Mech

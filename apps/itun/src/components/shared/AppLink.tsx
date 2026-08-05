@@ -14,10 +14,10 @@
  * narrowing assertion rather than threading params through every caller.
  */
 
-import { forwardRef } from 'react'
-import type { AnchorHTMLAttributes } from 'react'
-import { Link, useRouter } from '@tanstack/react-router'
 import type { LinkProps } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
+import type { AnchorHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
 
 type AppLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
   href: string

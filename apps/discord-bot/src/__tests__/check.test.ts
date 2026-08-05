@@ -8,9 +8,9 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord.js'
-
 import { buildCheckMessage, checkCommand } from '../commands/check.js'
-import { type ReplyArg, fakeExecute } from './fakeInteraction.js'
+import type { ReplyArg } from './fakeInteraction.js'
+import { fakeExecute } from './fakeInteraction.js'
 
 /** Pull the embed payload off a recorded reply. */
 function embedData(reply: ReplyArg): {

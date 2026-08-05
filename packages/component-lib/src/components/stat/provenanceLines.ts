@@ -1,5 +1,4 @@
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-
 import type { ProvenanceLine } from './StatProvenance'
 
 export type ProvenanceLabels = {

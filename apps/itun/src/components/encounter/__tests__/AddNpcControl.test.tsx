@@ -7,13 +7,12 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import type { SURefBioTitan, SURefNPC } from 'salvageunion-reference'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-
-import { AddNpcControl } from '../AddNpcControl'
-import { statTrackFor } from '../referenceNpcs'
-import type { EncounterCandidate } from '../referenceNpcs'
+import type { SURefBioTitan, SURefNPC } from 'salvageunion-reference'
 import { must } from '../../__tests__/must'
+import { AddNpcControl } from '../AddNpcControl'
+import type { EncounterCandidate } from '../referenceNpcs'
+import { statTrackFor } from '../referenceNpcs'
 
 afterEach(() => {
   cleanup()

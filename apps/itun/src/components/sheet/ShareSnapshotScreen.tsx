@@ -20,31 +20,31 @@
  * clipboardWriter are all overridable via props.
  */
 
-import { useEffect, useState } from 'react'
+import type { BadgeTone, ChassisStatItem } from 'component-lib'
 import {
   Badge,
   BayStatus,
   Button,
   buttonVariants,
+  ChassisStats,
+  FieldError,
+  heatDangerFrom,
   Input,
+  linesFromBreakdown,
   Panel,
   Row,
+  SheetHero,
+  SnapshotQr,
   Stat,
-  VitalGauge,
-  heatDangerFrom,
   toast,
-  FieldError,
+  VitalGauge,
 } from 'component-lib'
-import type { BadgeTone } from 'component-lib'
-
+import { useEffect, useState } from 'react'
+import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
+import { useEntity } from '../../hooks/queries'
 import { resolveClassName } from '../../lib/classRef'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { totalLotUnits } from '../../lib/schemas/cargoLot'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityRef } from '../../lib/schemas/entity'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
+import { captureMessage } from '../../lib/observability'
 import {
   crawlerMaxSPParts,
   mechMaxCargoParts,
@@ -54,26 +54,24 @@ import {
   pilotMaxAPParts,
   pilotMaxHPParts,
 } from '../../lib/rules/derivedStats'
-import { useEntity } from '../../hooks/queries'
-import { useEntityStore } from '../../stores/entityStore'
-import { resolveSheetComposition } from './composition'
-import { captureMessage } from '../../lib/observability'
-import { deleteSnapshot, probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
+import { totalLotUnits } from '../../lib/schemas/cargoLot'
+import type { Crawler } from '../../lib/schemas/crawler'
+import type { EntityRef } from '../../lib/schemas/entity'
+import type { Mech } from '../../lib/schemas/mech'
+import type { Pilot } from '../../lib/schemas/pilot'
 import type { PublishResult, SnapshotPayload } from '../../lib/snapshot/client'
+import { deleteSnapshot, probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
+import type { PublishedSnapshot } from '../../lib/snapshot/publishedSnapshots'
 import {
   listPublishedSnapshotsFor,
   recordPublishedSnapshot,
   removePublishedSnapshot,
 } from '../../lib/snapshot/publishedSnapshots'
-import type { PublishedSnapshot } from '../../lib/snapshot/publishedSnapshots'
 import { cn } from '../../lib/utils'
+import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
-
 import type { EntityLookup } from './composition'
-import { SheetHero, ChassisStats } from 'component-lib'
-import { SnapshotQr } from 'component-lib'
-import type { ChassisStatItem } from 'component-lib'
-import { linesFromBreakdown } from 'component-lib'
+import { resolveSheetComposition } from './composition'
 
 type ShareSnapshotScreenProps = {
   kind: EntityRef['type']
@@ -337,7 +335,7 @@ export function ShareSnapshotScreen({
                 <p
                   role="note"
                   title="The snapshot service could not be reached — publishing needs the deployed /api/snapshots endpoint."
-                  className="text-wk-muted mb-0 rounded-[3px] border-chrome border-dashed border-wk-faint px-3 py-2.5 font-body text-caption"
+                  className="text-wk-muted mb-0 rounded-card border-chrome border-dashed border-wk-faint px-3 py-2.5 font-body text-caption"
                 >
                   Publishing unavailable — the snapshot service could not be reached.
                 </p>
@@ -402,7 +400,7 @@ export function ShareSnapshotScreen({
               ) : (
                 <div
                   aria-hidden="true"
-                  className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink"
+                  className="h-[84px] w-[84px] shrink-0 rounded-card border-chrome border-ink"
                   style={{
                     // Hard-stop checkerboard standing in for the unpublished QR
                     // code — a repeating PATTERN, not shading (see ruleset §3.5).

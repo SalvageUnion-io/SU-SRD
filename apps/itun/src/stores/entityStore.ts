@@ -26,21 +26,20 @@
  */
 
 import { create } from 'zustand'
-
-import { getActiveContainer } from './activeContainerStore'
-import { moveTo } from '../lib/container'
 import { recordDataWrite } from '../lib/backupNudge'
+import { moveTo } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
-import { STORE_NAMES } from '../lib/db/stores'
 import type { StoreName } from '../lib/db/stores'
+import { STORE_NAMES } from '../lib/db/stores'
 import type { ChangeLogKind } from '../lib/schemas/changeLog'
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
-import type { CreateInput, EntityForType, EntityType } from './types'
+import { getActiveContainer } from './activeContainerStore'
 import { mirrorCrawlerWrite, mirrorWrite, requireWritableBackend } from './entityBackend'
+import type { CreateInput, EntityForType, EntityType } from './types'
 
 // Re-exported so consumers can import the type alongside the store itself.
 export type { EntityType }
@@ -490,6 +489,14 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const deletes = ops.deletes ?? []
     if (updates.length === 0 && deletes.length === 0) return
 
+    // Same refusal as create()/update(), and for a stronger reason: a transfer
+    // moves value BETWEEN entities (cargo stow/load, a scrap hand-off), so a
+    // Disconnected write here would fork not one record against the server but
+    // the balance between two — the communal crawler most of all (ADR-030 §5).
+    // Deliberately before the before-images, so a refused transfer touches
+    // nothing at all.
+    requireWritableBackend()
+
     // Capture before-images BEFORE the write, exactly as update() does, so the
     // Change Log can diff them in phase 4. Without this, cross-entity moves
     // (cargo stow/load, scrap hand-offs) mutated entities with no provenance at
@@ -526,6 +533,23 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         pruneSoftLinks: d.type !== 'softLink',
       })),
     ])
+
+    // Phase 2b — mirror to the server of record, exactly as update() does, and
+    // only once the atomic write above has actually landed. Per update rather
+    // than per transfer because the dispatch differs by type: a crawler sends
+    // its patch so contended Downtime edits merge, a pilot/mech upserts its
+    // whole body (see mirrorEntityWrite).
+    //
+    // This was the more serious half of the gap. Cargo stow/load moves value
+    // between a mech and the communal Game crawler (ADR-030 §5); without this
+    // the local copy said the scrap had moved and the server never heard, so
+    // the rest of the table kept seeing the old balance.
+    //
+    // No mirror for `deletes`: no production caller passes any today, so
+    // wiring one would be untested speculation rather than coverage.
+    for (const pu of prepared) {
+      mirrorEntityWrite(pu.type, pu.record as { id: string; gameId?: string | null }, pu.patch)
+    }
 
     // Phase 3 — sync in-memory state + broadcasts, mirroring update()/delete().
     const deletedByKey = new Map<StoreKey, Set<string>>()

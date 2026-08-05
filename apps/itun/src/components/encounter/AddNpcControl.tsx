@@ -9,13 +9,12 @@
  * times — every Add creates a fresh tracked instance.
  */
 
-import { useMemo, useState } from 'react'
 import { Badge, Button, Input, ReferenceEntityCard } from 'component-lib'
-
-import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
+import { useMemo, useState } from 'react'
 import type { EncounterRefSchema } from '../../lib/schemas/encounterNpc'
-import { ENCOUNTER_SCHEMA_LABEL, listAllCandidates, listCandidates } from './referenceNpcs'
+import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 import type { EncounterCandidate } from './referenceNpcs'
+import { ENCOUNTER_SCHEMA_LABEL, listAllCandidates, listCandidates } from './referenceNpcs'
 
 /** Cap unfiltered listings so 'All' + empty query stays scannable. */
 const MAX_RESULTS = 40

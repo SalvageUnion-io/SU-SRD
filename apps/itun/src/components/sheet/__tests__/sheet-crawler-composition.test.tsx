@@ -14,22 +14,17 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module().
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Sheet } from '../Sheet'
-import type { EntityLookup } from '../Sheet'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'crawler-tech-levels'])
-})
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import type { EntityLookup } from '../Sheet'
+import { Sheet } from '../Sheet'
 
 afterEach(() => {
   cleanup()
@@ -52,8 +47,8 @@ const fakePilot: Pilot = {
   appearance: 'Scarred.',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakePilot2: Pilot = {
@@ -69,8 +64,8 @@ const fakePilot2: Pilot = {
   appearance: 'Wiry.',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeMech: Mech = {
@@ -82,8 +77,8 @@ const fakeMech: Mech = {
   modules: [],
   cargoLots: [],
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeCrawler: Crawler = {
@@ -92,8 +87,8 @@ const fakeCrawler: Crawler = {
   name: 'The Hive',
   techLevel: 'tech-2',
   systems: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 // ---------------------------------------------------------------------------
@@ -123,7 +118,7 @@ function makeLink(
     from: { type: fromType, id: fromId },
     to: { type: toType, id: toId },
     type,
-    createdAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
   }
 }
 

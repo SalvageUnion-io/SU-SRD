@@ -42,9 +42,8 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
+import { Badge, BandTitle, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
 import { useId, useState } from 'react'
-import { Badge, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
-
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -218,7 +217,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
 
     return (
       <li
-        className="flex min-h-[64px] flex-col gap-1.5 rounded-[3px] border-2 p-2"
+        className="flex min-h-[64px] flex-col gap-1.5 rounded-card border-2 p-2"
         style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
       >
         <div className="flex flex-wrap items-start justify-between gap-1.5">
@@ -240,7 +239,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
               title={disabledReason ?? undefined}
               aria-label={`Load ${lot.name}`}
               onClick={handleMove}
-              className="rounded-[2px] border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+              className="rounded-badge border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
             >
               {label}
             </Button>
@@ -250,7 +249,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
                 aria-label={`Unstow ${lot.name}`}
                 title={`Unstow "${lot.name}" from the Storage Bay`}
                 onClick={onRemove}
-                className="rounded-[2px] border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
+                className="rounded-badge border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
               >
                 Unstow
               </Button>
@@ -263,7 +262,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
 
   return (
     <li
-      className="flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper"
+      className="flex items-stretch overflow-hidden rounded-badge border-chrome border-ink bg-paper"
       style={{ boxShadow: `inset 3px 0 0 -1px ${SIDE_TINT[side]}` }}
     >
       {/* Marker cell: BULK ×N bronze stripes / UNIT ink diamond */}
@@ -391,7 +390,7 @@ function HoldAdder({
   const compactInput = 'px-2 py-1.5 text-xs'
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
+    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-card border-chrome border-dashed border-wk-faint p-2.5">
       {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
       {/* biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this inline add-row; role="group" + aria-label conveys the same semantics (matches FilterRow/Stat) */}
       <div className="flex items-center gap-1" role="group" aria-label="Cargo kind">
@@ -497,9 +496,9 @@ export function StorageManifest({
             <span className="m-0 font-cond text-xs font-bold uppercase tracking-caps text-paper">
               {side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
             </span>
-            <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
+            <BandTitle variant="mute" fill={false}>
               {side === 'mech' ? mechName : crawlerName}
-            </span>
+            </BandTitle>
           </>
         }
         cardStyle={{ className: 'shadow-[0_2px_8px_-3px_var(--color-ink-50)]' }}
@@ -614,7 +613,7 @@ export function StorageManifest({
       {/* Counterpart panel */}
       <div
         className={cn(
-          'flex flex-col gap-2 rounded-[3px] border-2 p-3',
+          'flex flex-col gap-2 rounded-card border-2 p-3',
           linkedCounterpart !== null ? 'border-ink' : 'border-dashed border-wk-faint'
         )}
         style={{ background: 'var(--ground-2)' }}

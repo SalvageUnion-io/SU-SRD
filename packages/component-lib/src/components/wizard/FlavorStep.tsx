@@ -1,6 +1,6 @@
 import { Field, Input, Textarea } from '../chrome/Field'
-import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
+import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 
 type FlavorStepProps = {
   /** Which optional flavor fact this step edits (also the roll table). */

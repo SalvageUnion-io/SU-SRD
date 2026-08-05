@@ -6,17 +6,15 @@
  * dashboardRules.test.ts against an injected roller).
  */
 
-import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../../stores/playStateStore'
-import { ActiveItemBand } from '../ActiveItemBand'
-import type { PlayStore } from '../ActiveItemBand'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import type { PlayStore } from '../ActiveItemBand'
+import { ActiveItemBand } from '../ActiveItemBand'
 
 const mech = mechFixture({
   id: 'm1',
@@ -40,10 +38,6 @@ function stubStore(entities: Array<Mech | Pilot>): { store: PlayStore; calls: Ca
   }).getState()
   return { store, calls }
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('ActiveItemBand rules buttons', () => {
   beforeEach(() => {

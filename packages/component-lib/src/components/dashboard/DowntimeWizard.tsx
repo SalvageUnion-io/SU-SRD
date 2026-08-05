@@ -17,11 +17,11 @@
  */
 
 import type { ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
-import { cn } from '../../utils/cn'
 import { Content } from '../referenceEntity/Content'
 import { RollTable } from '../shared/RollTable'
 
@@ -83,9 +83,7 @@ export function DowntimeWizard({
   const headerBg = guide?.guideColor ?? CRAWLER_TONE
   const tableName = STEP_ROLL_TABLE[step.name]
   const table = tableName
-    ? (SalvageUnionReference.RollTables.find((t) => t.name === tableName) as
-        | SURefObjectTable
-        | undefined)
+    ? (SalvageUnionReference.RollTables.getByName(tableName) as SURefObjectTable | undefined)
     : undefined
 
   return (

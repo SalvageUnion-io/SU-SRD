@@ -16,7 +16,6 @@
  * handler) so it genuinely blocks the way a real second tab does.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
 import { BlockedUpgradeError, DB_VERSION, openItunDatabase } from '../index'
 import { STORE_NAMES } from '../stores'
 

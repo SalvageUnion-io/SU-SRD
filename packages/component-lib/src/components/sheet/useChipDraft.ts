@@ -12,8 +12,8 @@
  * its own `aria-label` and geometry classes.
  */
 
-import { useRef, useState } from 'react'
 import type { ChangeEvent, KeyboardEvent, RefObject } from 'react'
+import { useRef, useState } from 'react'
 
 type UseChipDraftOptions = {
   /**

@@ -1,8 +1,8 @@
-import { describe, test, expect } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { describe, expect, test } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
-import { resolvePatternOverride, computeSvOverride } from '../patternOverrideUtils'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { PatternOverrideData } from '../../referenceEntityTypes'
+import { computeSvOverride, resolvePatternOverride } from '../patternOverrideUtils'
 
 /**
  * Pure-helper coverage for pattern override resolution + TL1 salvage math.

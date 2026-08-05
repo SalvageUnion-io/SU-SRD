@@ -5,24 +5,20 @@
  * fields — an edit save must never clobber live-play state (bays + NPC HP,
  * bayChoices, currentSP, cargoLots, maxSpModifier, workspaceId).
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../schemas/crawler'
 import { CrawlerSchema } from '../../schemas/crawler'
 import {
-  EMPTY_CRAWLER_FORM_STATE,
-  EMPTY_SCRAP_POOL,
   crawlerFormCrewToPatches,
   crawlerFormToCreateInput,
   crawlerFormToUpdatePatch,
   crawlerToFormState,
+  EMPTY_CRAWLER_FORM_STATE,
+  EMPTY_SCRAP_POOL,
   seedDefaultCrawlerBays,
   toScrapPoolPatch,
 } from '../crawlerFormState'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 /** Narrow an SRD lookup that the fixtures guarantee exists. */
 function defined<T>(value: T | null | undefined, label: string): T {
@@ -64,16 +60,28 @@ const storedCrawler: Crawler = {
 describe('crawlerToFormState', () => {
   it('maps every wizard-owned field from the stored crawler', () => {
     const form = crawlerToFormState(storedCrawler)
-    expect(form).toEqual({
+    expect(form).toMatchObject({
       name: 'The Wandering Kettle',
       description: '',
       techLevel: 3,
       type: null,
       systems: ['system-drill'],
-      crew: {},
       scrapPool: { ...EMPTY_SCRAP_POOL, tl3: 5 },
       upgradePool: 18,
     })
+  })
+
+  it('hydrates the crew form for every stored bay that has an SRD NPC', () => {
+    // This asserted `crew: {}` and was wrong — it pinned a bug rather than a
+    // behaviour. `crawlerBays[].bayRef` is stored as a SLUG ('command-bay'),
+    // but the lookup behind this was `find(b => b.id === ref || b.name === ref)`
+    // with no slug leg, so it never matched and the wizard silently loaded an
+    // empty crew form for bays that DO have an NPC. Both refs in this fixture
+    // are the real slugs of real bays ("Command Bay", "Mech Bay") and both of
+    // those bays carry an npc, so an empty `crew` was never the right answer.
+    // Resolution now goes through `resolveCrawlerBayRef` (id ?? name ?? slug).
+    const form = crawlerToFormState(storedCrawler)
+    expect(Object.keys(form.crew).sort()).toEqual(['command-bay', 'mech-bay'])
   })
 
   it('preserves a higher stored tech level (edit does NOT force 1)', () => {

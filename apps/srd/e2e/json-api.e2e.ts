@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * (d) The static JSON API endpoint (`/schema/[schemaId].json`) returns a valid

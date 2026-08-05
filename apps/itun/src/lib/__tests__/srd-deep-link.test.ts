@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
+import { getEntitySchemas, getSchemaCatalog } from 'salvageunion-reference'
 import { deepLinkTo, hasSRDPage } from '../srd-deep-link'
 
 describe('srd-deep-link', () => {
@@ -47,5 +48,23 @@ describe('hasSRDPage', () => {
   it('rejects names outside the schema catalog', () => {
     expect(hasSRDPage('not-a-schema')).toBe(false)
     expect(hasSRDPage('')).toBe(false)
+  })
+
+  // srd's getItemStaticPaths generates pages for entity schemas ONLY, so a
+  // meta schema has no item page and a "View in SRD →" on one would 404.
+  // `actions` is one of the most common entity kinds in play.
+  it('rejects meta schemas, which srd never generates item pages for', () => {
+    expect(hasSRDPage('actions')).toBe(false)
+    expect(hasSRDPage('catalog-categories')).toBe(false)
+    expect(hasSRDPage('ability-tree-requirements')).toBe(false)
+  })
+
+  it('agrees with the catalog filter srd generates from', () => {
+    const metaIds = getSchemaCatalog()
+      .schemas.filter((s) => s.meta)
+      .map((s) => s.id)
+    expect(metaIds.length).toBeGreaterThan(0)
+    for (const id of metaIds) expect(hasSRDPage(id)).toBe(false)
+    for (const schema of getEntitySchemas()) expect(hasSRDPage(schema.id)).toBe(true)
   })
 })

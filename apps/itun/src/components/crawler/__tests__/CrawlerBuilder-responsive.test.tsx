@@ -12,23 +12,9 @@
  *  - className string assertions for layout classes (happy-dom has no layout engine)
  */
 
+import { describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { CrawlerBuilder } from '../CrawlerBuilder'
-
-beforeAll(async () => {
-  // The builder preloads these on mount; warming the cache here lets the
-  // act() flush below absorb the resulting state update.
-  await SalvageUnionReference.preload([
-    'crawlers',
-    'crawler-tech-levels',
-    'systems',
-    'crawler-bays',
-    'actions',
-    'roll-tables',
-  ])
-})
 
 async function renderBuilder() {
   const result = render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)

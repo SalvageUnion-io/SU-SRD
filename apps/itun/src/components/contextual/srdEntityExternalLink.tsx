@@ -1,6 +1,5 @@
-import { getEntitySlug } from 'salvageunion-reference'
 import type { EntityExternalLinkBuilder } from 'component-lib'
-
+import { getEntitySlug } from 'salvageunion-reference'
 import { hasSRDPage } from '../../lib/srd-deep-link'
 import { ViewInSRDLink } from './ViewInSRDLink'
 

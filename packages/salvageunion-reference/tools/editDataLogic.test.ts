@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { parseTree } from 'jsonc-parser'
 import { addEntity, setField } from './editDataLogic.js'
 

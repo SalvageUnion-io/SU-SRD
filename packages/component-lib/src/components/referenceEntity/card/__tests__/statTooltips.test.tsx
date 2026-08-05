@@ -14,11 +14,11 @@
  * Both are asserted through the trigger attribute base-ui stamps on whatever it
  * arms, since the popup itself only mounts on hover.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../ReferenceEntityCard'
 import { InsideTooltipContext } from '../../../ui/insideTooltipContext'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const TRIGGER = '[data-base-ui-tooltip-trigger]'
 
@@ -37,10 +37,6 @@ const mule = () => {
 /** The element whose whole text IS `text` — the segment/label, not its ancestors. */
 const leafWithText = (text: string) =>
   screen.getAllByText((_, el) => el?.textContent === text).at(-1)
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('sub-header trait line', () => {
   test('each trait segment arms its own hovercard', () => {

@@ -15,7 +15,8 @@
  * regions and instruments fill `children`.
  */
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import './DashboardCanvas.css'
 // The shared instrument stylesheet (all `.pc-*` surfaces) lives here so the app

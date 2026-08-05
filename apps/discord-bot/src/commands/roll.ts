@@ -1,16 +1,10 @@
-import {
-  type ActionRowBuilder,
-  type ButtonBuilder,
-  EmbedBuilder,
-  MessageFlags,
-  type SlashCommandSubcommandBuilder,
-} from 'discord.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { roll as rollDie } from '@randsum/roller'
-import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
-
+import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { rollResultRow } from '../customId.js'
-import { BRAND_NAME, ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
+import { BRAND_NAME, buildRollEmbedData, ROLL_EMBED_FOOTER } from '../format.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
@@ -41,7 +35,11 @@ export type RollMessage =
  * identical embed carrying its own re-roll button.
  */
 export function buildRollMessage(tableName: string, iconURL?: string): RollMessage {
-  const table = getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
+  // Exact name first, through the model's name index; the case-insensitive
+  // scan is only the fallback for a hand-typed name that skipped autocomplete.
+  const table =
+    SalvageUnionReference.RollTables.getByName(tableName) ??
+    getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
   if (!table) {
     return {
       error: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,

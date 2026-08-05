@@ -18,8 +18,8 @@
  * through this primitive now) onto shared component-lib tokens.
  */
 
-import { cloneElement } from 'react'
 import type { ReactElement } from 'react'
+import { cloneElement } from 'react'
 import { cn } from '../../utils/cn'
 import type { CardFootMeta } from './Card'
 

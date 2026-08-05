@@ -5,7 +5,7 @@
  * fields — an edit save must never clobber live-play state (currents,
  * conditions, item condition/uses maps, maxima modifiers).
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Mech } from '../../schemas/mech'
 import {
@@ -14,10 +14,6 @@ import {
   mechFormToUpdatePatch,
   mechToFormState,
 } from '../mechFormState'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
-})
 
 const storedMech: Mech = {
   id: 'm-1',

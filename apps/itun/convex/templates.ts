@@ -1,5 +1,4 @@
 import { v } from 'convex/values'
-
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,

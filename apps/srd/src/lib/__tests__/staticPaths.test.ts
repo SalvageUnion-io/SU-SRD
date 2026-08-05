@@ -5,7 +5,6 @@
  * them would be sitemap orphans whose breadcrumbs 404.
  */
 import { describe, expect, it } from 'bun:test'
-
 import { getSchemaCatalog } from '../gameData'
 import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
 

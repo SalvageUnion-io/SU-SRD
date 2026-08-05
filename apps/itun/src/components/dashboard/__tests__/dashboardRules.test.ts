@@ -7,12 +7,12 @@
  * buildMechActions touches the reference ORM, so preload('all') runs once.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import type { Roll } from '../../../lib/rules/heatCheck'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import type { PlayAction } from '../dashboardRules'
 import {
-  VENT_PATCH,
   actionInRange,
   actionMicroMeta,
   actionReachable,
@@ -35,19 +35,14 @@ import {
   reachSummary,
   shutdownTogglePatch,
   tabMatchesAction,
+  VENT_PATCH,
 } from '../dashboardRules'
-import type { PlayAction } from '../dashboardRules'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {
   let i = 0
   return () => values[i++] ?? 20
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('reactor patches', () => {
   test('pushPatch: passed Heat Check adds +2 Heat, no shutdown', () => {

@@ -57,7 +57,16 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
   // scan and accepts exactly the same set of names.
 
   // Pattern for parameterized traits: [[[TraitName] (param)]]
-  const paramPattern = /\[\[\[([^\][]+)\]\s+\(([^)(]+)\)\]\]/g
+  //
+  // The separator is `\s*`, not `\s+`: nothing in the authoring pipeline
+  // enforces the space, and both rendering consumers (component-lib's
+  // parseTraitReferences, the bot's linkifyTraitRefs) have always accepted
+  // `[[[Melee](2)]]`. Requiring it here made this parser the ONE reader that
+  // yielded zero references for markup every renderer resolved — a silent
+  // divergence waiting on the first space-less authoring. The name/param
+  // character classes stay tight (`[^\][]` / `[^)(]`), which is what bounds
+  // each scan.
+  const paramPattern = /\[\[\[([^\][]+)\]\s*\(([^)(]+)\)\]\]/g
 
   // Pattern for simple traits: [[TraitName]]
   const simplePattern = /\[\[([^\][]+)\]\]/g
@@ -107,4 +116,48 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
   references.sort((a, b) => a.startIndex - b.startIndex)
 
   return references
+}
+
+/**
+ * Rewrite every trait reference in `text` through `render`, leaving the
+ * surrounding prose untouched.
+ *
+ * This exists so a consumer that only wants to SUBSTITUTE (the Discord bot
+ * turning each reference into a markdown link, say) composes the canonical
+ * parser instead of re-implementing the bracket grammar with a regex of its
+ * own — which is exactly how three subtly different `[[Trait]]` regexes came
+ * to exist. Renderers that need positions (React, which must interleave nodes
+ * rather than strings) still call {@link parseTraitReferences} directly; this
+ * is the string-in/string-out shape on top of it, not a second grammar.
+ *
+ * @param text - Rules text possibly containing `[[Trait]]` / `[[[Trait] (p)]]`
+ * @param render - Maps one parsed reference to its replacement text
+ * @returns The text with every reference replaced
+ *
+ * @example
+ * replaceTraitReferences(text, (ref) =>
+ *   ref.parameter ? `${link(ref.traitName)} ${ref.parameter}` : link(ref.traitName)
+ * )
+ */
+
+export function replaceTraitReferences(
+  text: string,
+  render: (reference: ParsedTraitReference) => string
+): string {
+  const references = parseTraitReferences(text)
+  if (references.length === 0) return text
+
+  const out: string[] = []
+  let cursor = 0
+  for (const reference of references) {
+    // References are sorted and the parser drops a simple match that starts
+    // inside a parameterized one, so this only ever skips a pathological
+    // overlap — but splicing an overlapping range would duplicate or drop
+    // prose, so the cursor is the authority rather than the assumption.
+    if (reference.startIndex < cursor) continue
+    out.push(text.slice(cursor, reference.startIndex), render(reference))
+    cursor = reference.endIndex
+  }
+  out.push(text.slice(cursor))
+  return out.join('')
 }

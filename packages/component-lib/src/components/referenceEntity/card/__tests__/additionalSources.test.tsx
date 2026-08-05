@@ -10,12 +10,12 @@
  * silent: it is an ADDITIONAL printing under the primary source, on the entity's
  * own full-size card only.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectPattern } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../ReferenceEntityCard'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { formatProvenance, resolveAdditionalSources } from '../provenance'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const equipmentNamed = (name: string) => {
   const found = SalvageUnionReference.Equipment.all().find((e) => e.name === name)
@@ -42,10 +42,6 @@ const patternOf = (chassis: string, pattern: string): SURefObjectPattern => {
 }
 
 describe('the "Also in" reprint line', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('a reprinted entity names the book, booklet and page it was reprinted in', () => {
     // First Aid Kit: Workshop Manual p.80, condensed into the Starter Set's
     // Pilots Handbook booklet at p.38.
@@ -94,10 +90,6 @@ describe('the "Also in" reprint line', () => {
 })
 
 describe('reprint provenance across the size / extent axes', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('the head extent shows no footer, so no reprint line', () => {
     const kit = equipmentNamed('First Aid Kit')
     const { container } = render(<ReferenceEntityCard data={kit} extent="head" />)
@@ -125,10 +117,6 @@ describe('reprint provenance across the size / extent axes', () => {
 })
 
 describe('a pattern reprints on its own provenance', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test("the pattern's own reprint prints on a pattern card", () => {
     const operator = patternOf('Spectrum', 'Operator')
     expect(operator.additionalSources).toEqual([{ source: "Thatcher's Mech Base", page: 1 }])

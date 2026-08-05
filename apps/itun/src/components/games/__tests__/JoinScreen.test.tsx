@@ -1,6 +1,5 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
-
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { ConnectionProvider } from '../../../lib/connection/ConnectionProvider'
 import { isConvexConfigured } from '../../../lib/connection/convexClient'
 import { JoinScreen } from '../JoinScreen'
@@ -14,8 +13,6 @@ import { JoinScreen } from '../JoinScreen'
  * by someone whose build has no account service at all — and a white screen
  * would look like the inviter sent a broken link.
  */
-
-afterEach(cleanup)
 
 describe('JoinScreen in a Solo build', () => {
   test('the test build really is Solo', () => {

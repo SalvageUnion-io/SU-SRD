@@ -10,28 +10,21 @@
  * real wizard, real SalvageUnionReference data, real Zod validation, and a
  * fake-indexeddb-backed entityStore.
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml.
- * SalvageUnionReference is preloaded in beforeAll.
+ * fake-indexeddb/auto and SalvageUnionReference are preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { pilotFormToCreateInput, pilotToFormState } from '../../../lib/wizard/pilotFormState'
-import { PilotWizard } from '../PilotWizard'
+import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
+import { PilotWizard } from '../PilotWizard'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data
 // ---------------------------------------------------------------------------
-
-beforeAll(async () => {
-  // ReferenceEntityCard renders trait keywords inline, so 'traits' must be
-  // preloaded too even though the wizard does not directly query it.
-  await SalvageUnionReference.preload('all')
-})
 
 // ---------------------------------------------------------------------------
 // Store reset helpers

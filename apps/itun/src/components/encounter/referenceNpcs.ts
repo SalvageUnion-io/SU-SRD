@@ -8,11 +8,10 @@
  * loadRef.
  */
 
-import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-
-import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { EncounterRefSchema } from '../../lib/schemas/encounterNpc'
+import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 
 /** Short display label per reference schema (head-bar tag / group heading). */
 export const ENCOUNTER_SCHEMA_LABEL: Record<EncounterRefSchema, string> = {

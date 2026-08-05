@@ -5,8 +5,8 @@
 
 import { z } from '../../zod.js'
 import { NameSchema, NonNegativeIntegerSchema } from '../common.js'
-import { ContentSchema } from './content.js'
 import { ChoicesSchema } from './choices.js'
+import { ContentSchema } from './content.js'
 
 /**
  * NPC associated with an entity

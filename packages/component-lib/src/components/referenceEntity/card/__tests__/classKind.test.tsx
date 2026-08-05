@@ -11,7 +11,7 @@
  * a data change that breaks the derivation fails here rather than silently
  * mis-stamping a card.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -54,10 +54,6 @@ const EXPECTED_REQUIREMENTS = [
 ] as const
 
 describe('class kind derivation', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('the fixture set is exactly the eleven classes these tests enumerate', () => {
     const actual = SalvageUnionReference.Classes.all()
       .map((c) => String(c.name))
@@ -109,10 +105,6 @@ describe('class kind derivation', () => {
 })
 
 describe('hybrid class requirements', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test.each(EXPECTED_REQUIREMENTS)('%s requires the trees %o', (name, trees) => {
     expect(resolveClassRequirements(classByName(name))).toEqual([...trees])
   })
@@ -137,10 +129,6 @@ describe('hybrid class requirements', () => {
 })
 
 describe('class card rendering', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('a hybrid renders its two requirement trees, joined by "or"', () => {
     render(<ReferenceEntityCard data={classByName('Cyborg')} />)
     expect(

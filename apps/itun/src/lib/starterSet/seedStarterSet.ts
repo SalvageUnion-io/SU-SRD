@@ -27,8 +27,8 @@
  */
 
 import { useEntityStore } from '../../stores/entityStore'
-import { atomicWrite } from '../db'
 import type { AtomicWriteOp } from '../db'
+import { atomicWrite } from '../db'
 import { STORE_NAMES } from '../db/stores'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from './starterSet'
 

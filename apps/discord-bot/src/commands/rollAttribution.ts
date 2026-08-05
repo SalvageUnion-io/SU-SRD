@@ -1,5 +1,4 @@
 import type { EmbedBuilder } from 'discord.js'
-
 import { ROLL_EMBED_FOOTER } from '../format.js'
 import { captureException } from '../observability.js'
 import { itun } from './itunReply.js'

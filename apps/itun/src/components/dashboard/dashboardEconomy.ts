@@ -18,18 +18,19 @@
  * confirmation itself stays an explicit call at the UI layer.
  */
 
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import { craftQuote, craftedLot, type CraftableItem } from '../../lib/rules/crafting'
+import type { CraftableItem } from '../../lib/rules/crafting'
+import { craftedLot, craftQuote } from '../../lib/rules/crafting'
+import type { Roll } from '../../lib/rules/heatCheck'
+import type { AreaSalvageResult } from '../../lib/rules/salvage'
+import { performAreaSalvage } from '../../lib/rules/salvage'
 import {
   depositScrapDeposits,
   handOffCargo,
   mechScrapComponents,
   scrapMechBreakdown,
 } from '../../lib/rules/scrapMech'
-import { performAreaSalvage, type AreaSalvageResult } from '../../lib/rules/salvage'
-import type { ScrapPool } from '../../lib/schemas/crawler'
-import type { Roll } from '../../lib/rules/heatCheck'
+import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
+import type { Mech } from '../../lib/schemas/mech'
 
 /** The crawler's numeric Tech Level, or undefined when the slug is unparseable. */
 export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'>): number | undefined {

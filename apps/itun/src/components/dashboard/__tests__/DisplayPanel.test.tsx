@@ -12,15 +12,13 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { DisplayPanel } from '../DisplayPanel'
 import type { DialItem } from '../dialItems'
-import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 
 let chassisSlug = 'iron-mongrel'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   const first = SalvageUnionReference.Chassis.all()[0] as { id?: string } | undefined
   if (first?.id) chassisSlug = first.id
 })

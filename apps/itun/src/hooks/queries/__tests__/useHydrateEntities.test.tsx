@@ -7,10 +7,10 @@
  * on `false` (the loading skeleton) forever. Previously the hook had no error
  * branch, so a rejected hydrate hung the Dashboard silently.
  */
-import { afterEach, describe, expect, test } from 'bun:test'
-import { Component, type ReactNode } from 'react'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
-
+import { describe, expect, test } from 'bun:test'
+import { render, screen, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { Component } from 'react'
 import { useHydrateOnMount } from '../useHydrateEntities'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: local test-only error boundary, no fast-refresh boundary here
@@ -35,8 +35,6 @@ function Probe({ hydrate }: { hydrate: () => Promise<unknown> }) {
   const hydrated = useHydrateOnMount(hydrate)
   return <div>{hydrated ? 'ready' : 'loading'}</div>
 }
-
-afterEach(cleanup)
 
 describe('useHydrateOnMount', () => {
   test('flips to ready when the hydrator resolves', async () => {

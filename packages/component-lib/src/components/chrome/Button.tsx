@@ -1,6 +1,6 @@
-import { forwardRef } from 'react'
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import type { VariantProps } from 'class-variance-authority'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 import { buttonVariants } from './buttonVariants'
 

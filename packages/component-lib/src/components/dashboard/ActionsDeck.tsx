@@ -9,8 +9,8 @@
 
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
-import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceCardEntity } from '../referenceEntity/card/ReferenceEntityCard'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
 /**
  * A render-ready action card. The action ENTITY drives a CATALOG-extent

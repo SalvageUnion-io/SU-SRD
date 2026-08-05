@@ -3,7 +3,7 @@
  * Used by the static (no-JS / crawler) entity fallback, where data is fully
  * loaded during the Astro build.
  */
-import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { itemHref } from './entityHref'
 
 export function resolveTraitHref(traitName: string): string | null {

@@ -1,8 +1,10 @@
 import type { Story } from '@ladle/react'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { Badge, type BadgeTone } from './Badge'
+import type { BadgeTone } from './Badge'
+import { Badge } from './Badge'
 
 export default {
   title: 'Atoms/Badge',
@@ -220,7 +222,7 @@ export const Stamps: Story = () => (
         <Badge shape="stamp" seam className="left-3">
           Systems
         </Badge>
-        <p className="m-0 font-body text-sm text-ink-2">
+        <p className="m-0 font-body text-sm text-wk-muted">
           A framed body; the stamp straddles the top border.
         </p>
       </div>

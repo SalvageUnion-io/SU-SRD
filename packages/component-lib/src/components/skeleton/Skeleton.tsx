@@ -30,7 +30,11 @@ export function Ghost({ className }: { className?: string }) {
 export function Skeleton({ mode = 'card', rows = 3, compact = false, className }: SkeletonProps) {
   if (mode === 'text') {
     return (
-      <div role="status" aria-label="Loading" className={cn('animate-pulse space-y-2', className)}>
+      <div
+        role="status"
+        aria-label="Loading"
+        className={cn('motion-safe:animate-pulse space-y-2', className)}
+      >
         {Array.from({ length: rows }).map((_, i) => (
           <Ghost
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost lines are positional
@@ -44,7 +48,11 @@ export function Skeleton({ mode = 'card', rows = 3, compact = false, className }
 
   if (mode === 'list') {
     return (
-      <div role="status" aria-label="Loading" className={cn('animate-pulse space-y-2', className)}>
+      <div
+        role="status"
+        aria-label="Loading"
+        className={cn('motion-safe:animate-pulse space-y-2', className)}
+      >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost rows are positional
@@ -69,7 +77,7 @@ export function Skeleton({ mode = 'card', rows = 3, compact = false, className }
       role="status"
       aria-label="Loading"
       className={cn(
-        'animate-pulse overflow-hidden rounded-card border-2 border-ink/15 bg-paper',
+        'motion-safe:animate-pulse overflow-hidden rounded-card border-2 border-ink/15 bg-paper',
         className
       )}
     >

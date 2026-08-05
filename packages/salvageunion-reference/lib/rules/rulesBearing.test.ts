@@ -8,7 +8,6 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-
 import { statesMechanicalChange } from './rulesBearing.js'
 
 describe('statesMechanicalChange', () => {
@@ -44,7 +43,7 @@ describe('statesMechanicalChange', () => {
     // The exact shapes CodeQL named: 'add ' / 'extra ' plus many spaces. The old
     // patterns' adjacent \s+/\s* quantifiers backtracked polynomially here.
     for (const prefix of ['add ', 'extra ', 'increase your ', 'gains the ']) {
-      const evil = prefix + ' '.repeat(50_000) + 'x'
+      const evil = `${prefix}${' '.repeat(50_000)}x`
       const started = performance.now()
       statesMechanicalChange(evil)
       expect(performance.now() - started).toBeLessThan(250)

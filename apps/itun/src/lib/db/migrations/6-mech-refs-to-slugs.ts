@@ -26,10 +26,9 @@
  */
 
 import { nameToSlug } from 'salvageunion-reference'
-
-import type { UpgradeTransaction } from './index'
 import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
+import type { UpgradeTransaction } from './index'
 
 /** Slugify one ref; leaves empty strings untouched. */
 function slugifyRef(ref: unknown): unknown {

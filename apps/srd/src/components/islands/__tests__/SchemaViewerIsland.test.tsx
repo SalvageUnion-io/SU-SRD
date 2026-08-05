@@ -1,13 +1,13 @@
-import { describe, it, expect, afterEach, spyOn } from 'bun:test'
-import { render, within, fireEvent, screen, cleanup } from '@testing-library/react'
+import { afterEach, describe, expect, it, spyOn } from 'bun:test'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import {
   getEntitySchemas,
   getModel,
-  getUniqueTechLevels,
-  getUniqueSources,
-  getUniqueTrees,
   getTechLevel,
   getTree,
+  getUniqueSources,
+  getUniqueTechLevels,
+  getUniqueTrees,
 } from 'salvageunion-reference'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 

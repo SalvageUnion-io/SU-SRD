@@ -5,16 +5,10 @@
  * logic: the known-table happy path, the unknown-table ephemeral error, and
  * the autocomplete substring filter + Discord's 25-choice cap.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord.js'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { rollCommand } from '../commands/roll.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 /** Shared narrow-interaction fakes; see fakeInteraction.ts. */
 function mockChatInput(table: string | null) {

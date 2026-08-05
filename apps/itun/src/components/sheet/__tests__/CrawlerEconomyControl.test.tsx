@@ -17,20 +17,15 @@
  * SalvageControl.test.tsx. NO mock.module().
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import type { ChangeMeta } from '../../../stores/entityStore'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['crawler-bays', 'crawler-tech-levels'])
-})
+import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
+import { crawlerFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 
 afterEach(() => {
   cleanup()
@@ -41,19 +36,15 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
-  return {
+  return crawlerFixture({
     id: 'crawler-econ-1',
-    schemaVersion: 1,
     name: 'Iron Tortoise',
     techLevel: 'tech-2',
-    systems: [],
     crawlerBays: [{ bayRef: 'Trading Bay' }, { bayRef: 'Med Bay' }],
     scrapPool: { tl2: 6 },
     upgradePool: 10,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  })
 }
 
 type BayPatch = Partial<NonNullable<Crawler['crawlerBays']>[number]>

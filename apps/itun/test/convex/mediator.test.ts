@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-
-import { api } from '../_generated/api'
-import { PRESENCE_WINDOW_MS } from '../mediator'
+import { api } from '../../convex/_generated/api'
+import { PRESENCE_WINDOW_MS } from '../../convex/mediator'
 import { testConvex } from './harness'
 
 /**
@@ -86,6 +85,71 @@ describe('the NPC tray is Mediator-only', () => {
     // The Organizer flag is administrative and confers no content authority —
     // reading prepared opposition is very much content.
     await expect(organizer.as.query(api.mediator.npcs, { gameId })).rejects.toThrow(/mediator/i)
+  })
+})
+
+describe('the tray parses what it stores', () => {
+  test('a malformed NPC body is rejected rather than persisted', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedMediatedGame(t)
+
+    // `encounterNpcs.body` is `v.any()`, so Convex itself cannot refuse any of
+    // these — the mutation is the only thing standing between the tray and a
+    // row nothing can read. A body with no name, a field the schema has never
+    // heard of, a field of the wrong type, and something that is not an object
+    // at all.
+    for (const body of [{}, { name: 'Wretch', bogus: true }, { name: 42 }, 'Wretch']) {
+      await expect(mediator.as.mutation(api.mediator.addNpc, { gameId, body })).rejects.toThrow(
+        /invalid encounterNpcs payload/i
+      )
+    }
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(rows).toHaveLength(0)
+  })
+
+  test('an edit cannot replace a good body with a malformed one', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedMediatedGame(t)
+    const npcId = await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'A' } })
+
+    await expect(
+      mediator.as.mutation(api.mediator.updateNpc, { npcId, body: { name: '', broken: 1 } })
+    ).rejects.toThrow(/invalid encounterNpcs payload/i)
+
+    // The refusal leaves the row as it was rather than half-written.
+    const rows = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect((rows[0]?.body as { name?: string })?.name).toBe('A')
+  })
+
+  test('a fully tracked NPC instance parses too', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedMediatedGame(t)
+
+    // The tray accepts a bare name because that is what the Mediator surface
+    // sends, but the fields it does carry are the local store's — so a complete
+    // instance goes in unchanged rather than being refused by a schema that
+    // only ever expected a name.
+    await mediator.as.mutation(api.mediator.addNpc, {
+      gameId,
+      body: {
+        id: 'npc1',
+        schemaVersion: 1,
+        refSchema: 'npcs',
+        refSlug: 'wretch',
+        refName: 'Wretch',
+        name: 'Wretch 2',
+        currentHp: 6,
+        maxHp: 6,
+        statKind: 'hp',
+        conditions: [],
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    })
+
+    const rows = await mediator.as.query(api.mediator.npcs, { gameId })
+    expect((rows[0]?.body as { refSlug?: string })?.refSlug).toBe('wretch')
   })
 })
 

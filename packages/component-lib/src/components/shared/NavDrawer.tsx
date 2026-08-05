@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import type { ElementType, ReactNode } from 'react'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
-import { buttonVariants } from '../chrome/buttonVariants'
+import type { ElementType, ReactNode } from 'react'
+import { useState } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
+import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
+import { buttonVariants } from '../chrome/buttonVariants'
 import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../chrome/catalogTile'
 import { FOCUS_RING } from '../chrome/interaction'
-import { cn } from '../../utils/cn'
 
 /**
  * NavDrawer — the shared hamburger + slide-in mobile nav drawer (unifies the
@@ -105,6 +105,12 @@ export function NavDrawer({
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
         <Dialog.Popup
           className={cn(
+            // Deliberately NOT `motion-safe:`-prefixed, unlike the pulse
+            // skeletons. Base UI unmounts this on exit-animation end, so an
+            // animation that never runs would strand the drawer mounted
+            // forever. The `@media (prefers-reduced-motion: reduce)` backstop
+            // in theme.css handles it correctly instead: 0.01ms duration means
+            // the animation still fires and still ends, just instantly.
             'fixed inset-y-0 right-0 z-50 flex max-w-[85vw] flex-col bg-paper p-4 shadow-lg data-[closed]:animate-slide-out-right data-[open]:animate-slide-in-right',
             panelClassName
           )}

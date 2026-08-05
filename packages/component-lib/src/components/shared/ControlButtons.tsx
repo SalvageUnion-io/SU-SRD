@@ -1,9 +1,9 @@
+import { Tooltip } from '@base-ui/react/tooltip'
 import type { ReactNode } from 'react'
 import { useCallback } from 'react'
-import { Tooltip } from '@base-ui/react/tooltip'
+import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
-import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { CountStepper } from '../chrome/CountStepper'
 import { StatusBadge } from '../chrome/StatusBadge'
 import type {
@@ -120,7 +120,7 @@ function ControlButton({
           RUNG_INLINE_PADDING.mini,
           RUNG_TYPE.mini.label,
           isDisabled
-            ? 'cursor-not-allowed border-wk-muted text-ink-2'
+            ? 'cursor-not-allowed border-wk-muted text-wk-muted'
             : danger
               ? 'cursor-pointer border-status-bad bg-status-bad text-paper hover:brightness-110'
               : 'cursor-pointer border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
@@ -160,7 +160,7 @@ function ControlButton({
       <span
         className={cn(
           segmentClasses,
-          isDisabled ? 'bg-wk-faint text-ink-2' : !hasCustomColors && VARIANT[variant].bg,
+          isDisabled ? 'bg-wk-faint text-wk-muted' : !hasCustomColors && VARIANT[variant].bg,
           !isDisabled && !hasCustomColors && VARIANT[variant].text
         )}
         style={{
@@ -176,7 +176,7 @@ function ControlButton({
         <span
           className={cn(
             segmentClasses,
-            isDisabled ? 'bg-wk-muted text-ink-2' : VARIANT[variant].inverseBg,
+            isDisabled ? 'bg-wk-muted text-wk-muted' : VARIANT[variant].inverseBg,
             !isDisabled && VARIANT[variant].inverseText
           )}
           style={{ lineHeight: 1 }}

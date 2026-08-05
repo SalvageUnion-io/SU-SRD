@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { ClassAbilityTree } from './ClassAbilityTree'
 
 export default {

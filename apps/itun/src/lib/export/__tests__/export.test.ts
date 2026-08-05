@@ -12,14 +12,13 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
-import { _clearAllStores, _resetDbSingleton } from '../../db/index'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { useEntityStore } from '../../../stores/entityStore'
-
-import { buildExportBundle, buildEntityExport } from '../buildExportBundle'
+import { _clearAllStores, _resetDbSingleton } from '../../db/index'
+import type { ExportBundle } from '../../schemas/exportBundle'
+import { buildEntityExport, buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
-import type { ExportBundle } from '../../schemas/exportBundle'
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -89,7 +88,7 @@ describe('parseImportBundle', () => {
   test('accepts a valid minimal bundle', () => {
     const bundle: ExportBundle = {
       schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
+      exportedAt: FIXTURE_NOW,
       entities: { pilots: [], mechs: [], crawlers: [] },
       workspaces: [],
       softLinks: [],
@@ -110,7 +109,7 @@ describe('parseImportBundle', () => {
   test('rejects bundle with wrong schemaVersion', () => {
     const badBundle = {
       schemaVersion: 99,
-      exportedAt: new Date().toISOString(),
+      exportedAt: FIXTURE_NOW,
       entities: { pilots: [], mechs: [], crawlers: [] },
       workspaces: [],
       softLinks: [],
@@ -121,7 +120,7 @@ describe('parseImportBundle', () => {
   })
 
   test('rejects bundle missing required fields', () => {
-    const incomplete = { schemaVersion: 1, exportedAt: new Date().toISOString() }
+    const incomplete = { schemaVersion: 1, exportedAt: FIXTURE_NOW }
     expect(() => parseImportBundle(JSON.stringify(incomplete))).toThrow('Import failed')
   })
 })
@@ -378,7 +377,7 @@ describe('mergeImport — round-trip', () => {
     // Build a bundle that contains the same pilot id.
     const bundle: ExportBundle = {
       schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
+      exportedAt: FIXTURE_NOW,
       entities: {
         pilots: [existingPilot],
         mechs: [],

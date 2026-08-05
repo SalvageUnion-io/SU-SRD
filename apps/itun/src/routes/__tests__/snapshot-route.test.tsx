@@ -8,23 +8,14 @@
  *   - Dep-injection via SnapshotPageInner props
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { SnapshotPageInner } from '../s/$id'
+import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
+import { SnapshotPageInner } from '../s/$id'
 
 // Preload chassis data so MechSheet can resolve chassis without throwing
-beforeAll(async () => {
-  // 'all', not just ['chassis']: production gates every sheet behind
-  // `GameDataReady`, which preloads the whole catalog, and the pilot sheet now
-  // renders the intrinsic Generic ability tree (abilities + the class data its
-  // cards reach for). A partial preload here diverged from how the app renders.
-  await SalvageUnionReference.preload('all')
-})
-
 afterEach(() => {
   cleanup()
 })
@@ -48,8 +39,8 @@ const pilotSnapshot: SnapshotPayload = {
     appearance: 'Short.',
     background: '',
     conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
   },
 }
 
@@ -64,8 +55,8 @@ const mechSnapshot: SnapshotPayload = {
     modules: [],
     cargoLots: [],
     conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
   },
 }
 

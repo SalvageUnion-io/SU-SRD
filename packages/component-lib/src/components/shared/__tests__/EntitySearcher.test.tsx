@@ -8,14 +8,10 @@
  * searcher reads the ORM directly).
  */
 
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../EntitySearcher'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()

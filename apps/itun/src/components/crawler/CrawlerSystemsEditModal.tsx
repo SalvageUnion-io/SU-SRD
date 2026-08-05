@@ -8,17 +8,14 @@
  * immediately via the sheet's `patch({ systems })`.
  */
 
+import { EntitySearcher, ModalShell } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefCrawler, SURefSystem } from 'salvageunion-reference'
-import { ModalShell } from 'component-lib'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
-import { isWeaponSystem } from 'salvageunion-reference/rules'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { EntitySearcher } from 'component-lib'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { itemHref, patternHref, schemaHref, srdEntityHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'
 

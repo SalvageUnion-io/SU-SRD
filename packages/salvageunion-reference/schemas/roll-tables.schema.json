@@ -151,9 +151,8 @@
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether this entity is only available on the black market"
       },
       "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
@@ -2958,7 +2957,7 @@
         "description": "The roll table data with outcomes keyed by roll ranges"
       }
     },
-    "required": ["id", "blackMarket", "name", "source", "page", "table"],
+    "required": ["id", "name", "source", "page", "table"],
     "additionalProperties": false,
     "description": "Random tables and roll tables"
   }

@@ -12,8 +12,6 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { MessageFlags, SlashCommandBuilder } from 'discord.js'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
 import type { Command } from '../commands/index.js'
 
 process.env.DISCORD_TOKEN ??= 'test-token'
@@ -22,7 +20,6 @@ process.env.DISCORD_CLIENT_ID ??= 'test-client-id'
 let handleInteractionCreate: typeof import('../events/interactionCreate.js').handleInteractionCreate
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   ;({ handleInteractionCreate } = await import('../events/interactionCreate.js'))
 })
 

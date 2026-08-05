@@ -8,6 +8,7 @@
  * it reads as part of this app.
  */
 
+import { PageHeading } from '../chrome/PageHeading'
 import { Slab } from '../chrome/Slab'
 import { Colophon } from './Colophon'
 
@@ -28,9 +29,7 @@ export function AboutScreen({ version, aboutJrvs, llmStatement }: AboutScreenPro
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <header className="border-b-2 border-ink pb-5">
-          <h1 className="font-cond text-3xl font-bold uppercase tracking-caps-tight text-ink">
-            About
-          </h1>
+          <PageHeading className="w-fit">About</PageHeading>
           <p className="mt-2 font-body text-sm text-wk-muted">
             In the Union Now — a character builder &amp; game manager for Salvage Union.
           </p>

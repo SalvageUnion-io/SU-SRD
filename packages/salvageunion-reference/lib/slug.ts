@@ -6,10 +6,11 @@
  * It reaches the loaded BaseModel directly via ModelFactory for entity lookups.
  */
 
-import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
 import { getLoadedModelBySchemaId } from './ModelFactory.js'
+import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
 
 export { nameToSlug } from './nameToSlug.js'
+
 import { nameToSlug } from './nameToSlug.js'
 
 /**

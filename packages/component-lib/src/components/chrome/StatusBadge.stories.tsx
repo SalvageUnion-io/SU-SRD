@@ -2,8 +2,8 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { StatusBadge } from './StatusBadge'
 import type { EntityStatus } from '../shared/entityStatus'
+import { StatusBadge } from './StatusBadge'
 
 export default {
   title: 'Compositions/Status Badge',

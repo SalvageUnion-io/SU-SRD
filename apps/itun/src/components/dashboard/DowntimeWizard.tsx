@@ -17,11 +17,10 @@
  * out of this pass.
  */
 
-import { useState } from 'react'
 import { Button, DowntimeWizard as DowntimeWizardView } from 'component-lib'
+import { useState } from 'react'
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
-
-import { UPKEEP_SCRAP, bayGate } from '../../lib/rules/crawlerEconomy'
+import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import {
   allDowntimeSteps,
   downtimeMechPatch,
@@ -29,12 +28,13 @@ import {
   mechBayStatus,
   medBayStatus,
 } from '../../lib/rules/downtime'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { usePlayStateStore } from '../../stores/playStateStore'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 
 type DowntimeWizardProps = {
   crawler: Crawler | null
@@ -122,7 +122,7 @@ export function DowntimeWizard({
       const fresh = storeState.get('mech', mech.id) ?? mech
       const patch = downtimeMechPatch(fresh, crawlerTl, steps, mechBayStatus(crawler))
       if (Object.keys(patch).length > 0) {
-        void storeState.update('mech', mech.id, patch, DASHBOARD_TXN)
+        runWrite(() => storeState.update('mech', mech.id, patch, DASHBOARD_TXN))
         applied.push(fresh.name)
       }
     }
@@ -130,7 +130,7 @@ export function DowntimeWizard({
       const fresh = storeState.get('pilot', pilot.id) ?? pilot
       const patch = downtimePilotPatch(fresh, medBayStatus(crawler), steps)
       if (Object.keys(patch).length > 0) {
-        void storeState.update('pilot', pilot.id, patch, DASHBOARD_TXN)
+        runWrite(() => storeState.update('pilot', pilot.id, patch, DASHBOARD_TXN))
         applied.push(fresh.name)
       }
     }

@@ -14,11 +14,11 @@
  */
 
 import { create } from 'zustand'
-
-import { serializeContainer } from './activeContainerStore'
+import type { Container } from '../lib/container'
+import { readLocalJson, writeLocalJson } from '../lib/safeLocalStorage'
 import type { CockpitPrefs } from '../lib/schemas/cockpitPrefs'
 import { CockpitPrefsSchema } from '../lib/schemas/cockpitPrefs'
-import type { Container } from '../lib/container'
+import { serializeContainer } from './activeContainerStore'
 
 const STORAGE_KEY = 'itun.cockpitPrefs'
 
@@ -31,31 +31,22 @@ type PrefsByContainer = Record<string, CockpitPrefs>
  * later build should cost the user that one layout, not every layout they have.
  */
 function readPersisted(): PrefsByContainer {
-  try {
-    if (typeof localStorage === 'undefined') return {}
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw === null) return {}
-    const parsed: unknown = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null) return {}
+  // `readLocalJson` covers absent, unavailable and malformed-JSON; the shape
+  // check and the per-entry Zod parse below are this module's own job.
+  const parsed = readLocalJson(STORAGE_KEY)
+  if (typeof parsed !== 'object' || parsed === null) return {}
 
-    const out: PrefsByContainer = {}
-    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
-      const result = CockpitPrefsSchema.safeParse(value)
-      if (result.success) out[key] = result.data
-    }
-    return out
-  } catch {
-    return {}
+  const out: PrefsByContainer = {}
+  for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+    const result = CockpitPrefsSchema.safeParse(value)
+    if (result.success) out[key] = result.data
   }
+  return out
 }
 
 function writePersisted(prefs: PrefsByContainer): void {
-  try {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
-  } catch {
-    // best-effort — a private-mode localStorage throw must not break the dial
-  }
+  // Best-effort by contract: a private-mode refusal must not break the dial.
+  writeLocalJson(STORAGE_KEY, prefs)
 }
 
 type CockpitPrefsState = {

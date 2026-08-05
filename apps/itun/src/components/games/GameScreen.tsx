@@ -14,20 +14,18 @@
  * belonged to. A list of games is a list; the work happens inside one.
  */
 
+import { Badge, Card, PageHeading, PageShell, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
-import { Card, Text } from 'component-lib'
-
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { AppLink } from '../shared/AppLink'
+import { ConvexPending } from '../shared/ConvexPending'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
 import { InvitePanel } from './InvitePanel'
 import { ProposalInbox } from './ProposalInbox'
-import { PAGE, PANEL_TITLE, PANEL_TONE, TITLE } from './gameChrome'
-import { AppLink } from '../shared/AppLink'
-import { ConvexPending } from '../shared/ConvexPending'
 
 function GameBody({ gameId }: { gameId: string }) {
   // `games.get` rather than listMine-and-find: this route wants one Game, and
@@ -57,7 +55,14 @@ function GameBody({ gameId }: { gameId: string }) {
       {/* Invites are administrative, so they live with the Game rather than in
           the lobby, and only the Organizer sees them (ADR-030 §3). */}
       {game.organizer && (
-        <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Invite someone</h2>}>
+        <Card
+          headerBg="bg-ink"
+          headerContent={
+            <Badge shape="stamp" as="h2" size="full">
+              Invite someone
+            </Badge>
+          }
+        >
           <div className="p-4">
             <InvitePanel gameId={gameId as Id<'games'>} />
           </div>
@@ -78,10 +83,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
 
   return (
-    <main className={PAGE}>
-      <Text as="h1" className={TITLE}>
-        Game
-      </Text>
+    <PageShell>
+      <PageHeading className="w-fit">Game</PageHeading>
       {!isConvexConfigured || mode !== 'connected' ? (
         <Card>
           <div className="p-4">
@@ -94,6 +97,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
       ) : (
         <GameBody gameId={gameId} />
       )}
-    </main>
+    </PageShell>
   )
 }

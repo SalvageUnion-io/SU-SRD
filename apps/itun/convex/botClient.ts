@@ -1,10 +1,10 @@
 import { v } from 'convex/values'
-
 import type { Doc, Id } from './_generated/dataModel'
-import { internalMutation, internalQuery } from './_generated/server'
 import type { QueryCtx } from './_generated/server'
+import { internalMutation, internalQuery } from './_generated/server'
+import { PRESENCE_WINDOW_MS } from './mediator'
+import type { BotDenial } from './model/bot'
 import {
-  type BotDenial,
   bindChannelAs,
   displayNameOf,
   gamesForUser,
@@ -12,7 +12,6 @@ import {
   unbindChannelAs,
   userByDiscordId,
 } from './model/bot'
-import { PRESENCE_WINDOW_MS } from './mediator'
 import { NotAuthorized } from './model/permissions'
 
 /**

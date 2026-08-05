@@ -10,7 +10,6 @@
  * second companion afterwards is possible at all.
  */
 import { describe, expect, test } from 'bun:test'
-
 import { partnersFromLoadouts } from '../migrations/11-equipment-loadouts-to-partners'
 
 let counter = 0

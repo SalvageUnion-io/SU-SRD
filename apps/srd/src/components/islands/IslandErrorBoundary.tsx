@@ -1,5 +1,7 @@
-import { Component, type ReactNode } from 'react'
 import { RecoveryPanel } from 'component-lib'
+import type { ErrorInfo, ReactNode } from 'react'
+import { Component } from 'react'
+import { captureException } from '../../lib/observability'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
@@ -21,6 +23,17 @@ export class IslandErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { error }
+  }
+
+  /**
+   * Report, don't just render. Catching an error is precisely what stops it
+   * reaching `window.onerror` and Sentry's `globalHandlers`, so a boundary is
+   * the ONLY place a render crash can still be seen — and until this existed,
+   * an island crash blanked a surface, showed the recovery panel, and produced
+   * no production signal at all.
+   */
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    captureException(error, { componentStack: info.componentStack })
   }
 
   render() {

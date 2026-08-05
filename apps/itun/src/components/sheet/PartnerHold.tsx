@@ -20,10 +20,8 @@
  * dropping it left the player with a button that appeared to do nothing.
  */
 
+import { Button, EmptyState, Stat } from 'component-lib'
 import type { ReactNode } from 'react'
-
-import { Button, Stat } from 'component-lib'
-
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -62,7 +60,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           Carried
         </h4>
         {state.carrierLots.length === 0 ? (
-          <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
+          <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
           <ul className="list-none">
             {state.carrierLots.map((lot) => (
@@ -101,7 +99,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
             Storage Bay
           </h4>
           {state.depotLots.length === 0 ? (
-            <p className="font-body text-caption text-wk-muted">The Storage Bay is empty.</p>
+            <EmptyState variant="quiet" body="The Storage Bay is empty." />
           ) : (
             <ul className="list-none">
               {state.depotLots.map((lot) => (

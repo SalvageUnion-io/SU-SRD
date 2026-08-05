@@ -7,22 +7,17 @@
  * (chassis/systems/modules), asserting relative to the resolved entities so
  * the test survives data edits.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { makeScrapLot, makeUnitLot } from '../../schemas/cargoLot'
 import type { ScrapPool } from '../../schemas/crawler'
+import type { ScrapMechComponent } from '../scrapMech'
 import {
   depositScrapDeposits,
   handOffCargo,
   mechScrapComponents,
   scrapMechBreakdown,
 } from '../scrapMech'
-import type { ScrapMechComponent } from '../scrapMech'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
-})
 
 /** Narrow an SRD lookup that the preloaded data guarantees exists. */
 function defined<T>(value: T | null | undefined, label: string): T {

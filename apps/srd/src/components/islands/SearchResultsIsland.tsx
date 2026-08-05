@@ -1,11 +1,11 @@
+import { Badge, FilterRow, SearchField, schemaPluralLabel } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-import { getEntitySlug } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
-import { Badge, FilterRow, SearchField } from 'component-lib'
-import { useSearchIndex } from '../../lib/useSearchIndex'
+import { getEntitySlug } from 'salvageunion-reference'
+import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
-import { itemHref } from '../../lib/entityHref'
+import { useSearchIndex } from '../../lib/useSearchIndex'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'
@@ -16,9 +16,9 @@ function readQueryParam(): string {
   return new URLSearchParams(window.location.search).get(PARAM_QUERY) ?? ''
 }
 
-/** Right-hand schema label — 'Salvage Union ' prefix stripped, matching the combobox. */
+/** Right-hand schema label — the authored plural, matching the combobox. */
 function schemaLabel(result: SearchResult): string {
-  return result.schemaTitle.replace('Salvage Union ', '')
+  return schemaPluralLabel(result.schemaName)
 }
 
 /** Show-page URL for a result entity. Mirrors srdEntityHref / the combobox. */
@@ -73,7 +73,7 @@ export function SearchResultsIsland() {
         {ready ? (
           <SearchResults query={query} index={index} />
         ) : (
-          <p className="text-sm text-ink-2">Loading search index…</p>
+          <p className="text-sm text-wk-muted">Loading search index…</p>
         )}
       </div>
     </IslandErrorBoundary>
@@ -112,12 +112,12 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
   const visible = activeFacet ? results.filter((r) => r.schemaName === activeFacet) : results
 
   if (!trimmed) {
-    return <p className="text-sm text-ink-2">Enter a search term to see results.</p>
+    return <p className="text-sm text-wk-muted">Enter a search term to see results.</p>
   }
 
   if (results.length === 0) {
     return (
-      <p className="text-sm text-ink-2" aria-live="polite">
+      <p className="text-sm text-wk-muted" aria-live="polite">
         No results found for “{trimmed}”.
       </p>
     )
@@ -125,7 +125,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-ink-2" aria-live="polite">
+      <p className="text-sm text-wk-muted" aria-live="polite">
         {results.length} result{results.length === 1 ? '' : 's'} for “{trimmed}”
       </p>
 
@@ -163,7 +163,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
               className="flex items-center justify-between gap-3 px-4 py-3 no-underline transition-colors hover:bg-wk-bg"
             >
               <span className="font-medium text-ink">{result.entityName}</span>
-              <span className="shrink-0 font-cond text-xs uppercase tracking-wide text-ink-2">
+              <span className="shrink-0 font-cond text-xs uppercase tracking-wide text-wk-muted">
                 {schemaLabel(result)}
               </span>
             </a>

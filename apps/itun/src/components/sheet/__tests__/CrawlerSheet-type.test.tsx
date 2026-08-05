@@ -16,14 +16,15 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import type { SURefCrawler } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-
-import { CrawlerIdentityPanel } from '../CrawlerIdentity'
+import type { SURefCrawler } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { patchModelRows } from '../../__tests__/patchModel'
+import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 afterEach(() => {
   cleanup()
@@ -53,9 +54,9 @@ const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
       position: 'Grizzled Veteran',
       hitPoints: 10,
       choices: [
-        { id: 'battle-name-1', name: 'Name', choiceType: 'freeform' },
-        { id: BATTLE_KEEPSAKE_ID, name: 'Keepsake', choiceType: 'freeform' },
-        { id: BATTLE_MOTTO_ID, name: 'Motto', choiceType: 'freeform' },
+        { id: 'battle-name-1', name: 'Name' },
+        { id: BATTLE_KEEPSAKE_ID, name: 'Keepsake' },
+        { id: BATTLE_MOTTO_ID, name: 'Motto' },
       ],
     },
   },
@@ -72,8 +73,8 @@ const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
       position: 'Union Crawler A.I.',
       hitPoints: 0,
       choices: [
-        { id: 'aug-name-1', name: 'Name', choiceType: 'freeform' },
-        { id: 'aug-desc-1', name: 'Description', choiceType: 'freeform' },
+        { id: 'aug-name-1', name: 'Name' },
+        { id: 'aug-desc-1', name: 'Description' },
       ],
     },
   },
@@ -81,13 +82,7 @@ const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
 
 async function patchCrawlers(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  const original = SalvageUnionReference.Crawlers.all.bind(SalvageUnionReference.Crawlers)
-  SalvageUnionReference.Crawlers.all = mock(
-    (): Array<SURefCrawler & { schemaName: string }> => MOCK_TYPES
-  )
-  return () => {
-    SalvageUnionReference.Crawlers.all = original
-  }
+  return patchModelRows(SalvageUnionReference.Crawlers, MOCK_TYPES)
 }
 
 // ---------------------------------------------------------------------------
@@ -118,8 +113,8 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
     systems: [],
     currentSP: 20,
     crawlerBays: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }

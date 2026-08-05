@@ -9,15 +9,10 @@
  * Mutant Squad carry no prose of their own, only actions — and their tiles
  * rendered as a bare strip of paper under the stat band.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import {
-  getSchemaCatalog,
-  SalvageUnionReference,
-  SchemaToModelMap,
-  type SURefEntity,
-} from 'salvageunion-reference'
-
+import type { SURefEntity } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, SchemaToModelMap } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** Text the tile renders, with the entity's own name removed — what a reader
@@ -41,10 +36,6 @@ function findByName(model: string, name: string): SURefEntity {
 }
 
 describe('catalog tiles always carry content', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   // The whole-dataset sweep. Every schema with a listing page (`meta: false` is
   // what gives a schema a `/schema/<id>/` index in srd) renders a grid of these
   // tiles, so the guarantee has to hold for the entire dataset, not a fixture.
@@ -137,10 +128,6 @@ describe('catalog tiles always carry content', () => {
 })
 
 describe('catalog tiles carry no authorship', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('the identity footer — source, booklet, page, type — is dropped', () => {
     const chassis = SalvageUnionReference.Chassis.all().find((c) => !!c.source && !!c.page)
     if (!chassis) throw new Error('no sourced chassis in fixtures — the probe is vacuous')

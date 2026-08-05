@@ -16,35 +16,34 @@
  * into the returned patch — they stay explicit player calls at the UI layer.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type {
   SURefAbility,
   SURefEquipment,
   SURefMetaAction,
   SURefMetaEntity,
 } from 'salvageunion-reference'
-
-import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
-import { describeOverloadOutcome } from '../../lib/rules/coreMechanic'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { canActivateAction, resolveChassisRef, resolveRef } from 'salvageunion-reference/rules'
 import type { CoreRollBand } from '../../lib/rules/coreMechanic'
-import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
+import { describeOverloadOutcome } from '../../lib/rules/coreMechanic'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
-import {
-  applyMechDamage,
-  applyPilotDamage,
-  performCriticalDamage,
-  performCriticalInjury,
-} from '../../lib/rules/takeDamage'
+import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type {
   CriticalDamageEffect,
   CriticalInjuryEffect,
   MechDamageEffect,
   PilotDamageEffect,
 } from '../../lib/rules/takeDamage'
+import {
+  applyMechDamage,
+  applyPilotDamage,
+  performCriticalDamage,
+  performCriticalInjury,
+} from '../../lib/rules/takeDamage'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
+import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
 import { resolveEquipment } from '../sheet/pilotInventory'
 
 // ---------------------------------------------------------------------------
@@ -344,8 +343,7 @@ export function buildMechActions(mech: Mech): PlayAction[] {
 
 /** Resolve a pilot ability slug (id or name) against the reference ORM. */
 function resolveAbilityBySlug(slug: string): SURefAbility | null {
-  const all = SalvageUnionReference.Abilities.all()
-  return all.find((a) => a.id === slug || a.name === slug) ?? null
+  return resolveRef(SalvageUnionReference.Abilities, slug)
 }
 
 /**

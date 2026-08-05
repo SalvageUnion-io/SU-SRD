@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import {
-  calculateBackgroundColor,
-  borderColorFromHeaderBg,
   accentSurface,
+  borderColorFromHeaderBg,
+  calculateBackgroundColor,
 } from '../referenceEntityHelpers'
 
 describe('calculateBackgroundColor', () => {

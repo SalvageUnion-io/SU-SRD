@@ -13,13 +13,12 @@
 import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-
-import { useSoftWarnings } from '../useSoftWarnings'
 import type { MechSnapshot, PilotSnapshot, SoftWarning } from '../../../lib/rules/types'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { useSoftWarnings } from '../useSoftWarnings'
 
 // ---------------------------------------------------------------------------
 // Fixtures

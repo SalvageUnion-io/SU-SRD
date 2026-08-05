@@ -11,8 +11,8 @@
  */
 
 import { isValidSnapshotId } from '../../src/lib/snapshot/id'
-import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
 import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
+import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
 import { captureException, initObservability } from './_observability'
 
 // ---------------------------------------------------------------------------

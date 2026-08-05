@@ -1,14 +1,12 @@
-import { useState } from 'react'
-import { Button, Card, Text } from 'component-lib'
-import { useMutation, useQuery } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'
-
+import { Badge, Button, Card, PageHeading, PageShell, Text } from 'component-lib'
+import { useMutation, useQuery } from 'convex/react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
-import { PAGE, STAMP, TITLE } from './gameChrome'
 
 /**
  * `/join/$code` — the link half of an invite.
@@ -105,7 +103,9 @@ function ConnectedJoin({ code }: { code: string }) {
   return (
     <Card>
       <div className="flex flex-col gap-3 p-4">
-        <span className={STAMP}>You have been invited</span>
+        <Badge shape="stamp" size="mini">
+          You have been invited
+        </Badge>
         <Text>
           {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>
           {preview.role === 'mediator' ? ' as its Mediator' : ''}.
@@ -155,7 +155,9 @@ function SignedOutJoin({ code }: { code: string }) {
         )}
         {preview != null && preview.status === 'active' && (
           <>
-            <span className={STAMP}>You have been invited</span>
+            <Badge shape="stamp" size="mini">
+              You have been invited
+            </Badge>
             <Text>
               {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>
               {preview.role === 'mediator' ? ' as its Mediator' : ''}.
@@ -203,15 +205,13 @@ export function JoinScreen({ code }: { code: string }) {
   }
 
   return (
-    <main className={PAGE}>
-      <Text as="h1" className={TITLE}>
-        Join a game
-      </Text>
+    <PageShell>
+      <PageHeading className="w-fit">Join a game</PageHeading>
       {/* The page shell is the full-width one every Game surface now uses, but
           the form inside is capped: a Game screen is wide because it lists a
           crew, and this one holds a six-character code. Stretching the card to
           1440px would make the shells match by making the content worse. */}
       <div className="w-full max-w-xl">{body()}</div>
-    </main>
+    </PageShell>
   )
 }

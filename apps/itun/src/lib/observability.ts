@@ -61,3 +61,18 @@ export function captureMessage(message: string, context?: Record<string, unknown
   if (!sentryModule) return
   sentryModule.captureMessage(message, context ? { extra: context } : undefined)
 }
+
+/**
+ * Reports a caught exception to Sentry when enabled; otherwise a no-op.
+ *
+ * This exists because catching is exactly what PREVENTS an error reaching
+ * Sentry's `globalHandlers` integration. Until now this module exported only
+ * `captureMessage`, so every deliberately-caught error in the app — including
+ * a failed mirror to the server of record — was structurally unreportable,
+ * while the node-side modules (`apps/discord-bot/src/observability.ts`,
+ * `apps/itun/netlify/functions/_observability.ts`) had had this verb all along.
+ */
+export function captureException(error: unknown, context?: Record<string, unknown>): void {
+  if (!sentryModule) return
+  sentryModule.captureException(error, context ? { extra: context } : undefined)
+}

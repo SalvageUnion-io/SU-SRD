@@ -96,7 +96,7 @@ export function enrichForFiltering(
 ): Record<string, unknown> {
   if ((schemaName === 'systems' || schemaName === 'modules') && Array.isArray(entity.actions)) {
     const hasDamage = (entity.actions as string[]).some((name) => {
-      const action = SalvageUnionReference.Actions.find((a) => a.name === name)
+      const action = SalvageUnionReference.Actions.getByName(name)
       return action?.damage !== undefined
     })
     return { ...entity, hasDamage }
@@ -167,7 +167,7 @@ export function resolveGuideSteps(entity: SURefMetaEntity): ResolvedGuideStep[] 
     number += 1
 
     const table = step.rollTable
-      ? SalvageUnionReference.RollTables.find((t) => t.name === step.rollTable)
+      ? SalvageUnionReference.RollTables.getByName(step.rollTable)
       : undefined
     const subGuide = step.guideRef
       ? SalvageUnionReference.findIn('guides', (g) => g.id === step.guideRef)

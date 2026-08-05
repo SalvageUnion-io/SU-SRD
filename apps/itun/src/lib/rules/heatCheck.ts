@@ -13,16 +13,15 @@
  */
 
 import { roll } from '@randsum/roller'
-
 import type { Mech } from '../schemas/mech'
 
+export type { HeatCheckEffect, PushResult, Roll } from 'salvageunion-reference/rules'
 export {
   clampHeat,
-  reactorOverloadOutcome,
   performHeatCheck,
   performPush,
+  reactorOverloadOutcome,
 } from 'salvageunion-reference/rules'
-export type { Roll, HeatCheckEffect, PushResult } from 'salvageunion-reference/rules'
 
 import type { HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
 

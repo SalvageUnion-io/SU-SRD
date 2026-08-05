@@ -2,34 +2,38 @@
  * Tests for utility functions (type guards and property extractors)
  */
 
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
+// Import SalvageUnionReference - use lazy getter to avoid initialization issues
+import type { SalvageUnionReference as SURefType } from './index.js'
+import { getEntitySlug } from './slug.js'
 import {
-  getTechLevel,
-  getTechLevelNumber,
-  getSalvageValue,
-  getSlotsRequired,
-  getPageReference,
   extractActions,
+  getAssetUrl,
+  getCargoCapacity,
   getChassisAbilities,
-  getStructurePoints,
   getEnergyPoints,
   getHeatCapacity,
-  getSystemSlots,
-  getModuleSlots,
-  getCargoCapacity,
   getHitPoints,
-  getUpkeepCost,
-  getUpgradeCost,
-  getAssetUrl,
+  getModuleSlots,
+  getPageReference,
   getPatterns,
+  getSalvageValue,
+  getSlotsRequired,
+  getStructurePoints,
+  getSystemSlots,
+  getTechLevel,
+  getTechLevelNumber,
+  getUpgradeCost,
+  getUpkeepCost,
   isHiddenPattern,
   normalizePatternName,
   resolveFormationMember,
+  SRD_SITE_URL,
+  srdEntityPath,
+  srdEntityUrl,
   visiblePatterns,
 } from './utilities.js'
 
-// Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from './index.js'
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {
@@ -717,5 +721,30 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
         expect(typeof pattern.page).toBe('number')
       }
     }
+  })
+})
+
+/**
+ * The reference site's origin and route grammar. Previously hardcoded in four
+ * places (`apps/srd`, `apps/itun`, and TWICE inside the Discord bot) — the same
+ * duplication `ASSET_BASE_URL`/`getAssetUrl` already solved for artwork.
+ */
+describe('SRD site URLs', () => {
+  it('builds a root-relative entity path matching the srd route grammar', () => {
+    expect(srdEntityPath('chassis', 'iron-mongrel')).toBe('/schema/chassis/item/iron-mongrel')
+  })
+
+  it('builds the absolute URL as the site origin plus that path', () => {
+    expect(srdEntityUrl('traits', 'melee')).toBe(
+      `${SRD_SITE_URL}${srdEntityPath('traits', 'melee')}`
+    )
+    expect(srdEntityUrl('traits', 'melee')).toBe('https://salvageunion.io/schema/traits/item/melee')
+  })
+
+  it('links a real entity at the slug its own page uses', () => {
+    const mule = defined(getReference().Chassis.find((c) => c.name === 'Mule'))
+    expect(srdEntityUrl('chassis', getEntitySlug(mule))).toBe(
+      'https://salvageunion.io/schema/chassis/item/mule'
+    )
   })
 })

@@ -6,9 +6,15 @@
  * the package module).
  */
 
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
+import type { CrawlerWizardFormState } from '../../wizard/crawlerFormState'
+import { EMPTY_CRAWLER_FORM_STATE } from '../../wizard/crawlerFormState'
+import type { MechWizardFormState } from '../../wizard/mechFormState'
+import { EMPTY_MECH_FORM_STATE } from '../../wizard/mechFormState'
+import type { PilotWizardFormState } from '../../wizard/pilotFormState'
+import { EMPTY_PILOT_FORM_STATE } from '../../wizard/pilotFormState'
 import {
   clampCrawlerCreationDraft,
   clampMechCreationDraft,
@@ -19,25 +25,6 @@ import {
   mechCreationStepGate,
   pilotCreationStepGate,
 } from '../creation'
-import type { PilotWizardFormState } from '../../wizard/pilotFormState'
-import { EMPTY_PILOT_FORM_STATE } from '../../wizard/pilotFormState'
-import type { MechWizardFormState } from '../../wizard/mechFormState'
-import { EMPTY_MECH_FORM_STATE } from '../../wizard/mechFormState'
-import type { CrawlerWizardFormState } from '../../wizard/crawlerFormState'
-import { EMPTY_CRAWLER_FORM_STATE } from '../../wizard/crawlerFormState'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload([
-    'classes',
-    'abilities',
-    'equipment',
-    'chassis',
-    'systems',
-    'modules',
-    'crawlers',
-    'actions',
-  ])
-})
 
 function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => boolean) => unknown }) {
   const found = accessor.find((x) => x.name === name) as { id: string } | undefined

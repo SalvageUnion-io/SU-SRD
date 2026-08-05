@@ -12,17 +12,12 @@
  * Uses real SalvageUnionReference data. NO mock.module().
  */
 
-import { afterEach, beforeAll, describe, expect, it, mock } from 'bun:test'
+import { afterEach, describe, expect, it, mock } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { CrawlerCrewStep } from '../CrawlerCrewStep'
 import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
 import { must } from '../../__tests__/must'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { CrawlerCrewStep } from '../CrawlerCrewStep'
 
 afterEach(() => {
   cleanup()

@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
-import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
+import { Caption } from '../../stories/_harness'
 import { buttonVariants } from '../chrome/buttonVariants'
 import { RailBar } from './RailBar'
 

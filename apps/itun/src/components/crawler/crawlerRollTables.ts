@@ -6,8 +6,8 @@
  */
 
 import { roll } from '@randsum/roller'
-import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 import type { SURefRollTable } from 'salvageunion-reference'
+import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 const CRAWLER_NAME_TABLE = 'Crawler Name'
 
@@ -18,7 +18,7 @@ export type CrawlerRollTableDeps = {
 }
 
 const defaultDeps: CrawlerRollTableDeps = {
-  findTable: (name) => SalvageUnionReference.RollTables.find((t) => t.name === name),
+  findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
   rollD20: () => roll('1d20').total,
 }
 

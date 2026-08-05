@@ -7,15 +7,12 @@
  * plan's explicit Salvager assertion: the legal creation pool is EXACTLY the
  * 15 core-tree Level-1 abilities.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../schemas/index.js'
 import {
   CRAWLER_CREATION_MIN_WEAPONS,
   CRAWLER_CREATION_TECH_LEVEL,
-  MECH_CREATION_SCRAP_CAP,
-  PILOT_CREATION_ABILITY_PICKS,
-  PILOT_CREATION_EQUIPMENT_PICKS,
   crawlerMaxSpBonus,
   crawlerWeaponSlots,
   isCrawlerWeaponPickComplete,
@@ -31,20 +28,12 @@ import {
   isPilotEquipmentPickComplete,
   legalCreationAbilities,
   legalStartingPatterns,
+  MECH_CREATION_SCRAP_CAP,
   mechCreationBudget,
+  PILOT_CREATION_ABILITY_PICKS,
+  PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
 } from './creation.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload([
-    'classes',
-    'abilities',
-    'equipment',
-    'chassis',
-    'systems',
-    'modules',
-  ])
-})
 
 const CORE_CLASS_NAMES = ['Engineer', 'Hacker', 'Hauler', 'Salvager', 'Scout', 'Soldier'] as const
 

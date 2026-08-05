@@ -5,7 +5,6 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render } from '@testing-library/react'
-
 import type { CockpitPrefs, DialKind } from '../../../lib/schemas/cockpitPrefs'
 import { DialConfig } from '../DialConfig'
 

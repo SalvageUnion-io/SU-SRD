@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -76,8 +76,6 @@ function renderAs(me: unknown, rows: ReturnType<typeof listing>, members: unknow
   })
   render(<GameRoster gameId="g1" gameName="Tenacity" />)
 }
-
-afterEach(cleanup)
 
 describe('what a row offers', () => {
   test('your own pilot offers the editable sheet', () => {

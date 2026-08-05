@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'bun:test'
-import {
-  pluralizeWord,
-  pluralize,
-  buildCatalogCategories,
-  invariantNouns,
-  catalogNameOverrides,
-} from '../catalogHelpers'
+import { describe, expect, it } from 'bun:test'
 import type { CatalogCategory } from '../catalogHelpers'
+import {
+  buildCatalogCategories,
+  catalogNameOverrides,
+  invariantNouns,
+  pluralize,
+  pluralizeWord,
+} from '../catalogHelpers'
 
 /** Narrowing guard for fixture lookups — fails the test loudly instead of `!`. */
 function required<T>(value: T | null | undefined, label: string): T {

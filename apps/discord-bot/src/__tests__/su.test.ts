@@ -8,7 +8,6 @@
  * getSubcommand() and getSubcommandGroup().
  */
 import { describe, expect, test } from 'bun:test'
-
 import { commands } from '../commands/index.js'
 import { suCommand } from '../commands/su.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'

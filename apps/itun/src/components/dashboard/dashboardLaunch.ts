@@ -18,8 +18,8 @@
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { MechPattern } from '../../lib/schemas/pattern'
-import type { CreateInput, EntityForType } from '../../stores/types'
 import { seedDefaultCrawlerBays } from '../../lib/wizard/crawlerFormState'
+import type { CreateInput, EntityForType } from '../../stores/types'
 
 /**
  * Minimal create surface for the launch helpers — injectable for tests.

@@ -1,6 +1,6 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { EmptyState, FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
-import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 /**
@@ -95,7 +95,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
           />
         ))}
         {chosenAbilities.length === 0 && chosenEquipment.length === 0 && (
-          <p className="text-sm text-wk-muted">No abilities or equipment chosen.</p>
+          <EmptyState variant="quiet" body="No abilities or equipment chosen." />
         )}
       </div>
     </div>

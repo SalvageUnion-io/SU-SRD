@@ -1,5 +1,5 @@
-import { containerOf } from '../container'
 import type { ContainerFields } from '../container'
+import { containerOf } from '../container'
 
 /**
  * Give imported entities a container (ADR-030 §2).

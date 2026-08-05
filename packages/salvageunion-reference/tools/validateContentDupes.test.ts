@@ -2,9 +2,9 @@ import { describe, expect, it } from 'bun:test'
 import { loadAllDataFiles } from './loadData.js'
 import {
   findDupesInContent,
+  MIN_WORDS,
   normalizeParagraph,
   runContentDupeCheck,
-  MIN_WORDS,
 } from './validateContentDupesLogic.js'
 
 /** A paragraph long enough to clear MIN_WORDS, so fixtures test the real path. */

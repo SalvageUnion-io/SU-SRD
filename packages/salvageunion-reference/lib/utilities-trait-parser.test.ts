@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, findEntityBySlug, getDataMaps, nameToSlug } from './index.js'
-import { parseTraitReferences } from './utilities.js'
+import { findEntityBySlug, getDataMaps, nameToSlug } from './index.js'
+import { parseTraitReferences, replaceTraitReferences } from './utilities.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -157,7 +157,6 @@ describe('parseTraitReferences ReDoS hardening', () => {
   }
 
   test('every trait reference in the real dataset parses to a resolvable trait', async () => {
-    await SalvageUnionReference.preload('all')
     const strings = realTraitStrings()
     // Guard against the corpus silently emptying and the test passing vacuously.
     expect(strings.length).toBeGreaterThan(50)
@@ -217,5 +216,62 @@ describe('parseTraitReferences ReDoS hardening', () => {
     const start = performance.now()
     expect(parseTraitReferences(pathological)).toHaveLength(0)
     expect(performance.now() - start).toBeLessThan(1000)
+  })
+})
+
+/**
+ * The `[[Trait]]` grammar had THREE implementations — this parser,
+ * component-lib's `parseTraitReferences`, and the Discord bot's inline
+ * `TRAIT_REF` — and this one was the strictest: it alone required whitespace
+ * between `]` and `(`. Nothing in the authoring pipeline enforces that space,
+ * so `[[[Melee](2)]]` yielded ZERO references here while both renderers
+ * resolved the trait. No shipped record uses the space-less form, which is
+ * exactly why it went unnoticed.
+ */
+describe('parseTraitReferences separator tolerance', () => {
+  test('parses a parameterized reference with no space before the parameter', () => {
+    const refs = parseTraitReferences('Deals [[[Melee](2)]] damage')
+
+    expect(refs).toHaveLength(1)
+    const ref = defined(refs[0])
+    expect(ref.traitName).toBe('Melee')
+    expect(ref.parameter).toBe('2')
+    expect(ref.fullMatch).toBe('[[[Melee](2)]]')
+  })
+
+  test('still parses the spaced form the dataset actually uses', () => {
+    const refs = parseTraitReferences('Deals [[[Melee] (2)]] damage')
+
+    expect(refs).toHaveLength(1)
+    expect(defined(refs[0]).parameter).toBe('2')
+  })
+})
+
+describe('replaceTraitReferences', () => {
+  test('rewrites both bracket forms and leaves surrounding prose intact', () => {
+    const out = replaceTraitReferences('Has [[Shield]] and deals [[[Hot] (3)]] damage.', (ref) =>
+      ref.parameter ? `<${ref.traitName}:${ref.parameter}>` : `<${ref.traitName}>`
+    )
+
+    expect(out).toBe('Has <Shield> and deals <Hot:3> damage.')
+  })
+
+  test('returns the input unchanged when there is nothing to replace', () => {
+    expect(replaceTraitReferences('plain rules text', () => 'X')).toBe('plain rules text')
+  })
+
+  test('covers exactly the spans parseTraitReferences reports', () => {
+    // The substitution and the position-aware parse must agree — they are the
+    // two shapes of one grammar, not two grammars.
+    const text = 'A [[One]] B [[[Two] (2)]] C [[Three]]'
+    const spans = parseTraitReferences(text).map((ref) => ref.fullMatch)
+    const collected: string[] = []
+    replaceTraitReferences(text, (ref) => {
+      collected.push(ref.fullMatch)
+      return ''
+    })
+
+    expect(collected).toEqual(spans)
+    expect(replaceTraitReferences(text, () => '')).toBe('A  B  C ')
   })
 })

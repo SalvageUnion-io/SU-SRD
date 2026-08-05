@@ -15,8 +15,8 @@
  * Run directly:  bun tools/extract-rules.ts [rulesDir=rules]
  * Or import:     import { extractAll } from './extract-rules'
  */
-import { readdirSync, mkdirSync, writeFileSync } from 'node:fs'
-import { join, basename } from 'node:path'
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs'
+import { basename, join } from 'node:path'
 
 export async function extractPdf(pdfPath: string): Promise<string> {
   // No -layout: poppler's reading-order heuristic keeps two-column prose more

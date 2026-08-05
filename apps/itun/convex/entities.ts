@@ -1,20 +1,19 @@
 import { v } from 'convex/values'
-
 import { CrawlerSchema } from '../src/lib/schemas/crawler'
 import type { EntityRef } from '../src/lib/schemas/entity'
 import { EntityRefSchema } from '../src/lib/schemas/entity'
-import { MechSchema } from '../src/lib/schemas/mech'
-import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import { SoftLinkSchema } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
-import { mutation, query } from './_generated/server'
 import type { MutationCtx, QueryCtx } from './_generated/server'
+import { mutation, query } from './_generated/server'
+import type { OwnableTable } from './model/entities'
+import { loadOwnable, PARSERS, parseBody } from './model/entities'
 import {
-  NotAuthorized,
   gameHasCrawler,
   getMembership,
   isTableRunner,
+  NotAuthorized,
   requireMember,
   requireTableRunner,
   requireUser,
@@ -29,7 +28,8 @@ import {
  * `src/lib/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price of that is
  * stated plainly in the schema header: **Convex cannot reject a malformed body,
- * so the mutation has to.** These functions are where that obligation is paid.
+ * so the mutation has to.** `parseBody` and its `PARSERS` map live in
+ * `model/entities.ts` so every module that writes a body pays it the same way.
  *
  * ## What you may read, and what you may write
  *
@@ -62,12 +62,6 @@ import {
  */
 
 const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
-type OwnableTable = 'pilots' | 'mechs'
-
-const PARSERS = {
-  pilots: PilotSchema,
-  mechs: MechSchema,
-} as const
 
 /*
  * Soft-link kind guards, asked of the Zod schemas rather than of a copied list,
@@ -83,15 +77,6 @@ function isEntityRefType(value: unknown): value is EntityRef['type'] {
 /** Whether `value` is a relationship kind `SoftLinkSchema` allows. */
 function isSoftLinkType(value: unknown): value is SoftLink['type'] {
   return SoftLinkSchema.shape.type.safeParse(value).success
-}
-
-/** Parse a body against its Zod schema, or throw with a legible reason. */
-function parseBody(table: OwnableTable, body: unknown): unknown {
-  const result = PARSERS[table].safeParse(body)
-  if (!result.success) {
-    throw new Error(`Invalid ${table} payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
-  }
-  return result.data
 }
 
 /**
@@ -251,17 +236,7 @@ export const update = mutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    // `normalizeId` is what makes `table` load-bearing rather than decorative:
-    // a Convex id is table-tagged, but `db.get` returns a document from ANY
-    // table, so casting the string let a caller reach a row `table` does not
-    // name — a `mechPatterns` id through the `mechs` endpoint would be parsed
-    // with the mech schema and patched. An id that is not this table's is
-    // simply not there.
-    const entityId = ctx.db.normalizeId(args.table, args.entityId)
-    if (entityId === null) throw new Error('That entity no longer exists')
-
-    const doc = await ctx.db.get(entityId)
-    if (doc === null) throw new Error('That entity no longer exists')
+    const doc = await loadOwnable(ctx, args.table, args.entityId)
 
     assertMayWrite(doc, userId)
     const body = parseBody(args.table, args.body)
@@ -462,11 +437,19 @@ export const claimLocal = mutation({
     }
 
     for (const body of args.mechPatterns ?? []) {
+      // Patterns are parsed like every other claimed body. They were the one
+      // kind that went in unread, which made `mechPatterns.body` the only
+      // `v.any()` column in the schema nothing ever validated.
+      const parsed = PARSERS.mechPatterns.safeParse(body)
+      if (!parsed.success) {
+        skipped += 1
+        continue
+      }
       await ctx.db.insert('mechPatterns', {
         ownerId: userId,
         gameId: null,
         sharedToGame: false,
-        body,
+        body: parsed.data,
       })
       bump('mechPatterns')
     }

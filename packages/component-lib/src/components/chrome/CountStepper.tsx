@@ -98,7 +98,7 @@ export function CountStepper({
   }
 
   return (
-    <span className="inline-flex items-stretch overflow-hidden rounded-[5px] border-2 border-ink leading-none">
+    <span className="inline-flex items-stretch overflow-hidden rounded-card border-2 border-ink leading-none">
       <StepButton
         aria-label={`Remove one ${subject}`}
         disabled={atMin}

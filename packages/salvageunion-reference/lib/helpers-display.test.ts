@@ -1,6 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-
-import { SalvageUnionReference } from './index.js'
 import {
   extractStaticEntitySummary,
   getDisplayName,
@@ -16,6 +14,7 @@ import {
   resolveGrantedEntities,
 } from './helpers.js'
 import type { SURefEntity } from './index.js'
+import { SalvageUnionReference } from './index.js'
 
 /**
  * The read layer both apps go through: schema lookup, grant resolution, facet

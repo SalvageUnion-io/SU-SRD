@@ -4,12 +4,12 @@ import {
   CATALOG_TILE_MIN_WIDTH,
   CATALOG_TILE_PADDING,
   CATALOG_TILE_WIDTHS,
+  frameFill,
   OG_HEIGHT,
   OG_WIDTH,
-  TILE_FILL_EPSILON,
-  frameFill,
   ogImagePath,
   pickTileWidth,
+  TILE_FILL_EPSILON,
 } from '../ogCard'
 
 /** Tile height that makes the padded frame exactly canvas-shaped at `width`. */

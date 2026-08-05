@@ -7,7 +7,6 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
 import {
   canActivateAction,
   clampHeat,

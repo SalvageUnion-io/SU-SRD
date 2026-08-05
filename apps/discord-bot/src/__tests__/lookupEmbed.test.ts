@@ -7,17 +7,17 @@
  * emits something Discord would reject — across all 27 schemas, not the
  * three we'd pick by hand.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
-  SalvageUnionReference,
   getDataMaps,
   getSchemaCatalog,
   isSchemaName,
+  SalvageUnionReference,
   search,
 } from 'salvageunion-reference'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-
-import { buildLookupEmbed, type LookupEmbed } from '../lookupEmbed.js'
+import type { LookupEmbed } from '../lookupEmbed.js'
+import { buildLookupEmbed } from '../lookupEmbed.js'
 
 // Discord's hard limits (mirrors lookupEmbed.ts).
 const LIMIT = {
@@ -48,10 +48,6 @@ function assertValid(e: LookupEmbed, label: string): void {
   }
   expect(embedCharTotal(e), `${label}: total chars`).toBeLessThanOrEqual(LIMIT.total)
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('buildLookupEmbed — exhaustive validity across the whole dataset', () => {
   test('every entity in every non-meta schema yields a Discord-valid embed', () => {

@@ -13,7 +13,6 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { makeFunctionReference } from 'convex/server'
-
 import { mockUseQuery, queryCalls, setQueryAnswers } from './convexMock'
 
 const gamesGet = makeFunctionReference<'query'>('games:get')

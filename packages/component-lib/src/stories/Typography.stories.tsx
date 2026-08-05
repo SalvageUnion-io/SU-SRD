@@ -153,11 +153,11 @@ function Row({
       <div className="flex min-w-[18rem] flex-1 flex-col gap-0.5">
         <span className="font-cond text-badge uppercase tracking-caps-tight text-ink">
           {name}
-          <span className="ml-2 font-body text-nano normal-case tracking-normal text-ink-2">
+          <span className="ml-2 font-body text-nano normal-case tracking-normal text-wk-muted">
             {meta}
           </span>
         </span>
-        <span className="font-body text-caption text-ink-2">{use}</span>
+        <span className="font-body text-caption text-wk-muted">{use}</span>
       </div>
     </div>
   )
@@ -175,7 +175,7 @@ function Section({
   return (
     <section className="mt-8">
       <Caption>{title}</Caption>
-      <p className="mb-2 max-w-3xl font-body text-caption text-ink-2">{blurb}</p>
+      <p className="mb-2 max-w-3xl font-body text-caption text-wk-muted">{blurb}</p>
       {children}
     </section>
   )

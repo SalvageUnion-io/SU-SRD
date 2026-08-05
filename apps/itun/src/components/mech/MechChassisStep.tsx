@@ -1,17 +1,3 @@
-import { useMemo } from 'react'
-import {
-  SalvageUnionReference,
-  nameToSlug,
-  normalizePatternName,
-  visiblePatterns,
-} from 'salvageunion-reference'
-import type { SURefChassis } from 'salvageunion-reference'
-import {
-  isLegalCreationChassis,
-  legalStartingPatterns,
-  matchesRef,
-  MECH_CREATION_SCRAP_CAP,
-} from 'salvageunion-reference/rules'
 import {
   MasonryColumns,
   ReferenceEntityCard,
@@ -19,6 +5,20 @@ import {
   Slab,
   useChassisPatternConfig,
 } from 'component-lib'
+import { useMemo } from 'react'
+import type { SURefChassis } from 'salvageunion-reference'
+import {
+  nameToSlug,
+  normalizePatternName,
+  SalvageUnionReference,
+  visiblePatterns,
+} from 'salvageunion-reference'
+import {
+  isLegalCreationChassis,
+  legalStartingPatterns,
+  MECH_CREATION_SCRAP_CAP,
+  matchesRef,
+} from 'salvageunion-reference/rules'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = SURefChassis['patterns'][number]
@@ -172,11 +172,11 @@ export function MechChassisStep({
                 isCustom ? 'shadow-[0_0_0_3px_var(--ground),0_0_0_6px_var(--color-ink)]' : undefined
               }
             >
-              <div className="rounded-[5px] border-2 border-dashed border-ink/55 bg-paper px-4 py-4">
+              <div className="rounded-panel border-2 border-dashed border-ink/55 bg-paper px-4 py-4">
                 <p className="m-0 font-cond text-sm font-bold uppercase tracking-caps text-ink">
                   Custom build
                 </p>
-                <p className="m-0 mt-1 font-body text-caption text-ink-2">
+                <p className="m-0 mt-1 font-body text-caption text-wk-muted">
                   No prefill — craft your Systems and Modules by hand in the next steps.
                 </p>
               </div>

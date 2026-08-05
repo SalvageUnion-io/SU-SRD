@@ -10,7 +10,7 @@
 
 import { Button } from '../chrome/Button'
 import type { PickableTable } from './tableCategories'
-import { TABLE_CATEGORY_LABEL, groupTablesByCategory } from './tableCategories'
+import { groupTablesByCategory, TABLE_CATEGORY_LABEL } from './tableCategories'
 
 export type TablePickerOverlayProps = {
   tables: readonly PickableTable[]

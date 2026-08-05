@@ -20,6 +20,7 @@
  */
 
 let initialized = false
+let sentryModule: typeof import('@sentry/browser') | null = null
 
 /**
  * Initializes browser Sentry when `PUBLIC_SENTRY_DSN` is configured.
@@ -35,6 +36,7 @@ export async function initBrowserObservability(): Promise<void> {
   initialized = true
 
   const Sentry = await import('@sentry/browser')
+  sentryModule = Sentry
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
@@ -48,4 +50,20 @@ export async function initBrowserObservability(): Promise<void> {
     // chatter minimal and avoids additional CSP surface.
     tracesSampleRate: 0,
   })
+}
+
+/**
+ * Reports a caught exception to Sentry when enabled; otherwise a no-op.
+ *
+ * This exists because catching is exactly what PREVENTS an error reaching
+ * Sentry's `globalHandlers` integration. Until now neither browser app
+ * exported a capture verb at all (the node-side modules —
+ * `apps/discord-bot/src/observability.ts` and
+ * `apps/itun/netlify/functions/_observability.ts` — both did), so every
+ * deliberately-caught error in the browser was structurally unreportable and
+ * a render crash inside an island produced no production signal whatsoever.
+ */
+export function captureException(error: unknown, context?: Record<string, unknown>): void {
+  if (!sentryModule) return
+  sentryModule.captureException(error, context ? { extra: context } : undefined)
 }

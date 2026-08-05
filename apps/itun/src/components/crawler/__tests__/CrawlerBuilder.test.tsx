@@ -10,33 +10,29 @@
  *   submit.
  *
  * Uses the real wizard, real SalvageUnionReference data, real Zod validation,
- * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto preloaded via
- * bunfig.toml; SalvageUnionReference preloaded in beforeAll).
+ * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto and the
+ * reference dataset are both preloaded via bunfig.toml).
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import {
-  EMPTY_SCRAP_POOL,
   crawlerFormToCreateInput,
   crawlerToFormState,
+  EMPTY_SCRAP_POOL,
   seedDefaultCrawlerBays,
 } from '../../../lib/wizard/crawlerFormState'
-import { CrawlerBuilder } from '../CrawlerBuilder'
-import { isWeaponSystem } from 'salvageunion-reference/rules'
+import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { must } from '../../__tests__/must'
+import { CrawlerBuilder } from '../CrawlerBuilder'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data
 // ---------------------------------------------------------------------------
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 // ---------------------------------------------------------------------------
 // Store reset helpers

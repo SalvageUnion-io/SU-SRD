@@ -18,20 +18,6 @@
  * text on an unresolved reference; nothing throws.
  */
 
-import {
-  SchemaToDisplayName,
-  extractVisibleActions,
-  findEntityBySlug,
-  getChassisAbilities,
-  getEntitySlug,
-  getPageReference,
-  getSalvageValue,
-  getSlotsRequired,
-  getTechLevel,
-  nameToSlug,
-  replaceChassisPlaceholder,
-  visiblePatterns,
-} from 'salvageunion-reference'
 import type {
   SURefChassis,
   SURefEntity,
@@ -43,10 +29,24 @@ import type {
   SURefObjectTableContent,
   SURefObjectTrait,
 } from 'salvageunion-reference'
-
+import {
+  extractVisibleActions,
+  findEntityBySlug,
+  getChassisAbilities,
+  getEntitySlug,
+  getPageReference,
+  getSalvageValue,
+  getSlotsRequired,
+  getTechLevel,
+  nameToSlug,
+  replaceChassisPlaceholder,
+  replaceTraitReferences,
+  SchemaToDisplayName,
+  srdEntityUrl,
+  visiblePatterns,
+} from 'salvageunion-reference'
 import { truncate } from './format.js'
 
-const BASE = 'https://salvageunion.io'
 const NEUTRAL = 0xb7410e
 
 // Discord embed limits (per the API): a single embed's total rendered text
@@ -91,27 +91,28 @@ function entityLink(schema: SURefEnumSchemaName, name: string): string {
   const slug = nameToSlug(name)
   const resolved = slug ? findEntityBySlug(schema, slug) : null
   const label = escapeLabel(name)
-  return resolved ? `[${label}](${BASE}/schema/${schema}/item/${slug})` : label
+  return resolved ? `[${label}](${srdEntityUrl(schema, slug)})` : label
 }
 
 /**
- * Inline trait references in body text, in the two bracket forms the data uses
- * (mirrors component-lib's parseTraitReferences):
+ * Inline trait references in body text, in the two bracket forms the data uses:
  *   [[Trait Name]]              → link to the trait's page
  *   [[[Trait Name] (param)]]    → link + the parameter (e.g. "[[[Melee] (2)]]")
+ *
+ * The bracket GRAMMAR is not re-implemented here — `replaceTraitReferences`
+ * (salvageunion-reference) owns it, so the bot, the web renderer and the
+ * package's own parser cannot drift on what counts as a reference. This
+ * function supplies only the bot-specific rendering: a markdown link.
+ *
  * Every ref resolves against the `traits` schema, exactly as the web does; an
  * unresolved name degrades to its bare text (matching TraitKeywordDisplayView,
  * which renders plain text on a miss rather than falling back to keywords).
  */
-const TRAIT_REF = /\[\[\[([^\]]+)\]\s*\(([^)]+)\)\]\]|\[\[([^\]]+)\]\]/g
 function linkifyTraitRefs(text: string): string {
-  return text.replace(TRAIT_REF, (_match, paramName, paramValue, simpleName) => {
-    if (paramName !== undefined) {
-      const link = entityLink('traits', String(paramName).trim())
-      const value = String(paramValue).trim()
-      return value ? `${link} ${value}` : link
-    }
-    return entityLink('traits', String(simpleName).trim())
+  return replaceTraitReferences(text, (ref) => {
+    const link = entityLink('traits', ref.traitName.trim())
+    const value = ref.parameter?.trim()
+    return value ? `${link} ${value}` : link
   })
 }
 
@@ -447,7 +448,7 @@ export function buildLookupEmbed(
 
   return enforce({
     title: name,
-    url: `${BASE}/schema/${schemaName}/item/${getEntitySlug(entity)}`,
+    url: srdEntityUrl(schemaName, getEntitySlug(entity)),
     color: NEUTRAL,
     description: sections.filter(Boolean).join('\n\n') || undefined,
     fields,

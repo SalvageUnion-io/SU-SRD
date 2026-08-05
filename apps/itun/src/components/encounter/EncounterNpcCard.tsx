@@ -9,15 +9,22 @@
  * the encounter store; Remove deletes the instance after a confirm.
  */
 
+import {
+  Button,
+  Card,
+  Conditions,
+  InlineEditField,
+  Input,
+  ModalShell,
+  Stat,
+  useDetailModal,
+} from 'component-lib'
 import { useMemo, useState } from 'react'
-import { Button, Conditions, Input, ModalShell, Stat, useDetailModal } from 'component-lib'
-
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
+import { runWrite } from '../../lib/runWrite'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
-import { Card } from 'component-lib'
-import { InlineEditField } from 'component-lib'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'
 
@@ -44,30 +51,35 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
   )
   const { control: detailControl, modal: detailModal } = useDetailModal(refEntity)
 
-  async function patch(fields: Partial<EncounterNpc>) {
-    await storeState.update(npc.id, fields)
+  /**
+   * Every tray edit goes through here, and through `runWrite` — a rejected
+   * write used to be voided at each call site, so a failed condition tick or HP
+   * nudge left the card showing the old value with nothing said about why.
+   */
+  function patch(fields: Partial<EncounterNpc>) {
+    runWrite(() => storeState.update(npc.id, fields))
   }
 
   function handleHpChange(next: number) {
-    void patch({ currentHp: Math.max(0, Math.min(npc.maxHp, next)) })
+    patch({ currentHp: Math.max(0, Math.min(npc.maxHp, next)) })
   }
 
   function handleRollResult(result: MediatorRollResult) {
-    void patch({ lastMediatorRoll: result })
+    patch({ lastMediatorRoll: result })
   }
 
   function addCondition() {
     const next = conditionDraft.trim()
     if (next === '') return
     setConditionDraft('')
-    void patch({ conditions: [...npc.conditions, next] })
+    patch({ conditions: [...npc.conditions, next] })
   }
 
   /** Remove the first occurrence — identical strings are indistinguishable. */
   function removeCondition(condition: string) {
     const index = npc.conditions.indexOf(condition)
     if (index < 0) return
-    void patch({ conditions: npc.conditions.filter((_, i) => i !== index) })
+    patch({ conditions: npc.conditions.filter((_, i) => i !== index) })
   }
 
   const downed = npc.maxHp > 0 && npc.currentHp === 0
@@ -81,13 +93,13 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
         headerContent={
           <>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
+              <span className="rounded-pip bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
                 {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
               </span>
               <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
                 <InlineEditField
                   value={npc.name}
-                  onSave={(next) => void patch({ name: String(next) })}
+                  onSave={(next) => patch({ name: String(next) })}
                   type="text"
                   ariaLabel={`Edit ${npc.name} instance name`}
                   className="text-paper"
@@ -217,7 +229,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
               size="compact"
               onClick={() => {
                 setConfirmRemove(false)
-                void storeState.delete(npc.id)
+                runWrite(() => storeState.delete(npc.id))
               }}
             >
               Remove

@@ -58,7 +58,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
       {patterns.map((pattern) => (
         <li
           key={pattern.id}
-          className="rounded-[3px] border-chrome border-ink p-4 flex items-start justify-between gap-4"
+          className="rounded-card border-chrome border-ink p-4 flex items-start justify-between gap-4"
           data-testid="pattern-list-item"
         >
           <div className="flex flex-col gap-1 min-w-0">

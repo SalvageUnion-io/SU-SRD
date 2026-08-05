@@ -7,13 +7,13 @@
  * URL (chassis patterns). Nothing about that routing is visible to typecheck,
  * so it is pinned here alongside the dialog chrome it mounts.
  */
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { useDetailModal } from '../useDetailModal'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
 import { PatternEquipmentItem } from '../pattern/PatternEquipmentItem'
+import { useDetailModal } from '../useDetailModal'
 
 const system = (name: string): SURefEntity => {
   const match = SalvageUnionReference.Systems.all().find((s) => s.name === name)
@@ -46,10 +46,6 @@ afterEach(() => {
 })
 
 describe('useDetailModal — modal mode (no link provider)', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('the dialog stays closed until the control is clicked', () => {
     render(<Harness data={system('Red Laser')} />)
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -87,10 +83,6 @@ describe('useDetailModal — modal mode (no link provider)', () => {
 })
 
 describe('useDetailModal — link mode (srd)', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   const renderLinked = (opts: { forceModal?: boolean; noHref?: boolean } = {}) => {
     const opened: Array<[string?, string?, string?]> = []
     // biome-ignore lint/suspicious/noExplicitAny: test double for window.open
@@ -133,10 +125,6 @@ describe('useDetailModal — link mode (srd)', () => {
 })
 
 describe('PatternEquipmentItem — the hook wired into a real card', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('exposes a visible detail control on the head listing that opens the card', () => {
     render(<PatternEquipmentItem data={system('Red Laser')} />)
     // The listing itself shows the name once; the modal is not mounted yet.

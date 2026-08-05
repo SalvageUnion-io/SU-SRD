@@ -1,13 +1,20 @@
 /**
- * Artwork URL derivation.
+ * URL derivation for the two hosts the dataset addresses: the artwork CDN
+ * (`assets.salvageunion.io`) and the public reference site
+ * (`salvageunion.io`).
+ *
+ * Both bases live here for the same reason: an entity's artwork URL and its
+ * reference-site page are DERIVED from the dataset (schema name + slug), so
+ * the grammar belongs with the dataset rather than being retyped by every
+ * surface that links out.
  *
  * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
  * there (and from the package barrel), so this is an internal home, not a new
  * public surface.
  */
 
-import type { SURefMetaEntity } from './types/index.js'
 import { getEntitySlug } from './slug.js'
+import type { SURefMetaEntity } from './types/index.js'
 
 /**
  * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
@@ -38,4 +45,47 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
   }
   const slug = getEntitySlug(entity)
   return `${ASSET_BASE_URL}/${entity.schemaName}/${slug}.webp`
+}
+
+/**
+ * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
+ * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
+ * the site's own canonical/OG tags — is this base plus {@link srdEntityPath},
+ * so the host is named once here rather than retyped per surface.
+ */
+
+export const SRD_SITE_URL = 'https://salvageunion.io'
+
+/**
+ * The reference site's ROOT-RELATIVE path for one entity's page.
+ *
+ * This is the site's route grammar (`/schema/{schemaName}/item/{slug}` — it
+ * matches the srd `getStaticPaths`), expressed once. The srd site itself wants
+ * the relative form (it is that origin); anything linking in from outside
+ * prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
+ *
+ * Takes the SLUG rather than the entity, because callers arrive with either —
+ * a resolved entity (slug it with `getEntitySlug`) or a bare name already run
+ * through `nameToSlug` (the bot's trait/table/drone links).
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The root-relative page path
+ */
+
+export function srdEntityPath(schemaName: string, slug: string): string {
+  return `/schema/${schemaName}/item/${slug}`
+}
+
+/**
+ * The reference site's ABSOLUTE URL for one entity's page —
+ * {@link SRD_SITE_URL} + {@link srdEntityPath}.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The absolute page URL
+ */
+
+export function srdEntityUrl(schemaName: string, slug: string): string {
+  return `${SRD_SITE_URL}${srdEntityPath(schemaName, slug)}`
 }

@@ -5,9 +5,8 @@
  * Uses 3), First Aid Kit (1 slot, Uses 3).
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { describe, expect, test } from 'bun:test'
+import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -16,11 +15,6 @@ import {
   pilotInventoryUsed,
   resolveEquipment,
 } from '../pilotInventory'
-import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['equipment', 'actions'])
-})
 
 function inventory(
   equipment: string[],

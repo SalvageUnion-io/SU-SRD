@@ -7,12 +7,11 @@
  * (Load Into Mech / Enter Downtime / Full sheet →) off the play-state store.
  */
 
-import { DisplayPanel as DisplayPanelView } from 'component-lib'
 import type { DisplayContent, ReferenceEntityControl } from 'component-lib'
+import { DisplayPanel as DisplayPanelView } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'

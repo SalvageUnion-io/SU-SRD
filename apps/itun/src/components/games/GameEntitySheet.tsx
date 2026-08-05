@@ -30,19 +30,17 @@
  * look something up.
  */
 
-import { useMemo } from 'react'
+import { Card, PageHeading, PageShell, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
-import { Card, Text } from 'component-lib'
-
+import { useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import type { RosterKind } from '../../lib/games/gameRoster'
+import { AppLink } from '../shared/AppLink'
 import { makeFrozenStore, parseFrozenEntity } from '../sheet/frozenSheet'
 import { Sheet } from '../sheet/Sheet'
-import { AppLink } from '../shared/AppLink'
-import { PAGE, TITLE } from './gameChrome'
 
 type GameEntitySheetProps = {
   gameId: string
@@ -60,10 +58,8 @@ export function GameSheetNotice({
   children: React.ReactNode
 }) {
   return (
-    <main className={PAGE}>
-      <Text as="h1" className={TITLE}>
-        Crew sheet
-      </Text>
+    <PageShell>
+      <PageHeading className="w-fit">Crew sheet</PageHeading>
       <Card>
         <div className="flex flex-col items-start gap-3 p-4">
           <Text>{children}</Text>
@@ -72,7 +68,7 @@ export function GameSheetNotice({
           </AppLink>
         </div>
       </Card>
-    </main>
+    </PageShell>
   )
 }
 

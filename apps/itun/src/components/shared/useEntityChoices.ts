@@ -28,13 +28,12 @@
  * (NO mock.module() in tests).
  */
 
-import { useCallback } from 'react'
-
 import type { ChoiceSelections } from 'component-lib'
-
+import { useCallback } from 'react'
+import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
-import type { EntityType, EntityForType } from '../../stores/types'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import type { EntityForType, EntityType } from '../../stores/types'
 
 /**
  * Stable empty-selections reference. ReferenceEntityCard is wrapped in
@@ -87,7 +86,7 @@ export function useEntityChoices<T extends EntityType>(
       const patch = {
         [field]: { ...prevAll, [itemSlug]: next },
       } as Partial<EntityForType<T>>
-      void storeState.update(entityType, entityId, patch, LIVE_SHEET_MANUAL)
+      runWrite(() => storeState.update(entityType, entityId, patch, LIVE_SHEET_MANUAL))
     },
     [storeState, entityType, entityId, itemSlug, field]
   )

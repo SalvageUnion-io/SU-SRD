@@ -15,12 +15,13 @@
  * loses per-field match weighting, in exchange for not shipping the full
  * corpus to the browser.
  */
-import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
+
 // `extractContentText` and `isSchemaName` are the package's own primitives —
 // this module is Node-only and already loads the ORM, so importing them costs
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
 import { extractContentText, getEntitySlug, isSchemaName } from 'salvageunion-reference'
+import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const

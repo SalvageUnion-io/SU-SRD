@@ -114,6 +114,17 @@ bun run build:package
 bun run validate:all     # Check IDs, cross-references, action references
 bun run validate:ids     # Unique ID check only
 
+# Local-only diagnostics — deliberately NOT in check:all or CI. These read the
+# copyright-bearing PDFs in rules/, which are gitignored and absent in CI, so
+# there they would be a check that passes by doing nothing. Each no-ops with a
+# notice and exit 0 when the extract is missing. Advisory: read the findings,
+# do not apply them blind. See README.md "Local-only diagnostics".
+bun run rules:extract        # PDF → rules/extracted/ text layer (prerequisite)
+bun run rules:regen          # Regenerate the docs/rules/ agent digest
+bun run check:printed-names  # Diff every entity name + page against the Core
+                             # Book index; run after a data import or a bulk
+                             # name/page edit, not on a schedule
+
 # Discord bot commands
 bun run deploy-commands          # Deploy slash commands to test guild
 bun run deploy-commands:global   # Deploy globally (production)

@@ -1,7 +1,7 @@
 import { v } from 'convex/values'
-
-import { mutation, query } from './_generated/server'
 import type { Id } from './_generated/dataModel'
+import { mutation, query } from './_generated/server'
+import { parseBody } from './model/entities'
 import { requireMediator, requireMember, requireUser } from './model/permissions'
 
 /**
@@ -22,6 +22,15 @@ import { requireMediator, requireMember, requireUser } from './model/permissions
  * Storing a `lastSeen` and letting readers decide what counts as present keeps
  * it cheap and avoids inventing an online/offline state the app would then have
  * to keep truthful.
+ *
+ * ## The tray owes the same edge parse every other write does
+ *
+ * `encounterNpcs.body` is `v.any()`, so Convex cannot reject a malformed one —
+ * `schema.ts` says in that many words that the mutation must. These two wrote
+ * straight through for a while, which meant the one table only a Mediator can
+ * see was also the one nothing validated. `parseBody` is shared with
+ * `entities.ts`; what it accepts here is deliberately looser than the local
+ * store's record, and `model/entities.ts` says why.
  */
 
 /** How long since a heartbeat before somebody stops counting as at the table. */
@@ -44,7 +53,8 @@ export const addNpc = mutation({
   args: { gameId: v.id('games'), body: v.any() },
   handler: async (ctx, args): Promise<Id<'encounterNpcs'>> => {
     await requireMediator(ctx, args.gameId)
-    return await ctx.db.insert('encounterNpcs', { gameId: args.gameId, body: args.body })
+    const body = parseBody('encounterNpcs', args.body)
+    return await ctx.db.insert('encounterNpcs', { gameId: args.gameId, body })
   },
 })
 
@@ -54,7 +64,8 @@ export const updateNpc = mutation({
     const doc = await ctx.db.get(args.npcId)
     if (doc === null) return
     await requireMediator(ctx, doc.gameId)
-    await ctx.db.patch(args.npcId, { body: args.body })
+    const body = parseBody('encounterNpcs', args.body)
+    await ctx.db.patch(args.npcId, { body })
   },
 })
 

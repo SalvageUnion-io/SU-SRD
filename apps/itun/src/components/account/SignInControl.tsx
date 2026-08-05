@@ -1,6 +1,5 @@
-import { Button } from 'component-lib'
 import { useAuthActions } from '@convex-dev/auth/react'
-
+import { Button } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 

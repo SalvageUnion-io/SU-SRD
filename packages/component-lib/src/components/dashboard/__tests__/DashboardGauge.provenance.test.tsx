@@ -7,9 +7,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-
-import { DashboardGauge } from '../DashboardGauge'
 import type { ProvenanceLine } from '../../stat/StatProvenance'
+import { DashboardGauge } from '../DashboardGauge'
 
 const LINES: ProvenanceLine[] = [
   { kind: 'base', label: 'Atlas chassis', detail: 'base', amount: 18 },

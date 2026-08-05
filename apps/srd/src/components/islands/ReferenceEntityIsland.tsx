@@ -1,17 +1,18 @@
-import { Suspense, useEffect, useMemo } from 'react'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import {
+  ClassAbilityTree,
+  EntityDetailLinkProvider,
+  EntityHrefProvider,
+  getClassSelections,
+  PatternHrefProvider,
   ReferenceEntityCard,
   Skeleton,
-  getClassSelections,
-  ClassAbilityTree,
-  EntityHrefProvider,
-  EntityDetailLinkProvider,
-  PatternHrefProvider,
 } from 'component-lib'
-import { GameDataGate, useGameData, type SchemaList } from '../../lib/useGameData'
+import { Suspense, useEffect, useMemo } from 'react'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { srdEntityHref } from '../../lib/entityHref'
 import { srdPatternHref } from '../../lib/patternHref'
+import type { SchemaList } from '../../lib/useGameData'
+import { GameDataGate, useGameData } from '../../lib/useGameData'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {

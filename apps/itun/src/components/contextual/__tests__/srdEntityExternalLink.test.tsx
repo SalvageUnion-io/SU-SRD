@@ -7,16 +7,12 @@
  * schema has no srd page.
  */
 
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { render } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { srdEntityExternalLink } from '../srdEntityExternalLink'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../__tests__/must'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
 describe('srdEntityExternalLink', () => {
   it('builds a "View in SRD →" link for a catalog entity', () => {

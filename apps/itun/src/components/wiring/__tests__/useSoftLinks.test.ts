@@ -13,12 +13,12 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { renderHook, act } from '@testing-library/react'
-
-import { useSoftLinks, resolveLinkType } from '../useSoftLinks'
-import type { SoftLinkStore } from '../useSoftLinks'
+import { act, renderHook } from '@testing-library/react'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { must } from '../../__tests__/must'
+import type { SoftLinkStore } from '../useSoftLinks'
+import { resolveLinkType, useSoftLinks } from '../useSoftLinks'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -30,7 +30,7 @@ function makeSoftLink(overrides: Partial<SoftLink> = {}): SoftLink {
     from: { type: 'mech', id: 'mech-1' },
     to: { type: 'pilot', id: 'pilot-1' },
     type: 'mech-to-pilot',
-    createdAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
     ...overrides,
   }
 }
@@ -44,7 +44,7 @@ function makeFakeStore(links: SoftLink[] = []): SoftLinkStore & { _links: SoftLi
       const link: SoftLink = {
         ...input,
         id: `link-${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        createdAt: FIXTURE_NOW,
       }
       _links.push(link)
       return link

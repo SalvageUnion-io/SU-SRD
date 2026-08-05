@@ -1,6 +1,5 @@
 import type { SURefEntity, SURefObjectContentBlock } from 'salvageunion-reference'
 import { extractVisibleActions, resolveGrantedEntities } from 'salvageunion-reference'
-
 import { firstParagraphText } from './firstParagraphText'
 
 /**

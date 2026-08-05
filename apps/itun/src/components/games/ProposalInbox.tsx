@@ -1,9 +1,7 @@
-import { Button, Card, Text } from 'component-lib'
+import { Badge, Button, Card, Row } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { NUM, PANEL_TITLE, PANEL_TONE, ROW } from './gameChrome'
 
 /**
  * The player's side of propose-and-confirm (D7).
@@ -37,37 +35,43 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
 
   return (
     <Card
-      headerBg={PANEL_TONE}
-      headerContent={<h2 className={PANEL_TITLE}>Awaiting your answer</h2>}
+      headerBg="bg-ink"
+      headerContent={
+        <Badge shape="stamp" as="h2" size="full">
+          Awaiting your answer
+        </Badge>
+      }
     >
       <div className="flex flex-col gap-3 p-4">
         {pending.map((p) => (
-          <div key={p._id} className="flex flex-col gap-2">
-            <div className={ROW}>
-              <Text as="span">
-                {p.entityType} · {p.field}
-              </Text>
-              <Text as="span" className={NUM}>
+          <Row
+            key={p._id}
+            wrap
+            name={`${p.entityType} · ${p.field}`}
+            meta={
+              <span className="font-cond tabular-nums">
                 {show(p.before)} → {show(p.after)}
-              </Text>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="primary"
-                size="compact"
-                onClick={() => void apply({ proposalId: p._id as Id<'changeLog'> })}
-              >
-                Apply
-              </Button>
-              <Button
-                variant="ghost"
-                size="compact"
-                onClick={() => void decline({ proposalId: p._id as Id<'changeLog'> })}
-              >
-                Decline
-              </Button>
-            </div>
-          </div>
+              </span>
+            }
+            actions={
+              <>
+                <Button
+                  variant="primary"
+                  size="compact"
+                  onClick={() => void apply({ proposalId: p._id as Id<'changeLog'> })}
+                >
+                  Apply
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="compact"
+                  onClick={() => void decline({ proposalId: p._id as Id<'changeLog'> })}
+                >
+                  Decline
+                </Button>
+              </>
+            }
+          />
         ))}
       </div>
     </Card>

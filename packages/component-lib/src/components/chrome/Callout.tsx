@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
+import { cn } from '../../utils/cn'
 import { Card } from '../shared/Card'
 import { Badge } from './Badge'
 

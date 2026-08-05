@@ -12,25 +12,20 @@
  *   5. In readOnly mode, toggling is a no-op (store.update not called).
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { MechSheet } from '../MechSheet'
-import { PilotSheet } from '../PilotSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { MechSheet } from '../MechSheet'
+import { PilotSheet } from '../PilotSheet'
 
 // PilotSheet resolves equipment/ability slugs; MechSheet resolves
 // system/module slugs, chassis stats and cargo caps at render — load all.
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
-
 afterEach(() => {
   cleanup()
 })
@@ -91,8 +86,8 @@ const fakeMech: Mech = {
   modules: ['reinforced-hull'],
   cargoLots: [],
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeMechWithConditions: Mech = {
@@ -115,8 +110,8 @@ const fakePilot: Pilot = {
   appearance: '',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakePilotWithConditions: Pilot = {

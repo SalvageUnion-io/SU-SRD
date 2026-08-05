@@ -10,27 +10,14 @@
  *      silently orphaning a seeded mech/pilot/crawler).
  *   3. The v7 upgrade actually lands the whole roster and it re-parses.
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml; the reference dataset is
- * preloaded in beforeAll.
+ * fake-indexeddb/auto and the reference dataset are preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-
-import {
-  crawlerMaxSP,
-  mechMaxEP,
-  mechMaxHeat,
-  mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
-} from '../../rules/derivedStats'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import { useEntityStore } from '../../../stores/entityStore'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
-import { CrawlerSchema } from '../../schemas/crawler'
-import { MechSchema } from '../../schemas/mech'
-import { PilotSchema } from '../../schemas/pilot'
-import { SoftLinkSchema } from '../../schemas/softLink'
 import {
   _clearAllStores,
   _resetDbSingleton,
@@ -39,13 +26,20 @@ import {
   pilots,
   softLinks,
 } from '../../db/index'
-import { useEntityStore } from '../../../stores/entityStore'
+import {
+  crawlerMaxSP,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
+} from '../../rules/derivedStats'
+import { CrawlerSchema } from '../../schemas/crawler'
+import { MechSchema } from '../../schemas/mech'
+import { PilotSchema } from '../../schemas/pilot'
+import { SoftLinkSchema } from '../../schemas/softLink'
 import { ensureStarterSetSeeded, isStarterSetSeeded } from '../seedStarterSet'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 /** True when some reference entity of `all` slugifies to `slug`. */
 function slugExists(all: ReadonlyArray<{ name: string }>, slug: string): boolean {

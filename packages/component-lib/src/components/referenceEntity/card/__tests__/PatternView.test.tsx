@@ -10,10 +10,10 @@
  * 3. The full pattern view reads chassis prose → chassis ability → pattern prose
  *    → systems → modules, so the pattern is framed by the chassis it belongs to.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference, nameToSlug, visiblePatterns } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -29,10 +29,6 @@ const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectPattern) =>
   `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
 describe('chassis pattern rows', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('each row links to its pattern page', () => {
     const chassis = mule()
     render(
@@ -74,10 +70,6 @@ describe('chassis pattern rows', () => {
 })
 
 describe('full pattern view reading order', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('reads chassis prose → chassis ability → pattern prose → systems → modules', () => {
     const chassis = mule()
     const pattern = chassis.patterns?.find((p) => p.name === 'Hauler')
@@ -140,10 +132,6 @@ describe('full pattern view reading order', () => {
  * full-length, identical .50 Cal Machine Gun cards.
  */
 describe('pattern loadout badges', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   /** Stands in for srd's entity route builder. */
   const testEntityHref = (entity: SURefEntity) =>
     `/schema/${'schemaName' in entity ? String(entity.schemaName) : ''}/item/${
@@ -223,10 +211,6 @@ describe('pattern loadout badges', () => {
  * keyless list children the moment patterns moved below the fold.
  */
 describe('pattern drone rows keep their keys', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('no keyless-children warning on a drone-fielding pattern', () => {
     const warnings: string[] = []
     const realError = console.error
@@ -259,10 +243,6 @@ describe('pattern drone rows keep their keys', () => {
  * page.
  */
 describe('pattern footer provenance', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   const patternOf = (name: string): SURefObjectPattern => {
     const found = mule().patterns?.find((p) => p.name === name)
     if (!found) throw new Error(`${name} pattern fixture missing`)
@@ -305,10 +285,6 @@ describe('pattern footer provenance', () => {
  * `legalStarting` data tag; never computed from tech level or salvage value.
  */
 describe('legal starting pattern seam stamp', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   const patternOf = (name: string): SURefObjectPattern => {
     const found = mule().patterns?.find((p) => p.name === name)
     if (!found) throw new Error(`${name} pattern fixture missing`)

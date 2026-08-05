@@ -5,11 +5,11 @@
  * (ADR-006). Thin re-export shim — see that module for the implementation.
  */
 
+export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from 'salvageunion-reference/rules'
 export {
   CORE_ROLL_BANDS,
   coreRollBand,
-  performCoreRoll,
-  describePushOutcome,
   describeOverloadOutcome,
+  describePushOutcome,
+  performCoreRoll,
 } from 'salvageunion-reference/rules'
-export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from 'salvageunion-reference/rules'

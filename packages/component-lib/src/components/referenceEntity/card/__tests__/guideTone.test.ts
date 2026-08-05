@@ -24,8 +24,6 @@ import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-referenc
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveDomainTone } from '../entityCardTone'
 
-await SalvageUnionReference.preload('all')
-
 const guides = SalvageUnionReference.Guides.all()
 
 describe('guide tone — the card matches the index tile', () => {

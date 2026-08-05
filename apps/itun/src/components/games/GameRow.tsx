@@ -1,6 +1,5 @@
-import { EntityRow } from 'component-lib'
 import type { EntityRowStat } from 'component-lib'
-
+import { EntityRow } from 'component-lib'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { AppLink } from '../shared/AppLink'
 

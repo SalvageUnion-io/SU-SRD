@@ -12,9 +12,9 @@ import {
   TechLevelSchema,
 } from '../common.js'
 import { ActionTypeSchema, RangeSchema, SchemaNameSchema, SourceSchema } from '../enums.js'
+import { ChoiceSchema } from './choices.js'
 import { ContentSchema } from './content.js'
 import { DamageSchema, TraitSchema } from './primitives.js'
-import { ChoiceSchema } from './choices.js'
 import { TableSchema } from './tables.js'
 
 /**

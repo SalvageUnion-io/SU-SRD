@@ -29,7 +29,11 @@ function SkeletonSlab() {
 
 export function SheetSkeleton() {
   return (
-    <div role="status" aria-label="Loading sheet" className="min-h-screen animate-pulse bg-wk-bg">
+    <div
+      role="status"
+      aria-label="Loading sheet"
+      className="min-h-screen motion-safe:animate-pulse bg-wk-bg"
+    >
       {/* Sticky-bar placeholder (LiveSheet top bar footprint) */}
       <div className="flex min-h-[58px] items-center gap-4 border-b-2 border-ink/20 px-4 py-2 sm:px-[30px]">
         <Ghost className="h-4 w-24 bg-ink/15" />

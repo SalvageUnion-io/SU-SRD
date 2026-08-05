@@ -10,22 +10,22 @@
  * Active Item uses); statless items are a big centered title — no stats.
  */
 
+import type { DialItem as DialCellItem } from 'component-lib'
+import { linesFromBreakdown } from 'component-lib'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSPParts,
-  mechMaxSPParts,
   mechMaxHeatParts,
-  pilotMaxHPParts,
+  mechMaxSPParts,
   pilotMaxAPParts,
+  pilotMaxHPParts,
 } from '../../lib/rules/derivedStats'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
-import type { DialItem as DialCellItem } from 'component-lib'
-import { linesFromBreakdown } from 'component-lib'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
 
 export type DialItem = DialCellItem & { kind: DialKind }
 

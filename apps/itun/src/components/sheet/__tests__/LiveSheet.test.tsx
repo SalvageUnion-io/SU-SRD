@@ -10,9 +10,8 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, render, screen } from '@testing-library/react'
-
-import { LiveSheet } from '../LiveSheet'
 import { must } from '../../__tests__/must'
+import { LiveSheet } from '../LiveSheet'
 
 afterEach(() => {
   cleanup()

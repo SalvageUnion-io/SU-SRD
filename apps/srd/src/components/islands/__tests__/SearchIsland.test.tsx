@@ -1,8 +1,9 @@
-import { describe, test, expect, afterEach, beforeEach, mock, spyOn, type Mock } from 'bun:test'
-import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
-import { SearchIsland } from '../SearchIsland'
+import type { Mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, jest, mock, spyOn, test } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
+import { SearchIsland } from '../SearchIsland'
 
 // SearchIsland now fetches the build-time compact index (`/search-index.json`)
 // instead of preloading the ORM — mock `fetch` to serve the real index (built
@@ -10,10 +11,31 @@ import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
 // these stay real integration tests against real search behavior.
 const index = buildSearchIndexEntries()
 
+/** `useSearchCombobox`'s own `debounceMs` default. */
+const DEBOUNCE_MS = 150
+
+/**
+ * Type into the combobox and run the debounce out with fake timers.
+ *
+ * Never sleep past a real debounce: a fixed real-time margin is a latent flake
+ * on a loaded CI runner and dead wall-clock everywhere else. The first `act`
+ * flushes the deferred index fetch (mocked, so it settles in microtasks); the
+ * second drives the debounce timer directly.
+ */
+async function typeAndSettle(input: HTMLElement, value: string) {
+  await act(async () => {
+    fireEvent.change(input, { target: { value } })
+  })
+  await act(async () => {
+    jest.advanceTimersByTime(DEBOUNCE_MS)
+  })
+}
+
 describe('SearchIsland', () => {
   let fetchSpy: Mock<typeof fetch> | undefined
 
   beforeEach(() => {
+    jest.useFakeTimers()
     resetSearchIndexForTests()
     // `Object.assign` carries the real `fetch.preconnect` so the mock satisfies
     // Bun's `typeof fetch` structurally — no forced cast.
@@ -31,6 +53,7 @@ describe('SearchIsland', () => {
     cleanup()
     fetchSpy?.mockRestore()
     resetSearchIndexForTests()
+    jest.useRealTimers()
   })
 
   test('renders an sr-only aria-live region', () => {
@@ -44,11 +67,7 @@ describe('SearchIsland', () => {
     const { container } = render(<SearchIsland />)
     const input = screen.getByRole('combobox')
 
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'chassis' } })
-      // Wait for debounce (150ms) + the mocked fetch's microtask
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'chassis')
 
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion).toBeTruthy()
@@ -61,10 +80,7 @@ describe('SearchIsland', () => {
     const { container } = render(<SearchIsland />)
     const input = screen.getByRole('combobox')
 
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'zzzzxxxxxnonsense99999' } })
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'zzzzxxxxxnonsense99999')
 
     const liveRegion = container.querySelector('[aria-live="polite"]')
     expect(liveRegion?.textContent).toBe('No results found')
@@ -74,10 +90,7 @@ describe('SearchIsland', () => {
     render(<SearchIsland />)
     const input = screen.getByRole('combobox')
 
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'zzzzxxxxxnonsense99999' } })
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'zzzzxxxxxnonsense99999')
 
     // Both the aria-live region and the dropdown show "No results found"
     const matches = screen.getAllByText('No results found')
@@ -92,10 +105,7 @@ describe('SearchIsland', () => {
     render(<SearchIsland navigate={navigate} />)
     const input = screen.getByRole('combobox')
 
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'chassis' } })
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'chassis')
 
     const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
@@ -115,10 +125,7 @@ describe('SearchIsland', () => {
     render(<SearchIsland navigate={navigate} />)
     const input = screen.getByRole('combobox')
 
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'chassis' } })
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'chassis')
 
     const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(1)
@@ -153,10 +160,7 @@ describe('SearchIsland', () => {
     await act(async () => {
       fireEvent.focus(input)
     })
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'chassis' } })
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'chassis')
 
     const options = screen.getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
@@ -185,7 +189,9 @@ describe('SearchIsland', () => {
       await act(async () => {
         fireEvent.focus(input)
         fireEvent.change(input, { target: { value: 'chassis' } })
-        await new Promise((r) => setTimeout(r, 200))
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(DEBOUNCE_MS)
       })
       expect(screen.getByRole('listbox').textContent).toContain('Loading search index')
       expect(screen.queryAllByRole('option').length).toBe(0)
@@ -195,7 +201,6 @@ describe('SearchIsland', () => {
         resolveFetch(
           new Response(JSON.stringify(index), { headers: { 'Content-Type': 'application/json' } })
         )
-        await new Promise((r) => setTimeout(r, 0))
       })
       expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
     } finally {
@@ -208,10 +213,7 @@ describe('SearchIsland', () => {
     const input = screen.getByRole('combobox')
 
     // 'c' prefix-matches many category names
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'c' } })
-      await new Promise((r) => setTimeout(r, 200))
-    })
+    await typeAndSettle(input, 'c')
 
     const options = screen.getAllByRole('option')
     expect(options.length).toBeLessThanOrEqual(10)

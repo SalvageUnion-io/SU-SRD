@@ -10,10 +10,10 @@
  * the transaction auto-commit out from under the migration.
  */
 
-import type { UpgradeTransaction } from './index'
 import { isRecord } from '../../isRecord'
 import { normalizeLegacyCargoRecord } from '../../schemas/cargoLot'
 import { STORE_NAMES } from '../stores'
+import type { UpgradeTransaction } from './index'
 
 export async function migrate(tx: UpgradeTransaction): Promise<void> {
   for (const storeName of [STORE_NAMES.mechs, STORE_NAMES.mechPatterns]) {

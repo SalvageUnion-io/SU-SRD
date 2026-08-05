@@ -13,12 +13,11 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-
-import { useEntityStore } from '../../../stores/entityStore'
+import { SheetSkeleton } from 'component-lib'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { Sheet } from '../../../components/sheet/Sheet'
-import { SheetSkeleton } from 'component-lib'
 import type { EntityRef } from '../../../lib/schemas/entity'
+import { useEntityStore } from '../../../stores/entityStore'
 
 /**
  * A sheet kind is exactly a store-entity kind. Partners are NOT among them:

@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react'
-import type { CSSVarStyle } from '../../../styles/cssVars'
 import { useCallback, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { CSSVarStyle } from '../../../styles/cssVars'
 import { cn } from '../../../utils/cn'
-import { INPUT_FOCUS } from '../../chrome/interaction'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
+import { INPUT_FOCUS } from '../../chrome/interaction'
 import { RollTable } from '../../shared/RollTable'
+import { accentDeepColor } from '../referenceEntityHelpers'
+import type { ChoiceSelections } from './choiceSelectionHelpers'
 import {
-  type ChoiceSelections,
   getChoiceCardOptions,
   getChoiceSourceKind,
   getChoiceTableName,
@@ -17,7 +18,6 @@ import {
   resolveMultiSelectCap,
   toggleSelection,
 } from './choiceSelectionHelpers'
-import { accentDeepColor } from '../referenceEntityHelpers'
 
 /**
  * ChoiceGroups — the write-layer choice renderer in the NEW design language.
@@ -231,7 +231,7 @@ function ChoiceOptionGroup({
   if (kind === 'table') {
     const tableName = getChoiceTableName(choice)
     const tableEntity = tableName
-      ? SalvageUnionReference.RollTables.find((t) => t.name === tableName)
+      ? SalvageUnionReference.RollTables.getByName(tableName)
       : undefined
     const table = tableEntity && 'table' in tableEntity ? tableEntity.table : undefined
     return (
@@ -268,7 +268,9 @@ function ChoiceOptionGroup({
   const options = getChoiceCardOptions(choice)
   return (
     <div style={toneVar}>
-      {counter && !readOnly && <div className="mb-1 font-body text-nano text-ink-2">{counter}</div>}
+      {counter && !readOnly && (
+        <div className="mb-1 font-body text-nano text-wk-muted">{counter}</div>
+      )}
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
         {options.map((option) => {
           const chosen = selected.includes(option.value)

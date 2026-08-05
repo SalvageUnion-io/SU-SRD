@@ -7,10 +7,10 @@
  * the dataset, so a rename or a lookup regression makes content vanish without
  * failing typecheck.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
 import type { SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
+import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-reference'
 import { ChassisAbilitiesContent } from '../ChassisAbilitiesContent'
 
 const abilitiesOf = (chassisName: string): SURefMetaAction[] => {
@@ -23,10 +23,6 @@ const abilitiesOf = (chassisName: string): SURefMetaAction[] => {
 }
 
 describe('ChassisAbilitiesContent', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('renders nothing when the chassis has no abilities', () => {
     const { container } = render(<ChassisAbilitiesContent compact={false} />)
     expect(container.innerHTML).toBe('')

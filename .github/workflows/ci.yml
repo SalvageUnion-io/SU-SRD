@@ -501,6 +501,36 @@ jobs:
       # EVERY job above must be listed here. This is the single required check
       # for branch protection, so a job missing from this list is a job that
       # can fail without blocking merge.
+      #
+      # `needs:` reaches only inside this workflow, so this gate CANNOT cover
+      # .github/workflows/codeql.yml. CodeQL is therefore required as its OWN
+      # status context rather than through this aggregate — the branch ruleset
+      # for `main` lists `Analyze (javascript-typescript)` alongside
+      # `quality-checks`, so a SAST finding blocks a merge.
+      #
+      # That requires codeql.yml to carry a `merge_group:` trigger, and the
+      # ORDER is load-bearing: the queue's temporary `gh-readonly-queue/**`
+      # branches fire neither `push: [main]` nor `pull_request`, so requiring
+      # the context before that trigger is live on `main` leaves the queue
+      # waiting for a check that can never arrive. That is the same wedge the
+      # `merge_group:` trigger at the top of THIS file exists to prevent, and
+      # it was very nearly reproduced here: the requirement was added first and
+      # had to be walked back until the trigger shipped.
+      #
+      # If either half is ever changed, change them in this order:
+      #   1. `merge_group:` live on `main` in codeql.yml, THEN
+      #   2. the required context in the ruleset.
+      # Confirm the exact context string — workflow name plus the job's
+      # `name:` — with:
+      #   gh api repos/{owner}/{repo}/commits/main/check-runs --jq '.check_runs[].name'
+      #
+      # Unlike the jobs above, CodeQL runs unfiltered (no path filter), so it
+      # reports on every queue entry without stranding docs-only PRs in
+      # "pending".
+      #
+      # Do NOT instead add a step here that polls the CodeQL check-run via `gh`:
+      # it would race the other workflow, and a poll that times out or 404s
+      # reports green — worse than the advisory state it replaced.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed

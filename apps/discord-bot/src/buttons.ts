@@ -10,7 +10,6 @@
  */
 
 import { MessageFlags } from 'discord.js'
-
 import { buildCheckMessage } from './commands/check.js'
 import type { CommandButtonInteraction } from './commands/interactions.js'
 import { buildTableLookupMessage } from './commands/lookup.js'

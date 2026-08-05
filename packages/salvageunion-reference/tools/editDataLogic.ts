@@ -20,7 +20,8 @@
  * string transforms so they're trivially testable without touching disk.
  */
 
-import { modify, applyEdits, parse as parseJsonc, type FormattingOptions } from 'jsonc-parser'
+import type { FormattingOptions } from 'jsonc-parser'
+import { applyEdits, modify, parse as parseJsonc } from 'jsonc-parser'
 
 /** Matches the repo's existing data-file style: 2-space indent, LF line endings. */
 export const DEFAULT_FORMATTING: FormattingOptions = {

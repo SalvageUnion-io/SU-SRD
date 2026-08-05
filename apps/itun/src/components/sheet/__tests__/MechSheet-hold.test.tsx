@@ -12,54 +12,38 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { MechSheet } from '../MechSheet'
 import { makeScrapLot, makeUnitLot } from '../../../lib/schemas/cargoLot'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
+import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { MechSheet } from '../MechSheet'
 
 afterEach(() => {
   cleanup()
 })
 
 function makeMech(overrides: Partial<Mech>): Mech {
-  return {
+  return mechFixture({
     id: 'mech-hold-1',
-    schemaVersion: 1,
     name: 'Hold Test Mech',
     chassisRef: 'Scrapper', // real chassis — useCargo derives cargo cap (6) from the ORM
-    systems: [],
-    modules: [],
-    cargoLots: [],
-    conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  })
 }
 
 function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
-  return {
+  return crawlerFixture({
     id: 'crawler-hold-1',
-    schemaVersion: 1,
     name: 'Hold Crawler',
     techLevel: 'tech-2',
-    systems: [],
     cargoLots: [],
     scrapPool: {},
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  } as Crawler
+  })
 }
 
 type CapturedUpdate = {

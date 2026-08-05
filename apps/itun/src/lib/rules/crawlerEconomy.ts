@@ -33,12 +33,12 @@
  * module never picks for the player.
  */
 
+import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { resolveCrawlerBay } from '../crawlerRefs'
+import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
 import type { Roll } from './heatCheck'
-import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import type { TechLevel } from './types'
 
 /**

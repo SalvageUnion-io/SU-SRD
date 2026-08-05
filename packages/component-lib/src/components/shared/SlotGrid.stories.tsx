@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react'
-import { Caption } from '../../stories/_harness'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { Caption } from '../../stories/_harness'
 import { SlotGrid } from './SlotGrid'
 
 export default {

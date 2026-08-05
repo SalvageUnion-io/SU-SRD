@@ -10,6 +10,7 @@ function defined<T>(value: T | null | undefined): T {
 
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
 import type { SalvageUnionReference as SURefType } from './index.js'
+
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {
@@ -19,19 +20,20 @@ function getReference() {
   }
   return SalvageUnionReference
 }
+
 import {
-  getDescription,
-  getActivationCost,
-  getActionType,
-  getRange,
-  getDamage,
-  getTraits,
-  getChassisAbilities,
-  getEffects,
-  getTable,
-  getOptions,
-  getChoices,
   extractActions,
+  getActionType,
+  getActivationCost,
+  getChassisAbilities,
+  getChoices,
+  getDamage,
+  getDescription,
+  getEffects,
+  getOptions,
+  getRange,
+  getTable,
+  getTraits,
 } from './utilities.js'
 
 describe('Action Property Getters', () => {

@@ -16,13 +16,21 @@
  *      listing immediately (Zustand in-memory update is synchronous).
  */
 
-import { useState } from 'react'
-import type { ReactNode } from 'react'
-import { Bot, UserRound, Warehouse } from 'lucide-react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { Button, buttonVariants, EmptyState, EntityRow, Stat } from 'component-lib'
 import type { EntityRowStat } from 'component-lib'
-
+import {
+  Button,
+  buttonVariants,
+  EmptyState,
+  EntityRow,
+  ModalShell,
+  PageShell,
+  RosterSkeleton,
+  Stat,
+} from 'component-lib'
+import { Bot, UserRound, Warehouse } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -30,24 +38,22 @@ import {
   usePilots,
   useSoftLinkList,
 } from '../../hooks/queries'
-import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf, sameContainer } from '../../lib/container'
 import type { ContainerFields } from '../../lib/container'
-import { cn } from '../../lib/utils'
-import type { EntityType } from '../../stores/entityStore'
+import { containerOf, sameContainer } from '../../lib/container'
+import type { SoftLink } from '../../lib/schemas/softLink'
 import { ensureStarterSetSeeded, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
+import { cn } from '../../lib/utils'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
+import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
+import { ContainerSwitcher } from '../container/ContainerSwitcher'
+import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
-import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
-import { ContainerSwitcher } from '../container/ContainerSwitcher'
-import { RosterSkeleton } from 'component-lib'
-import { ModalShell } from 'component-lib'
 
 // ---------------------------------------------------------------------------
 // Row-meta helpers
@@ -327,7 +333,7 @@ export function Roster() {
   }
 
   return (
-    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell stack={false}>
       {/* Brand identity lives in the global AppHeader (routes/__root.tsx);
           the page keeps an accessible title only. Visible header row:
           Download all/Import · container faux-select. */}
@@ -560,7 +566,7 @@ export function Roster() {
           </div>
         </div>
       </ModalShell>
-    </main>
+    </PageShell>
   )
 }
 
@@ -577,7 +583,7 @@ export function Roster() {
  */
 function FirstRunWelcome() {
   return (
-    <div className="mt-6 flex flex-col items-center gap-4 rounded-[3px] border-chrome border-dashed border-wk-faint p-8 text-center sm:p-12">
+    <div className="mt-6 flex flex-col items-center gap-4 rounded-card border-chrome border-dashed border-wk-faint p-8 text-center sm:p-12">
       <UserRound aria-hidden="true" className="size-9 text-sheet-pilot-deep" />
       <h2 className="font-cond text-xl font-bold uppercase tracking-widest text-rust">
         Welcome to In the Union Now

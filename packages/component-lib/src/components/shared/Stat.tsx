@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
 import type { ReactElement } from 'react'
-import { SalvageUnionReference, EntitySchemaNames } from 'salvageunion-reference'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
-import { cn } from '../../utils/cn'
+import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
 import type { SizeRung } from '../../styles/sizing'
-import { Badge } from '../chrome/Badge'
+import { cn } from '../../utils/cn'
 import type { StampSurface } from '../chrome/Badge'
+import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
-import { Tooltip } from '../ui/tooltip'
 import { EntityTooltip } from '../referenceEntity/EntityTooltip'
+import { Tooltip } from '../ui/tooltip'
 import type { EntityStatus } from './entityStatus'
 
 /**
@@ -398,7 +398,7 @@ function HorizontalValue({
         >
           {value}
           {max !== undefined && (
-            <span className={cn('font-normal', inverse ? 'text-paper/70' : 'text-ink-2')}>
+            <span className={cn('font-normal', inverse ? 'text-paper/70' : 'text-wk-muted')}>
               /{max}
             </span>
           )}
@@ -492,7 +492,7 @@ function ValueBox({
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
   const trueBg = inverse ? 'bg-ink' : 'bg-paper'
   const trueValueColor = inverse ? 'text-paper' : 'text-ink'
-  const mutedMaxColor = inverse ? 'text-paper/70' : 'text-ink-2'
+  const mutedMaxColor = inverse ? 'text-paper/70' : 'text-wk-muted'
   const trueBorderColor = STATE_BORDER[state]
 
   useEffect(() => {

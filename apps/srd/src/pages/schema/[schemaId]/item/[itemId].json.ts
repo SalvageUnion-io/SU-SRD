@@ -1,5 +1,5 @@
-import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import type { APIRoute } from 'astro'
+import { getItemStaticPaths } from '../../../../lib/staticPaths'
 
 export function getStaticPaths() {
   return getItemStaticPaths()

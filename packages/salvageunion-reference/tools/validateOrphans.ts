@@ -18,7 +18,7 @@
  */
 
 import { loadAllDataFiles } from './loadData.js'
-import { runOrphanCheck, ROOT_FILES } from './validateOrphansLogic.js'
+import { ROOT_FILES, runOrphanCheck } from './validateOrphansLogic.js'
 
 function main(): void {
   console.log('Root entities (intentionally unreferenced):')

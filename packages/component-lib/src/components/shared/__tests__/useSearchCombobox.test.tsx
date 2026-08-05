@@ -3,11 +3,13 @@
  * Consumer-shell behavior (dropdown vs dialog) is covered by the apps' own
  * SearchIsland/GlobalSearch tests; these pin the hook contract.
  */
-import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { schemaPluralLabel } from '../../../utils/schemaLabels'
 import { useSearchCombobox } from '../useSearchCombobox'
+
+/** The hook's own `debounceMs` default (see `useSearchCombobox.ts`). */
+const DEBOUNCE_MS = 150
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
 function must<T>(value: T | null | undefined): T {
@@ -15,8 +17,15 @@ function must<T>(value: T | null | undefined): T {
   return value
 }
 
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
+// The debounce is driven, not slept through: a fixed real-time margin over a
+// real timer is a latent flake on a loaded runner and pure dead wall-clock
+// everywhere else. Same approach as RollTable.test.tsx.
+beforeEach(() => {
+  jest.useFakeTimers()
+})
+
+afterEach(() => {
+  jest.useRealTimers()
 })
 
 async function typeAndSettle(
@@ -26,9 +35,8 @@ async function typeAndSettle(
   act(() => {
     result.current.handleInput(value)
   })
-  // Wait past the 150 ms debounce.
   await act(async () => {
-    await new Promise((r) => setTimeout(r, 180))
+    jest.advanceTimersByTime(DEBOUNCE_MS)
   })
 }
 
@@ -51,6 +59,25 @@ describe('useSearchCombobox', () => {
     const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {} }))
     await typeAndSettle(result, 'mining laser')
     expect(result.current.results.some((r) => r.title.toLowerCase().includes('mining'))).toBe(true)
+  })
+
+  test('category rows and entity rows spell a schema the same way', async () => {
+    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {} }))
+    await typeAndSettle(result, 'bay')
+
+    const entityRows = result.current.results.filter((r) => r.kind === 'entity')
+    expect(entityRows.length).toBeGreaterThan(0)
+    for (const row of entityRows) {
+      // The authored plural ('Crawler Bays'), never the raw kebab-case id.
+      expect(row.group).toBe(schemaPluralLabel(row.schemaId))
+      expect(row.group).not.toBe(row.schemaId)
+    }
+
+    const categoryRows = result.current.results.filter((r) => r.kind === 'schema')
+    for (const category of categoryRows) {
+      const sameSchema = entityRows.filter((r) => r.schemaId === category.schemaId)
+      for (const row of sameSchema) expect(row.group).toBe(category.title)
+    }
   })
 
   test('ArrowDown/Enter submits the highlighted result; bare Enter submits the first', async () => {

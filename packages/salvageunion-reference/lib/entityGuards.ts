@@ -15,11 +15,12 @@
  * public surface.
  */
 
-import type { SURefEntity, SURefMetaEntity } from './types/index.js'
 import type {
   SURefAbility,
   SURefClass,
+  SURefEntity,
   SURefKeyword,
+  SURefMetaEntity,
   SURefObjectAdvancedClass,
 } from './types/index.js'
 

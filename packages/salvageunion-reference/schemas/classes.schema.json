@@ -153,9 +153,8 @@
           },
           "id": { "type": "string", "description": "Unique identifier for this entity" },
           "blackMarket": {
-            "default": false,
-            "description": "Whether this entity is only available on the black market",
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this entity is only available on the black market"
           },
           "name": {
             "type": "string",
@@ -369,16 +368,7 @@
             ]
           }
         },
-        "required": [
-          "id",
-          "blackMarket",
-          "name",
-          "source",
-          "page",
-          "maxAbilities",
-          "advanceable",
-          "coreTrees"
-        ],
+        "required": ["id", "name", "source", "page", "maxAbilities", "advanceable", "coreTrees"],
         "additionalProperties": false
       },
       {
@@ -527,9 +517,8 @@
           },
           "id": { "type": "string", "description": "Unique identifier for this entity" },
           "blackMarket": {
-            "default": false,
-            "description": "Whether this entity is only available on the black market",
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this entity is only available on the black market"
           },
           "name": {
             "type": "string",
@@ -691,15 +680,7 @@
             "description": "Legendary ability tree for this class"
           }
         },
-        "required": [
-          "id",
-          "blackMarket",
-          "name",
-          "source",
-          "page",
-          "advancedTree",
-          "legendaryTree"
-        ],
+        "required": ["id", "name", "source", "page", "advancedTree", "legendaryTree"],
         "additionalProperties": false,
         "description": "Advanced or hybrid character class"
       }

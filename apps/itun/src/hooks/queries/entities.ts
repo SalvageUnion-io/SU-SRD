@@ -23,8 +23,8 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
-import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
+import { useEntityStore } from '../../stores/entityStore'
 import type { EntityForType } from '../../stores/types'
 
 /** Full entityStore state+actions shape (what selectors receive). */

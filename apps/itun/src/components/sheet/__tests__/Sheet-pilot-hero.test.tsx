@@ -14,25 +14,20 @@
  *   6. readOnly suppresses steppers, used-toggle buttons and all writes.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Sheet } from '../Sheet'
-import type { EntityLookup } from '../Sheet'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import {
-  makeEntityStoreMock,
   makeEntityLookupMock,
+  makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import type { EntityLookup } from '../Sheet'
+import { Sheet } from '../Sheet'
 
 afterEach(() => {
   cleanup()
@@ -58,8 +53,8 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
     conditions: [],
     currentHP: 10,
     currentAP: 4,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }

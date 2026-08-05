@@ -28,17 +28,11 @@
  * Superseded the partner live sheet; see ADR-028.
  */
 
-import {
-  Field,
-  MasonryColumns,
-  ReferenceEntityCard,
-  type ReferenceEntityControl,
-  type StatItem,
-} from 'component-lib'
-
+import type { ReferenceEntityControl, StatItem } from 'component-lib'
+import { Field, MasonryColumns, ReferenceEntityCard, summarizeBreakdown } from 'component-lib'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
-import { replacePartner } from '../../lib/partnerLookup'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
+import { replacePartner } from '../../lib/partnerLookup'
 import {
   partnerCap,
   partnerDerivedStats,
@@ -50,12 +44,11 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { PartnerInstance } from '../../lib/schemas/partner'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechItemCard } from './MechItemCard'
+import { resolveModule, resolveSystem } from './mechItemRules'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay'
-import { resolveModule, resolveSystem } from './mechItemRules'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { summarizeBreakdown } from 'component-lib'
 import { runWrite } from './sheetWrite'
 
 type PartnerCardProps = {

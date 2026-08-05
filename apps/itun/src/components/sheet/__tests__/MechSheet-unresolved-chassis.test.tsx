@@ -7,18 +7,13 @@
  * installed item slugs keep their cards/fallbacks.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { MechSheet } from '../MechSheet'
 
 afterEach(() => {
   cleanup()
@@ -36,8 +31,8 @@ const fakeMech: Mech = {
   currentSP: 5,
   currentEP: 4,
   currentHeat: 6,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 function makeStubStore(mech: Mech): typeof useEntityStore {

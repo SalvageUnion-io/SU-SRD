@@ -10,20 +10,15 @@
  *   4. readOnly suppresses every inventory edit affordance.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { PilotSheet } from '../PilotSheet'
 import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { expandCards } from '../../__tests__/expandCards'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
+import { expandCards } from '../../__tests__/expandCards'
+import { pilotFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { PilotSheet } from '../PilotSheet'
 
 afterEach(() => {
   cleanup()
@@ -40,25 +35,14 @@ const SCRAP: GenericInventoryEntry = {
 }
 
 function makePilot(overrides: Partial<Pilot> = {}): Pilot {
-  return {
+  return pilotFixture({
     id: 'pilot-inv-1',
-    schemaVersion: 1,
     name: 'Yara Voss',
     callsign: 'Ghost',
-    classRef: 'scavenger',
-    abilities: [],
-    equipment: [],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    background: '',
-    conditions: [],
     currentHP: 10,
     currentAP: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  })
 }
 
 function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {

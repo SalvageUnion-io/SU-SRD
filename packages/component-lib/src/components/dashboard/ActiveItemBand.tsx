@@ -11,11 +11,12 @@
  */
 
 import type { ReactNode } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
+import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
-import { cn } from '../../utils/cn'
-import { useEscapeKey } from '../../hooks/useEscapeKey'
-import { DashboardGauge, type GaugeTone } from './DashboardGauge'
+import type { GaugeTone } from './DashboardGauge'
+import { DashboardGauge } from './DashboardGauge'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
 const NOOP = () => {}

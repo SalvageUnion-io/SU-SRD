@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as __tests___harness from "../__tests__/harness.js";
 import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as bot from "../bot.js";
@@ -34,7 +33,6 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  "__tests__/harness": typeof __tests___harness;
   account: typeof account;
   auth: typeof auth;
   bot: typeof bot;

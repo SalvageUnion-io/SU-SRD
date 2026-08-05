@@ -2,19 +2,13 @@
  * Unit tests for dialItems — the Dial's item list from the entity graph.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { dialItems } from '../dialItems'
+import { describe, expect, test } from 'bun:test'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { dialItems } from '../dialItems'
 
 const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel', chassisRef: 'x' })
 const pilot = pilotFixture({ id: 'p1', name: 'Vesh' })
 const crawler = crawlerFixture({ id: 'c1', name: 'Union Hauler', techLevel: '3' })
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('dialItems', () => {
   test('boarded: Actions, the counterpart pilot, crawler, Tables, SRD', () => {

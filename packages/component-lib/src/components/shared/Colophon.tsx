@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-
 import { MarkdownSection } from '../../markdownSection/MarkdownSection'
 import { cn } from '../../utils/cn'
 import { Slab } from '../chrome/Slab'

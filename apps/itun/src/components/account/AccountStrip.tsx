@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router'
 import { FOCUS_RING } from 'component-lib'
-
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from './SignInControl'

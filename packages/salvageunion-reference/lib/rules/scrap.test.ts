@@ -4,14 +4,10 @@
  * Uses REAL data from salvageunion-reference for crawler tech level upgrade
  * costs, and hand-crafted fixtures for item-level tests.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js'
 import type { ScrapableItem } from './types.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['crawler-tech-levels', 'systems'])
-})
 
 // ---------------------------------------------------------------------------
 // Fixtures — hand-crafted items for isolation

@@ -16,19 +16,17 @@
  * new instances land on the Shelf — see Roster.tsx for the same branch.
  */
 
-import { useState } from 'react'
+import { BandTitle, Card, EmptyState, PageShell, Skeleton } from 'component-lib'
 import { Users } from 'lucide-react'
-import { EmptyState, Skeleton } from 'component-lib'
-
+import { useState } from 'react'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { moveTo } from '../../lib/container'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { moveTo } from '../../lib/container'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import { useEncounterStore } from '../../stores/encounterStore'
-import { Card } from 'component-lib'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'
@@ -64,9 +62,9 @@ function Section({
               {title}
             </h2>
             {hint && (
-              <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
+              <BandTitle variant="mute" fill={false}>
                 {hint}
-              </span>
+              </BandTitle>
             )}
           </>
         }
@@ -128,7 +126,7 @@ export function EncounterScreen({
   }
 
   return (
-    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell stack={false}>
       <div className="border-b-2 border-ink pb-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h1 className="m-0 flex items-center gap-2 font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
@@ -189,6 +187,6 @@ export function EncounterScreen({
           </Section>
         </div>
       </div>
-    </main>
+    </PageShell>
   )
 }

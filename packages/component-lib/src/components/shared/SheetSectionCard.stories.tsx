@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { SheetSectionCard } from './SheetSectionCard'

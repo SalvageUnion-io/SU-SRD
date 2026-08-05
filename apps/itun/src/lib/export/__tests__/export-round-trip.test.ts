@@ -26,13 +26,13 @@
  * `exportBundle.ts`) and is covered below the same way mechPatterns is.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
-import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { useEntityStore } from '../../../stores/entityStore'
+import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
+import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
-import type { ExportBundle } from '../../schemas/exportBundle'
 
 function resetStores(): void {
   useEntityStore.setState({
@@ -469,14 +469,14 @@ describe('mergeImport — duplicate skip branches', () => {
           from: { type: 'mech', id: mech.id },
           to: { type: 'pilot', id: pilot.id },
           type: 'mech-to-pilot',
-          createdAt: new Date().toISOString(),
+          createdAt: FIXTURE_NOW,
         },
         {
           id: crypto.randomUUID(),
           from: { type: 'pilot', id: pilot.id },
           to: { type: 'crawler', id: crawler.id },
           type: 'pilot-to-crawler',
-          createdAt: new Date().toISOString(),
+          createdAt: FIXTURE_NOW,
         },
       ],
     }

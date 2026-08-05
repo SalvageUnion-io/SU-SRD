@@ -1,8 +1,7 @@
 import type { Story } from '@ladle/react'
-import { AboutScreen } from './AboutScreen'
-
 import aboutMd from '../../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../../LLM_STATEMENT.md?raw'
+import { AboutScreen } from './AboutScreen'
 
 export default {
   title: 'Compositions/About Screen',

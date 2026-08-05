@@ -151,9 +151,8 @@
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether this entity is only available on the black market"
       },
       "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
@@ -385,11 +384,6 @@
                   "type": "string",
                   "minLength": 1,
                   "description": "Display name for this choice"
-                },
-                "choiceType": {
-                  "type": "string",
-                  "enum": ["permanent", "session", "freeform"],
-                  "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
                 },
                 "content": {
                   "type": "array",
@@ -1424,7 +1418,7 @@
         "description": "Rule mutations applied by this crawler type"
       }
     },
-    "required": ["id", "blackMarket", "name", "source", "page", "npc", "actions"],
+    "required": ["id", "name", "source", "page", "npc", "actions"],
     "additionalProperties": false,
     "description": "Union Crawler mobile bases"
   }

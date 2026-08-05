@@ -6,14 +6,13 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
+import type { PublishedSnapshot } from '../publishedSnapshots'
 import {
   listPublishedSnapshots,
   listPublishedSnapshotsFor,
   recordPublishedSnapshot,
   removePublishedSnapshot,
 } from '../publishedSnapshots'
-import type { PublishedSnapshot } from '../publishedSnapshots'
 
 function entry(overrides: Partial<PublishedSnapshot> = {}): PublishedSnapshot {
   return {

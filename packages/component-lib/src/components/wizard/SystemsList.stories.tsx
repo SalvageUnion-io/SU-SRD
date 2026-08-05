@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefSystem } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { SystemsList } from './SystemsList'
 

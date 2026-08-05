@@ -45,28 +45,37 @@
  * every edit affordance (published snapshots).
  */
 
-import { useState } from 'react'
+import {
+  Badge,
+  ConditionsEditor,
+  EmptyState,
+  EntityGridRow,
+  EntitySearcher,
+  MasonryColumns,
+  Panel,
+  SectionManageButton,
+  SheetHero,
+  SheetPickerModal,
+  SheetSectionSlab,
+  Slab,
+  Stat,
+  VitalGauge,
+} from 'component-lib'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Badge, Panel, SheetHero, Stat, VitalGauge } from 'component-lib'
-
-import type { Pilot } from '../../lib/schemas/pilot'
 import { pilotMaxAP } from '../../lib/rules/derivedStats'
-import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
-import { EntitySearcher } from 'component-lib'
-import { ConditionsEditor } from 'component-lib'
-import { EntityGridRow, MasonryColumns } from 'component-lib'
+import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { PartnerCard } from './PartnerCard'
 import { PilotIdentityPanel } from './PilotIdentity'
-import { SectionManageButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionSlab, Slab } from 'component-lib'
 import {
   GenericEntryAdder,
   GenericEntryCard,
   PilotAbilityItem,
   PilotEquipmentItem,
 } from './PilotSheetItems'
-import { PartnerCard } from './PartnerCard'
 import { pinOrUndef, usePilotSheetActions } from './pilotSheetActions'
 import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
 
@@ -179,7 +188,7 @@ export function PilotSheet({
       {model.dead && (
         <div
           role="alert"
-          className="rounded-[3px] border-entity border-status-bad bg-paper px-4 py-3"
+          className="rounded-card border-entity border-status-bad bg-paper px-4 py-3"
         >
           <p className="m-0 font-cond text-lg font-bold uppercase tracking-caps text-status-bad">
             Killed in Action
@@ -299,7 +308,7 @@ export function PilotSheet({
         }
       >
         {pilot.abilities.length === 0 && model.genericAbilities.length === 0 ? (
-          <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
+          <EmptyState variant="quiet" body="No abilities learned yet." />
         ) : (
           <div className="flex flex-col gap-5">
             {model.genericAbilities.length > 0 && (
@@ -364,7 +373,7 @@ export function PilotSheet({
         }
       >
         {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
-          <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
+          <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
           <MasonryColumns maxColumns={2}>
             {model.ordinaryEquipment.map((slug) => (

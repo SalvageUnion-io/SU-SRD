@@ -8,13 +8,13 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import type { FindRollTable } from '../../../lib/rules/mediatorTables'
 import type { EncounterNpc } from '../../../lib/schemas/encounterNpc'
 import { useEncounterStore } from '../../../stores/encounterStore'
-import { EncounterNpcCard } from '../EncounterNpcCard'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { must } from '../../__tests__/must'
+import { EncounterNpcCard } from '../EncounterNpcCard'
 
 const FAKE_TABLES: Record<string, { table: Record<string, unknown> }> = {
   Morale: {
@@ -136,7 +136,7 @@ describe('EncounterNpcCard — Mediator rolls', () => {
         roll: 20,
         label: 'Fight to the Death',
         value: 'They never retreat.',
-        rolledAt: new Date().toISOString(),
+        rolledAt: FIXTURE_NOW,
       },
     })
     render(<EncounterNpcCard npc={npc} store={useEncounterStore} findTable={findTable} />)

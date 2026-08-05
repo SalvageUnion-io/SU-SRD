@@ -18,18 +18,21 @@
  */
 
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
 import type {
   EntitySchemaName,
   SchemaToEntityMap,
   SURefEnumSchemaName,
 } from 'salvageunion-reference'
-import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
+import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
+import type { TechLevel } from 'salvageunion-reference/rules'
+import { matchesRef } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
-import { FOCUS_WITHIN } from '../chrome/interaction'
 import { Badge } from '../chrome/Badge'
-import { Panel } from '../chrome/Panel'
+import { BandTitle } from '../chrome/BandTitle'
 import { Button } from '../chrome/Button'
+import { FOCUS_WITHIN } from '../chrome/interaction'
+import { PageHeading } from '../chrome/PageHeading'
+import { Panel } from '../chrome/Panel'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { statBlockRowStarts } from '../stat/pipRows'
 import { Card } from './Card'
@@ -110,13 +113,6 @@ type EntitySearcherProps = {
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
-/** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
-function tlRank(tl: TechLevelLike): number {
-  if (tl === 'B') return 7
-  if (tl === 'N') return 8
-  return tl
-}
-
 function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'
 }
@@ -156,7 +152,8 @@ export function EntitySearcher({
     return [...items].sort((a, b) => {
       const ta = a.techLevel
       const tb = b.techLevel
-      if (ta !== undefined && tb !== undefined && ta !== tb) return tlRank(ta) - tlRank(tb)
+      if (ta !== undefined && tb !== undefined && ta !== tb)
+        return techLevelRank(ta) - techLevelRank(tb)
       return a.name.localeCompare(b.name)
     })
   }, [schema, filter])
@@ -436,18 +433,17 @@ export function EntitySearcher({
         bodyPadding="p-0"
         headerContent={
           <div className="flex w-full items-center gap-3">
-            <span className="min-w-0 flex-1 truncate font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
-              {title}
-            </span>
+            <BandTitle>{title}</BandTitle>
             {onClose && (
-              <button
-                type="button"
+              <Button
+                variant="default"
+                size="iconOnly"
                 onClick={onClose}
                 aria-label="Close"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-ink-8"
+                className="rounded-badge font-cond font-bold"
               >
                 ✕
-              </button>
+              </Button>
             )}
           </div>
         }
@@ -559,7 +555,7 @@ function SelectionRail({
 
   return (
     <Panel className={cn('self-start px-4 py-4', className)}>
-      <h2 className="font-cond text-sm font-bold uppercase tracking-caps text-ink">
+      <PageHeading variant="section" as="h2" className="text-ink">
         {name ? (
           <>
             {chosenLabel} · <span className="text-ink-75">{name}</span>
@@ -569,7 +565,7 @@ function SelectionRail({
             {chosenLabel} <span className="text-ink-75">{count}</span>
           </>
         )}
-      </h2>
+      </PageHeading>
 
       {budgets.length > 0 && (
         <div className="mt-3 space-y-3">

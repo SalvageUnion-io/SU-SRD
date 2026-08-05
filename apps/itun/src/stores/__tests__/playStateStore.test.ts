@@ -6,7 +6,6 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
-
 import { usePlayStateStore } from '../playStateStore'
 
 describe('playStateStore', () => {

@@ -10,9 +10,9 @@
  * - After preload, all ORM methods work synchronously as before
  */
 
-import { describe, expect, it, beforeEach, afterAll } from 'bun:test'
-import { SalvageUnionReference, resetAllForTesting } from './index.js'
+import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
 import { BaseModel } from './BaseModel.js'
+import { resetAllForTesting, SalvageUnionReference } from './index.js'
 
 // After all preload tests complete, restore the global preload state so
 // other test files that run after this one see loaded schemas.

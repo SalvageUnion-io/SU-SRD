@@ -25,19 +25,18 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { PilotSheet } from '../PilotSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { PilotSheet } from '../PilotSheet'
 
 const SNIPER_NAME = 'Custom Sniper Rifle'
 let SNIPER_ID = ''
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   const sniper = SalvageUnionReference.Equipment.all().find((e) => e.name === SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
@@ -52,36 +51,22 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 function makePilot(overrides?: Partial<Pilot>): Pilot {
-  return {
+  return pilotFixture({
     id: 'pilot-crawler-level-1',
-    schemaVersion: 1,
     name: 'Zara Quinn',
     callsign: 'Hex',
-    classRef: 'scavenger',
-    abilities: [],
     equipment: [SNIPER_ID],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    background: '',
-    conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  })
 }
 
 function makeCrawler(overrides?: Partial<Crawler>): Crawler {
-  return {
+  return crawlerFixture({
     id: 'crawler-1',
-    schemaVersion: 1,
     name: 'The Wanderer',
     techLevel: 'tech-3',
-    systems: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  })
 }
 
 /**
@@ -130,7 +115,7 @@ function pilotToCrawlerLink(pilotId: string, crawlerId: string): SoftLink {
     from: { type: 'pilot', id: pilotId },
     to: { type: 'crawler', id: crawlerId },
     type: 'pilot-to-crawler',
-    createdAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
   }
 }
 

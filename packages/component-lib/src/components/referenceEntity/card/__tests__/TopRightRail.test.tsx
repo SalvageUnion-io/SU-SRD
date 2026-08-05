@@ -9,7 +9,7 @@
  * relationship instead: a common flex-row parent, and no stray absolute
  * positioning on the individual cells.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -19,10 +19,6 @@ const equipment = () => {
   if (!found) throw new Error('no equipment in fixtures')
   return found
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 /**
  * The rail itself — the one absolutely-positioned flex row. Cells sit at

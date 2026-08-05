@@ -4,35 +4,36 @@
 
 import { z } from '../zod.js'
 import {
-  BaseEntitySchema,
-  ContributionSchema,
-  ContentSchema,
-  PatternSchema,
-  NpcSchema,
-  TableSchema,
-  ChoicesSchema,
-  GrantSchema,
-  ActionSchema,
-  FormationMechSchema,
-  TraitSchema,
-  SystemModuleSchema,
-  ChassisStatsSchema,
-  StatsSchema,
-  CombatEntitySchema,
-  MechanicalEntitySchema,
-  AdvancedClassSchema,
-  GuideStepSchema,
-  GuideTypeSchema,
-  CrawlerMutationSchema,
-} from './objects.js'
-import { TreeSchema, ActionTypeSchema, DamageTypeSchema, SchemaNameSchema } from './enums.js'
-import {
   IdSchema,
   NameSchema,
   NonNegativeIntegerSchema,
   PositiveIntegerSchema,
   TechLevelSchema,
 } from './common.js'
+import { ActionTypeSchema, DamageTypeSchema, SchemaNameSchema, TreeSchema } from './enums.js'
+import {
+  ActionSchema,
+  AdvancedClassSchema,
+  BaseEntitySchema,
+  ChassisStatsSchema,
+  ChoicesSchema,
+  CombatEntitySchema,
+  ContentSchema,
+  ContributionSchema,
+  CrawlerMutationSchema,
+  FormationMechSchema,
+  GrantSchema,
+  GuideStepSchema,
+  GuideTypeSchema,
+  MechanicalEntitySchema,
+  NpcSchema,
+  PatternSchema,
+  StatsSchema,
+  StructurePointsSchema,
+  SystemModuleSchema,
+  TableSchema,
+  TraitSchema,
+} from './objects.js'
 
 /**
  * Ability level can be number 1-3 or 'L' (Legendary) or 'G' (Generic)
@@ -96,7 +97,7 @@ export const MetaActionSchema = ActionSchema.describe(
  * Structure Points (derived at the display layer).
  */
 export const BioTitanSchema = BaseEntitySchema.extend({
-  structurePoints: PositiveIntegerSchema.describe('Structure points of this bio-titan'),
+  structurePoints: StructurePointsSchema.describe('Structure points of this bio-titan'),
   actions: z.array(z.string()).describe('Action names this bio-titan can perform'),
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
 })
@@ -200,7 +201,7 @@ export const CrawlerBaySchema = BaseEntitySchema.extend({
  */
 export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
   techLevel: z.number().int().positive().describe('Tech level (1-6)'),
-  structurePoints: z.number().int().nonnegative().describe('Structure points at this tech level'),
+  structurePoints: StructurePointsSchema.describe('Structure points at this tech level'),
   upkeepCost: z
     .number()
     .int()
@@ -350,12 +351,9 @@ export const MeldSchema = BaseEntitySchema.extend({
   traits: z.array(TraitSchema).describe('Traits and special properties').optional(),
   salvageValue: z.number().int().nonnegative().describe('Scrap value when salvaged').optional(),
   hitPoints: z.number().int().nonnegative().describe('Hit points of this meld creature').optional(),
-  structurePoints: z
-    .number()
-    .int()
-    .positive()
-    .describe('Structure points of this meld creature')
-    .optional(),
+  structurePoints: StructurePointsSchema.describe(
+    'Structure points of this meld creature'
+  ).optional(),
 })
   .strict()
   .describe('Meld-infected creatures')

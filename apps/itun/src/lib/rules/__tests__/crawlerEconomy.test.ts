@@ -7,18 +7,15 @@
  * (crawler-tech-levels.json); everything else is pure arithmetic on
  * hand-crafted pools. The d20 / random-Bay pick is injected.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import type { Roll } from '../heatCheck'
+import { describe, expect, it } from 'bun:test'
+import type { ScrapPool } from '../../schemas/crawler'
 import {
-  DETERIORATION_SP_LOSS,
-  UPKEEP_SCRAP,
   bayGate,
   contributeToUpgradePool,
-  convertScrap,
   convertedCount,
+  convertScrap,
   crawlerUpgradeQuote,
+  DETERIORATION_SP_LOSS,
   deteriorationOutcome,
   drawFromPool,
   exchangeStep,
@@ -28,13 +25,10 @@ import {
   poolAvailableAtOrAbove,
   tradingAvailability,
   tradingSourceTl,
+  UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../crawlerEconomy'
-import type { ScrapPool } from '../../schemas/crawler'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['crawler-tech-levels', 'crawler-bays'])
-})
+import type { Roll } from '../heatCheck'
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */
 function seqRoll(...values: number[]): Roll {

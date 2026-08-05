@@ -12,14 +12,13 @@
  *   className  — optional class override for the trigger button
  */
 
-import { useState } from 'react'
 import { Button, FieldError, ModalShell, Radio } from 'component-lib'
-
+import { useState } from 'react'
 import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { cn } from '../../lib/utils'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
-import { cn } from '../../lib/utils'
 
 /** Extended injectable store that also exposes pilot listing. */
 export type AssignPilotStore = SoftLinkStore & {

@@ -1,6 +1,6 @@
-import { forwardRef } from 'react'
-import type { InputHTMLAttributes } from 'react'
 import { Search } from 'lucide-react'
+import type { InputHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 import { FOCUS_WITHIN } from '../chrome/interaction'
 
@@ -31,7 +31,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2',
+        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-wk-muted',
         FOCUS_WITHIN,
         containerClassName
       )}
@@ -45,7 +45,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       <input
         ref={ref}
         className={cn(
-          'w-full bg-transparent text-ink placeholder:text-ink-2 focus:outline-none',
+          'w-full bg-transparent text-ink placeholder:text-wk-muted focus:outline-none',
           className
         )}
         {...inputProps}

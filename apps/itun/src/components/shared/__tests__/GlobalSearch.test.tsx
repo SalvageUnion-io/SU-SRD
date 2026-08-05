@@ -1,29 +1,23 @@
 /**
  * GlobalSearch tests (reference search, report item P-2).
  *
- * Runs against the real salvageunion-reference dataset (preloaded in
- * beforeAll, same pattern as the sheet tests) so search behaviour stays
+ * Runs against the real salvageunion-reference dataset (preloaded via
+ * bunfig.toml, same as every other workspace) so search behaviour stays
  * honest — "iron wyrm" is a known-stable chassis name in the dataset.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injection over
- * mock.module(); async debounce driven inside act() so state lands cleanly.
+ * mock.module(); the debounce is driven with fake timers inside act() rather
+ * than slept through, so state lands cleanly and no real time is burned.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { useState } from 'react'
+import { describe, expect, jest, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { GlobalSearch } from '../GlobalSearch'
+import { useState } from 'react'
 import { must } from '../../__tests__/must'
+import { GlobalSearch } from '../GlobalSearch'
 
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
-
-afterEach(() => {
-  cleanup()
-})
+/** `useSearchCombobox`'s own `debounceMs` default. */
+const DEBOUNCE_MS = 150
 
 /** Stateful harness so onOpenChange actually closes/opens the dialog. */
 // biome-ignore lint/style/useComponentExportOnlyModules: test-local harness component; Fast Refresh does not apply to test files
@@ -32,13 +26,24 @@ function Harness({ initialOpen = true }: { initialOpen?: boolean }) {
   return <GlobalSearch open={open} onOpenChange={setOpen} />
 }
 
-/** Type a query and let the 150ms debounce fire inside act(). */
+/**
+ * Type a query and drive the debounce out inside act().
+ *
+ * Fake timers are scoped to this helper rather than the whole file on purpose:
+ * RTL's `waitFor` polls on a real interval, so leaving timers faked for a test
+ * that calls it hangs the suite.
+ */
 async function typeQuery(value: string) {
   const input = screen.getByRole('combobox', { name: 'Search the SRD' })
-  fireEvent.change(input, { target: { value } })
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 200))
-  })
+  jest.useFakeTimers()
+  try {
+    fireEvent.change(input, { target: { value } })
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_MS)
+    })
+  } finally {
+    jest.useRealTimers()
+  }
   return input
 }
 

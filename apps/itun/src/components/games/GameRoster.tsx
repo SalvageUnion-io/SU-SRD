@@ -37,11 +37,7 @@
  * somebody else's table.
  */
 
-import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { Bot, UserRound, Warehouse } from 'lucide-react'
-import { useMutation, useQuery } from 'convex/react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   Badge,
   Button,
@@ -49,30 +45,28 @@ import {
   EmptyState,
   EntityRow,
   ModalShell,
+  PageHeading,
   Text,
 } from 'component-lib'
-
+import { useMutation, useQuery } from 'convex/react'
+import { Bot, UserRound, Warehouse } from 'lucide-react'
+import { useState } from 'react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/queries'
 import { resolveClassName } from '../../lib/classRef'
-import {
-  crawlerRows,
-  ownableRows,
-  tableCapabilities,
-  type RosterRow,
-  type RosterKind,
-} from '../../lib/games/gameRoster'
+import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
+import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { cn } from '../../lib/utils'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
-import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
-import { SECTION } from './gameChrome'
 
 type GameRosterProps = {
   gameId: string
@@ -385,9 +379,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
               h1 (Game) → h2 (the crew, the panels) → h3 (Pilots / Mechs /
               Crawlers); as a div it skipped a level and left the columns
               parented by nothing. */}
-          <Text as="h2" className={SECTION}>
-            {gameName ?? 'The crew'}
-          </Text>
+          <PageHeading variant="subheading">{gameName ?? 'The crew'}</PageHeading>
           <Text variant="hint" className="text-left">
             {caps.tableRunner
               ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
@@ -425,9 +417,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             return (
               <div key={column.kind}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="font-cond text-base font-bold uppercase tracking-widest text-rust">
+                  <PageHeading variant="section" as="h3" className="text-rust">
                     {column.title}
-                  </h3>
+                  </PageHeading>
                   {mayCreate && columnRows.length > 0 && (
                     <AppLink
                       href={column.createHref}

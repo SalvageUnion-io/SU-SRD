@@ -1,11 +1,11 @@
+import { Tooltip } from '@base-ui/react/tooltip'
 import type { ReactNode } from 'react'
 import { useContext } from 'react'
-import { SalvageUnionReference, isKeyword } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { Tooltip } from '@base-ui/react/tooltip'
-import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import { isKeyword, SalvageUnionReference } from 'salvageunion-reference'
 import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 
 type EntityTooltipBase = {
   schemaName: SURefEnumSchemaName

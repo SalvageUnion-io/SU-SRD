@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-
-import { parseImportBundle } from '../parseImportBundle'
 import { assignContainers, withContainer } from '../legacyContainers'
+import { parseImportBundle } from '../parseImportBundle'
 
 /** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
 const DEFAULT_WORKSPACE_ID = 'default-workspace'

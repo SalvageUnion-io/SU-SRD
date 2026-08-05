@@ -1,9 +1,9 @@
-import { useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../../utils/cn'
+import type { StatItem } from '../../shared/statsBarTypes'
 import { accentSurface } from '../referenceEntityHelpers'
 import { EntityCardStatBox } from './EntityCardStatBox'
-import type { StatItem } from '../../shared/statsBarTypes'
 
 type EntityCardHeaderProps = {
   title: string

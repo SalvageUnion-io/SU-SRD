@@ -7,11 +7,10 @@
  * updating toast instead of stacking one per write.
  */
 
-import { useEffect } from 'react'
 import { toast } from 'component-lib'
-
-import { getBackupNudgeState, subscribeBackupNudge } from '../../lib/backupNudge'
+import { useEffect } from 'react'
 import type { BackupNudgeState } from '../../lib/backupNudge'
+import { getBackupNudgeState, subscribeBackupNudge } from '../../lib/backupNudge'
 
 const BACKUP_NUDGE_TOAST_ID = 'backup-nudge'
 

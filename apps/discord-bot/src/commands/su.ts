@@ -14,12 +14,11 @@
  */
 
 import { SlashCommandBuilder } from 'discord.js'
-
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { gamesCommand, meCommand, shelfCommand } from './account.js'
 import { checkCommand } from './check.js'
 import { crewCommand, sheetCommand } from './crew.js'
 import { gameCommand } from './game.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { lookupCommand } from './lookup.js'
 import { rollCommand } from './roll.js'
 

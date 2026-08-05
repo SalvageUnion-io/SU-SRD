@@ -1,5 +1,5 @@
-import { Stat } from '../shared/Stat'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
+import { Stat } from '../shared/Stat'
 
 /**
  * Step 1 · Gain Scrap (Mech Workshop p.94) — display-only briefing step. You

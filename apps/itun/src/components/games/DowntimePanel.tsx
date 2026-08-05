@@ -1,9 +1,7 @@
-import { Button, Card, Text } from 'component-lib'
+import { Badge, Button, Card, PageHeading, Row, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { PANEL_TITLE, PANEL_TONE, ROW, STAMP } from './gameChrome'
 
 /**
  * Crew-wide Downtime (Phase 5).
@@ -35,7 +33,14 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
   if (state === undefined) return null
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Downtime</h2>}>
+    <Card
+      headerBg="bg-ink"
+      headerContent={
+        <Badge shape="stamp" as="h2" size="full">
+          Downtime
+        </Badge>
+      }
+    >
       <div className="flex flex-col gap-3 p-4">
         {!state.running && (
           <>
@@ -54,22 +59,22 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
 
         {state.running && (
           <>
-            <div className={ROW}>
-              <Text as="span">Step {(state.stepIndex ?? 0) + 1}</Text>
-              <Text as="span" variant="hint">
-                {state.upkeepSpent ? 'Upkeep paid' : 'Upkeep outstanding'}
-              </Text>
-            </div>
+            <Row
+              name={`Step ${(state.stepIndex ?? 0) + 1}`}
+              actions={
+                <Text as="span" variant="hint">
+                  {state.upkeepSpent ? 'Upkeep paid' : 'Upkeep outstanding'}
+                </Text>
+              }
+            />
 
-            <div>
-              <Text as="span" className={STAMP}>
+            <div className="flex flex-col gap-1.5">
+              <PageHeading variant="section" as="h3">
                 Finished this step
-              </Text>
+              </PageHeading>
               {state.completedBy.length === 0 && <Text variant="hint">Nobody yet.</Text>}
               {state.completedBy.map((c) => (
-                <div key={c.userId} className={ROW}>
-                  <Text as="span">{c.displayName}</Text>
-                </div>
+                <Row key={c.userId} name={c.displayName} />
               ))}
             </div>
 

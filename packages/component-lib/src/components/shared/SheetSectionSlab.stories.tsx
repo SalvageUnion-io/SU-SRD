@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { EntityGridRow } from './EntityGrid'

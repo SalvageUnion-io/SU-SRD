@@ -1,5 +1,5 @@
-import { getEntitySlug } from 'salvageunion-reference'
 import type { EntityHrefBuilder } from 'component-lib'
+import { getEntitySlug } from 'salvageunion-reference'
 
 /**
  * THE srd route grammar. Every internal link to a schema listing, an entity show

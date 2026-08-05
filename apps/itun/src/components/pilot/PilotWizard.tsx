@@ -1,49 +1,51 @@
+import type { RollTableDeps, StepRule } from 'component-lib'
+import {
+  BackgroundStep,
+  Banner,
+  CallsignStep,
+  ClassAbilityStep,
+  EquipmentStep,
+  FlavorStep,
+  OffRulesEscape,
+  RuleBrief,
+  toast,
+  WizShell,
+  WizTracker,
+} from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   enrichPilotSnapshot,
   evaluatePilotWarnings,
   isLegalCreationAbility,
 } from 'salvageunion-reference/rules'
-import { toast } from 'component-lib'
 import { usePilot } from '../../hooks/queries'
-import { PilotSchema } from '../../lib/schemas/pilot'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
-import {
-  EMPTY_PILOT_FORM_STATE,
-  pilotFormToCreateInput,
-  pilotFormToUpdatePatch,
-} from '../../lib/wizard/pilotFormState'
-import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
-import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import type { PilotWizardStepId, StepGateResult } from '../../lib/rules/creation'
+import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
 } from '../../lib/rules/derivedStats'
-import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
-import { Banner } from 'component-lib'
-import { OffRulesEscape } from 'component-lib'
-import { RuleBrief } from 'component-lib'
-import type { StepRule } from 'component-lib'
-import { WizShell, WizTracker } from 'component-lib'
-import { BackgroundStep } from 'component-lib'
-import { CallsignStep } from 'component-lib'
-import { ClassAbilityStep } from 'component-lib'
-import { EquipmentStep } from 'component-lib'
-import { FlavorStep } from 'component-lib'
-import { useWizardFlow } from '../wizard/useWizardFlow'
-import { ReviewStep } from './ReviewStep'
-import { StatsStep } from './StatsStep'
-import type { RollTableDeps } from 'component-lib'
+import { PilotSchema } from '../../lib/schemas/pilot'
+import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
+import {
+  EMPTY_PILOT_FORM_STATE,
+  pilotFormToCreateInput,
+  pilotFormToUpdatePatch,
+} from '../../lib/wizard/pilotFormState'
 import {
   clearWizardDraft,
   readWizardDraft,
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
+import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
+import { useWizardFlow } from '../wizard/useWizardFlow'
+import { ReviewStep } from './ReviewStep'
+import { StatsStep } from './StatsStep'
 
 /**
  * Book-order steps (Pilot Bay pp.18–19 + Review — plan §4.1). Edit mode

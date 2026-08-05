@@ -16,5 +16,11 @@
     "declarationMap": false,
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*", "test/**/*", "netlify/**/*", "vite.config.ts"]
+  // `convex/**/*` was absent until now, so the entire Convex backend — auth,
+  // ownership, games, invites, proposals, schema and the bot HTTP seam, i.e.
+  // the server of record for accounts (ADR-030) — was type-checked by NOTHING:
+  // not `bun run typecheck`, not CI, not pre-push. knip already claimed the
+  // directory and Biome already linted it, so three tools disagreed about
+  // whether it belonged to this workspace. A type error there merged green.
+  "include": ["src/**/*", "test/**/*", "netlify/**/*", "convex/**/*", "vite.config.ts"]
 }

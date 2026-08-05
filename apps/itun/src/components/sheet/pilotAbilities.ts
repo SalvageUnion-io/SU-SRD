@@ -4,9 +4,8 @@
  * seeded pilots that store kebab ability slugs still resolve.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
 
 /** Resolve a stored ability ref (slug, id, or name) to its SRD entity. */

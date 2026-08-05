@@ -15,8 +15,8 @@
  * there (and from the package barrel).
  */
 
-import type { SURefMetaEntity } from './types/index.js'
 import { getTraits } from './actionResolution.js'
+import type { SURefMetaEntity } from './types/index.js'
 
 /**
  * Get the number of inventory slots an equipment entity occupies.

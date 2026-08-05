@@ -158,10 +158,9 @@ export declare class LazyModel<T> extends BaseModel<T> {
  * — run `bun run build:package` to regenerate after editing the manifest.
  */
 import { BaseModel } from './BaseModel.js';
+import { schemaDisplayNames, zodSchemaMap } from './generated/modelFactoryRegistry.generated.js';
 import { toPascalCase } from './naming.js';
-import { zodSchemaMap, schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js';
-export { toPascalCase };
-export { zodSchemaMap, schemaDisplayNames };
+export { schemaDisplayNames, toPascalCase, zodSchemaMap };
 /**
  * Returns true if the given schema ID has been loaded via preload().
  */
@@ -255,7 +254,7 @@ export declare function getSchemaCatalog(): {
  * there (and from the package barrel), so this is an internal home, not a new
  * public surface.
  */
-import type { SURefMetaEntity, SURefMetaAction, SURefObjectTable, SURefObjectTrait, SURefObjectChoice, SURefObjectActionOptions } from './types/index.js';
+import type { SURefMetaAction, SURefMetaEntity, SURefObjectActionOptions, SURefObjectChoice, SURefObjectTable, SURefObjectTrait } from './types/index.js';
 /** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
 export declare function invalidateActionMap(): void;
 /**
@@ -335,7 +334,14 @@ export {};
 //# sourceMappingURL=actionResolution.d.ts.map
 // === lib/assets.d.ts ===
 /**
- * Artwork URL derivation.
+ * URL derivation for the two hosts the dataset addresses: the artwork CDN
+ * (`assets.salvageunion.io`) and the public reference site
+ * (`salvageunion.io`).
+ *
+ * Both bases live here for the same reason: an entity's artwork URL and its
+ * reference-site page are DERIVED from the dataset (schema name + slug), so
+ * the grammar belongs with the dataset rather than being retyped by every
+ * surface that links out.
  *
  * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
  * there (and from the package barrel), so this is an internal home, not a new
@@ -360,6 +366,39 @@ export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 export declare function getAssetUrl(entity: SURefMetaEntity): string | undefined;
+/**
+ * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
+ * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
+ * the site's own canonical/OG tags — is this base plus {@link srdEntityPath},
+ * so the host is named once here rather than retyped per surface.
+ */
+export declare const SRD_SITE_URL = "https://salvageunion.io";
+/**
+ * The reference site's ROOT-RELATIVE path for one entity's page.
+ *
+ * This is the site's route grammar (`/schema/{schemaName}/item/{slug}` — it
+ * matches the srd `getStaticPaths`), expressed once. The srd site itself wants
+ * the relative form (it is that origin); anything linking in from outside
+ * prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
+ *
+ * Takes the SLUG rather than the entity, because callers arrive with either —
+ * a resolved entity (slug it with `getEntitySlug`) or a bare name already run
+ * through `nameToSlug` (the bot's trait/table/drone links).
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The root-relative page path
+ */
+export declare function srdEntityPath(schemaName: string, slug: string): string;
+/**
+ * The reference site's ABSOLUTE URL for one entity's page —
+ * {@link SRD_SITE_URL} + {@link srdEntityPath}.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The absolute page URL
+ */
+export declare function srdEntityUrl(schemaName: string, slug: string): string;
 //# sourceMappingURL=assets.d.ts.map
 // === lib/contentBlockHelpers.d.ts ===
 /**
@@ -595,8 +634,7 @@ export declare function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] |
  * there (and from the package barrel), so this is an internal home, not a new
  * public surface.
  */
-import type { SURefEntity, SURefMetaEntity } from './types/index.js';
-import type { SURefAbility, SURefClass, SURefKeyword, SURefObjectAdvancedClass } from './types/index.js';
+import type { SURefAbility, SURefClass, SURefEntity, SURefKeyword, SURefMetaEntity, SURefObjectAdvancedClass } from './types/index.js';
 /**
  * Type guard to distinguish SURefEntity (structured data with id/name/source/page)
  * from SURefMetaAction or other object types (which lack these fields)
@@ -824,9 +862,9 @@ export declare const SCHEMA_REGISTRY: {
  * Helper functions for common operations on Salvage Union reference data
  * These functions provide convenient access patterns used by consuming applications
  */
-import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
 import type { ModelWithMetadata } from './BaseModel.js';
-import { type EnhancedSchemaMetadata } from './ModelFactory.js';
+import type { EnhancedSchemaMetadata } from './ModelFactory.js';
+import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
@@ -899,6 +937,21 @@ export declare function resolveActivationCurrency(schemaName: SURefEnumSchemaNam
  * @returns Array of entity schema metadata
  */
 export declare function getEntitySchemas(): EnhancedSchemaMetadata[];
+/**
+ * Sort rank for a Tech Level: the numeric tiers 1–6 keep their own value, then
+ * Bio ('B') at 7 and Nanite ('N') at 8.
+ *
+ * This ordering is a property of the game's TAXONOMY, not of any one widget, so
+ * it lives here and every sorter composes it (`techLevelRank(a) -
+ * techLevelRank(b)`) rather than re-deriving it. A missing Tech Level ranks
+ * last — an entity with no TL has no place among the tiers, and Infinity keeps
+ * it out of the way of both the numeric run and B/N without inventing a tier
+ * for it.
+ *
+ * @param techLevel - A Tech Level (as returned by `getTechLevel`), or undefined
+ * @returns The sort rank
+ */
+export declare function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number;
 /**
  * Get unique tech levels from an array of entities, sorted correctly
  * Numeric levels ascending, then 'B', then 'N'
@@ -986,21 +1039,22 @@ export declare function extractStaticEntitySummary(entity: SURefEntity): StaticE
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 import type { ModelWithMetadata } from './BaseModel.js';
-import { SCHEMA_REGISTRY, type SchemaToEntityMap, type EntitySchemaName } from './generated/schemaRegistry.generated.js';
-import type { SURefMetaAction, SURefEntity, SURefMetaEntity, SURefEnumSchemaName } from './types/index.js';
+import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js';
+import { SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js';
+import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from './types/index.js';
 export { BaseModel, type ModelWithMetadata } from './BaseModel.js';
-export { getDataMaps, getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js';
-export { resultForTable, resultForColumnsTable, isColumnsTable, type TableRollResult, type ColumnsTableRollResult, } from './utils/resultForTable.js';
-export { rollOnTable, type RollOnTableOutcome, type D20Roller } from './rollOnTable.js';
-export * from './utilities.js';
+export { parseContentBlockString, replaceChassisPlaceholder, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
 export * from './helpers.js';
-export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js';
-export { replaceChassisPlaceholder, parseContentBlockString, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
-export { search, searchIn, getSuggestions, invalidateSearchIndex, type SearchOptions, type SearchResult, isSchemaName, extractContentText, withinEditDistance1, TYPO_MIN_TOKEN_LENGTH, } from './search.js';
-export { resolveChoiceView, type ChoiceSelections, type ChoicePrompt, type ResolvedChoiceView, } from './resolveChoiceView.js';
-import { type SearchOptions, type SearchResult } from './search.js';
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js';
+export { type ChoicePrompt, type ChoiceSelections, type ResolvedChoiceView, resolveChoiceView, } from './resolveChoiceView.js';
+export { type D20Roller, type RollOnTableOutcome, rollOnTable } from './rollOnTable.js';
+export { extractContentText, getSuggestions, invalidateSearchIndex, isSchemaName, type SearchOptions, type SearchResult, search, searchIn, TYPO_MIN_TOKEN_LENGTH, withinEditDistance1, } from './search.js';
+export { findEntityBySlug, getEntitySlug, nameToSlug } from './slug.js';
+export * from './utilities.js';
+export { type ColumnsTableRollResult, isColumnsTable, resultForColumnsTable, resultForTable, type TableRollResult, } from './utils/resultForTable.js';
+import type { SearchOptions, SearchResult } from './search.js';
 export type * from './types/index.js';
-export type { SchemaToEntityMap, EntitySchemaName };
+export type { EntitySchemaName, SchemaToEntityMap };
 export declare const EntitySchemaNames: Set<keyof SchemaToEntityMap>;
 export declare const SchemaToModelMap: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["model"]; };
 export declare const SchemaToDisplayName: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["display"]; };
@@ -1075,6 +1129,22 @@ export declare class SalvageUnionReference {
      * Get an entity by schema name and ID (O(1) via ID map)
      */
     static get<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): (SchemaToEntityMap[T] & {
+        schemaName: T;
+    }) | undefined;
+    /**
+     * Get an entity by schema name and exact `name` (O(1) via the name index).
+     *
+     * The name-addressed sibling of {@link get}. It exists because a caller
+     * holding a SCHEMA ID rather than a static model (`findIn('chassis', …)`,
+     * anything driven by data) previously had no indexed option at all, and so
+     * reached for `findIn(schema, (e) => e.name === x)` — a full linear scan, and
+     * the single largest source of the pattern `CLAUDE.md` bans. Exactly
+     * equivalent to that predicate, including first-writer-wins on duplicates.
+     *
+     * The slug axis already had its schema-id-holding accessor —
+     * `findEntityBySlug` (lib/slug.ts) — so only `name` was missing.
+     */
+    static getByNameIn<T extends keyof SchemaToEntityMap>(schemaName: T, name: string): (SchemaToEntityMap[T] & {
         schemaName: T;
     }) | undefined;
     /**
@@ -1344,7 +1414,7 @@ export declare const DEVIATIONS: Deviation[];
  * correctly. All 88 choices in the dataset were verified to resolve identically
  * across the switch.
  */
-import type { SURefObjectDataValue, SURefObjectTrait, SURefObjectContentBlock, SURefObjectChoice } from './schemas/index.js';
+import type { SURefObjectChoice, SURefObjectContentBlock, SURefObjectDataValue, SURefObjectTrait } from './schemas/index.js';
 /**
  * Selections keyed by choice id, each holding the selected option values.
  */
@@ -1946,8 +2016,7 @@ export declare function isCrawlerWeaponPickComplete(selectedCount: number): bool
  * consumer's Zod-inferred Pilot/Mech/Crawler types (e.g. ITUN's
  * `src/lib/schemas/`) satisfy them automatically.
  */
-import type { ActiveEffects } from './contributions.js';
-import type { ResolvedContribution } from './contributions.js';
+import type { ActiveEffects, ResolvedContribution } from './contributions.js';
 /**
  * Base pilot stats per the core rules (10 HP / 5 AP / 6 inventory slots).
  * These are NOT in the reference data — class records do not encode them —
@@ -2301,30 +2370,30 @@ export {};
  * crypto.randomUUID()) remain app-local in ITUN for now.
  */
 export { computeMechCapacity } from './capacity.js';
-export { PILOT_CREATION_ABILITY_PICKS, PILOT_CREATION_EQUIPMENT_PICKS, MECH_CREATION_SCRAP_CAP, CRAWLER_CREATION_TECH_LEVEL, CRAWLER_CREATION_MIN_WEAPONS, isLegalCreationClass, isLegalCreationAbility, legalCreationAbilities, isLegalCreationEquipment, isLegalCreationChassis, isLegalCreationSystem, isLegalCreationModule, isLegalCreationCrawlerWeapon, isLegalStartingPattern, legalStartingPatterns, mechCreationBudget, crawlerWeaponSlots, crawlerMaxSpBonus, isCrawlerWeaponPickComplete, pilotEquipmentPicksRemaining, isPilotAbilityPickComplete, isPilotEquipmentPickComplete, } from './creation.js';
-export type { CreationCoreTrees, CreationAbilityInput, CreationEquipmentInput, CreationPatternInput, CrawlerMutationInput, MechCreationBudget, MechCreationBudgetInput, MechCreationLoadoutEntry, } from './creation.js';
-export { enrichPilotSnapshot } from './pilotSnapshot.js';
-export { computeCrawlerCapacity } from './crawlerCapacity.js';
-export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
-export { evaluateSoftWarnings, evaluatePilotWarnings, evaluateMechWarnings, PILOT_ABILITY_CAP, SALVAGER_ABILITY_CAP, } from './softWarnings.js';
-export { isWeaponSystem } from './crawlerSystems.js';
-export { resolveCatalogChoiceEntities, isSchemaOnlyCatalogChoice, } from './choiceCatalog.js';
-export { matchesRef, resolveChassisRef, resolveSystemRef, resolveModuleRef, resolveInstalledRef, } from './resolveRefs.js';
-export { clampHeat, canActivateAction, reactorOverloadOutcome, performHeatCheck, performPush, } from './heatCheck.js';
-export { CORE_ROLL_BANDS, coreRollBand, performCoreRoll, describePushOutcome, describeOverloadOutcome, } from './coreMechanic.js';
-export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
-export { applySpDamage, mechEffectiveDamage, applyMechDamage, criticalDamageOutcome, performCriticalDamage, pilotEffectiveDamage, applyPilotDamage, criticalInjuryOutcome, performCriticalInjury, } from './takeDamage.js';
-export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
-export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, mechMaxSPParts, mechMaxEPParts, mechMaxHeatParts, mechMaxCargoParts, pilotMaxHPParts, pilotMaxAPParts, pilotMaxInventorySlots, pilotMaxInventorySlotsParts, clampCrawlerCurrentStats, } from './derivedStats.js';
-export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
-export { statesMechanicalChange } from './rulesBearing.js';
-export type { RulesClaim } from './rulesBearing.js';
+export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities, } from './choiceCatalog.js';
+export type { ContributionAmount, ContributionStat, ContributionTarget, DeclaredContribution, ResolvedContribution, } from './contributions.js';
 export { abilityContributions, resolveAmount, sumContributions, } from './contributions.js';
-export type { ContributionStat, ContributionTarget, ContributionAmount, DeclaredContribution, ResolvedContribution, } from './contributions.js';
-export { MEDIATOR_TABLE_NAMES, MEDIATOR_TABLE_LABEL, performMediatorRoll, describeMediatorRoll, } from './mediatorTables.js';
-export type { FindRollTable } from './mediatorTables.js';
-export type { TechLevel, SoftWarning, SoftWarningSeverity, SoftWarningContext, EditSnapshot, MechInput, MechSystemSlot, MechModuleSlot, MechCapacityResult, CapacityViolation, ScrapableItem, CargoItem, CargoItemRef, CargoItemCustom, CargoParent, CargoCapacityResult, CargoViolation, PilotSnapshot, MechSnapshot, AbilityInput, AbilityTier, SystemSnapshot, Roll, ReactorOverloadOutcome, HeatCheckResult, HeatCheckEffect, PushResult, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, MediatorTableId, MediatorRollResult, } from './types.js';
+export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
+export { CORE_ROLL_BANDS, coreRollBand, describeOverloadOutcome, describePushOutcome, performCoreRoll, } from './coreMechanic.js';
 export type { CrawlerCapacityInput, CrawlerCapacityResult, CrawlerCapacityViolation, } from './crawlerCapacity.js';
+export { computeCrawlerCapacity } from './crawlerCapacity.js';
+export { isWeaponSystem } from './crawlerSystems.js';
+export type { CrawlerMutationInput, CreationAbilityInput, CreationCoreTrees, CreationEquipmentInput, CreationPatternInput, MechCreationBudget, MechCreationBudgetInput, MechCreationLoadoutEntry, } from './creation.js';
+export { CRAWLER_CREATION_MIN_WEAPONS, CRAWLER_CREATION_TECH_LEVEL, crawlerMaxSpBonus, crawlerWeaponSlots, isCrawlerWeaponPickComplete, isLegalCreationAbility, isLegalCreationChassis, isLegalCreationClass, isLegalCreationCrawlerWeapon, isLegalCreationEquipment, isLegalCreationModule, isLegalCreationSystem, isLegalStartingPattern, isPilotAbilityPickComplete, isPilotEquipmentPickComplete, legalCreationAbilities, legalStartingPatterns, MECH_CREATION_SCRAP_CAP, mechCreationBudget, PILOT_CREATION_ABILITY_PICKS, PILOT_CREATION_EQUIPMENT_PICKS, pilotEquipmentPicksRemaining, } from './creation.js';
+export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
+export { clampCrawlerCurrentStats, clampMechCurrentStats, clampPilotCurrentStats, crawlerMaxSP, crawlerMaxSPParts, injuryMaxHpPenalty, isPilotDead, mechMaxCargo, mechMaxCargoParts, mechMaxEP, mechMaxEPParts, mechMaxHeat, mechMaxHeatParts, mechMaxSP, mechMaxSPParts, PILOT_BASE_AP, PILOT_BASE_HP, PILOT_BASE_INVENTORY_SLOTS, pilotMaxAP, pilotMaxAPParts, pilotMaxHP, pilotMaxHPParts, pilotMaxInventorySlots, pilotMaxInventorySlotsParts, unifiedMechConditions, } from './derivedStats.js';
+export { canActivateAction, clampHeat, performHeatCheck, performPush, reactorOverloadOutcome, } from './heatCheck.js';
+export type { FindRollTable } from './mediatorTables.js';
+export { describeMediatorRoll, MEDIATOR_TABLE_LABEL, MEDIATOR_TABLE_NAMES, performMediatorRoll, } from './mediatorTables.js';
+export { enrichPilotSnapshot } from './pilotSnapshot.js';
+export { matchesRef, resolveActionRef, resolveChassisRef, resolveClassRef, resolveCrawlerBayRef, resolveCrawlerRef, resolveInstalledRef, resolveModuleRef, resolveRef, resolveSystemRef, } from './resolveRefs.js';
+export type { RulesClaim } from './rulesBearing.js';
+export { statesMechanicalChange } from './rulesBearing.js';
+export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
+export { evaluateMechWarnings, evaluatePilotWarnings, evaluateSoftWarnings, PILOT_ABILITY_CAP, SALVAGER_ABILITY_CAP, } from './softWarnings.js';
+export type { CriticalDamageEffect, CriticalInjuryEffect, DamageKind, MechDamageEffect, MechDamageInput, PilotDamageEffect, PilotDamageInput, } from './takeDamage.js';
+export { applyMechDamage, applyPilotDamage, applySpDamage, criticalDamageOutcome, criticalInjuryOutcome, mechEffectiveDamage, performCriticalDamage, performCriticalInjury, pilotEffectiveDamage, } from './takeDamage.js';
+export type { AbilityInput, AbilityTier, CapacityViolation, CargoCapacityResult, CargoItem, CargoItemCustom, CargoItemRef, CargoParent, CargoViolation, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, EditSnapshot, HeatCheckEffect, HeatCheckResult, MechCapacityResult, MechInput, MechModuleSlot, MechSnapshot, MechSystemSlot, MediatorRollResult, MediatorTableId, PilotSnapshot, PushResult, ReactorOverloadOutcome, Roll, ScrapableItem, SoftWarning, SoftWarningContext, SoftWarningSeverity, SystemSnapshot, TechLevel, } from './types.js';
 //# sourceMappingURL=index.d.ts.map
 // === lib/rules/mediatorTables.d.ts ===
 /**
@@ -2437,10 +2506,41 @@ type RefEntity = {
 };
 /** True when `ref` (slug, name, or id) identifies `entity`. */
 export declare function matchesRef(entity: RefEntity, ref: string): boolean;
+/**
+ * Lookups go through `BaseModel`'s own id / name / slug indexes, which every
+ * model builds once and shares with every other caller. This module used to
+ * keep a private per-model `Map` of its own (id+name+slug in one map, behind a
+ * `WeakMap`); that map moved into `BaseModel` so the ~20 other name-scanning
+ * call sites across the apps get the same O(1) path instead of re-scanning the
+ * full Systems+Modules catalogs once per installed ref per render.
+ *
+ * Precedence is id, then name, then slug. That is a different tie-break from
+ * the old single map (which answered with whichever ROW came first in data
+ * order, whatever field it matched on), so it is verified rather than assumed:
+ * `BaseModel.indexes.test.ts` reconstructs the combined map for every schema
+ * and asserts the two resolve every key to the same row.
+ * A throw from an unloaded schema propagates as before.
+ */
+type ModelLike<T extends RefEntity> = {
+    getById: (id: string) => T | undefined;
+    getByName: (name: string) => T | undefined;
+    getBySlug: (slug: string) => T | undefined;
+};
+/**
+ * Resolve `ref` (slug, name, or id) against any model, through that model's
+ * indexes.
+ *
+ * Exported because it is the indexed replacement for
+ * `SomeModel.find((e) => matchesRef(e, ref))` — the shape `matchesRef` invites
+ * and the largest remaining source of full-schema scans across the apps.
+ * `matchesRef` stays for the cases that genuinely test a candidate you already
+ * hold (selection state, counting picks); reach for this whenever you are
+ * SEARCHING a model for a ref.
+ */
+export declare function resolveRef<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null;
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
 export declare function resolveChassisRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     name: string;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
@@ -2535,6 +2635,7 @@ export declare function resolveChassisRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2547,7 +2648,6 @@ export declare function resolveChassisRef(ref: string): ({
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
 export declare function resolveSystemRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
     name: string;
@@ -2582,6 +2682,7 @@ export declare function resolveSystemRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2637,7 +2738,6 @@ export declare function resolveSystemRef(ref: string): ({
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
 export declare function resolveModuleRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
     name: string;
@@ -2672,6 +2772,7 @@ export declare function resolveModuleRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2726,7 +2827,6 @@ export declare function resolveModuleRef(ref: string): ({
  */
 export declare function resolveInstalledRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
     name: string;
@@ -2761,6 +2861,7 @@ export declare function resolveInstalledRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2806,6 +2907,1852 @@ export declare function resolveInstalledRef(ref: string): ({
         value: string | number;
         unit?: string | undefined;
     })[] | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/**
+ * Resolve a crawler `type` ref (slug; legacy name/id tolerated).
+ *
+ * Crawler refs were NEVER slug-migrated the way mech `chassisRef` was
+ * (migration 6), so the app-side lookups for them were written as
+ * `id === ref || name === ref` and are correct *today* purely because no slug
+ * has ever reached them. That makes them a trap for whoever migrates crawler
+ * refs next: the day a slug is stored, every one of those comparisons starts
+ * returning undefined and the surfaces fall back to printing the raw ref —
+ * exactly the failure `chassisRef` already had on the Dashboard.
+ *
+ * Resolving through here is slug-tolerant in advance, and indexed rather than
+ * a linear scan.
+ */
+export declare function resolveCrawlerRef(ref: string): ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    npc: {
+        position: string;
+        hitPoints: number;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        choices?: {
+            id: string;
+            name: string;
+            content?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+                lead?: boolean | undefined;
+                choiceId?: string | undefined;
+                items?: {
+                    type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                    value?: string | {
+                        label: string | number;
+                        value?: string | number | undefined;
+                        type?: "keyword" | "trait" | "cost" | undefined;
+                        unit?: string | undefined;
+                        perTechLevel?: number | undefined;
+                    }[] | undefined;
+                    label?: string | undefined;
+                    level?: number | undefined;
+                }[] | undefined;
+            }[] | undefined;
+            rollTable?: string | undefined;
+            schemaEntities?: string[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            customSystemOptions?: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            multiSelect?: boolean | undefined;
+            choiceOptions?: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            constraints?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                scalesWithField?: string | undefined;
+            } | undefined;
+            source?: {
+                kind: "text";
+                multiline?: boolean | undefined;
+            } | {
+                kind: "table";
+                rollTable: string;
+                orChooseOwn?: boolean | undefined;
+            } | {
+                kind: "options";
+                options: {
+                    label: string;
+                    value: string;
+                    description?: string | undefined;
+                    effects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | {
+                kind: "catalog";
+                schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+                entities?: string[] | undefined;
+                filter?: {
+                    field?: string | undefined;
+                    min?: number | undefined;
+                    max?: number | undefined;
+                    damageType?: "HP" | "SP" | undefined;
+                } | undefined;
+                reveals?: boolean | undefined;
+            } | {
+                kind: "systemVariant";
+                options: {
+                    techLevel: number | "B" | "N";
+                    slotsRequired: number;
+                    salvageValue: number;
+                    actions: string[];
+                    structurePoints?: number | undefined;
+                    energyPoints?: number | undefined;
+                    heatCapacity?: number | undefined;
+                    systemSlots?: number | undefined;
+                    moduleSlots?: number | undefined;
+                    cargoCapacity?: number | undefined;
+                    name?: string | undefined;
+                    recommended?: boolean | undefined;
+                    count?: number | undefined;
+                    contributions?: {
+                        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        amount: number | {
+                            perTechLevel: number;
+                            flat?: number | undefined;
+                        } | {
+                            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        };
+                        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                        stacks?: boolean | undefined;
+                        voidWhen?: "damaged" | "destroyed" | undefined;
+                        duration?: "permanent" | "activated" | undefined;
+                        note?: string | undefined;
+                    }[] | undefined;
+                    appliedEffects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | undefined;
+            cardinality?: {
+                min: number;
+                max: number | {
+                    scalesWith: string;
+                };
+            } | undefined;
+            lifetime?: "permanent" | "session" | undefined;
+        }[] | undefined;
+    };
+    actions: string[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    mutations?: {
+        type: "weapon_slots" | "max_sp_bonus";
+        value: number;
+    }[] | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/** Resolve a crawler-bay ref (slug; legacy name/id tolerated). See `resolveCrawlerRef`. */
+export declare function resolveCrawlerBayRef(ref: string): ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    expansion?: boolean | undefined;
+    damagedEffect?: string | undefined;
+    npc?: {
+        position: string;
+        hitPoints: number;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        choices?: {
+            id: string;
+            name: string;
+            content?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+                lead?: boolean | undefined;
+                choiceId?: string | undefined;
+                items?: {
+                    type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                    value?: string | {
+                        label: string | number;
+                        value?: string | number | undefined;
+                        type?: "keyword" | "trait" | "cost" | undefined;
+                        unit?: string | undefined;
+                        perTechLevel?: number | undefined;
+                    }[] | undefined;
+                    label?: string | undefined;
+                    level?: number | undefined;
+                }[] | undefined;
+            }[] | undefined;
+            rollTable?: string | undefined;
+            schemaEntities?: string[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            customSystemOptions?: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            multiSelect?: boolean | undefined;
+            choiceOptions?: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            constraints?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                scalesWithField?: string | undefined;
+            } | undefined;
+            source?: {
+                kind: "text";
+                multiline?: boolean | undefined;
+            } | {
+                kind: "table";
+                rollTable: string;
+                orChooseOwn?: boolean | undefined;
+            } | {
+                kind: "options";
+                options: {
+                    label: string;
+                    value: string;
+                    description?: string | undefined;
+                    effects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | {
+                kind: "catalog";
+                schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+                entities?: string[] | undefined;
+                filter?: {
+                    field?: string | undefined;
+                    min?: number | undefined;
+                    max?: number | undefined;
+                    damageType?: "HP" | "SP" | undefined;
+                } | undefined;
+                reveals?: boolean | undefined;
+            } | {
+                kind: "systemVariant";
+                options: {
+                    techLevel: number | "B" | "N";
+                    slotsRequired: number;
+                    salvageValue: number;
+                    actions: string[];
+                    structurePoints?: number | undefined;
+                    energyPoints?: number | undefined;
+                    heatCapacity?: number | undefined;
+                    systemSlots?: number | undefined;
+                    moduleSlots?: number | undefined;
+                    cargoCapacity?: number | undefined;
+                    name?: string | undefined;
+                    recommended?: boolean | undefined;
+                    count?: number | undefined;
+                    contributions?: {
+                        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        amount: number | {
+                            perTechLevel: number;
+                            flat?: number | undefined;
+                        } | {
+                            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        };
+                        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                        stacks?: boolean | undefined;
+                        voidWhen?: "damaged" | "destroyed" | undefined;
+                        duration?: "permanent" | "activated" | undefined;
+                        note?: string | undefined;
+                    }[] | undefined;
+                    appliedEffects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | undefined;
+            cardinality?: {
+                min: number;
+                max: number | {
+                    scalesWith: string;
+                };
+            } | undefined;
+            lifetime?: "permanent" | "session" | undefined;
+        }[] | undefined;
+    } | undefined;
+    techLevel?: number | "B" | "N" | undefined;
+    salvageValue?: number | undefined;
+    cost?: {
+        scrap?: number | undefined;
+        bioSalvage?: number | undefined;
+    } | undefined;
+    choices?: {
+        id: string;
+        name: string;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        rollTable?: string | undefined;
+        schemaEntities?: string[] | undefined;
+        schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+        customSystemOptions?: {
+            techLevel: number | "B" | "N";
+            slotsRequired: number;
+            salvageValue: number;
+            actions: string[];
+            structurePoints?: number | undefined;
+            energyPoints?: number | undefined;
+            heatCapacity?: number | undefined;
+            systemSlots?: number | undefined;
+            moduleSlots?: number | undefined;
+            cargoCapacity?: number | undefined;
+            name?: string | undefined;
+            recommended?: boolean | undefined;
+            count?: number | undefined;
+            contributions?: {
+                stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                amount: number | {
+                    perTechLevel: number;
+                    flat?: number | undefined;
+                } | {
+                    fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                };
+                target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                stacks?: boolean | undefined;
+                voidWhen?: "damaged" | "destroyed" | undefined;
+                duration?: "permanent" | "activated" | undefined;
+                note?: string | undefined;
+            }[] | undefined;
+            appliedEffects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        multiSelect?: boolean | undefined;
+        choiceOptions?: {
+            label: string;
+            value: string;
+            description?: string | undefined;
+            effects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        constraints?: {
+            field?: string | undefined;
+            min?: number | undefined;
+            max?: number | undefined;
+            scalesWithField?: string | undefined;
+        } | undefined;
+        source?: {
+            kind: "text";
+            multiline?: boolean | undefined;
+        } | {
+            kind: "table";
+            rollTable: string;
+            orChooseOwn?: boolean | undefined;
+        } | {
+            kind: "options";
+            options: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | {
+            kind: "catalog";
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            entities?: string[] | undefined;
+            filter?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                damageType?: "HP" | "SP" | undefined;
+            } | undefined;
+            reveals?: boolean | undefined;
+        } | {
+            kind: "systemVariant";
+            options: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | undefined;
+        cardinality?: {
+            min: number;
+            max: number | {
+                scalesWith: string;
+            };
+        } | undefined;
+        lifetime?: "permanent" | "session" | undefined;
+    }[] | undefined;
+    tableName?: string | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/** Resolve an action ref (slug; legacy name/id tolerated). */
+export declare function resolveActionRef(ref: string): ({
+    id: string;
+    name: string;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    structurePoints?: number | undefined;
+    energyPoints?: number | undefined;
+    heatCapacity?: number | undefined;
+    systemSlots?: number | undefined;
+    moduleSlots?: number | undefined;
+    cargoCapacity?: number | undefined;
+    techLevel?: number | "B" | "N" | undefined;
+    salvageValue?: number | undefined;
+    displayName?: string | undefined;
+    activationCost?: number | "X" | undefined;
+    range?: ("Close" | "Medium" | "Long" | "Far")[] | undefined;
+    actionType?: "Long" | "Passive" | "Free" | "Reaction" | "Turn" | "Short" | "DownTime" | undefined;
+    traits?: {
+        type: string;
+        amount?: string | number | undefined;
+    }[] | undefined;
+    damage?: {
+        damageType: "HP" | "SP";
+        amount: string | number;
+    } | undefined;
+    choices?: {
+        id: string;
+        name: string;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        rollTable?: string | undefined;
+        schemaEntities?: string[] | undefined;
+        schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+        customSystemOptions?: {
+            techLevel: number | "B" | "N";
+            slotsRequired: number;
+            salvageValue: number;
+            actions: string[];
+            structurePoints?: number | undefined;
+            energyPoints?: number | undefined;
+            heatCapacity?: number | undefined;
+            systemSlots?: number | undefined;
+            moduleSlots?: number | undefined;
+            cargoCapacity?: number | undefined;
+            name?: string | undefined;
+            recommended?: boolean | undefined;
+            count?: number | undefined;
+            contributions?: {
+                stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                amount: number | {
+                    perTechLevel: number;
+                    flat?: number | undefined;
+                } | {
+                    fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                };
+                target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                stacks?: boolean | undefined;
+                voidWhen?: "damaged" | "destroyed" | undefined;
+                duration?: "permanent" | "activated" | undefined;
+                note?: string | undefined;
+            }[] | undefined;
+            appliedEffects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        multiSelect?: boolean | undefined;
+        choiceOptions?: {
+            label: string;
+            value: string;
+            description?: string | undefined;
+            effects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        constraints?: {
+            field?: string | undefined;
+            min?: number | undefined;
+            max?: number | undefined;
+            scalesWithField?: string | undefined;
+        } | undefined;
+        source?: {
+            kind: "text";
+            multiline?: boolean | undefined;
+        } | {
+            kind: "table";
+            rollTable: string;
+            orChooseOwn?: boolean | undefined;
+        } | {
+            kind: "options";
+            options: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | {
+            kind: "catalog";
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            entities?: string[] | undefined;
+            filter?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                damageType?: "HP" | "SP" | undefined;
+            } | undefined;
+            reveals?: boolean | undefined;
+        } | {
+            kind: "systemVariant";
+            options: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | undefined;
+        cardinality?: {
+            min: number;
+            max: number | {
+                scalesWith: string;
+            };
+        } | undefined;
+        lifetime?: "permanent" | "session" | undefined;
+    }[] | undefined;
+    table?: {
+        type: "standard";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-5': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "alternate";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '19-20': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-18': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-5': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2': {
+            value: string;
+            label?: string | undefined;
+        };
+        '3': {
+            value: string;
+            label?: string | undefined;
+        };
+        '4': {
+            value: string;
+            label?: string | undefined;
+        };
+        '5': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6': {
+            value: string;
+            label?: string | undefined;
+        };
+        '7': {
+            value: string;
+            label?: string | undefined;
+        };
+        '8': {
+            value: string;
+            label?: string | undefined;
+        };
+        '9': {
+            value: string;
+            label?: string | undefined;
+        };
+        '10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11': {
+            value: string;
+            label?: string | undefined;
+        };
+        '12': {
+            value: string;
+            label?: string | undefined;
+        };
+        '13': {
+            value: string;
+            label?: string | undefined;
+        };
+        '14': {
+            value: string;
+            label?: string | undefined;
+        };
+        '15': {
+            value: string;
+            label?: string | undefined;
+        };
+        '16': {
+            value: string;
+            label?: string | undefined;
+        };
+        '17': {
+            value: string;
+            label?: string | undefined;
+        };
+        '18': {
+            value: string;
+            label?: string | undefined;
+        };
+        '19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+        type: "flat";
+    } | {
+        type: "dramatic";
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "duos";
+        '1-2': {
+            value: string;
+            label?: string | undefined;
+        };
+        '3-4': {
+            value: string;
+            label?: string | undefined;
+        };
+        '5-6': {
+            value: string;
+            label?: string | undefined;
+        };
+        '7-8': {
+            value: string;
+            label?: string | undefined;
+        };
+        '9-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-12': {
+            value: string;
+            label?: string | undefined;
+        };
+        '13-14': {
+            value: string;
+            label?: string | undefined;
+        };
+        '15-16': {
+            value: string;
+            label?: string | undefined;
+        };
+        '17-18': {
+            value: string;
+            label?: string | undefined;
+        };
+        '19-20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "bio-chassis";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-3': {
+            value: string;
+            label?: string | undefined;
+        };
+        '4-5': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-8': {
+            value: string;
+            label?: string | undefined;
+        };
+        '9-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "columns";
+        '1-4': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '5-8': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '9-12': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '13-16': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '17-20': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+    } | {
+        type: "salvage-cache";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-3': {
+            value: string;
+            label?: string | undefined;
+        };
+        '4-5': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-7': {
+            value: string;
+            label?: string | undefined;
+        };
+        '8-9': {
+            value: string;
+            label?: string | undefined;
+        };
+        '10-11': {
+            value: string;
+            label?: string | undefined;
+        };
+        '12-13': {
+            value: string;
+            label?: string | undefined;
+        };
+        '14-15': {
+            value: string;
+            label?: string | undefined;
+        };
+        '16-17': {
+            value: string;
+            label?: string | undefined;
+        };
+        '18-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "octet";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-4': {
+            value: string;
+            label?: string | undefined;
+        };
+        '5-7': {
+            value: string;
+            label?: string | undefined;
+        };
+        '8-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-13': {
+            value: string;
+            label?: string | undefined;
+        };
+        '14-16': {
+            value: string;
+            label?: string | undefined;
+        };
+        '17-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | undefined;
+    tableName?: string | undefined;
+    hidden?: boolean | undefined;
+    activationCurrency?: "EP or AP" | "SP or HP" | "Variable" | undefined;
+    source?: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag" | undefined;
+    page?: number | undefined;
+    actionSource?: "abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles" | undefined;
+    drone?: string | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/** Resolve a pilot `classRef` (slug; legacy name/id tolerated). */
+export declare function resolveClassRef(ref: string): ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    hybrid?: boolean | undefined;
+} & {
+    schemaName: string;
+}) | ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    maxAbilities: number;
+    advanceable: boolean;
+    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
+    legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -3584,7 +5531,7 @@ export declare const AbilitySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -3667,11 +5614,10 @@ export declare const AbilitySchema: z.ZodObject<{
     }>>;
     grants: z.ZodOptional<z.ZodArray<z.ZodObject<{
         schema: z.ZodUnion<readonly [z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -3684,6 +5630,7 @@ export declare const AbilitySchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -3805,7 +5752,7 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -3973,11 +5920,6 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -4033,11 +5975,10 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -4050,6 +5991,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -4217,11 +6159,10 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -4234,6 +6175,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -5069,11 +7011,10 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     actionSource: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -5086,6 +7027,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -5160,7 +7102,7 @@ export declare const BioTitanSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5257,7 +7199,7 @@ export declare const ChassisSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5460,7 +7402,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5663,7 +7605,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5847,7 +7789,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5939,11 +7881,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
-            choiceType: z.ZodOptional<z.ZodEnum<{
-                permanent: "permanent";
-                session: "session";
-                freeform: "freeform";
-            }>>;
             content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                     paragraph: "paragraph";
@@ -5999,11 +7936,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             rollTable: z.ZodOptional<z.ZodString>;
             schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -6016,6 +7952,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -6183,11 +8120,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"catalog">;
                 schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                    classes: "classes";
-                    npcs: "npcs";
                     abilities: "abilities";
                     "ability-tree-requirements": "ability-tree-requirements";
                     chassis: "chassis";
+                    classes: "classes";
                     "crawler-bays": "crawler-bays";
                     "crawler-tech-levels": "crawler-tech-levels";
                     crawlers: "crawlers";
@@ -6200,6 +8136,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     factions: "factions";
                     meld: "meld";
                     modules: "modules";
+                    npcs: "npcs";
                     "roll-tables": "roll-tables";
                     sources: "sources";
                     squads: "squads";
@@ -6327,11 +8264,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -6387,11 +8319,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -6404,6 +8335,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -6571,11 +8503,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -6588,6 +8519,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -6765,7 +8697,7 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -6862,7 +8794,7 @@ export declare const CrawlerSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -6952,11 +8884,6 @@ export declare const CrawlerSchema: z.ZodObject<{
         choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
-            choiceType: z.ZodOptional<z.ZodEnum<{
-                permanent: "permanent";
-                session: "session";
-                freeform: "freeform";
-            }>>;
             content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                     paragraph: "paragraph";
@@ -7012,11 +8939,10 @@ export declare const CrawlerSchema: z.ZodObject<{
             rollTable: z.ZodOptional<z.ZodString>;
             schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -7029,6 +8955,7 @@ export declare const CrawlerSchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -7196,11 +9123,10 @@ export declare const CrawlerSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"catalog">;
                 schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                    classes: "classes";
-                    npcs: "npcs";
                     abilities: "abilities";
                     "ability-tree-requirements": "ability-tree-requirements";
                     chassis: "chassis";
+                    classes: "classes";
                     "crawler-bays": "crawler-bays";
                     "crawler-tech-levels": "crawler-tech-levels";
                     crawlers: "crawlers";
@@ -7213,6 +9139,7 @@ export declare const CrawlerSchema: z.ZodObject<{
                     factions: "factions";
                     meld: "meld";
                     modules: "modules";
+                    npcs: "npcs";
                     "roll-tables": "roll-tables";
                     sources: "sources";
                     squads: "squads";
@@ -7398,7 +9325,7 @@ export declare const CreatureSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7443,7 +9370,7 @@ export declare const CreatureSchema: z.ZodObject<{
 export declare const DistanceSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7534,7 +9461,7 @@ export declare const DistanceSchema: z.ZodObject<{
 export declare const TechLevelEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7682,7 +9609,7 @@ export declare const DroneSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7742,11 +9669,6 @@ export declare const DroneSchema: z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -7802,11 +9724,10 @@ export declare const DroneSchema: z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -7819,6 +9740,7 @@ export declare const DroneSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -7986,11 +9908,10 @@ export declare const DroneSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -8003,6 +9924,7 @@ export declare const DroneSchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -8179,7 +10101,7 @@ export declare const EquipmentSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -8237,11 +10159,6 @@ export declare const EquipmentSchema: z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -8297,11 +10214,10 @@ export declare const EquipmentSchema: z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -8314,6 +10230,7 @@ export declare const EquipmentSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -8481,11 +10398,10 @@ export declare const EquipmentSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -8498,6 +10414,7 @@ export declare const EquipmentSchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -8622,7 +10539,7 @@ export declare const EquipmentSchema: z.ZodObject<{
 export declare const FactionSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -8661,11 +10578,10 @@ export declare const FactionSchema: z.ZodObject<{
         chassis: z.ZodString;
         pattern: z.ZodOptional<z.ZodString>;
         schema: z.ZodOptional<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -8678,6 +10594,7 @@ export declare const FactionSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -8761,7 +10678,7 @@ export declare const FactionSchema: z.ZodObject<{
 export declare const KeywordSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -8904,7 +10821,7 @@ export declare const MeldSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -9003,7 +10920,7 @@ export declare const ModuleSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
         "Salvage Union Starter Set": "Salvage Union Starter Set";
@@ -9174,7 +11091,7 @@ export declare const NPCSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -9224,7 +11141,7 @@ export declare const NPCSchema: z.ZodObject<{
 export declare const RollTableSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10064,7 +11981,7 @@ export declare const SquadSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10165,7 +12082,7 @@ export declare const SystemSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
         "Salvage Union Starter Set": "Salvage Union Starter Set";
@@ -10288,7 +12205,7 @@ export declare const SystemSchema: z.ZodObject<{
 export declare const TraitEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10382,8 +12299,6 @@ export declare const TraitEntitySchema: z.ZodObject<{
  * `modules` field — a vehicle carries neither (the schema is strict).
  */
 export declare const VehicleSchema: z.ZodObject<{
-    name: z.ZodString;
-    id: z.ZodString;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
         type: z.ZodString;
@@ -10396,20 +12311,8 @@ export declare const VehicleSchema: z.ZodObject<{
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
     techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
     salvageValue: z.ZodOptional<z.ZodNumber>;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    booklet: z.ZodOptional<z.ZodString>;
-    page: z.ZodNumber;
+    name: z.ZodString;
+    id: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -10462,6 +12365,22 @@ export declare const VehicleSchema: z.ZodObject<{
             level: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
+    source: z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
             "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10478,8 +12397,6 @@ export declare const VehicleSchema: z.ZodObject<{
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
     actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strict>;
 /**
@@ -10540,7 +12457,7 @@ export declare const GuideSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10585,9 +12502,9 @@ export declare const GuideSchema: z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
         stepType: z.ZodEnum<{
-            freeform: "freeform";
             "select-one": "select-one";
             "select-many": "select-many";
+            freeform: "freeform";
             "roll-table": "roll-table";
             info: "info";
             "sub-guide": "sub-guide";
@@ -10646,11 +12563,10 @@ export declare const GuideSchema: z.ZodObject<{
             }, z.core.$strict>>>;
         }, z.core.$strict>>>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -10663,6 +12579,7 @@ export declare const GuideSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -10786,7 +12703,7 @@ export declare const SourceEntitySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10828,11 +12745,10 @@ export declare const CatalogCategorySchema: z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
     schemas: z.ZodArray<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -10845,6 +12761,7 @@ export declare const CatalogCategorySchema: z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -10979,11 +12896,10 @@ export declare const TreeSchema: z.ZodEnum<{
  * Name of the schema
  */
 export declare const SchemaNameSchema: z.ZodEnum<{
-    classes: "classes";
-    npcs: "npcs";
     abilities: "abilities";
     "ability-tree-requirements": "ability-tree-requirements";
     chassis: "chassis";
+    classes: "classes";
     "crawler-bays": "crawler-bays";
     "crawler-tech-levels": "crawler-tech-levels";
     crawlers: "crawlers";
@@ -10996,6 +12912,7 @@ export declare const SchemaNameSchema: z.ZodEnum<{
     factions: "factions";
     meld: "meld";
     modules: "modules";
+    npcs: "npcs";
     "roll-tables": "roll-tables";
     sources: "sources";
     squads: "squads";
@@ -11011,13 +12928,13 @@ export declare const SchemaNameSchema: z.ZodEnum<{
  * Schema index - exports all Zod schemas and inferred TypeScript types
  */
 import type { z } from '../zod.js';
-export * from './enums.js';
 export * from './common.js';
-export * from './objects.js';
 export * from './entities.js';
+export * from './enums.js';
+export * from './objects.js';
+import type { AbilitySchema, AbilityTreeRequirementSchema, BioTitanSchema, CatalogCategorySchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerSchema, CrawlerTechLevelSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, GuideSchema, KeywordSchema, MeldSchema, MetaActionSchema, ModuleSchema, NPCSchema, RollTableSchema, SourceEntitySchema, SquadSchema, SystemSchema, TechLevelEntitySchema, TraitEntitySchema, VehicleSchema } from './entities.js';
 import type { SchemaNameSchema } from './enums.js';
-import type { TraitSchema, StatsSchema, DataValueSchema, ContentBlockSchema, ContentSchema, TableContentSchema, TableSchema, PatternSystemModuleSchema, SystemModuleSchema, ChoiceSchema, PatternSchema, DamageSchema, AdvancedClassSchema, FormationMechSchema, GrantSchema, CrawlerMutationSchema, GuideStepSchema } from './objects.js';
-import type { AbilitySchema, AbilityTreeRequirementSchema, MetaActionSchema, BioTitanSchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerTechLevelSchema, CrawlerSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, KeywordSchema, MeldSchema, ModuleSchema, NPCSchema, RollTableSchema, SquadSchema, SystemSchema, TraitEntitySchema, VehicleSchema, GuideSchema, SourceEntitySchema, TechLevelEntitySchema, CatalogCategorySchema } from './entities.js';
+import type { AdvancedClassSchema, ChoiceSchema, ContentBlockSchema, ContentSchema, CrawlerMutationSchema, DamageSchema, DataValueSchema, FormationMechSchema, GrantSchema, GuideStepSchema, PatternSchema, PatternSystemModuleSchema, StatsSchema, SystemModuleSchema, TableContentSchema, TableSchema, TraitSchema } from './objects.js';
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>;
 export type SURefObjectTrait = z.infer<typeof TraitSchema>;
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>;
@@ -11101,21 +13018,21 @@ export type SURefMetaEntity = SURefAbility | SURefChassis | SURefClass | SURefCr
  * (`ChoiceOptionSchema` / `ChoiceConstraintsSchema`, needed by `guides.ts`), and
  * naming the re-exports keeps those from leaking into the package's surface.
  */
-export { TraitSchema, StatsSchema, ChassisStatsSchema, CombatEntitySchema, MechanicalEntitySchema, DataValueSchema, DamageSchema, } from './objects/primitives.js';
-export { ContentBlockSchema, ContentSchema } from './objects/content.js';
-export { TableContentSchema, TableSchema } from './objects/tables.js';
-export { AdditionalSourceSchema } from './objects/sources.js';
-export { ContributionStatSchema, ContributionTargetSchema, ContributionAmountSchema, ContributionSchema, } from './objects/contributions.js';
-export { EffectTargetSchema, ChoiceEffectSchema } from './objects/effects.js';
-export { SystemModuleSchema } from './objects/systemModule.js';
-export { ChoiceSchema, ChoicesSchema } from './objects/choices.js';
-export { NpcSchema } from './objects/npc.js';
-export { PatternSystemModuleSchema, PatternDroneConfigSchema, PatternSchema, } from './objects/patterns.js';
 export { ActionSchema } from './objects/actions.js';
-export { BaseEntitySchema, AdvancedClassSchema } from './objects/entityBase.js';
-export { FormationMechSchema, GrantSchema, SchemaNameWithActionsSchema, } from './objects/references.js';
+export { ChoiceSchema, ChoicesSchema } from './objects/choices.js';
+export { ContentBlockSchema, ContentSchema } from './objects/content.js';
+export { ContributionAmountSchema, ContributionSchema, ContributionStatSchema, ContributionTargetSchema, } from './objects/contributions.js';
 export { CrawlerMutationSchema } from './objects/crawlerMutations.js';
+export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects.js';
+export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js';
 export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js';
+export { NpcSchema } from './objects/npc.js';
+export { PatternDroneConfigSchema, PatternSchema, PatternSystemModuleSchema, } from './objects/patterns.js';
+export { ChassisStatsSchema, CombatEntitySchema, DamageSchema, DataValueSchema, MechanicalEntitySchema, StatsSchema, StructurePointsSchema, TraitSchema, } from './objects/primitives.js';
+export { FormationMechSchema, GrantSchema, SchemaNameWithActionsSchema, } from './objects/references.js';
+export { AdditionalSourceSchema } from './objects/sources.js';
+export { SystemModuleSchema } from './objects/systemModule.js';
+export { TableContentSchema, TableSchema } from './objects/tables.js';
 //# sourceMappingURL=objects.d.ts.map
 // === lib/schemas/objects/actions.d.ts ===
 /**
@@ -11221,11 +13138,6 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -11281,11 +13193,10 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -11298,6 +13209,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -11465,11 +13377,10 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -11482,6 +13393,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -12317,11 +14229,10 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     actionSource: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -12334,6 +14245,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -12405,11 +14317,6 @@ export declare const ChoiceConstraintsSchema: z.ZodObject<{
 export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
-    choiceType: z.ZodOptional<z.ZodEnum<{
-        permanent: "permanent";
-        session: "session";
-        freeform: "freeform";
-    }>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -12465,11 +14372,10 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     rollTable: z.ZodOptional<z.ZodString>;
     schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
     schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -12482,6 +14388,7 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -12649,11 +14556,10 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"catalog">;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -12666,6 +14572,7 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -12789,11 +14696,6 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
 export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
-    choiceType: z.ZodOptional<z.ZodEnum<{
-        permanent: "permanent";
-        session: "session";
-        freeform: "freeform";
-    }>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -12849,11 +14751,10 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     rollTable: z.ZodOptional<z.ZodString>;
     schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
     schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -12866,6 +14767,7 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -13033,11 +14935,10 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"catalog">;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -13050,6 +14951,7 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -13553,7 +15455,7 @@ export declare const BaseEntitySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -13644,7 +15546,7 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -13768,9 +15670,9 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
     stepType: z.ZodEnum<{
-        freeform: "freeform";
         "select-one": "select-one";
         "select-many": "select-many";
+        freeform: "freeform";
         "roll-table": "roll-table";
         info: "info";
         "sub-guide": "sub-guide";
@@ -13829,11 +15731,10 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -13846,6 +15747,7 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -13988,11 +15890,6 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -14048,11 +15945,10 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -14065,6 +15961,7 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -14232,11 +16129,10 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -14249,6 +16145,7 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -14520,6 +16417,24 @@ export declare const TraitSchema: z.ZodObject<{
     type: z.ZodString;
 }, z.core.$strict>;
 /**
+ * Structure Points on a stat block — the ONE declaration, composed everywhere.
+ *
+ * It was previously spelled four ways for the same concept: `NonNegativeInteger`
+ * here, `PositiveInteger` on `MechanicalEntitySchema` (same field, same
+ * `describe()`), and two inline `z.number().int()` copies in `entities.ts`, one
+ * positive and one not. So whether a stat block could carry 0 depended on which
+ * schema happened to validate it.
+ *
+ * It can. A destroyed or fully-salvaged chassis at 0 SP is a real game state,
+ * and the derived-stat code already clamps to 0 rather than treating it as
+ * impossible — so `positive()` was the outlier, not the rule. No shipped record
+ * carries 0 today (checked), which is why widening is purely permissive.
+ *
+ * NOT for the SP *modifier* on an action: that is signed (`-2 SP` is a normal
+ * effect) and is declared separately in `objects/actions.ts`.
+ */
+export declare const StructurePointsSchema: z.ZodNumber;
+/**
  * Statistics for mechs, chassis, and vehicles
  */
 export declare const StatsSchema: z.ZodObject<{
@@ -14613,11 +16528,10 @@ export declare const FormationMechSchema: z.ZodObject<{
     chassis: z.ZodString;
     pattern: z.ZodOptional<z.ZodString>;
     schema: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -14630,6 +16544,7 @@ export declare const FormationMechSchema: z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -14659,11 +16574,10 @@ export declare const FormationMechSchema: z.ZodObject<{
  */
 export declare const GrantSchema: z.ZodObject<{
     schema: z.ZodUnion<readonly [z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -14676,6 +16590,7 @@ export declare const GrantSchema: z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -14691,11 +16606,10 @@ export declare const GrantSchema: z.ZodObject<{
  * Schema name (includes 'actions' as special case)
  */
 export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum<{
-    classes: "classes";
-    npcs: "npcs";
     abilities: "abilities";
     "ability-tree-requirements": "ability-tree-requirements";
     chassis: "chassis";
+    classes: "classes";
     "crawler-bays": "crawler-bays";
     "crawler-tech-levels": "crawler-tech-levels";
     crawlers: "crawlers";
@@ -14708,6 +16622,7 @@ export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum
     factions: "factions";
     meld: "meld";
     modules: "modules";
+    npcs: "npcs";
     "roll-tables": "roll-tables";
     sources: "sources";
     squads: "squads";
@@ -15761,6 +17676,28 @@ export type ParsedTraitReference = {
  * // ]
  */
 export declare function parseTraitReferences(text: string): ParsedTraitReference[];
+/**
+ * Rewrite every trait reference in `text` through `render`, leaving the
+ * surrounding prose untouched.
+ *
+ * This exists so a consumer that only wants to SUBSTITUTE (the Discord bot
+ * turning each reference into a markdown link, say) composes the canonical
+ * parser instead of re-implementing the bracket grammar with a regex of its
+ * own — which is exactly how three subtly different `[[Trait]]` regexes came
+ * to exist. Renderers that need positions (React, which must interleave nodes
+ * rather than strings) still call {@link parseTraitReferences} directly; this
+ * is the string-in/string-out shape on top of it, not a second grammar.
+ *
+ * @param text - Rules text possibly containing `[[Trait]]` / `[[[Trait] (p)]]`
+ * @param render - Maps one parsed reference to its replacement text
+ * @returns The text with every reference replaced
+ *
+ * @example
+ * replaceTraitReferences(text, (ref) =>
+ *   ref.parameter ? `${link(ref.traitName)} ${ref.parameter}` : link(ref.traitName)
+ * )
+ */
+export declare function replaceTraitReferences(text: string, render: (reference: ParsedTraitReference) => string): string;
 //# sourceMappingURL=traitText.d.ts.map
 // === lib/types/index.d.ts ===
 /**
@@ -15794,20 +17731,22 @@ export type * from '../schemas/index.js';
  *                           resolves through an entity's self-action.
  * - `entityGuards.ts`     — the type guards that still have a consumer.
  * - `patterns.ts`         — patterns, the hidden-pattern rule, formations.
- * - `assets.ts`           — `ASSET_BASE_URL` + `getAssetUrl`.
- * - `traitText.ts`        — `[[Trait]]` markup parsing.
+ * - `assets.ts`           — the artwork CDN (`ASSET_BASE_URL` + `getAssetUrl`)
+ *                           and the reference site (`SRD_SITE_URL` +
+ *                           `srdEntityPath` / `srdEntityUrl`).
+ * - `traitText.ts`        — `[[Trait]]` markup parsing and rewriting.
  * - `inventorySlots.ts`   — the Heavy/Portable inventory-slot rule.
  *
  * Prefer importing from those modules directly in new package-internal code;
  * consumers outside the package should keep importing from the package barrel.
  */
-export * from './entityFields.js';
 export * from './actionResolution.js';
-export * from './entityGuards.js';
-export * from './patterns.js';
 export * from './assets.js';
-export * from './traitText.js';
+export * from './entityFields.js';
+export * from './entityGuards.js';
 export * from './inventorySlots.js';
+export * from './patterns.js';
+export * from './traitText.js';
 //# sourceMappingURL=utilities.d.ts.map
 // === lib/utils/resultForTable.d.ts ===
 import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js';

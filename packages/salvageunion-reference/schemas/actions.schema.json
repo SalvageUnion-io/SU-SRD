@@ -258,11 +258,6 @@
               "minLength": 1,
               "description": "Display name for this choice"
             },
-            "choiceType": {
-              "type": "string",
-              "enum": ["permanent", "session", "freeform"],
-              "description": "permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text"
-            },
             "content": {
               "type": "array",
               "items": {

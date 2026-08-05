@@ -14,12 +14,11 @@
  * shell behind ConfirmDialog/SelectorDialog) and Field/Input chrome.
  */
 
+import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Button, Field, Input, ModalShell, Select, FieldError } from 'component-lib'
-
-import { createBlank } from '../../lib/wizard/blankCreate'
+import { nameToSlug, SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
+import { createBlank } from '../../lib/wizard/blankCreate'
 
 type BlankCreateDialogProps = {
   kind: BlankCreateKind
@@ -48,17 +47,15 @@ function classOptions(): RefOption[] {
   }
 }
 
-/** Sortable rank for a chassis TL (non-numeric TLs — Bio/Nanite — sort last). */
-function tlRank(tl: unknown): number {
-  return typeof tl === 'number' ? tl : Number.POSITIVE_INFINITY
-}
-
 /** All chassis, slug-valued — any Tech Level, labelled with its TL. */
 function chassisOptions(): RefOption[] {
   try {
     const all = SalvageUnionReference.Chassis.all()
     return [...all]
-      .sort((a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name))
+      .sort(
+        (a, b) =>
+          techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
+      )
       .map((c) => ({
         value: nameToSlug(c.name),
         label: `${c.name} · TL ${String(c.techLevel)}`,

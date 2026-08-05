@@ -24,24 +24,22 @@
  * and the TanStack router.
  */
 
-import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { Button, ModalShell, FieldError, Radio } from 'component-lib'
-
+import { Button, FieldError, ModalShell, Radio } from 'component-lib'
+import { useState } from 'react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
-import { containerOf, sameContainer } from '../../lib/container'
 import type { Container, ContainerFields } from '../../lib/container'
+import { containerOf, sameContainer } from '../../lib/container'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
+import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
-import { cn } from '../../lib/utils'
-import type { LinkWriteStore } from './dashboardLinks'
-import { ensureDashboardLinks } from './dashboardLinks'
+import type { LaunchStore } from './dashboardLaunch'
 import {
   createBaseCrawler,
   DEFAULT_CRAWLER_TLS,
@@ -49,8 +47,9 @@ import {
   parseSelToken,
   patternToken,
   tlCrawlerToken,
-  type LaunchStore,
 } from './dashboardLaunch'
+import type { LinkWriteStore } from './dashboardLinks'
+import { ensureDashboardLinks } from './dashboardLinks'
 
 type DashboardChooserProps = {
   /** Inject to avoid the Zustand global in tests. Needs SoftLink writes (links)
@@ -87,11 +86,17 @@ type DashboardChooserProps = {
 type Step = 'pilot' | 'mech' | 'crawler'
 const STEP_ORDER: readonly Step[] = ['pilot', 'mech', 'crawler']
 
-/** Chassis "TL n" annotation for a mech row, best-effort. */
+/**
+ * Chassis "TL n" annotation for a mech row, best-effort.
+ *
+ * Resolved through `resolveChassisRef` (id ?? name ?? slug), not a `name ===`
+ * scan: migration 6 rewrote every stored `chassisRef` to a slug, so matching on
+ * the display name stopped matching anything and every row fell back to the raw
+ * slug ("mule" instead of "Mule · TL 1").
+ */
 function chassisMeta(chassisRef: string): string | undefined {
   try {
-    const all = SalvageUnionReference.Chassis.all()
-    const c = all.find((x) => x.name === chassisRef)
+    const c = resolveChassisRef(chassisRef)
     if (!c) return chassisRef || undefined
     return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name
   } catch {

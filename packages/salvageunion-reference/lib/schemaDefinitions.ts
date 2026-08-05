@@ -3,6 +3,7 @@ import abilityTreeRequirementsSchema from '../schemas/ability-tree-requirements.
   type: 'json',
 }
 import actionsSchema from '../schemas/actions.schema.json' with { type: 'json' }
+import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
 import catalogCategoriesSchema from '../schemas/catalog-categories.schema.json' with {
   type: 'json',
 }
@@ -24,13 +25,12 @@ import meldSchema from '../schemas/meld.schema.json' with { type: 'json' }
 import modulesSchema from '../schemas/modules.schema.json' with { type: 'json' }
 import npcsSchema from '../schemas/npcs.schema.json' with { type: 'json' }
 import rollTablesSchema from '../schemas/roll-tables.schema.json' with { type: 'json' }
+import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
 import squadsSchema from '../schemas/squads.schema.json' with { type: 'json' }
 import systemsSchema from '../schemas/systems.schema.json' with { type: 'json' }
-import bioTitansSchema from '../schemas/bio-titans.schema.json' with { type: 'json' }
+import techLevelsSchema from '../schemas/tech-levels.schema.json' with { type: 'json' }
 import traitsSchema from '../schemas/traits.schema.json' with { type: 'json' }
 import vehiclesSchema from '../schemas/vehicles.schema.json' with { type: 'json' }
-import sourcesSchema from '../schemas/sources.schema.json' with { type: 'json' }
-import techLevelsSchema from '../schemas/tech-levels.schema.json' with { type: 'json' }
 
 const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
   abilities: abilitiesSchema,

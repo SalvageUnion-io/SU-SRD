@@ -29,53 +29,40 @@
  * naming the re-exports keeps those from leaking into the package's surface.
  */
 
-export {
-  TraitSchema,
-  StatsSchema,
-  ChassisStatsSchema,
-  CombatEntitySchema,
-  MechanicalEntitySchema,
-  DataValueSchema,
-  DamageSchema,
-} from './objects/primitives.js'
-
+export { ActionSchema } from './objects/actions.js'
+export { ChoiceSchema, ChoicesSchema } from './objects/choices.js'
 export { ContentBlockSchema, ContentSchema } from './objects/content.js'
-
-export { TableContentSchema, TableSchema } from './objects/tables.js'
-
-export { AdditionalSourceSchema } from './objects/sources.js'
-
 export {
-  ContributionStatSchema,
-  ContributionTargetSchema,
   ContributionAmountSchema,
   ContributionSchema,
+  ContributionStatSchema,
+  ContributionTargetSchema,
 } from './objects/contributions.js'
-
-export { EffectTargetSchema, ChoiceEffectSchema } from './objects/effects.js'
-
-export { SystemModuleSchema } from './objects/systemModule.js'
-
-export { ChoiceSchema, ChoicesSchema } from './objects/choices.js'
-
+export { CrawlerMutationSchema } from './objects/crawlerMutations.js'
+export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects.js'
+export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js'
+export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js'
 export { NpcSchema } from './objects/npc.js'
-
 export {
-  PatternSystemModuleSchema,
   PatternDroneConfigSchema,
   PatternSchema,
+  PatternSystemModuleSchema,
 } from './objects/patterns.js'
-
-export { ActionSchema } from './objects/actions.js'
-
-export { BaseEntitySchema, AdvancedClassSchema } from './objects/entityBase.js'
-
+export {
+  ChassisStatsSchema,
+  CombatEntitySchema,
+  DamageSchema,
+  DataValueSchema,
+  MechanicalEntitySchema,
+  StatsSchema,
+  StructurePointsSchema,
+  TraitSchema,
+} from './objects/primitives.js'
 export {
   FormationMechSchema,
   GrantSchema,
   SchemaNameWithActionsSchema,
 } from './objects/references.js'
-
-export { CrawlerMutationSchema } from './objects/crawlerMutations.js'
-
-export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js'
+export { AdditionalSourceSchema } from './objects/sources.js'
+export { SystemModuleSchema } from './objects/systemModule.js'
+export { TableContentSchema, TableSchema } from './objects/tables.js'

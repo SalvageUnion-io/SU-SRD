@@ -1,4 +1,5 @@
-import { type Page, type Locator, expect } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
+import { expect } from '@playwright/test'
 
 /**
  * Shared helpers for ITUN end-to-end tests.

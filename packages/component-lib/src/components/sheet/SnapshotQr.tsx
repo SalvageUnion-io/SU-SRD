@@ -7,8 +7,8 @@
  * need dark-on-light regardless of app theme.
  */
 
-import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
+import { useEffect, useState } from 'react'
 
 type SnapshotQrProps = {
   /** Absolute share URL (e.g. https://…/s/<id>). */
@@ -37,7 +37,7 @@ export function SnapshotQr({ url }: SnapshotQrProps) {
     return (
       <div
         aria-hidden="true"
-        className="h-[84px] w-[84px] shrink-0 animate-pulse rounded-card border-chrome border-ink bg-paper"
+        className="h-[84px] w-[84px] shrink-0 motion-safe:animate-pulse rounded-card border-chrome border-ink bg-paper"
       />
     )
   }

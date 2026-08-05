@@ -3,7 +3,7 @@
  * Mech System that deals SP damage") — renders as an expandable entity listing
  * in the card, static in read-only and a single-select picker when editable.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../choiceCard/choiceSelectionHelpers'
@@ -16,10 +16,6 @@ const armamentBay = () => {
 }
 
 describe('Armament Bay — Weapons System catalog listing', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('read-only: shows the choice prompt + a collapsed listing summary', () => {
     render(<ReferenceEntityCard data={armamentBay()} />)
     // the choice owns its prompt prose

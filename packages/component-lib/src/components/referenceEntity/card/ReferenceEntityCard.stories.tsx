@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../../stories/_harness'
@@ -226,14 +227,14 @@ export const ClassKinds: Story = () => (
  */
 export const PatternCard: Story = () => (
   <div className="flex flex-col gap-4 p-4">
-    <code className="font-body text-nano text-ink-2">
+    <code className="font-body text-nano text-wk-muted">
       {chassis.name} · {surveyorPattern.name}
     </code>
     <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />
     {/* A `legalStarting`-tagged pattern adds the "Legal Starting Pattern" stamp
         to the seam, right of the chassis marker — full card and listing row
         alike (the row is what the chassis page's Patterns list renders). */}
-    <code className="font-body text-nano text-ink-2">
+    <code className="font-body text-nano text-wk-muted">
       {muleChassis.name} · {haulerPattern.name} (legal starting — full + listing)
     </code>
     <ReferenceEntityCard data={muleChassis} pattern={haulerPattern} />
@@ -489,7 +490,7 @@ export const ChoiceEntities: Story = () => {
   ].filter((e) => hasChoices(e))
   return (
     <div className="flex flex-col gap-6 p-4">
-      <p className="max-w-prose font-body text-xs text-ink-2">
+      <p className="max-w-prose font-body text-xs text-wk-muted">
         {entities.length} choice-bearing entities. Stage 7 — choices render inline (no sub-header
         hoist); a table choice (A.I. Personality) shows its prose + an expandable RollTable, a text
         choice a field, options/catalog as cards. read-only shows every option solid; editable is
@@ -512,7 +513,7 @@ export const CollapseEntities: Story = () => {
   ].filter((e) => isSelfActionMulti(e))
   return (
     <div className="flex flex-col gap-4 p-4">
-      <p className="max-w-prose font-body text-xs text-ink-2">
+      <p className="max-w-prose font-body text-xs text-wk-muted">
         {entities.length} multi-action entities carrying a same-named action. Stage 6 — the
         self-action now folds into the card body regardless of count; every other action (Patch,
         System Repair, Project…) renders as its own card below.

@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-
-import { api } from '../_generated/api'
-import type { Id } from '../_generated/dataModel'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import { testConvex } from './harness'
 
 /**
@@ -500,7 +499,7 @@ describe('requireMediator', () => {
   test('rejects a member who does not mediate', async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
-    const { requireMediator } = await import('../model/permissions')
+    const { requireMediator } = await import('../../convex/model/permissions')
 
     // Exercised directly: this PR ships the helper ahead of its Phase 3
     // callers, and an untested gate is the kind that quietly stops gating.

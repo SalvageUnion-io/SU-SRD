@@ -7,7 +7,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from './index.js'
-import { DEVIATIONS, type Deviation } from './printedNameDeviations.js'
+import type { Deviation } from './printedNameDeviations.js'
+import { DEVIATIONS } from './printedNameDeviations.js'
 
 const named = (schema: Deviation['schema'], name: string) =>
   SalvageUnionReference[schema].all().find((e) => 'name' in e && e.name === name)

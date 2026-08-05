@@ -1,8 +1,8 @@
-import { describe, test, expect } from 'bun:test'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { Card } from '../Card'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
+import { Card } from '../Card'
 
 function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {

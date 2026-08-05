@@ -1,6 +1,6 @@
 import { REST, Routes } from 'discord.js'
-import { config } from './config.js'
 import { commands } from './commands/index.js'
+import { config } from './config.js'
 
 const commandData = Array.from(commands.values()).map((cmd) => cmd.data.toJSON())
 

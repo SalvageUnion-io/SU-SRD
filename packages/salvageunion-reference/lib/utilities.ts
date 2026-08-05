@@ -15,18 +15,20 @@
  *                           resolves through an entity's self-action.
  * - `entityGuards.ts`     — the type guards that still have a consumer.
  * - `patterns.ts`         — patterns, the hidden-pattern rule, formations.
- * - `assets.ts`           — `ASSET_BASE_URL` + `getAssetUrl`.
- * - `traitText.ts`        — `[[Trait]]` markup parsing.
+ * - `assets.ts`           — the artwork CDN (`ASSET_BASE_URL` + `getAssetUrl`)
+ *                           and the reference site (`SRD_SITE_URL` +
+ *                           `srdEntityPath` / `srdEntityUrl`).
+ * - `traitText.ts`        — `[[Trait]]` markup parsing and rewriting.
  * - `inventorySlots.ts`   — the Heavy/Portable inventory-slot rule.
  *
  * Prefer importing from those modules directly in new package-internal code;
  * consumers outside the package should keep importing from the package barrel.
  */
 
-export * from './entityFields.js'
 export * from './actionResolution.js'
-export * from './entityGuards.js'
-export * from './patterns.js'
 export * from './assets.js'
-export * from './traitText.js'
+export * from './entityFields.js'
+export * from './entityGuards.js'
 export * from './inventorySlots.js'
+export * from './patterns.js'
+export * from './traitText.js'

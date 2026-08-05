@@ -10,20 +10,15 @@
  * applyCrawlerCrewAndTypeEdit helper. A confirm step guards the change.
  */
 
+import { Button, CrawlerTypeDetail, CrawlerTypeOptionList, ModalShell, toast } from 'component-lib'
 import { useEffect, useState } from 'react'
-
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefCrawler } from 'salvageunion-reference'
-import { Button, ModalShell, toast } from 'component-lib'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { EntityState } from '../../stores/entityStore'
-import {
-  EMPTY_CRAWLER_FORM_STATE,
-  type CrawlerWizardFormState,
-} from '../../lib/wizard/crawlerFormState'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
-import { CrawlerTypeDetail, CrawlerTypeOptionList } from 'component-lib'
+import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
+import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
+import type { EntityState } from '../../stores/entityStore'
 
 type CrawlerTypeEditModalProps = {
   open: boolean

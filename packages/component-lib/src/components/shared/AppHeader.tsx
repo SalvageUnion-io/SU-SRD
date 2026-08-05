@@ -1,11 +1,12 @@
+import { Search } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
+import { SRD_SITE_URL } from 'salvageunion-reference'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
-import { Search } from 'lucide-react'
-import { AppBar } from './AppBar'
 import type { AppBarNavItem } from './AppBar'
-import { NavDrawer } from './NavDrawer'
+import { AppBar } from './AppBar'
 import type { NavDrawerItem } from './NavDrawer'
+import { NavDrawer } from './NavDrawer'
 
 /**
  * AppHeader — the ITUN builder's masthead (app-local config over the shared
@@ -24,13 +25,13 @@ import type { NavDrawerItem } from './NavDrawer'
 
 // SRD search-field treatment, matching the shared SearchField chrome exactly so
 // the trigger button reads as the same search bar.
-const SEARCH_BOX = `flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-rust ${FOCUS_RING} lg:w-64`
+const SEARCH_BOX = `flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-wk-muted transition-colors hover:border-rust ${FOCUS_RING} lg:w-64`
 
 const DESKTOP_NAV: AppBarNavItem[] = [
   { label: 'About', href: '/about' },
   { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
-  { label: 'SRD ↗', href: 'https://salvageunion.io', external: true },
+  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
+  { label: 'SRD ↗', href: SRD_SITE_URL, external: true },
 ]
 
 /** ITUN's two-tone brand tag for the mobile drawer. */
@@ -50,8 +51,8 @@ const ITUN_DRAWER_BRAND = (
 const DRAWER_NAV: NavDrawerItem[] = [
   { label: 'About', href: '/about' },
   { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
-  { label: 'SalvageUnion.io SRD ↗', href: 'https://salvageunion.io', external: true },
+  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
+  { label: 'SalvageUnion.io SRD ↗', href: SRD_SITE_URL, external: true },
   {
     label: 'Buy the game',
     href: 'https://leyline.press/collections/salvage-union',

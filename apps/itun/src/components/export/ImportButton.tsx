@@ -12,12 +12,11 @@
  * if the user needs to retry after a partial failure.
  */
 
+import { Button, FieldError, toast } from 'component-lib'
 import { useRef, useState } from 'react'
-import { Button, toast, FieldError } from 'component-lib'
-
+import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'
-import type { MergeSummary } from '../../lib/export/mergeImport'
 import { useEntityStore } from '../../stores/entityStore'
 
 export function ImportButton() {

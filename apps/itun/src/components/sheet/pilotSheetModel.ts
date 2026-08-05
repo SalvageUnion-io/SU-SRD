@@ -12,20 +12,20 @@
  * record bugs that were already paid for once.
  */
 
-import { useMemo } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefAbility } from 'salvageunion-reference'
-import { linesFromBreakdown } from 'component-lib'
 import type { ProvenanceLine } from 'component-lib'
-
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
+import { linesFromBreakdown } from 'component-lib'
+import { useMemo } from 'react'
+import type { SURefAbility } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAPParts, pilotMaxHPParts } from '../../lib/rules/derivedStats'
-import { type ClassLike, treesFor } from '../pilot/abilityTrees'
+import type { Crawler } from '../../lib/schemas/crawler'
+import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
+import type { ClassLike } from '../pilot/abilityTrees'
+import { treesFor } from '../pilot/abilityTrees'
 import { useSoftLinks } from '../wiring/useSoftLinks'
-import { pilotInventoryCapacity, pilotInventoryUsed } from './pilotInventory'
 import { resolveAbility } from './pilotAbilities'
+import { pilotInventoryCapacity, pilotInventoryUsed } from './pilotInventory'
 import type { SheetStoreState } from './sheetViewProps'
 
 /**

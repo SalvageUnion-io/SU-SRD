@@ -4,14 +4,13 @@
  * constants shared by CrawlerSheetItems and CrawlerSheet.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
+import { resolveSystemRef } from 'salvageunion-reference/rules'
 
 /** Resolve a stored crawler-system ref (id or name) to its SRD entity [gap 20]. */
 export function resolveCrawlerSystem(ref: string): SURefEntity | null {
   try {
-    const all = SalvageUnionReference.Systems.all()
-    return all.find((s) => s.id === ref || s.name === ref) ?? null
+    return resolveSystemRef(ref)
   } catch {
     return null
   }

@@ -1,6 +1,4 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-
 import {
   buildChannelEmbed,
   buildCrewEmbed,
@@ -28,7 +26,6 @@ beforeAll(async () => {
   // The maxima are DERIVED from chassis and class data, so the builders are
   // meaningless without the dataset loaded. That dependency is the point: the
   // server cannot compute these, and the bot can.
-  await SalvageUnionReference.preload('all')
 })
 
 function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown> }): OwnedEntity {

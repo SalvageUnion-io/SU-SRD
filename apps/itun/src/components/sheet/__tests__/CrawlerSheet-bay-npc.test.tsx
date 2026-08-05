@@ -18,16 +18,17 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-
-import { CrawlerSheet } from '../CrawlerSheet'
-import { CrawlerSchema } from '../../../lib/schemas/crawler'
+import type { SURefCrawlerBay } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import { CrawlerSchema } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { expandCards } from '../../__tests__/expandCards'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { expandCards } from '../../__tests__/expandCards'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { patchModelRows } from '../../__tests__/patchModel'
+import { CrawlerSheet } from '../CrawlerSheet'
 
 afterEach(() => {
   cleanup()
@@ -52,9 +53,9 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
       position: 'Princeps',
       hitPoints: 4,
       choices: [
-        { id: 'command-bay-name-1', name: 'Name', choiceType: 'freeform' },
-        { id: KEEPSAKE_CHOICE_ID, name: 'Keepsake', choiceType: 'freeform' },
-        { id: MOTTO_CHOICE_ID, name: 'Motto', choiceType: 'freeform' },
+        { id: 'command-bay-name-1', name: 'Name' },
+        { id: KEEPSAKE_CHOICE_ID, name: 'Keepsake' },
+        { id: MOTTO_CHOICE_ID, name: 'Motto' },
       ],
     },
   },
@@ -71,13 +72,7 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
 
 async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
-  SalvageUnionReference.CrawlerBays.all = mock(
-    (): Array<SURefCrawlerBay & { schemaName: string }> => MOCK_BAYS
-  )
-  return () => {
-    SalvageUnionReference.CrawlerBays.all = original
-  }
+  return patchModelRows(SalvageUnionReference.CrawlerBays, MOCK_BAYS)
 }
 
 // ---------------------------------------------------------------------------
@@ -101,8 +96,8 @@ const baseCrawler: Crawler = {
     },
     { bayRef: 'mech-bay', npcCurrentHP: 4 },
   ],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 type Spies = {

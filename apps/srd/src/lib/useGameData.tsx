@@ -9,9 +9,11 @@
  * while multiple islands requesting the *same* list still share one
  * in-flight preload promise.
  */
-import { useState, useEffect, useCallback, useSyncExternalStore, type ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+
 import { Button } from 'component-lib'
+import type { ReactNode } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 /** A preload request: every schema (`'all'`), or an explicit subset. */
 export type SchemaList = string[] | 'all'

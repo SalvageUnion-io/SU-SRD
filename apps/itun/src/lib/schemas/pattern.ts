@@ -25,7 +25,6 @@
  */
 
 import { z } from 'salvageunion-reference/zod'
-
 import { CargoLotSchema } from './cargoLot'
 
 export const MechPatternSchema = z

@@ -1,7 +1,7 @@
 import type { SURefSystem } from 'salvageunion-reference'
 import { EmptyState } from '../chrome/EmptyState'
-import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { MasonryColumns } from '../shared/MasonryColumns'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */

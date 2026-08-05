@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { RuleBrief } from './RuleBrief'
 
 export default { title: 'Compositions/Rule Brief' }

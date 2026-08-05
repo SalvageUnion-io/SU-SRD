@@ -1,5 +1,4 @@
 import { mechMaxHeat, mechMaxSP, pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
-
 import { ROLL_COLORS, truncate } from './format.js'
 import type {
   ChannelResult,

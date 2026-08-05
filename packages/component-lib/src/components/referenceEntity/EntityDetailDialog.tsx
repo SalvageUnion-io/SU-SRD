@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { cn } from '../../utils/cn'
+import { buttonVariants } from '../chrome/buttonVariants'
 
 type EntityDetailDialogProps = {
   open: boolean
@@ -35,7 +37,16 @@ export function EntityDetailDialog({
               The SRD black-stamp square button is kitty-cornered, straddling the
               card's top-right corner. */}
           <div className="relative">
-            <Dialog.Close className="absolute -top-2 -right-2 z-[60] flex h-9 w-9 cursor-pointer items-center justify-center rounded-card border-2 border-paper bg-ink text-paper shadow-lg transition-colors hover:bg-rust">
+            {/* The SRD black stamp is not a Button VARIANT (paper hairline on
+                ink, going rust on hover), but its geometry, focus ring and
+                disabled treatment are the shared icon rung's — so it composes
+                `buttonVariants` and re-skins only the colours. */}
+            <Dialog.Close
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
+                'absolute -top-2 -right-2 z-[60] border-2 border-paper bg-ink text-paper shadow-lg hover:bg-rust'
+              )}
+            >
               <X className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">Close</span>
             </Dialog.Close>

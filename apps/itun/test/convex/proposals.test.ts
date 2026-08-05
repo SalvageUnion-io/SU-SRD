@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import { MechSchema } from '../../src/lib/schemas/mech'
-import { api } from '../_generated/api'
-import type { Id } from '../_generated/dataModel'
 import { testConvex } from './harness'
 
 /**

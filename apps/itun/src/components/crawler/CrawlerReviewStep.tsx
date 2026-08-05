@@ -1,6 +1,6 @@
+import { Callout, FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { Callout, KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 

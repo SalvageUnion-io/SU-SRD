@@ -7,9 +7,9 @@
  * roll tables vanish (see `resolveCardTable.test.tsx`). These tests pin the
  * grouping, the name -> entity resolution, and the "nothing to resolve" exits.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { describe, expect, test } from 'bun:test'
 import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
@@ -38,10 +38,6 @@ const group = (groups: ReturnType<typeof resolveNestedEntities>, label: string) 
   groups.find((g) => g.label === label)
 
 describe('resolveNestedEntities', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('an OBJECT-shaped chassis ability naming a drone resolves it into "Drones"', () => {
     // In the shipped dataset `chassisAbilities` is an array of id STRINGS, so
     // this branch only fires for the object-shaped form the type permits (and
@@ -102,10 +98,6 @@ describe('resolveNestedEntities', () => {
 })
 
 describe('resolvePatternGroups', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test("a pattern's systems, modules and drones each resolve into their own group", () => {
     const groups = resolvePatternGroups(pattern('Little Sestra', 'Surveyor'))
     expect(groups.map((g) => g.label)).toEqual(['Systems', 'Modules', 'Drones'])
@@ -214,10 +206,6 @@ describe('resolvePatternGroups', () => {
 })
 
 describe('drone loadouts', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test("resolveChassisDrone uses the DRONE's own loadout, not the chassis's", () => {
     const loadout = resolveChassisDrone(chassis('Little Sestra'))
     expect((loadout?.drone as { name?: string })?.name).toBe('Sestra Drone')
