@@ -8,6 +8,14 @@ on:
     branches: ['main']
   pull_request:
     branches: ['main']
+  # Required before `Analyze (javascript-typescript)` may be made a required
+  # status context on `main`, and the order matters: this repo merges through a
+  # merge queue, whose temporary `gh-readonly-queue/**` branches fire NEITHER
+  # `push: [main]` NOR `pull_request`. Requiring a context that never reports on
+  # those branches leaves the queue waiting for a check that cannot arrive — the
+  # same wedge the `merge_group:` trigger at the top of ci.yml exists to prevent.
+  # So this trigger must be live on `main` BEFORE the ruleset is changed.
+  merge_group:
   schedule:
     # Mondays at 05:30 UTC — same cadence as Dependabot, offset from the
     # top of the hour to avoid the scheduling stampede.
