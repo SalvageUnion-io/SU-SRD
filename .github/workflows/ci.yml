@@ -403,12 +403,12 @@ jobs:
     # The full suite stays nightly-only (.github/workflows/e2e-nightly.yml) so
     # the PR gate stays fast and free of the flakiness that got browser e2e
     # demoted from PR-blocking in the first place. Uses the same hermetic
-    # `astro build` + `astro preview` pattern the nightly job already proves
-    # works — no live Netlify deploy preview.
+    # `bun ssg/build.ts` + `bun ssg/preview.ts` pattern the nightly job already
+    # proves works — no live Netlify deploy preview.
     #
     # These two specs used to be two separate jobs (smoke-web / bundle-budget-web)
     # so a budget regression would read as its own clearly-named failure. They
-    # are one job now because that split cost a WHOLE EXTRA `astro build`:
+    # are one job now because that split cost a WHOLE EXTRA srd build:
     # playwright.config.ts's `webServer` rebuilds the app under CI, so srd was
     # built three times per PR (build-srd + one per e2e job). Failure attribution
     # is preserved by Playwright's `github` reporter, which annotates by spec

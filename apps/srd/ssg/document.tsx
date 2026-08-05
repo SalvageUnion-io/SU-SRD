@@ -11,6 +11,7 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { BaseLayout } from '../src/layouts/BaseLayout'
+import { escapeJsonForScript } from '../src/lib/escapeJsonForScript'
 import type { CollectedIslandProps } from '../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../src/runtime/Island'
 import type { BuiltAssets, DocumentMeta, DocumentShell } from './types'
@@ -27,14 +28,6 @@ export type BuildAssets = {
    * `RouteContext.builtAssets`, because only the page knows where its image goes.
    */
   built: BuiltAssets
-}
-
-/**
- * `</script>` inside a JSON payload would close the host script element. The
- * browser's JSON parser treats `<` as `<`, so this is lossless.
- */
-function escapeJsonForScript(json: string): string {
-  return json.replace(/</g, '\\u003c')
 }
 
 function assetTags(assets: BuildAssets): string {

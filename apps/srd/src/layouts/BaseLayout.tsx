@@ -16,6 +16,7 @@ import type { ReactNode } from 'react'
 import type { DocumentMeta } from '../../ssg/types'
 import { TopNavigation } from '../components/TopNavigation'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
+import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
@@ -108,19 +109,25 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
 
         {preloadImage ? <link rel="preload" href={preloadImage} as="image" /> : null}
 
+        {/* `escapeJsonForScript`, not bare JSON.stringify: these blocks
+            interpolate entity-derived prose (itemName, the generated meta
+            description, a source book's title), so a `</script` in the data
+            would close this element inside <head>. Lossless — see the helper. */}
         {structuredData ? (
           <script
             type="application/ld+json"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload, serialized by JSON.stringify
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload, JSON.stringify + script-escaped
+            dangerouslySetInnerHTML={{
+              __html: escapeJsonForScript(JSON.stringify(structuredData)),
+            }}
           />
         ) : null}
         {additionalStructuredData?.map((data) => (
           <script
             key={JSON.stringify(data)}
             type="application/ld+json"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload, serialized by JSON.stringify
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload, JSON.stringify + script-escaped
+            dangerouslySetInnerHTML={{ __html: escapeJsonForScript(JSON.stringify(data)) }}
           />
         ))}
 

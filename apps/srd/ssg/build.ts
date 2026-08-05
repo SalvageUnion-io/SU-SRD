@@ -133,6 +133,7 @@ async function writeEndpoints(): Promise<void> {
       count += 1
     }
   }
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(`[ssg] wrote ${count} endpoint(s)`)
 }
 
@@ -151,6 +152,7 @@ async function writeEndpoints(): Promise<void> {
 async function writeSitemap(routes: string[]): Promise<void> {
   const { writeSitemap: write } = await import('./sitemap')
   const count = await write({ routes, distDir })
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(`[ssg] wrote sitemap-index.xml + sitemap-0.xml (${count} url(s))`)
 }
 
@@ -175,6 +177,7 @@ async function main(): Promise<void> {
   const { renderNavCatalogModule } = await import('./genNavCatalog')
   await writeFile(navCatalogFile, await renderNavCatalogModule(), 'utf-8')
 
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log('[ssg] vite build (client)')
   // `vite build` sets process.env.NODE_ENV='production' in THIS process, and
   // that breaks the SSR pass below in a genuinely confusing way: Bun picked its
@@ -188,6 +191,7 @@ async function main(): Promise<void> {
   else process.env.NODE_ENV = previousNodeEnv
 
   const assets = await readAssets()
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(
     `[ssg] assets: ${assets.scripts.length} script(s), ${assets.styles.length} style(s), ${Object.keys(assets.built).length} emitted asset(s)`
   )
@@ -231,6 +235,7 @@ async function main(): Promise<void> {
       count += 1
     }
   }
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(`[ssg] rendered ${count} page(s)`)
 
   // The same class of silent catastrophe one level up: a registry that resolves
@@ -254,6 +259,7 @@ async function main(): Promise<void> {
   // globs only js/css/woff2/svg, so it was never precached).
   await rm(join(distDir, '.vite'), { recursive: true, force: true })
 
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(`[ssg] done in ${((Date.now() - started) / 1000).toFixed(1)}s`)
 }
 

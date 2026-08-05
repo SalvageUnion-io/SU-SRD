@@ -252,6 +252,7 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
   try {
     const response = await handleRequest(vite, pathname)
     send(req, res, response)
+    // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
     console.log(`[dev] ${response.status} ${pathname} (${Date.now() - started}ms)`)
   } catch (error) {
     if (error instanceof Error) vite.ssrFixStacktrace(error)
@@ -302,6 +303,7 @@ async function main(): Promise<void> {
   })
 
   server.listen(PORT, () => {
+    // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
     console.log(`[dev] srd on http://localhost:${PORT}`)
   })
 

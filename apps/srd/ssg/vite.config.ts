@@ -30,6 +30,31 @@ export default defineConfig({
   // configured in the Netlify UI, so the prefix moves here rather than to the
   // variable names.
   envPrefix: 'PUBLIC_',
+  // Carried over from the deleted astro.config.mjs, where it fixed a specific,
+  // nasty dev-only bug: the island deps live under component-lib/node_modules
+  // (@base-ui, sonner, lucide-react, cva, @randsum) and were only DISCOVERED
+  // when an island first imported them, so Vite re-ran its dep optimizer
+  // mid-navigation and answered in-flight island chunk requests with 504
+  // "Outdated Optimize Dep" — cards stuck on their skeletons, with transient
+  // stale-React `jsxDEV` errors.
+  //
+  // It matters MORE here than it did under Astro. `ssg/dev.ts` runs Vite with
+  // `appType: 'custom'` and this app has no index.html anywhere in the root, so
+  // Vite's default scanner entry (`**/*.html`) matches nothing: without these
+  // explicit entries the optimizer starts from zero and discovers everything
+  // lazily, on the first browser request.
+  //
+  // Dev-only — `vite build` runs Rollup with no dep optimizer, which is why
+  // production was never affected and why this cannot regress the build.
+  //
+  // (astro.config.mjs also set `resolve.conditions: ['development']`. That is
+  // deliberately NOT carried over: neither workspace package declares a
+  // `development` export condition — both resolve straight to source — so it
+  // was inert. Checked, not assumed.)
+  optimizeDeps: {
+    include: ['salvageunion-reference'],
+    entries: ['src/components/islands/**/*.{ts,tsx}'],
+  },
   build: {
     outDir: fileURLToPath(new URL('../dist', import.meta.url)),
     emptyOutDir: true,

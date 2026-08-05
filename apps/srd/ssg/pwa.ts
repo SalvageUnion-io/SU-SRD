@@ -85,6 +85,7 @@ export async function writeServiceWorker(distDir: string): Promise<void> {
   })
 
   for (const warning of warnings) console.warn(`[ssg] workbox: ${warning}`)
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(
     `[ssg] service worker: precached ${count} file(s), ${(size / 1024 / 1024).toFixed(1)} MB`
   )
