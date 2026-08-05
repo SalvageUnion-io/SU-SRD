@@ -36,6 +36,10 @@ const PRELOADED_WORKSPACES = [
   'apps/srd',
   'packages/component-lib',
   'packages/salvageunion-reference',
+  // The bot has no DOM, so the cleanup rule is vacuous for it — but it reads
+  // reference data and had the same per-file `preload('all')` drift (8 files),
+  // so it is policed here too.
+  'apps/discord-bot',
 ] as const
 
 /**

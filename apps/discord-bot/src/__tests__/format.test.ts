@@ -2,7 +2,7 @@
  * Pure embed-shaping tests — no discord.js interaction objects needed.
  * Uses real reference data (preloaded) so /lookup shapes match production.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import {
   buildRollEmbedData,
@@ -12,10 +12,6 @@ import {
   ROLL_EMBED_FOOTER,
   truncate,
 } from '../format.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 function fixedRoller(...rolls: number[]) {
   const queue = [...rolls]

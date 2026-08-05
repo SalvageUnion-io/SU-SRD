@@ -82,7 +82,7 @@ export function RouteNotFound() {
 export function RoutePending() {
   return (
     <FullPageShell aria-busy="true" aria-live="polite">
-      <p className="animate-pulse font-cond text-sm font-bold uppercase tracking-caps text-wk-muted">
+      <p className="motion-safe:animate-pulse font-cond text-sm font-bold uppercase tracking-caps text-wk-muted">
         Loading…
       </p>
     </FullPageShell>

@@ -105,6 +105,12 @@ export function NavDrawer({
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
         <Dialog.Popup
           className={cn(
+            // Deliberately NOT `motion-safe:`-prefixed, unlike the pulse
+            // skeletons. Base UI unmounts this on exit-animation end, so an
+            // animation that never runs would strand the drawer mounted
+            // forever. The `@media (prefers-reduced-motion: reduce)` backstop
+            // in theme.css handles it correctly instead: 0.01ms duration means
+            // the animation still fires and still ends, just instantly.
             'fixed inset-y-0 right-0 z-50 flex max-w-[85vw] flex-col bg-paper p-4 shadow-lg data-[closed]:animate-slide-out-right data-[open]:animate-slide-in-right',
             panelClassName
           )}

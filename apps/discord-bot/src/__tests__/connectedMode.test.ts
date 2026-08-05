@@ -1,5 +1,4 @@
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand, sheetCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
@@ -19,10 +18,6 @@ import { buttonInteractionHandlerFor } from './helpers.js'
  * comment for why neither works. `afterEach` restores Solo, which is what every
  * other test file expects to see.
  */
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 let restore: (() => void) | null = null
 afterEach(() => {

@@ -1,7 +1,12 @@
 [test]
 # src/config.ts reads required env vars at module scope, so anything importing
 # it throws on load without these. See test/env.ts.
-preload = ["./test/env.ts"]
+# `../../test/reference-preload.ts` loads every schema once for the whole
+# workspace, the same way itun/srd/component-lib/salvageunion-reference do.
+# Without it each test file re-declared `preload('all')` itself — 8 of them —
+# which is the drift the shared script exists to remove. No DOM preload here:
+# the bot has no DOM.
+preload = ["./test/env.ts", "../../test/reference-preload.ts"]
 
 [test.env]
 NODE_ENV = "test"

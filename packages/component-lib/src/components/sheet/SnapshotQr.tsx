@@ -37,7 +37,7 @@ export function SnapshotQr({ url }: SnapshotQrProps) {
     return (
       <div
         aria-hidden="true"
-        className="h-[84px] w-[84px] shrink-0 animate-pulse rounded-card border-chrome border-ink bg-paper"
+        className="h-[84px] w-[84px] shrink-0 motion-safe:animate-pulse rounded-card border-chrome border-ink bg-paper"
       />
     )
   }
