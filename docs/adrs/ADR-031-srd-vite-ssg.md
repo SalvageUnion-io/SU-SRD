@@ -193,6 +193,16 @@ left, and no available version fixed it.
   `packages/salvageunion-reference/tools/generateApiReport.ts` both import it for
   the TypeScript 6 compiler API. Astro was never its only consumer, and deleting
   it during an "Astro leftovers" sweep breaks both tools.
+
+  > **Amended (2026-08-05, post-Astro streamline).** Still true, but for ONE
+  > consumer rather than two. `generateApiReport.ts` moved to the repo's
+  > TypeScript 7: it only ever needed the `tsc` **binary** (it drives the
+  > compiler through `--project`, never the API), and TS 7 emits the same 427
+  > public symbols for that report. `tools/check-architecture.ts` cannot follow
+  > and remains the sole consumer — TS 7's `typescript` entry point exports only
+  > `lib/version.cjs`, and its replacement `typescript/unstable/*` API is
+  > Project/Snapshot-based with no single-file `createSourceFile`/`forEachChild`
+  > to walk. The alias goes when that API stabilises, not before.
 - No auth, no backend, no user data; Netlify static deploy with no functions.
   [ADR-030](ADR-030-accounts-games-server-of-record.md) explicitly leaves `srd`
   public and login-free.

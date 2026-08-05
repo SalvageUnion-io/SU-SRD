@@ -1,15 +1,23 @@
 /**
- * Accessibility audit script using axe-core + puppeteer-core.
+ * Accessibility audit script using axe-core + Playwright.
  * Scans pages of a running dev server and reports WCAG 2.1 AA violations.
  *
  * Usage: bun tools/a11y-scan.ts <base-url> <page1> <page2> ...
+ *
+ * Uses Playwright rather than puppeteer-core so the repo has ONE browser
+ * automation stack. puppeteer-core ships no browser, so this script previously
+ * had to borrow the Chromium that Playwright installs for the e2e suites — the
+ * nightly workflow ran a dedicated step that booted Node just to print
+ * `chromium.executablePath()` into the environment. Playwright resolves its own
+ * browser, so that step is gone and there is no second stack to keep in sync.
  */
 
 import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import puppeteer from 'puppeteer-core'
+import type { Page } from 'playwright'
+import { chromium } from 'playwright'
 
 const AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.4/axe.min.js'
 
@@ -37,13 +45,11 @@ const CHROME_TMP = join(homedir(), '.cache', 'chrome-a11y')
 mkdirSync(CHROME_TMP, { recursive: true })
 process.env.MAC_CHROMIUM_TMPDIR = CHROME_TMP
 
-// Chrome binary. Defaults to the macOS Google Chrome install this script was
-// written against; any other environment overrides it. CI (the nightly a11y
-// job) points this at the Chromium that Playwright already installs for the
-// e2e suites, so no second browser download is needed.
-const MACOS_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const CHROME_EXECUTABLE =
-  process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_PATH || MACOS_CHROME
+// Chrome binary. Playwright resolves its own bundled Chromium, which is what CI
+// uses (`playwright install chromium`, already cached for the e2e suites), so
+// this is normally unset. CHROME_PATH still overrides it for a local run that
+// wants a specific binary — e.g. the system Google Chrome.
+const CHROME_EXECUTABLE = process.env.CHROME_PATH || undefined
 
 type AxeNode = {
   html: string
@@ -67,12 +73,9 @@ type PageResult = {
   details: AxeViolation[]
 }
 
-async function scanPage(
-  page: Awaited<ReturnType<Awaited<ReturnType<typeof puppeteer.launch>>['newPage']>>,
-  url: string,
-  pathname: string
-): Promise<PageResult> {
-  await page.goto(url, { waitUntil: 'networkidle2', timeout: 15000 })
+async function scanPage(page: Page, url: string, pathname: string): Promise<PageResult> {
+  // Playwright spells puppeteer's 'networkidle2' as 'networkidle'.
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 15000 })
   // Wait for content to settle
   await new Promise((r) => setTimeout(r, 2000))
 
@@ -125,10 +128,14 @@ async function main() {
     process.exit(1)
   }
 
-  const browser = await puppeteer.launch({
+  // `launchPersistentContext` rather than `launch` so the profile directory
+  // stays explicit: the sandbox workaround above depends on Chrome writing its
+  // profile and singleton socket under CHROME_TMP, and plain `launch()` would
+  // pick a temp dir the sandbox denies.
+  const context = await chromium.launchPersistentContext(join(CHROME_TMP, 'profile'), {
     executablePath: CHROME_EXECUTABLE,
     headless: true,
-    userDataDir: join(CHROME_TMP, 'profile'),
+    viewport: { width: 1280, height: 900 },
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -145,8 +152,9 @@ async function main() {
     ],
   })
 
-  const page = await browser.newPage()
-  await page.setViewport({ width: 1280, height: 900 })
+  // A persistent context opens with one page already; reuse it rather than
+  // leaving a blank tab open (viewport is set on the context above).
+  const page = context.pages()[0] ?? (await context.newPage())
 
   const allResults: PageResult[] = []
 
@@ -168,7 +176,7 @@ async function main() {
     }
   }
 
-  await browser.close()
+  await context.close()
 
   // Output JSON results
   console.log(JSON.stringify(allResults, null, 2))

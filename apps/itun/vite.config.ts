@@ -1,7 +1,7 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -29,9 +29,10 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     tailwindcss(),
-    react({
-      jsxRuntime: 'automatic',
-    }),
+    // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
+    // explicit `jsxRuntime: 'automatic'` the Babel plugin needed is gone — it
+    // is not an option on this plugin and would be rejected.
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],

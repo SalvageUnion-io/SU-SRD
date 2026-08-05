@@ -1,5 +1,0 @@
-# CHANGELOG.md files are generated/maintained by release-please (ADR-024/025).
-# Prettier must not reformat them: its output would diverge from what
-# release-please writes, making every generated release PR fail `format:check`.
-# Treated as generated artifacts (like the Biome-ignored api-report snapshot).
-**/CHANGELOG.md

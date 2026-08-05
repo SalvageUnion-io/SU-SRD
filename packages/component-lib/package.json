@@ -11,8 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",
-    "format": "biome format --write . && prettier --write '**/*.md' --ignore-unknown --log-level=warn",
-    "format:check": "biome format . && prettier --check '**/*.md' --ignore-unknown --log-level=warn",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "test:watch": "bun test --watch",

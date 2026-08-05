@@ -58,11 +58,20 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // `typescript-classic` is an npm alias for typescript@6 (see root package.json).
-// TypeScript 7's package no longer exposes the classic compiler API this tool
-// walks (`ts.createSourceFile`, `ts.ScriptTarget`, `ts.isFunctionDeclaration`,
-// `ts.forEachChild`, …) — they are all undefined on the TS7 default export — so
-// this AST-walking tool stays on the TS6 API until it's migrated. The rest of
-// the monorepo type-checks on TS7.
+// This file is now its ONLY consumer — `generateApiReport.ts`, the other one,
+// moved to the repo's TypeScript 7 because it only ever needed the `tsc` binary.
+//
+// This tool cannot follow, and the reason is structural rather than a pending
+// chore. TypeScript 7's `typescript` package exports `./lib/version.cjs` as `.`,
+// so the default export carries no compiler at all (`ts.createProgram` and
+// friends are `undefined`). What it does ship is a new, explicitly-unstable API:
+//   - `typescript/unstable/ast` has the enums and every `isXxx` predicate this
+//     file uses — but NOT `createSourceFile` or `forEachChild`.
+//   - `typescript/unstable/sync` is Project/Snapshot-based (`API`, `Project`,
+//     `NodeHandle`). There is no "parse this one file and walk it" entry point.
+// Porting therefore means rewriting a fast, standalone, per-file AST walk as a
+// project load against an API whose own module path says `unstable`. Checked
+// against typescript@7.0.2, not assumed. Revisit when that API stabilises.
 import ts from 'typescript-classic'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')

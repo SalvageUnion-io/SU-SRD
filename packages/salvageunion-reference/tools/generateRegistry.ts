@@ -32,10 +32,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import * as prettier from 'prettier'
 import { toPascalCase } from '../lib/naming.js'
 import type { RegistryEntry } from '../lib/schemas/registry.js'
 import { registry } from '../lib/schemas/registry.js'
+import { formatWithBiome, TS_FORMAT_PATH } from './formatWithBiome.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -242,31 +242,26 @@ async function main() {
 
   console.log('Generating registry files from lib/schemas/registry.ts...\n')
 
-  // lib/generated/** is listed in .prettierignore / eslint ignores (same
-  // treatment as routeTree.gen.ts) so it's never a format:check/lint
-  // requirement, but running it through Prettier anyway keeps the committed,
-  // human-reviewable output actually pleasant to review.
-  const generatedConfig = await prettier.resolveConfig(join(generatedDir, 'x.ts'))
-  const formatGenerated = (source: string) =>
-    prettier.format(source, { ...generatedConfig, parser: 'typescript' })
+  // lib/generated/** is biome-ignored (same treatment as routeTree.gen.ts) so
+  // it's never a format:check/lint requirement, but running it through the
+  // formatter anyway keeps the committed, human-reviewable output pleasant to
+  // review. Because Biome would return an ignored path untouched, these two go
+  // through the synthetic TS_FORMAT_PATH rather than their own paths.
+  const formatGenerated = (source: string) => formatWithBiome(source, TS_FORMAT_PATH)
 
-  writeFileSync(modelFactoryOut, await formatGenerated(generateModelFactoryRegistry(registry)))
+  writeFileSync(modelFactoryOut, formatGenerated(generateModelFactoryRegistry(registry)))
   console.log('✓ Generated lib/generated/modelFactoryRegistry.generated.ts')
 
-  writeFileSync(schemaRegistryOut, await formatGenerated(generateSchemaRegistry(registry)))
+  writeFileSync(schemaRegistryOut, formatGenerated(generateSchemaRegistry(registry)))
   console.log('✓ Generated lib/generated/schemaRegistry.generated.ts')
 
   const indexSource = readFileSync(indexPath, 'utf-8')
   const injected = injectStaticAccessors(indexSource, registry)
 
-  // lib/index.ts is hand-written (only the marker region is generated), and
-  // is NOT prettier-ignored, so format the whole file to keep it
-  // format:check-clean and the drift check idempotent.
-  const prettierConfig = await prettier.resolveConfig(indexPath)
-  const formatted = await prettier.format(injected, {
-    ...prettierConfig,
-    filepath: indexPath,
-  })
+  // lib/index.ts is hand-written (only the marker region is generated), and is
+  // NOT biome-ignored, so format the whole file — under its own path — to keep
+  // it format:check-clean and the drift check idempotent.
+  const formatted = formatWithBiome(injected, indexPath)
   writeFileSync(indexPath, formatted)
   console.log('✓ Injected static accessors into lib/index.ts')
 

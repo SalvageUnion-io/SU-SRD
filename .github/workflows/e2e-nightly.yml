@@ -145,20 +145,14 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
-      # The scanner drives Chrome over CDP with puppeteer-core, which ships no
-      # browser of its own. Reuse the Chromium the e2e jobs already install and
-      # cache instead of pulling a second one.
+      # The scanner drives Chromium with Playwright, which resolves its own
+      # browser — the same one the e2e jobs install and cache, so this pulls
+      # nothing extra. (A "Resolve the Chromium binary" step used to sit here,
+      # exporting CHROME_PATH for puppeteer-core, which ships no browser of its
+      # own. The scanner is on Playwright now, so it finds Chromium itself.)
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/srd
         run: bunx playwright install --with-deps chromium
-
-      - name: Resolve the Chromium binary
-        working-directory: apps/srd
-        run: |
-          set -euo pipefail
-          CHROME_PATH="$(bun -e 'const { chromium } = await import("playwright"); console.log(chromium.executablePath())')"
-          echo "Chromium: $CHROME_PATH"
-          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
 
       # Same static-preview approach as e2e-srd's Playwright webServer: the SSG
       # build (`ssg/build.ts` directly, not the `og:generate` script, which

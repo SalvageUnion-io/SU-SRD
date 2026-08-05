@@ -11,7 +11,7 @@
 
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
