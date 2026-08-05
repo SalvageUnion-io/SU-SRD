@@ -5,9 +5,7 @@
 
 import type { RollerRollResult } from '@randsum/roller'
 import type { RollOnTableOutcome, SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
-
-const SUREF_WEB_BASE_URL = 'https://salvageunion.io'
+import { getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
 
 /**
  * Author name stamped on every embed (paired with the bot's own avatar as the
@@ -148,7 +146,11 @@ export function buildCheckEmbedData(input: string, result: RollerRollResult<unkn
   }
 }
 
-/** Item-page URL on the reference site (matches srd staticPaths). */
+/**
+ * Item-page URL on the reference site. The host and the route grammar both
+ * come from `srdEntityUrl` (salvageunion-reference), which is where the SRD's
+ * path shape is defined — this is only the entity→slug step.
+ */
 export function entityUrl(schemaName: string, entity: SURefEntity): string {
-  return `${SUREF_WEB_BASE_URL}/schema/${schemaName}/item/${getEntitySlug(entity)}`
+  return srdEntityUrl(schemaName, getEntitySlug(entity))
 }

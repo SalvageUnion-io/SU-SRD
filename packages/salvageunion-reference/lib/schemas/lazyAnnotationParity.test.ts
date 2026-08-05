@@ -73,7 +73,6 @@ const CONTENT_BLOCK_KEYS = ['type', 'value', 'label', 'level', 'lead', 'choiceId
 const CHOICE_KEYS = [
   'id',
   'name',
-  'choiceType',
   'content',
   'rollTable',
   'schemaEntities',

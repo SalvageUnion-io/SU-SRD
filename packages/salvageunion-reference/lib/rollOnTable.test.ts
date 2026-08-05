@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -11,10 +11,6 @@ function defined<T>(value: T | null | undefined): T {
 import { SalvageUnionReference } from './index.js'
 import { rollOnTable } from './rollOnTable.js'
 import { isColumnsTable } from './utils/resultForTable.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['roll-tables'])
-})
 
 function fixedRoller(...rolls: number[]) {
   const queue = [...rolls]

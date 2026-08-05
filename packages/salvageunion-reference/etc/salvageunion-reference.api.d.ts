@@ -334,7 +334,14 @@ export {};
 //# sourceMappingURL=actionResolution.d.ts.map
 // === lib/assets.d.ts ===
 /**
- * Artwork URL derivation.
+ * URL derivation for the two hosts the dataset addresses: the artwork CDN
+ * (`assets.salvageunion.io`) and the public reference site
+ * (`salvageunion.io`).
+ *
+ * Both bases live here for the same reason: an entity's artwork URL and its
+ * reference-site page are DERIVED from the dataset (schema name + slug), so
+ * the grammar belongs with the dataset rather than being retyped by every
+ * surface that links out.
  *
  * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
  * there (and from the package barrel), so this is an internal home, not a new
@@ -359,6 +366,39 @@ export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 export declare function getAssetUrl(entity: SURefMetaEntity): string | undefined;
+/**
+ * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
+ * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
+ * the site's own canonical/OG tags — is this base plus {@link srdEntityPath},
+ * so the host is named once here rather than retyped per surface.
+ */
+export declare const SRD_SITE_URL = "https://salvageunion.io";
+/**
+ * The reference site's ROOT-RELATIVE path for one entity's page.
+ *
+ * This is the site's route grammar (`/schema/{schemaName}/item/{slug}` — it
+ * matches the srd `getStaticPaths`), expressed once. The srd site itself wants
+ * the relative form (it is that origin); anything linking in from outside
+ * prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
+ *
+ * Takes the SLUG rather than the entity, because callers arrive with either —
+ * a resolved entity (slug it with `getEntitySlug`) or a bare name already run
+ * through `nameToSlug` (the bot's trait/table/drone links).
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The root-relative page path
+ */
+export declare function srdEntityPath(schemaName: string, slug: string): string;
+/**
+ * The reference site's ABSOLUTE URL for one entity's page —
+ * {@link SRD_SITE_URL} + {@link srdEntityPath}.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The absolute page URL
+ */
+export declare function srdEntityUrl(schemaName: string, slug: string): string;
 //# sourceMappingURL=assets.d.ts.map
 // === lib/contentBlockHelpers.d.ts ===
 /**
@@ -898,6 +938,21 @@ export declare function resolveActivationCurrency(schemaName: SURefEnumSchemaNam
  */
 export declare function getEntitySchemas(): EnhancedSchemaMetadata[];
 /**
+ * Sort rank for a Tech Level: the numeric tiers 1–6 keep their own value, then
+ * Bio ('B') at 7 and Nanite ('N') at 8.
+ *
+ * This ordering is a property of the game's TAXONOMY, not of any one widget, so
+ * it lives here and every sorter composes it (`techLevelRank(a) -
+ * techLevelRank(b)`) rather than re-deriving it. A missing Tech Level ranks
+ * last — an entity with no TL has no place among the tiers, and Infinity keeps
+ * it out of the way of both the numeric run and B/N without inventing a tier
+ * for it.
+ *
+ * @param techLevel - A Tech Level (as returned by `getTechLevel`), or undefined
+ * @returns The sort rank
+ */
+export declare function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number;
+/**
  * Get unique tech levels from an array of entities, sorted correctly
  * Numeric levels ascending, then 'B', then 'N'
  * @param entities - Array of entities to extract tech levels from
@@ -1074,6 +1129,22 @@ export declare class SalvageUnionReference {
      * Get an entity by schema name and ID (O(1) via ID map)
      */
     static get<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): (SchemaToEntityMap[T] & {
+        schemaName: T;
+    }) | undefined;
+    /**
+     * Get an entity by schema name and exact `name` (O(1) via the name index).
+     *
+     * The name-addressed sibling of {@link get}. It exists because a caller
+     * holding a SCHEMA ID rather than a static model (`findIn('chassis', …)`,
+     * anything driven by data) previously had no indexed option at all, and so
+     * reached for `findIn(schema, (e) => e.name === x)` — a full linear scan, and
+     * the single largest source of the pattern `CLAUDE.md` bans. Exactly
+     * equivalent to that predicate, including first-writer-wins on duplicates.
+     *
+     * The slug axis already had its schema-id-holding accessor —
+     * `findEntityBySlug` (lib/slug.ts) — so only `name` was missing.
+     */
+    static getByNameIn<T extends keyof SchemaToEntityMap>(schemaName: T, name: string): (SchemaToEntityMap[T] & {
         schemaName: T;
     }) | undefined;
     /**
@@ -2315,7 +2386,7 @@ export { canActivateAction, clampHeat, performHeatCheck, performPush, reactorOve
 export type { FindRollTable } from './mediatorTables.js';
 export { describeMediatorRoll, MEDIATOR_TABLE_LABEL, MEDIATOR_TABLE_NAMES, performMediatorRoll, } from './mediatorTables.js';
 export { enrichPilotSnapshot } from './pilotSnapshot.js';
-export { matchesRef, resolveChassisRef, resolveInstalledRef, resolveModuleRef, resolveSystemRef, } from './resolveRefs.js';
+export { matchesRef, resolveChassisRef, resolveInstalledRef, resolveModuleRef, resolveRef, resolveSystemRef, } from './resolveRefs.js';
 export type { RulesClaim } from './rulesBearing.js';
 export { statesMechanicalChange } from './rulesBearing.js';
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
@@ -2435,10 +2506,41 @@ type RefEntity = {
 };
 /** True when `ref` (slug, name, or id) identifies `entity`. */
 export declare function matchesRef(entity: RefEntity, ref: string): boolean;
+/**
+ * Lookups go through `BaseModel`'s own id / name / slug indexes, which every
+ * model builds once and shares with every other caller. This module used to
+ * keep a private per-model `Map` of its own (id+name+slug in one map, behind a
+ * `WeakMap`); that map moved into `BaseModel` so the ~20 other name-scanning
+ * call sites across the apps get the same O(1) path instead of re-scanning the
+ * full Systems+Modules catalogs once per installed ref per render.
+ *
+ * Precedence is id, then name, then slug. That is a different tie-break from
+ * the old single map (which answered with whichever ROW came first in data
+ * order, whatever field it matched on), so it is verified rather than assumed:
+ * `BaseModel.indexes.test.ts` reconstructs the combined map for every schema
+ * and asserts the two resolve every key to the same row.
+ * A throw from an unloaded schema propagates as before.
+ */
+type ModelLike<T extends RefEntity> = {
+    getById: (id: string) => T | undefined;
+    getByName: (name: string) => T | undefined;
+    getBySlug: (slug: string) => T | undefined;
+};
+/**
+ * Resolve `ref` (slug, name, or id) against any model, through that model's
+ * indexes.
+ *
+ * Exported because it is the indexed replacement for
+ * `SomeModel.find((e) => matchesRef(e, ref))` — the shape `matchesRef` invites
+ * and the largest remaining source of full-schema scans across the apps.
+ * `matchesRef` stays for the cases that genuinely test a candidate you already
+ * hold (selection state, counting picks); reach for this whenever you are
+ * SEARCHING a model for a ref.
+ */
+export declare function resolveRef<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null;
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
 export declare function resolveChassisRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     name: string;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
@@ -2533,6 +2635,7 @@ export declare function resolveChassisRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2545,7 +2648,6 @@ export declare function resolveChassisRef(ref: string): ({
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
 export declare function resolveSystemRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
     name: string;
@@ -2580,6 +2682,7 @@ export declare function resolveSystemRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2635,7 +2738,6 @@ export declare function resolveSystemRef(ref: string): ({
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
 export declare function resolveModuleRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
     name: string;
@@ -2670,6 +2772,7 @@ export declare function resolveModuleRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -2724,7 +2827,6 @@ export declare function resolveModuleRef(ref: string): ({
  */
 export declare function resolveInstalledRef(ref: string): ({
     id: string;
-    blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
     name: string;
@@ -2759,6 +2861,7 @@ export declare function resolveInstalledRef(ref: string): ({
             level?: number | undefined;
         }[] | undefined;
     }[] | undefined;
+    blackMarket?: boolean | undefined;
     booklet?: string | undefined;
     additionalSources?: {
         source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -3582,7 +3685,7 @@ export declare const AbilitySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -3803,7 +3906,7 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -3971,11 +4074,6 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -5158,7 +5256,7 @@ export declare const BioTitanSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5255,7 +5353,7 @@ export declare const ChassisSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5458,7 +5556,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5661,7 +5759,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5845,7 +5943,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5937,11 +6035,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
-            choiceType: z.ZodOptional<z.ZodEnum<{
-                permanent: "permanent";
-                session: "session";
-                freeform: "freeform";
-            }>>;
             content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                     paragraph: "paragraph";
@@ -6325,11 +6418,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -6763,7 +6851,7 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -6860,7 +6948,7 @@ export declare const CrawlerSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -6950,11 +7038,6 @@ export declare const CrawlerSchema: z.ZodObject<{
         choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             id: z.ZodString;
             name: z.ZodString;
-            choiceType: z.ZodOptional<z.ZodEnum<{
-                permanent: "permanent";
-                session: "session";
-                freeform: "freeform";
-            }>>;
             content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
                 type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                     paragraph: "paragraph";
@@ -7396,7 +7479,7 @@ export declare const CreatureSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7441,7 +7524,7 @@ export declare const CreatureSchema: z.ZodObject<{
 export declare const DistanceSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7532,7 +7615,7 @@ export declare const DistanceSchema: z.ZodObject<{
 export declare const TechLevelEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7680,7 +7763,7 @@ export declare const DroneSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -7740,11 +7823,6 @@ export declare const DroneSchema: z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -8177,7 +8255,7 @@ export declare const EquipmentSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -8235,11 +8313,6 @@ export declare const EquipmentSchema: z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -8620,7 +8693,7 @@ export declare const EquipmentSchema: z.ZodObject<{
 export declare const FactionSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -8759,7 +8832,7 @@ export declare const FactionSchema: z.ZodObject<{
 export declare const KeywordSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -8902,7 +8975,7 @@ export declare const MeldSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -9001,7 +9074,7 @@ export declare const ModuleSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
         "Salvage Union Starter Set": "Salvage Union Starter Set";
@@ -9172,7 +9245,7 @@ export declare const NPCSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -9222,7 +9295,7 @@ export declare const NPCSchema: z.ZodObject<{
 export declare const RollTableSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10062,7 +10135,7 @@ export declare const SquadSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10163,7 +10236,7 @@ export declare const SystemSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
         "Salvage Union Starter Set": "Salvage Union Starter Set";
@@ -10286,7 +10359,7 @@ export declare const SystemSchema: z.ZodObject<{
 export declare const TraitEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10461,7 +10534,7 @@ export declare const VehicleSchema: z.ZodObject<{
     page: z.ZodNumber;
     booklet: z.ZodOptional<z.ZodString>;
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
             "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10538,7 +10611,7 @@ export declare const GuideSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10583,9 +10656,9 @@ export declare const GuideSchema: z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
         stepType: z.ZodEnum<{
-            freeform: "freeform";
             "select-one": "select-one";
             "select-many": "select-many";
+            freeform: "freeform";
             "roll-table": "roll-table";
             info: "info";
             "sub-guide": "sub-guide";
@@ -10784,7 +10857,7 @@ export declare const SourceEntitySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -11219,11 +11292,6 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -12403,11 +12471,6 @@ export declare const ChoiceConstraintsSchema: z.ZodObject<{
 export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
-    choiceType: z.ZodOptional<z.ZodEnum<{
-        permanent: "permanent";
-        session: "session";
-        freeform: "freeform";
-    }>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -12787,11 +12850,6 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
 export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
-    choiceType: z.ZodOptional<z.ZodEnum<{
-        permanent: "permanent";
-        session: "session";
-        freeform: "freeform";
-    }>>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -13551,7 +13609,7 @@ export declare const BaseEntitySchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -13642,7 +13700,7 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    blackMarket: z.ZodOptional<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -13766,9 +13824,9 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
     stepType: z.ZodEnum<{
-        freeform: "freeform";
         "select-one": "select-one";
         "select-many": "select-many";
+        freeform: "freeform";
         "roll-table": "roll-table";
         info: "info";
         "sub-guide": "sub-guide";
@@ -13986,11 +14044,6 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
     choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
                 paragraph: "paragraph";
@@ -15759,6 +15812,28 @@ export type ParsedTraitReference = {
  * // ]
  */
 export declare function parseTraitReferences(text: string): ParsedTraitReference[];
+/**
+ * Rewrite every trait reference in `text` through `render`, leaving the
+ * surrounding prose untouched.
+ *
+ * This exists so a consumer that only wants to SUBSTITUTE (the Discord bot
+ * turning each reference into a markdown link, say) composes the canonical
+ * parser instead of re-implementing the bracket grammar with a regex of its
+ * own — which is exactly how three subtly different `[[Trait]]` regexes came
+ * to exist. Renderers that need positions (React, which must interleave nodes
+ * rather than strings) still call {@link parseTraitReferences} directly; this
+ * is the string-in/string-out shape on top of it, not a second grammar.
+ *
+ * @param text - Rules text possibly containing `[[Trait]]` / `[[[Trait] (p)]]`
+ * @param render - Maps one parsed reference to its replacement text
+ * @returns The text with every reference replaced
+ *
+ * @example
+ * replaceTraitReferences(text, (ref) =>
+ *   ref.parameter ? `${link(ref.traitName)} ${ref.parameter}` : link(ref.traitName)
+ * )
+ */
+export declare function replaceTraitReferences(text: string, render: (reference: ParsedTraitReference) => string): string;
 //# sourceMappingURL=traitText.d.ts.map
 // === lib/types/index.d.ts ===
 /**
@@ -15792,8 +15867,10 @@ export type * from '../schemas/index.js';
  *                           resolves through an entity's self-action.
  * - `entityGuards.ts`     — the type guards that still have a consumer.
  * - `patterns.ts`         — patterns, the hidden-pattern rule, formations.
- * - `assets.ts`           — `ASSET_BASE_URL` + `getAssetUrl`.
- * - `traitText.ts`        — `[[Trait]]` markup parsing.
+ * - `assets.ts`           — the artwork CDN (`ASSET_BASE_URL` + `getAssetUrl`)
+ *                           and the reference site (`SRD_SITE_URL` +
+ *                           `srdEntityPath` / `srdEntityUrl`).
+ * - `traitText.ts`        — `[[Trait]]` markup parsing and rewriting.
  * - `inventorySlots.ts`   — the Heavy/Portable inventory-slot rule.
  *
  * Prefer importing from those modules directly in new package-internal code;

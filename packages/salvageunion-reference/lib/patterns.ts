@@ -96,7 +96,7 @@ export function resolveFormationMember(
   const schemaName = member.schema ?? 'chassis'
 
   if (schemaName === 'chassis') {
-    const chassis = SalvageUnionReference.findIn('chassis', (c) => c.name === member.chassis)
+    const chassis = SalvageUnionReference.getByNameIn('chassis', member.chassis)
     if (!chassis) return undefined
 
     if (member.pattern) {
@@ -112,10 +112,9 @@ export function resolveFormationMember(
     return { entity: chassis }
   }
 
-  // Non-chassis entity types: look up by name in the given schema
-  const found = SalvageUnionReference.findIn(
-    schemaName,
-    (e) => 'name' in e && e.name === member.chassis
-  )
+  // Non-chassis entity types: look up by name in the given schema. `schemaName`
+  // is data-driven, so this is the case `getByNameIn` exists for — the name
+  // index answers it without scanning the schema.
+  const found = SalvageUnionReference.getByNameIn(schemaName, member.chassis)
   return found ? { entity: found } : undefined
 }

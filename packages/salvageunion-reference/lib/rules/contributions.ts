@@ -12,7 +12,7 @@
  */
 
 import { SalvageUnionReference } from '../index.js'
-import { matchesRef, resolveInstalledRef } from './resolveRefs.js'
+import { resolveInstalledRef, resolveRef } from './resolveRefs.js'
 
 /** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
 export type ContributionStat =
@@ -122,7 +122,7 @@ export function abilityContributions(
   for (const ref of abilityRefs) {
     let ability: ContributionHost | undefined
     try {
-      ability = SalvageUnionReference.Abilities.find((a) => matchesRef(a, ref)) as
+      ability = (resolveRef(SalvageUnionReference.Abilities, ref) ?? undefined) as
         | ContributionHost
         | undefined
     } catch {

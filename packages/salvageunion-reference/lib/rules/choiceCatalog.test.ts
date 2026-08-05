@@ -3,7 +3,7 @@
  * System pick (any Mech System dealing SP damage, of the crawler's Tech Level
  * or lower) and the shortlist vs schema-only distinction.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import type { SURefObjectChoice } from '../types/index.js'
 import { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js'
@@ -22,10 +22,6 @@ const shortlistChoice: SURefObjectChoice = {
 }
 
 describe('resolveCatalogChoiceEntities — Armament Bay Weapons System', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('resolves exactly the Weapons Systems (SP damage)', () => {
     const resolved = resolveCatalogChoiceEntities(armamentBayChoice)
     const expected = SalvageUnionReference.Systems.all().filter(isWeaponSystem)
@@ -66,10 +62,6 @@ describe('resolveCatalogChoiceEntities — Armament Bay Weapons System', () => {
 })
 
 describe('resolveCatalogChoiceEntities — shortlist catalog', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('resolves only the named shortlist entities', () => {
     const resolved = resolveCatalogChoiceEntities(shortlistChoice)
     const names = resolved.map((e) => e.name).sort()

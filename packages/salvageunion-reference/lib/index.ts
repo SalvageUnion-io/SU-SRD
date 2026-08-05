@@ -276,6 +276,27 @@ export class SalvageUnionReference {
   }
 
   /**
+   * Get an entity by schema name and exact `name` (O(1) via the name index).
+   *
+   * The name-addressed sibling of {@link get}. It exists because a caller
+   * holding a SCHEMA ID rather than a static model (`findIn('chassis', …)`,
+   * anything driven by data) previously had no indexed option at all, and so
+   * reached for `findIn(schema, (e) => e.name === x)` — a full linear scan, and
+   * the single largest source of the pattern `CLAUDE.md` bans. Exactly
+   * equivalent to that predicate, including first-writer-wins on duplicates.
+   *
+   * The slug axis already had its schema-id-holding accessor —
+   * `findEntityBySlug` (lib/slug.ts) — so only `name` was missing.
+   */
+  public static getByNameIn<T extends keyof SchemaToEntityMap>(
+    schemaName: T,
+    name: string
+  ): (SchemaToEntityMap[T] & { schemaName: T }) | undefined {
+    const model = lazyModelMap[schemaName]
+    return model.getByName(name) as (SchemaToEntityMap[T] & { schemaName: T }) | undefined
+  }
+
+  /**
    * Check if an entity exists by schema name and ID
    */
   public static exists<T extends keyof SchemaToEntityMap>(schemaName: T, id: string): boolean {

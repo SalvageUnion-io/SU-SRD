@@ -151,9 +151,8 @@
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether this entity is only available on the black market"
       },
       "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
@@ -269,7 +268,7 @@
         "description": "List of ability tree names required to access this tree"
       }
     },
-    "required": ["id", "blackMarket", "name", "source", "page", "requirement"],
+    "required": ["id", "name", "source", "page", "requirement"],
     "additionalProperties": false,
     "description": "Requirements for unlocking ability trees"
   }

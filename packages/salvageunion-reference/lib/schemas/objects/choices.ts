@@ -48,11 +48,6 @@ export const ChoiceConstraintsSchema = z
   })
 
 /**
- * Choice type enum
- */
-const ChoiceTypeSchema = z.enum(['permanent', 'session', 'freeform'])
-
-/**
  * Choice cardinality — how many picks a choice grants.
  * `max` is either a fixed number or `{ scalesWith }`, a field name resolved on
  * the parent entity (e.g. `techLevel`). Replaces `multiSelect` +
@@ -121,9 +116,6 @@ export const ChoiceSchema = z
       .object({
         id: IdSchema.describe('Unique identifier for this choice'),
         name: NameSchema.describe('Display name for this choice'),
-        choiceType: ChoiceTypeSchema.describe(
-          'permanent: recorded on sheet; session: made during gameplay; freeform: arbitrary text'
-        ).optional(),
         content: ContentSchema.describe('Descriptive content for this choice').optional(),
         rollTable: z.string().describe('Roll table name to use for random selection').optional(),
         schemaEntities: z
@@ -154,6 +146,16 @@ export const ChoiceSchema = z
           .enum(['permanent', 'session'])
           .describe('permanent: recorded on sheet; session: made during gameplay')
           .optional(),
+        // The retired `choiceType` enum folded TWO axes into one field:
+        // permanent/session (a lifetime) and freeform (an option SOURCE).
+        // `lifetime` owns the first; `source.kind === 'text'` owns the second —
+        // and did so redundantly, agreeing with `choiceType: 'freeform'` on
+        // 67/67 records. The 18 `permanent` records were rewritten to
+        // `lifetime`, and the 3 `session` records already carried BOTH with
+        // identical values, which is the half-migration the parity guard exists
+        // to catch. `choiceType` is now in that guard's LEGACY_CHOICE_FIELDS
+        // (`tools/validateParityLogic.ts`), and this object is `.strict()`, so
+        // re-authoring it fails twice.
       })
       .strict()
   )

@@ -54,7 +54,23 @@ the responsibility, not in the barrel.
 
 `BaseModel` indexes `id` (eagerly) plus `name` and `slug` (lazily, on first
 use). Use `getById` / `getByName` / `getBySlug` — never
-`model.find((e) => e.name === x)`, which is a linear scan of the whole schema.
+`model.find((e) => e.id === x)` or `model.find((e) => e.name === x)`, which are
+linear scans of the whole schema.
+
+Every way a caller can arrive has an indexed accessor, so there is no case that
+needs a predicate:
+
+| You hold                                     | Use                                               |
+| -------------------------------------------- | ------------------------------------------------- |
+| a model + an id / name / slug                | `Model.getById` / `.getByName` / `.getBySlug`     |
+| a model + a ref (id **or** name **or** slug) | `resolveRef(Model, ref)` (`/rules`)               |
+| a schema **id** + a name                     | `SalvageUnionReference.getByNameIn(schema, name)` |
+| a schema **id** + an id                      | `SalvageUnionReference.get(schema, id)`           |
+| a schema **id** + a slug                     | `findEntityBySlug(schema, slug)`                  |
+
+`matchesRef` is for TESTING a candidate you already hold (is this row selected?
+how many picks match?). `SomeModel.find((e) => matchesRef(e, ref))` is a SEARCH
+wearing a predicate's clothes — use `resolveRef(SomeModel, ref)`.
 
 ## Package Structure
 
@@ -69,10 +85,18 @@ use). Use `getById` / `getByName` / `getBySlug` — never
 ```typescript
 import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'
 
-// All models extend BaseModel<T>, created via ModelFactory
-const chassis = SalvageUnionReference.Chassis.find((c) => c.id === 'some-id')
+// All models extend BaseModel<T>, created via ModelFactory.
+// Address an entity through an INDEX — see "Looking an entity up" above. This
+// example used to be `.find((c) => c.id === 'some-id')`, which is precisely the
+// linear scan that section bans; the demonstration outweighed the rule, and the
+// scan spread from here.
+const chassis = SalvageUnionReference.Chassis.getById('some-id')
+const ironMongrel = SalvageUnionReference.Chassis.getBySlug('iron-mongrel')
 const allWeapons = SalvageUnionReference.Equipment.all()
 ```
+
+`find` / `findAll` remain the right tool for a genuine PREDICATE — a filter over
+some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding New Data
 

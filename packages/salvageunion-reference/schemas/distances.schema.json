@@ -151,9 +151,8 @@
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether this entity is only available on the black market"
       },
       "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
@@ -223,7 +222,7 @@
         "description": "Other source books where this entity is reprinted"
       }
     },
-    "required": ["id", "blackMarket", "name", "source", "page"],
+    "required": ["id", "name", "source", "page"],
     "additionalProperties": false,
     "description": "Distance bands and ranges"
   }

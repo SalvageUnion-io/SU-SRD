@@ -1,5 +1,5 @@
 [test]
-preload = ["./test/preload.ts"]
+preload = ["../../test/reference-preload.ts"]
 
 [test.env]
 NODE_ENV = "test"

@@ -128,6 +128,7 @@ export {
   resolveChassisRef,
   resolveInstalledRef,
   resolveModuleRef,
+  resolveRef,
   resolveSystemRef,
 } from './resolveRefs.js'
 export type { RulesClaim } from './rulesBearing.js'

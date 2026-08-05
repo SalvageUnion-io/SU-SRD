@@ -21,10 +21,18 @@ export const BaseEntitySchema = z
       .optional(),
     content: ContentSchema.describe('Descriptive content blocks for this entity').optional(),
     id: IdSchema.describe('Unique identifier for this entity'),
+    // `.optional()`, not `.default(false)`, so it matches every other stored
+    // data tag (`hidden`, `legalStarting`, and ~15 more): an ABSENT tag means
+    // untagged, and only the 5 records that ARE black-market carry the field.
+    // The default was the odd one out — it materialised `blackMarket: false`
+    // onto every parsed entity and typed the field as required, so the tag read
+    // differently from its siblings depending on which one you were holding.
+    // Safe to relax: the sole reader, `getBlackMarket`, already returns
+    // `boolean | undefined`, and its sole consumer already tests `=== true`.
     blackMarket: z
       .boolean()
-      .default(false)
-      .describe('Whether this entity is only available on the black market'),
+      .describe('Whether this entity is only available on the black market')
+      .optional(),
     name: NameSchema.describe('Display name of this entity'),
     source: SourceSchema.describe('Primary source book this entity appears in'),
     page: PositiveIntegerSchema.describe('Page number in the primary source book'),

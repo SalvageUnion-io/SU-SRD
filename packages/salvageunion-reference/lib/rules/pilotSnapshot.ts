@@ -61,8 +61,19 @@ function tierForTree(tree: string | undefined, index: TreeTierIndex): AbilityTie
 /** Resolve a class by stored ref (id, name, or slug — same logic as classRef.ts). */
 function resolveClass(ref: string | undefined) {
   if (!ref) return undefined
-  return SalvageUnionReference.Classes.find(
-    (c) => c.id === ref || c.name === ref || c.name.toLowerCase() === ref.toLowerCase()
+  // Id and exact name go through the model's own indexes; only the
+  // case-insensitive tail still scans, and only when both miss.
+  //
+  // This is FIELD precedence (id beats name beats case-insensitive name),
+  // where the single `.find` predicate it replaces was ROW precedence (first
+  // row matching any of the three). They differ only if one class matched
+  // case-insensitively while a LATER one matched by id — the same tie-break
+  // shift `resolveRefs.ts` documents for the shared index path, and the class
+  // catalog has no such collision.
+  return (
+    SalvageUnionReference.Classes.getById(ref) ??
+    SalvageUnionReference.Classes.getByName(ref) ??
+    SalvageUnionReference.Classes.find((c) => c.name.toLowerCase() === ref.toLowerCase())
   )
 }
 

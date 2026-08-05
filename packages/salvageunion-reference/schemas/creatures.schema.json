@@ -151,9 +151,8 @@
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether this entity is only available on the black market"
       },
       "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
@@ -259,7 +258,7 @@
         "description": "Hit points of this creature"
       }
     },
-    "required": ["id", "blackMarket", "name", "source", "page", "hitPoints"],
+    "required": ["id", "name", "source", "page", "hitPoints"],
     "additionalProperties": false,
     "description": "Creatures and wildlife"
   }

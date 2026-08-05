@@ -7,8 +7,7 @@
  * against the REAL dataset, so a regression in the data fails here.
  */
 
-import { beforeAll, describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from '../index.js'
+import { describe, expect, it } from 'bun:test'
 import { abilityContributions, resolveAmount, sumContributions } from './contributions.js'
 import {
   mechMaxCargoParts,
@@ -16,10 +15,6 @@ import {
   mechMaxSPParts,
   pilotMaxHPParts,
 } from './derivedStats.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('resolveAmount', () => {
   it('passes a plain integer through', () => {

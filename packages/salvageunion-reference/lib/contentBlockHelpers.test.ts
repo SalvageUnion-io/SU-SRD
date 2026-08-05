@@ -38,7 +38,6 @@ describe('resolveDataValueForTechLevel', () => {
 
   it('resolves the real Custom Sniper Rifle damage from reference data', async () => {
     const { SalvageUnionReference } = await import('./index.js')
-    await SalvageUnionReference.preload('all')
     const sniper = SalvageUnionReference.Equipment.all().find(
       (e) => e.name === 'Custom Sniper Rifle'
     )

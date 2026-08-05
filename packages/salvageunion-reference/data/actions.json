@@ -681,7 +681,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -741,7 +741,6 @@
           "kind": "text"
         },
         "name": "Name",
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -757,7 +756,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -780,7 +779,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -829,7 +828,7 @@
           ]
         },
         "name": "Turret Model",
-        "choiceType": "permanent"
+        "lifetime": "permanent"
       }
     ],
     "name": "Automated Weapon Turret",
@@ -1234,7 +1233,7 @@
           ]
         },
         "name": "Bionic Senses",
-        "choiceType": "permanent"
+        "lifetime": "permanent"
       }
     ],
     "name": "Bionic Senses",
@@ -1324,8 +1323,7 @@
           "reveals": true
         },
         "lifetime": "session",
-        "name": "Black Market Modules",
-        "choiceType": "session"
+        "name": "Black Market Modules"
       },
       {
         "id": "ae51286a-64c8-416f-a052-81ef0869d4cc",
@@ -1347,8 +1345,7 @@
           "reveals": true
         },
         "lifetime": "session",
-        "name": "Black Market Systems",
-        "choiceType": "session"
+        "name": "Black Market Systems"
       },
       {
         "id": "3df10ce5-ef5d-44a5-8a64-949a6e56bed6",
@@ -1369,8 +1366,7 @@
           "reveals": true
         },
         "lifetime": "session",
-        "name": "Black Market Pilot Equipment",
-        "choiceType": "session"
+        "name": "Black Market Pilot Equipment"
       }
     ],
     "actionSource": "abilities"
@@ -2149,7 +2145,7 @@
           }
         },
         "name": "Chassis Choice",
-        "choiceType": "permanent"
+        "lifetime": "permanent"
       }
     ],
     "name": "Corpo Body Kit",
@@ -4088,7 +4084,6 @@
         "source": {
           "kind": "text"
         },
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -4104,7 +4099,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -4316,7 +4311,7 @@
           ]
         },
         "name": "Additional Armament Bay Weapons System",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -4511,7 +4506,7 @@
     "choices": [
       {
         "name": "Industrial Body Kit Choice",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "cardinality": { "min": 1, "max": 1 },
         "id": "ed8cb1b3-3b38-4c92-9f0c-2638356edfc7",
         "content": [
@@ -5487,7 +5482,6 @@
           "kind": "text",
           "multiline": true
         },
-        "choiceType": "freeform",
         "content": [
           {
             "type": "paragraph",
@@ -5632,7 +5626,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",
@@ -8559,7 +8553,7 @@
           "orChooseOwn": true
         },
         "name": "A.I. Personality",
-        "choiceType": "permanent",
+        "lifetime": "permanent",
         "content": [
           {
             "type": "paragraph",

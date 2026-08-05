@@ -313,6 +313,13 @@ export type DoubleEncoding = {
  * because `packages/component-lib`'s `ReferenceEntityCard` reads
  * `constraints.scalesWithField` directly (it is the only reader left that is
  * not `source`/`cardinality`-first).
+ *
+ * `choiceType` → `lifetime` is the pair this list was MISSING while the exact
+ * failure it exists to catch was live: 3 records carried both, with identical
+ * values, and the guard reported clean. `choiceType` also folded a second axis
+ * (`'freeform'`) that `source.kind === 'text'` already encoded — agreeing on
+ * 67/67 records. Both axes now have exactly one home, and the pair is listed
+ * here so a re-introduction is loud rather than silent.
  */
 const LEGACY_CHOICE_FIELDS: ReadonlyArray<readonly [legacy: string, unified: string]> = [
   ['rollTable', 'source'],
@@ -322,6 +329,7 @@ const LEGACY_CHOICE_FIELDS: ReadonlyArray<readonly [legacy: string, unified: str
   ['choiceOptions', 'source'],
   ['multiSelect', 'cardinality'],
   ['constraints', 'cardinality'],
+  ['choiceType', 'lifetime'],
 ]
 
 /**

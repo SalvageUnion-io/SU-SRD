@@ -47,23 +47,34 @@ type ModelLike<T extends RefEntity> = {
   getBySlug: (slug: string) => T | undefined
 }
 
-function resolveVia<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null {
+/**
+ * Resolve `ref` (slug, name, or id) against any model, through that model's
+ * indexes.
+ *
+ * Exported because it is the indexed replacement for
+ * `SomeModel.find((e) => matchesRef(e, ref))` — the shape `matchesRef` invites
+ * and the largest remaining source of full-schema scans across the apps.
+ * `matchesRef` stays for the cases that genuinely test a candidate you already
+ * hold (selection state, counting picks); reach for this whenever you are
+ * SEARCHING a model for a ref.
+ */
+export function resolveRef<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null {
   return model.getById(ref) ?? model.getByName(ref) ?? model.getBySlug(ref) ?? null
 }
 
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
 export function resolveChassisRef(ref: string) {
-  return resolveVia(SalvageUnionReference.Chassis, ref)
+  return resolveRef(SalvageUnionReference.Chassis, ref)
 }
 
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
 export function resolveSystemRef(ref: string) {
-  return resolveVia(SalvageUnionReference.Systems, ref)
+  return resolveRef(SalvageUnionReference.Systems, ref)
 }
 
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
 export function resolveModuleRef(ref: string) {
-  return resolveVia(SalvageUnionReference.Modules, ref)
+  return resolveRef(SalvageUnionReference.Modules, ref)
 }
 
 /**

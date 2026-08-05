@@ -151,9 +151,8 @@
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
       "blackMarket": {
-        "default": false,
-        "description": "Whether this entity is only available on the black market",
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether this entity is only available on the black market"
       },
       "name": { "type": "string", "minLength": 1, "description": "Display name of this entity" },
       "source": {
@@ -437,7 +436,7 @@
         "description": "Flat stat changes this ability makes (ADR-029). An ability could previously declare no mechanical change at all, so Beefcake, Bionic Arms, Bionic Legs and Modular Face Implant were inert prose."
       }
     },
-    "required": ["id", "blackMarket", "name", "source", "page", "tree", "level", "actions"],
+    "required": ["id", "name", "source", "page", "tree", "level", "actions"],
     "additionalProperties": false,
     "description": "Pilot abilities and skills"
   }

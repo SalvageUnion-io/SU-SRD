@@ -35,7 +35,11 @@ export type RollMessage =
  * identical embed carrying its own re-roll button.
  */
 export function buildRollMessage(tableName: string, iconURL?: string): RollMessage {
-  const table = getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
+  // Exact name first, through the model's name index; the case-insensitive
+  // scan is only the fallback for a hand-typed name that skipped autocomplete.
+  const table =
+    SalvageUnionReference.RollTables.getByName(tableName) ??
+    getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
   if (!table) {
     return {
       error: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,

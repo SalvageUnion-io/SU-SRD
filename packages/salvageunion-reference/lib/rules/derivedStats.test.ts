@@ -7,7 +7,7 @@
  * Mech maxima use a hand-crafted chassis; crawler max SP uses REAL
  * crawler-tech-levels data from salvageunion-reference.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import type { ChassisStats } from './derivedStats.js'
 import {
@@ -35,17 +35,6 @@ import {
   pilotMaxInventorySlotsParts,
   unifiedMechConditions,
 } from './derivedStats.js'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload([
-    'crawler-tech-levels',
-    'crawlers',
-    'chassis',
-    'systems',
-    'modules',
-    'abilities',
-  ])
-})
 
 // ---------------------------------------------------------------------------
 // Pilot
