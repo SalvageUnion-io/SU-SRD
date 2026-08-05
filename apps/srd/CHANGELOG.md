@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.0.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.0.0...srd-v2.0.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **srd:** make the parity gate reproducible and stop bundle-budget lying locally ([#696](https://github.com/SalvageUnion-io/SU-SRD/issues/696)) ([cb89893](https://github.com/SalvageUnion-io/SU-SRD/commit/cb8989330fb709872caf00c5a3af4fcc553bdf10))
+
 ## [2.0.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.4.0...srd-v2.0.0) (2026-08-05)
 
 
