@@ -74,12 +74,19 @@ beforeEach(() => {
 describe('observability', () => {
   // Order matters: these walk one module's state machine, unconfigured first.
 
-  test('import.meta.env is process.env under Bun — the premise the gate is driven through', () => {
+  test('a process.env write is visible through import.meta.env — the premise the gate is driven through', () => {
     // Stated as an assertion, not a comment. If Bun ever stops backing one
     // with the other, every case below would still pass while testing only
     // the no-DSN branch, which is precisely the silent-hole failure mode this
     // file exists to prevent.
-    expect(import.meta.env).toBe(process.env)
+    // Asserted as observable behaviour rather than object identity: the two
+    // are the same object under Bun, but their TYPES differ (ImportMetaEnv vs
+    // ProcessEnv), and what this file actually depends on is that a write to
+    // one is visible through the other.
+    process.env.VITE_OBSERVABILITY_PROBE = 'yes'
+    expect(import.meta.env.VITE_OBSERVABILITY_PROBE).toBe('yes')
+    delete process.env.VITE_OBSERVABILITY_PROBE
+
     expect(import.meta.env.VITE_SENTRY_DSN).toBeUndefined()
   })
 
