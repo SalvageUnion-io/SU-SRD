@@ -232,6 +232,59 @@ public by design. The client _secret_ lives only on the Convex deployments.
 Project: `alex-jarvis:suref-itun` ·
 [dashboard](https://dashboard.convex.dev/t/alex-jarvis/suref-itun)
 
+### Convex error reporting — a dashboard toggle, not code
+
+Every other surface in this repo reports errors through a hand-written
+`observability.ts` (`apps/srd`, `apps/itun`'s browser bundle and Netlify
+Functions, `apps/discord-bot`, `apps/su-assets`). **Convex is deliberately not
+one of them.** It has a first-party
+[Exception Reporting integration](https://docs.convex.dev/production/integrations/exception-reporting)
+that is enabled in the Convex dashboard and needs no application code at all.
+
+That is not merely the tidier option — it is the only one that covers the
+surface:
+
+- **Queries and mutations cannot report from inside a function.** They run in
+  Convex's deterministic runtime, which has no `fetch` and no network egress by
+  design. That is most of `convex/` (`games.ts`, `invites.ts`, `proposals.ts`,
+  `crew.ts`, `ownership.ts`, …), so a code-level SDK could never see the bulk of
+  the errors we would be adding it for.
+- **`@sentry/node` does not run there either.** The default Convex runtime is
+  not Node; this deployment has no `'use node'` actions, so adding the Node SDK
+  would mean converting modules to the Node runtime purely to instrument them.
+- **What is left is HTTP actions** (`http.ts`, `botHttp.ts`), where a
+  hand-rolled `fetch` to Sentry's ingest endpoint would duplicate a built-in
+  that already tags events with function name, function type, runtime, request
+  id, deployment name, environment tier, and the caller's `tokenIdentifier` —
+  none of which application code can reconstruct.
+
+So the deliverable here is the runbook, not a module.
+
+**Enabling it** (a human has to click this; it cannot be scripted from the
+repo):
+
+1. Create a Sentry project in the `susrd` org — **EU region**
+   (`https://de.sentry.io`), like every other project here — and set its
+   platform to **Node.js**, which is what Convex's integration expects for
+   stack-trace processing. Suggested slug: `itun-convex`, sitting alongside
+   `itun` (browser) and `itun-functions` (Netlify).
+2. Convex dashboard → the deployment → **Settings → Integrations → Sentry** →
+   paste that project's DSN. Do it **per deployment**: `dev/alex-jarvis` and
+   `exuberant-porpoise-183` are configured separately, and production is the one
+   that matters.
+3. Optionally add a tag to distinguish the two deployments in Sentry.
+
+**Two caveats worth knowing before you go looking for events:**
+
+- **Exception Reporting is a Convex Pro feature.** On the free plan the Sentry
+  card is not available, and the honest state of this repo is then "Convex
+  errors are visible in the Convex dashboard's function logs only". Do not
+  paper over that with code — see above for why the code would not work.
+- Events take a minute or two to propagate, and Convex does not expose the
+  Sentry SDK for customisation. There is no release tagging to wire up, so
+  Convex errors will not carry a commit SHA the way the Netlify and Render
+  surfaces do.
+
 ### Netlify
 
 | Site               | Serves                           | Notes                                                                                                                                        |

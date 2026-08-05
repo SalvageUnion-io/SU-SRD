@@ -106,6 +106,15 @@ and remains the account-free way to share a build.
   ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
 - Backup nudge (`src/lib/backupNudge.ts`) tracks un-exported writes — the
   local-first analogue of durability.
+- **Do not add a Sentry SDK to `convex/`.** The browser bundle
+  (`src/lib/observability.ts`) and the Netlify Functions
+  (`netlify/functions/_observability.ts`) each own one; Convex instead uses its
+  first-party Exception Reporting integration, enabled in the Convex dashboard
+  with no application code. Queries and mutations run in a deterministic runtime
+  with no `fetch`, so an in-function SDK could not report from them at all —
+  rationale and the enable-it runbook are in
+  [docs/architecture/accounts-and-games.md](../../docs/architecture/accounts-and-games.md)
+  ("Convex error reporting — a dashboard toggle, not code").
 
 ## Commands
 

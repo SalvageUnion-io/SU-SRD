@@ -103,6 +103,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@netlify/blobs": "^10.7.10",
+        "@sentry/node": "10.68.0",
       },
     },
     "packages/component-lib": {
