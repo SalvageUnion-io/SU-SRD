@@ -214,12 +214,78 @@ async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
 }
 
 /** Absolute-ises every `<script src>` the served HTML references. */
+/**
+ * Entry points named by the HTML: `<script src>` AND `<link rel=modulepreload>`.
+ *
+ * modulepreload matters — itun's index.html names its 36 chunks that way and
+ * carries only one `<script src>`, so a script-only scan sees almost nothing.
+ */
 function scriptUrls(html: string, origin: string): string[] {
-  const re = /<script[^>]+src=["']([^"']+)["']/g
-  return [...html.matchAll(re)]
+  const scriptRe = /<script[^>]+src=["']([^"']+)["']/g
+  const preloadRe = /<link[^>]+rel=["']modulepreload["'][^>]*href=["']([^"']+)["']/g
+  const hrefFirstRe = /<link[^>]+href=["']([^"']+)["'][^>]*rel=["']modulepreload["']/g
+  const found = [
+    ...html.matchAll(scriptRe),
+    ...html.matchAll(preloadRe),
+    ...html.matchAll(hrefFirstRe),
+  ]
     .map((m) => m[1])
     .filter((src): src is string => src !== undefined)
     .map((src) => (src.startsWith('http') ? src : new URL(src, origin).toString()))
+  return [...new Set(found)]
+}
+
+/** Bare-specifier imports inside an ES module chunk: `from"./x.js"`, `import("./x.js")`. */
+const IMPORT_SPECIFIER_RE = /["'`](\.{1,2}\/[A-Za-z0-9._\-/]+\.js|\/[A-Za-z0-9._\-/]+\.js)["'`]/g
+
+/**
+ * Every module chunk reachable from the HTML, following import specifiers.
+ *
+ * Both apps put `initBrowserObservability` — and therefore the inlined DSN —
+ * in a chunk that the HTML never names directly. srd's BaseLayout entry is
+ * literally `import{n as e}from"./observability.HASH.js";e()`, and itun bundles
+ * it into `entityStore-HASH.js`. A scan of only the HTML-named entries finds
+ * neither, reports "SDK absent", and concludes production is dark when it is
+ * working perfectly. That false negative is worse than no probe: this job is
+ * wired to open a tracking issue, and an alarm that cries wolf nightly is the
+ * exact broken window e2e-nightly.yml's own comments warn about.
+ *
+ * Bounded so a pathological graph cannot hang the nightly job.
+ */
+async function reachableChunks(seeds: string[], origin: string): Promise<Map<string, string>> {
+  const MAX_CHUNKS = 200
+  const bodies = new Map<string, string>()
+  const queue = [...seeds]
+  const seen = new Set(seeds)
+
+  while (queue.length > 0 && bodies.size < MAX_CHUNKS) {
+    const url = queue.shift()
+    if (url === undefined) break
+    let body: string
+    try {
+      body = await (await fetchWithRetry(url)).text()
+    } catch {
+      // A single unreachable chunk is not proof of absence; keep looking.
+      continue
+    }
+    bodies.set(url, body)
+
+    for (const match of body.matchAll(IMPORT_SPECIFIER_RE)) {
+      const spec = match[1]
+      if (spec === undefined) continue
+      let resolved: string
+      try {
+        resolved = new URL(spec, url).toString()
+      } catch {
+        continue
+      }
+      if (!resolved.startsWith(new URL(origin).origin)) continue
+      if (seen.has(resolved)) continue
+      seen.add(resolved)
+      queue.push(resolved)
+    }
+  }
+  return bodies
 }
 
 async function checkLive(app: BrowserApp): Promise<void> {
@@ -248,27 +314,47 @@ async function checkLive(app: BrowserApp): Promise<void> {
     return
   }
 
-  // The SDK and the inlined DSN can land in different chunks, so scan them all
-  // rather than returning on the first hit.
+  // Follow the module graph — the SDK and the inlined DSN routinely land in a
+  // chunk the HTML never names (see reachableChunks).
+  const chunks = await reachableChunks(urls, app.productionUrl)
   let sdkFoundIn: string | null = null
   let dsnHost: string | null = null
+  let dsnFoundIn: string | null = null
 
-  for (const url of urls) {
-    try {
-      const body = await (await fetchWithRetry(url)).text()
-      if (!sdkFoundIn && SDK_MARKER.test(body)) sdkFoundIn = url
-      if (!dsnHost) dsnHost = body.match(DSN_IN_BUNDLE)?.[1] ?? null
-    } catch {
-      // A single unreachable chunk is not proof of absence; keep looking.
+  for (const [url, body] of chunks) {
+    if (!sdkFoundIn && SDK_MARKER.test(body)) sdkFoundIn = url
+    const host = body.match(DSN_IN_BUNDLE)?.[1]
+    if (!dsnHost && host !== undefined) {
+      dsnHost = host
+      dsnFoundIn = url
     }
   }
+
+  // The INLINED DSN is the signal that matters, not an SDK name. `import.meta.env`
+  // is statically replaced at build time, so a DSN in the bytes proves the deploy
+  // env carried it; with no DSN the guard folds to false and the SDK is
+  // tree-shaken. Checking for the SDK first got this backwards and could also be
+  // fooled either way — the string "sentry" appears in unrelated vendor code
+  // (itun's entry carries `__sentry_captured__` from a dependency), while srd's
+  // real SDK chunk is content-hashed to the innocuous name `dev.HASH.js`.
+  if (!dsnHost) {
+    fail(
+      app.name,
+      `No Sentry DSN inlined in any of the ${chunks.size} chunk(s) reachable from ${app.productionUrl}.\n` +
+        `      ${app.dsnEnvVar} is almost certainly unset on the Netlify site (or was set after\n` +
+        `      the last successful build), so the SDK was tree-shaken out. Error tracking is\n` +
+        `      DARK in production.`
+    )
+    return
+  }
+
+  console.log(`  [${app.name}] DSN inlined in ${dsnFoundIn} (ingest ${dsnHost})`)
 
   if (!sdkFoundIn) {
     fail(
       app.name,
-      `Sentry SDK absent from all ${urls.length} script(s) served by ${app.productionUrl}.\n` +
-        `      The DSN (${app.dsnEnvVar}) is almost certainly unset on the Netlify site, so the\n` +
-        `      SDK was tree-shaken out of the build. Error tracking is DARK in production.`
+      `[${app.name}] a DSN is inlined but no Sentry SDK code was found in ${chunks.size} chunk(s).\n` +
+        `      That combination should be impossible — investigate before trusting this deploy.`
     )
     return
   }
