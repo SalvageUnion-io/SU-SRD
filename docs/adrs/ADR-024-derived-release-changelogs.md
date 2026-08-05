@@ -93,6 +93,30 @@ config.
   pass the suite cleanly, and land via the existing squash-only + auto-merge
   flow.
 
+- **One release PR for all components, not one per component.**
+  `separate-pull-requests` is **`false`**. It was `true`, and that was the
+  systemic cause of the release lag this ADR was meant to eliminate: all three
+  components share a single `.release-please-manifest.json`, and their version
+  entries are **adjacent lines**, so any two open release PRs conflict by
+  construction. The moment one merged, every other open release PR went
+  `CONFLICTING` — and release-please does not repair them, because it only
+  force-pushes a release branch when _its own_ component has new commits. A
+  component with no new commits keeps a stale manifest forever.
+
+  Observed three times in one evening: #677 (itun) died when `srd 2.0.0` landed,
+  its recreation #698 died when `srd 2.0.1` landed, and #698 stayed frozen
+  through two successful release-please runs afterwards. The only recovery is to
+  close the PR and let it be recreated, which is a human step — exactly what
+  this ADR set out to avoid.
+
+  A single PR removes the contention: one branch, one manifest edit, nothing to
+  conflict with. Versioning is **unchanged** — each component still gets its own
+  independent version bump, its own `CHANGELOG.md` section, and its own
+  component-tagged GitHub Release on merge. Only PR granularity changes. The
+  cost is that one component's release notes can no longer be reviewed or
+  delayed in isolation; given the alternative was releases silently not shipping
+  at all, that is the right trade.
+
 - **Auto-merge is armed by the workflow, not by a human.** This sentence used to
   read as though "the existing auto-merge flow" would pick release PRs up on its
   own. It does not: nothing enables auto-merge on a PR unless something asks it
