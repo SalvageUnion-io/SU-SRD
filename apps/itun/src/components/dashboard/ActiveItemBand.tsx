@@ -211,15 +211,19 @@ function CrawlerBand({
       areaTl: crawlerTl ?? 1,
       roll: defaultRoll,
     })
-    if (patch) runWrite(() => store.update('crawler', crawler.id, patch, DASHBOARD_TXN))
-    setPrompt({
-      kind: 'salvage',
-      log: result.requiresPlayerChoice
-        ? `${result.roll}: ${result.label} — pick a Damaged Chassis, System or Module at Tech ${result.areaTl}.`
-        : result.scrapQty > 0
-          ? `${result.roll}: ${result.label} — ${result.scrapQty} Tech ${result.areaTl} Scrap into the pool.`
-          : `${result.roll}: ${result.label}.`,
-    })
+    if (patch)
+      runWrite(
+        () => store.update('crawler', crawler.id, patch, DASHBOARD_TXN),
+        () =>
+          setPrompt({
+            kind: 'salvage',
+            log: result.requiresPlayerChoice
+              ? `${result.roll}: ${result.label} — pick a Damaged Chassis, System or Module at Tech ${result.areaTl}.`
+              : result.scrapQty > 0
+                ? `${result.roll}: ${result.label} — ${result.scrapQty} Tech ${result.areaTl} Scrap into the pool.`
+                : `${result.roll}: ${result.label}.`,
+          })
+      )
   }
 
   /**
@@ -407,8 +411,10 @@ function MechBand({
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
-    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
-    setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect), meltdown })
+    runWrite(
+      () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
+      () => setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect), meltdown })
+    )
   }
 
   function doHeatCheck() {
@@ -420,16 +426,21 @@ function MechBand({
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
-    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
-    setPrompt({ kind: 'reactor', log: describeHeatCheck(effect), meltdown })
+    runWrite(
+      () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
+      () => setPrompt({ kind: 'reactor', log: describeHeatCheck(effect), meltdown })
+    )
   }
 
   function doVent() {
-    runWrite(() => store.update('mech', mech.id, VENT_PATCH, DASHBOARD_TXN))
-    setPrompt({
-      kind: 'reactor',
-      log: 'Vented — Heat 0, Vulnerable. (Shut down separately if needed.)',
-    })
+    runWrite(
+      () => store.update('mech', mech.id, VENT_PATCH, DASHBOARD_TXN),
+      () =>
+        setPrompt({
+          kind: 'reactor',
+          log: 'Vented — Heat 0, Vulnerable. (Shut down separately if needed.)',
+        })
+    )
   }
 
   function doShutdown() {
@@ -447,23 +458,30 @@ function MechBand({
       amount: dmg,
       vulnerable: m.vulnerable ?? false,
     })
-    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
-    if (effect.criticalDue) {
-      setPrompt({ kind: 'crit', effect: null, log: `−${effect.effectiveDamage} SP → 0.` })
-    } else {
-      setPrompt({ kind: 'reactor', log: `−${effect.effectiveDamage} SP → ${effect.nextSP}.` })
-    }
+    runWrite(
+      () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
+      () =>
+        setPrompt(
+          effect.criticalDue
+            ? { kind: 'crit', effect: null, log: `−${effect.effectiveDamage} SP → 0.` }
+            : { kind: 'reactor', log: `−${effect.effectiveDamage} SP → ${effect.nextSP}.` }
+        )
+    )
   }
 
   function rollCritical() {
     const { patch, effect } = critDamagePatch(defaultRoll)
-    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
-    setPrompt({ kind: 'crit', effect, log: describeCritDamage(effect) })
+    runWrite(
+      () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
+      () => setPrompt({ kind: 'crit', effect, log: describeCritDamage(effect) })
+    )
   }
 
   function confirmDestroyed() {
-    runWrite(() => store.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN))
-    setPrompt(null)
+    runWrite(
+      () => store.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN),
+      () => setPrompt(null)
+    )
   }
 
   function jettison(lotId: string) {
@@ -731,18 +749,23 @@ function PilotBand({
       amount: dmg,
       vulnerable: false,
     })
-    runWrite(() => store.update('pilot', pilot.id, patch, DASHBOARD_TXN))
-    if (effect.criticalDue) {
-      setPrompt({ kind: 'crit', effect: null, log: `−${effect.effectiveDamage} HP → 0.` })
-    } else {
-      setPrompt({ kind: 'log', log: `−${effect.effectiveDamage} HP → ${effect.nextHP}.` })
-    }
+    runWrite(
+      () => store.update('pilot', pilot.id, patch, DASHBOARD_TXN),
+      () =>
+        setPrompt(
+          effect.criticalDue
+            ? { kind: 'crit', effect: null, log: `−${effect.effectiveDamage} HP → 0.` }
+            : { kind: 'log', log: `−${effect.effectiveDamage} HP → ${effect.nextHP}.` }
+        )
+    )
   }
 
   function rollInjury() {
     const { patch, effect } = critInjuryPatch(defaultRoll)
-    runWrite(() => store.update('pilot', pilot.id, patch, DASHBOARD_TXN))
-    setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })
+    runWrite(
+      () => store.update('pilot', pilot.id, patch, DASHBOARD_TXN),
+      () => setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })
+    )
   }
 
   const overlay = ((): ActiveItemBandViewModel['overlay'] => {

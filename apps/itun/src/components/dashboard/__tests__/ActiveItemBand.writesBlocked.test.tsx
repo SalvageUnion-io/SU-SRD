@@ -96,4 +96,29 @@ describe('ActiveItemBand — writes refused by connectivity', () => {
 
     expect(await screen.findByText(/read-only until the connection returns/i)).toBeTruthy()
   })
+
+  test('a refused write does not also claim the action succeeded', async () => {
+    // Handling the rejection is not enough on its own. These handlers fired the
+    // write and then stated the outcome unconditionally, so a Disconnected
+    // player got BOTH the refusal toast and "Vented — Heat 0, Vulnerable." —
+    // two contradictory messages, one of them a false claim about game state.
+    // That is worse than the silence `runWrite` was introduced to fix.
+    //
+    // The readout is now passed as `onApplied`, so it is conditional on the
+    // write it describes. The handlers stayed synchronous.
+    usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
+    render(
+      <>
+        <ActiveItemBand mech={mech} pilot={null} store={blockedStore()} />
+        <Toaster />
+      </>
+    )
+
+    fireEvent.click(screen.getByTitle('Vent Heat to 0'))
+
+    // The refusal still arrives...
+    expect(await screen.findByText(/read-only until the connection returns/i)).toBeTruthy()
+    // ...and the vent readout does not, because the vent did not happen.
+    expect(screen.queryByText(/Vented — Heat 0/i)).toBeNull()
+  })
 })

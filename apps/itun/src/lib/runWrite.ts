@@ -58,10 +58,27 @@ export function reportWriteFailure(err: unknown): void {
  * The synchronous `try` is not belt-and-braces: an injected test store (or any
  * plain function) may throw rather than reject, and a throw here would take out
  * the event handler rather than surfacing as a refusal.
+ *
+ * `onApplied` runs only if the write actually resolved. It exists because
+ * handling the rejection is not, by itself, enough: a handler that fires the
+ * write and then states the outcome —
+ *
+ *     runWrite(() => store.update(mech, VENT_PATCH))
+ *     setPrompt({ log: 'Vented — Heat 0, Vulnerable.' })
+ *
+ * — tells a Disconnected player the vent happened while the refusal toast says
+ * it did not. Two contradictory messages is worse than the silence this helper
+ * was written to fix, because one of them is a false claim about game state.
+ * Passing the readout as `onApplied` keeps the handler synchronous (no
+ * `async`/`await` at ~12 call sites) while making the claim conditional on the
+ * write it describes.
  */
-export function runWrite(write: () => Promise<unknown>): void {
+export function runWrite(write: () => Promise<unknown>, onApplied?: () => void): void {
   try {
-    void write().catch(reportWriteFailure)
+    void write().then(
+      () => onApplied?.(),
+      (err: unknown) => reportWriteFailure(err)
+    )
   } catch (err) {
     reportWriteFailure(err)
   }
