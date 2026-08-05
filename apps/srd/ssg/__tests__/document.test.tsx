@@ -152,7 +152,7 @@ describe('island props payload', () => {
 
   it('escapes `<` so a payload can never close its own script tag', () => {
     const html = renderBare(
-      <Island name="X" props={{ html: '</script><script>alert(1)</script>' }} />
+      <Island name="SearchIsland" props={{ html: '</script><script>alert(1)</script>' }} />
     )
 
     const payload = /data-island-props>([\s\S]*?)<\/script>/.exec(html)?.[1] ?? ''

@@ -20,13 +20,19 @@
  */
 
 import type { ReactNode } from 'react'
+// Type-only: erased before Bun resolves anything, so the SSR pass never pulls
+// the client registry (or the island components, or their css) into its graph.
+import type { IslandName } from './islandRegistry'
 
 /** Mount scheduling, kept 1:1 with the Astro `client:*` directives we used. */
 export type IslandClientDirective = 'load' | 'idle' | 'visible' | 'only'
 
 export type IslandProps = {
-  /** Key into `islandRegistry` — must match exactly. */
-  name: string
+  /**
+   * Key into `islandRegistry`, typed to its actual keys — a typo is a compile
+   * error, not a placeholder the mounter silently skips.
+   */
+  name: IslandName
   /** When the client mounts it. Defaults to `'load'`. */
   client?: IslandClientDirective
   /** Serialized once per page into the `data-island-props` script. */

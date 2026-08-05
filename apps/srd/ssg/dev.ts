@@ -235,7 +235,19 @@ function send(req: IncomingMessage, res: ServerResponse, response: DevResponse):
 async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerResponse) {
   const started = Date.now()
   const url = new URL(req.url ?? '/', 'http://localhost')
-  const pathname = decodeURIComponent(url.pathname)
+
+  // Inside the try, NOT above it. `decodeURIComponent` throws URIError on a
+  // malformed escape — a bare `/%`, or `/%zz` — and this ran before the
+  // handler, so one such request escaped the catch entirely and took the
+  // request (and the developer's attention) with it. A dev server should
+  // answer a nonsense URL with a 500 page, not fall over.
+  let pathname = url.pathname
+  try {
+    pathname = decodeURIComponent(url.pathname)
+  } catch {
+    // Undecodable: serve the raw path so route matching simply misses and the
+    // request 404s like any other unknown URL.
+  }
 
   try {
     const response = await handleRequest(vite, pathname)

@@ -41,7 +41,7 @@ describe('Island placeholder markup', () => {
 
   it('carries each client directive through verbatim', () => {
     for (const client of ['load', 'idle', 'visible', 'only'] as const) {
-      const { markup } = renderPage(<Island name="X" client={client} />)
+      const { markup } = renderPage(<Island name="SearchIsland" client={client} />)
       expect(markup).toContain(`data-client="${client}"`)
     }
   })
@@ -89,13 +89,13 @@ describe('the props collector', () => {
   it('keys each island’s props by its own data-island-id', () => {
     const { markup, props } = renderPage(
       <>
-        <Island name="A" props={{ a: 1 }} />
-        <Island name="B" props={{ b: 2 }} />
+        <Island name="SearchIsland" props={{ a: 1 }} />
+        <Island name="MobileNavIsland" props={{ b: 2 }} />
       </>
     )
 
-    expect(markup).toContain('data-island="A" data-client="load" data-island-id="i0"')
-    expect(markup).toContain('data-island="B" data-client="load" data-island-id="i1"')
+    expect(markup).toContain('data-island="SearchIsland" data-client="load" data-island-id="i0"')
+    expect(markup).toContain('data-island="MobileNavIsland" data-client="load" data-island-id="i1"')
     expect(props).toEqual({ i0: { a: 1 }, i1: { b: 2 } })
   })
 
@@ -103,7 +103,9 @@ describe('the props collector', () => {
     // The same island five times: `data-island-id` is what tells the mounter
     // which prop bag belongs to which placeholder, so the NAME cannot be it.
     const { props } = renderPage(
-      ['a', 'b', 'c', 'd', 'e'].map((tag) => <Island key={tag} name="Repeated" props={{ tag }} />)
+      ['a', 'b', 'c', 'd', 'e'].map((tag) => (
+        <Island key={tag} name="SearchIsland" props={{ tag }} />
+      ))
     )
 
     const ids = Object.keys(props)
@@ -116,8 +118,8 @@ describe('the props collector', () => {
     // otherwise every page in the build churns on a rebuild for no reason.
     const tree = (
       <>
-        <Island name="A" props={{ a: 1 }} />
-        <Island name="B" props={{ b: 2 }} />
+        <Island name="SearchIsland" props={{ a: 1 }} />
+        <Island name="MobileNavIsland" props={{ b: 2 }} />
       </>
     )
 
@@ -160,7 +162,7 @@ describe('the props collector', () => {
   })
 
   it('closing the window clears the collected props', () => {
-    renderPage(<Island name="A" props={{ a: 1 }} />)
+    renderPage(<Island name="SearchIsland" props={{ a: 1 }} />)
     // A second close with no render in between must not leak the previous page.
     beginIslandCollection()
     expect(endIslandCollection()).toEqual({})

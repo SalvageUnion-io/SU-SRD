@@ -23,7 +23,12 @@ function asIsland<P>(component: ComponentType<P>): IslandComponent {
 
 export type IslandLoader = () => Promise<IslandComponent>
 
-export const islandRegistry: Record<string, IslandLoader> = {
+/**
+ * No `Record<string, IslandLoader>` annotation on purpose — that would widen
+ * the keys back to `string` and defeat `IslandName` below. `satisfies` keeps
+ * the value checked while preserving the literal key union.
+ */
+export const islandRegistry = {
   SearchIsland: () =>
     import('../components/islands/SearchIsland').then((m) => asIsland(m.SearchIsland)),
   MobileSearchIsland: () =>
@@ -44,4 +49,16 @@ export const islandRegistry: Record<string, IslandLoader> = {
     ),
   OgCardIsland: () =>
     import('../components/islands/OgCardIsland').then((m) => asIsland(m.OgCardIsland)),
-}
+} satisfies Record<string, IslandLoader>
+
+/**
+ * The islands that actually exist.
+ *
+ * `<Island name>` is typed to this, so a typo is a compile error rather than a
+ * placeholder that silently never mounts — which is exactly what happened when
+ * this was `string`: renaming an island in a page left a `data-island` div in
+ * the HTML that the mounter skipped, with no error anywhere, in the build or
+ * the browser. This is a TYPE-only export, so importing it from the SSR side
+ * costs nothing at runtime and pulls none of the client graph with it.
+ */
+export type IslandName = keyof typeof islandRegistry

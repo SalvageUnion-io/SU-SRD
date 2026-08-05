@@ -67,7 +67,13 @@ function mountIslands(): void {
   for (const el of document.querySelectorAll<HTMLElement>('[data-island]')) {
     const name = el.dataset.island
     if (!name) continue
-    const loader = islandRegistry[name]
+    // `name` comes off the DOM, so it is genuinely an unknown string here —
+    // the compile-time `IslandName` guarantee lives at the `<Island>` call
+    // site, not on this side of the serialization boundary. Narrow explicitly
+    // rather than indexing a typed record with a `string`.
+    const loader = Object.hasOwn(islandRegistry, name)
+      ? islandRegistry[name as keyof typeof islandRegistry]
+      : undefined
     if (!loader) {
       console.error(`[islands] no registry entry for "${name}"`)
       continue

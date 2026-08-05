@@ -208,9 +208,25 @@ async function main(): Promise<void> {
 
   let count = 0
   const sitemapRoutes: string[] = []
+  // `writeOutput` is a bare write: two registrations resolving to the same file
+  // silently clobber each other, last one wins, and the page count still looks
+  // right. That is a plausible mistake — an over-broad getStaticPaths, or a new
+  // route whose pattern collides with an existing one — and the only symptom
+  // would be a page quietly serving the wrong content. Refuse instead.
+  const written = new Map<string, string>()
   for (const registration of routes) {
     for (const { route, render } of registration.resolve()) {
-      await writeOutput(outputPathFor(route), render(assets))
+      const outputPath = outputPathFor(route)
+      const previous = written.get(outputPath)
+      if (previous !== undefined) {
+        throw new Error(
+          `[ssg] two routes resolve to the same output file: ${outputPath}\n` +
+            `  first:  ${previous}\n  second: ${route}\n` +
+            `  Check ssg/routes.ts for overlapping patterns or an over-broad getStaticPaths().`
+        )
+      }
+      written.set(outputPath, route)
+      await writeOutput(outputPath, render(assets))
       if (registration.sitemap) sitemapRoutes.push(route)
       count += 1
     }
