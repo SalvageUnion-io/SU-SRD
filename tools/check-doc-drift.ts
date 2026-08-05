@@ -186,7 +186,19 @@ export function splitMarkdownBlocks(
  * in here (docs/design/, plan-docs/, docs/design-system/, the ADR bodies) is
  * allowed to describe the past.
  */
-const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', '.claude/agents', 'docs/architecture']
+// `.claude/skills` was the blind spot in this list, and it is where BOTH of the
+// live documentation drifts found by the 2026-08 audit sat: the /verify skill
+// instructing raw `bun test` (the one command root CLAUDE.md said never to run),
+// and the /generate skill describing a TypeScript compile step the package has
+// not had since it started shipping source. A skill is executed, not merely
+// read, so a stale one is worse than a stale doc — it hands an agent a wrong
+// command to run.
+const LIVE_INSTRUCTION_DOC_DIRS = [
+  '.claude/rules',
+  '.claude/agents',
+  '.claude/skills',
+  'docs/architecture',
+]
 
 /**
  * Live-instruction docs that are deliberately historical records. They carry
@@ -805,6 +817,80 @@ export function checkFrameworkVersions(root: string): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
+// Check 7: every `bun run <script>` a live-instruction doc names actually exists
+// ---------------------------------------------------------------------------
+
+/**
+ * Docs and skills tell agents which commands to run. When a script is renamed
+ * or removed, the prose keeps confidently naming it and the next agent runs a
+ * command that does not exist — or, worse, the doc names a command that exists
+ * but is the wrong one. The /verify skill spent months instructing raw
+ * `bun test` because nothing compared instructions against reality.
+ *
+ * Scope: `bun run <name>` and `bun --filter <workspace> <name>`, which is how
+ * every documented command in this repo is written.
+ */
+function scriptsOf(root: string, manifest: string): Set<string> {
+  const path = join(root, manifest)
+  if (!existsSync(path)) return new Set()
+  const pkg = JSON.parse(readFileSync(path, 'utf-8')) as { scripts?: Record<string, string> }
+  return new Set(Object.keys(pkg.scripts ?? {}))
+}
+
+/** Workspace directory by package name, for `bun --filter <name> <script>`. */
+const WORKSPACE_MANIFESTS: Record<string, string> = {
+  srd: 'apps/srd/package.json',
+  itun: 'apps/itun/package.json',
+  'discord-bot': 'apps/discord-bot/package.json',
+  'su-assets': 'apps/su-assets/package.json',
+  'component-lib': 'packages/component-lib/package.json',
+  'salvageunion-reference': 'packages/salvageunion-reference/package.json',
+}
+
+function checkReferencedScripts(root: string): { ok: string; failures: string[] } {
+  const failures: string[] = []
+  const rootScripts = scriptsOf(root, 'package.json')
+  const workspaceScripts = new Map<string, Set<string>>()
+  for (const [name, manifest] of Object.entries(WORKSPACE_MANIFESTS)) {
+    workspaceScripts.set(name, scriptsOf(root, manifest))
+  }
+
+  let checked = 0
+  for (const doc of liveInstructionDocs(root)) {
+    const text = readFileSync(join(root, doc), 'utf-8')
+
+    for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
+      const script = m[1]
+      if (script === undefined) continue
+      checked++
+      if (!rootScripts.has(script)) {
+        failures.push(
+          `${doc} references \`bun run ${script}\`, which is not a script in the root package.json.\n` +
+            `  → rename the reference to the surviving script, or drop it.`
+        )
+      }
+    }
+
+    for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
+      const [, workspace, script] = m
+      if (workspace === undefined || script === undefined) continue
+      const known = workspaceScripts.get(workspace)
+      // An unknown workspace name is Check 3's job, not this one.
+      if (known === undefined) continue
+      checked++
+      if (!known.has(script)) {
+        failures.push(
+          `${doc} references \`bun --filter ${workspace} ${script}\`, which is not a script in ` +
+            `${WORKSPACE_MANIFESTS[workspace]}.\n  → rename the reference to the surviving script, or drop it.`
+        )
+      }
+    }
+  }
+
+  return { ok: `every documented bun script exists (${checked} references checked)`, failures }
+}
+
+// ---------------------------------------------------------------------------
 // Runner
 // ---------------------------------------------------------------------------
 
@@ -815,6 +901,7 @@ export const CHECKS = [
   checkSupersededAdrCitations,
   checkComponentLibSymbolNames,
   checkFrameworkVersions,
+  checkReferencedScripts,
 ] as const
 
 export function runChecks(root: string): { failures: string[]; passed: string[] } {

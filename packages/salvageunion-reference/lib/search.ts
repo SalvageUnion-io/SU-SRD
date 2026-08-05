@@ -34,7 +34,7 @@ export function isSchemaName(id: string): id is SURefEnumSchemaName {
   return indexableSchemaNames.has(id)
 }
 
-export interface SearchOptions {
+export type SearchOptions = {
   query: string
   schemas?: SURefEnumSchemaName[]
   limit?: number
@@ -196,7 +196,7 @@ function trimCache(): void {
   }
 }
 
-export interface SearchResult {
+export type SearchResult = {
   schemaName: SURefEnumSchemaName
   schemaTitle: string
   entity: SURefEntity & { schemaName: SURefEnumSchemaName }

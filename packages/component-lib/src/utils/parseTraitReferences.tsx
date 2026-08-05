@@ -15,6 +15,13 @@ import { EntityTooltip } from '../components/referenceEntity/EntityTooltip'
  * `href` is passed — component-lib is route-agnostic, so these are the inert
  * (ink dashed, tooltip-summoning) form of the ref, never the rust link.
  */
+// This module's public surface is the `useParseTraitReferences` HOOK; `TraitRef`
+// is a private rendering detail of it and must not enter the barrel. The rule
+// below is a Fast Refresh heuristic wanting a module to export only components —
+// exporting TraitRef to satisfy it would widen the package's public API to
+// silence a dev-server hint, and splitting a 20-line private helper into its own
+// file to the same end is worse. The hook is the boundary.
+// biome-ignore lint/style/useComponentExportOnlyModules: private helper of an intentionally hook-only module; see above
 function TraitRef({ name, param }: { name: string; param?: string }) {
   const trait = SalvageUnionReference.findIn(
     'traits',

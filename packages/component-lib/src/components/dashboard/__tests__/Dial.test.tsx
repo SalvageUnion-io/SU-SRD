@@ -22,7 +22,6 @@ const items: DialItem[] = [
   { key: 'tables', statless: true, label: 'Tables', sublabel: 'roll' },
 ]
 
-// biome-ignore lint/style/useComponentExportOnlyModules: local test harness component, not a module export
 function ControlledDial() {
   const [idx, setIdx] = useState(0)
   return <Dial items={items} activeIndex={idx} onActiveIndexChange={setIdx} />

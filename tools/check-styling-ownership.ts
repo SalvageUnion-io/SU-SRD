@@ -68,8 +68,7 @@ const allTsFiles = [
 
 /** Which app a repo-relative path belongs to (for same-app reference checks). */
 function appOf(relPath: string): string | null {
-  const m = relPath.match(/^apps\/([^/]+)\//)
-  return m ? m[1] : null
+  return relPath.match(/^apps\/([^/]+)\//)?.[1] ?? null
 }
 
 // ── rule / exemption / violation types ───────────────────────────────────────
@@ -200,7 +199,8 @@ function classSelectorsInCss(css: string): { name: string; line: number }[] {
         if (depth === 0) {
           const selector = line.slice(0, c)
           for (const m of selector.matchAll(/\.(-?[a-zA-Z_][\w-]*)/g)) {
-            out.push({ name: m[1], line: i + 1 })
+            const name = m[1]
+            if (name !== undefined) out.push({ name, line: i + 1 })
           }
         }
         depth++
@@ -212,7 +212,8 @@ function classSelectorsInCss(css: string): { name: string; line: number }[] {
     // line, the whole line is selector text (e.g. a comma-continued selector).
     if (depth === 0 && !line.includes('{') && !line.includes('}')) {
       for (const m of line.matchAll(/\.(-?[a-zA-Z_][\w-]*)/g)) {
-        out.push({ name: m[1], line: i + 1 })
+        const name = m[1]
+        if (name !== undefined) out.push({ name, line: i + 1 })
       }
     }
   })
@@ -268,7 +269,9 @@ function scanPcContract(): Violation[] {
     const css = stripCssComments(read(file))
     css.split('\n').forEach((line, i) => {
       for (const m of line.matchAll(/\.(pc-[a-z0-9-]+)/g)) {
-        if (!defined.has(m[1])) defined.set(m[1], { file: relPath, line: i + 1 })
+        const name = m[1]
+        if (name !== undefined && !defined.has(name))
+          defined.set(name, { file: relPath, line: i + 1 })
       }
     })
   }
@@ -437,7 +440,10 @@ try {
 const regressions: string[] = []
 const improvements: string[] = []
 for (const rule of RULES) {
-  const now = counts[rule.id]
+  // See the identical note in check-design-tokens.ts: without `?? 0` this is
+  // `number | undefined`, and `undefined > was` is false, so a rule missing
+  // from `counts` could never register as a regression.
+  const now = counts[rule.id] ?? 0
   const was = baseline[rule.id] ?? 0
   if (now > was) regressions.push(rule.id)
   else if (now < was) improvements.push(`${rule.id}: ${was} → ${now}`)

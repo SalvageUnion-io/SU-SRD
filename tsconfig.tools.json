@@ -1,0 +1,37 @@
+{
+  // Root-level TypeScript that belongs to no workspace, and was therefore
+  // type-checked by NOTHING until this file existed.
+  //
+  // `bun run typecheck` iterates the six workspaces (`bun --filter …`), and
+  // neither `tools/` nor `test/` is a workspace — the root `tsconfig.json` is a
+  // bare settings bag with no `include`, and nothing ever ran `tsc` at the root.
+  // So the ~24 files below were linted and formatted but never type-checked:
+  //
+  //   tools/**   every CI guard the repo's correctness rests on —
+  //              check-architecture, check-doc-drift, check-observability,
+  //              check-bun-version, check-design-tokens, check-styling-ownership
+  //              — plus a11y-scan, the coverage reporter and the rules digest.
+  //   test/**    the four preload files loaded by EVERY workspace bunfig.
+  //
+  // This is the same class of hole as `apps/itun/convex/**` (see that
+  // workspace's tsconfig.json): a directory three other tools claimed while the
+  // type-checker did not, where a type error could merge green. Both were clean
+  // when the hole was found; closing them is config-only and cheap, and the
+  // point is that it stays closed.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node", "bun-types"],
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    // Checked, never emitted — the repo base emits declarations.
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false,
+    // `tools/` reads JSON baselines (design-tokens, styling-ownership) directly.
+    "resolveJsonModule": true
+  },
+  "include": ["tools/**/*.ts", "test/**/*.ts"]
+}

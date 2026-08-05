@@ -31,6 +31,14 @@ services:
         - package.json
         - render.yaml
     envVars:
+      # Pin Bun, exactly as the three netlify.toml files do. Without this the
+      # bot bundled on whatever Bun version Render's image happened to ship,
+      # while CI and all three Netlify sites were pinned to .bun-version — so
+      # the one deploy target that builds a shipped ARTIFACT (bun build) was the
+      # only one whose toolchain could drift silently. tools/check-bun-version.ts
+      # now covers this file too; keep it in sync with .bun-version.
+      - key: BUN_VERSION
+        value: 1.3.14
       - key: DISCORD_TOKEN
         sync: false
       - key: DISCORD_CLIENT_ID

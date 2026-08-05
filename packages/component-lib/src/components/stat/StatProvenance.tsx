@@ -110,9 +110,15 @@ export function StatProvenance({
               {statLabel} · how this is derived
             </Popover.Title>
             <ul className="m-0 list-none p-0 text-caption tabular-nums">
-              {lines.map((line, i) => (
+              {/* Keyed by CONTENT, not by array index. kind+label alone can
+                  collide (two +1 bonuses of the same source type), which is why
+                  the index used to be mixed in; including detail and amount
+                  disambiguates those without keying on position. Two lines
+                  identical in all four fields render interchangeably, so a
+                  collision there is harmless. */}
+              {lines.map((line) => (
                 <li
-                  key={`${line.kind}-${line.label}-${i}`}
+                  key={`${line.kind}-${line.label}-${line.detail ?? ''}-${line.amount}`}
                   className={cn(
                     'flex items-baseline justify-between gap-4 py-[2px]',
                     line.kind === 'derived' && 'mt-1.5 border-t border-paper-30 pt-1.5',

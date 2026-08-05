@@ -199,7 +199,7 @@ function validateAndParseData<T>(
 /**
  * Enhanced schema metadata interface
  */
-export interface EnhancedSchemaMetadata {
+export type EnhancedSchemaMetadata = {
   id: string
   title: string
   description: string

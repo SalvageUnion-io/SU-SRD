@@ -13,7 +13,6 @@ import type { ReactNode } from 'react'
 import { Component } from 'react'
 import { useHydrateOnMount } from '../useHydrateEntities'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: local test-only error boundary, no fast-refresh boundary here
 class Boundary extends Component<{ children: ReactNode }, { caught: boolean; error: unknown }> {
   // Track "caught" separately from the value: a thrown `null`/`undefined` must
   // still show the fallback (mirrors why the hook uses a symbol sentinel).
@@ -30,7 +29,6 @@ class Boundary extends Component<{ children: ReactNode }, { caught: boolean; err
   }
 }
 
-// biome-ignore lint/style/useComponentExportOnlyModules: local test-only probe component
 function Probe({ hydrate }: { hydrate: () => Promise<unknown> }) {
   const hydrated = useHydrateOnMount(hydrate)
   return <div>{hydrated ? 'ready' : 'loading'}</div>

@@ -51,6 +51,7 @@ export function DialConfig({ kinds, prefs, onChange, onClose }: DialConfigProps)
   }
 
   const onMove = (id: string, delta: -1 | 1) => {
+    // biome-ignore lint/complexity/useIndexOf: `order` is DialKind[] but `id` is string — the callback signature is fixed by component-lib's DialConfigView prop, so indexOf would not typecheck
     const index = order.findIndex((k) => k === id)
     const target = index + delta
     if (index < 0 || target < 0 || target >= order.length) return

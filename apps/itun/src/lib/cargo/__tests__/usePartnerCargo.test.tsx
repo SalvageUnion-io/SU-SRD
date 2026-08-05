@@ -208,7 +208,8 @@ describe('usePartnerCargo — fresh-read guard', () => {
     expect(outcome.ok).toBe(true)
 
     const depot = captured.find((u) => u.type === 'crawler')
-    expect((depot?.patch.cargoLots as CargoLot[]).map((l) => l.id).sort()).toEqual([
+    if (!depot) throw new Error('expected a crawler update to have been captured')
+    expect((depot.patch.cargoLots as CargoLot[]).map((l) => l.id).sort()).toEqual([
       'lot-a',
       'lot-z',
     ])

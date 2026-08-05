@@ -31,6 +31,12 @@ function netlifyBunVersion(tomlPath: string): string | undefined {
   return toml.match(/BUN_VERSION\s*=\s*"([^"]+)"/)?.[1]
 }
 
+/** render.yaml's `- key: BUN_VERSION` / `value:` pair (YAML, so no quotes). */
+function renderBunVersion(): string | undefined {
+  const yaml = readFileSync(join(root, 'render.yaml'), 'utf-8')
+  return yaml.match(/-\s*key:\s*BUN_VERSION\s*\n\s*value:\s*["']?([^"'\s]+)["']?/)?.[1]
+}
+
 const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as {
   devDependencies?: Record<string, string>
 }
@@ -49,6 +55,15 @@ const surfaces: Surface[] = [
     actual: netlifyBunVersion('apps/su-assets/netlify.toml'),
   },
   {
+    // Render builds the Discord bot's shipped bundle with `bun build`, so it is
+    // the one deploy target whose Bun version affects an ARTIFACT rather than
+    // just a static build — and it was the only one this check did not cover.
+    // Same failure mode the su-assets note above describes: unpinned means
+    // "whatever the image ships", silently.
+    label: 'render.yaml BUN_VERSION',
+    actual: renderBunVersion(),
+  },
+  {
     label: 'root package.json devDependencies.bun-types',
     actual: rootPkg.devDependencies?.['bun-types'],
   },
@@ -63,6 +78,11 @@ if (drifted.length > 0) {
   process.exit(1)
 }
 
+// Counted from the surface list rather than hard-coded, so adding a surface
+// above cannot silently make this sentence wrong (it previously derived the
+// Netlify-site count from `surfaces.length`, which broke the moment a
+// non-Netlify surface joined the list).
+const netlifySites = surfaces.filter((s) => s.label.includes('netlify.toml')).length
 console.log(
-  `✓ Bun ${expected} pinned consistently across CI, all ${surfaces.length - 1} Netlify sites, and bun-types.`
+  `✓ Bun ${expected} pinned consistently across CI, all ${netlifySites} Netlify sites, Render, and bun-types.`
 )

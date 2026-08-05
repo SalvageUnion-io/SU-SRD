@@ -14,13 +14,13 @@ function loadJson(filePath: string): unknown {
   return JSON.parse(content)
 }
 
-interface Choice {
+type Choice = {
   id: string
   name: string
   customSystemOptions?: Array<{ id: string; name: string }>
 }
 
-interface System {
+type System = {
   id: string
   name: string
   actions?: Array<{
@@ -28,24 +28,24 @@ interface System {
   }>
 }
 
-interface Action {
+type Action = {
   id: string
   name: string
   choices?: Choice[]
 }
 
-interface PatternItem {
+type PatternItem = {
   name: string
   preselectedChoices?: { [id: string]: string }
 }
 
-interface Pattern {
+type Pattern = {
   name: string
   systems: PatternItem[]
   modules: PatternItem[]
 }
 
-interface Chassis {
+type Chassis = {
   name: string
   patterns: Pattern[]
 }

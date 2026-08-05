@@ -146,13 +146,20 @@ function parseIndex(pages: Map<number, string>): Map<string, number[]> {
       const m = `${carry ? `${carry} ` : ''}${line}`.match(ENTRY)
       carry = ''
       if (!m) continue
-      const key = norm(m[1])
+      const [, rawName, rawPages] = m
+      if (rawName === undefined || rawPages === undefined) continue
+      const key = norm(rawName)
       if (!key) continue
       const list = index.get(key) ?? []
-      for (const part of m[2].split(',')) {
+      for (const part of rawPages.split(',')) {
         const [from, to] = part.split(/[-–—]/).map((n) => Number(n.trim()))
+        // A malformed page cell yields NaN. Previously the loop bound was NaN
+        // and every comparison was false, so it silently contributed nothing —
+        // skipping explicitly keeps that behaviour and states it.
+        if (from === undefined || !Number.isFinite(from)) continue
         // A range is expanded so that citing any page within it counts as a hit.
-        for (let p = from; p <= (Number.isFinite(to) ? to : from); p++) list.push(p)
+        const end = to !== undefined && Number.isFinite(to) ? to : from
+        for (let p = from; p <= end; p++) list.push(p)
       }
       index.set(key, list)
     }

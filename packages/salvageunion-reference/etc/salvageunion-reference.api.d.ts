@@ -213,7 +213,7 @@ export declare const _registryKeySets: {
 /**
  * Enhanced schema metadata interface
  */
-export interface EnhancedSchemaMetadata {
+export type EnhancedSchemaMetadata = {
     id: string;
     title: string;
     description: string;
@@ -225,7 +225,7 @@ export interface EnhancedSchemaMetadata {
     displayName: string;
     displayNamePlural: string;
     meta?: boolean;
-}
+};
 /**
  * Get schema catalog with enhanced metadata
  * Exposed for client use
@@ -17543,15 +17543,15 @@ import type { SURefEntity, SURefEnumSchemaName } from './types/index.js';
  * so this is safe from any build-time or test context.
  */
 export declare function isSchemaName(id: string): id is SURefEnumSchemaName;
-export interface SearchOptions {
+export type SearchOptions = {
     query: string;
     schemas?: SURefEnumSchemaName[];
     limit?: number;
-}
+};
 /** Reset the lazy index — called by preload() so an index built before data
  *  loaded never survives a successful preload. */
 export declare function invalidateSearchIndex(): void;
-export interface SearchResult {
+export type SearchResult = {
     schemaName: SURefEnumSchemaName;
     schemaTitle: string;
     entity: SURefEntity & {
@@ -17561,7 +17561,7 @@ export interface SearchResult {
     entityName: string;
     matchedFields: string[];
     matchScore: number;
-}
+};
 /**
  * Extract all text from content blocks recursively.
  *

@@ -20,7 +20,6 @@ import { GlobalSearch } from '../GlobalSearch'
 const DEBOUNCE_MS = 150
 
 /** Stateful harness so onOpenChange actually closes/opens the dialog. */
-// biome-ignore lint/style/useComponentExportOnlyModules: test-local harness component; Fast Refresh does not apply to test files
 function Harness({ initialOpen = true }: { initialOpen?: boolean }) {
   const [open, setOpen] = useState(initialOpen)
   return <GlobalSearch open={open} onOpenChange={setOpen} />
