@@ -2386,7 +2386,7 @@ export { canActivateAction, clampHeat, performHeatCheck, performPush, reactorOve
 export type { FindRollTable } from './mediatorTables.js';
 export { describeMediatorRoll, MEDIATOR_TABLE_LABEL, MEDIATOR_TABLE_NAMES, performMediatorRoll, } from './mediatorTables.js';
 export { enrichPilotSnapshot } from './pilotSnapshot.js';
-export { matchesRef, resolveChassisRef, resolveInstalledRef, resolveModuleRef, resolveRef, resolveSystemRef, } from './resolveRefs.js';
+export { matchesRef, resolveActionRef, resolveChassisRef, resolveClassRef, resolveCrawlerBayRef, resolveCrawlerRef, resolveInstalledRef, resolveModuleRef, resolveRef, resolveSystemRef, } from './resolveRefs.js';
 export type { RulesClaim } from './rulesBearing.js';
 export { statesMechanicalChange } from './rulesBearing.js';
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
@@ -2907,6 +2907,1852 @@ export declare function resolveInstalledRef(ref: string): ({
         value: string | number;
         unit?: string | undefined;
     })[] | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/**
+ * Resolve a crawler `type` ref (slug; legacy name/id tolerated).
+ *
+ * Crawler refs were NEVER slug-migrated the way mech `chassisRef` was
+ * (migration 6), so the app-side lookups for them were written as
+ * `id === ref || name === ref` and are correct *today* purely because no slug
+ * has ever reached them. That makes them a trap for whoever migrates crawler
+ * refs next: the day a slug is stored, every one of those comparisons starts
+ * returning undefined and the surfaces fall back to printing the raw ref —
+ * exactly the failure `chassisRef` already had on the Dashboard.
+ *
+ * Resolving through here is slug-tolerant in advance, and indexed rather than
+ * a linear scan.
+ */
+export declare function resolveCrawlerRef(ref: string): ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    npc: {
+        position: string;
+        hitPoints: number;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        choices?: {
+            id: string;
+            name: string;
+            content?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+                lead?: boolean | undefined;
+                choiceId?: string | undefined;
+                items?: {
+                    type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                    value?: string | {
+                        label: string | number;
+                        value?: string | number | undefined;
+                        type?: "keyword" | "trait" | "cost" | undefined;
+                        unit?: string | undefined;
+                        perTechLevel?: number | undefined;
+                    }[] | undefined;
+                    label?: string | undefined;
+                    level?: number | undefined;
+                }[] | undefined;
+            }[] | undefined;
+            rollTable?: string | undefined;
+            schemaEntities?: string[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            customSystemOptions?: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            multiSelect?: boolean | undefined;
+            choiceOptions?: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            constraints?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                scalesWithField?: string | undefined;
+            } | undefined;
+            source?: {
+                kind: "text";
+                multiline?: boolean | undefined;
+            } | {
+                kind: "table";
+                rollTable: string;
+                orChooseOwn?: boolean | undefined;
+            } | {
+                kind: "options";
+                options: {
+                    label: string;
+                    value: string;
+                    description?: string | undefined;
+                    effects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | {
+                kind: "catalog";
+                schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+                entities?: string[] | undefined;
+                filter?: {
+                    field?: string | undefined;
+                    min?: number | undefined;
+                    max?: number | undefined;
+                    damageType?: "HP" | "SP" | undefined;
+                } | undefined;
+                reveals?: boolean | undefined;
+            } | {
+                kind: "systemVariant";
+                options: {
+                    techLevel: number | "B" | "N";
+                    slotsRequired: number;
+                    salvageValue: number;
+                    actions: string[];
+                    structurePoints?: number | undefined;
+                    energyPoints?: number | undefined;
+                    heatCapacity?: number | undefined;
+                    systemSlots?: number | undefined;
+                    moduleSlots?: number | undefined;
+                    cargoCapacity?: number | undefined;
+                    name?: string | undefined;
+                    recommended?: boolean | undefined;
+                    count?: number | undefined;
+                    contributions?: {
+                        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        amount: number | {
+                            perTechLevel: number;
+                            flat?: number | undefined;
+                        } | {
+                            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        };
+                        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                        stacks?: boolean | undefined;
+                        voidWhen?: "damaged" | "destroyed" | undefined;
+                        duration?: "permanent" | "activated" | undefined;
+                        note?: string | undefined;
+                    }[] | undefined;
+                    appliedEffects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | undefined;
+            cardinality?: {
+                min: number;
+                max: number | {
+                    scalesWith: string;
+                };
+            } | undefined;
+            lifetime?: "permanent" | "session" | undefined;
+        }[] | undefined;
+    };
+    actions: string[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    mutations?: {
+        type: "weapon_slots" | "max_sp_bonus";
+        value: number;
+    }[] | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/** Resolve a crawler-bay ref (slug; legacy name/id tolerated). See `resolveCrawlerRef`. */
+export declare function resolveCrawlerBayRef(ref: string): ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    expansion?: boolean | undefined;
+    damagedEffect?: string | undefined;
+    npc?: {
+        position: string;
+        hitPoints: number;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        choices?: {
+            id: string;
+            name: string;
+            content?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+                lead?: boolean | undefined;
+                choiceId?: string | undefined;
+                items?: {
+                    type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                    value?: string | {
+                        label: string | number;
+                        value?: string | number | undefined;
+                        type?: "keyword" | "trait" | "cost" | undefined;
+                        unit?: string | undefined;
+                        perTechLevel?: number | undefined;
+                    }[] | undefined;
+                    label?: string | undefined;
+                    level?: number | undefined;
+                }[] | undefined;
+            }[] | undefined;
+            rollTable?: string | undefined;
+            schemaEntities?: string[] | undefined;
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            customSystemOptions?: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            multiSelect?: boolean | undefined;
+            choiceOptions?: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[] | undefined;
+            constraints?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                scalesWithField?: string | undefined;
+            } | undefined;
+            source?: {
+                kind: "text";
+                multiline?: boolean | undefined;
+            } | {
+                kind: "table";
+                rollTable: string;
+                orChooseOwn?: boolean | undefined;
+            } | {
+                kind: "options";
+                options: {
+                    label: string;
+                    value: string;
+                    description?: string | undefined;
+                    effects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | {
+                kind: "catalog";
+                schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+                entities?: string[] | undefined;
+                filter?: {
+                    field?: string | undefined;
+                    min?: number | undefined;
+                    max?: number | undefined;
+                    damageType?: "HP" | "SP" | undefined;
+                } | undefined;
+                reveals?: boolean | undefined;
+            } | {
+                kind: "systemVariant";
+                options: {
+                    techLevel: number | "B" | "N";
+                    slotsRequired: number;
+                    salvageValue: number;
+                    actions: string[];
+                    structurePoints?: number | undefined;
+                    energyPoints?: number | undefined;
+                    heatCapacity?: number | undefined;
+                    systemSlots?: number | undefined;
+                    moduleSlots?: number | undefined;
+                    cargoCapacity?: number | undefined;
+                    name?: string | undefined;
+                    recommended?: boolean | undefined;
+                    count?: number | undefined;
+                    contributions?: {
+                        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        amount: number | {
+                            perTechLevel: number;
+                            flat?: number | undefined;
+                        } | {
+                            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                        };
+                        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                        stacks?: boolean | undefined;
+                        voidWhen?: "damaged" | "destroyed" | undefined;
+                        duration?: "permanent" | "activated" | undefined;
+                        note?: string | undefined;
+                    }[] | undefined;
+                    appliedEffects?: ({
+                        op: "addTrait";
+                        value: string;
+                        amount?: string | number | undefined;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "removeTrait";
+                        value: string;
+                        target?: "self" | "hostMech" | undefined;
+                    } | {
+                        op: "setRange";
+                        value: string | number;
+                    } | {
+                        op: "addDamage";
+                        value: string | number;
+                        unit?: string | undefined;
+                    })[] | undefined;
+                }[];
+            } | undefined;
+            cardinality?: {
+                min: number;
+                max: number | {
+                    scalesWith: string;
+                };
+            } | undefined;
+            lifetime?: "permanent" | "session" | undefined;
+        }[] | undefined;
+    } | undefined;
+    techLevel?: number | "B" | "N" | undefined;
+    salvageValue?: number | undefined;
+    cost?: {
+        scrap?: number | undefined;
+        bioSalvage?: number | undefined;
+    } | undefined;
+    choices?: {
+        id: string;
+        name: string;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        rollTable?: string | undefined;
+        schemaEntities?: string[] | undefined;
+        schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+        customSystemOptions?: {
+            techLevel: number | "B" | "N";
+            slotsRequired: number;
+            salvageValue: number;
+            actions: string[];
+            structurePoints?: number | undefined;
+            energyPoints?: number | undefined;
+            heatCapacity?: number | undefined;
+            systemSlots?: number | undefined;
+            moduleSlots?: number | undefined;
+            cargoCapacity?: number | undefined;
+            name?: string | undefined;
+            recommended?: boolean | undefined;
+            count?: number | undefined;
+            contributions?: {
+                stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                amount: number | {
+                    perTechLevel: number;
+                    flat?: number | undefined;
+                } | {
+                    fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                };
+                target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                stacks?: boolean | undefined;
+                voidWhen?: "damaged" | "destroyed" | undefined;
+                duration?: "permanent" | "activated" | undefined;
+                note?: string | undefined;
+            }[] | undefined;
+            appliedEffects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        multiSelect?: boolean | undefined;
+        choiceOptions?: {
+            label: string;
+            value: string;
+            description?: string | undefined;
+            effects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        constraints?: {
+            field?: string | undefined;
+            min?: number | undefined;
+            max?: number | undefined;
+            scalesWithField?: string | undefined;
+        } | undefined;
+        source?: {
+            kind: "text";
+            multiline?: boolean | undefined;
+        } | {
+            kind: "table";
+            rollTable: string;
+            orChooseOwn?: boolean | undefined;
+        } | {
+            kind: "options";
+            options: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | {
+            kind: "catalog";
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            entities?: string[] | undefined;
+            filter?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                damageType?: "HP" | "SP" | undefined;
+            } | undefined;
+            reveals?: boolean | undefined;
+        } | {
+            kind: "systemVariant";
+            options: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | undefined;
+        cardinality?: {
+            min: number;
+            max: number | {
+                scalesWith: string;
+            };
+        } | undefined;
+        lifetime?: "permanent" | "session" | undefined;
+    }[] | undefined;
+    tableName?: string | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/** Resolve an action ref (slug; legacy name/id tolerated). */
+export declare function resolveActionRef(ref: string): ({
+    id: string;
+    name: string;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    structurePoints?: number | undefined;
+    energyPoints?: number | undefined;
+    heatCapacity?: number | undefined;
+    systemSlots?: number | undefined;
+    moduleSlots?: number | undefined;
+    cargoCapacity?: number | undefined;
+    techLevel?: number | "B" | "N" | undefined;
+    salvageValue?: number | undefined;
+    displayName?: string | undefined;
+    activationCost?: number | "X" | undefined;
+    range?: ("Close" | "Medium" | "Long" | "Far")[] | undefined;
+    actionType?: "Long" | "Passive" | "Free" | "Reaction" | "Turn" | "Short" | "DownTime" | undefined;
+    traits?: {
+        type: string;
+        amount?: string | number | undefined;
+    }[] | undefined;
+    damage?: {
+        damageType: "HP" | "SP";
+        amount: string | number;
+    } | undefined;
+    choices?: {
+        id: string;
+        name: string;
+        content?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+            lead?: boolean | undefined;
+            choiceId?: string | undefined;
+            items?: {
+                type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+                value?: string | {
+                    label: string | number;
+                    value?: string | number | undefined;
+                    type?: "keyword" | "trait" | "cost" | undefined;
+                    unit?: string | undefined;
+                    perTechLevel?: number | undefined;
+                }[] | undefined;
+                label?: string | undefined;
+                level?: number | undefined;
+            }[] | undefined;
+        }[] | undefined;
+        rollTable?: string | undefined;
+        schemaEntities?: string[] | undefined;
+        schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+        customSystemOptions?: {
+            techLevel: number | "B" | "N";
+            slotsRequired: number;
+            salvageValue: number;
+            actions: string[];
+            structurePoints?: number | undefined;
+            energyPoints?: number | undefined;
+            heatCapacity?: number | undefined;
+            systemSlots?: number | undefined;
+            moduleSlots?: number | undefined;
+            cargoCapacity?: number | undefined;
+            name?: string | undefined;
+            recommended?: boolean | undefined;
+            count?: number | undefined;
+            contributions?: {
+                stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                amount: number | {
+                    perTechLevel: number;
+                    flat?: number | undefined;
+                } | {
+                    fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                };
+                target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                stacks?: boolean | undefined;
+                voidWhen?: "damaged" | "destroyed" | undefined;
+                duration?: "permanent" | "activated" | undefined;
+                note?: string | undefined;
+            }[] | undefined;
+            appliedEffects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        multiSelect?: boolean | undefined;
+        choiceOptions?: {
+            label: string;
+            value: string;
+            description?: string | undefined;
+            effects?: ({
+                op: "addTrait";
+                value: string;
+                amount?: string | number | undefined;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "removeTrait";
+                value: string;
+                target?: "self" | "hostMech" | undefined;
+            } | {
+                op: "setRange";
+                value: string | number;
+            } | {
+                op: "addDamage";
+                value: string | number;
+                unit?: string | undefined;
+            })[] | undefined;
+        }[] | undefined;
+        constraints?: {
+            field?: string | undefined;
+            min?: number | undefined;
+            max?: number | undefined;
+            scalesWithField?: string | undefined;
+        } | undefined;
+        source?: {
+            kind: "text";
+            multiline?: boolean | undefined;
+        } | {
+            kind: "table";
+            rollTable: string;
+            orChooseOwn?: boolean | undefined;
+        } | {
+            kind: "options";
+            options: {
+                label: string;
+                value: string;
+                description?: string | undefined;
+                effects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | {
+            kind: "catalog";
+            schema?: ("abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles")[] | undefined;
+            entities?: string[] | undefined;
+            filter?: {
+                field?: string | undefined;
+                min?: number | undefined;
+                max?: number | undefined;
+                damageType?: "HP" | "SP" | undefined;
+            } | undefined;
+            reveals?: boolean | undefined;
+        } | {
+            kind: "systemVariant";
+            options: {
+                techLevel: number | "B" | "N";
+                slotsRequired: number;
+                salvageValue: number;
+                actions: string[];
+                structurePoints?: number | undefined;
+                energyPoints?: number | undefined;
+                heatCapacity?: number | undefined;
+                systemSlots?: number | undefined;
+                moduleSlots?: number | undefined;
+                cargoCapacity?: number | undefined;
+                name?: string | undefined;
+                recommended?: boolean | undefined;
+                count?: number | undefined;
+                contributions?: {
+                    stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    amount: number | {
+                        perTechLevel: number;
+                        flat?: number | undefined;
+                    } | {
+                        fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+                    };
+                    target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+                    stacks?: boolean | undefined;
+                    voidWhen?: "damaged" | "destroyed" | undefined;
+                    duration?: "permanent" | "activated" | undefined;
+                    note?: string | undefined;
+                }[] | undefined;
+                appliedEffects?: ({
+                    op: "addTrait";
+                    value: string;
+                    amount?: string | number | undefined;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "removeTrait";
+                    value: string;
+                    target?: "self" | "hostMech" | undefined;
+                } | {
+                    op: "setRange";
+                    value: string | number;
+                } | {
+                    op: "addDamage";
+                    value: string | number;
+                    unit?: string | undefined;
+                })[] | undefined;
+            }[];
+        } | undefined;
+        cardinality?: {
+            min: number;
+            max: number | {
+                scalesWith: string;
+            };
+        } | undefined;
+        lifetime?: "permanent" | "session" | undefined;
+    }[] | undefined;
+    table?: {
+        type: "standard";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-5': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "alternate";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '19-20': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-18': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-5': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2': {
+            value: string;
+            label?: string | undefined;
+        };
+        '3': {
+            value: string;
+            label?: string | undefined;
+        };
+        '4': {
+            value: string;
+            label?: string | undefined;
+        };
+        '5': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6': {
+            value: string;
+            label?: string | undefined;
+        };
+        '7': {
+            value: string;
+            label?: string | undefined;
+        };
+        '8': {
+            value: string;
+            label?: string | undefined;
+        };
+        '9': {
+            value: string;
+            label?: string | undefined;
+        };
+        '10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11': {
+            value: string;
+            label?: string | undefined;
+        };
+        '12': {
+            value: string;
+            label?: string | undefined;
+        };
+        '13': {
+            value: string;
+            label?: string | undefined;
+        };
+        '14': {
+            value: string;
+            label?: string | undefined;
+        };
+        '15': {
+            value: string;
+            label?: string | undefined;
+        };
+        '16': {
+            value: string;
+            label?: string | undefined;
+        };
+        '17': {
+            value: string;
+            label?: string | undefined;
+        };
+        '18': {
+            value: string;
+            label?: string | undefined;
+        };
+        '19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+        type: "flat";
+    } | {
+        type: "dramatic";
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "duos";
+        '1-2': {
+            value: string;
+            label?: string | undefined;
+        };
+        '3-4': {
+            value: string;
+            label?: string | undefined;
+        };
+        '5-6': {
+            value: string;
+            label?: string | undefined;
+        };
+        '7-8': {
+            value: string;
+            label?: string | undefined;
+        };
+        '9-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-12': {
+            value: string;
+            label?: string | undefined;
+        };
+        '13-14': {
+            value: string;
+            label?: string | undefined;
+        };
+        '15-16': {
+            value: string;
+            label?: string | undefined;
+        };
+        '17-18': {
+            value: string;
+            label?: string | undefined;
+        };
+        '19-20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "bio-chassis";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-3': {
+            value: string;
+            label?: string | undefined;
+        };
+        '4-5': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-8': {
+            value: string;
+            label?: string | undefined;
+        };
+        '9-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "columns";
+        '1-4': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '5-8': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '9-12': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '13-16': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+        '17-20': {
+            '1': {
+                value: string;
+                label?: string | undefined;
+            };
+            '2': {
+                value: string;
+                label?: string | undefined;
+            };
+            '3': {
+                value: string;
+                label?: string | undefined;
+            };
+            '4': {
+                value: string;
+                label?: string | undefined;
+            };
+            '5': {
+                value: string;
+                label?: string | undefined;
+            };
+            '6': {
+                value: string;
+                label?: string | undefined;
+            };
+            '7': {
+                value: string;
+                label?: string | undefined;
+            };
+            '8': {
+                value: string;
+                label?: string | undefined;
+            };
+            '9': {
+                value: string;
+                label?: string | undefined;
+            };
+            '10': {
+                value: string;
+                label?: string | undefined;
+            };
+            '11': {
+                value: string;
+                label?: string | undefined;
+            };
+            '12': {
+                value: string;
+                label?: string | undefined;
+            };
+            '13': {
+                value: string;
+                label?: string | undefined;
+            };
+            '14': {
+                value: string;
+                label?: string | undefined;
+            };
+            '15': {
+                value: string;
+                label?: string | undefined;
+            };
+            '16': {
+                value: string;
+                label?: string | undefined;
+            };
+            '17': {
+                value: string;
+                label?: string | undefined;
+            };
+            '18': {
+                value: string;
+                label?: string | undefined;
+            };
+            '19': {
+                value: string;
+                label?: string | undefined;
+            };
+            '20': {
+                value: string;
+                label?: string | undefined;
+            };
+        };
+    } | {
+        type: "salvage-cache";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-3': {
+            value: string;
+            label?: string | undefined;
+        };
+        '4-5': {
+            value: string;
+            label?: string | undefined;
+        };
+        '6-7': {
+            value: string;
+            label?: string | undefined;
+        };
+        '8-9': {
+            value: string;
+            label?: string | undefined;
+        };
+        '10-11': {
+            value: string;
+            label?: string | undefined;
+        };
+        '12-13': {
+            value: string;
+            label?: string | undefined;
+        };
+        '14-15': {
+            value: string;
+            label?: string | undefined;
+        };
+        '16-17': {
+            value: string;
+            label?: string | undefined;
+        };
+        '18-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | {
+        type: "octet";
+        '1': {
+            value: string;
+            label?: string | undefined;
+        };
+        '2-4': {
+            value: string;
+            label?: string | undefined;
+        };
+        '5-7': {
+            value: string;
+            label?: string | undefined;
+        };
+        '8-10': {
+            value: string;
+            label?: string | undefined;
+        };
+        '11-13': {
+            value: string;
+            label?: string | undefined;
+        };
+        '14-16': {
+            value: string;
+            label?: string | undefined;
+        };
+        '17-19': {
+            value: string;
+            label?: string | undefined;
+        };
+        '20': {
+            value: string;
+            label?: string | undefined;
+        };
+    } | undefined;
+    tableName?: string | undefined;
+    hidden?: boolean | undefined;
+    activationCurrency?: "EP or AP" | "SP or HP" | "Variable" | undefined;
+    source?: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag" | undefined;
+    page?: number | undefined;
+    actionSource?: "abilities" | "ability-tree-requirements" | "chassis" | "classes" | "crawler-bays" | "crawler-tech-levels" | "crawlers" | "creatures" | "distances" | "drones" | "equipment" | "guides" | "keywords" | "factions" | "meld" | "modules" | "npcs" | "roll-tables" | "sources" | "squads" | "tech-levels" | "systems" | "bio-titans" | "traits" | "vehicles" | undefined;
+    drone?: string | undefined;
+} & {
+    schemaName: string;
+}) | null;
+/** Resolve a pilot `classRef` (slug; legacy name/id tolerated). */
+export declare function resolveClassRef(ref: string): ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    hybrid?: boolean | undefined;
+} & {
+    schemaName: string;
+}) | ({
+    id: string;
+    name: string;
+    source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+    page: number;
+    maxAbilities: number;
+    advanceable: boolean;
+    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
+    hasArtwork?: boolean | undefined;
+    content?: {
+        type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+        value?: string | {
+            label: string | number;
+            value?: string | number | undefined;
+            type?: "keyword" | "trait" | "cost" | undefined;
+            unit?: string | undefined;
+            perTechLevel?: number | undefined;
+        }[] | undefined;
+        label?: string | undefined;
+        level?: number | undefined;
+        lead?: boolean | undefined;
+        choiceId?: string | undefined;
+        items?: {
+            type: "paragraph" | "heading" | "list-item" | "label" | "datavalues" | "hint" | "flavor" | "choice";
+            value?: string | {
+                label: string | number;
+                value?: string | number | undefined;
+                type?: "keyword" | "trait" | "cost" | undefined;
+                unit?: string | undefined;
+                perTechLevel?: number | undefined;
+            }[] | undefined;
+            label?: string | undefined;
+            level?: number | undefined;
+        }[] | undefined;
+    }[] | undefined;
+    blackMarket?: boolean | undefined;
+    booklet?: string | undefined;
+    additionalSources?: {
+        source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
+        page: number;
+        booklet?: string | undefined;
+    }[] | undefined;
+    advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
+    legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
 } & {
     schemaName: string;
 }) | null;

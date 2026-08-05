@@ -84,3 +84,36 @@ export function resolveModuleRef(ref: string) {
 export function resolveInstalledRef(ref: string) {
   return resolveSystemRef(ref) ?? resolveModuleRef(ref)
 }
+
+/**
+ * Resolve a crawler `type` ref (slug; legacy name/id tolerated).
+ *
+ * Crawler refs were NEVER slug-migrated the way mech `chassisRef` was
+ * (migration 6), so the app-side lookups for them were written as
+ * `id === ref || name === ref` and are correct *today* purely because no slug
+ * has ever reached them. That makes them a trap for whoever migrates crawler
+ * refs next: the day a slug is stored, every one of those comparisons starts
+ * returning undefined and the surfaces fall back to printing the raw ref —
+ * exactly the failure `chassisRef` already had on the Dashboard.
+ *
+ * Resolving through here is slug-tolerant in advance, and indexed rather than
+ * a linear scan.
+ */
+export function resolveCrawlerRef(ref: string) {
+  return resolveRef(SalvageUnionReference.Crawlers, ref)
+}
+
+/** Resolve a crawler-bay ref (slug; legacy name/id tolerated). See `resolveCrawlerRef`. */
+export function resolveCrawlerBayRef(ref: string) {
+  return resolveRef(SalvageUnionReference.CrawlerBays, ref)
+}
+
+/** Resolve an action ref (slug; legacy name/id tolerated). */
+export function resolveActionRef(ref: string) {
+  return resolveRef(SalvageUnionReference.Actions, ref)
+}
+
+/** Resolve a pilot `classRef` (slug; legacy name/id tolerated). */
+export function resolveClassRef(ref: string) {
+  return resolveRef(SalvageUnionReference.Classes, ref)
+}

@@ -24,6 +24,7 @@ import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../../stores/surfaceProven
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { patchModelRows } from '../../__tests__/patchModel'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 afterEach(() => {
@@ -57,13 +58,7 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
 
 async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
-  SalvageUnionReference.CrawlerBays.all = mock(
-    (): Array<SURefCrawlerBay & { schemaName: string }> => MOCK_BAYS
-  )
-  return () => {
-    SalvageUnionReference.CrawlerBays.all = original
-  }
+  return patchModelRows(SalvageUnionReference.CrawlerBays, MOCK_BAYS)
 }
 
 // ---------------------------------------------------------------------------

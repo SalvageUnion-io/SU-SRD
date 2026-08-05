@@ -23,7 +23,7 @@ import type {
   SURefMetaEntity,
 } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
+import { canActivateAction, resolveChassisRef, resolveRef } from 'salvageunion-reference/rules'
 import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { describeOverloadOutcome } from '../../lib/rules/coreMechanic'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
@@ -343,8 +343,7 @@ export function buildMechActions(mech: Mech): PlayAction[] {
 
 /** Resolve a pilot ability slug (id or name) against the reference ORM. */
 function resolveAbilityBySlug(slug: string): SURefAbility | null {
-  const all = SalvageUnionReference.Abilities.all()
-  return all.find((a) => a.id === slug || a.name === slug) ?? null
+  return resolveRef(SalvageUnionReference.Abilities, slug)
 }
 
 /**

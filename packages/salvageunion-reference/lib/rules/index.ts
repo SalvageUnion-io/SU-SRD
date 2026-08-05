@@ -125,7 +125,11 @@ export {
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export {
   matchesRef,
+  resolveActionRef,
   resolveChassisRef,
+  resolveClassRef,
+  resolveCrawlerBayRef,
+  resolveCrawlerRef,
   resolveInstalledRef,
   resolveModuleRef,
   resolveRef,

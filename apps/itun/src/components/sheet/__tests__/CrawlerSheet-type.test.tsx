@@ -23,6 +23,7 @@ import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { patchModelRows } from '../../__tests__/patchModel'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 afterEach(() => {
@@ -81,13 +82,7 @@ const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
 
 async function patchCrawlers(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  const original = SalvageUnionReference.Crawlers.all.bind(SalvageUnionReference.Crawlers)
-  SalvageUnionReference.Crawlers.all = mock(
-    (): Array<SURefCrawler & { schemaName: string }> => MOCK_TYPES
-  )
-  return () => {
-    SalvageUnionReference.Crawlers.all = original
-  }
+  return patchModelRows(SalvageUnionReference.Crawlers, MOCK_TYPES)
 }
 
 // ---------------------------------------------------------------------------

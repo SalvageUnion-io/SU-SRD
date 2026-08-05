@@ -12,7 +12,7 @@
  */
 
 import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { resolveCrawlerBayRef, resolveCrawlerRef } from 'salvageunion-reference/rules'
 
 /** A freeform/permanent NPC choice (its id + display name). */
 export type ResolvedNpcChoice = { id: string; name: string }
@@ -30,8 +30,7 @@ export type ResolvedNpc = {
  */
 export function resolveCrawlerType(ref: string): (SURefCrawler & { schemaName: string }) | null {
   try {
-    const all = SalvageUnionReference.Crawlers.all()
-    return all.find((c) => c.id === ref || c.name === ref) ?? null
+    return resolveCrawlerRef(ref)
   } catch {
     return null
   }
@@ -40,8 +39,7 @@ export function resolveCrawlerType(ref: string): (SURefCrawler & { schemaName: s
 /** Resolve a stored crawler-bay ref (id or name) to its SRD entity. */
 export function resolveCrawlerBay(ref: string): (SURefCrawlerBay & { schemaName: string }) | null {
   try {
-    const all = SalvageUnionReference.CrawlerBays.all()
-    return all.find((b) => b.id === ref || b.name === ref) ?? null
+    return resolveCrawlerBayRef(ref)
   } catch {
     return null
   }
