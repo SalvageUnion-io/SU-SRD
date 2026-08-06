@@ -140,6 +140,10 @@ export const CrawlerSchema = z
      * strips it from stored rows first — a separate, irreversible change.
      */
     workspaceId: z.string().optional(),
+
+    /** Which built-in template row this was spawned from. See `PilotSchema.seedRef`. */
+    seedRef: z.string().optional(),
+
     // ---------------------------------------------------------------------------
     // Live-play current stat tracking (#245).
     // A freshly created crawler is seeded at its tech-level base SP from the
