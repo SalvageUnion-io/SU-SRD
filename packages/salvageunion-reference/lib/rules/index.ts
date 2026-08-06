@@ -14,6 +14,23 @@
  * crypto.randomUUID()) remain app-local in ITUN for now.
  */
 
+export type {
+  AdvancementClassInput,
+  AdvancementDataset,
+  AdvancementOption,
+  AdvancementRequirementInput,
+  AdvancementTrees,
+  OriginInference,
+  OriginInferenceState,
+} from './advancement.js'
+export {
+  advancementOptionsFor,
+  gateTreeFor,
+  hybridGrantedTrees,
+  inferOriginClass,
+  originsForHybrid,
+  resolveAdvancementTrees,
+} from './advancement.js'
 export { computeMechCapacity } from './capacity.js'
 export {
   isSchemaOnlyCatalogChoice,
