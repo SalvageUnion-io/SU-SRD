@@ -117,7 +117,7 @@ bun run check:fast       # ~12s inner loop: lint + validate:all + knip (parallel
                          # then typecheck. THE "did I break anything" command —
                          # reach for this while iterating, not check:all.
 bun run lint             # Lint all packages (Biome)
-bun run format           # Format all packages (Biome; Prettier still handles Markdown/YAML)
+bun run format           # Format all packages (Biome — the ONLY formatter; .md/.yml are formatted by nothing)
 bun run typecheck        # TypeScript check all packages
 bun run check:all        # Full CI check (adds format, test, audit, tokens, styling,
                          # schema-drift). ~35s — run before pushing, not per-edit.
@@ -205,7 +205,7 @@ Detailed cross-cutting architecture docs live in `docs/architecture/`:
 - **Use `import type`** syntax for type-only imports
 - **Named exports** everywhere except route components (which may use default exports for TanStack Router)
 - **Bun** for all package management (not npm/yarn)
-- **Biome** for formatting/linting (Markdown/YAML still via a narrow Prettier fallback — see `biome.jsonc`); pre-commit hooks via Lefthook
+- **Biome** for formatting/linting — the **only** formatter. Prettier has been removed entirely (it is not a dependency, and `lefthook.yml` has no Markdown/YAML step). Biome still cannot parse Markdown or YAML, so `.md`/`.yml` are formatted by **nothing** — keep them tidy by hand. Pre-commit hooks via Lefthook
 
 ### salvageunion-reference Package
 

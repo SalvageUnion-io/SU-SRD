@@ -149,9 +149,27 @@ not the goal. It checks:
 - every JSON endpoint (899 of them), parsed and deep-compared
 - `llms.txt`, byte-identical
 
-It reports **zero differences across 1,039 pages** today, and it is known to
-bite — it fails against eight deliberately-injected defects. **Trust it over any
-agent's opinion**, including your own, about whether output changed.
+It is known to bite — it fails against eight deliberately-injected defects.
+**Trust it over any agent's opinion**, including your own, about whether output
+changed.
+
+### `/changelog` always mismatches — read the categories, not the exit code
+
+The baseline is frozen at the last Astro commit, but `/changelog` renders at
+build time from the two `CHANGELOG.md` files that release-please appends to on
+every release. The candidate therefore carries entries the baseline cannot have,
+and the gap widens with each release. **This is permanent and structural, not a
+regression.**
+
+Measured 2026-08-06 against a freshly regenerated baseline: **1,038 of 1,039
+pages clean, all 899 JSON endpoints clean, `llms.txt` byte-identical**, with
+`changelog/index.html` the single difference — so the script exits 1 while the
+output is in fact correct.
+
+So a run whose only reported page is `changelog/index.html` is a **substantive
+pass**. Any *other* page appearing is a real finding. There is deliberately no
+ignore flag for this: suppressing a page changes what the gate asserts, and this
+gate exists precisely to be harder to fool than the person running it.
 
 ### If the baseline is missing, regenerate it — don't skip the gate
 

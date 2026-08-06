@@ -27,14 +27,50 @@ import { fileURLToPath } from 'node:url'
 /**
  * The Astro baseline to compare against.
  *
- * There is no way to regenerate this from the repo any more — Astro is deleted
- * — so the baseline is an artifact you must be handed or keep. It therefore
- * comes from `SRD_PARITY_BASELINE`, falling back to `apps/srd/.parity-baseline`
- * (gitignored) so a checkout has a conventional place to put one.
+ * It comes from `SRD_PARITY_BASELINE`, falling back to
+ * `apps/srd/.parity-baseline` (gitignored, ~56 MB) so a checkout has a
+ * conventional place to put one.
  *
- * This used to hardcode an absolute path inside the agent job directory that
- * first produced the baseline, which made the documented "acceptance gate"
- * exit 2 for every other person and machine.
+ * **A missing baseline is not a dead gate — regenerate it:**
+ *
+ *     bun run parity:baseline   # ssg/make-parity-baseline.ts
+ *     bun ssg/build.ts && bun run parity
+ *
+ * The baseline is a pure function of a commit still in history, so
+ * `make-parity-baseline.ts` derives the last Astro commit (the parent of
+ * whichever commit deleted `apps/srd/astro.config.mjs` — not hardcoded), builds
+ * it in a throwaway detached worktree, and copies the result here. It costs
+ * minutes and needs network for the Astro-era install (~2,200 packages), which
+ * is why it is deliberately NOT part of `check:all`.
+ *
+ * This comment previously said the baseline "must be handed to you" because
+ * Astro is deleted. That was true before `make-parity-baseline.ts` existed, and
+ * the stale claim outlived it — long enough to convince a reader that the whole
+ * gate was unsalvageable and should be deleted. It is not; see
+ * `apps/srd/CLAUDE.md` "If the baseline is missing, regenerate it".
+ *
+ * The path used to be hardcoded to the agent job directory that first produced
+ * the baseline, which made the documented "acceptance gate" exit 2 for every
+ * other person and machine.
+ *
+ * ## `/changelog` mismatches permanently, and that is not a regression
+ *
+ * The baseline is frozen at the last Astro commit, but `/changelog` is rendered
+ * at build time from `apps/srd/CHANGELOG.md` and
+ * `packages/salvageunion-reference/CHANGELOG.md`, which release-please appends
+ * to on every release. So the candidate legitimately carries entries the
+ * baseline cannot have, and the two diverge further with each release —
+ * permanently, by construction.
+ *
+ * A run whose ONLY mismatch is `changelog/index.html` is a substantive PASS.
+ * Read the per-category lines, not just the exit code: what matters is
+ * "0 mismatches" on the emitted path set, head metadata, JSON-LD, the 899 JSON
+ * endpoints and llms.txt. Verified 2026-08-06: 1,038 of 1,039 pages clean, all
+ * endpoints clean, llms.txt byte-identical, `/changelog` the sole difference.
+ *
+ * There is deliberately no ignore-list flag for this. Adding one is a change to
+ * what the gate asserts, and the gate is the thing that is supposed to be
+ * harder to fool than the person running it.
  */
 const DEFAULT_BASELINE =
   process.env.SRD_PARITY_BASELINE ?? fileURLToPath(new URL('../.parity-baseline/', import.meta.url))
