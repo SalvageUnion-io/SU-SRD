@@ -158,6 +158,27 @@ export const PilotSchema = z
      */
     workspaceId: z.string().optional(),
 
+    /**
+     * Which built-in template row this was spawned from, if any.
+     *
+     * **Provenance, never identity.** A seeded entity is a *copy* of a
+     * template, so it gets its own UUID like everything else created here; this
+     * records which template it came from, so "is the Starter Set already
+     * present?" can be answered without making the answer depend on two
+     * different people's rows sharing an id.
+     *
+     * That is precisely what the Starter Set used to rely on: it wrote fixed
+     * ids (`starter-pilot-bonesaw`, …) so that re-seeding would overwrite
+     * rather than duplicate. Locally that worked; globally it was wrong. Every
+     * player who seeded the roster held byte-identical ids, and those ids are
+     * the `appId` a claimed entity is addressed by on the server — where two
+     * accounts bringing the same one resolve to a single row, so the later
+     * player's writes are refused as somebody else's entity.
+     *
+     * Absent on everything a person built themselves, which is nearly every row.
+     */
+    seedRef: z.string().optional(),
+
     // ---------------------------------------------------------------------------
     // Live-play current stat tracking (#245).
     // A freshly created pilot is seeded with the base HP/AP rule constants

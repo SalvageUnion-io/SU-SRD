@@ -28,6 +28,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { useEntityStore } from '../../../stores/entityStore'
+import { CONTAINER_MOVE } from '../../../stores/surfaceProvenance'
 import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
@@ -510,6 +511,104 @@ describe('mergeImport — duplicate skip branches', () => {
 // Cross-entity fidelity: softLinks + container assignment survive together
 // in one full-backup round trip (not just each entity type in isolation).
 // ---------------------------------------------------------------------------
+
+/**
+ * A UUID identifies a sheet; it does not identify a *copy* of one.
+ *
+ * Two rules follow from that, and they pull in opposite directions, which is
+ * why both are pinned here rather than left to the reader:
+ *
+ *  - **Moving an entity between containers keeps its id.** A Game is a viewport
+ *    onto the same sheet, not a duplicate of it, so a move is a patch of
+ *    `gameId` and nothing else. (Server-side, `upsertByAppId` re-homes the same
+ *    row for the same reason.)
+ *  - **Importing an exported bundle mints a new id.** That file may have been
+ *    shared, and two people holding the same id is precisely what the server
+ *    cannot represent: rows are addressed by `appId`, a duplicate resolves to
+ *    the oldest, and the later holder's writes are refused as somebody else's.
+ */
+describe('identity: what keeps an id and what earns a new one', () => {
+  test('moving between containers keeps the id — a game is a viewport, not a copy', async () => {
+    const entityStore = useEntityStore.getState()
+    await entityStore.hydrate('pilot')
+    const pilot = await entityStore.create('pilot', { ...richPilotInput, gameId: null })
+
+    // Same provenance the real control passes, so this exercises the move path
+    // rather than a bare patch that happens to touch the same field.
+    await entityStore.update('pilot', pilot.id, { gameId: 'game-alpha' }, CONTAINER_MOVE)
+    const moved = entityStore.list('pilot').find((p) => p.id === pilot.id)
+
+    expect(moved?.gameId).toBe('game-alpha')
+    expect(moved?.id).toBe(pilot.id)
+    // And back to the shelf, still the same sheet.
+    await entityStore.update('pilot', pilot.id, { gameId: null }, CONTAINER_MOVE)
+    expect(entityStore.list('pilot').filter((p) => p.id === pilot.id)).toHaveLength(1)
+  })
+
+  test('importing a bundle into a different store mints new ids for everything', async () => {
+    const entityStore = useEntityStore.getState()
+    await entityStore.hydrate('pilot')
+    await entityStore.hydrate('mech')
+    const pilot = await entityStore.create('pilot', richPilotInput)
+    const mech = await entityStore.create('mech', richMechInput)
+    await entityStore.hydrate('softLink')
+    await entityStore.create('softLink', {
+      from: { type: 'mech', id: mech.id },
+      to: { type: 'pilot', id: pilot.id },
+      type: 'mech-to-pilot',
+    })
+
+    const bundle = await buildExportBundle(entityStore)
+
+    // Somebody else's device: the same file, none of the rows.
+    const theirPilots: unknown[] = []
+    const theirMechs: unknown[] = []
+    const created: Record<string, string[]> = { pilot: [], mech: [], softLink: [] }
+    const theirStore = {
+      hydrate: async () => {},
+      list: (type: string) => (type === 'pilot' ? theirPilots : type === 'mech' ? theirMechs : []),
+      create: async (type: string, input: Record<string, unknown>) => {
+        const row = { ...input, id: crypto.randomUUID() }
+        created[type]?.push(row.id)
+        return row
+      },
+    }
+
+    const summary = await mergeImport(
+      bundle,
+      theirStore as unknown as Parameters<typeof mergeImport>[1]
+    )
+
+    expect(summary.created.pilots).toBe(1)
+    expect(summary.created.mechs).toBe(1)
+    // Not one id from the file survives into the copy.
+    expect(created.pilot).not.toContain(pilot.id)
+    expect(created.mech).not.toContain(mech.id)
+  })
+
+  test('an imported row does not inherit Starter Set provenance', async () => {
+    const entityStore = useEntityStore.getState()
+    await entityStore.hydrate('pilot')
+    await entityStore.create('pilot', { ...richPilotInput, seedRef: 'starter-pilot-bonesaw' })
+
+    const bundle = await buildExportBundle(entityStore)
+
+    const captured: Record<string, unknown>[] = []
+    const theirStore = {
+      hydrate: async () => {},
+      list: () => [],
+      create: async (_type: string, input: Record<string, unknown>) => {
+        captured.push(input)
+        return { ...input, id: crypto.randomUUID() }
+      },
+    }
+    await mergeImport(bundle, theirStore as unknown as Parameters<typeof mergeImport>[1])
+
+    // Carrying it across would make somebody else's starter pilot read as your
+    // own seeded one, and quietly suppress the Starter Set offer.
+    expect(captured[0]?.seedRef).toBeUndefined()
+  })
+})
 
 describe('export round-trip — cross-entity full backup', () => {
   test('pilot + mech + crawler + softLinks + container all round-trip consistently', async () => {

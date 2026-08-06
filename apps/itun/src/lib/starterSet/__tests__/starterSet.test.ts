@@ -254,4 +254,93 @@ describe('Starter Set seed — on-demand seeding', () => {
     expect(await pilots.list()).toHaveLength(STARTER_PILOTS.length)
     expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
   })
+
+  /**
+   * A seeded row is a **copy of a template**, so it gets its own id.
+   *
+   * This used to write the template's fixed ids straight through, which made
+   * every player's starter roster carry the same twelve. Locally that was
+   * invisible; against the server of record those ids are the `appId` a row is
+   * addressed by — so two players who had both seeded the roster collided on
+   * all twelve the moment they claimed, and the later one's writes were refused
+   * as edits to somebody else's entity.
+   */
+  test('seeded rows get fresh UUIDs, not the template ids', async () => {
+    await ensureStarterSetSeeded()
+
+    const templateIds = new Set([
+      ...STARTER_PILOTS.map((r) => r.id),
+      ...STARTER_MECHS.map((r) => r.id),
+      ...STARTER_CRAWLERS.map((r) => r.id),
+    ])
+    const stored = [...(await pilots.list()), ...(await mechs.list()), ...(await crawlers.list())]
+
+    expect(stored).toHaveLength(templateIds.size)
+    for (const row of stored) {
+      expect(templateIds.has(row.id)).toBe(false)
+      // Provenance is recorded separately — that is what makes the row
+      // recognisable as seeded without borrowing identity to do it.
+      expect(templateIds.has(row.seedRef as string)).toBe(true)
+      expect(row.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
+    }
+  })
+
+  test('two devices seeding the same roster produce disjoint ids', async () => {
+    await ensureStarterSetSeeded()
+    const first = (await pilots.list()).map((p) => p.id).sort()
+
+    // A second browser is a fresh database with the same template.
+    await _clearAllStores()
+    useEntityStore.setState({
+      pilots: [],
+      mechs: [],
+      crawlers: [],
+      softLinks: [],
+      hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
+    })
+    await ensureStarterSetSeeded()
+    const second = (await pilots.list()).map((p) => p.id).sort()
+
+    expect(second).toHaveLength(first.length)
+    // The whole point: no id appears in both rosters.
+    expect(first.some((id) => second.includes(id))).toBe(false)
+  })
+
+  test('soft links point at the freshly minted ids, not the template ones', async () => {
+    await ensureStarterSetSeeded()
+
+    const ids = new Set([
+      ...(await pilots.list()).map((p) => p.id),
+      ...(await mechs.list()).map((m) => m.id),
+      ...(await crawlers.list()).map((c) => c.id),
+    ])
+    const links = await softLinks.list()
+
+    expect(links).toHaveLength(STARTER_SOFT_LINKS.length)
+    // A remap that missed an endpoint would leave a link pointing at an id
+    // nothing holds — worse than no link at all.
+    for (const link of links) {
+      expect(ids.has(link.from.id)).toBe(true)
+      expect(ids.has(link.to.id)).toBe(true)
+    }
+  })
+
+  test('a partially deleted roster re-seeds only what is missing', async () => {
+    await ensureStarterSetSeeded()
+    const before = await pilots.list()
+    const survivor = before.find((p) => p.seedRef !== before[0]?.seedRef)
+    await pilots.delete(before[0]?.id as string)
+    // `isStarterSetSeeded` reads the store, and a db-level delete does not
+    // reach it — the roster is the evidence, so the evidence has to be current.
+    await useEntityStore.getState().rehydrate('pilot')
+
+    expect(isStarterSetSeeded()).toBe(false)
+    await ensureStarterSetSeeded()
+
+    const after = await pilots.list()
+    expect(after).toHaveLength(STARTER_PILOTS.length)
+    // The rows that were never deleted keep the ids they already had — a
+    // re-seed must not re-mint the roster around them.
+    expect(after.some((p) => p.id === survivor?.id)).toBe(true)
+  })
 })

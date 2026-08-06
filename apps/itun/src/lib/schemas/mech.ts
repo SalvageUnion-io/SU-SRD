@@ -230,6 +230,9 @@ export const MechSchema = z
      */
     workspaceId: z.string().optional(),
 
+    /** Which built-in template row this was spawned from. See `PilotSchema.seedRef`. */
+    seedRef: z.string().optional(),
+
     // ---------------------------------------------------------------------------
     // Live-play current stat tracking (Wave 6, #199).
     // These are current values for the active session — separate from the chassis

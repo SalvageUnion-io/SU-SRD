@@ -141,6 +141,20 @@ and remains the account-free way to share a build.
   warning is the tripwire, and it fires without taking the player's data with
   it. Resolving to the *oldest* is deliberate: it is the row `dedupeAppIds`
   keeps, so a write that lands before the repair runs is not discarded by it.
+- **A copy gets a new UUID; a move keeps its own.** These pull in opposite
+  directions, so both matter:
+  - **Copy → new id.** Importing a bundle (`mergeImport`) and seeding the
+    Starter Set (`seedStarterSet`) each mint a fresh UUID per row and remap the
+    soft links onto them. An entity id becomes its `appId` on the server, so a
+    copy that kept its id would put one id in two accounts — and since a
+    duplicate now resolves to the oldest row, the second account's mirrored
+    writes aim at the first account's entity and are refused by `assertMayWrite`
+    as somebody else's. Never write a fixed or template id into
+    `pilots`/`mechs`/`crawlers`; record provenance in `seedRef`, which is what
+    it is for.
+  - **Move → same id.** Shelf ↔ Game is a container change, patching `gameId`
+    and nothing else. A Game is a viewport onto the same sheet, not a duplicate
+    of it — never re-mint on a move, and never treat one as a fork.
 
 ## Commands
 

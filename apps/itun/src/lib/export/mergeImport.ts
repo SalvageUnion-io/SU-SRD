@@ -65,6 +65,16 @@ export type MergeSummary = {
 /**
  * mergeImport — import an ExportBundle into the local store.
  *
+ * An import is a **copy**, and a copy is a new thing: every entity comes in
+ * under a fresh UUID, never the one in the file. That is what keeps a bundle
+ * shared between two people from putting the same id in two accounts — where
+ * the server addresses rows by `appId`, resolves a duplicate to the oldest, and
+ * so refuses the later holder's writes as somebody else's. `seedRef` is dropped along the
+ * way for the same reason it exists — it records that a row was spawned from a
+ * built-in template *on this device*, and an imported row was not; carrying it
+ * across would make someone else's starter pilot read as your own seeded one
+ * and quietly suppress the Starter Set offer.
+ *
  * Strategy:
  *   1. Hydrate current store state so we know which ids already exist.
  *   2. Assign FRESH UUIDs to every entity in the bundle.
@@ -138,7 +148,15 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = pilot
+    const {
+      id: _id,
+      createdAt: _ca,
+      updatedAt: _ua,
+      workspaceId: _ws,
+      gameId: _g,
+      seedRef: _sr,
+      ...rest
+    } = pilot
 
     const created = await entityStore.create('pilot', {
       ...rest,
@@ -158,7 +176,15 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = mech
+    const {
+      id: _id,
+      createdAt: _ca,
+      updatedAt: _ua,
+      workspaceId: _ws,
+      gameId: _g,
+      seedRef: _sr,
+      ...rest
+    } = mech
 
     const created = await entityStore.create('mech', {
       ...rest,
@@ -184,6 +210,7 @@ export async function mergeImport(
       updatedAt: _ua,
       workspaceId: _ws,
       gameId: _g,
+      seedRef: _sr,
       ...rest
     } = crawler
 

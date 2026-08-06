@@ -26,6 +26,7 @@ import { migrate as migrate10WorkspaceDefaultBackfill } from './10-workspace-def
 import { migrate as migrate11EquipmentLoadoutsToPartners } from './11-equipment-loadouts-to-partners'
 import { migrate as migrate12CompanionMechsToPartners } from './12-companion-mechs-to-partners'
 import { migrate as migrate13WorkspaceToGameOrShelf } from './13-workspace-to-game-or-shelf'
+import { migrate as migrate14StarterSetSeedRef } from './14-starter-set-seed-ref'
 
 /** The untyped versionchange transaction handed to the idb upgrade callback. */
 export type UpgradeTransaction = IDBPTransaction<
@@ -90,6 +91,11 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     toVersion: 13,
     description: 'workspace-to-game-or-shelf',
     migrate: (tx) => migrate13WorkspaceToGameOrShelf(tx),
+  },
+  {
+    toVersion: 14,
+    description: 'starter-set-seed-ref',
+    migrate: (tx) => migrate14StarterSetSeedRef(tx),
   },
   // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
   // on-demand into each browser the first time the user opens the Starter Set
