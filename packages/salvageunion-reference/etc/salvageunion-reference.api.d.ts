@@ -668,9 +668,9 @@ export declare function isCoreClass(entity: SURefMetaEntity): entity is SURefCla
     coreTrees: string[];
 };
 /**
- * Type guard to check if an entity is an Advanced Class
+ * Type guard to check if an entity is an Advanced/Hybrid Class
  * @param entity - The entity to check
- * @returns True if the entity is an Advanced Class
+ * @returns True if the entity is an Advanced/Hybrid Class
  */
 export declare function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass;
 //# sourceMappingURL=entityGuards.d.ts.map
@@ -4938,6 +4938,7 @@ export declare function resolveClassRef(ref: string): ({
         booklet?: string | undefined;
         page: number;
     }[] | undefined;
+    hybrid: boolean;
     maxAbilities: number;
     advanceable: boolean;
     coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
@@ -4984,7 +4985,9 @@ export declare function resolveClassRef(ref: string): ({
         booklet?: string | undefined;
         page: number;
     }[] | undefined;
-    hybrid?: boolean | undefined;
+    hybrid: boolean;
+    advanceable: boolean;
+    maxAbilities: number;
     advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
     legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
 } & {
@@ -5087,6 +5090,11 @@ import type { EditSnapshot, MechSnapshot, PilotSnapshot, SoftWarning, SoftWarnin
  * The pilot ability soft cap (plan 2.2): 10 abilities, 12 for Salvager.
  * The schema no longer caps the array — exceeding the rules cap is a soft
  * warning, never a parse failure or a blocked save.
+ *
+ * These are now the FALLBACK, not the source. Every class record carries its
+ * own `maxAbilities`, and `PilotSnapshot.maxAbilities` passes it through — so a
+ * resolvable class is capped by its own data. They stay for a snapshot whose
+ * class did not resolve, and because they are public API.
  */
 export declare const PILOT_ABILITY_CAP = 10;
 export declare const SALVAGER_ABILITY_CAP = 12;
@@ -5523,6 +5531,16 @@ export type PilotSnapshot = {
      * from 10 to 12 (Core trees only, per the core rules).
      */
     isSalvager?: boolean;
+    /**
+     * The class's own ability cap, read from the dataset.
+     *
+     * Preferred over the `PILOT_ABILITY_CAP` / `SALVAGER_ABILITY_CAP` constants,
+     * which duplicate values the class records already carry — every class record
+     * now states its own `maxAbilities`, so the cap is data rather than a
+     * hardcoded pair plus a name-string test. The constants remain the fallback
+     * for a snapshot built without a resolvable class.
+     */
+    maxAbilities?: number;
     /**
      * 'base' for the six core classes; 'advanced-hybrid' for an Advanced or
      * Hybrid specialisation class. Undefined when unresolvable.
@@ -7668,6 +7686,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
+    hybrid: z.ZodBoolean;
     maxAbilities: z.ZodNumber;
     advanceable: z.ZodBoolean;
     coreTrees: z.ZodArray<z.ZodEnum<{
@@ -7871,7 +7890,9 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
-    hybrid: z.ZodOptional<z.ZodBoolean>;
+    hybrid: z.ZodBoolean;
+    advanceable: z.ZodBoolean;
+    maxAbilities: z.ZodNumber;
     advancedTree: z.ZodEnum<{
         "Advanced Engineer": "Advanced Engineer";
         "Advanced Hacking": "Advanced Hacking";
@@ -15803,7 +15824,9 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
-    hybrid: z.ZodOptional<z.ZodBoolean>;
+    hybrid: z.ZodBoolean;
+    advanceable: z.ZodBoolean;
+    maxAbilities: z.ZodNumber;
     advancedTree: z.ZodEnum<{
         "Advanced Engineer": "Advanced Engineer";
         "Advanced Hacking": "Advanced Hacking";

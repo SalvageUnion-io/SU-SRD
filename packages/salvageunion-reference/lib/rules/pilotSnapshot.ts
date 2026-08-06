@@ -120,6 +120,12 @@ export function enrichPilotSnapshot(pilot: {
   return {
     abilities,
     isSalvager: cls?.name === 'Salvager' || undefined,
+    // The class's own cap, so the soft warning stops duplicating a value the
+    // dataset already states.
+    maxAbilities:
+      cls !== undefined && 'maxAbilities' in cls && typeof cls.maxAbilities === 'number'
+        ? cls.maxAbilities
+        : undefined,
     classTier: hasCoreTrees ? 'base' : isSpecialisation ? 'advanced-hybrid' : undefined,
     className: cls?.name,
   }

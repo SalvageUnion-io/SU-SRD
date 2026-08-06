@@ -85,12 +85,18 @@ describe('class kind derivation', () => {
     expect(nonAdvanceable).toEqual(['Salvager'])
   })
 
-  test('no hybrid is mis-derived as non-advanceable (the `=== false` trap)', () => {
-    // `advanceable` is *undefined* on hybrids, so a falsiness test rather than an
-    // `=== false` test would stamp all five of them NON-ADVANCEABLE.
+  test('no hybrid is mis-derived as non-advanceable (the ordering trap)', () => {
+    // Hybrids now carry `advanceable: false` explicitly — a hybrid HAS advanced
+    // and "cannot advance into any other Hybrid Class or Advanced Tree" (p.321).
+    //
+    // That makes `resolveClassKind`'s ORDER load-bearing rather than incidental.
+    // While `advanceable` was undefined here, the `=== false` branch could never
+    // catch a hybrid whatever the order. Now it would: check `advanceable`
+    // before `hybrid` and all five stamp NON-ADVANCEABLE. This test is the
+    // tripwire for that reordering.
     for (const [name] of EXPECTED_REQUIREMENTS) {
       const cls = classByName(name)
-      expect('advanceable' in cls ? cls.advanceable : undefined).toBeUndefined()
+      expect('advanceable' in cls ? cls.advanceable : undefined).toBe(false)
       expect(resolveClassKind(cls)).toBe('HYBRID')
     }
   })

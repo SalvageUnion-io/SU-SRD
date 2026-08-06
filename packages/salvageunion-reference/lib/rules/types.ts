@@ -211,6 +211,16 @@ export type PilotSnapshot = {
    */
   isSalvager?: boolean
   /**
+   * The class's own ability cap, read from the dataset.
+   *
+   * Preferred over the `PILOT_ABILITY_CAP` / `SALVAGER_ABILITY_CAP` constants,
+   * which duplicate values the class records already carry — every class record
+   * now states its own `maxAbilities`, so the cap is data rather than a
+   * hardcoded pair plus a name-string test. The constants remain the fallback
+   * for a snapshot built without a resolvable class.
+   */
+  maxAbilities?: number
+  /**
    * 'base' for the six core classes; 'advanced-hybrid' for an Advanced or
    * Hybrid specialisation class. Undefined when unresolvable.
    */

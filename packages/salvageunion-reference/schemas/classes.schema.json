@@ -227,6 +227,10 @@
             },
             "description": "Other source books where this entity is reprinted"
           },
+          "hybrid": {
+            "type": "boolean",
+            "description": "Whether this is a hybrid class (always false for a Core class)"
+          },
           "maxAbilities": {
             "type": "integer",
             "exclusiveMinimum": 0,
@@ -368,7 +372,16 @@
             ]
           }
         },
-        "required": ["id", "name", "source", "page", "maxAbilities", "advanceable", "coreTrees"],
+        "required": [
+          "id",
+          "name",
+          "source",
+          "page",
+          "hybrid",
+          "maxAbilities",
+          "advanceable",
+          "coreTrees"
+        ],
         "additionalProperties": false
       },
       {
@@ -595,6 +608,16 @@
             "type": "boolean",
             "description": "Whether this is a hybrid class (cannot be selected as initial class)"
           },
+          "advanceable": {
+            "type": "boolean",
+            "description": "Whether this class can advance into another class"
+          },
+          "maxAbilities": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Maximum number of abilities this class can have"
+          },
           "advancedTree": {
             "type": "string",
             "enum": [
@@ -680,7 +703,17 @@
             "description": "Legendary ability tree for this class"
           }
         },
-        "required": ["id", "name", "source", "page", "advancedTree", "legendaryTree"],
+        "required": [
+          "id",
+          "name",
+          "source",
+          "page",
+          "hybrid",
+          "advanceable",
+          "maxAbilities",
+          "advancedTree",
+          "legendaryTree"
+        ],
         "additionalProperties": false,
         "description": "Advanced or hybrid character class"
       }

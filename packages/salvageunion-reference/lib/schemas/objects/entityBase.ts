@@ -54,10 +54,23 @@ export const BaseEntitySchema = z
  * Advanced or hybrid character class
  */
 export const AdvancedClassSchema = BaseEntitySchema.extend({
+  // REQUIRED, not optional. While it was optional, "is this a hybrid?" was
+  // `hybrid === true` — a question answered by a field's ABSENCE, which is how
+  // a type guard came to test `!('hybridTree' in entity)` for a field that
+  // exists in no schema and no data file, and so returned true for every hybrid
+  // it was meant to exclude. Every class record now carries the flag.
   hybrid: z
     .boolean()
-    .describe('Whether this is a hybrid class (cannot be selected as initial class)')
-    .optional(),
+    .describe('Whether this is a hybrid class (cannot be selected as initial class)'),
+  // A Hybrid has already advanced, and "cannot advance into any other Hybrid
+  // Class or Advanced Tree" (p. 321) — so this is always false here. Stated
+  // rather than implied, so nothing has to know that absence means no.
+  advanceable: z.boolean().describe('Whether this class can advance into another class'),
+  maxAbilities: z
+    .number()
+    .int()
+    .positive()
+    .describe('Maximum number of abilities this class can have'),
   advancedTree: TreeSchema.describe('Advanced ability tree for this class'),
   legendaryTree: TreeSchema.describe('Legendary ability tree for this class'),
 })

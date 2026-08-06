@@ -163,6 +163,11 @@ function checkClassPrerequisite(before: PilotSnapshot, after: PilotSnapshot): So
  * The pilot ability soft cap (plan 2.2): 10 abilities, 12 for Salvager.
  * The schema no longer caps the array — exceeding the rules cap is a soft
  * warning, never a parse failure or a blocked save.
+ *
+ * These are now the FALLBACK, not the source. Every class record carries its
+ * own `maxAbilities`, and `PilotSnapshot.maxAbilities` passes it through — so a
+ * resolvable class is capped by its own data. They stay for a snapshot whose
+ * class did not resolve, and because they are public API.
  */
 export const PILOT_ABILITY_CAP = 10
 export const SALVAGER_ABILITY_CAP = 12
@@ -172,7 +177,7 @@ export const SALVAGER_ABILITY_CAP = 12
  * (10, or 12 for Salvager — Core trees only).
  */
 function checkAbilityCountCap(after: PilotSnapshot): SoftWarning[] {
-  const cap = after.isSalvager ? SALVAGER_ABILITY_CAP : PILOT_ABILITY_CAP
+  const cap = after.maxAbilities ?? (after.isSalvager ? SALVAGER_ABILITY_CAP : PILOT_ABILITY_CAP)
   if (after.abilities.length <= cap) return []
   return [
     warn(

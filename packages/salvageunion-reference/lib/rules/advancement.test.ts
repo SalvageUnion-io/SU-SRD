@@ -322,3 +322,50 @@ describe('the exclusivity guarantee inference rests on', () => {
     }
   })
 })
+
+describe('the class flags are filled, and load-bearing', () => {
+  it('states hybrid / advanceable / maxAbilities on every class record', () => {
+    // None of these is inferred from absence any more. A missing one is now a
+    // parse failure rather than a silent `undefined` that reads as "no".
+    // Asserted on the RECORDS, not on `data` — `AdvancementDataset` narrows to
+    // the primitives these rules read, and `maxAbilities` is not one of them.
+    const records = SalvageUnionReference.Classes.all() as SURefClass[]
+    expect(records).toHaveLength(11)
+    for (const cls of records) {
+      expect(typeof (cls as { hybrid?: unknown }).hybrid).toBe('boolean')
+      expect(typeof (cls as { advanceable?: unknown }).advanceable).toBe('boolean')
+      expect(typeof (cls as { maxAbilities?: unknown }).maxAbilities).toBe('number')
+    }
+  })
+
+  it('marks every hybrid as already advanced, so it cannot advance again', () => {
+    // "Once a Pilot has chosen their Hybrid Class they cannot advance into any
+    // other Hybrid Class or Advanced Tree" (p. 321).
+    const records = SalvageUnionReference.Classes.all() as SURefClass[]
+    for (const { hybrid } of RING) {
+      const cls = records.find((c) => c.name === hybrid) as
+        | { hybrid?: boolean; advanceable?: boolean; maxAbilities?: number }
+        | undefined
+      expect(cls?.hybrid).toBe(true)
+      expect(cls?.advanceable).toBe(false)
+      expect(cls?.maxAbilities).toBe(10)
+    }
+  })
+
+  it('keeps the Salvager the only class with a raised cap', () => {
+    const raised = (SalvageUnionReference.Classes.all() as SURefClass[])
+      .filter((c) => ((c as { maxAbilities?: number }).maxAbilities ?? 0) > 10)
+      .map((c) => c.name)
+    expect(raised).toEqual(['Salvager'])
+  })
+
+  it('leaves advancement reachability unchanged by the fill', () => {
+    // `advanceable: false` on hybrids must not make them look like Salvagers to
+    // anything deriving the ring — they were never origins to begin with.
+    for (const { hybrid, edges } of RING) {
+      expect(originsForHybrid(data, hybrid).slice().sort()).toEqual(
+        edges.map((e) => e.origin).sort()
+      )
+    }
+  })
+})

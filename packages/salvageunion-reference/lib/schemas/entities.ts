@@ -123,6 +123,9 @@ export const ChassisSchema = BaseEntitySchema.extend({
  * Base class schema
  */
 const BaseClassSchema = BaseEntitySchema.extend({
+  // Carried on BOTH branches of the union so "is this a hybrid?" is a field
+  // read rather than an inference from which fields happen to be present.
+  hybrid: z.boolean().describe('Whether this is a hybrid class (always false for a Core class)'),
   maxAbilities: z
     .number()
     .int()
