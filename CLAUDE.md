@@ -334,6 +334,8 @@ When to reach for which skill (overlap explained):
 - `/build-package` — regenerate `salvageunion-reference`'s generated artifacts (registry, `schemas/*.schema.json`, API report). **There is no TypeScript compile step** — the package ships TS source. Use after Zod schema or data-file edits.
 - `/generate` — same as above **plus** `validate:all` (IDs, cross-refs, action refs). Use when you've changed JSON data and want integrity checks in one step.
 - `/validate` / `/verify` — run the full CI suite via `check:all`. `/verify` is a literal alias of `/validate`, so they genuinely do the same thing; either name works.
-- `/a11y-scan` — WCAG 2.1 AA scan via puppeteer (srd).
+- `/a11y-scan` — WCAG 2.1 AA scan via Playwright + axe-core (srd). **Not puppeteer** — `tools/a11y-scan.ts` moved to Playwright so the repo has one browser stack, not two (see "Root Dev Dependencies" above).
+- `/triage` — read every production and CI signal, then propose the day's work in priority order.
+- `/component-refresh` — redesign an existing component through the three-level loop (real SSR "before" → NEW\* Ladle comparison → staged cutover).
 - `/commit` — conventional commit with message drafting.
 - `/deploy-bot` — deploy Discord slash commands.
