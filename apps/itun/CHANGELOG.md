@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.0.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.0...itun-v1.0.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* **itun:** stop claimLocal duplicating rosters, and let refusals say why ([#704](https://github.com/SalvageUnion-io/SU-SRD/issues/704)) ([145789d](https://github.com/SalvageUnion-io/SU-SRD/commit/145789deb765395efb1fffd1164baa057e2a6965))
+
 ## [1.0.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.10.0...itun-v1.0.0) (2026-08-05)
 
 
