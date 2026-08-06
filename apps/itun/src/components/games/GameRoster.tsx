@@ -47,6 +47,7 @@ import {
   ModalShell,
   PageHeading,
   Text,
+  toast,
 } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
@@ -56,6 +57,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/queries'
 import { resolveClassName } from '../../lib/classRef'
+import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
@@ -333,6 +335,31 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     return id
   }
 
+  /**
+   * Take a copy of this row onto your own shelf.
+   *
+   * Offered on **every** row, including a crewmate's and an unclaimed pre-gen,
+   * because it is derived from what you may already read: membership of the Game
+   * grants the frozen crew view of every row, and copying what is on your screen
+   * escalates nothing. It is also the only way to keep a character when you
+   * leave — `ownership.leaveGame` has documented this act since before it
+   * existed.
+   *
+   * Deliberately no confirm. Copying destroys nothing and the result is one more
+   * build on your shelf, so a modal would be friction guarding an undo-by-delete.
+   *
+   * Crawlers are excluded at the call site rather than here: `crawlers.gameId` is
+   * **non-nullable** in the Convex schema, so a shelved crawler has no server row
+   * to be — which is why `claimLocal` parks a claimed one on a placeholder Game
+   * instead. Copying one to a shelf is not a thing the model can express.
+   */
+  async function copyToShelf(row: RosterRow) {
+    const created = await useEntityStore
+      .getState()
+      .create(row.kind === 'pilot' ? 'pilot' : 'mech', copyForShelf(row.body, row.name) as never)
+    toast.success(`Copied ${created.name} to your shelf.`)
+  }
+
   async function run(key: string, work: () => Promise<void>) {
     setBusy(key)
     setError(null)
@@ -541,6 +568,18 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   }
                                 >
                                   Offer to the crew
+                                </Button>
+                              )}
+                              {row.kind !== 'crawler' && (
+                                <Button
+                                  variant="ghost"
+                                  size="mini"
+                                  disabled={busy !== null}
+                                  onClick={() =>
+                                    void run(`copy-${row.serverId}`, () => copyToShelf(row))
+                                  }
+                                >
+                                  Copy to shelf
                                 </Button>
                               )}
                               {row.can.delete && (

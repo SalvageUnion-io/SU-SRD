@@ -484,14 +484,39 @@ describe('a shelved entity is not assignable', () => {
     ).rejects.toThrow(/shelf/i)
   })
 
-  test('releasing one is refused for the same reason', async () => {
+  test('releasing one is refused, because null + null is the invalid state', async () => {
     const t = testConvex()
     const { organizer } = await seedGame(t)
     const shelved = await seedPilot(t, null, organizer.userId)
 
+    // Release sets `ownerId: null`. On a shelved entity that would produce
+    // `gameId: null && ownerId: null` — the one combination ADR-030 §2 calls
+    // invalid and requires to be unreachable through any mutation. Hence a
+    // refusal rather than a no-op.
     await expect(
       organizer.as.mutation(api.ownership.release, { table: 'pilots', entityId: shelved })
-    ).rejects.toThrow(/already unclaimed/i)
+    ).rejects.toThrow(/already yours/i)
+
+    const pilot = await t.run(async (ctx) => await ctx.db.get(shelved))
+    expect(pilot?.ownerId).toBe(organizer.userId)
+    expect(pilot?.gameId).toBeNull()
+  })
+
+  test('and the refusal does not call a shelved build "unclaimed"', async () => {
+    const t = testConvex()
+    const { organizer } = await seedGame(t)
+    const shelved = await seedPilot(t, null, organizer.userId)
+
+    // The message used to be "An entity on a shelf is already unclaimed", which
+    // teaches the wrong model to the person least able to check it: unclaimed
+    // is `ownerId: null` *inside a Game*, waiting for a taker; a shelf is
+    // already somebody's. It matters more now that `NotAuthorized` extends
+    // `ConvexError` and the string actually reaches the player.
+    const err = await organizer.as
+      .mutation(api.ownership.release, { table: 'pilots', entityId: shelved })
+      .catch((e: unknown) => e)
+
+    expect(String((err as { data?: unknown })?.data ?? err)).not.toMatch(/unclaimed/i)
   })
 })
 
