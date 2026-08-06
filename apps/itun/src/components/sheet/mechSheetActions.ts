@@ -57,7 +57,6 @@ export type MechSheetActions = {
   repairItem: (kind: ItemKind, slug: string, deductTl: number | null, cost: number) => Promise<void>
   saveQuirk: (next: string) => void
   saveAppearance: (next: string) => void
-  removePartner: (partnerId: string) => void
   /** Advisory soft-warning state for the confirm dialog. */
   warnings: SoftWarning[]
   warningSubtitle: string | null
@@ -231,25 +230,6 @@ export function useMechSheetActions({
     write({ appearance: next.trim() || undefined, description: undefined })
   }
 
-  /** Drop one chassis-ability-granted partner instance. */
-  function removePartner(partnerId: string) {
-    const partners = mech.partners ?? []
-    // `store.getState()` rather than the render-time snapshot: preserved from
-    // the pre-split JSX handler, where this was the only write reaching for the
-    // live state directly. On a Zustand store the two resolve to the same
-    // `update` function, so this is a spelling difference, not a behavioural one.
-    runWrite(() =>
-      store.getState().update(
-        'mech',
-        mech.id,
-        {
-          partners: partners.filter((p) => p.id !== partnerId),
-        },
-        LIVE_SHEET_MANUAL
-      )
-    )
-  }
-
   return {
     patchMech,
     overrideMechMax,
@@ -260,7 +240,6 @@ export function useMechSheetActions({
     repairItem,
     saveQuirk,
     saveAppearance,
-    removePartner,
     warnings: softWarnings.warnings,
     warningSubtitle,
     cancelBuildEdit: () => {

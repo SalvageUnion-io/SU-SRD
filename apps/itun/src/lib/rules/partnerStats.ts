@@ -40,6 +40,12 @@ const MECHA_COMPANION_MIN_TECH_LEVEL = 3
 /** Slug of the one partner carrying a tech-level floor. */
 const MECHA_COMPANION_REF = 'mecha-companion'
 
+/** Slug of the one partner whose own controller fields more than one. */
+const BIG_BROTHER_DRONE_REF = 'big-brother-drone'
+
+/** "The Big Brother can control up to 4 Big Brother Drones" (False Flag p. 62). */
+const BIG_BROTHER_DRONE_CAP = 4
+
 /** The stat keys a partner scales, all present on `bonusPerTechLevel`. */
 const SCALED_STATS = [
   'structurePoints',
@@ -178,13 +184,18 @@ export function partnerDerivedStatsParts(
 /**
  * How many of a given partner a host may field at once.
  *
- * Every partner is capped at one by its own text ("You may only ever have one
- * Auto-Turret at a time", and the same for Survey Drone, Mecha Companion, and
- * the Little Sestra's Sestra Drone). The cap is raised by a SECOND ability
- * rather than by the partner's own record — Mecha Packmaster (p. 69): "allows
- * you to have up to two Mecha Companions active in the field at any one time" —
- * so it is a property of the host's ability set, not a constant on the stat
- * block, and cannot be read off `hostRef` alone.
+ * Almost every partner is capped at one by its own text ("You may only ever have
+ * one Auto-Turret at a time", and the same for Survey Drone, Mecha Companion,
+ * and the Little Sestra's Sestra Drone). Two things raise it, and neither is
+ * legible from the stat block:
+ *
+ *   - A SECOND ABILITY. Mecha Packmaster (p. 69) "allows you to have up to two
+ *     Mecha Companions active in the field at any one time", so the cap is a
+ *     property of the host's ability set and cannot be read off `hostRef` alone.
+ *   - THE STAT BLOCK'S OWN CONTROLLER. The Big Brother "can control up to 4 Big
+ *     Brother Drones", and its DronTek pattern fields exactly that many — so
+ *     without this, every one of those four would read "4 of 1" the moment the
+ *     mech was built.
  *
  * Advisory only. The Live Sheet is a Free-Edit surface (ADR-021) and the
  * automation boundary (ADR-007) keeps rules like this displayed rather than
@@ -194,5 +205,6 @@ export function partnerCap(hostRef: string, hostAbilityRefs: readonly string[]):
   if (hostRef === MECHA_COMPANION_REF && hostAbilityRefs.some((a) => a === 'mecha-packmaster')) {
     return 2
   }
+  if (hostRef === BIG_BROTHER_DRONE_REF) return BIG_BROTHER_DRONE_CAP
   return 1
 }

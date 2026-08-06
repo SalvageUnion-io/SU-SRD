@@ -15,6 +15,8 @@
  */
 
 import { PILOT_BASE_AP, PILOT_BASE_HP } from '../rules/derivedStats'
+import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
+import type { PartnerInstance } from '../schemas/partner'
 import type { Pilot } from '../schemas/pilot'
 
 /** Shape of form state carried through the pilot wizard. */
@@ -91,15 +93,38 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
 }
 
 /**
+ * Reconcile a pilot's partners against the equipment they now carry.
+ *
+ * Kept OUT of `pilotFormToUpdatePatch` for the same reason as the mech's: a
+ * partner holds live-play state an edit must not clobber, and reconciliation
+ * needs the stored partners as input. The wizard runs it via `afterUpdate`.
+ *
+ * Additive, not exact — `pilot.equipment` says which stat blocks are granted,
+ * never how many are fielded (Mecha Packmaster). See `syncPartners`.
+ */
+export function pilotFormToPartners(
+  form: PilotWizardFormState,
+  existing?: readonly PartnerInstance[]
+) {
+  return syncPartners(existing, pilotPartnerSeeds(form.equipment))
+}
+
+/**
  * Create payload for a fresh pilot. Fresh pilots start at full HP/AP
  * (core-rules base — no injuries or training modifiers exist at creation).
+ *
+ * Equipment carrying a mech-shaped stat block (Auto-Turret, Survey Drone, Mecha
+ * Companion) is granted as a live partner here rather than as an inert
+ * inventory card.
  */
 export function pilotFormToCreateInput(form: PilotWizardFormState) {
+  const partners = pilotFormToPartners(form)
   return {
     schemaVersion: 1 as const,
     ...pilotFormToUpdatePatch(form),
     conditions: [],
     currentHP: PILOT_BASE_HP,
     currentAP: PILOT_BASE_AP,
+    ...(partners !== undefined ? { partners } : {}),
   }
 }

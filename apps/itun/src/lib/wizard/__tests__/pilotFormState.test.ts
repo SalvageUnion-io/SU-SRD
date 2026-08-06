@@ -99,5 +99,24 @@ describe('pilotFormToCreateInput', () => {
     expect(input.currentAP).toBe(5)
     expect(input.conditions).toEqual([])
     expect(input.classRef).toBe('class-engineer')
+    // No partner-granting equipment, so the field stays absent entirely.
+    expect(input).not.toHaveProperty('partners')
+  })
+
+  it('grants a live partner for equipment carrying a stat block, not an inert card', () => {
+    const input = pilotFormToCreateInput({
+      ...EMPTY_PILOT_FORM_STATE,
+      name: 'Mira Voss',
+      callsign: 'Sparks',
+      classId: 'class-engineer',
+      equipment: ['cutting-torch', 'survey-drone'],
+    })
+    expect(input.partners).toHaveLength(1)
+    expect(input.partners?.[0]?.hostRef).toBe('survey-drone')
+    // `equipment` resolves the PLAYER's Survey Drone, never the opposition
+    // stat block of the same name in drones.json.
+    expect(input.partners?.[0]?.hostSchema).toBe('equipment')
+    // Ordinary gear stays ordinary gear.
+    expect(input.equipment).toContain('cutting-torch')
   })
 })
