@@ -1,6 +1,6 @@
 ---
 name: a11y-scan
-description: Run WCAG 2.1 AA accessibility scan using puppeteer + axe-core
+description: Run WCAG 2.1 AA accessibility scan using Playwright + axe-core
 allowed-tools: Bash
 ---
 

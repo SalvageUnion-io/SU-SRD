@@ -15,6 +15,14 @@
     "github": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "convex": {
+      "command": "bunx",
+      "args": ["convex", "mcp", "start", "--project-dir", "apps/itun"]
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }

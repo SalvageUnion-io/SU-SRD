@@ -149,9 +149,37 @@ not the goal. It checks:
 - every JSON endpoint (899 of them), parsed and deep-compared
 - `llms.txt`, byte-identical
 
-It reports **zero differences across 1,039 pages** today, and it is known to
-bite — it fails against eight deliberately-injected defects. **Trust it over any
-agent's opinion**, including your own, about whether output changed.
+It is known to bite — it fails against eight deliberately-injected defects.
+**Trust it over any agent's opinion**, including your own, about whether output
+changed.
+
+A clean run says:
+
+```
+PARITY OK — 1039 pages, 899 JSON endpoints, zero differences.
+```
+
+### `/changelog` grows forever, so it is compared for insertion, not equality
+
+The baseline is frozen at the last Astro commit, but `/changelog` renders at
+build time from the two `CHANGELOG.md` files release-please **prepends** to on
+every release. So it necessarily carries entries the baseline cannot have, and
+the gap widens with each release — permanently, by construction. Left as a
+strict equality check it would fail forever, and a gate that always fails is one
+people learn to ignore.
+
+It is therefore listed in `APPEND_ONLY_PAGES` and compared with `isInsertionOf`:
+**every character the baseline emitted must still be present, in order, with the
+growth confined to one contiguous insertion.** Deleting an old entry, reordering
+entries or rewording one all still FAIL, and the failure says the page is
+append-only so you know which rule it broke. The growth itself is reported in the
+scope block (`append-only growth on : 1 page(s), +N chars inserted`) — an
+exemption nobody can see is indistinguishable from the gate not running.
+
+This is deliberately **not** an ignore list. An ignore would make the page
+assert nothing; this asserts something stronger than "unchanged" can on a file
+that is designed to change. Verified 2026-08-06 against a freshly regenerated
+baseline: 1,039 pages, 899 endpoints, zero differences, exit 0.
 
 ### If the baseline is missing, regenerate it — don't skip the gate
 

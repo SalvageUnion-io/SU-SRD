@@ -27,6 +27,7 @@ import {
   extractMainInner,
   firstJsonDiff,
   isBundleAsset,
+  isInsertionOf,
   NON_SSR_ISLANDS,
   normalizeText,
   parseArgs,
@@ -826,5 +827,71 @@ describe('run — the report', () => {
     expect(stdout).toContain('HTML pages compared    : 1')
     expect(stdout).toContain('JSON endpoints compared: 0')
     expect(stdout).toContain('files in baseline      : 1')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Append-only pages (/changelog)
+// ---------------------------------------------------------------------------
+
+describe('isInsertionOf', () => {
+  it('accepts one contiguous block inserted at the head — the changelog shape', () => {
+    // release-please PREPENDS, so the baseline's entries move down intact.
+    expect(isInsertionOf('Releases v1 old', 'Releases v2 new v1 old')).toBe(true)
+  })
+
+  it('accepts identical text and a pure append at the end', () => {
+    expect(isInsertionOf('same', 'same')).toBe(true)
+    expect(isInsertionOf('head', 'head tail')).toBe(true)
+  })
+
+  it('rejects deletion, reordering and rewording of baseline content', () => {
+    // An old entry removed.
+    expect(isInsertionOf('a b c', 'a c')).toBe(false)
+    // Entries reordered.
+    expect(isInsertionOf('a b c', 'a c b')).toBe(false)
+    // An old entry reworded.
+    expect(isInsertionOf('v1 fixed the parser', 'v1 fixed the lexer')).toBe(false)
+    // Candidate shorter than baseline can never be an insertion.
+    expect(isInsertionOf('a b c', 'a b')).toBe(false)
+  })
+})
+
+describe('append-only pages', () => {
+  const changelog = (main: string): string => page({ title: 'Changelog', main })
+
+  it('passes when /changelog has grown, and says so in the scope block', async () => {
+    const { code, stdout } = await runGate(
+      { 'changelog/index.html': changelog('<p>v1 old entry</p>') },
+      { 'changelog/index.html': changelog('<p>v2 new entry</p><p>v1 old entry</p>') }
+    )
+
+    expect(code).toBe(0)
+    expect(statusOf(stdout, '<main> visible text')).toBe('PASS')
+    // Growth must be REPORTED, not silently swallowed — an exemption nobody can
+    // see is indistinguishable from the gate not running.
+    expect(stdout).toContain('append-only growth on  : 1 page(s)')
+  })
+
+  it('still FAILS /changelog when a historical entry is altered', async () => {
+    const { code, stdout } = await runGate(
+      { 'changelog/index.html': changelog('<p>v1 fixed the parser</p>') },
+      { 'changelog/index.html': changelog('<p>v2 new</p><p>v1 fixed the lexer</p>') }
+    )
+
+    expect(code).toBe(1)
+    expect(statusOf(stdout, '<main> visible text')).toBe('FAIL')
+    expect(stdout).toContain('this page is append-only')
+  })
+
+  it('does not extend the exemption to any other page', async () => {
+    const { code, stdout } = await runGate(
+      { 'about/index.html': page({ main: '<p>old</p>' }) },
+      { 'about/index.html': page({ main: '<p>new</p><p>old</p>' }) }
+    )
+
+    expect(code).toBe(1)
+    expect(statusOf(stdout, '<main> visible text')).toBe('FAIL')
+    expect(stdout).not.toContain('append-only')
   })
 })

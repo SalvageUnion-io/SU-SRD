@@ -26,6 +26,8 @@ conventions, then the relevant architecture doc below.
 
 **I'm shipping SEO/a11y work** → [architecture/seo-accessibility.md](architecture/seo-accessibility.md)
 
+**I need a site id, service id, org slug, deployment name, or dashboard URL — or an MCP server isn't connecting** → [architecture/agent-tooling.md](architecture/agent-tooling.md) (**the service registry** — read it instead of listing every project on an account)
+
 **I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with `cd apps/srd && bun ssg/build.ts && bun ssg/parity.ts` — `parity.ts` is the acceptance gate, not your reading of the diff.
 
 ## Directory Map
@@ -50,6 +52,7 @@ conventions, then the relevant architecture doc below.
 | [combat-loop.md](architecture/combat-loop.md)                         | Action activation, heat checks, conditions — the client-side flow                                      |
 | [seo-accessibility.md](architecture/seo-accessibility.md)             | SEO strategy (srd) + WCAG 2.1 AA patterns                                                              |
 | [accounts-and-games.md](architecture/accounts-and-games.md)           | ADR-030 delivery phases + the Convex/Netlify/Discord operational reference                             |
+| [agent-tooling.md](architecture/agent-tooling.md)                     | **Service registry** — MCP servers + auth models, and every Netlify/Render/Sentry/Convex identifier    |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)

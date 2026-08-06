@@ -298,8 +298,11 @@ repo):
 1. Create a Sentry project in the `susrd` org — **EU region**
    (`https://de.sentry.io`), like every other project here — and set its
    platform to **Node.js**, which is what Convex's integration expects for
-   stack-trace processing. Suggested slug: `itun-convex`, sitting alongside
-   `itun` (browser) and `itun-functions` (Netlify).
+   stack-trace processing. Slug: `itun-convex`, sitting alongside `itun`
+   (browser) and `itun-functions` (Netlify). **This step is done** — the
+   project exists (see the registry in
+   [agent-tooling.md](agent-tooling.md)). Whether step 2 has been clicked is
+   only visible in the Convex dashboard, so check there rather than assuming.
 2. Convex dashboard → the deployment → **Settings → Integrations → Sentry** →
    paste that project's DSN. Do it **per deployment**: `dev/alex-jarvis` and
    `exuberant-porpoise-183` are configured separately, and production is the one
