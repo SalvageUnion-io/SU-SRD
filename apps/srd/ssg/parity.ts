@@ -53,24 +53,23 @@ import { fileURLToPath } from 'node:url'
  * the baseline, which made the documented "acceptance gate" exit 2 for every
  * other person and machine.
  *
- * ## `/changelog` mismatches permanently, and that is not a regression
+ * ## `/changelog` grows forever — see `APPEND_ONLY_PAGES`
  *
- * The baseline is frozen at the last Astro commit, but `/changelog` is rendered
- * at build time from `apps/srd/CHANGELOG.md` and
- * `packages/salvageunion-reference/CHANGELOG.md`, which release-please appends
- * to on every release. So the candidate legitimately carries entries the
- * baseline cannot have, and the two diverge further with each release —
- * permanently, by construction.
+ * The baseline is frozen at the last Astro commit, but `/changelog` renders at
+ * build time from the two CHANGELOG.md files release-please prepends to on
+ * every release. The candidate therefore always carries entries the baseline
+ * cannot have, and the gap widens with each release, by construction.
  *
- * A run whose ONLY mismatch is `changelog/index.html` is a substantive PASS.
- * Read the per-category lines, not just the exit code: what matters is
- * "0 mismatches" on the emitted path set, head metadata, JSON-LD, the 899 JSON
- * endpoints and llms.txt. Verified 2026-08-06: 1,038 of 1,039 pages clean, all
- * endpoints clean, llms.txt byte-identical, `/changelog` the sole difference.
+ * That page is compared under `isInsertionOf` rather than equality: every
+ * character the baseline emitted must still be present, in order, with the
+ * growth confined to one contiguous insertion. Deleting, reordering or
+ * rewording an old entry still fails. The growth is reported in the scope
+ * block, because an exemption nobody can see is indistinguishable from the gate
+ * not running.
  *
- * There is deliberately no ignore-list flag for this. Adding one is a change to
- * what the gate asserts, and the gate is the thing that is supposed to be
- * harder to fool than the person running it.
+ * The tempting fix was an ignore flag. That would have made the page assert
+ * nothing; this asserts something strictly stronger than "unchanged" is able to
+ * on a file that is designed to change.
  */
 const DEFAULT_BASELINE =
   process.env.SRD_PARITY_BASELINE ?? fileURLToPath(new URL('../.parity-baseline/', import.meta.url))
@@ -436,6 +435,44 @@ export const stripNonSsrIslands = (html: string): { html: string; count: number 
   })
 }
 
+/**
+ * Pages whose `<main>` text legitimately GAINS content between the baseline and
+ * the candidate, without any of the baseline's own content changing.
+ *
+ * Only `/changelog` qualifies, and only for a structural reason: it renders at
+ * build time from `apps/srd/CHANGELOG.md` and
+ * `packages/salvageunion-reference/CHANGELOG.md`, which release-please prepends
+ * to on every release. The baseline is frozen at the last Astro commit, so the
+ * candidate necessarily carries entries the baseline cannot have — and the gap
+ * widens with every release, permanently.
+ *
+ * This is NOT an ignore list. These pages are still compared, just under
+ * `isInsertionOf` instead of equality, which is a real assertion: every
+ * character the baseline emitted must still be present, in order, with new
+ * content confined to a single contiguous insertion. Deleting an old entry,
+ * reordering entries, or rewording one all still fail.
+ */
+export const APPEND_ONLY_PAGES = new Set(['changelog/index.html'])
+
+/**
+ * True when `candidate` is exactly `baseline` with one contiguous block
+ * inserted — nothing removed, reordered or reworded.
+ *
+ * Works by taking the common prefix and requiring the entire remainder of the
+ * baseline to reappear as the candidate's suffix. For a newest-first changelog
+ * the inserted block is the new releases; for a hypothetical append-at-end page
+ * the baseline is a pure prefix, which is also non-destructive and also passes.
+ */
+export const isInsertionOf = (baseline: string, candidate: string): boolean => {
+  if (baseline === candidate) return true
+  if (candidate.length <= baseline.length) return false
+  let i = 0
+  while (i < baseline.length && baseline[i] === candidate[i]) i += 1
+  // Whole baseline matched as a prefix: content was added at the end only.
+  if (i === baseline.length) return true
+  return candidate.endsWith(baseline.slice(i))
+}
+
 export const normalizeText = (html: string): string =>
   decodeEntities(html.replace(ANY_TAG_RE, ' '))
     .replace(/[\s\u00a0\u1680\u2000-\u200b\u202f\u205f\u3000\ufeff]+/g, ' ')
@@ -751,6 +788,8 @@ export const run = async (opts: Options): Promise<number> => {
   let pagesWithoutMain = 0
   let pagesWithIslandsStripped = 0
   let islandSubtreesStripped = 0
+  let pagesGrownAppendOnly = 0
+  let charsInserted = 0
 
   const bump = (file: string, by: number): void => {
     perPageDiffs.set(file, (perPageDiffs.get(file) ?? 0) + by)
@@ -810,6 +849,14 @@ export const run = async (opts: Options): Promise<number> => {
     }
 
     if (a.text !== b.text) {
+      // An append-only page passes only if every character the baseline emitted
+      // survives, in order, with the growth confined to one insertion. A real
+      // regression on such a page still fails here.
+      if (APPEND_ONLY_PAGES.has(path) && isInsertionOf(a.text, b.text)) {
+        pagesGrownAppendOnly += 1
+        charsInserted += b.text.length - a.text.length
+        return
+      }
       const excerpt = textExcerpt(a.text, b.text)
       mainTextFindings.push({
         file: path,
@@ -817,6 +864,13 @@ export const run = async (opts: Options): Promise<number> => {
           `first difference at char ${excerpt.at} (baseline ${a.text.length} chars, candidate ${b.text.length} chars)`,
           `baseline : ${excerpt.baseline}`,
           `candidate: ${excerpt.candidate}`,
+          ...(APPEND_ONLY_PAGES.has(path)
+            ? [
+                'this page is append-only, so it was compared under isInsertionOf',
+                'rather than equality — it failed that too, meaning baseline',
+                'content was removed, reordered or reworded. A real finding.',
+              ]
+            : []),
         ].join('\n'),
       })
       bump(path, 1)
@@ -928,6 +982,12 @@ export const run = async (opts: Options): Promise<number> => {
   say(`  HTML pages compared    : ${htmlPaths.length}`)
   say(`  JSON endpoints compared: ${jsonPaths.length}`)
   say(`  pages with no <main>   : ${pagesWithoutMain} (both sides — not a difference)`)
+  if (pagesGrownAppendOnly > 0) {
+    say(
+      `  append-only growth on  : ${pagesGrownAppendOnly} page(s), +${charsInserted} chars inserted ` +
+        `(all baseline content intact and in order — see APPEND_ONLY_PAGES)`
+    )
+  }
   if (opts.ignoreIslandText) {
     say(
       `  island text ignored on : ${pagesWithIslandsStripped} pages (${islandSubtreesStripped} ssr:false island subtrees excluded across both sides)`
