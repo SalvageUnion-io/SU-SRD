@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.0.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.1...itun-v1.0.2) (2026-08-06)
+
+
+### Bug Fixes
+
+* **itun:** stop game entities silently desyncing, and give the game roster its missing verbs ([#705](https://github.com/SalvageUnion-io/SU-SRD/issues/705)) ([091b5fe](https://github.com/SalvageUnion-io/SU-SRD/commit/091b5fe6780c6bc76711b13239fab9980a6a61bd))
+
 ## [1.0.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.0...itun-v1.0.1) (2026-08-06)
 
 
