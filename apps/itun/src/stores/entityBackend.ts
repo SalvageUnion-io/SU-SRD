@@ -1,3 +1,4 @@
+import { toast } from 'component-lib'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
@@ -9,6 +10,8 @@ import {
 import { convexClient } from '../lib/connection/convexClient'
 import { serverMessage } from '../lib/connection/serverError'
 import { captureException } from '../lib/observability'
+import type { EntityRef } from '../lib/schemas/entity'
+import type { SoftLink } from '../lib/schemas/softLink'
 
 /**
  * Where entity writes actually go (ADR-030 §1).
@@ -127,6 +130,75 @@ export class WritesBlockedOffline extends Error {
 }
 
 /**
+ * How long one mirror failure speaks for. A burst is one condition, not N
+ * problems, and a per-write toast during a Downtime scramble would bury the
+ * sheet under duplicates of the same sentence.
+ */
+const MIRROR_TOAST_WINDOW_MS = 30_000
+
+/** When the last mirror-failure toast was shown; `0` means "not yet". */
+let lastMirrorToastAt = 0
+
+/**
+ * What to do when a mirror fails.
+ *
+ * ## Why this is louder than a console warning
+ *
+ * A failed mirror means IndexedDB has diverged from Convex, the declared server
+ * of record (ADR-030) — and the local write already succeeded, so **every
+ * surface keeps rendering the change as saved**. That is the most dangerous
+ * state this app has: the player is told, by the entire UI, that their work is
+ * safe, while the table sees none of it.
+ *
+ * It stayed invisible for a real session. `byAppId` threw on a duplicate row,
+ * this path swallowed it into `console.warn`, and a player edited two pilots
+ * for the better part of an hour with nothing reaching the game. The only trace
+ * was twelve Sentry events nobody was watching, and the feedback that came back
+ * was "the game mechs didn't save" — which is exactly what happened, with no
+ * way for them to have known it at the time.
+ *
+ * So the local write still stands (rolling it back would lose work that is
+ * genuinely on disk), but the player is told. Being told a change did not sync
+ * is recoverable; not being told is not.
+ *
+ * ## Refusal and defect are reported the same and *said* differently
+ *
+ * `serverMessage` (`lib/connection/serverError.ts`) answers which side of
+ * Convex's one line this was: a `ConvexError` arrives with its message intact
+ * because the backend declared it fit to show, and everything else arrives
+ * redacted as `"[CONVEX M(fn)] […] Server Error"`.
+ *
+ * Both are reported to Sentry, tagged, because both mean the same thing about
+ * the data — the mirror did not land. But they are not the same thing to *say*:
+ *
+ *   - a **refusal** carries the rule that stopped it, in words the backend
+ *     wrote for a player ("Only the Mediator can do that"). Showing it is
+ *     strictly more useful than any generic sentence, and it reads as the
+ *     system working rather than breaking.
+ *   - a **defect** has no usable message by construction, so the generic copy
+ *     is the honest one. Never render `String(err)` here: that is where the
+ *     opaque `Server Error` string comes from.
+ *
+ * Throttled either way: a burst is one condition, and the useful signal is
+ * "syncing is broken right now" rather than a taxonomy the player cannot act on.
+ */
+function reportMirrorFailure(err: unknown, context: Record<string, string>): void {
+  const refusal = serverMessage(err)
+  console.warn('[itun] failed to mirror write to the server of record', refusal ?? err)
+  captureException(err, { ...context, refusal: refusal ?? 'none' })
+
+  const now = Date.now()
+  if (now - lastMirrorToastAt < MIRROR_TOAST_WINDOW_MS) return
+  lastMirrorToastAt = now
+
+  toast.error(refusal ?? 'That change was saved on this device, but the game did not accept it.', {
+    description:
+      'Your work is safe here and nothing was lost. Reload to see what the game has — and if this keeps happening, the build may need re-syncing.',
+    duration: 10_000,
+  })
+}
+
+/**
  * Mirror a local write to the server of record, addressed by **app id**.
  *
  * An earlier attempt at this could not work: Convex mints its own `_id`, so a
@@ -168,30 +240,9 @@ export async function mirrorWrite(
       await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
     }
   } catch (err) {
-    // Never surfaced as a failed user action: the local write stands. But
-    // "don't interrupt the user" is not a reason to hide it from operators —
-    // a mirror failure means IndexedDB has diverged from Convex, the declared
-    // server of record (ADR-030), and a console line in one player's browser
-    // is not a signal anyone will ever see.
-    //
-    // `refusal` is what the server was willing to say (see
-    // `lib/connection/serverError.ts`). Both kinds are still reported, because
-    // both mean the same thing about the data — the mirror did not land — but
-    // they are not the same thing to whoever reads the report, so the tag makes
-    // them separable:
-    //
-    //   - a **refusal** carries the rule that stopped it, in words. It is the
-    //     backend working as designed, and the fix (if any) is a product one.
-    //   - a **defect** arrives redacted as "Server Error" no matter what went
-    //     wrong, so the message is worthless and the Convex logs are the only
-    //     place the cause exists.
-    //
-    // That distinction is exactly what was missing when a duplicate-appId
-    // `unique()` violation spent an evening looking indistinguishable from a
-    // permission denial.
-    const refusal = serverMessage(err)
-    console.warn('[itun] failed to mirror write to the server of record', refusal ?? err)
-    captureException(err, { source: 'mirrorWrite', type, op: op.kind, refusal })
+    // Never a failed user action — the local write stands — but never silent
+    // either, in EITHER direction. See `reportMirrorFailure`.
+    reportMirrorFailure(err, { source: 'mirrorWrite', type, op: op.kind })
   }
 }
 
@@ -240,14 +291,44 @@ export async function mirrorCrawlerWrite(
       await convexClient.mutation(api.entities.removeCrawlerByAppId, { appId: op.appId })
     }
   } catch (err) {
-    // See mirrorWrite: swallowed for the user, reported to operators, and
-    // tagged with whatever the server was willing to say. This path is the one
-    // that most needs it — "Only the Mediator can do that" is a routine answer
-    // here (a player editing a communal crawler), and it should never read like
-    // a crash.
-    const refusal = serverMessage(err)
-    console.warn('[itun] failed to mirror crawler write to the server of record', refusal ?? err)
-    captureException(err, { source: 'mirrorCrawlerWrite', op: op.kind, refusal })
+    reportMirrorFailure(err, { source: 'mirrorCrawlerWrite', op: op.kind })
+  }
+}
+
+/**
+ * Mirror a **soft link** to the server of record.
+ *
+ * Links used to be excluded from mirroring entirely, on the grounds that they
+ * are "derived". On a shelf that is nearly true. In a Game it is not true at
+ * all: `entities.listForGame` reads links back, so the crew saw whatever wiring
+ * existed at claim time and never saw a single change after it. Assigning a
+ * pilot to the crawler updated your sheet and nobody else's — the assignment
+ * simply never left the browser.
+ *
+ * Addressed by endpoints rather than by id: the server has no `appId` column
+ * for links and needs none, because `from.id`/`to.id` already are app ids. That
+ * also makes the mirror naturally idempotent, so a replayed write is a no-op
+ * rather than a duplicate wire.
+ *
+ * Fire-and-forget with the same contract as the other two mirrors — the local
+ * write already landed and is what the UI reads.
+ */
+export async function mirrorSoftLinkWrite(
+  op:
+    | { kind: 'upsert'; from: EntityRef; to: EntityRef; type: SoftLink['type'] }
+    | { kind: 'delete'; from: EntityRef; to: EntityRef; type: SoftLink['type'] }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  const args = { from: op.from, to: op.to, type: op.type }
+  try {
+    if (op.kind === 'upsert') {
+      await convexClient.mutation(api.entities.upsertSoftLink, args)
+    } else {
+      await convexClient.mutation(api.entities.removeSoftLink, args)
+    }
+  } catch (err) {
+    reportMirrorFailure(err, { source: 'mirrorSoftLinkWrite', op: op.kind })
   }
 }
 

@@ -179,13 +179,45 @@ The design pass Phase 3 deferred, plus the ownership rules it exposed as missing
   reads and moved no number. Both fixed, both pinned by tests that build their
   fixtures by parsing the real schema rather than hand-writing field names.
 
-**Known gaps, deliberately left:**
+**Closed since, and worth knowing why:**
 
-- **A refused mirror is only a console warning.** If the server rejects a
-  mirrored write (a player creating into a Game with no crawler, an edit to
-  something they no longer own), the local copy stands and nothing tells them.
-  The surfaces avoid offering those actions, so this is reachable mainly by
-  going around them; surfacing it as a toast is the next step.
+- **A refused mirror used to be only a console warning** — listed here as a
+  known gap on the reasoning that the surfaces avoid offering the actions that
+  would be refused, so it was reachable mainly by going around them. That
+  reasoning was wrong, and a play session proved it: the refusal did not come
+  from a player doing something the UI discouraged, it came from **the data**.
+  Duplicate `appId` rows (see below) made `byAppId` throw on every mirrored
+  write, and because the local write had already succeeded, every surface went
+  on rendering the work as saved while nothing reached the game for the better
+  part of an hour. The feedback was "the game mechs didn't save".
+
+  The lesson is that "only reachable by misuse" is not a safety property when
+  the trigger can be a row rather than a click. `reportMirrorFailure`
+  (`entityBackend.ts`) now warns, reports to Sentry **and** toasts, throttled to
+  one message per 30s so a burst reads as one condition.
+
+- **Duplicate `appId` rows are survivable.** Prevention (`appIdTaken` before any
+  insert) and repair (`maintenance.dedupeAppIds`) close the front door and clean
+  up behind it. This is the third leg: `byAppId` / `crawlerByAppId` no longer
+  ask for `.unique()` on an index that was never a uniqueness constraint, so a
+  duplicate that reaches them resolves to the **oldest** match and logs rather
+  than throwing.
+
+  Worth stating why all three exist. A throw here is invisible — mirrored writes
+  are fire-and-forget — so it does not fail the write, it stops the write ever
+  reaching the server while every surface keeps rendering it as saved. Refusing
+  to sync is a strictly worse answer to "there are two rows" than syncing to one
+  of them and saying so. Oldest is chosen to match what `dedupeAppIds` keeps, so
+  a write landing before the repair runs is not discarded by it.
+
+- **Soft links mirror.** They were excluded as "derived", which is nearly true
+  of a shelf and not true at all of a Game — `listForGame` reads them back, so
+  the crew saw the wiring as it stood at claim time and no change after it.
+  `entities.upsertSoftLink` / `removeSoftLink` address a link by its endpoints
+  (no `appId` needed, and idempotent as a result), and `removeByAppId` /
+  `remove` now cascade link pruning the way the client always has.
+
+**Known gaps, deliberately left:**
 - **No read-only drill-in.** ADR-030 §5 permits reading a crewmate's sheet;
   `crew.readEntity` exists on the server with no consumer, because ITUN's sheet
   is an editing surface. Rows for entities you do not own therefore offer

@@ -67,22 +67,61 @@ async function duplicatePilot(t: Ctx, ownerId: Id<'users'>, appId: string, count
   })
 }
 
-describe('duplicate app ids break the mirror', () => {
-  test('a second row with the same app id makes every upsert throw', async () => {
+describe('duplicate app ids no longer break the mirror', () => {
+  /*
+   * This block used to assert the opposite — that a second row made every
+   * upsert throw `unique()` — as a reproduction of the production failure and
+   * the justification for `dedupeAppIds`.
+   *
+   * The reproduction was accurate and the conclusion was half of one. A throw
+   * here is INVISIBLE: mirrored writes are fire-and-forget, so it never failed
+   * an edit the player could see, it just stopped their edits ever reaching the
+   * server while every surface went on rendering them as saved. An evening of
+   * play went missing that way. Refusing to sync is a strictly worse answer to
+   * "there are two rows" than syncing to one of them and logging it.
+   *
+   * So `byAppId` now resolves to the oldest match instead of throwing, and this
+   * block pins that. `dedupeAppIds` is still needed and still the fix — a
+   * duplicate double-renders on a roster and leaves one copy going stale — but
+   * a roster waiting on it keeps saving in the meantime.
+   */
+  test('a second row with the same app id no longer stops the write', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
     await duplicatePilot(t, u.userId, 'p1', 2)
 
-    // This is the production failure, reproduced: an opaque server error on
-    // every edit, from a mutation that swallows it.
-    await expect(
-      u.as.mutation(api.entities.upsertByAppId, {
-        table: 'pilots',
-        appId: 'p1',
-        gameId: null,
-        body: pilotBody(),
-      })
-    ).rejects.toThrow(/unique/i)
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: 'p1',
+      gameId: null,
+      body: pilotBody({ name: 'still saving' }),
+    })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    const names = rows.map((r) => (r.body as { name: string }).name)
+    // Landed on exactly one row — not fanned out, and not a third row.
+    expect(rows).toHaveLength(2)
+    expect(names.filter((n) => n === 'still saving')).toHaveLength(1)
+  })
+
+  test('and the write lands on the row dedupeAppIds will keep', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    await duplicatePilot(t, u.userId, 'p1', 3)
+
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: 'p1',
+      gameId: null,
+      body: pilotBody({ name: 'written before the repair' }),
+    })
+    await t.mutation(internal.maintenance.dedupeAppIds, { apply: true })
+
+    // The two rules have to agree, or the repair would silently discard work
+    // that landed while the roster was waiting for it.
+    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    expect(rows).toHaveLength(1)
+    expect((rows[0]?.body as { name: string } | undefined)?.name).toBe('written before the repair')
   })
 })
 
