@@ -15,6 +15,10 @@
     "github": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "convex": {
+      "command": "bunx",
+      "args": ["convex", "mcp", "start", "--project-dir", "apps/itun"]
     }
   }
 }
