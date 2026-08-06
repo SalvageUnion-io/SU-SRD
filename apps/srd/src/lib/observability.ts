@@ -23,6 +23,26 @@ let initialized = false
 let sentryModule: typeof import('@sentry/browser') | null = null
 
 /**
+ * Browser noise that is not this site's to fix, dropped before it is sent.
+ *
+ * The bar for adding to this list is deliberately high: a filtered error is one
+ * nobody will ever see again, so anything here has to be something we could not
+ * act on even if we wanted to. Each entry names the mechanism, not just the
+ * string.
+ *
+ * - **`Transition was skipped`** — srd opts into *cross-document* view
+ *   transitions declaratively, with `@view-transition { navigation: auto }` in
+ *   `src/styles/global.css`. When a second navigation supersedes an in-flight
+ *   transition (a fast click, or a click during page load) the browser rejects
+ *   the transition's `finished` promise with an `AbortError`. That promise
+ *   belongs to the user agent — there is no JS handle of ours to `.catch()`, so
+ *   the SDK is the only place it can be dropped. The navigation itself
+ *   completes normally; the "error" is the feature working as specified
+ *   (issue SRD-A).
+ */
+const IGNORED_ERRORS = ['Transition was skipped']
+
+/**
  * Initializes browser Sentry when `PUBLIC_SENTRY_DSN` is configured.
  * Idempotent and safe to call once on every page load. Resolves immediately
  * (no-op) when the DSN is absent.
@@ -49,6 +69,7 @@ export async function initBrowserObservability(): Promise<void> {
     // Errors only — no performance tracing or session replay. Keeps network
     // chatter minimal and avoids additional CSP surface.
     tracesSampleRate: 0,
+    ignoreErrors: IGNORED_ERRORS,
   })
 }
 
