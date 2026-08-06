@@ -31,6 +31,11 @@ export {
   originsForHybrid,
   resolveAdvancementTrees,
 } from './advancement.js'
+export {
+  liveAdvancementDataset,
+  offeredAbilityTrees,
+  toAdvancementClass,
+} from './advancementDataset.js'
 export { computeMechCapacity } from './capacity.js'
 export {
   isSchemaOnlyCatalogChoice,
