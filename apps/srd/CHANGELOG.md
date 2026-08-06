@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.0.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.0.1...srd-v2.0.2) (2026-08-06)
+
+
+### Bug Fixes
+
+* **srd:** stop two unactionable browser errors filling Sentry ([#703](https://github.com/SalvageUnion-io/SU-SRD/issues/703)) ([2dcb5e4](https://github.com/SalvageUnion-io/SU-SRD/commit/2dcb5e462a409106a7cb06b09cae595155da930d))
+
 ## [2.0.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.0.0...srd-v2.0.1) (2026-08-05)
 
 
