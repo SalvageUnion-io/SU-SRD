@@ -171,9 +171,9 @@ export const PilotSchema = z
      * ids (`starter-pilot-bonesaw`, …) so that re-seeding would overwrite
      * rather than duplicate. Locally that worked; globally it was wrong. Every
      * player who seeded the roster held byte-identical ids, and those ids are
-     * the `appId` a claimed entity is addressed by on the server — where they
-     * are looked up with `.unique()`, which throws when two accounts bring the
-     * same one.
+     * the `appId` a claimed entity is addressed by on the server — where two
+     * accounts bringing the same one resolve to a single row, so the later
+     * player's writes are refused as somebody else's entity.
      *
      * Absent on everything a person built themselves, which is nearly every row.
      */

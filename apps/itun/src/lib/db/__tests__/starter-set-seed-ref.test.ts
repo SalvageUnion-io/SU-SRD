@@ -4,7 +4,8 @@
  * Seeding now mints a fresh UUID per row and records the template slug in
  * `seedRef`, because the old fixed ids (`starter-pilot-bonesaw`, …) were
  * identical in every player's browser — and a seeded row's id becomes its
- * `appId` on the server of record, where rows are looked up with `.unique()`.
+ * `appId` on the server of record, where two accounts sharing one resolve to a
+ * single row and the later player's writes are refused as somebody else's.
  *
  * This migration exists so that change does not cost anyone a duplicate
  * roster: without it, a browser that seeded the old way has no `seedRef`

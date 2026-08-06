@@ -524,7 +524,8 @@ describe('mergeImport — duplicate skip branches', () => {
  *    row for the same reason.)
  *  - **Importing an exported bundle mints a new id.** That file may have been
  *    shared, and two people holding the same id is precisely what the server
- *    cannot represent — rows are addressed by `appId` with `.unique()`.
+ *    cannot represent: rows are addressed by `appId`, a duplicate resolves to
+ *    the oldest, and the later holder's writes are refused as somebody else's.
  */
 describe('identity: what keeps an id and what earns a new one', () => {
   test('moving between containers keeps the id — a game is a viewport, not a copy', async () => {

@@ -261,8 +261,9 @@ describe('Starter Set seed — on-demand seeding', () => {
    * This used to write the template's fixed ids straight through, which made
    * every player's starter roster carry the same twelve. Locally that was
    * invisible; against the server of record those ids are the `appId` a row is
-   * addressed by, looked up with `.unique()` — so two players who had both
-   * seeded the roster collided on all twelve the moment they claimed.
+   * addressed by — so two players who had both seeded the roster collided on
+   * all twelve the moment they claimed, and the later one's writes were refused
+   * as edits to somebody else's entity.
    */
   test('seeded rows get fresh UUIDs, not the template ids', async () => {
     await ensureStarterSetSeeded()

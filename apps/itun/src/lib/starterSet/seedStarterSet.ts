@@ -28,12 +28,19 @@
  * a `put` of a fixed id overwrites, so a double-click could not duplicate. That
  * reasoning was sound while the ids never left the device, and it stopped being
  * sound the moment accounts landed. A seeded row's `id` becomes its `appId` on
- * the server of record (ADR-030), where rows are looked up with `.unique()` —
- * so **every player who seeded this roster was carrying the same twelve ids**,
- * and any two of them claiming would collide on all twelve. One would break the
- * other's mirror outright; with the claim now guarded, the second player's
- * starter crew is instead quietly declined. Neither is acceptable, and neither
- * is fixable downstream — the ids have to be distinct at the point of copying.
+ * the server of record (ADR-030) — so **every player who seeded this roster was
+ * carrying the same twelve ids**, and any two of them claiming collided on all
+ * twelve.
+ *
+ * What that collision costs has changed once already, which is the argument for
+ * fixing it at the source rather than downstream. It began as an outright break
+ * (the lookup used `.unique()`, so it threw and the mirror stopped); the claim
+ * is now guarded, so the second player's starter crew is declined instead; and
+ * `byAppId` now resolves a duplicate to the *oldest* row, which means a write
+ * from the second player aims at the first player's entity and is refused by
+ * `assertMayWrite` as somebody else's. Three mechanisms, one outcome: a player
+ * whose sheet quietly stops reaching the server. The ids have to be distinct at
+ * the point of copying.
  *
  * ## Idempotence, without borrowing identity for it
  *

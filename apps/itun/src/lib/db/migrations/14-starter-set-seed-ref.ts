@@ -7,9 +7,10 @@ import type { UpgradeTransaction } from './index'
  * (`starter-pilot-bonesaw`, …), because id equality doubled as the idempotence
  * guard — a `put` of a known id overwrites, so re-seeding could not duplicate.
  * That was fine while the ids stayed on one device and wrong once they did not:
- * a seeded row's `id` becomes its `appId` on the server of record (ADR-030),
- * where rows are looked up with `.unique()`, so every player who seeded this
- * roster carried the same twelve ids into a shared backend.
+ * a seeded row's `id` becomes its `appId` on the server of record (ADR-030), so
+ * every player who seeded this roster carried the same twelve ids into a shared
+ * backend — where a duplicate resolves to the oldest row, and the later
+ * player's writes are refused as somebody else's entity.
  *
  * Seeding now mints a fresh UUID per row and records the template slug in
  * `seedRef`. This backfills that field for rows seeded the old way, so the

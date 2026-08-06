@@ -67,8 +67,9 @@ export type MergeSummary = {
  *
  * An import is a **copy**, and a copy is a new thing: every entity comes in
  * under a fresh UUID, never the one in the file. That is what keeps a bundle
- * shared between two people from putting the same id in two accounts, where the
- * server addresses rows by it with `.unique()`. `seedRef` is dropped along the
+ * shared between two people from putting the same id in two accounts — where
+ * the server addresses rows by `appId`, resolves a duplicate to the oldest, and
+ * so refuses the later holder's writes as somebody else's. `seedRef` is dropped along the
  * way for the same reason it exists — it records that a row was spawned from a
  * built-in template *on this device*, and an imported row was not; carrying it
  * across would make someone else's starter pilot read as your own seeded one
