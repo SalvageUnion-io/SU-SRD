@@ -97,9 +97,50 @@ An entity is in exactly one container, encoded as two nullable columns:
 | null     | set       | on the owner's shelf                                   |
 | null     | null      | **invalid** — must be unreachable through any mutation |
 
-An entity belongs to **one Game at a time**; a pilot's crawler level, scrap, TP,
-and injuries are Game-specific, so a shared pilot would be incoherent rather than
-convenient. Moving one is an explicit **fork** that copies and records its origin.
+An entity belongs to **one Game at a time**, and moving it between containers is
+a **change to `gameId`, not a copy**. There is one entity. A pilot on your shelf
+and that same pilot in a Game are the same record with one field set
+differently — never an original and a duplicate to be kept in step.
+
+**Move and copy are different verbs, and the difference is the point.**
+
+| Verb     | Result                                                                                                                             |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Move** | The **same** entity. Same id, same body, same history; only `gameId` changes. Nothing is duplicated and nothing needs reconciling.   |
+| **Copy** | A **new** entity. New id, named `COPY OF <name>`, always `gameId: null`, and carrying no relationship to the source or to its Game. |
+
+A copy is deliberate, explicit and user-initiated — "I want my own one of these"
+— and once made it is simply a build of yours like any other. It does not track
+its origin, does not sync with it, and does not follow it into or out of a Game.
+That is what keeps copying safe: there is no ongoing relationship to get out of
+step, which is exactly the property a fork would not have had.
+
+So a character in somebody else's Game can be copied to your shelf without
+copying the Game, and editing your copy can never touch theirs.
+
+> **Amended 2026-08-06.** This clause previously read: _"a pilot's crawler
+> level, scrap, TP, and injuries are Game-specific, so a shared pilot would be
+> incoherent rather than convenient. Moving one is an explicit **fork** that
+> copies and records its origin."_
+>
+> The conclusion did not follow from the premise. Game-specific state is only
+> incoherent if one entity can be in two Games at once, and the container model
+> makes that unrepresentable: `gameId` is a **single nullable column**, so an
+> entity is in at most one Game by construction. Forking solved a problem the
+> schema already prevents.
+>
+> Note that a fork is **not** the same thing as the copy sanctioned above, and
+> the difference is the origin it "records". A copy is a clean break — a new
+> build of yours with no tie to what it came from. A fork keeps a relationship,
+> and a relationship between two records of one character is precisely the thing
+> that has to be reconciled, watched, and eventually gets out of step. The verb
+> that survives is the one with nothing to keep in sync.
+>
+> No fork was ever built, so this amendment does not change behaviour;
+> `MoveToContainerControl` re-stamps `gameId` in place and
+> `entities.upsertByAppId` re-homes the existing row. What it changes is the
+> instruction: that in-place move **is** the design, and the absence of a fork
+> mutation is not a gap for somebody to close later.
 
 ### 3. Roles: a base role plus one modifier
 
