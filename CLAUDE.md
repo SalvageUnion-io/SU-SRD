@@ -291,6 +291,39 @@ Pre-commit runs: lint --fix, format (parallel). Typecheck does NOT run pre-commi
 Pre-push runs (parallel): typecheck, test, validate:all, knip, check:tokens,
 check:styling, lint, check:schemas.
 
+### Merging — `main` is behind a merge queue
+
+`main`'s ruleset (`deletion`, `non_fast_forward`, `required_linear_history`,
+`required_status_checks`, **`merge_queue`**) means a PR is **enqueued, never merged
+directly.** Enqueue with:
+
+```bash
+gh pr merge <pr> --auto --squash
+```
+
+**A plain `gh pr merge <pr> --squash` does not fail — and does not merge.** It prints
+only `! The merge strategy for main is set by the merge queue`, **exits 0**, and adds
+the PR to the queue. Every obvious success signal is absent afterwards: the PR is still
+`OPEN`, `mergedAt` is `null`, `mergeCommit` is `none`, and `autoMergeRequest` is `off`.
+That combination looks exactly like a silent no-op, so **do not conclude the merge
+failed and retry** — read the queue itself:
+
+```bash
+gh api graphql -f query='{repository(owner:"SalvageUnion-io",name:"SU-SRD"){
+  mergeQueue(branch:"main"){entries(first:20){nodes{position state
+  pullRequest{number}}}}}}'
+```
+
+A queued PR stays `OPEN` until the queue merges it, so **PR state alone is never proof
+of anything** here. The queue is also the reason a PR can go green and still sit
+unmerged: it re-tests each entry against the projected merge, and ejects any that
+conflicts rather than merging it.
+
+Note that `gh pr merge --auto` is what Dependabot PRs need too. A merge queue is
+mutually exclusive with a `GITHUB_TOKEN`-driven Dependabot auto-merge workflow, since
+that token cannot enqueue — so Dependabot PRs here require an enqueue from a PAT-backed
+session (or a human) and will otherwise sit open indefinitely.
+
 ### Project Skills (`.claude/skills/`)
 
 When to reach for which skill (overlap explained):
