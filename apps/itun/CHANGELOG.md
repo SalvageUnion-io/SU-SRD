@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.3...itun-v1.1.0) (2026-08-06)
+
+
+### Features
+
+* **itun:** copy an entity to your shelf, and stop calling a shelved build unclaimed ([#711](https://github.com/SalvageUnion-io/SU-SRD/issues/711)) ([aaa1879](https://github.com/SalvageUnion-io/SU-SRD/commit/aaa187915b2c6c63c178ae3e0beb2f5cd9940f88))
+
 ## [1.0.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.2...itun-v1.0.3) (2026-08-06)
 
 
