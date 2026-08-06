@@ -1679,6 +1679,55 @@ export declare function inferOriginClass(data: AdvancementDataset, hybridName: s
  */
 export declare function resolveAdvancementTrees(data: AdvancementDataset, originName: string | undefined, destName: string | undefined): AdvancementTrees;
 //# sourceMappingURL=advancement.d.ts.map
+// === lib/rules/advancementDataset.d.ts ===
+/**
+ * The impure edge of `advancement.ts`.
+ *
+ * `advancement.ts` is pure over neutral inputs (ADR-006) and deliberately does
+ * not import `SalvageUnionReference`. Consumers still need the live dataset,
+ * and every one of them building it by hand is how two copies of the same
+ * tree-offering function ended up in two packages. This module is the single
+ * seam where the catalog is read, so the rules stay pure and the callers stay
+ * thin.
+ *
+ * Preload requirement: `classes` and `ability-tree-requirements`.
+ */
+import type { SURefClass } from '../schemas/index.js';
+import type { AdvancementClassInput, AdvancementDataset } from './advancement.js';
+/** Narrow a reference class record to the primitives advancement reads. */
+export declare function toAdvancementClass(cls: SURefClass): AdvancementClassInput;
+/**
+ * Build the advancement dataset from the loaded catalog.
+ *
+ * Not memoised: it is two maps over 11 class records and 20 requirement rows,
+ * and a cache would have to be invalidated on preload — a staleness bug in
+ * exchange for nothing measurable.
+ */
+export declare function liveAdvancementDataset(): AdvancementDataset;
+/**
+ * The ability trees a class may draw from, for a picker.
+ *
+ * This is the fix for a real defect: it used to begin from `coreTrees`, which
+ * **hybrid classes do not have**, so every hybrid was offered only its own tree
+ * and its Legendary tree — two of its four. A Cyborg could never be given a
+ * Gladiatorial Combat or Augmentation ability, and advancing a pilot therefore
+ * *shrank* the trees available to them. A hybrid's other two trees come from
+ * `ability-tree-requirements`, which nothing read.
+ *
+ * `selectedTrees` are appended so trees the pilot already holds abilities in
+ * stay visible and toggleable — including SEALED ones, which are retained
+ * permanently and must never disappear from a sheet just because they are
+ * closed to new picks.
+ *
+ * `allLevels: false` is the creation pool and is unchanged: core trees only,
+ * which correctly yields nothing for a hybrid (they are not legal creation
+ * classes).
+ */
+export declare function offeredAbilityTrees(cls: AdvancementClassInput, options: {
+    allLevels: boolean;
+    selectedTrees?: readonly string[];
+}): string[];
+//# sourceMappingURL=advancementDataset.d.ts.map
 // === lib/rules/capacity.d.ts ===
 /**
  * Mech capacity rule enforcement (REQ-009).
@@ -2553,6 +2602,7 @@ export {};
  */
 export type { AdvancementClassInput, AdvancementDataset, AdvancementOption, AdvancementRequirementInput, AdvancementTrees, OriginInference, OriginInferenceState, } from './advancement.js';
 export { advancementOptionsFor, gateTreeFor, hybridGrantedTrees, inferOriginClass, originsForHybrid, resolveAdvancementTrees, } from './advancement.js';
+export { liveAdvancementDataset, offeredAbilityTrees, toAdvancementClass, } from './advancementDataset.js';
 export { computeMechCapacity } from './capacity.js';
 export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities, } from './choiceCatalog.js';
 export type { ContributionAmount, ContributionStat, ContributionTarget, DeclaredContribution, ResolvedContribution, } from './contributions.js';
