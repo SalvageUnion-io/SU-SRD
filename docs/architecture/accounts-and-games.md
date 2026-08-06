@@ -38,7 +38,7 @@ In brief, grouped:
 | ------------ | ------------------------------------------------------------------------------------------------------ |
 | Truth        | Convex is the server of record; IndexedDB becomes a cache. Offline writes are **blocked**.             |
 | Identity     | Discord OAuth only, reusing the bot's existing Discord application.                                    |
-| Containers   | **Game** (shared) and **Shelf** (personal). One entity, one container. Moving is an explicit fork.     |
+| Containers   | **Game** (shared) and **Shelf** (personal). One entity, one container. **Move** sets `gameId`; **copy** mints a new unrelated `COPY OF …`. |
 | Roles        | Base role Player \| Mediator, plus an orthogonal **Organizer** flag. Organizer ⇒ no content authority. |
 | Cross-player | **Propose → player confirms.** Never a direct write, never force-applied.                              |
 | Ownership    | Nullable. Mediator assigns; owners release; **players self-claim what nobody holds**.                  |
@@ -97,7 +97,9 @@ what de-risks the rest.
   Solo surfaces render unfiltered — see the note in `activeContainerStore.ts`.
 - The three storage modes + the **NOT CONNECTED** banner
 - Claim-local-data flow on first sign-in
-- "Fork into Game" and "copy to shelf"
+- Move between Shelf and Game (`MoveToContainerControl` — one field, not a copy)
+- **Copy to shelf** — mints a NEW `COPY OF <name>` entity, `gameId: null`, with
+  no tie to the source or its Game (ADR-030 §2). Not built yet.
 - Starter Set re-homed as a Game template, its entities unclaimed
 - Account management: profile, My Games, export, delete
 

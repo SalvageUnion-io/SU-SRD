@@ -6,14 +6,26 @@
  * not a dialog, so a move is one tap — with Workspaces swapped for the two real
  * containers.
  *
- * ## What this does NOT do
+ * ## A move is one field, and that is the whole design
  *
- * ADR-030 says a cross-container move is an explicit **fork**, and no fork
- * mutation exists yet (`convex/entities.ts` has create/update/claimLocal, not
- * fork). So this keeps exactly the semantics of the control it replaces: it
- * re-stamps the local record's container in place. Turning that into a fork is
- * a separate change with its own server surface, not something to smuggle in
- * behind a rename.
+ * Re-stamping `gameId` in place is not a shortcut pending something better —
+ * it is the model. There is **one entity**. The pilot on your shelf and that
+ * same pilot in a Game are one record with one field set differently, so a move
+ * changes that field and nothing else: same id, same body, same history.
+ *
+ * This header used to say the opposite, because ADR-030 §2 originally called a
+ * cross-container move an explicit **fork** and this control was documented as
+ * holding the line until a fork mutation existed. That clause was amended
+ * (2026-08-06): forking guarded against a "shared pilot" that the schema makes
+ * unrepresentable — `gameId` is a single nullable column, so an entity is in at
+ * most one Game by construction — and it would have bought that non-protection
+ * with a duplicate character to reconcile.
+ *
+ * So there is no missing fork mutation to add. `entities.upsertByAppId` re-homes
+ * the existing server row for the same reason (`existing.gameId !== args.gameId`
+ * patches the column rather than inserting), and the two halves must keep
+ * agreeing: if either ever starts copying, a player ends up with two of
+ * themselves and no way to tell which one the table can see.
  *
  * ## Solo renders nothing
  *
