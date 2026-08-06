@@ -851,29 +851,36 @@ export const run = async (opts: Options): Promise<number> => {
     if (a.text !== b.text) {
       // An append-only page passes only if every character the baseline emitted
       // survives, in order, with the growth confined to one insertion. A real
-      // regression on such a page still fails here.
-      if (APPEND_ONLY_PAGES.has(path) && isInsertionOf(a.text, b.text)) {
+      // regression on such a page still fails, in the else branch below.
+      //
+      // Deliberately if/else rather than an early `return`: this is currently
+      // the last comparison in the callback, so returning would be equivalent —
+      // but only by accident. Any check added after this point would then be
+      // silently skipped for exactly the pages carrying an exemption, which is
+      // the worst possible set to skip.
+      const isTolerableGrowth = APPEND_ONLY_PAGES.has(path) && isInsertionOf(a.text, b.text)
+      if (isTolerableGrowth) {
         pagesGrownAppendOnly += 1
         charsInserted += b.text.length - a.text.length
-        return
+      } else {
+        const excerpt = textExcerpt(a.text, b.text)
+        mainTextFindings.push({
+          file: path,
+          detail: [
+            `first difference at char ${excerpt.at} (baseline ${a.text.length} chars, candidate ${b.text.length} chars)`,
+            `baseline : ${excerpt.baseline}`,
+            `candidate: ${excerpt.candidate}`,
+            ...(APPEND_ONLY_PAGES.has(path)
+              ? [
+                  'this page is append-only, so it was compared under isInsertionOf',
+                  'rather than equality — it failed that too, meaning baseline',
+                  'content was removed, reordered or reworded. A real finding.',
+                ]
+              : []),
+          ].join('\n'),
+        })
+        bump(path, 1)
       }
-      const excerpt = textExcerpt(a.text, b.text)
-      mainTextFindings.push({
-        file: path,
-        detail: [
-          `first difference at char ${excerpt.at} (baseline ${a.text.length} chars, candidate ${b.text.length} chars)`,
-          `baseline : ${excerpt.baseline}`,
-          `candidate: ${excerpt.candidate}`,
-          ...(APPEND_ONLY_PAGES.has(path)
-            ? [
-                'this page is append-only, so it was compared under isInsertionOf',
-                'rather than equality — it failed that too, meaning baseline',
-                'content was removed, reordered or reworded. A real finding.',
-              ]
-            : []),
-        ].join('\n'),
-      })
-      bump(path, 1)
     }
   })
 
