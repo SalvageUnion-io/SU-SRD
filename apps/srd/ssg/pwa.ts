@@ -39,16 +39,31 @@ import { join } from 'node:path'
 import { generateSW } from 'workbox-build'
 
 /**
- * Byte-for-byte what `vite-plugin-pwa` emitted for
- * `registerType: 'autoUpdate'` + `injectRegister: 'script-defer'`.
+ * What `vite-plugin-pwa` emitted for `registerType: 'autoUpdate'` +
+ * `injectRegister: 'script-defer'`, plus a `.catch()`.
  * `BaseLayout.tsx` loads it with `<script defer src="/registerSW.js">`.
  *
- * No trailing newline: 134 bytes, byte-identical to the baseline's. That is
- * checkable — the precache entry's revision hash for `registerSW.js` must come
- * out as `1872c500de691dce40960bb85481de07`, exactly as in the baseline `sw.js`.
+ * **The `.catch()` is the whole reason this is no longer byte-identical to the
+ * Astro baseline's 134 bytes.** `register()` returns a promise that rejects for
+ * reasons entirely outside this site's control — a browser with service workers
+ * disabled, a locked-down enterprise profile, an extension intercepting the
+ * request — and `vite-plugin-pwa`'s snippet never handled it. Every one of those
+ * rejections became an *unhandled* rejection, which Sentry's `globalHandlers`
+ * integration dutifully reported as `Error: Rejected`: no stack worth reading,
+ * no user impact, and nothing anyone could act on. Nine of them in a week (issue
+ * SRD-2) for a feature that is meant to degrade silently.
+ *
+ * Swallowing is correct rather than lazy here. A failed registration means no
+ * offline caching, which is a progressive enhancement this site works fine
+ * without — there is no fallback to attempt and nothing to tell the user.
+ *
+ * Parity is unaffected: `ssg/parity.ts` compares the emitted **file set**, head
+ * metadata, JSON-LD, `<main>` text, the JSON endpoints and `llms.txt`. It never
+ * compares `registerSW.js` or `sw.js` bytes, so only the precache revision hash
+ * in `sw.js` moves, and nothing asserts on that.
  */
 const REGISTER_SW =
-  "if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' })})}"
+  "if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {})})}"
 
 /**
  * Write `dist/registerSW.js`, then generate `dist/sw.js` (plus its

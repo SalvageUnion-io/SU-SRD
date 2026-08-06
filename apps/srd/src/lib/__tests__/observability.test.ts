@@ -82,6 +82,16 @@ describe('observability', () => {
     // `tools/check-observability.ts` asserts against both netlify.tomls.
     expect(options.tracesSampleRate).toBe(0)
 
+    // Cross-document view transitions reject their `finished` promise with an
+    // AbortError whenever a navigation supersedes an in-flight one. It is not
+    // ours to catch (the promise is the browser's) and it means nothing went
+    // wrong, so it must never reach Sentry. Asserted on the substring Sentry
+    // actually matches against `${type}: ${value}`, so the real event shape
+    // "AbortError: Transition was skipped" is covered.
+    const ignored = options.ignoreErrors as string[]
+    expect(ignored).toContain('Transition was skipped')
+    expect('AbortError: Transition was skipped').toContain(ignored[0] as string)
+
     const boom = new Error('boom')
     captureException(boom, { where: 'island' })
 
