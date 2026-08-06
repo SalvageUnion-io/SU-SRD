@@ -23,6 +23,7 @@ import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
+import { AssignPilotToCrawler } from '../wiring/AssignPilotToCrawler'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
@@ -206,24 +207,52 @@ export function SheetCrawler({
           entityType="mech"
           className="flex-[1_1_0%]"
           roleLabel="Docked Mechs"
-          message="No mechs in the bay — dock one to repair, re-arm and track it from here."
+          /* Says how a mech actually gets here. The old copy — "dock one to
+             repair, re-arm and track it from here" — named a verb this surface
+             does not have: there is no mech→crawler link, so a mech arrives by
+             its pilot joining the crew. Promising "dock one" beside a button
+             that only creates a new mech is what "you couldn't assign them to a
+             crawler" felt like from the outside. */
+          message="No mechs in the bay. A mech arrives with its pilot — add that pilot to the crew and their mech docks here."
           actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
         />
       )}
       {composition.crawlerPilots.length > 0 ? (
-        composition.crawlerPilots.map((crewPilot) => (
-          <EntityRow
-            key={crewPilot.id}
-            entityType="pilot"
-            className="flex-[1_1_0%]"
-            name={crewPilot.name}
-            sheetHref={`/sheet/pilot/${crewPilot.id}`}
-            linkAs={AppLink}
-            meta="Pilot"
-            stats={rowStats(pilotRailItems(crewPilot))}
-            onDeleteClick={unlinkPilot(crewPilot.id)}
-          />
-        ))
+        <>
+          {composition.crawlerPilots.map((crewPilot) => (
+            <EntityRow
+              key={crewPilot.id}
+              entityType="pilot"
+              className="flex-[1_1_0%]"
+              name={crewPilot.name}
+              sheetHref={`/sheet/pilot/${crewPilot.id}`}
+              linkAs={AppLink}
+              meta="Pilot"
+              stats={rowStats(pilotRailItems(crewPilot))}
+              onDeleteClick={unlinkPilot(crewPilot.id)}
+            />
+          ))}
+          {/* A crew of one is not a full crew, so the way to add the second has
+              to survive the first. Rendered as the same `empty` EntityRow the
+              no-pilots branch uses rather than a bare button, so it inherits the
+              rail's sizing instead of introducing a second layout to keep in
+              step. */}
+          {editable && (
+            <EntityRow
+              empty
+              entityType="pilot"
+              className="flex-[1_1_0%]"
+              roleLabel="Crew"
+              message="Bring another pilot aboard."
+              actions={
+                <>
+                  <AssignPilotToCrawler crawlerId={crawler.id} />
+                  <RailCta href="/pilots/new" label="+ Create" />
+                </>
+              }
+            />
+          )}
+        </>
       ) : (
         <EntityRow
           empty
@@ -231,7 +260,17 @@ export function SheetCrawler({
           className="flex-[1_1_0%]"
           roleLabel="Pilots"
           message="No pilots wired to this crawler yet."
-          actions={editable ? <RailCta href="/pilots/new" label="+ Create" primary /> : undefined}
+          /* Both verbs, because they answer different questions. `+ Create` was
+             the only one here, which quietly assumed the pilot you wanted did
+             not exist yet — at a table, they almost always already do. */
+          actions={
+            editable ? (
+              <>
+                <AssignPilotToCrawler crawlerId={crawler.id} />
+                <RailCta href="/pilots/new" label="+ Create" primary />
+              </>
+            ) : undefined
+          }
         />
       )}
     </>

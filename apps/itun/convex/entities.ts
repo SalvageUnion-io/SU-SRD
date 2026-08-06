@@ -18,6 +18,7 @@ import {
   requireTableRunner,
   requireUser,
 } from './model/permissions'
+import { entityRefType, softLinkType } from './schema'
 
 /**
  * Entity reads and writes against the server of record (ADR-030 §1).
@@ -242,6 +243,28 @@ export const update = mutation({
     const body = parseBody(args.table, args.body)
 
     await ctx.db.patch(doc._id, { body, updatedAt: Date.now() })
+  },
+})
+
+/**
+ * Delete an entity, addressed by its **server** id. Owner only.
+ *
+ * The twin of `removeByAppId`, which the mirror uses, and necessary because the
+ * Game roster cannot use that one: it is looking at rows this browser may never
+ * have held, and at pre-gens seeded from a template that have no `appId` at all
+ * (production holds a dozen). Addressing by `_id` is the only way to name those,
+ * and it is exactly how `update`, `ownership.release` and `removeCrawler`
+ * already address a row from that surface.
+ */
+export const remove = mutation({
+  args: { table: OWNABLE, entityId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const doc = await loadOwnable(ctx, args.table, args.entityId)
+
+    assertMayWrite(doc, userId)
+    await ctx.db.delete(doc._id)
+    if (doc.appId !== undefined) await pruneSoftLinksFor(ctx, doc.appId)
   },
 })
 
@@ -525,23 +548,20 @@ export const claimLocal = mutation({
        * A soft link has no `appId` of its own — it IS its endpoints — so
        * identity is the (from, to, kind) triple, and that is what a re-claim
        * has to match on. Duplicates here are less destructive than a duplicate
-       * entity (nothing calls `.unique()` on this table) but they are not
-       * harmless: `listForGame` returns every row, so a roster would draw the
-       * same mech-to-pilot link twice.
+       * entity but they are not harmless: `listForGame` returns every row, so a
+       * roster would draw the same mech-to-pilot link twice.
+       *
+       * Shares `findSoftLink` with the mirror mutations below rather than
+       * repeating the lookup inline — the triple is the link's identity in both
+       * places, and two copies of that rule could disagree.
        */
       // Bound into locals: the checks above narrowed `l.from`/`l.to`, but that
-      // narrowing does not survive the `await` and the closure below.
+      // narrowing does not survive the `await` below.
       const from = { type: l.from.type, id: l.from.id }
       const to = { type: l.to.type, id: l.to.id }
       const linkType = l.type
 
-      const duplicateLink = (
-        await ctx.db
-          .query('softLinks')
-          .withIndex('by_from', (q) => q.eq('from.id', from.id))
-          .collect()
-      ).some((row) => row.to.id === to.id && row.type === linkType)
-      if (duplicateLink) {
+      if ((await findSoftLink(ctx, from.id, to.id, linkType)) !== null) {
         alreadyPresent += 1
         continue
       }
@@ -605,16 +625,55 @@ export const claimLocal = mutation({
  * This is the whole point of the `appId` column: a client that only knows its
  * local UUID can still address the server row, so updates and deletes work
  * without a mapping table. One indexed lookup, not a scan.
+ *
+ * ## Why this tolerates duplicates instead of asking for `.unique()`
+ *
+ * `by_app_id` is an ordinary Convex index, **not a uniqueness constraint** —
+ * nothing in the database has ever stopped two rows sharing an `appId`, and in
+ * production several did (`claimLocal` blind-inserts, and its only guard is a
+ * per-device localStorage marker, so claiming the same shelf from a second
+ * browser duplicates the roster).
+ *
+ * `.unique()` turned that *data* condition into a thrown `Server Error` on
+ * every subsequent mirrored write. `mirrorWrite` is fire-and-forget, so it
+ * swallowed the throw: the local copy went on accepting edits, the server never
+ * heard another one, and the two silently diverged forever — with the entity
+ * still rendering perfectly on the shelf that had already saved it. That is the
+ * worst failure this app can produce, and it was reachable from a duplicate row.
+ *
+ * A duplicate is a repair job. It is not a reason to refuse the write that
+ * would have kept client and server in step, so this resolves one row and lets
+ * the write land.
+ *
+ * **The oldest row wins, deterministically.** It is the row every earlier
+ * mirror already wrote to, so choosing it keeps editing the copy the client has
+ * been addressing all along rather than silently migrating to a younger one.
+ * `_creationTime` is used rather than index order because index order is not a
+ * documented guarantee, and a winner that moves between calls would be worse
+ * than the throw it replaces.
  */
 async function byAppId(
   ctx: MutationCtx,
   table: OwnableTable,
   appId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'> | null> {
-  return (await ctx.db
+  const matches = (await ctx.db
     .query(table)
     .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .unique()) as Doc<'pilots'> | Doc<'mechs'> | null
+    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'>>
+
+  if (matches.length === 0) return null
+  if (matches.length === 1) return matches[0] ?? null
+
+  // Logged every time rather than silently absorbed: the write now succeeds, so
+  // this line is the only remaining signal that a roster needs de-duplicating.
+  // It lands in the deployment log stream, which is the one place a Convex
+  // server-side message is readable at all (there is no Sentry SDK in here).
+  console.warn(
+    `[itun] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
+  )
+
+  return matches.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
 }
 
 /**
@@ -701,10 +760,7 @@ export const upsertByAppId = mutation({
 export const patchCrawlerByAppId = mutation({
   args: { appId: v.string(), patch: v.any() },
   handler: async (ctx, args): Promise<void> => {
-    const existing = await ctx.db
-      .query('crawlers')
-      .withIndex('by_app_id', (q) => q.eq('appId', args.appId))
-      .unique()
+    const existing = await crawlerByAppId(ctx, args.appId)
     if (existing === null) return
 
     await requireMember(ctx, existing.gameId)
@@ -723,13 +779,147 @@ export const patchCrawlerByAppId = mutation({
 export const removeCrawlerByAppId = mutation({
   args: { appId: v.string() },
   handler: async (ctx, args): Promise<void> => {
-    const existing = await ctx.db
-      .query('crawlers')
-      .withIndex('by_app_id', (q) => q.eq('appId', args.appId))
-      .unique()
+    const existing = await crawlerByAppId(ctx, args.appId)
     if (existing === null) return
 
     await requireTableRunner(ctx, existing.gameId)
+    await ctx.db.delete(existing._id)
+  },
+})
+
+/**
+ * The crawler mirroring a local build, addressed by app id.
+ *
+ * Tolerant of duplicates for exactly the reasons `byAppId` is — same
+ * non-unique index, same fire-and-forget mirror, same silent divergence if it
+ * throws. The crawler has no duplicates in production today, and that is luck
+ * rather than a constraint: `claimLocal` inserts one per claim, so a second
+ * claim from a second device would have produced them here too.
+ */
+async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'crawlers'> | null> {
+  const matches = await ctx.db
+    .query('crawlers')
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .collect()
+
+  if (matches.length === 0) return null
+  if (matches.length === 1) return matches[0] ?? null
+
+  console.warn(
+    `[itun] ${matches.length} crawlers share appId="${appId}" — resolving to the oldest; this game needs de-duplicating`
+  )
+
+  return matches.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
+}
+
+/**
+ * The server row for a soft link, addressed the way the client addresses one.
+ *
+ * Soft links carry no `appId` and need none: `from.id` and `to.id` already ARE
+ * app-level ids, so the (from, to, kind) triple is the link's identity. Two
+ * links with the same endpoints and the same kind are the same link, whichever
+ * browser drew it — which is what makes the mirror idempotent for free.
+ */
+async function findSoftLink(
+  ctx: MutationCtx,
+  fromId: string,
+  toId: string,
+  type: SoftLink['type']
+): Promise<Doc<'softLinks'> | null> {
+  const candidates = await ctx.db
+    .query('softLinks')
+    .withIndex('by_from', (q) => q.eq('from.id', fromId))
+    .collect()
+
+  return candidates.find((l) => l.to.id === toId && l.type === type) ?? null
+}
+
+/**
+ * Which ownable table a link's `from` endpoint lives in.
+ *
+ * The `from` end is always ownable — a mech in `mech-to-pilot`, a pilot in
+ * `pilot-to-crawler` — which is what lets one lookup answer both questions the
+ * mirror has to ask: may this user draw the link, and which container does it
+ * belong to.
+ */
+const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
+  'mech-to-pilot': 'mechs',
+  'pilot-to-crawler': 'pilots',
+}
+
+/**
+ * Mirror a soft link to the server of record.
+ *
+ * ## Why this exists
+ *
+ * Soft links were the one part of a roster that never left the browser.
+ * `mirrorEntityWrite` returned early for them — they were called "derived", and
+ * for a shelf they effectively are — while `listForGame` *read* them back. So a
+ * Game showed whatever links existed when the account was claimed, and every
+ * wiring change made afterwards was invisible to the rest of the table: you
+ * assigned a pilot to the crawler, your own sheet updated, and nobody else ever
+ * saw it. A link is not derived once a Game shares it; it is the assignment.
+ *
+ * ## Permission and container both come from the `from` end
+ *
+ * You may draw a link out of an entity you may write, and the link lands in
+ * that entity's container. Both fall out of one lookup, and both are the
+ * answers you want: wiring your own mech to a crewmate's pilot is your business
+ * because the mech is yours, and the link belongs wherever the mech does.
+ *
+ * A `from` entity with no server row means a purely local build — Solo, or
+ * shelved before a claim — so there is nothing to anchor a link to and this
+ * no-ops rather than inventing one.
+ */
+export const upsertSoftLink = mutation({
+  args: {
+    from: v.object({ type: entityRefType, id: v.string() }),
+    to: v.object({ type: entityRefType, id: v.string() }),
+    type: softLinkType,
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+
+    const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
+    if (anchor === null) return
+    assertMayWrite(anchor, userId)
+
+    const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
+    if (existing !== null) {
+      // The link is already here; only its container can have moved, and it
+      // moves with the entity it was drawn out of.
+      if (existing.gameId !== anchor.gameId) {
+        await ctx.db.patch(existing._id, { gameId: anchor.gameId })
+      }
+      return
+    }
+
+    await ctx.db.insert('softLinks', {
+      gameId: anchor.gameId,
+      from: args.from,
+      to: args.to,
+      type: args.type,
+    })
+  },
+})
+
+/** Unwire a soft link. Addressed by endpoints; already-gone is not an error. */
+export const removeSoftLink = mutation({
+  args: {
+    from: v.object({ type: entityRefType, id: v.string() }),
+    to: v.object({ type: entityRefType, id: v.string() }),
+    type: softLinkType,
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+
+    const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
+    if (anchor === null) return
+    assertMayWrite(anchor, userId)
+
+    const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
+    if (existing === null) return
+
     await ctx.db.delete(existing._id)
   },
 })
@@ -744,5 +934,30 @@ export const removeByAppId = mutation({
 
     assertMayWrite(existing, userId)
     await ctx.db.delete(existing._id)
+    await pruneSoftLinksFor(ctx, args.appId)
   },
 })
+
+/**
+ * Drop every link with this entity on either end.
+ *
+ * The client has cascaded this since well before Games existed
+ * (`deleteEntityWithSoftLinks`), and the server not doing the same is how a
+ * Game accumulates wires to characters that are gone — rendered as the "Unknown
+ * pilot (id)" rows the local cascade was written to abolish. Both ends are
+ * swept because a link is directional but a deletion is not.
+ */
+async function pruneSoftLinksFor(ctx: MutationCtx, appId: string): Promise<void> {
+  const [outgoing, incoming] = await Promise.all([
+    ctx.db
+      .query('softLinks')
+      .withIndex('by_from', (q) => q.eq('from.id', appId))
+      .collect(),
+    ctx.db
+      .query('softLinks')
+      .withIndex('by_to', (q) => q.eq('to.id', appId))
+      .collect(),
+  ])
+
+  await Promise.all([...outgoing, ...incoming].map((link) => ctx.db.delete(link._id)))
+}

@@ -268,6 +268,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const [error, setError] = useState<string | null>(null)
   /** The row whose UNCLAIMED seal was pressed, awaiting confirmation. */
   const [claimTarget, setClaimTarget] = useState<RosterRow | null>(null)
+  /** The row whose Delete was pressed, awaiting confirmation. */
+  const [deleteTarget, setDeleteTarget] = useState<RosterRow | null>(null)
 
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
@@ -276,6 +278,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const claim = useMutation(api.ownership.claim)
   const release = useMutation(api.ownership.release)
   const scrapCrawler = useMutation(api.entities.removeCrawler)
+  const removeEntity = useMutation(api.entities.remove)
 
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
@@ -540,6 +543,16 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   Offer to the crew
                                 </Button>
                               )}
+                              {row.can.delete && (
+                                <Button
+                                  variant="ghost"
+                                  size="mini"
+                                  disabled={busy !== null}
+                                  onClick={() => setDeleteTarget(row)}
+                                >
+                                  Delete
+                                </Button>
+                              )}
                               {row.can.scrap && (
                                 <Button
                                   variant="ghost"
@@ -580,6 +593,64 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           Back to your builds
         </AppLink>
       </p>
+
+      {/* The destructive twin of the pick-up confirm, in the danger tone the
+          Roster's own delete uses. It names the alternative on purpose: at a
+          shared table, "I am done with this character" almost always means
+          somebody else could have them, and a player who deletes when they
+          meant to hand over cannot undo it. */}
+      <ModalShell
+        open={deleteTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setDeleteTarget(null)
+        }}
+        title={`Delete ${deleteTarget?.name ?? ''}?`}
+        tone="danger"
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            This cannot be undone. {deleteTarget?.name ?? 'This character'} will be removed from
+            this game for everyone, and from this browser.
+          </div>
+          <div className="font-body text-xs text-wk-muted">
+            Only leaving the table? “Offer to the crew” hands them back instead — they stay in the
+            game for somebody else to pick up.
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="compact" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="compact"
+              disabled={busy !== null}
+              onClick={() => {
+                const row = deleteTarget
+                if (row === null || row.kind === 'crawler') return
+                void run(`delete-${row.serverId}`, async () => {
+                  // Server first, addressed by server id: the row may never
+                  // have been in this browser, and a template pre-gen has no
+                  // appId for the mirror to address it by.
+                  await removeEntity({
+                    table: row.kind === 'pilot' ? 'pilots' : 'mechs',
+                    entityId: row.serverId,
+                  })
+                  // Then drop the cached copy, exactly as release and scrap do.
+                  // `forget`, not `delete`: the server row is already gone, so
+                  // a second mirrored destruction would be a no-op at best.
+                  if (row.localId !== null) {
+                    await useEntityStore.getState().forget(row.kind, row.localId)
+                  }
+                  setDeleteTarget(null)
+                })
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </ModalShell>
 
       {/* Picking a character up is constructive, not destructive, so this is an
           `action`-toned confirm rather than the danger one the delete flows use.

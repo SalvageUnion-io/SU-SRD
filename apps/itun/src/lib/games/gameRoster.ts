@@ -53,6 +53,22 @@ export type RowCapabilities = {
   release: boolean
   /** Crawler only: the table runner may scrap it. */
   scrap: boolean
+  /**
+   * The viewer may destroy this row outright. Mirrors `removeByAppId`, so:
+   * the owner, and nobody else.
+   *
+   * A Game had no delete at all until now — only "Offer to the crew", which
+   * hands a character over rather than ending it. That left the ordinary case
+   * of a mistaken build with no way out except leaving it on the roster
+   * forever, and the feedback was the blunt version: "u can't delete pilots or
+   * mechs". The server has always allowed it; only the surface was missing.
+   *
+   * Deliberately distinct from `release`. Releasing is generous and reversible
+   * — somebody else picks the character up. Deleting is neither, which is why
+   * the two are separate verbs with separate confirms rather than one control
+   * that guesses.
+   */
+  delete: boolean
 }
 
 export type RosterRow = {
@@ -191,6 +207,7 @@ export function ownableRows(args: {
         claim: memberOfGame && owner.unclaimed,
         release: mine,
         scrap: false,
+        delete: mine,
       },
     }
   })
@@ -222,6 +239,10 @@ export function crawlerRows(args: {
       claim: false,
       release: false,
       scrap: args.tableRunner,
+      // A crawler is destroyed by scrapping it, which is the table runner's act
+      // and already has its own control. A second delete verb beside it would
+      // be the same destruction under a name the rules do not use.
+      delete: false,
     },
   }))
 }

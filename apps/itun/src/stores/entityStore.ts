@@ -38,7 +38,12 @@ import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 import { getActiveContainer } from './activeContainerStore'
-import { mirrorCrawlerWrite, mirrorWrite, requireWritableBackend } from './entityBackend'
+import {
+  mirrorCrawlerWrite,
+  mirrorSoftLinkWrite,
+  mirrorWrite,
+  requireWritableBackend,
+} from './entityBackend'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
 // Re-exported so consumers can import the type alongside the store itself.
@@ -284,21 +289,30 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
 /**
  * Mirror a just-persisted record to the server of record.
  *
- * SoftLinks are derived and never mirrored. Pilots and mechs upsert their whole
- * body; the crawler takes the other path (`mirrorCrawlerWrite`) because it is
- * communal — its edits merge per field and only its table runner may raise or
- * scrap one. Fire-and-forget by design: the local write is what the UI reads,
- * so a mirror failure must not undo it.
+ * Pilots and mechs upsert their whole body; the crawler takes the other path
+ * (`mirrorCrawlerWrite`) because it is communal — its edits merge per field and
+ * only its table runner may raise or scrap one; a SoftLink takes a third
+ * (`mirrorSoftLinkWrite`) because it is addressed by its endpoints rather than
+ * by an id. Fire-and-forget by design: the local write is what the UI reads, so
+ * a mirror failure must not undo it.
  *
  * `patch` is passed on an update so a crawler mirrors the *changed fields*
  * rather than its whole body; sending everything would turn a merge back into
  * last-write-wins and lose whatever a crewmate changed in the same minute.
+ *
+ * SoftLinks used to be excluded here as "derived". They are not, once a Game is
+ * involved — `listForGame` reads them back, so an unmirrored link meant the
+ * crew's view of who crews what froze at claim time. See `mirrorSoftLinkWrite`.
  */
 function mirrorEntityWrite(
   type: EntityType,
   record: { id: string; gameId?: string | null },
   patch?: object
 ): void {
+  if (type === 'softLink') {
+    mirrorSoftLink('upsert', record as unknown as SoftLink)
+    return
+  }
   if (type === 'crawler') {
     const gameId = record.gameId ?? null
     // Shelf and Solo crawlers have no server row to merge into.
@@ -317,6 +331,24 @@ function mirrorEntityWrite(
     gameId: record.gameId ?? null,
     body: record,
   })
+}
+
+/**
+ * Send one link's endpoints up, in whichever direction.
+ *
+ * Split out because a link is mirrored from two places that hold it in
+ * different shapes — `mirrorEntityWrite` gets the freshly persisted record,
+ * while `delete` has to read the record back *before* removing it, since the
+ * endpoints are the only address the server has for it.
+ *
+ * Guarded rather than assumed: a link whose endpoints did not survive a
+ * salvage-tolerant read has nothing to address, and sending a half link would
+ * fail validation server-side for no benefit.
+ */
+function mirrorSoftLink(kind: 'upsert' | 'delete', link: SoftLink | null): void {
+  if (link === null) return
+  if (link.from?.id === undefined || link.to?.id === undefined) return
+  void mirrorSoftLinkWrite({ kind, from: link.from, to: link.to, type: link.type })
 }
 
 function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
@@ -623,6 +655,9 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   async delete(type, id) {
     const key = storeKeyFor(type)
     requireWritableBackend()
+    // Read BEFORE the delete: a link is addressed on the server by its
+    // endpoints, and after the row is gone there is nothing left to name it by.
+    if (type === 'softLink') mirrorSoftLink('delete', get().get('softLink', id))
     if (type === 'pilot' || type === 'mech') void mirrorWrite(type, { kind: 'delete', appId: id })
     // Scrapping a crawler is the table runner's act; the server refuses anyone
     // else, which is why this mirrors rather than deleting only locally.

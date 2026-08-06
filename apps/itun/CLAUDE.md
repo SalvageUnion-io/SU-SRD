@@ -125,11 +125,22 @@ and remains the account-free way to share a build.
   `src/lib/connection/serverError.ts` — never by string-matching `'Server Error'`,
   and never by rendering `String(err)` from a mutation.
 - **Never insert into an `appId`-addressed table without checking first.**
-  `pilots`, `mechs` and `crawlers` are looked up by the client's `appId` with
-  `.unique()`, which **throws** on a second row — and since mirrored writes are
-  fire-and-forget, that throw is invisible: local writes keep succeeding while
-  the server of record silently stops receiving them. `convex/maintenance.ts`
-  repairs rows already in that state (`dedupeAppIds`, dry-run by default).
+  `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
+  `by_app_id` is an ordinary index — **not** a uniqueness constraint — so
+  nothing in the database stops a second row. Prevention is the rule:
+  `appIdTaken` before any insert. `convex/maintenance.ts` repairs rows already
+  in that state (`dedupeAppIds`, dry-run by default).
+
+  The **lookups themselves no longer throw** on a duplicate. `byAppId` /
+  `crawlerByAppId` resolve to the oldest match and `console.warn`, because
+  mirrored writes are fire-and-forget: a throw here is invisible to the player,
+  so it does not fail the write, it just stops the write from ever reaching the
+  server while every surface keeps rendering it as saved. That is how an
+  evening of play went missing. A duplicate is a repair job — it is not a reason
+  to refuse the write that would have kept client and server in step. The
+  warning is the tripwire, and it fires without taking the player's data with
+  it. Resolving to the *oldest* is deliberate: it is the row `dedupeAppIds`
+  keeps, so a write that lands before the repair runs is not discarded by it.
 
 ## Commands
 

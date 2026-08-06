@@ -43,11 +43,17 @@ import { v } from 'convex/values'
  * there, each kept in step with its Zod counterpart in `src/lib/schemas/`.
  */
 
-/** Mirrors `EntityRefSchema.type` (src/lib/schemas/entity.ts) — ADR-027. */
-const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
+/**
+ * Mirrors `EntityRefSchema.type` (src/lib/schemas/entity.ts) — ADR-027.
+ *
+ * Exported so a mutation that takes an endpoint as an *argument* validates it
+ * against this same union rather than a hand-copied one. `entities.upsertSoftLink`
+ * is the caller; a second copy there is exactly the drift the header warns about.
+ */
+export const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
 
-/** Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). */
-const softLinkType = v.union(v.literal('mech-to-pilot'), v.literal('pilot-to-crawler'))
+/** Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above. */
+export const softLinkType = v.union(v.literal('mech-to-pilot'), v.literal('pilot-to-crawler'))
 
 /**
  * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus

@@ -141,6 +141,42 @@ describe('rows carry ownership as a state, never a blank', () => {
   })
 })
 
+describe('deleting from a game', () => {
+  const rows = [
+    { _id: 's1', appId: 'a1', ownerId: 'u-play', body: { name: 'Roach-Boy' } },
+    { _id: 's2', appId: null, ownerId: null, body: { name: 'Pre-gen' } },
+    { _id: 's3', appId: 'a3', ownerId: 'u-med', body: { name: "Someone else's" } },
+  ]
+
+  const built = (viewerId: string | null) =>
+    ownableRows({ kind: 'pilot', rows, viewerId, members: ALL, localIds: new Set() })
+
+  test('the owner may delete their own', () => {
+    // A Game had no delete at all before this — only "Offer to the crew", which
+    // hands a character over rather than ending it. The reported version was
+    // blunter: "u can't delete pilots or mechs".
+    const [mine] = built('u-play')
+    expect(mine?.can.delete).toBe(true)
+  })
+
+  test("nobody may delete a crewmate's, or an unclaimed pre-gen", () => {
+    const [, pregen, theirs] = built('u-play')
+    // Mirrors `assertMayWrite`: an unclaimed row has no owner to be, and
+    // somebody else's is theirs. Both refuse on the server, so neither offers.
+    expect(pregen?.can.delete).toBe(false)
+    expect(theirs?.can.delete).toBe(false)
+  })
+
+  test('delete is not release — a row that can do one can do both', () => {
+    // They are separate verbs on purpose: releasing is generous and reversible,
+    // deleting is neither. A surface that collapsed them would guess wrong in
+    // the one direction that cannot be undone.
+    const [mine] = built('u-play')
+    expect(mine?.can.release).toBe(true)
+    expect(mine?.can.delete).toBe(true)
+  })
+})
+
 describe('crawler rows are communal', () => {
   const rows = [{ _id: 'c1', appId: 'ca1', body: { name: '#430 Tenacity' } }]
 
@@ -156,5 +192,14 @@ describe('crawler rows are communal', () => {
   test('only the table runner may scrap one', () => {
     expect(crawlerRows({ rows, tableRunner: false, localIds: new Set() })[0]?.can.scrap).toBe(false)
     expect(crawlerRows({ rows, tableRunner: true, localIds: new Set() })[0]?.can.scrap).toBe(true)
+  })
+
+  test('and scrapping is the only way to destroy one', () => {
+    // No second delete verb beside Scrap: it would be the same destruction
+    // under a name the rules do not use, and for the table runner alone either
+    // way.
+    for (const tableRunner of [false, true]) {
+      expect(crawlerRows({ rows, tableRunner, localIds: new Set() })[0]?.can.delete).toBe(false)
+    }
   })
 })
