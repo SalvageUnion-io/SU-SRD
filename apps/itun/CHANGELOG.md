@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.0.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.2...itun-v1.0.3) (2026-08-06)
+
+
+### Bug Fixes
+
+* **itun:** give every seeded Starter Set row its own UUID ([#707](https://github.com/SalvageUnion-io/SU-SRD/issues/707)) ([1333308](https://github.com/SalvageUnion-io/SU-SRD/commit/1333308a9edfddc54d44ab3311d8f3de8ab61d27))
+
 ## [1.0.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.1...itun-v1.0.2) (2026-08-06)
 
 
