@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
+import { getChoices, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -46,6 +46,55 @@ export const Default: Story = () => {
           chosenLabel="Chosen"
           title="Choose Equipment"
           onClose={() => {}}
+        />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * `mode="single"` — the exactly-one picker, shown on the largest entity in the
+ * data. This is what ITUN's Change Chassis and Change Crawler Type modals
+ * render; both used to run a bespoke master/detail pair whose narrow option
+ * rail was thinner than a chassis card's own artwork, so every option came out
+ * clipped and unreadably tall. Here the two-column masonry gives each card its
+ * natural width, `hide.patterns` drops the section a picker can't act on, and
+ * `railActions` carries the Apply/Cancel pair the destructive flow needs.
+ */
+export const BigEntitySingleSelect: Story = () => {
+  const [selected, setSelected] = useState<string>(
+    nameToSlug(SalvageUnionReference.Chassis.all()[0]?.name ?? '')
+  )
+  return (
+    <div className="flex flex-col gap-3">
+      <Caption>
+        Single-select over `chassis` — a `radiogroup` pool, one Chosen entry in the rail, and the
+        picker's actions pinned beneath it.
+      </Caption>
+      <div className="mx-auto w-full max-w-5xl">
+        <EntitySearcher
+          schema="chassis"
+          mode="single"
+          selected={selected ? [selected] : []}
+          onToggle={(ref) => setSelected((prev) => (prev === ref ? '' : ref))}
+          idOf={(item) => nameToSlug(item.name)}
+          hide={{ patterns: true }}
+          facets={{ status: false }}
+          chosenLabel="Chosen"
+          title="Change Chassis"
+          subtitle="Swapping chassis clears the current loadout."
+          emptyMessage="No matching chassis."
+          onClose={() => {}}
+          railActions={
+            <>
+              <Button variant="ghost" size="compact">
+                Cancel
+              </Button>
+              <Button size="compact" disabled={!selected}>
+                Apply chassis
+              </Button>
+            </>
+          }
         />
       </div>
     </div>
