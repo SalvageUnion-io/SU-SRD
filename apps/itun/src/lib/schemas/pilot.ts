@@ -113,6 +113,30 @@ export const PilotSchema = z
     classRef: z.string(),
 
     /**
+     * The Core class this pilot advanced OUT of, when `classRef` names a Hybrid.
+     *
+     * **Reference data, not an entity link.** This is a class slug pointing into
+     * `salvageunion-reference` — never at another row — so it creates no
+     * relationship between two records and there is nothing to keep in sync.
+     *
+     * **An override, not the record of truth.** The origin is normally DERIVED
+     * from the trees the pilot holds abilities in, and that derivation is
+     * reliable rather than a guess: advancing legally takes 6 Core abilities —
+     * 3 in the gate tree, which the hybrid grants and so proves nothing, plus 3
+     * more that only the origin's own trees can supply. So this field stays
+     * absent for the ordinary pilot and is written only when the player answers
+     * a disambiguation, which is the case derivation cannot cover: a pilot with
+     * no abilities yet, one holding only trees the hybrid grants anyway, or a
+     * free-edited pilot whose trees point two ways at once.
+     *
+     * Additive-optional — absent reads as "derive it" (no version bump /
+     * migration). It deliberately CANNOT be backfilled: unlike `seedRef`, no
+     * stored value implies it, and a migration may only await IndexedDB so it
+     * could not import the class-to-tree map it would need anyway.
+     */
+    originClassRef: z.string().optional(),
+
+    /**
      * Slugs of class abilities selected for this pilot.
      * Uncapped at the schema level so advancement beyond the creation budget
      * can persist (plan 2.2). The rules cap — 10 abilities, 12 for Salvager —
