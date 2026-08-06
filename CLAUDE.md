@@ -68,13 +68,15 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 **The registry lives in [`docs/architecture/agent-tooling.md`](docs/architecture/agent-tooling.md)** — every site id, service id, org slug, deployment name and dashboard URL, plus how each MCP server authenticates and how to re-derive any of it. Read that instead of listing every project on an account. This section is the summary.
 
-The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts each contributor to approve it per-project) and declares **five** servers — Netlify, Sentry, Render, GitHub, Convex:
+The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts each contributor to approve it per-project) and declares **six** servers — Netlify, Sentry, Render, GitHub, Convex, Context7:
 
 - **Netlify** — hosts three sites: `apps/srd` (static, no functions), `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)), and `apps/su-assets` (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp`, run over stdio via `npx`; authenticates through the Netlify CLI/OAuth.
 - **Sentry** — browser + server error tracking for all three code apps (`@sentry/browser` in `srd` and `itun`, `@sentry/node` in `itun` and `discord-bot`, `@sentry/vite-plugin` for `itun` release artifacts). MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
 - **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: hosted HTTP at `https://mcp.render.com/mcp`.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: remote HTTP at `https://api.githubcopilot.com/mcp/`. **This one does not work unconfigured** — the endpoint does not support dynamic client registration, so it needs a machine-local PAT header; see the registry doc. Until then, use the `gh` CLI.
 - **Convex** — the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (17 modules — `auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, …) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md). MCP server: stdio via `bunx convex mcp start --project-dir apps/itun`, authenticating with the Convex CLI's own device credentials. It targets the **dev** deployment resolved from `CONVEX_DEPLOYMENT`, so run `bunx convex dev` once or every tool call fails; production access is gated behind flags that are deliberately **not** set.
+
+- **Context7** — version-pinned library documentation, remote HTTP at `https://mcp.context7.com/mcp`. Keyless on the free tier, so it adds no credential. It is here because this repo pins hard and runs ahead of model training data (TypeScript 7 + the `typescript-classic` 6 alias, Vite 8, Tailwind 4.3, Convex 1.43, TanStack Router 1.170) — "what is the API in **this** version" is the recurring failure. Two tools, the smallest context cost of any server here. Treat what it returns as advisory: the docs are condensed, not authoritative.
 
 `.mcp.json` is **secret-free by design.** It carries transport, command and URL only — no `Authorization` headers, no tokens, and deliberately **no `${VAR}` placeholders** (#291 removed those on purpose; do not reintroduce them). Authenticate each remote server locally — OAuth on first connect, or machine-local Claude Code config that is never committed.
 
@@ -337,5 +339,8 @@ When to reach for which skill (overlap explained):
 - `/a11y-scan` — WCAG 2.1 AA scan via Playwright + axe-core (srd). **Not puppeteer** — `tools/a11y-scan.ts` moved to Playwright so the repo has one browser stack, not two (see "Root Dev Dependencies" above).
 - `/triage` — read every production and CI signal, then propose the day's work in priority order.
 - `/component-refresh` — redesign an existing component through the three-level loop (real SSR "before" → NEW\* Ladle comparison → staged cutover).
-- `/commit` — conventional commit with message drafting.
+- `/knip-triage` — resolve a knip dead-code failure. The command is one line; the failure mode is applying the wrong rule, so this encodes the decision procedure (delete by default; `@public` / `@knipignore` are the only exemptions and `@knipignore` requires showing the export is consumed).
+- `/convex-deploy-verify` — configure and verify an ITUN Convex deployment without signing in. Every failure on that path is silent and misattributes, so it carries the three required env vars, the `.convex.site` vs `.convex.cloud` distinction, the curl probe **including its bogus-provider control**, and presence-by-length (`convex env get` exits 0 for a variable that does not exist).
 - `/deploy-bot` — deploy Discord slash commands.
+
+There is deliberately **no `/commit`**. It was four lines with no frontmatter, and its last step — "commit and push to the current branch" — is a direct push to `main` when HEAD is `main`, which the user-level rebase-guard blocks anyway. Use `/ship` (user-level) or the `commit-commands` plugin.

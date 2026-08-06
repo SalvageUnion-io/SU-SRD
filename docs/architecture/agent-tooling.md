@@ -42,6 +42,7 @@ something outside the file.
 | `render`  | http — `https://mcp.render.com/mcp`              | OAuth on first connect, or a machine-local API-key header           | The `suref-discord-bot` worker, logs       |
 | `convex`  | stdio — `bunx convex mcp start --project-dir apps/itun` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
 | `github`  | http — `https://api.githubcopilot.com/mcp/`      | **Machine-local PAT header — see below.** Does not work unconfigured | The `SalvageUnion-io/SU-SRD` repo, PRs, CI |
+| `context7` | http — `https://mcp.context7.com/mcp`           | None — keyless on the free tier                                     | Version-pinned docs for this repo's dependencies |
 
 **Verify the whole set at once with `claude mcp list`.** A server that reports
 anything other than `✔ Connected` is not a server you can rely on, and "zero
@@ -98,6 +99,19 @@ exists, the server starts fine and every tool call fails** with:
 
 So a green `claude mcp list` is not proof the Convex tools work — run
 `bunx convex dev` once to link a dev deployment first.
+
+### `context7` is advisory, and that is the whole point
+
+It answers "what is the API in **this** version", which is the failure this repo
+keeps paying for — TypeScript 7 alongside a load-bearing `typescript-classic` 6
+alias, Vite 8, Tailwind 4.3, Convex 1.43, TanStack Router 1.170, Biome 2.5, knip
+6.29. Most of that is newer than any model's training data.
+
+Two caveats, neither disqualifying: what it returns is **condensed
+documentation, not the source** — verify anything load-bearing against
+`node_modules` or the project's own types — and library-name queries leave the
+machine, though no repo content does. It exposes two tools, the smallest context
+cost of any server here.
 
 ## Netlify
 
