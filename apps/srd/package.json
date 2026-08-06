@@ -36,11 +36,11 @@
     "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.0",
+    "@playwright/test": "1.62.1",
     "@vitejs/plugin-react-swc": "^4.3.3",
-    "playwright": "1.62.0",
+    "playwright": "1.62.1",
     "sharp": "0.35.3",
-    "vite": "^8.1.5",
+    "vite": "^8.2.0",
     "workbox-build": "7.4.1"
   }
 }
