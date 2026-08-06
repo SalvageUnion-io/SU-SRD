@@ -51,6 +51,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './games.ts': () => import('../../convex/games'),
   './mediator.ts': () => import('../../convex/mediator'),
   './invites.ts': () => import('../../convex/invites'),
+  './maintenance.ts': () => import('../../convex/maintenance'),
   './ownership.ts': () => import('../../convex/ownership'),
   './proposals.ts': () => import('../../convex/proposals'),
   './templates.ts': () => import('../../convex/templates'),

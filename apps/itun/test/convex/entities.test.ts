@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { ConvexError } from 'convex/values'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { testConvex } from './harness'
@@ -492,5 +493,158 @@ describe('claiming a legacy roster carries the whole thing', () => {
     })
     expect(result.byKind.pilots).toBe(1)
     expect(result.skipped).toBe(1)
+  })
+})
+
+/**
+ * Whether a refusal is fit to leave the deployment.
+ *
+ * Convex redacts a plain `Error` thrown from a production function down to
+ * "[CONVEX M(fn)] Server Error" before any client sees it, and propagates a
+ * `ConvexError`'s `data` intact. Every authorization message in this repo was
+ * therefore written, thrown, and discarded at the boundary — a player who tried
+ * something the rules refuse got the same opaque string as a genuine crash.
+ *
+ * This cannot be observed through `convex-test`, which runs in-process and so
+ * never serializes anything. What it *can* pin is the property the wire
+ * behaviour depends on: the error carries its message as `ConvexError` data.
+ */
+describe('refusals say why', () => {
+  test('an authorization failure crosses the wire as ConvexError data', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const stranger = await makeUser(t, 'Stranger')
+
+    await owner.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    const pilotId = await t.run(async (ctx) => (await ctx.db.query('pilots').first())?._id)
+
+    const err = await stranger.as
+      .mutation(api.entities.update, {
+        table: 'pilots',
+        entityId: pilotId as string,
+        body: pilotBody({ name: 'not yours' }),
+      })
+      .then(
+        () => null,
+        (e: unknown) => e
+      )
+
+    expect(err).toBeInstanceOf(ConvexError)
+    // The `data` field is the whole mechanism: it is what Convex sends on, and
+    // what `serverMessage()` reads on the client.
+    expect((err as ConvexError<string>).data).toMatch(/cannot edit another player/i)
+  })
+})
+
+/**
+ * Claiming the same roster twice.
+ *
+ * This is not a hypothetical: the only thing that ever stopped a second claim
+ * was a `localStorage` marker, and the card that writes it is deliberately
+ * re-offered on a second device. A player signing in on a laptop after their
+ * phone ran the whole claim again.
+ *
+ * The cost was permanent and silent. `byAppId` and `patchCrawlerByAppId` use
+ * `.unique()`, which throws on a second row with the same app id, so from the
+ * moment a roster was duplicated **every mirrored write for those entities
+ * failed** — while the local write kept succeeding, leaving the app looking
+ * healthy as IndexedDB and the server of record drifted apart for good.
+ */
+describe('claiming twice is a no-op, not a second copy', () => {
+  const crawler = crawlerBody()
+
+  test('the second claim copies nothing and says so', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    const roster = { pilots: [pilotBody(), pilotBody({ id: 'p2' })], mechs: [mechBody()] }
+
+    const first = await u.as.mutation(api.entities.claimLocal, roster)
+    const second = await u.as.mutation(api.entities.claimLocal, roster)
+
+    expect(first.claimed).toBe(3)
+    expect(second.claimed).toBe(0)
+    // Reported separately from `skipped`, which means "could not be read" —
+    // telling a player their roster was unreadable when it is simply already
+    // there would be a worse lie than the silence this replaced.
+    expect(second.alreadyPresent).toBe(3)
+    expect(second.skipped).toBe(0)
+
+    const pilots = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    const mechs = await t.run(async (ctx) => await ctx.db.query('mechs').collect())
+    expect(pilots).toHaveLength(2)
+    expect(mechs).toHaveLength(1)
+  })
+
+  test('the mirror still works after a repeat claim — the bug this fixes', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+
+    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+
+    // Before the guard this threw `unique() query returned more than one
+    // result from table pilots`, redacted to an opaque "Server Error" on the
+    // client and swallowed by the fire-and-forget mirror. Every edit to this
+    // pilot was lost from that point on, with nothing shown to anyone.
+    await u.as.mutation(api.entities.upsertByAppId, {
+      table: 'pilots',
+      appId: 'p1',
+      gameId: null,
+      body: pilotBody({ name: 'Edited after the second claim' }),
+    })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    expect(rows).toHaveLength(1)
+    expect((rows[0]?.body as { name: string } | undefined)?.name).toBe(
+      'Edited after the second claim'
+    )
+  })
+
+  test('a repeat claim does not raise a second placeholder game', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+
+    await u.as.mutation(api.entities.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
+    await u.as.mutation(api.entities.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
+
+    // The placeholder Game used to be raised before anything checked whether
+    // there was a crawler left to put in it, so a re-claim grew the player's
+    // game list by one empty "Claimed crawler" every time.
+    const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
+    const games = await t.run(async (ctx) => await ctx.db.query('games').collect())
+    const memberships = await t.run(async (ctx) => await ctx.db.query('memberships').collect())
+    expect(crawlers).toHaveLength(1)
+    expect(games).toHaveLength(1)
+    expect(memberships).toHaveLength(1)
+  })
+
+  test('soft links and patterns are not duplicated either', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    const roster = {
+      pilots: [],
+      mechs: [],
+      crawlers: [crawler],
+      softLinks: [
+        {
+          from: { type: 'pilot', id: 'p1' },
+          to: { type: 'crawler', id: 'c1' },
+          type: 'pilot-to-crawler',
+        },
+      ],
+      mechPatterns: [patternBody()],
+    }
+
+    await u.as.mutation(api.entities.claimLocal, roster)
+    const second = await u.as.mutation(api.entities.claimLocal, roster)
+
+    expect(second.claimed).toBe(0)
+    const links = await t.run(async (ctx) => await ctx.db.query('softLinks').collect())
+    const patterns = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
+    // A link has no app id — it IS its endpoints — so identity is the
+    // (from, to, kind) triple. Nothing calls `.unique()` here, but a roster
+    // that drew the same pilot-to-crawler link twice is still wrong.
+    expect(links).toHaveLength(1)
+    expect(patterns).toHaveLength(1)
   })
 })

@@ -301,6 +301,33 @@ export const removeCrawler = mutation({
 })
 
 /**
+ * Whether this table already holds a row carrying this app id.
+ *
+ * Deliberately `.first()` and not `.unique()`, which is the opposite of
+ * `byAppId` two hundred lines down, and the difference is the point: this
+ * function's job is to run correctly **on a table that is already duplicated**.
+ * `.unique()` throws when it finds more than one row, so using it here would
+ * make the claim that repairs nothing also fail outright on exactly the accounts
+ * that need repairing most.
+ *
+ * Existence is asked without reference to who owns the row. A row with this app
+ * id belonging to somebody else is still a reason not to insert: `byAppId` is a
+ * **global** lookup, so a second row would break the mirror for both accounts
+ * rather than one. See the note on app-id collisions in `claimLocal`.
+ */
+async function appIdTaken(
+  ctx: MutationCtx,
+  table: 'pilots' | 'mechs' | 'crawlers',
+  appId: string
+): Promise<boolean> {
+  const existing = await ctx.db
+    .query(table)
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .first()
+  return existing !== null
+}
+
+/**
  * Upload local entities into this account on first sign-in (D11).
  *
  * Everything lands on the **shelf**, never straight into a Game. A person
@@ -311,6 +338,40 @@ export const removeCrawler = mutation({
  * rather than aborting the claim**. A single corrupt local record should not
  * cost somebody their whole roster — the count of skipped rows comes back so
  * the UI can say what did not make it.
+ *
+ * ## Claiming twice is now a no-op, and it has to be
+ *
+ * Every insert below is guarded on identity, because this mutation is **not**
+ * called once per account no matter how the UI is written. The only thing that
+ * used to stop a second run was a `localStorage` marker on one device, and the
+ * card that writes it is deliberately re-offered on a second device — so a
+ * player signing in on their laptop after their phone, or in a fresh browser
+ * profile, or after clearing site data, ran the whole claim again.
+ *
+ * The consequence was not a cosmetic double-up. Pilots, mechs and crawlers are
+ * addressed by `appId`, and the lookups that address them (`byAppId`,
+ * `patchCrawlerByAppId`) use `.unique()`, which **throws** on a second row.
+ * From the moment a roster was claimed twice, every mirrored write for those
+ * entities failed with an opaque server error, silently and permanently: the
+ * local write still succeeded, so the app looked fine while IndexedDB and the
+ * declared server of record drifted apart for good. That is the failure this
+ * guard exists to make impossible, and a client-side marker was never the right
+ * place to enforce it — the damage is server-side and forever, so the check
+ * belongs here.
+ *
+ * Identity per kind: `appId` for pilots, mechs and crawlers; the
+ * (from, to, kind) triple for soft links; the body's own id for patterns.
+ *
+ * ## The residual sharp edge: app ids are not globally unique
+ *
+ * `appId` is a UUID the client minted, and export/import copies a build between
+ * people **keeping its id**. Two accounts can therefore legitimately hold the
+ * same app id, which the `by_app_id` + `.unique()` pairing assumes cannot
+ * happen. This mutation takes the safe side of that — an app id already present
+ * anywhere is reported as `alreadyPresent` rather than inserted, so a claim can
+ * decline to copy a build instead of corrupting the mirror for two people. That
+ * is a real limitation, not a fix; closing it means keying the index on
+ * (ownerId, appId), which is a schema change and its own piece of work.
  */
 export const claimLocal = mutation({
   args: {
@@ -323,11 +384,17 @@ export const claimLocal = mutation({
   handler: async (
     ctx,
     args
-  ): Promise<{ claimed: number; skipped: number; byKind: Record<string, number> }> => {
+  ): Promise<{
+    claimed: number
+    skipped: number
+    alreadyPresent: number
+    byKind: Record<string, number>
+  }> => {
     const userId = await requireUser(ctx)
     const now = Date.now()
     let claimed = 0
     let skipped = 0
+    let alreadyPresent = 0
     const byKind: Record<string, number> = {}
 
     const bump = (kind: string) => {
@@ -349,6 +416,12 @@ export const claimLocal = mutation({
           typeof (body as { id?: unknown }).id === 'string'
             ? (body as { id: string }).id
             : undefined
+
+        if (appId !== undefined && (await appIdTaken(ctx, table, appId))) {
+          alreadyPresent += 1
+          continue
+        }
+
         await ctx.db.insert(table, {
           gameId: null,
           ownerId: userId,
@@ -374,9 +447,33 @@ export const claimLocal = mutation({
      * discarded: the shelf cannot hold it, and inventing a crawler-shaped shelf
      * would be a third container the model does not have.
      */
+    /*
+     * The crawler pass resolves what it will write BEFORE it raises the
+     * placeholder Game, because that Game is itself a write that must not
+     * repeat. Raising it up front — as this did — meant a re-claim with nothing
+     * new to say still left behind an empty "Claimed crawler" Game and a
+     * membership in it, so a player's game list grew by one every time they
+     * signed in somewhere new.
+     */
     const crawlers = args.crawlers ?? []
+    const claimableCrawlers: Array<{ appId: string | undefined; body: unknown }> = []
+    for (const body of crawlers) {
+      const parsed = CrawlerSchema.safeParse(body)
+      if (!parsed.success) {
+        skipped += 1
+        continue
+      }
+      const appId =
+        typeof (body as { id?: unknown }).id === 'string' ? (body as { id: string }).id : undefined
+      if (appId !== undefined && (await appIdTaken(ctx, 'crawlers', appId))) {
+        alreadyPresent += 1
+        continue
+      }
+      claimableCrawlers.push({ appId, body: parsed.data })
+    }
+
     let shelfGameId: Id<'games'> | null = null
-    if (crawlers.length > 0) {
+    if (claimableCrawlers.length > 0) {
       shelfGameId = await ctx.db.insert('games', { name: 'Claimed crawler' })
       await ctx.db.insert('memberships', {
         gameId: shelfGameId,
@@ -386,18 +483,15 @@ export const claimLocal = mutation({
         joinedAt: now,
       })
     }
-    for (const body of crawlers) {
-      const parsed = CrawlerSchema.safeParse(body)
-      if (!parsed.success || shelfGameId === null) {
+    for (const crawler of claimableCrawlers) {
+      if (shelfGameId === null) {
         skipped += 1
         continue
       }
-      const appId =
-        typeof (body as { id?: unknown }).id === 'string' ? (body as { id: string }).id : undefined
       await ctx.db.insert('crawlers', {
         gameId: shelfGameId,
-        appId,
-        body: parsed.data,
+        appId: crawler.appId,
+        body: crawler.body,
         updatedAt: now,
       })
       bump('crawlers')
@@ -427,14 +521,54 @@ export const claimLocal = mutation({
         skipped += 1
         continue
       }
-      await ctx.db.insert('softLinks', {
-        gameId: shelfGameId,
-        from: { type: l.from.type, id: l.from.id },
-        to: { type: l.to.type, id: l.to.id },
-        type: l.type,
-      })
+      /*
+       * A soft link has no `appId` of its own — it IS its endpoints — so
+       * identity is the (from, to, kind) triple, and that is what a re-claim
+       * has to match on. Duplicates here are less destructive than a duplicate
+       * entity (nothing calls `.unique()` on this table) but they are not
+       * harmless: `listForGame` returns every row, so a roster would draw the
+       * same mech-to-pilot link twice.
+       */
+      // Bound into locals: the checks above narrowed `l.from`/`l.to`, but that
+      // narrowing does not survive the `await` and the closure below.
+      const from = { type: l.from.type, id: l.from.id }
+      const to = { type: l.to.type, id: l.to.id }
+      const linkType = l.type
+
+      const duplicateLink = (
+        await ctx.db
+          .query('softLinks')
+          .withIndex('by_from', (q) => q.eq('from.id', from.id))
+          .collect()
+      ).some((row) => row.to.id === to.id && row.type === linkType)
+      if (duplicateLink) {
+        alreadyPresent += 1
+        continue
+      }
+
+      await ctx.db.insert('softLinks', { gameId: shelfGameId, from, to, type: linkType })
       bump('softLinks')
     }
+
+    /*
+     * Patterns are the one claimed kind with no `appId` column at all, so the
+     * repeat-claim check reads the id out of the body and compares against this
+     * user's own patterns. `by_owner` keeps that to one indexed read of a set
+     * that is per-person and small — a pattern is a saved mech loadout, not a
+     * log.
+     */
+    const ownPatterns =
+      (args.mechPatterns ?? []).length > 0
+        ? await ctx.db
+            .query('mechPatterns')
+            .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+            .collect()
+        : []
+    const ownPatternIds = new Set(
+      ownPatterns
+        .map((row) => (row.body as { id?: unknown }).id)
+        .filter((id): id is string => typeof id === 'string')
+    )
 
     for (const body of args.mechPatterns ?? []) {
       // Patterns are parsed like every other claimed body. They were the one
@@ -445,6 +579,13 @@ export const claimLocal = mutation({
         skipped += 1
         continue
       }
+      const patternId = (body as { id?: unknown }).id
+      if (typeof patternId === 'string' && ownPatternIds.has(patternId)) {
+        alreadyPresent += 1
+        continue
+      }
+      if (typeof patternId === 'string') ownPatternIds.add(patternId)
+
       await ctx.db.insert('mechPatterns', {
         ownerId: userId,
         gameId: null,
@@ -454,7 +595,7 @@ export const claimLocal = mutation({
       bump('mechPatterns')
     }
 
-    return { claimed, skipped, byKind }
+    return { claimed, skipped, alreadyPresent, byKind }
   },
 })
 

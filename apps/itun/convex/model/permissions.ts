@@ -1,4 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import { ConvexError } from 'convex/values'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
@@ -25,8 +26,34 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 
 type AnyCtx = QueryCtx | MutationCtx
 
-/** Thrown for every authorization failure, so callers can map it to a 403. */
-export class NotAuthorized extends Error {
+/**
+ * Thrown for every authorization failure, so callers can map it to a 403.
+ *
+ * **It extends `ConvexError`, and that is the only reason any of the messages
+ * in this repo reach a player.** Convex redacts a plain `Error` thrown from a
+ * production function down to `"[CONVEX M(fn)] Server Error"` before the client
+ * ever sees it — deliberately, so an unhandled crash cannot leak internals.
+ * `ConvexError` is the documented opt-out: its `data` is sent over the wire
+ * intact.
+ *
+ * Until this changed, every carefully-worded refusal here — "This game has no
+ * Union Crawler yet — the Mediator raises one before the crew joins it", "You
+ * cannot edit another player's entity" — was written, thrown, and then thrown
+ * away at the boundary. A player who tried something the rules disallow got the
+ * same opaque "Server Error" as a genuine crash, and so did the operator
+ * reading Sentry.
+ *
+ * The distinction this draws is the one worth keeping: a `NotAuthorized` is an
+ * **expected answer** to a request the rules refuse, and it says so out loud. A
+ * plain `Error` remains what it was — a defect nobody planned for, opaque to
+ * the client on purpose and legible only in the Convex logs and Sentry.
+ *
+ * Note the subclass itself does not survive the wire: the client receives a
+ * plain `ConvexError` whose `data` is this message, so it narrows with
+ * `instanceof ConvexError`, never `instanceof NotAuthorized`. See
+ * `src/lib/connection/serverError.ts`.
+ */
+export class NotAuthorized extends ConvexError<string> {
   constructor(message: string) {
     super(message)
     this.name = 'NotAuthorized'

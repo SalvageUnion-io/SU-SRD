@@ -19,6 +19,7 @@ import type * as entities from "../entities.js";
 import type * as games from "../games.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
+import type * as maintenance from "../maintenance.js";
 import type * as mediator from "../mediator.js";
 import type * as model_bot from "../model/bot.js";
 import type * as model_entities from "../model/entities.js";
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   http: typeof http;
   invites: typeof invites;
+  maintenance: typeof maintenance;
   mediator: typeof mediator;
   "model/bot": typeof model_bot;
   "model/entities": typeof model_entities;
