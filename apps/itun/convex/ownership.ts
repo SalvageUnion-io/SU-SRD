@@ -184,7 +184,23 @@ export const release = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
-      throw new NotAuthorized('An entity on a shelf is already unclaimed')
+      /*
+       * A shelved entity is NOT unclaimed, and this used to say it was.
+       *
+       * ADR-030 §2 allows three states, and they are not interchangeable:
+       * `gameId` set + `ownerId` null is **unclaimed** — in a Game, waiting for
+       * somebody to take it; `gameId` null + `ownerId` set is **on the owner's
+       * shelf** — already somebody's. Both null is the one invalid combination,
+       * which is exactly what releasing a shelved entity would produce, and is
+       * why this refuses rather than no-ops.
+       *
+       * The message matters now that it reaches a player: `NotAuthorized`
+       * extends `ConvexError`, so this string is shown rather than redacted, and
+       * it was teaching the wrong model to the person least able to check it.
+       */
+      throw new NotAuthorized(
+        'A build on your shelf is already yours — there is no crew here to release it to. Move it into a game first.'
+      )
     }
     if (doc.ownerId === null) return
 

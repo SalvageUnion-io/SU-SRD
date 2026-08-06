@@ -202,4 +202,34 @@ describe('what the game will accept', () => {
   })
 })
 
+describe('copy to shelf', () => {
+  test('every character offers it, including ones you do not own', () => {
+    renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
+
+    // Derived from what you may already read: membership grants the frozen crew
+    // view of every row, so copying what is on screen escalates nothing. It is
+    // also the only way to keep a character when you leave the table —
+    // `ownership.leaveGame` has documented this act since before it existed.
+    expect(screen.getAllByRole('button', { name: 'Copy to shelf' })).toHaveLength(3)
+  })
+
+  test('the crawler does not, because a shelved crawler cannot exist', () => {
+    renderAs(ME, listing({ crawlers: [CRAWLER] }))
+
+    // `crawlers.gameId` is NON-nullable in the Convex schema, so there is no
+    // server row a shelved crawler could be — which is why `claimLocal` parks a
+    // claimed one on a placeholder Game rather than shelving it.
+    expect(screen.queryByRole('button', { name: 'Copy to shelf' })).toBeNull()
+  })
+
+  test('it is not a destructive verb, so it does not ask first', () => {
+    renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    fireEvent.click(screen.getByRole('button', { name: 'Copy to shelf' }))
+
+    // Delete opens a danger confirm; copying destroys nothing and its result is
+    // one more build on your shelf, so a modal would guard an undo-by-delete.
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+})
+
 afterAll(convexMocks.restore)
