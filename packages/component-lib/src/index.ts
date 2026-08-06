@@ -221,11 +221,7 @@ export { ClassAbilityStep } from './components/wizard/ClassAbilityStep'
 export { CrawlerStatsStep } from './components/wizard/CrawlerStatsStep'
 // Wizard step presentation lifted out of ITUN — pure option/detail rendering;
 // the app supplies the selections and the persistence.
-export {
-  CrawlerTypeDetail,
-  CrawlerTypeOptionList,
-  CrawlerTypeSelectStep,
-} from './components/wizard/CrawlerTypeStep'
+export { CrawlerTypeSelectStep } from './components/wizard/CrawlerTypeStep'
 export { selectableClasses } from './components/wizard/classOptions'
 export { EquipmentStep } from './components/wizard/EquipmentStep'
 export { FlavorStep } from './components/wizard/FlavorStep'

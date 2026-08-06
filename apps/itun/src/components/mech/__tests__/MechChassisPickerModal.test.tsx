@@ -69,6 +69,22 @@ describe('MechChassisPickerModal', () => {
     )
   })
 
+  it('will not apply an EMPTY chassis after the selection is cleared', () => {
+    const seen: string[] = []
+    const { current } = renderPicker((ref) => seen.push(ref))
+
+    // Single-select clears when the chosen card is clicked again. A mech must
+    // always have a chassis, so this must NOT count as a change — otherwise
+    // Apply writes `chassisRef: ''` and wipes the loadout with it.
+    fireEvent.click(screen.getByRole('radio', { name: current.name }))
+    expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
+
+    const apply = screen.getByRole('button', { name: /apply chassis/i })
+    expect(apply.hasAttribute('disabled')).toBe(true)
+    fireEvent.click(apply)
+    expect(seen).toEqual([])
+  })
+
   it('confirms with the chassis SLUG, and only after the danger dialog', () => {
     const seen: string[] = []
     const { other } = renderPicker((ref) => seen.push(ref))

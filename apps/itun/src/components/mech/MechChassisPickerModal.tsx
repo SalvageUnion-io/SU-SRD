@@ -47,7 +47,12 @@ export function MechChassisPickerModal({
     }
   }, [open, currentChassisRef])
 
-  const changed = selected !== currentChassisRef
+  // A mech must always HAVE a chassis, so "nothing selected" is not an applyable
+  // state — only a different one is. The empty guard is load-bearing: single-select
+  // clears on clicking the chosen card (and via the rail's Remove), and without it
+  // Apply would enable on an empty ref and write `chassisRef: ''` — an unresolvable
+  // chassis plus a wiped loadout, since applying also clears systems/modules.
+  const changed = selected !== '' && selected !== currentChassisRef
 
   function apply() {
     if (!changed) {

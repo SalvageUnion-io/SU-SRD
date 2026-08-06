@@ -174,13 +174,11 @@ type SheetPickerModalProps = {
   title: string
   /** ModalShell max width; defaults to 80% of the viewport for the wide picker grid. */
   maxWidth?: string
-  /** Confirm/cancel footer for single-select pickers (multi-select omits it). */
-  footer?: ReactNode
   /**
    * The searcher-picker layout: render a BARE ModalShell and hand the single
    * `EntitySearcher` child its own frame by injecting this modal's
-   * `title`/`onClose`. (The default framed layout stays for the master-detail
-   * single-select pickers that pass a `footer`.)
+   * `title`/`onClose`. (The default framed layout stays for picker bodies that
+   * are not a searcher and so need this modal's own frame.)
    */
   floating?: boolean
   children: ReactNode
@@ -189,15 +187,21 @@ type SheetPickerModalProps = {
 /**
  * The single shared picker modal every collection '+ Add' (and single-select
  * swap) opens — never hand-roll per-sheet dialogs. Multi-select pickers write
- * through on toggle (ITUN auto-saves; there is no Save button); single-select
- * pickers pass a confirm `footer`.
+ * through on toggle (ITUN auto-saves; there is no Save button).
+ *
+ * There is deliberately **no `footer` prop.** It existed for the master/detail
+ * single-select pickers' confirm buttons, and became a trap once they migrated
+ * to `EntitySearcher`: the `floating` branch returns before rendering a footer,
+ * so a `floating` + `footer` call would have silently dropped its confirm
+ * buttons — invisible to both typecheck and knip. A floating picker puts its
+ * actions in the searcher's own `railActions` slot instead, beneath the
+ * selection it is confirming.
  */
 export function SheetPickerModal({
   open,
   onClose,
   title,
   maxWidth = 'max-w-[80vw]',
-  footer,
   floating = false,
   children,
 }: SheetPickerModalProps) {
@@ -236,11 +240,6 @@ export function SheetPickerModal({
       maxWidth={maxWidth}
     >
       <div className="bg-paper p-5">{children}</div>
-      {footer && (
-        <div className="flex justify-end gap-2 border-t-2 border-ink bg-paper px-5 py-3">
-          {footer}
-        </div>
-      )}
     </ModalShell>
   )
 }
