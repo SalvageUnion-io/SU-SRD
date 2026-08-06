@@ -7,6 +7,7 @@ import {
   usesServerOfRecord,
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
+import { serverMessage } from '../lib/connection/serverError'
 import { captureException } from '../lib/observability'
 
 /**
@@ -172,8 +173,25 @@ export async function mirrorWrite(
     // a mirror failure means IndexedDB has diverged from Convex, the declared
     // server of record (ADR-030), and a console line in one player's browser
     // is not a signal anyone will ever see.
-    console.warn('[itun] failed to mirror write to the server of record', err)
-    captureException(err, { source: 'mirrorWrite', type, op: op.kind })
+    //
+    // `refusal` is what the server was willing to say (see
+    // `lib/connection/serverError.ts`). Both kinds are still reported, because
+    // both mean the same thing about the data — the mirror did not land — but
+    // they are not the same thing to whoever reads the report, so the tag makes
+    // them separable:
+    //
+    //   - a **refusal** carries the rule that stopped it, in words. It is the
+    //     backend working as designed, and the fix (if any) is a product one.
+    //   - a **defect** arrives redacted as "Server Error" no matter what went
+    //     wrong, so the message is worthless and the Convex logs are the only
+    //     place the cause exists.
+    //
+    // That distinction is exactly what was missing when a duplicate-appId
+    // `unique()` violation spent an evening looking indistinguishable from a
+    // permission denial.
+    const refusal = serverMessage(err)
+    console.warn('[itun] failed to mirror write to the server of record', refusal ?? err)
+    captureException(err, { source: 'mirrorWrite', type, op: op.kind, refusal })
   }
 }
 
@@ -222,9 +240,14 @@ export async function mirrorCrawlerWrite(
       await convexClient.mutation(api.entities.removeCrawlerByAppId, { appId: op.appId })
     }
   } catch (err) {
-    // See mirrorWrite: swallowed for the user, reported to operators.
-    console.warn('[itun] failed to mirror crawler write to the server of record', err)
-    captureException(err, { source: 'mirrorCrawlerWrite', op: op.kind })
+    // See mirrorWrite: swallowed for the user, reported to operators, and
+    // tagged with whatever the server was willing to say. This path is the one
+    // that most needs it — "Only the Mediator can do that" is a routine answer
+    // here (a player editing a communal crawler), and it should never read like
+    // a crash.
+    const refusal = serverMessage(err)
+    console.warn('[itun] failed to mirror crawler write to the server of record', refusal ?? err)
+    captureException(err, { source: 'mirrorCrawlerWrite', op: op.kind, refusal })
   }
 }
 

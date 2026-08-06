@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { serverMessage } from '../../lib/connection/serverError'
+import { captureException } from '../../lib/observability'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 
@@ -25,11 +27,18 @@ import { usePatternStore } from '../../stores/patternStore'
  *
  * ## Why it is one-time
  *
- * Claiming twice would duplicate the roster: `claimLocal` inserts, and the
- * local records keep their ids, so a second run creates a second copy of
- * everything. The completion marker is per **account**, not per device — the
- * same person on a second device should still be offered their local data
- * there, but should never be asked twice for the same upload on the same one.
+ * The completion marker is per **account**, not per device — the same person on
+ * a second device should still be offered their local data there, but should
+ * never be asked twice for the same upload on the same one.
+ *
+ * **That marker is a courtesy, not the guard.** It used to be the only thing
+ * standing between a player and a duplicated roster, and it could not be: it
+ * lives in `localStorage`, so a second device, a fresh profile or a cleared
+ * cache ran the whole claim again — and because entities are addressed by
+ * `appId` through a `.unique()` lookup, a second copy broke every subsequent
+ * mirrored write for those entities, silently and for good. `claimLocal` now
+ * skips anything it already holds (see its header), so re-claiming is a no-op
+ * on the server and this marker only decides whether to *ask*.
  */
 
 const CLAIMED_KEY_PREFIX = 'itun.claimedLocalData.'
@@ -52,7 +61,12 @@ function markClaimed(userKey: string): void {
   }
 }
 
-type Summary = { claimed: number; skipped: number; byKind: Record<string, number> }
+type Summary = {
+  claimed: number
+  skipped: number
+  alreadyPresent: number
+  byKind: Record<string, number>
+}
 
 function ConnectedClaim() {
   const claimLocal = useMutation(api.entities.claimLocal)
@@ -66,6 +80,7 @@ function ConnectedClaim() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [busy, setBusy] = useState(false)
   const [dismissed, setDismissed] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const total = pilots.length + mechs.length + crawlers.length + patterns.length
   // Keyed on the roster itself rather than a user id the client does not hold:
@@ -103,6 +118,7 @@ function ConnectedClaim() {
                 disabled={busy}
                 onClick={() => {
                   setBusy(true)
+                  setError(null)
                   void claimLocal({
                     pilots: pilots as unknown[],
                     mechs: mechs as unknown[],
@@ -114,6 +130,17 @@ function ConnectedClaim() {
                       markClaimed(userKey)
                       setSummary(result as Summary)
                     })
+                    .catch((err: unknown) => {
+                      // Without this the promise rejected unhandled: the button
+                      // simply stopped saying "Copying…" and the player was left
+                      // to guess whether their roster had been copied. Deliberately
+                      // NOT marked as claimed — a failed claim must stay on offer.
+                      setError(
+                        serverMessage(err) ??
+                          'Your builds could not be copied just now. They are still on this device — try again in a moment.'
+                      )
+                      captureException(err, { source: 'claimLocal' })
+                    })
                     .finally(() => setBusy(false))
                 }}
               >
@@ -123,12 +150,28 @@ function ConnectedClaim() {
                 Not now
               </Button>
             </div>
+            {error !== null && (
+              <Text variant="hint" className="text-left">
+                {error}
+              </Text>
+            )}
           </>
         ) : (
           <>
             <Text>
               Copied {summary.claimed} item{summary.claimed === 1 ? '' : 's'} to your account.
             </Text>
+            {summary.alreadyPresent > 0 && (
+              // Claiming the same roster twice is now a no-op rather than a
+              // second copy, so this line is what tells a player that "0 copied"
+              // means "already done", not "nothing happened".
+              <Text variant="hint" className="text-left">
+                {summary.alreadyPresent}{' '}
+                {summary.alreadyPresent === 1 ? 'was already' : 'were already'} in your account and{' '}
+                {summary.alreadyPresent === 1 ? 'was' : 'were'} left as{' '}
+                {summary.alreadyPresent === 1 ? 'it is' : 'they are'}.
+              </Text>
+            )}
             {summary.skipped > 0 && (
               <Text variant="hint" className="text-left">
                 {summary.skipped} could not be read and {summary.skipped === 1 ? 'was' : 'were'}{' '}

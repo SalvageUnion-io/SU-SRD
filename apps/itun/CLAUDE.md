@@ -110,11 +110,26 @@ and remains the account-free way to share a build.
   (`src/lib/observability.ts`) and the Netlify Functions
   (`netlify/functions/_observability.ts`) each own one; Convex instead uses its
   first-party Exception Reporting integration, enabled in the Convex dashboard
-  with no application code. Queries and mutations run in a deterministic runtime
-  with no `fetch`, so an in-function SDK could not report from them at all —
-  rationale and the enable-it runbook are in
+  with no application code (**on for production since 2026-08-05**). Queries and
+  mutations run in a deterministic runtime with no `fetch`, so an in-function SDK
+  could not report from them at all — rationale and the enable-it runbook are in
   [docs/architecture/accounts-and-games.md](../../docs/architecture/accounts-and-games.md)
   ("Convex error reporting — a dashboard toggle, not code").
+- **Throw `ConvexError` when the message is for a player; plain `Error` when it
+  is not.** Convex redacts every non-`ConvexError` throw to
+  `"[CONVEX M(fn)] […] Server Error"` before the client sees it, so a
+  user-facing message thrown as a plain `Error` is written and then discarded.
+  `NotAuthorized` (`convex/model/permissions.ts`) extends `ConvexError` for
+  exactly this reason; parse failures and broken invariants stay plain. On the
+  client, read it with `serverMessage()` / `isServerRefusal()` from
+  `src/lib/connection/serverError.ts` — never by string-matching `'Server Error'`,
+  and never by rendering `String(err)` from a mutation.
+- **Never insert into an `appId`-addressed table without checking first.**
+  `pilots`, `mechs` and `crawlers` are looked up by the client's `appId` with
+  `.unique()`, which **throws** on a second row — and since mirrored writes are
+  fire-and-forget, that throw is invisible: local writes keep succeeding while
+  the server of record silently stops receiving them. `convex/maintenance.ts`
+  repairs rows already in that state (`dedupeAppIds`, dry-run by default).
 
 ## Commands
 

@@ -285,6 +285,56 @@ repo):
   Convex errors will not carry a commit SHA the way the Netlify and Render
   surfaces do.
 
+**Status: enabled on production** (`exuberant-porpoise-183` → the `itun-convex`
+Sentry project), 2026-08-05.
+
+#### What reaches Sentry, and what reaches the player
+
+Convex splits everything `convex/` can throw in two, at the wire, and the split
+is not configurable:
+
+| thrown              | the client receives                       | good for                       |
+| ------------------- | ----------------------------------------- | ------------------------------ |
+| `ConvexError`       | its `data`, intact                        | refusals the rules make        |
+| anything else       | `"[CONVEX M(fn)] […] Server Error"`        | defects nobody planned for     |
+
+Both still reach Sentry and the function logs. The difference is entirely about
+what a **player** may see, and the repo takes a deliberate position on it:
+
+- **`NotAuthorized` extends `ConvexError`** (`convex/model/permissions.ts`), so
+  every authorization message — around thirty-five of them — is copy that
+  actually arrives. Until 2026-08-05 it did not: each one was written, thrown,
+  and discarded at the boundary, and a player who tried something the rules
+  refuse got the same opaque string as a crash.
+- **Everything else stays a plain `Error`.** A Zod parse failure or a broken
+  invariant is not a message to show anyone; it belongs in the logs.
+
+On the client, `src/lib/connection/serverError.ts` is the only sanctioned way to
+ask which one you have (`serverMessage` / `isServerRefusal`). Never string-match
+`'Server Error'` at a call site, and never render `String(err)` from a mutation —
+that string is the redacted one.
+
+#### Repairing duplicated app ids
+
+`convex/maintenance.ts` holds operator-only repairs, reachable through
+`bunx convex run` and not from any client. The one that exists today undoes the
+damage described under "Claiming twice" in `convex/entities.ts`: rows sharing an
+`appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
+write for that entity, permanently and silently.
+
+```bash
+# report only — changes nothing
+bunx convex run maintenance:dedupeAppIds --prod
+# then, having read the report
+bunx convex run maintenance:dedupeAppIds '{"apply": true}' --prod
+```
+
+It keeps one row per app id (an owned row over an unclaimed one, then the most
+recently written) and reports how many `changeLog` rows — audit history and
+pending Mediator proposals alike — still point at a copy it would delete. Those
+address entities by Convex id rather than `appId`, so they do not follow the
+survivor.
+
 ### Netlify
 
 | Site               | Serves                           | Notes                                                                                                                                        |

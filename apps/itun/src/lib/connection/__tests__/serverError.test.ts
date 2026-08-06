@@ -1,0 +1,52 @@
+import { describe, expect, test } from 'bun:test'
+import { ConvexError } from 'convex/values'
+import { isServerRefusal, serverMessage } from '../serverError'
+
+/**
+ * Telling a refusal apart from a defect on the client.
+ *
+ * The distinction is not cosmetic. Convex sends a `ConvexError`'s data across
+ * intact and redacts everything else to `"[CONVEX M(fn)] […] Server Error"`, so
+ * "did the backend choose to say this?" is the only honest basis for deciding
+ * whether a string is fit to show a player. Getting it wrong in the permissive
+ * direction is how an opaque internal error ends up rendered in the UI.
+ */
+describe('serverMessage', () => {
+  test('returns the message the backend deliberately sent', () => {
+    // What `NotAuthorized` becomes by the time it reaches the browser: the
+    // subclass does not survive serialization, only the data does.
+    const refusal = new ConvexError(
+      'This game has no Union Crawler yet — the Mediator raises one before the crew joins it'
+    )
+
+    expect(serverMessage(refusal)).toBe(
+      'This game has no Union Crawler yet — the Mediator raises one before the crew joins it'
+    )
+    expect(isServerRefusal(refusal)).toBe(true)
+  })
+
+  test('returns null for a redacted server error, so nothing leaks to the UI', () => {
+    // The real shape of a defect: the cause is stripped before it leaves the
+    // deployment, so this string is all the client ever gets. Showing it to a
+    // player is strictly worse than saying nothing.
+    const defect = new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error')
+
+    expect(serverMessage(defect)).toBeNull()
+    expect(isServerRefusal(defect)).toBe(false)
+  })
+
+  test('non-Error values are not refusals', () => {
+    expect(serverMessage('a bare string')).toBeNull()
+    expect(serverMessage(null)).toBeNull()
+    expect(serverMessage(undefined)).toBeNull()
+  })
+
+  test('a non-string or empty payload counts as no message', () => {
+    // `ConvexError.data` is any Convex value. A structured payload would
+    // stringify to something no player should read, and an empty string is not
+    // a message at all — both take the "there is nothing to show" path rather
+    // than rendering as a blank or a JSON blob.
+    expect(serverMessage(new ConvexError({ code: 'nope' }))).toBeNull()
+    expect(serverMessage(new ConvexError(''))).toBeNull()
+  })
+})
