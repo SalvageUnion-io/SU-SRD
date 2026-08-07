@@ -210,9 +210,8 @@ describe('registerDocument', () => {
         '<body><p>pastiche</p></body></html>'
     )
     // Everything BaseLayout would have added is exactly what must NOT appear on
-    // these pages. With the parity gate retired, these four assertions are the
-    // only thing standing between a `renderMode` slip and shipping og/canonical
-    // tags on a noindex page.
+    // these pages. `ssg/snapshot.ts` catches the same slip over the real build;
+    // these assertions catch it here, without needing one.
     expect(html).not.toContain('rel="canonical"')
     expect(html).not.toContain('og:title')
     expect(html).not.toContain('/assets/styles-CAFEBABE.css')

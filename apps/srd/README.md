@@ -24,9 +24,11 @@ Run from the repo root:
 
 And from `apps/srd/` itself:
 
-| Script             | What it does                       |
-| ------------------ | ---------------------------------- |
-| `bun ssg/build.ts` | Build the static site into `dist/` |
+| Script                  | What it does                                                  |
+| ----------------------- | ------------------------------------------------------------- |
+| `bun ssg/build.ts`      | Build the static site into `dist/`                            |
+| `bun run gate`          | **Output gate** — build, then diff `dist` against the snapshot |
+| `bun run snapshot:update` | Re-bless the snapshot after an intentional output change     |
 
 ## Tech stack
 
@@ -36,10 +38,12 @@ client bundle, Tailwind v4, in-memory search via `salvageunion-reference`'s
 
 Two things worth knowing before you touch it:
 
-- **Nothing checks the finished site.** The Astro-migration parity gate is
-  retired, so no automated check compares the built `dist` against a reference.
-  The unit tests cover the generator's pieces, not the output they compose into —
-  verify emit changes by reading real built HTML.
+- **`ssg/snapshot.ts` is the output gate.** `bun run gate` builds and diffs the
+  result against `ssg/output-snapshot.json` — the emitted file set, per-page head
+  metadata and JSON-LD, a digest of every page's `<main>` text, all 899 JSON
+  endpoints and `llms.txt`. It runs in CI. When output changes on purpose, run
+  `bun run snapshot:update` and commit the snapshot: one line per page, so the
+  diff is the reviewable record of what changed.
 - **No `.css` import may be reachable from an SSR module.** The SSR pass runs under
   Bun with no Vite in the loop. All css comes from `src/runtime/styles.entry.ts`, a
   client-bundle entry.

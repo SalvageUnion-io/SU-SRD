@@ -49,6 +49,8 @@ ephemerally/non-editably
 | `sitemap.ts`    | `sitemap-index.xml` + `sitemap-0.xml`                                         |
 | `pwa.ts`        | workbox `generateSW` over the finished `dist`                                 |
 | `outputPath.ts` | URL → dist file mapping (`/404` → `404.html`, everything else `…/index.html`) |
+| `htmlDigest.ts` | tolerant, dependency-free scanning of built HTML (head, JSON-LD, text)        |
+| `snapshot.ts`   | **the output gate** — see below                                              |
 
 ### Routes are registered, not discovered
 
@@ -127,46 +129,82 @@ renders exactly one placeholder:
 3. Relative imports only (never `@/` aliases); `type` over `interface`;
    `import type` for type-only imports; no `any`.
 
-## Verification
+## Verification — `ssg/snapshot.ts` is the output gate
 
 ```bash
 cd apps/srd
-bun ssg/build.ts     # ~2.4s — must emit 1,039 pages and 900 endpoints
-bun test             # the unit suite
+bun run gate          # = bun ssg/build.ts && bun ssg/snapshot.ts
 ```
 
-There is **no whole-page-output gate.** The Astro-migration parity gate
-(`ssg/parity.ts`) was retired once the migration was long finished and its
-baseline was gone — see [ADR-031](../../docs/adrs/ADR-031-srd-vite-ssg.md),
-which anticipated exactly this and called the shelf life when it wrote the
-decision. Do not go looking for it, and do not cite it as coverage.
+It compares the built `dist` against `ssg/output-snapshot.json`, a committed
+~680 KB digest of the site, and **runs in CI** (in the `build-srd` job, which is
+path-filtered on anything that can change srd's output — `apps/srd/**`,
+`packages/component-lib/**`, `packages/salvageunion-reference/**`).
 
-**Say plainly what this costs, because it is the one real loss:** nothing now
-compares the built `dist` against a known-good reference. A change that silently
-alters every page's `<main>` text, drops a JSON-LD block, or reshapes an endpoint
-payload will not be caught by any automated check. The build succeeding is not
-evidence the output is right.
+### If your change alters the output on purpose
 
-What IS asserted, and what each one actually covers:
+```bash
+bun run snapshot:update   # re-bless, then COMMIT the snapshot with your change
+```
 
-| Test                       | Covers                                                       |
-| -------------------------- | ------------------------------------------------------------ |
-| `outputPath.test.ts`       | URL → dist file mapping — the rule the whole emit rests on    |
-| `render.test.tsx`          | one route → HTML string, incl. what `BaseLayout` contributes  |
-| `document.test.tsx`        | the `<html>` shell: head tags, JSON-LD, script/style injection |
-| `island.test.tsx`          | island placeholder emission + the four client strategies      |
-| `sitemap.test.ts`          | `sitemap-index.xml` / `sitemap-0.xml` and the exclusion filter |
-| `navCatalog.drift.test.ts` | the committed generated nav catalog matches the generator     |
-| `src/lib/__tests__/llms-txt.test.ts` | `llms.txt` content rules                            |
-| `src/lib/__tests__/schemaSurfaceParity.test.ts` | the schema surface the site exposes       |
+The snapshot is one line per page, so "23 pages changed" is literally 23 changed
+lines in the diff. **That diff is the deliverable** — it is the complete,
+reviewable statement of what your change did to the site. Re-blessing without
+reading it defeats the entire mechanism.
 
-These are unit tests over the generator's **pieces**. They do not compose into a
-statement about the finished site.
+### What it covers
 
-So when you change rendering, routing or emit, verify by **looking at real
-output** — build, then read the emitted HTML or serve `dist` and measure the
-rendered page — rather than by reasoning about the diff. That is not a lesser
-substitute for a gate; with no gate it is the only evidence there is.
+- the exact emitted **file set**, both directions — this is what holds the page
+  count at 1,039; drop a route from `routes.ts` and it fails here
+- per page: `<title>`, description, canonical, robots as **plaintext** (so the
+  diff reads), plus a digest of every `og:*` / `twitter:*` tag
+- per page: the ordered list of JSON-LD `@type`s
+- per page: a digest of `<main>`'s normalized visible text, plus its length
+- all 899 JSON endpoints, canonicalized then digested (so key reordering is not
+  a false positive)
+- `llms.txt`, both sitemaps, `_headers`, the webmanifest
+
+Deliberately **not** covered:
+
+- **bundle bytes** (`assets/**`, `sw.js`) and binary assets. Their names are
+  content-addressed and their content changes on every dependency bump, so
+  digesting them would make the snapshot churn and the gate would get switched
+  off. Hashed filenames are normalized to `-[hash]`, so the file SET is still
+  asserted.
+- **markup and attributes inside `<main>`** — the digest is of visible TEXT.
+  A change that alters only attributes passes. Verified concretely: the
+  `CardImage` regression that hid every piece of entity artwork behind
+  `style="opacity:0"` (#717) does **not** fail this gate. Hashing full markup
+  would catch it and would also fire on every Tailwind class change, which here
+  is constant. **Visual regressions are not this gate's job** — look at the page.
+
+Parity did not cover any of these either.
+
+### It bites
+
+22 tests in `ssg/__tests__/snapshot.test.ts` inject a defect and assert it is
+reported — dropped route, changed title/description/canonical, removed `og:`
+tag, dropped JSON-LD block, altered `<main>` text, altered JSON endpoint,
+reflowed `llms.txt`. It was also run against **eight defects injected into the
+real 1,039-page build** and caught all eight.
+
+### `/changelog` is compared for insertion, not equality
+
+It renders from the two `CHANGELOG.md` files release-please **prepends** to, so
+under equality every release PR would fail this gate and need a regeneration to
+land — a release deadlock. Its full `<main>` text is stored and compared with
+`isInsertionOf`: every character previously emitted must still be present, in
+order, with growth confined to one contiguous insertion. Deleting, reordering or
+rewording an old entry still FAILS, and everything else on that page (its title,
+metadata, JSON-LD) is still compared normally. The gate prints the exemption on
+every run.
+
+### What it cannot do
+
+Parity compared against a foreign **oracle** (Astro's own output), so it could
+catch output that was wrong from the start. This compares against what we last
+blessed, so **a wrong output that gets committed as the snapshot is wrong
+forever.** That is the price of a baseline that survives; read the diff.
 
 ## Key Directories
 

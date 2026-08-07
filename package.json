@@ -82,7 +82,8 @@
     "check:styling": "bun tools/check-styling-ownership.ts",
     "check:printed-names": "bun tools/check-printed-names.ts",
     "check:fast": "concurrently -g 'bun run lint' 'bun run validate:all' 'bun run knip' && bun run typecheck",
-    "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling'",
+    "check:srd-output": "bun --filter srd gate",
+    "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling' 'bun run check:srd-output'",
     "ladle": "bun --filter component-lib ladle"
   },
   "patchedDependencies": {

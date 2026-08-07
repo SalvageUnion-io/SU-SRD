@@ -2,10 +2,10 @@
  * `/schema/[schemaId]/item/[itemId]` — an entity's show page.
  * Port of `[itemId].astro`.
  *
- * The largest route family on the site (~880 of 1,039 pages). Every field below
- * was once compared by `ssg/parity.ts` against the Astro baseline; that gate is
- * retired, so a change here now reaches ~880 pages with nothing checking the
- * result. Build and read the emitted HTML.
+ * The largest route family on the site (~880 of 1,039 pages), so a change here
+ * reaches almost the whole SRD at once. `ssg/snapshot.ts` is what makes that
+ * safe to touch: run `bun run gate` and the snapshot diff lists precisely which
+ * of those pages moved.
  */
 
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'

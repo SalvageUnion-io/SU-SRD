@@ -185,11 +185,12 @@ bun run build:web        # Build srd only (= `bun ssg/build.ts` in apps/srd)
 bun run build:itun       # Build ITUN app
 bun run build:bot        # Build Discord bot
 
-# srd static build (run from apps/srd, not the root)
+# srd build + output gate (run from apps/srd, not the root)
 bun ssg/build.ts         # The static build: vite client build -> render every
                          # route -> endpoints, sitemap, PWA
-                         # There is NO whole-page-output gate — the Astro
-                         # migration's parity script is retired. See "srd App".
+bun --filter srd gate             # build, then diff the output against the committed
+                         # snapshot. `bun --filter srd snapshot:update` re-blesses it —
+                         # commit that diff, it IS the change. See "srd App".
 ```
 
 ### Architecture
@@ -272,15 +273,18 @@ generator implements — and then [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md).
   **`createRoot`, never `hydrateRoot`**. Four client strategies: `load`, `idle`,
   `visible`, `only`. Because mounting is client-only, `ssr` is purely an SEO/no-JS
   choice per island and can never cause a hydration mismatch.
-- **There is NO whole-page-output gate.** The Astro-migration parity script was
-  retired once the migration was long finished and its baseline was gone
-  ([ADR-031](docs/adrs/ADR-031-srd-vite-ssg.md) anticipated this and called the
-  shelf life in the original decision). Nothing now compares the built `dist`
-  against a known-good reference, so a change that silently alters every page's
-  `<main>` text or drops a JSON-LD block is caught by no automated check. **A
-  green build is not evidence the output is right** — verify rendering/routing/emit
-  changes by reading the emitted HTML or serving `dist` and measuring the real
-  page, not by reasoning about the diff.
+- **Output gate — `ssg/snapshot.ts`.** Run `bun --filter srd gate`. It diffs
+  the built `dist` against `ssg/output-snapshot.json`, a committed ~680 KB digest:
+  the emitted file set both directions (this is what holds the page count at
+  1,039), per-page title/description/canonical/robots as plaintext, an `og:`/
+  `twitter:` digest, the JSON-LD `@type` list, a digest of `<main>` text, and all
+  899 JSON endpoints plus `llms.txt`. It **runs in CI** — which the Astro-era
+  parity gate it replaced never did ([ADR-031](docs/adrs/ADR-031-srd-vite-ssg.md)).
+  When a change alters output on purpose, `bun --filter srd snapshot:update` and **commit
+  the snapshot diff — one line per page, it is the reviewable statement of what
+  your change did to the site.** Its limit is real: it compares against what was
+  last blessed, not against an oracle, so re-blessing without reading the diff
+  defeats it.
 - **Hard rule — no `.css` import may be reachable from an SSR module.** The SSR pass
   runs under Bun and never goes through Vite, so a stray `import './x.css'` anywhere
   in the SSR graph (`ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx`,

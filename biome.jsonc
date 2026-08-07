@@ -56,6 +56,13 @@
       // committed copy differ from what the generator emits, which is exactly
       // what ssg/__tests__/navCatalog.drift.test.ts asserts against.
       "!apps/srd/src/generated",
+      // The srd output snapshot (ssg/snapshot.ts --update). Generated and
+      // committed, and deliberately written ONE LINE PER PAGE so that "23 pages
+      // changed" is 23 changed lines in review — which is the only reason
+      // committing a 680 KB digest is useful rather than just large. Biome's
+      // JSON formatter re-wraps those entries across ~13,700 lines, destroying
+      // exactly the property the format exists for.
+      "!apps/srd/ssg/output-snapshot.json",
       "!**/convex/_generated",
       "!packages/salvageunion-reference/lib/generated",
       // Generated API-surface snapshot (tools/generateApiReport.ts, drift-checked

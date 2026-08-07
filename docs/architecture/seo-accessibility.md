@@ -9,11 +9,13 @@ SEO applies to `srd` (the static reference site). Accessibility patterns are sha
 > `src/pages/**/*.page.tsx`, and endpoint modules at `src/endpoints/*.ts`. The
 > contract is [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
 >
-> **No automated check compares these SEO surfaces against a reference.** They
-> used to be diffed against an archived Astro baseline by `ssg/parity.ts`, which
-> is retired. Head metadata, JSON-LD and endpoint payloads are now only as
-> correct as the build that emitted them — inspect real output when you change
-> anything on this page.
+> **Every SEO surface named here is gated by `ssg/snapshot.ts`** — head
+> metadata, JSON-LD and endpoint payloads are diffed against a committed
+> snapshot of the built site on every CI run. Change anything on this page and
+> the gate will tell you exactly which pages moved; `bun --filter srd snapshot:update`
+> re-blesses, and the snapshot diff is what gets reviewed.
+> (It replaced `ssg/parity.ts`, which compared against an archived Astro
+> baseline that expired.)
 
 ### BaseLayout
 
@@ -61,14 +63,14 @@ They live in `src/endpoints/` and are registered in `ssg/endpoints.ts`.
 
 - **`/llms.txt`** (`src/endpoints/llmsTxt.ts`) — an LLM-oriented site map of the
   reference content. Its template literal is a verbatim copy of the Astro
-  original — **do not reflow it.** This used to be held byte-for-byte by the
-  parity gate; with that retired the rule stands but nothing enforces it, so
-  reformatting the literal now changes the shipped file silently.
+  original — **do not reflow it.** `ssg/snapshot.ts` digests the emitted file's
+  exact bytes, so a reflow fails the gate rather than silently changing what
+  ships.
 - **Public JSON API** — every schema and item page has a JSON twin:
   `/schema/{schemaId}.json` (`schemaJson.ts`),
   `/schema/{schemaId}.schema.json` (`schemaDefinitionJson.ts`), and
-  `/schema/{schemaId}/item/{itemId}.json` (`itemJson.ts`) — 899 of them, none of
-  which are compared against a reference any more. CORS for these paths is opened
+  `/schema/{schemaId}/item/{itemId}.json` (`itemJson.ts`) — 899 of them, each
+  canonicalized and digested by `ssg/snapshot.ts`. CORS for these paths is opened
   via `public/_headers` (`Access-Control-Allow-Origin: *`, GET only).
 - **Search index** — `src/endpoints/searchIndexJson.ts`.
 - **PWA** — `ssg/pwa.ts` runs `workbox-build`'s `generateSW` over the finished
@@ -91,9 +93,9 @@ one-off page types — `AboutPage`, `WebPage`, `SoftwareApplication`,
 | `BreadcrumbList` | All pages with breadcrumbs (`AppBar.tsx`)                 | Positional list items with URLs                                        |
 
 A page declares JSON-LD by returning `meta.structuredData` /
-`meta.additionalStructuredData` from its `page()`. Emitted blocks were once
-deep-compared against the Astro baseline; that gate is retired, so a dropped or
-malformed block now fails no check — read the built HTML.
+`meta.additionalStructuredData` from its `page()`. `ssg/snapshot.ts` records the
+ordered list of `@type`s per page, so a dropped, added, reordered or unparseable
+block fails the gate.
 
 Entity page meta descriptions are derived from the first static content paragraph, truncated to 155 characters.
 
