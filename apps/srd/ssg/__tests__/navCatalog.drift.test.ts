@@ -11,8 +11,9 @@ import { renderNavCatalogModule } from '../genNavCatalog'
  *
  * A committed generated file rots silently: add a schema to the catalog and the
  * mobile nav drawer keeps rendering the old one, correctly, forever. Nothing
- * else would notice — the drawer is not in the parity gate's `<main>` scope and
- * an out-of-date-but-valid catalog throws no error. This test is the guard.
+ * else would notice — the drawer was never in the retired parity gate's `<main>`
+ * scope, and an out-of-date-but-valid catalog throws no error. This test is the
+ * guard, and now the only one.
  */
 describe('generated nav catalog', () => {
   it('matches what ssg/genNavCatalog.ts would write today', async () => {

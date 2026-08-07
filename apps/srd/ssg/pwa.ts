@@ -27,8 +27,9 @@
  *   should 404 offline rather than resolve to a stale shell.
  * - `sourcemap: false` and `cleanupOutdatedCaches: true` are not workbox's
  *   defaults; they are `vite-plugin-pwa`'s, and they are what the Astro
- *   baseline emitted. Keep them, or `dist/sw.js.map` appears and the parity
- *   file-set check fails.
+ *   baseline emitted. Keep them, or `dist/sw.js.map` appears in the output.
+ *   The parity file-set check used to fail on exactly that; it is retired, so
+ *   the stray file would now ship unnoticed.
  * - `skipWaiting` / `clientsClaim` are `registerType: 'autoUpdate'` semantics.
  *   `vite-plugin-pwa` only sets them implicitly when `injectRegister` is
  *   `'auto'`, so they were explicit there and stay explicit here.
@@ -57,10 +58,12 @@ import { generateSW } from 'workbox-build'
  * offline caching, which is a progressive enhancement this site works fine
  * without — there is no fallback to attempt and nothing to tell the user.
  *
- * Parity is unaffected: `ssg/parity.ts` compares the emitted **file set**, head
- * metadata, JSON-LD, `<main>` text, the JSON endpoints and `llms.txt`. It never
- * compares `registerSW.js` or `sw.js` bytes, so only the precache revision hash
- * in `sw.js` moves, and nothing asserts on that.
+ * Nothing downstream depends on the registration succeeding: only the precache
+ * revision hash in `sw.js` moves, and no test asserts on it. (This used to be
+ * argued against the parity gate, which compared the emitted file set, head
+ * metadata, JSON-LD, `<main>` text, the JSON endpoints and `llms.txt` but never
+ * `registerSW.js` or `sw.js` bytes. That gate is retired; the conclusion holds
+ * for the simpler reason that nothing checks these files at all.)
  */
 const REGISTER_SW =
   "if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {})})}"

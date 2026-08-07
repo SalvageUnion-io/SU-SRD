@@ -28,7 +28,7 @@ conventions, then the relevant architecture doc below.
 
 **I need a site id, service id, org slug, deployment name, or dashboard URL — or an MCP server isn't connecting** → [architecture/agent-tooling.md](architecture/agent-tooling.md) (**the service registry** — read it instead of listing every project on an account)
 
-**I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with `cd apps/srd && bun ssg/build.ts && bun ssg/parity.ts` — `parity.ts` is the acceptance gate, not your reading of the diff.
+**I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Build with `cd apps/srd && bun ssg/build.ts`. There is **no whole-page-output gate** (the Astro-migration parity script is retired), so verify by reading the emitted HTML or serving `dist` — not by reasoning about the diff.
 
 ## Directory Map
 
@@ -79,7 +79,8 @@ two ever disagree, believe the ADR.
   changed — static output, no backend, and React islands all survive. The live
   contract is [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md).
 - **ADR-031** records that migration and its costs (this repo now owns ~1,500
-  lines of build tooling). `ssg/parity.ts` is its acceptance gate.
+  lines of build tooling). Its acceptance gate, `ssg/parity.ts`, has since been
+  retired — the ADR's own "shelf life" clause records why.
 - **ADR-001** (local-first, no backend, no auth) is **superseded by ADR-030**.
   It is retained because its reasoning still governs the parts ADR-030 left
   alone — anonymous Solo play, and snapshot sharing.

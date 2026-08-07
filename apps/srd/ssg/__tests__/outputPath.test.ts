@@ -1,9 +1,10 @@
 /**
  * URL -> dist file.
  *
- * The one rule the whole emit rests on, and the one the parity gate is least
- * forgiving about: a page written to the wrong path is a 404 in production and
- * a "missing from candidate" line in `ssg/parity.ts`. The table in
+ * The one rule the whole emit rests on: a page written to the wrong path is a
+ * 404 in production. The parity gate used to catch that as a "missing from
+ * candidate" line; with it retired, THIS FILE is the only check on the mapping,
+ * so treat a gap here as shipping straight to production. The table in
  * `ssg/DESIGN.md` is the spec; these are its cases.
  *
  * Three separate seams meet here, which is why they are tested together:

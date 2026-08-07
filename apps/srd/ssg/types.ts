@@ -29,8 +29,9 @@ export type DocumentMeta = {
  * - `'bare'`: `children` **is** the whole `<html>` document and `meta` is
  *   ignored — the page owns its own `<head>`. `og-card` is written this way and
  *   must stay that way: routing it through `BaseLayout` would add a `<main>`, a
- *   canonical link and the whole og/twitter block that the Astro baseline does
- *   not emit, which the parity gate reads (correctly) as a regression.
+ *   canonical link and the whole og/twitter block that this page must not emit.
+ *   The parity gate used to catch that; it is retired, so nothing will now —
+ *   this comment is the only guard left.
  *
  * A bare page is still a full member of the island system: the built asset tags
  * and the island-props script are injected into the rendered string either way,

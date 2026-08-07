@@ -241,8 +241,12 @@ async function main(): Promise<void> {
   // The same class of silent catastrophe one level up: a registry that resolves
   // to nothing (a bad glob, an exception swallowed inside resolve()) would emit
   // an empty dist and still exit 0, and Netlify would happily publish it. The
-  // floor is deliberately low — it is a smoke alarm, not a budget. The parity
-  // gate is what actually holds the page COUNT to 1,039.
+  // floor is deliberately low — it is a smoke alarm, not a budget.
+  //
+  // NOTHING now holds the page COUNT to 1,039. The parity gate used to, and it
+  // is retired, so this zero-check is the only automated statement about how
+  // many pages the site emits: dropping a route from `routes.ts` silently
+  // renders fewer pages and still exits 0.
   if (count === 0) {
     throw new Error('[ssg] refusing to finish: the route registry rendered 0 pages.')
   }

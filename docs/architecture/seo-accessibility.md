@@ -5,12 +5,15 @@ SEO applies to `srd` (the static reference site). Accessibility patterns are sha
 ## SEO (srd)
 
 > **`srd` is built by an in-house SSG, not Astro.** Everything below describes
-> `apps/srd/ssg` (`build.ts` / `dev.ts` / `render.tsx` / `parity.ts`), route
-> modules at `src/pages/**/*.page.tsx`, and endpoint modules at
-> `src/endpoints/*.ts`. The contract is
-> [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md); every SEO surface named
-> here is compared against the archived Astro baseline by `bun ssg/parity.ts`,
-> which is the acceptance gate for any change on this page.
+> `apps/srd/ssg` (`build.ts` / `dev.ts` / `render.tsx`), route modules at
+> `src/pages/**/*.page.tsx`, and endpoint modules at `src/endpoints/*.ts`. The
+> contract is [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
+>
+> **No automated check compares these SEO surfaces against a reference.** They
+> used to be diffed against an archived Astro baseline by `ssg/parity.ts`, which
+> is retired. Head metadata, JSON-LD and endpoint payloads are now only as
+> correct as the build that emitted them — inspect real output when you change
+> anything on this page.
 
 ### BaseLayout
 
@@ -57,14 +60,16 @@ These are **endpoint modules** (`EndpointModule` in `ssg/types.ts`), not routes.
 They live in `src/endpoints/` and are registered in `ssg/endpoints.ts`.
 
 - **`/llms.txt`** (`src/endpoints/llmsTxt.ts`) — an LLM-oriented site map of the
-  reference content. The parity gate compares it **byte for byte**, so its
-  template literal is a verbatim copy of the Astro original — do not reflow it.
+  reference content. Its template literal is a verbatim copy of the Astro
+  original — **do not reflow it.** This used to be held byte-for-byte by the
+  parity gate; with that retired the rule stands but nothing enforces it, so
+  reformatting the literal now changes the shipped file silently.
 - **Public JSON API** — every schema and item page has a JSON twin:
   `/schema/{schemaId}.json` (`schemaJson.ts`),
   `/schema/{schemaId}.schema.json` (`schemaDefinitionJson.ts`), and
-  `/schema/{schemaId}/item/{itemId}.json` (`itemJson.ts`). All 899 of them are
-  parsed and deep-compared by `ssg/parity.ts`. CORS for these paths is opened via
-  `public/_headers` (`Access-Control-Allow-Origin: *`, GET only).
+  `/schema/{schemaId}/item/{itemId}.json` (`itemJson.ts`) — 899 of them, none of
+  which are compared against a reference any more. CORS for these paths is opened
+  via `public/_headers` (`Access-Control-Allow-Origin: *`, GET only).
 - **Search index** — `src/endpoints/searchIndexJson.ts`.
 - **PWA** — `ssg/pwa.ts` runs `workbox-build`'s `generateSW` over the finished
   `dist` (replacing `@vite-pwa/astro`), keeping the same
@@ -86,8 +91,9 @@ one-off page types — `AboutPage`, `WebPage`, `SoftwareApplication`,
 | `BreadcrumbList` | All pages with breadcrumbs (`AppBar.tsx`)                 | Positional list items with URLs                                        |
 
 A page declares JSON-LD by returning `meta.structuredData` /
-`meta.additionalStructuredData` from its `page()`. Every emitted block is parsed
-and deep-compared against the baseline by `ssg/parity.ts`.
+`meta.additionalStructuredData` from its `page()`. Emitted blocks were once
+deep-compared against the Astro baseline; that gate is retired, so a dropped or
+malformed block now fails no check — read the built HTML.
 
 Entity page meta descriptions are derived from the first static content paragraph, truncated to 155 characters.
 

@@ -24,10 +24,9 @@ Run from the repo root:
 
 And from `apps/srd/` itself:
 
-| Script              | What it does                                                        |
-| ------------------- | ------------------------------------------------------------------- |
-| `bun ssg/build.ts`  | Build the static site into `dist/`                                  |
-| `bun ssg/parity.ts` | **Acceptance gate** — semantic diff of `dist` vs the Astro baseline |
+| Script             | What it does                       |
+| ------------------ | ---------------------------------- |
+| `bun ssg/build.ts` | Build the static site into `dist/` |
 
 ## Tech stack
 
@@ -37,10 +36,10 @@ client bundle, Tailwind v4, in-memory search via `salvageunion-reference`'s
 
 Two things worth knowing before you touch it:
 
-- **`ssg/parity.ts` is the acceptance gate.** `bun ssg/build.ts && bun ssg/parity.ts`
-  compares the built `dist` semantically against the archived Astro baseline —
-  emitted file set, per-page head metadata, every JSON-LD block, `<main>` text, all
-  899 JSON endpoints, `llms.txt`. Zero differences across 1,039 pages today.
+- **Nothing checks the finished site.** The Astro-migration parity gate is
+  retired, so no automated check compares the built `dist` against a reference.
+  The unit tests cover the generator's pieces, not the output they compose into —
+  verify emit changes by reading real built HTML.
 - **No `.css` import may be reachable from an SSR module.** The SSR pass runs under
   Bun with no Vite in the loop. All css comes from `src/runtime/styles.entry.ts`, a
   client-bundle entry.

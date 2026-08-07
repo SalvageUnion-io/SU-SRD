@@ -1,9 +1,10 @@
 /**
  * `/llms.txt` — port of `src/pages/llms.txt.ts`.
  *
- * The parity gate compares this file BYTE for byte against the Astro baseline,
- * so the template literal below is a verbatim copy of the original — including
- * its trailing newline. Do not reflow it.
+ * The template literal below is a verbatim copy of the Astro original —
+ * including its trailing newline. **Do not reflow it.** The parity gate used to
+ * hold this file byte-for-byte against the baseline; it is retired, so
+ * reformatting the literal now changes the shipped file with nothing objecting.
  */
 
 import type { EndpointModule } from '../../ssg/types'

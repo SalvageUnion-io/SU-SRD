@@ -57,8 +57,8 @@ apps/srd/
    may import from `ssg/` at runtime.
 3. **Relative imports only** (repo rule — never `@/` aliases).
 4. **`type` over `interface`**; `import type` for type-only imports; no `any`.
-5. Output paths must match Astro's exactly (see "URL -> file" below). The parity
-   script is the judge, not your reading of the code.
+5. Output paths must match Astro's exactly (see "URL -> file" below).
+   `ssg/__tests__/outputPath.test.ts` is the judge, not your reading of the code.
 
 ## types.ts — the contract
 
@@ -228,24 +228,27 @@ ships no JS. That path must stay exactly as it is; it is 82% of entity pages.
 | `Astro.props` / `Astro.params` / `Astro.url` | `RouteContext`                                                                                                                                                                                                                                                                             |
 | `astro check`                                | `tsc --noEmit` only                                                                                                                                                                                                                                                                        |
 
-## Verification — the parity script
+## Verification — the parity script (RETIRED)
 
-`ssg/parity.ts` (build it in phase 1, keep it) compares the new `dist` against
-the Astro baseline at `$BASELINE` (default
-`/Users/jarvis/.claude/jobs/dbab36ff/tmp/baseline-dist`). Byte equality is NOT
-the goal — Astro injects its own attributes. Compare **semantically**:
+**Historical.** `ssg/parity.ts` was the acceptance gate for this migration. It
+compared the new `dist` semantically against an archived Astro baseline — the
+exact emitted path set both directions, per-page head metadata and every JSON-LD
+block deep-compared, `<main>` visible text normalized, all 899 JSON endpoints
+parsed and deep-compared, and byte-identical `llms.txt`. It reported zero
+differences across 1,039 pages, and it was known to bite: it failed against
+eight deliberately-injected defects. The migration passed on its evidence.
 
-- the exact set of emitted paths (must be identical, both directions)
-- per HTML page: `<title>`, `meta[name=description]`, `link[rel=canonical]`,
-  every `og:*` / `twitter:*`, `meta[name=robots]`, and each JSON-LD block
-  parsed and deep-compared
-- per HTML page: normalized visible text of `<main>` (collapse whitespace), so
-  content regressions surface even when markup differs
-- every JSON endpoint: parsed and deep-compared
-- `llms.txt` byte-identical
+It has since been **deleted**, along with `make-parity-baseline.ts` and its
+tests. Its baseline was a ~56 MB Astro-era `dist` that was gitignored, absent
+from every checkout, and regenerable only by installing ~2,200 Astro-era
+packages — so in practice the gate had stopped being runnable at all, while the
+docs still told people to run it. [ADR-031](../../../docs/adrs/ADR-031-srd-vite-ssg.md)
+called this shelf life in the original decision.
 
-Report a per-page diff count and fail non-zero on any mismatch. This script is
-the acceptance gate for the whole migration — trust it over any agent's opinion.
+**Nothing replaced it.** No check now compares the finished site against a
+reference; the remaining tests cover this generator's individual pieces. Treat
+"the build succeeded" as saying nothing about whether the output is correct, and
+verify emit changes against real built HTML.
 
 ## Build orchestration (`ssg/build.ts`)
 
