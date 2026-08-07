@@ -1,8 +1,17 @@
+/**
+ * One blank-line-separated block: a paragraph, or a `- ` bullet list.
+ *
+ * A block becomes a list only when EVERY line in it is an item, so a block
+ * mixing prose and dashes stays a paragraph and renders exactly as it did
+ * before lists existed.
+ */
+export type MarkdownBlock = { kind: 'paragraph'; text: string } | { kind: 'list'; items: string[] }
+
 export type MarkdownSectionContent = {
   /** The `#` heading, used as the section head. */
   heading: string
-  /** Blank-line-separated blocks, each rendered as one `<p>`. */
-  paragraphs: string[]
+  /** Blank-line-separated blocks, in document order. */
+  blocks: MarkdownBlock[]
 }
 
 /**
@@ -120,6 +129,28 @@ export function parseInline(text: string): InlineNode[] {
   return nodes
 }
 
+/**
+ * The items of a `- ` bullet block, or null if this block isn't one.
+ *
+ * All-or-nothing by design: one non-item line and the whole block stays prose.
+ * That keeps the change additive — every document written before lists existed
+ * parses to exactly the blocks it did before — and it means a stray hyphen at
+ * the start of a wrapped line can't silently eat the paragraph around it.
+ * Prefix checks only, so this stays regex-free like the rest of this file.
+ */
+function listItemsOf(block: string[]): string[] | null {
+  const items: string[] = []
+
+  for (const line of block) {
+    if (!line.startsWith('- ')) return null
+    const item = line.slice(2).trim()
+    if (!item) return null
+    items.push(item)
+  }
+
+  return items.length > 0 ? items : null
+}
+
 /** The heading text of a `# …` block, or null if this block isn't one. */
 function headingOf(block: string[]): string | null {
   if (block.length !== 1) return null
@@ -136,19 +167,21 @@ function headingOf(block: string[]): string | null {
 
 /**
  * Parse one of the repo-root prose documents (`ABOUT_JRVS.md`,
- * `LLM_STATEMENT.md`) into its heading + paragraphs.
+ * `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) into its heading + blocks.
  *
  * Deliberately minimal, like `parseChangelog`: these are short documents we
  * control, so they have a fixed shape and need no markdown library.
  *
- * This splits blocks only. Inline markdown is `parseInline`'s job, and
- * `[label](href)` links are the ONE inline form it interprets — the contract
- * stated in each source file's own header comment. Bold, italics and lists
- * render as literal punctuation rather than silently breaking.
+ * This splits blocks only — paragraphs, plus `- ` bullet lists (added for
+ * `SPECIAL_THANKS.md`'s crew credits, which are a list in substance and read
+ * as one). Inline markdown is `parseInline`'s job, and `[label](href)` links
+ * are the ONE inline form it interprets — the contract stated in each source
+ * file's own header comment. Bold and italics still render as literal
+ * punctuation rather than silently breaking.
  */
 export function parseMarkdownSection(markdown: string): MarkdownSectionContent {
   let heading = ''
-  const paragraphs: string[] = []
+  const blocks: MarkdownBlock[] = []
 
   for (const block of blocksOf(dropCommentLines(markdown))) {
     if (!heading) {
@@ -158,9 +191,16 @@ export function parseMarkdownSection(markdown: string): MarkdownSectionContent {
         continue
       }
     }
+
+    const items = listItemsOf(block)
+    if (items) {
+      blocks.push({ kind: 'list', items })
+      continue
+    }
+
     // Soft-wrapped prose joins into a single paragraph, matching markdown.
-    paragraphs.push(block.join(' '))
+    blocks.push({ kind: 'paragraph', text: block.join(' ') })
   }
 
-  return { heading, paragraphs }
+  return { heading, blocks }
 }
