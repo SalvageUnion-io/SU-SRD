@@ -108,15 +108,15 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
  * preserve. Reconciliation needs the stored partners as input, so the wizard
  * runs it on the update path via `afterUpdate` instead.
  *
- * `exact` because a mech's drone roster is fully determined by its chassis and
- * pattern — see `syncPartners`.
+ * `reseedLoadout` because a mech's drones wear the pattern: a pattern change
+ * re-cuts their systems and modules exactly as it re-cuts the mech's own.
  */
 export function mechFormToPartners(
   form: MechWizardFormState,
   existing?: readonly PartnerInstance[]
 ) {
   return syncPartners(existing, mechPartnerSeeds(form.chassisName, form.patternName), {
-    exact: true,
+    reseedLoadout: true,
   })
 }
 

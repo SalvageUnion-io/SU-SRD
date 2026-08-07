@@ -24,19 +24,21 @@
  * "remove this partner" control, because a partner that could be removed on its
  * own would immediately be unrecoverable — nothing would ever grant it back.
  *
- * ── The two hosts reconcile differently, and the asymmetry is the rules ──────
+ * ── Both rosters are exact; only the SOURCE of the count differs ─────────────
  *
- * A MECH's roster is EXACT. The pattern says how many drones are fielded and
- * what each carries (Big Brother's DronTek fields four), so a pattern change
- * rewrites the roster and each drone's loadout, exactly as the mech wizard
- * already rewrites the mech's own systems/modules from the pattern.
+ * A MECH's count comes from its pattern, which says how many drones are fielded
+ * and what each carries (Big Brother's DronTek fields four).
  *
- * A PILOT's roster is ADDITIVE. `pilot.equipment` records WHICH stat blocks are
- * granted but not how many: Mecha Packmaster (p. 69) raises the Mecha Companion
- * cap to two off a second ability while the equipment slug stays singular. So an
- * equipment slug that is gone takes its partners with it, and a slug that is
- * present gets at least one — but a surplus instance is left alone rather than
- * reaped, because this module cannot prove it was not legitimately fielded.
+ * A PILOT's count comes from their ABILITIES, while `pilot.equipment` is only
+ * the gate. It has to work that way: `pilot.equipment` is a set, so it could
+ * never express "two Mecha Companions", and Mecha Packmaster's `grants` already
+ * lists Mecha Companion twice. See `partnerGrantCount` — including why it takes
+ * the MAX across abilities rather than the sum.
+ *
+ * So one rule covers both: the seeds are the whole roster. What differs is
+ * whether a surviving instance's loadout is re-cut from its seed
+ * (`reseedLoadout`) — true for a mech, whose drones wear the pattern; false for
+ * a pilot, whose partners are kitted out in play.
  */
 
 import { nameToSlug, normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
@@ -152,38 +154,90 @@ export function mechPartnerSeeds(chassisRef: string, patternName?: string): Part
 // ─── Pilot-granted partners ──────────────────────────────────────────────────
 
 /**
- * Whether an equipment slug carries a mech-shaped stat block, i.e. whether
- * equipping it grants a partner. Derived from the data rather than hardcoded:
- * `systemSlots` is what separates Auto-Turret / Survey Drone / Mecha Companion
- * from every other piece of gear, and a fourth such record should light this up
- * without an edit here.
+ * The `equipment` record a slug resolves to, when that record carries a
+ * mech-shaped stat block — i.e. when equipping it grants a partner.
+ *
+ * Derived from the data rather than hardcoded: `systemSlots` is what separates
+ * Auto-Turret / Survey Drone / Mecha Companion from every other piece of gear,
+ * and a fourth such record should light this up without an edit here.
  *
  * Requires `equipment` preloaded.
  */
-export function isPartnerEquipment(slug: string): boolean {
-  return (
-    SalvageUnionReference.Equipment.find(
-      (entry) =>
-        matchesRef(entry, slug) &&
-        typeof (entry as { systemSlots?: unknown }).systemSlots === 'number'
-    ) !== undefined
+function resolvePartnerEquipment(slug: string) {
+  return SalvageUnionReference.Equipment.find(
+    (entry) =>
+      matchesRef(entry, slug) &&
+      typeof (entry as { systemSlots?: unknown }).systemSlots === 'number'
   )
 }
 
+/** Whether equipping this slug grants a partner. */
+export function isPartnerEquipment(slug: string): boolean {
+  return resolvePartnerEquipment(slug) !== undefined
+}
+
 /**
- * One seed per partner-granting equipment slug the pilot has equipped.
+ * How many of one partner a pilot's ABILITIES entitle them to.
  *
- * The equipment records carry no `systems`/`modules` of their own, so these
- * seeds are always bare — a pilot's partner starts empty and is kitted out in
- * play, unlike a mech's, which arrives wearing its pattern.
+ * The multiplicity is in the data and always was: Mecha Packmaster's `grants`
+ * lists Mecha Companion **twice**, and it is the only ability in the whole
+ * dataset that grants the same thing more than once. Nothing read it — `grants`
+ * fed the SRD's display layer and nothing else — so the second companion had no
+ * way to exist.
+ *
+ * MAX, NOT SUM, and the distinction is load-bearing. The Ranger tree's Level 1
+ * ability is `Mecha Companion` (one grant) and Packmaster is Legendary Ranger,
+ * so a pilot who has Packmaster normally holds both abilities. Summing would
+ * give three, contradicting Packmaster's own text — "Gain a second Mecha
+ * Companion in addition to your first" — and the two entries therefore encode
+ * the TOTAL a pilot ends up with, not an increment on top of the first ability.
+ *
+ * Floors at 1: a pilot may have equipped the item without the granting ability
+ * (the live sheet is a Free-Edit surface, ADR-021), and that is still one
+ * partner, not zero.
  */
-export function pilotPartnerSeeds(equipment: readonly string[]): PartnerSeed[] {
-  return equipment.filter(isPartnerEquipment).map((slug) => ({
-    hostRef: slug,
-    hostSchema: 'equipment' as const,
-    systems: [],
-    modules: [],
-  }))
+export function partnerGrantCount(hostRef: string, abilityRefs: readonly string[]): number {
+  const record = resolvePartnerEquipment(hostRef)
+  if (!record) return 1
+  const wanted = nameToSlug(record.name)
+
+  let most = 0
+  for (const ref of abilityRefs) {
+    const ability = SalvageUnionReference.Abilities.find((entry) => matchesRef(entry, ref))
+    if (!ability) continue
+    const granted = (ability.grants ?? []).filter(
+      (grant) => grant.schema === 'equipment' && nameToSlug(grant.name) === wanted
+    ).length
+    if (granted > most) most = granted
+  }
+  return Math.max(1, most)
+}
+
+/**
+ * One seed per partner a pilot's equipment grants — `partnerGrantCount` copies
+ * of each granting slug.
+ *
+ * Equipment membership is the GATE and abilities are the COUNT: unequipping the
+ * item takes every instance with it, while Mecha Packmaster turns the one
+ * equipment entry into two companions. `pilot.equipment` is a set (it is
+ * toggled), so it could never have carried the count itself.
+ *
+ * The equipment records have no `systems`/`modules` of their own, so these seeds
+ * are always bare — a pilot's partner starts empty and is kitted out in play,
+ * unlike a mech's, which arrives wearing its pattern.
+ */
+export function pilotPartnerSeeds(
+  equipment: readonly string[],
+  abilityRefs: readonly string[] = []
+): PartnerSeed[] {
+  return equipment.filter(isPartnerEquipment).flatMap((slug) =>
+    Array.from({ length: partnerGrantCount(slug, abilityRefs) }, () => ({
+      hostRef: slug,
+      hostSchema: 'equipment' as const,
+      systems: [],
+      modules: [],
+    }))
+  )
 }
 
 // ─── Reconciliation ──────────────────────────────────────────────────────────
@@ -211,14 +265,16 @@ function matchesSeed(partner: PartnerInstance, seed: PartnerSeed): boolean {
 
 export type SyncPartnersOptions = {
   /**
-   * EXACT (mech): the seed list is the whole roster — surplus instances of a
-   * granted stat block are dropped, and every kept instance has its loadout
-   * rewritten from its seed.
+   * Re-cut every surviving instance's `systems`/`modules` from its seed.
    *
-   * ADDITIVE (pilot, the default): a granted stat block keeps whatever
-   * instances it has, and loadouts are never touched.
+   * TRUE for a mech, whose drones wear the pattern — the wizard already
+   * rewrites the mech's own loadout on a pattern change, and a drone still
+   * carrying the previous pattern's guns would be the odd one out.
+   *
+   * FALSE for a pilot, whose partners have bare seeds and are kitted out in
+   * play. Re-seeding those would delete a loadout nothing can restore.
    */
-  exact?: boolean
+  reseedLoadout?: boolean
   /** Injectable for deterministic tests. */
   mintId?: () => string
 }
@@ -226,11 +282,22 @@ export type SyncPartnersOptions = {
 /**
  * Reconcile a host's `partners` against what it currently grants.
  *
+ * THE SEED LIST IS THE WHOLE ROSTER, for both hosts. A partner with no seed to
+ * answer to is dropped — that is what makes unequipping the Survey Drone take
+ * the drone with it, and dropping Mecha Packmaster take the second companion.
+ * This is only safe because the count is now derivable on both sides: a mech's
+ * from its pattern, a pilot's from `partnerGrantCount`.
+ *
+ * It also relies on a data invariant that was NOT true before this change: a
+ * pilot partner's `hostRef` must appear in `pilot.equipment`. The v12 migration
+ * minted partners from companion-mech rows without adding the granting slug, so
+ * those partners answered to no seed and would have been reaped on the owner's
+ * next edit. Migration v15 heals them; see
+ * `lib/db/migrations/15-partner-equipment-backfill.ts`.
+ *
  * Live state is never collateral damage: a matched instance keeps its id,
  * structure, energy, heat, conditions, name, appearance, A.I. personality and
- * cargo. In `exact` mode its `systems`/`modules` are re-seeded — the mech wizard
- * already rewrites the mech's own loadout from the pattern on every save, and a
- * drone that kept a previous pattern's guns would be the odd one out.
+ * cargo. Only `reseedLoadout` touches anything else.
  *
  * Returns `undefined` when the host has, and should have, no partners, so the
  * field stays absent rather than persisting an empty array.
@@ -240,7 +307,7 @@ export function syncPartners(
   seeds: readonly PartnerSeed[],
   options: SyncPartnersOptions = {}
 ): PartnerInstance[] | undefined {
-  const { exact = false, mintId = () => crypto.randomUUID() } = options
+  const { reseedLoadout = false, mintId = () => crypto.randomUUID() } = options
   const current = existing ?? []
 
   const unclaimed = [...current]
@@ -251,25 +318,22 @@ export function syncPartners(
     return claimed
   }
 
-  const next = seeds.map((seed) => {
-    const claimed = claim(seed)
-    if (!claimed) return newInstance(seed, mintId())
-    if (!exact) return claimed
+  // Two passes: every seed claims an existing instance BEFORE any seed mints a
+  // new one. A single pass would let an unnamed seed claim the instance a named
+  // seed needed, renaming a drone the player had already customised.
+  const claimed = seeds.map((seed) => ({ seed, instance: claim(seed) }))
+
+  const next = claimed.map(({ seed, instance }) => {
+    if (!instance) return newInstance(seed, mintId())
+    if (!reseedLoadout) return instance
     return {
-      ...claimed,
+      ...instance,
       // The seed owns the LOADOUT; the instance owns everything lived-in.
       systems: [...seed.systems],
       modules: [...seed.modules],
       ...(seed.name !== undefined ? { name: seed.name } : {}),
     }
   })
-
-  if (!exact) {
-    // Additive: anything left over survives if its grant is still present.
-    // Only an ungranted stat block is reaped.
-    const grantedRefs = new Set(seeds.map((seed) => seed.hostRef))
-    next.push(...unclaimed.filter((partner) => grantedRefs.has(partner.hostRef)))
-  }
 
   if (next.length === 0) return current.length === 0 ? undefined : []
   return next

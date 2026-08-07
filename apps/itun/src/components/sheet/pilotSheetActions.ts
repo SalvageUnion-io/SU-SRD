@@ -171,12 +171,21 @@ export function usePilotSheetActions({
   // the Advanced/Legendary prerequisites surface in a confirm dialog and the
   // user may always proceed.
   function toggleAbility(abilityId: string) {
-    const abilities = freshPilot().abilities
-    const removing = abilities.includes(abilityId)
+    const current = freshPilot()
+    const removing = current.abilities.includes(abilityId)
     const name = resolveAbility(abilityId)?.name ?? abilityId
+    const abilities = removing
+      ? current.abilities.filter((a) => a !== abilityId)
+      : [...current.abilities, abilityId]
     saveBuildEdit(
       {
-        abilities: removing ? abilities.filter((a) => a !== abilityId) : [...abilities, abilityId],
+        abilities,
+        // Abilities are the second grant-lifecycle edge, because they carry the
+        // COUNT: Mecha Packmaster's `grants` lists Mecha Companion twice, so
+        // taking it fields a second companion and dropping it retires one. The
+        // equipment slug does not move either way — it is a set, and it was
+        // already there.
+        partners: syncPartners(current.partners, pilotPartnerSeeds(current.equipment, abilities)),
       },
       `${removing ? 'Remove' : 'Add'} ${name}`
     )
@@ -199,7 +208,12 @@ export function usePilotSheetActions({
     write({
       equipment,
       ...(isPartnerEquipment(equipmentId)
-        ? { partners: syncPartners(current.partners, pilotPartnerSeeds(equipment)) }
+        ? {
+            partners: syncPartners(
+              current.partners,
+              pilotPartnerSeeds(equipment, current.abilities)
+            ),
+          }
         : {}),
     })
   }

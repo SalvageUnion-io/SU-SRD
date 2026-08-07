@@ -117,12 +117,17 @@ question the earlier records left open:
   point rather than an omission. A partner that could be dropped on its own
   would be unrecoverable, because nothing would ever grant it back. This is
   what replaces `removePartner` on both sheet action sets.
-- **A mech's roster is exact; a pilot's is additive.** The pattern determines
-  how many drones a mech fields and what each carries, so a pattern change
-  re-cuts the roster and each drone's loadout — exactly as the wizard already
-  re-cuts the mech's own. `pilot.equipment` records only *which* stat blocks are
-  granted, never how many are fielded (Mecha Packmaster raises the Mecha
-  Companion cap off a second ability), so a surplus instance is left alone.
+- **Both rosters are exact; only the source of the count differs.** A mech's
+  count comes from its pattern. A pilot's comes from their **abilities**, with
+  `pilot.equipment` acting only as the gate — it is a set, so it could never
+  express "two Mecha Companions". Mecha Packmaster's `grants` already lists
+  Mecha Companion **twice**, and it is the only ability in the dataset that
+  grants the same thing more than once; reading it is what fields the second
+  companion. The resolution is a **max** across the pilot's abilities, never a
+  sum: the Ranger L1 ability grants one and Packmaster grants two, so a
+  Legendary Ranger holding both would otherwise field three, which Packmaster's
+  own text denies. Abilities are therefore a second lifecycle edge alongside
+  equipment — taking Packmaster fields a companion, dropping it retires one.
 - **Reconciliation never costs live state.** A surviving partner keeps its id,
   structure, energy, heat, conditions, name, appearance, A.I. personality and
   cargo. Re-seeding a drone's guns on a pattern change is correct; re-seeding
@@ -132,12 +137,24 @@ question the earlier records left open:
   System); the fitted loadout lives on `pattern.drones[].systems`. A live drone
   needs both, which is a deliberate divergence from the SRD pattern card —
   that card is describing a pattern, not accounting for slots in play.
-- **`partnerCap` gained a second raiser.** It knew Mecha Packmaster but assumed
-  every stat block capped at one, so the moment Big Brother's four were seeded
-  each would have read "4 of 1". The Big Brother's own controller fields four
-  (False Flag p. 62).
-
-One thing this does **not** fix: Mecha Packmaster's second Mecha Companion still
-has no creation path, because a pilot's equipment list is a set and the cap
-lives on an ability. It had none before either — the additive rule exists so
-that reconciliation cannot destroy one if it ever gains one.
+- **`partnerCap` is now derived, not hardcoded.** It used to string-match
+  `mecha-packmaster`, which was both a hardcode and a duplicate of a fact
+  already in the data — so the cap and the number actually seeded could drift
+  apart. It now reads the same grant count, and a future ability granting two
+  needs no code change. One hardcode survives on purpose: the Big Brother
+  controls four drones (False Flag p. 62), which is a chassis ability's prose
+  rather than a countable grant, and deriving it from "the most any pattern
+  fields" would report 1 for a Custom build that is still allowed four.
+- **Migration v15 makes the pilot invariant true.** Exact reconciliation means a
+  pilot partner whose `hostRef` is absent from `pilot.equipment` answers to no
+  grant and is reaped. v11 was careful about this ("the equipment slug stays in
+  `pilot.equipment[]`"); **v12 was not** — it minted partners from companion-mech
+  rows and never added the granting slug, which is precisely the case where the
+  player had not equipped the item. Left alone, Eldridge Coast's Custos,
+  Incitatus, PR-1 and Rek Jet would have disappeared on their pilot's next edit.
+  v15 backfills the missing slug rather than deleting the partner: the partner is
+  the evidence that something once granted it, so the honest repair is to restore
+  the grant. It is append-only, so it is a no-op on a consistent database. The
+  one real cost is that granting equipment occupies an inventory slot, so a
+  healed pilot's usage rises by one and may read as over capacity — advisory
+  only (ADR-007/021), and the true reading: under-reporting it was the bug.

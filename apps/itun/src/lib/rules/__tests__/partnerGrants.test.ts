@@ -20,6 +20,7 @@ import type { PartnerInstance } from '../../schemas/partner'
 import {
   isPartnerEquipment,
   mechPartnerSeeds,
+  partnerGrantCount,
   pilotPartnerSeeds,
   syncPartners,
 } from '../partnerGrants'
@@ -105,6 +106,44 @@ describe('pilotPartnerSeeds — equipment carrying a stat block is a partner', (
     // Pilot partners arrive empty; a mech's arrives wearing its pattern.
     expect(seeds.every((s) => s.systems.length === 0 && s.modules.length === 0)).toBe(true)
   })
+
+  test('Mecha Packmaster turns one equipment entry into TWO seeds', () => {
+    const seeds = pilotPartnerSeeds(['mecha-companion'], ['mecha-companion', 'mecha-packmaster'])
+    expect(seeds).toHaveLength(2)
+    expect(seeds.every((s) => s.hostRef === 'mecha-companion')).toBe(true)
+  })
+})
+
+describe('partnerGrantCount — MAX across abilities, never the sum', () => {
+  test('Packmaster grants Mecha Companion twice, and that is the count', () => {
+    expect(partnerGrantCount('mecha-companion', ['mecha-packmaster'])).toBe(2)
+  })
+
+  test('holding BOTH Ranger abilities is still two, not three', () => {
+    // The trap. Mecha Companion (Ranger L1) grants one and Packmaster grants
+    // two; a Legendary Ranger normally holds both, so summing would field a
+    // third companion that Packmaster's own text denies — "gain a SECOND Mecha
+    // Companion in addition to your first". The two entries are the TOTAL.
+    expect(partnerGrantCount('mecha-companion', ['mecha-companion', 'mecha-packmaster'])).toBe(2)
+  })
+
+  test('the L1 ability alone grants one', () => {
+    expect(partnerGrantCount('mecha-companion', ['mecha-companion'])).toBe(1)
+  })
+
+  test('floors at one — equipped without the granting ability is still a partner', () => {
+    expect(partnerGrantCount('mecha-companion', [])).toBe(1)
+    expect(partnerGrantCount('survey-drone', ['mecha-packmaster'])).toBe(1)
+  })
+
+  test('Packmaster does not raise anything but Mecha Companion', () => {
+    expect(partnerGrantCount('auto-turret', ['mecha-packmaster'])).toBe(1)
+  })
+
+  test('an unresolvable slug or ability degrades to one rather than throwing', () => {
+    expect(partnerGrantCount('no-such-equipment', ['mecha-packmaster'])).toBe(1)
+    expect(partnerGrantCount('mecha-companion', ['no-such-ability'])).toBe(1)
+  })
 })
 
 describe('syncPartners — the grant is the lifecycle', () => {
@@ -128,7 +167,7 @@ describe('syncPartners — the grant is the lifecycle', () => {
 
   test('a new grant mints an instance carrying its seed loadout', () => {
     const [drone] = syncPartners(undefined, mechPartnerSeeds('little-sestra', 'Surveyor'), {
-      exact: true,
+      reseedLoadout: true,
       mintId: mintSequential(),
     }) as PartnerInstance[]
     expect(drone?.id).toBe('new-1')
@@ -137,7 +176,7 @@ describe('syncPartners — the grant is the lifecycle', () => {
     expect(drone?.conditions).toEqual([])
   })
 
-  test('EXACT: a surviving drone keeps its live state but re-cuts its loadout', () => {
+  test('MECH: a surviving drone keeps its live state but re-cuts its loadout', () => {
     const damaged = existing({
       id: 'keep-me',
       name: 'Custos',
@@ -147,7 +186,7 @@ describe('syncPartners — the grant is the lifecycle', () => {
       systems: ['hover-locomotion-system', 'long-barrelled-green-laser'],
     })
     const [drone] = syncPartners([damaged], mechPartnerSeeds('little-sestra', 'Scrounger'), {
-      exact: true,
+      reseedLoadout: true,
     }) as PartnerInstance[]
 
     // Identity and damage survive the pattern change...
@@ -165,48 +204,71 @@ describe('syncPartners — the grant is the lifecycle', () => {
     ])
   })
 
-  test('EXACT: named instances match by name, so Big Brother keeps four distinct drones', () => {
+  test('MECH: named instances match by name, so Big Brother keeps four distinct drones', () => {
     const seeds = mechPartnerSeeds('big-brother', 'DronTek')
     const first = syncPartners(undefined, seeds, {
-      exact: true,
+      reseedLoadout: true,
       mintId: mintSequential(),
     }) as PartnerInstance[]
     const damaged = first.map((p) => (p.name === 'Minelayer Drone' ? { ...p, currentSP: 1 } : p))
 
-    const second = syncPartners(damaged, seeds, { exact: true }) as PartnerInstance[]
+    const second = syncPartners(damaged, seeds, { reseedLoadout: true }) as PartnerInstance[]
     expect(second.map((p) => p.id)).toEqual(first.map((p) => p.id))
     expect(second.find((p) => p.name === 'Minelayer Drone')?.currentSP).toBe(1)
     // The other three were never touched.
     expect(second.filter((p) => p.currentSP !== undefined)).toHaveLength(1)
   })
 
-  test('EXACT: a chassis swap drops the drone the new chassis does not grant', () => {
+  test('MECH: a chassis swap drops the drone the new chassis does not grant', () => {
     const result = syncPartners([existing({})], mechPartnerSeeds('bad-penny', 'Hauler'), {
-      exact: true,
+      reseedLoadout: true,
     })
     expect(result).toEqual([])
   })
 
-  test('ADDITIVE: a surplus partner of a still-granted stat block survives', () => {
-    // Mecha Packmaster fields two Mecha Companions off ONE equipment slug, so
-    // the seed count can legitimately understate the roster.
-    const two = [
-      existing({ id: 'a', hostRef: 'mecha-companion', hostSchema: 'equipment' }),
-      existing({ id: 'b', hostRef: 'mecha-companion', hostSchema: 'equipment' }),
-    ]
-    const result = syncPartners(two, pilotPartnerSeeds(['mecha-companion'])) as PartnerInstance[]
+  const twoCompanions = () => [
+    existing({ id: 'a', hostRef: 'mecha-companion', hostSchema: 'equipment' }),
+    existing({ id: 'b', hostRef: 'mecha-companion', hostSchema: 'equipment' }),
+  ]
+
+  test('PILOT: Mecha Packmaster keeps BOTH companions off one equipment slug', () => {
+    const result = syncPartners(
+      twoCompanions(),
+      pilotPartnerSeeds(['mecha-companion'], ['mecha-companion', 'mecha-packmaster'])
+    ) as PartnerInstance[]
     expect(result.map((p) => p.id).sort()).toEqual(['a', 'b'])
   })
 
-  test('ADDITIVE: unequipping the granting item still takes every instance with it', () => {
-    const two = [
-      existing({ id: 'a', hostRef: 'mecha-companion', hostSchema: 'equipment' }),
-      existing({ id: 'b', hostRef: 'mecha-companion', hostSchema: 'equipment' }),
-    ]
-    expect(syncPartners(two, pilotPartnerSeeds([]))).toEqual([])
+  test('PILOT: dropping Packmaster retires the second companion, keeping the first', () => {
+    const result = syncPartners(
+      twoCompanions(),
+      pilotPartnerSeeds(['mecha-companion'], ['mecha-companion'])
+    ) as PartnerInstance[]
+    expect(result).toHaveLength(1)
+    // The FIRST survives — reaping takes from the tail, so the companion the
+    // pilot has had longest is the one that stays.
+    expect(result[0]?.id).toBe('a')
   })
 
-  test('ADDITIVE: an existing partner never has its loadout rewritten', () => {
+  test('PILOT: taking Packmaster mints the second, leaving the first untouched', () => {
+    const one = [
+      existing({ id: 'a', hostRef: 'mecha-companion', hostSchema: 'equipment', currentSP: 4 }),
+    ]
+    const result = syncPartners(
+      one,
+      pilotPartnerSeeds(['mecha-companion'], ['mecha-companion', 'mecha-packmaster']),
+      { mintId: mintSequential() }
+    ) as PartnerInstance[]
+    expect(result.map((p) => p.id)).toEqual(['a', 'new-1'])
+    expect(result[0]?.currentSP).toBe(4)
+    expect(result[1]?.currentSP).toBeUndefined()
+  })
+
+  test('PILOT: unequipping the granting item takes BOTH instances with it', () => {
+    expect(syncPartners(twoCompanions(), pilotPartnerSeeds([], ['mecha-packmaster']))).toEqual([])
+  })
+
+  test('PILOT: an existing partner never has its loadout rewritten', () => {
     const kitted = existing({
       hostRef: 'survey-drone',
       hostSchema: 'equipment',

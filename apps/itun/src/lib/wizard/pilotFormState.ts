@@ -99,14 +99,16 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
  * partner holds live-play state an edit must not clobber, and reconciliation
  * needs the stored partners as input. The wizard runs it via `afterUpdate`.
  *
- * Additive, not exact — `pilot.equipment` says which stat blocks are granted,
- * never how many are fielded (Mecha Packmaster). See `syncPartners`.
+ * Equipment gates, abilities count: Mecha Packmaster turns one Mecha Companion
+ * entry into two companions (`partnerGrantCount`). No `reseedLoadout` — a
+ * pilot's partner is kitted out in play, and re-cutting it from a bare seed
+ * would delete a loadout nothing can restore.
  */
 export function pilotFormToPartners(
   form: PilotWizardFormState,
   existing?: readonly PartnerInstance[]
 ) {
-  return syncPartners(existing, pilotPartnerSeeds(form.equipment))
+  return syncPartners(existing, pilotPartnerSeeds(form.equipment, form.abilities))
 }
 
 /**

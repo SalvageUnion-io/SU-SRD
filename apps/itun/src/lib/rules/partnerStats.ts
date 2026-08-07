@@ -33,6 +33,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { matchesRef } from 'salvageunion-reference/rules'
 import type { PartnerInstance } from '../schemas/partner'
+import { partnerGrantCount } from './partnerGrants'
 
 /** Mecha Companion's floor — "equal to your Union Crawler (Tech 3 minimum)". */
 const MECHA_COMPANION_MIN_TECH_LEVEL = 3
@@ -189,22 +190,24 @@ export function partnerDerivedStatsParts(
  * and the Little Sestra's Sestra Drone). Two things raise it, and neither is
  * legible from the stat block:
  *
- *   - A SECOND ABILITY. Mecha Packmaster (p. 69) "allows you to have up to two
- *     Mecha Companions active in the field at any one time", so the cap is a
- *     property of the host's ability set and cannot be read off `hostRef` alone.
+ *   - A PILOT ABILITY THAT GRANTS MORE THAN ONE. This used to string-match
+ *     `mecha-packmaster`, which was both a hardcode and a duplicate: the fact
+ *     already lives in the data, since Packmaster's `grants` lists Mecha
+ *     Companion twice. Reading it means the cap and the number actually seeded
+ *     can no longer drift apart, and a future ability that grants two needs no
+ *     edit here. See `partnerGrantCount` for why it is a MAX, not a sum.
  *   - THE STAT BLOCK'S OWN CONTROLLER. The Big Brother "can control up to 4 Big
  *     Brother Drones", and its DronTek pattern fields exactly that many — so
  *     without this, every one of those four would read "4 of 1" the moment the
- *     mech was built.
+ *     mech was built. This one stays hardcoded: it is a chassis ability's prose,
+ *     not a countable grant, and deriving it from "the most any pattern fields"
+ *     would report 1 for a Custom build that is still allowed four.
  *
  * Advisory only. The Live Sheet is a Free-Edit surface (ADR-021) and the
  * automation boundary (ADR-007) keeps rules like this displayed rather than
  * enforced, so callers render `used/max` and never block.
  */
 export function partnerCap(hostRef: string, hostAbilityRefs: readonly string[]): number {
-  if (hostRef === MECHA_COMPANION_REF && hostAbilityRefs.some((a) => a === 'mecha-packmaster')) {
-    return 2
-  }
   if (hostRef === BIG_BROTHER_DRONE_REF) return BIG_BROTHER_DRONE_CAP
-  return 1
+  return partnerGrantCount(hostRef, hostAbilityRefs)
 }

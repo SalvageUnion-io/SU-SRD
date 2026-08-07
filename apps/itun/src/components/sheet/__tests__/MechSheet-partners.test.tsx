@@ -28,7 +28,7 @@ import { MechSheet } from '../MechSheet'
 /** A mech built the way the wizard builds one, drones and all. */
 function seededMech(chassisRef: string, patternName: string, overrides: Partial<Mech> = {}): Mech {
   const partners = syncPartners(undefined, mechPartnerSeeds(chassisRef, patternName), {
-    exact: true,
+    reseedLoadout: true,
   })
   return mechFixture({
     id: 'mech-partners-1',
