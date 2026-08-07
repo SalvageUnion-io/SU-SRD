@@ -15,8 +15,16 @@
  * (ADR-010). Detection uses `matchesRef` (id | name | slug) so it is robust to
  * however a given collection stores its refs; the emitted identity on add is
  * the caller's `idOf` (default the entity name).
+ *
+ * `mode="single"` covers the exactly-one swaps (chassis, crawler type, pilot
+ * class), which used to be hand-rolled master/detail pairs: a narrow option
+ * rail beside a preview pane. That shape does not survive a large entity —
+ * a chassis card is wider than a 220px track, so every option rendered clipped —
+ * so those pickers now run here too, with `hide` dropping the sections a picker
+ * cannot act on and `railActions` carrying their confirm affordance.
  */
 
+import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type {
   EntitySchemaName,
@@ -33,6 +41,7 @@ import { Button } from '../chrome/Button'
 import { FOCUS_WITHIN } from '../chrome/interaction'
 import { PageHeading } from '../chrome/PageHeading'
 import { Panel } from '../chrome/Panel'
+import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/ReferenceEntityCard'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { statBlockRowStarts } from '../stat/pipRows'
 import { Card } from './Card'
@@ -84,9 +93,13 @@ type EntitySearcherProps = {
    * `toggle` (default): one copy per entity, clicking the card adds/removes it.
    * `count`: duplicates are legal — each card has an Add affordance, removal
    * happens per-entry in the rail.
+   * `single`: exactly one — the pool is a `radiogroup` and each card announces
+   * `aria-checked`. The emission contract is the same as `toggle` (the caller
+   * replaces its selection rather than appending), so a single-select picker
+   * differs only in a11y semantics, not in wiring.
    */
-  mode?: 'toggle' | 'count'
-  /** toggle mode: add (emits `idOf(item)`) or remove (emits the matched ref). */
+  mode?: 'toggle' | 'count' | 'single'
+  /** toggle/single mode: add (emits `idOf(item)`) or remove (emits the matched ref). */
   onToggle?: (ref: string) => void
   /** count mode: append one copy (emits `idOf(item)`). */
   onAdd?: (ref: string) => void
@@ -107,8 +120,27 @@ type EntitySearcherProps = {
   emptyMessage?: string
   /** The title rendered in the searcher's Card header. */
   title?: string
+  /** A caveat stamped under the title, e.g. a destructive-change warning. The
+   * searcher is usually launched in a `bare` ModalShell, which paints no header
+   * of its own, so this is where a picker's warning copy lives. */
+  subtitle?: string
   /** Close handler — renders the header's close badge. */
   onClose?: () => void
+  /**
+   * Extra `hide` config for the pool + rail cards, merged OVER the searcher's
+   * own defaults (actions/choices are always suppressed). Big entities — a
+   * chassis, a crawler type — carry sections a picker has no room for
+   * (`{ patterns: true }`), and that is a property of the entity, not of the
+   * surface, so it is the caller's call rather than a schema check in here.
+   */
+  hide?: ReferenceEntityCardHideConfig
+  /**
+   * Actions pinned to the bottom of the selection rail — e.g. the Apply/Cancel
+   * pair a destructive picker needs. The rail floats over the card frame, so
+   * this is the one place a confirm affordance can sit without a second band
+   * competing with it.
+   */
+  railActions?: ReactNode
 }
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
@@ -136,8 +168,14 @@ export function EntitySearcher({
   chosenLabel = 'Selected',
   emptyMessage = 'Nothing found.',
   title,
+  subtitle,
   onClose,
+  hide,
+  railActions,
 }: EntitySearcherProps) {
+  // Actions/choices are never pickable inside a picker; anything else is the
+  // caller's to suppress.
+  const cardHide: ReferenceEntityCardHideConfig = { ...hide, actions: true, choices: true }
   const [query, setQuery] = useState('')
   const [activeTls, setActiveTls] = useState<Set<TechLevelLike>>(() => new Set())
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
@@ -386,7 +424,11 @@ export function EntitySearcher({
 
   const poolNode = (
     <div className="min-w-0">
-      <MasonryColumns maxColumns={2}>
+      <MasonryColumns
+        maxColumns={2}
+        radio={mode === 'single'}
+        ariaLabel={mode === 'single' ? (title ?? 'Options') : undefined}
+      >
         {visible.map((item) => {
           const count = countOf(item)
           if (mode === 'count') {
@@ -396,6 +438,7 @@ export function EntitySearcher({
                 entity={item}
                 count={count}
                 onAdd={() => onAdd?.(idOf(item))}
+                hide={cardHide}
               />
             )
           }
@@ -406,13 +449,13 @@ export function EntitySearcher({
               data={item}
               size="medium"
               selected={isSelected}
-              selectionRole="toggle"
+              selectionRole={mode === 'single' ? 'radio' : 'toggle'}
               cardClickLabel={item.name}
               selectionSeal={chosenLabel}
               onCardClick={() =>
                 onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
               }
-              hide={{ actions: true, choices: true }}
+              hide={cardHide}
             />
           )
         })}
@@ -433,7 +476,19 @@ export function EntitySearcher({
         bodyPadding="p-0"
         headerContent={
           <div className="flex w-full items-center gap-3">
-            <BandTitle>{title}</BandTitle>
+            {/* Column, so `fill` is off on both — `flex-1` inside a flex-col
+                would grow the title vertically, not claim the band's width.
+                The wrapper takes the track instead and the titles truncate. */}
+            <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+              <BandTitle fill={false} className="max-w-full">
+                {title}
+              </BandTitle>
+              {subtitle && (
+                <BandTitle variant="mute" fill={false} className="max-w-full">
+                  {subtitle}
+                </BandTitle>
+              )}
+            </div>
             {onClose && (
               <Button
                 variant="default"
@@ -472,6 +527,8 @@ export function EntitySearcher({
             mode={mode}
             onToggle={onToggle}
             onRemove={onRemove}
+            hide={cardHide}
+            actions={railActions}
             className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_var(--color-ink-30)]"
           />
         </div>
@@ -488,15 +545,17 @@ function CountCard({
   entity,
   count,
   onAdd,
+  hide,
 }: {
   entity: PoolEntity
   count: number
   onAdd: () => void
+  hide: ReferenceEntityCardHideConfig
 }) {
   const installed = count > 0
   return (
     <div className={cn('rounded-panel', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
-      <ReferenceEntityCard data={entity} size="medium" hide={{ actions: true, choices: true }} />
+      <ReferenceEntityCard data={entity} size="medium" hide={hide} />
       <div className="mt-1.5 flex items-center gap-2 px-1">
         {installed && (
           <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink">
@@ -525,6 +584,8 @@ function SelectionRail({
   mode,
   onToggle,
   onRemove,
+  hide,
+  actions,
   className,
 }: {
   name?: string
@@ -533,9 +594,11 @@ function SelectionRail({
   schema: EntitySchemaName
   selected: string[]
   budget?: BudgetConfig | BudgetConfig[]
-  mode: 'toggle' | 'count'
+  mode: 'toggle' | 'count' | 'single'
   onToggle?: (ref: string) => void
   onRemove?: (index: number) => void
+  hide: ReferenceEntityCardHideConfig
+  actions?: ReactNode
   className?: string
 }) {
   const budgets = budget ? (Array.isArray(budget) ? budget : [budget]) : []
@@ -579,12 +642,7 @@ function SelectionRail({
         {entries.map(({ entity, ref, index, copy, total }) => (
           <div key={index} data-testid="rail-entry" className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
-              <ReferenceEntityCard
-                data={entity}
-                size="medium"
-                extent="head"
-                hide={{ actions: true, choices: true }}
-              />
+              <ReferenceEntityCard data={entity} size="medium" extent="head" hide={hide} />
               {total > 1 && (
                 <span className="mt-0.5 block px-1 font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
                   Copy {copy} of {total}
@@ -607,6 +665,8 @@ function SelectionRail({
           </p>
         )}
       </div>
+
+      {actions && <div className="mt-4 flex flex-wrap justify-end gap-2">{actions}</div>}
     </Panel>
   )
 }

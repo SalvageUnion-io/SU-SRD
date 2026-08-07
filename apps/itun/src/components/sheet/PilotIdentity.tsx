@@ -10,8 +10,8 @@
  * Edit/Done button now lives in the parent `SheetSectionCard`'s header (Phase
  * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
  * the `editing` prop rather than owning its own toggle state. Class is
- * picker-backed — its edit affordance opens the ONE shared picker modal with
- * the wizard's master-detail class list (changing class KEEPS abilities,
+ * picker-backed — its edit affordance opens the ONE shared picker modal
+ * running the shared `EntitySearcher` (changing class KEEPS abilities,
  * matching the old edit-mode semantics).
  *
  * readOnly (no onToggleUsed / no patch): used chips render as static 'USED'
@@ -22,8 +22,7 @@
 import {
   Badge,
   Button,
-  ClassDetail,
-  ClassOptionList,
+  EntitySearcher,
   Field,
   SheetPickerModal,
   selectableClasses,
@@ -127,8 +126,10 @@ export function PilotIdentityPanel({
   const { base, specialisations } = classPickerOpen
     ? selectableClasses(undefined, true)
     : { base: [], specialisations: [] }
-  const allClasses = [...base, ...specialisations]
-  const selectedClass = allClasses.find((c) => c.id === pendingClass)
+  // Id sets, not lists: the searcher narrows its own pool by `filter` and
+  // derives the Kind facet per item, so both are membership questions.
+  const baseClassIds = new Set(base.map((c) => c.id))
+  const eligibleClassIds = new Set([...base, ...specialisations].map((c) => c.id))
 
   const canEdit = patch !== undefined
 
@@ -253,31 +254,54 @@ export function PilotIdentityPanel({
         />
       </div>
 
-      {/* Class — single-select master-detail in the ONE shared picker modal. */}
+      {/* Class — single-select through the ONE shared picker, same as every
+          other "choose a reference entity" modal. */}
       <SheetPickerModal
         open={classPickerOpen}
         onClose={() => setClassPickerOpen(false)}
         title="Change Class"
-        footer={
-          <>
-            <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="compact" onClick={confirmClass}>
-              Change Class
-            </Button>
-          </>
-        }
+        floating
       >
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,320px)_1fr]">
-          <ClassOptionList
-            base={base}
-            specialisations={specialisations}
-            selectedClassId={pendingClass}
-            onSelect={setPendingClass}
-          />
-          <ClassDetail selectedClass={selectedClass} />
-        </div>
+        <EntitySearcher
+          schema="classes"
+          mode="single"
+          selected={pendingClass ? [pendingClass] : []}
+          onToggle={(ref) => setPendingClass((prev) => (prev === ref ? '' : ref))}
+          // The wizard writes a class ID into `classRef`, so that is what this
+          // picker emits too. Detection is looser than emission (`matchesRef`
+          // also accepts a name or slug), which is what the stored ref may
+          // legitimately be on an older pilot.
+          idOf={(item) => item.id}
+          // Only base classes and Advanced/Hybrid specialisations are
+          // selectable — reuse the wizard's own guards rather than re-deriving
+          // "is this a class you can take" from the entity shape here.
+          filter={(item) => eligibleClassIds.has(item.id)}
+          facets={{
+            status: false,
+            category: {
+              label: 'Kind',
+              of: (item) => (baseClassIds.has(item.id) ? 'Base' : 'Specialisation'),
+            },
+          }}
+          chosenLabel="Chosen"
+          subtitle="Changing class keeps the pilot's abilities."
+          emptyMessage="No matching classes."
+          railActions={
+            <>
+              <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="compact"
+                disabled={!pendingClass || pendingClass === pilot.classRef}
+                onClick={confirmClass}
+              >
+                Change Class
+              </Button>
+            </>
+          }
+        />
       </SheetPickerModal>
     </div>
   )

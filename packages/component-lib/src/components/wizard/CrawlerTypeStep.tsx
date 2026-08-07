@@ -6,64 +6,6 @@ import { Slab } from '../chrome/Slab'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { MasonryColumns } from '../shared/MasonryColumns'
 
-type CrawlerTypeOptionListProps = {
-  types: SURefCrawler[]
-  selectedType: string | null
-  onSelect: (id: string) => void
-}
-
-/**
- * Master pane for the Crawler step: each crawler type
- * (Augmented / Battle / Engineering / Exploratory / Trade Caravan) rendered as
- * its own reference card at catalog extent, the checked card driving the detail
- * pane. Exactly one is chosen, so the pane is a `radiogroup` and each card
- * announces `aria-checked`.
- */
-export function CrawlerTypeOptionList({
-  types,
-  selectedType,
-  onSelect,
-}: CrawlerTypeOptionListProps) {
-  return (
-    <div role="radiogroup" aria-label="Crawler type">
-      {types.map((type) => (
-        <ReferenceEntityCard
-          key={type.id}
-          data={type}
-          size="medium"
-          extent="catalog"
-          className="mb-2"
-          selected={type.id === selectedType}
-          selectionRole="radio"
-          cardClickLabel={type.name}
-          onCardClick={() => onSelect(type.id)}
-        />
-      ))}
-    </div>
-  )
-}
-
-type CrawlerTypeDetailProps = {
-  selected: SURefCrawler | undefined
-}
-
-/**
- * Detail pane for the Crawler step: the selected crawler type's entity card —
- * its description, special action(s) and special NPC.
- */
-export function CrawlerTypeDetail({ selected }: CrawlerTypeDetailProps) {
-  if (!selected) {
-    return (
-      <EmptyState
-        className="h-full"
-        headline="No Crawler Selected"
-        body="Select a crawler type to preview its features."
-      />
-    )
-  }
-  return <ReferenceEntityCard data={selected} />
-}
-
 type CrawlerTypeSelectStepProps = {
   types: SURefCrawler[]
   selectedType: string | null

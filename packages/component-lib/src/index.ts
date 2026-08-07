@@ -218,15 +218,10 @@ export { Toaster, toast } from './components/ui/toaster'
 export { BackgroundStep } from './components/wizard/BackgroundStep'
 export { CallsignStep } from './components/wizard/CallsignStep'
 export { ClassAbilityStep } from './components/wizard/ClassAbilityStep'
-export { ClassDetail, ClassOptionList } from './components/wizard/ClassStep'
 export { CrawlerStatsStep } from './components/wizard/CrawlerStatsStep'
 // Wizard step presentation lifted out of ITUN — pure option/detail rendering;
 // the app supplies the selections and the persistence.
-export {
-  CrawlerTypeDetail,
-  CrawlerTypeOptionList,
-  CrawlerTypeSelectStep,
-} from './components/wizard/CrawlerTypeStep'
+export { CrawlerTypeSelectStep } from './components/wizard/CrawlerTypeStep'
 export { selectableClasses } from './components/wizard/classOptions'
 export { EquipmentStep } from './components/wizard/EquipmentStep'
 export { FlavorStep } from './components/wizard/FlavorStep'

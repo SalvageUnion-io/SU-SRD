@@ -1,8 +1,15 @@
 /**
  * MechChassisPickerModal — inline "Change chassis" flow for the mech live
- * sheet's edit mode. Reuses the wizard's Chassis step master/detail panes
- * (ChassisOptionList + ChassisDetail) inside a ModalShell, since the sheet
- * has no room for the wizard's 320px rail.
+ * sheet's edit mode. Uses the shared `EntitySearcher` in a bare ModalShell, the
+ * same picker every other "choose a reference entity" modal runs on.
+ *
+ * It previously ran a bespoke master/detail pair (a 220px option rail beside a
+ * preview pane) which the searcher replaces. A chassis is one of the largest
+ * entities in the data — artwork, stat block, chassis ability, patterns — and a
+ * 220px column is narrower than the card's own artwork, so every option in the
+ * master pane rendered clipped and unreadably tall. The searcher's two-column
+ * masonry gives each card its natural width, and `hide.patterns` drops the one
+ * section a picker has no use for (patterns are chosen in the next step).
  *
  * Changing chassis is DESTRUCTIVE (the wizard's selectChassis wipes the
  * pattern/systems/modules), so a confirmed selection is required before the
@@ -10,9 +17,9 @@
  * is up so the two base-ui dialogs never fight over the focus trap.
  */
 
-import { Button, ModalShell } from 'component-lib'
+import { Button, EntitySearcher, ModalShell } from 'component-lib'
 import { useEffect, useState } from 'react'
-import { ChassisDetail, ChassisOptionList } from './ChassisStep'
+import { nameToSlug } from 'salvageunion-reference'
 
 type MechChassisPickerModalProps = {
   open: boolean
@@ -40,7 +47,12 @@ export function MechChassisPickerModal({
     }
   }, [open, currentChassisRef])
 
-  const changed = selected !== currentChassisRef
+  // A mech must always HAVE a chassis, so "nothing selected" is not an applyable
+  // state — only a different one is. The empty guard is load-bearing: single-select
+  // clears on clicking the chosen card (and via the rail's Remove), and without it
+  // Apply would enable on an empty ref and write `chassisRef: ''` — an unresolvable
+  // chassis plus a wiped loadout, since applying also clears systems/modules.
+  const changed = selected !== '' && selected !== currentChassisRef
 
   function apply() {
     if (!changed) {
@@ -62,25 +74,40 @@ export function MechChassisPickerModal({
         open={open && !confirming}
         onOpenChange={onOpenChange}
         title="Change Chassis"
-        subtitle="Swapping chassis clears the current loadout."
-        maxWidth="max-w-4xl"
+        maxWidth="max-w-5xl"
+        bare
       >
-        <div className="grid grid-cols-1 gap-4 bg-paper p-4 sm:grid-cols-[220px_minmax(0,1fr)]">
-          <div className="max-h-[50vh] overflow-y-auto">
-            <ChassisOptionList selectedChassis={selected} onSelect={setSelected} />
-          </div>
-          <div className="min-w-0">
-            <ChassisDetail chassisName={selected} />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 bg-paper px-4 pb-4">
-          <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button size="compact" disabled={!changed} onClick={apply}>
-            Apply chassis
-          </Button>
-        </div>
+        <EntitySearcher
+          schema="chassis"
+          mode="single"
+          selected={selected ? [selected] : []}
+          // Single-select: picking replaces the prior pick, picking the current
+          // one clears it back to "nothing chosen" (Apply then disables).
+          onToggle={(ref) => setSelected((prev) => (prev === ref ? '' : ref))}
+          idOf={(item) => nameToSlug(item.name)}
+          // Patterns are a step of their own and swapping chassis wipes them —
+          // rendering the pattern list here would be the tallest section of the
+          // tallest card, for a choice this modal cannot make.
+          hide={{ patterns: true }}
+          // "Chosen only / Not yet added" is meaningless when the answer is
+          // always exactly one entity.
+          facets={{ status: false }}
+          chosenLabel="Chosen"
+          title="Change Chassis"
+          subtitle="Swapping chassis clears the current loadout."
+          emptyMessage="No matching chassis."
+          onClose={() => onOpenChange(false)}
+          railActions={
+            <>
+              <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button size="compact" disabled={!changed} onClick={apply}>
+                Apply chassis
+              </Button>
+            </>
+          }
+        />
       </ModalShell>
 
       <ModalShell

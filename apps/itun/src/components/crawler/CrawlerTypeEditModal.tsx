@@ -1,7 +1,9 @@
 /**
  * CrawlerTypeEditModal — the live sheet's inline "Change crawler type" picker
- * (build-edit mode). Reuses the wizard's master-detail type step
- * (CrawlerTypeOptionList + CrawlerTypeDetail) inside a ModalShell.
+ * (build-edit mode). Uses the shared `EntitySearcher` in a bare ModalShell, the
+ * same picker every other "choose a reference entity" modal runs on; it
+ * previously ran the wizard's master/detail type panes, whose narrow option
+ * rail clipped these large cards (see MechChassisPickerModal for the same fix).
  *
  * A type change is DESTRUCTIVE and stateful: it resets the crawler's special
  * type NPC to the new type's default, drops the orphaned old type's Keepsake/
@@ -10,7 +12,7 @@
  * applyCrawlerCrewAndTypeEdit helper. A confirm step guards the change.
  */
 
-import { Button, CrawlerTypeDetail, CrawlerTypeOptionList, ModalShell, toast } from 'component-lib'
+import { Button, EntitySearcher, ModalShell, toast } from 'component-lib'
 import { useEffect, useState } from 'react'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -93,31 +95,43 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        subtitle="Resets the special NPC · keeps bays and their crew"
+        maxWidth="max-w-5xl"
+        bare
       >
-        <div className="flex flex-col gap-4 p-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="max-h-[50vh] overflow-y-auto">
-              <CrawlerTypeOptionList types={types} selectedType={selected} onSelect={setSelected} />
-            </div>
-            <div className="max-h-[50vh] overflow-y-auto">
-              <CrawlerTypeDetail selected={selectedEntity} />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="compact" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="compact"
-              disabled={!changed}
-              onClick={() => setConfirming(true)}
-            >
-              Change Type…
-            </Button>
-          </div>
-        </div>
+        <EntitySearcher
+          schema="crawlers"
+          mode="single"
+          selected={selected ? [selected] : []}
+          // Single-select: picking replaces the prior pick, picking the current
+          // one clears it (the confirm button then disables).
+          onToggle={(ref) => setSelected((prev) => (prev === ref ? null : ref))}
+          // The crawler record stores its type by reference-entity ID, so that
+          // is the identity this picker has to emit.
+          idOf={(item) => item.id}
+          // Five types — a Tech-Level / status facet row would be chrome over a
+          // list short enough to read whole.
+          facets={{ status: false, techLevel: false, traits: false }}
+          chosenLabel="Chosen"
+          title="Change Crawler Type"
+          subtitle="Resets the special NPC · keeps bays and their crew"
+          emptyMessage="No matching crawler types."
+          onClose={onClose}
+          railActions={
+            <>
+              <Button variant="ghost" size="compact" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="compact"
+                disabled={!changed}
+                onClick={() => setConfirming(true)}
+              >
+                Change Type…
+              </Button>
+            </>
+          }
+        />
       </ModalShell>
 
       {/* Destructive-change confirm — inline ModalShell, like the mech pickers. */}
