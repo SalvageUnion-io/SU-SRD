@@ -7,8 +7,10 @@ import { llmsTxtEndpoint } from '../../endpoints/llmsTxt'
  * returning a `Response`. The SSG contract models a non-HTML output as an
  * `EndpointModule` with a `contentType` and a `body()` returning a string, so
  * the transport wrapper is gone and the content-type is declared rather than
- * set on a header. Every assertion about the BODY below is unchanged, and
- * `ssg/parity.ts` separately holds llms.txt byte-identical to the Astro build.
+ * set on a header. Every assertion about the BODY below is unchanged. These
+ * assertions used to be backed up by `ssg/parity.ts` holding llms.txt
+ * byte-identical to the Astro build; that gate is retired, so they are now the
+ * whole of what checks this endpoint.
  */
 const render = () => llmsTxtEndpoint.body({} as RouteContext<Record<string, string>, unknown>)
 

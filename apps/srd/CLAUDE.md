@@ -49,7 +49,6 @@ ephemerally/non-editably
 | `sitemap.ts`    | `sitemap-index.xml` + `sitemap-0.xml`                                         |
 | `pwa.ts`        | workbox `generateSW` over the finished `dist`                                 |
 | `outputPath.ts` | URL → dist file mapping (`/404` → `404.html`, everything else `…/index.html`) |
-| `parity.ts`     | **the acceptance gate** — see below                                           |
 
 ### Routes are registered, not discovered
 
@@ -128,77 +127,46 @@ renders exactly one placeholder:
 3. Relative imports only (never `@/` aliases); `type` over `interface`;
    `import type` for type-only imports; no `any`.
 
-## Verification — `ssg/parity.ts` is the acceptance gate
+## Verification
 
 ```bash
 cd apps/srd
-bun ssg/build.ts     # ~2.4s
-bun ssg/parity.ts    # exits non-zero on any mismatch
+bun ssg/build.ts     # ~2.4s — must emit 1,039 pages and 900 endpoints
+bun test             # the unit suite
 ```
 
-`parity.ts` compares the built `dist` **semantically** against an archived Astro
-baseline build (`--baseline <dir>`, defaulting to the migration's baseline
-snapshot; `--candidate <dir>` overrides the dist). Byte equality is explicitly
-not the goal. It checks:
+There is **no whole-page-output gate.** The Astro-migration parity gate
+(`ssg/parity.ts`) was retired once the migration was long finished and its
+baseline was gone — see [ADR-031](../../docs/adrs/ADR-031-srd-vite-ssg.md),
+which anticipated exactly this and called the shelf life when it wrote the
+decision. Do not go looking for it, and do not cite it as coverage.
 
-- the exact set of emitted paths, both directions
-- per page: `<title>`, `meta[name=description]`, `link[rel=canonical]`, every
-  `og:*` / `twitter:*`, `meta[name=robots]`, and each JSON-LD block parsed and
-  deep-compared
-- per page: normalized visible text of `<main>`
-- every JSON endpoint (899 of them), parsed and deep-compared
-- `llms.txt`, byte-identical
+**Say plainly what this costs, because it is the one real loss:** nothing now
+compares the built `dist` against a known-good reference. A change that silently
+alters every page's `<main>` text, drops a JSON-LD block, or reshapes an endpoint
+payload will not be caught by any automated check. The build succeeding is not
+evidence the output is right.
 
-It is known to bite — it fails against eight deliberately-injected defects.
-**Trust it over any agent's opinion**, including your own, about whether output
-changed.
+What IS asserted, and what each one actually covers:
 
-A clean run says:
+| Test                       | Covers                                                       |
+| -------------------------- | ------------------------------------------------------------ |
+| `outputPath.test.ts`       | URL → dist file mapping — the rule the whole emit rests on    |
+| `render.test.tsx`          | one route → HTML string, incl. what `BaseLayout` contributes  |
+| `document.test.tsx`        | the `<html>` shell: head tags, JSON-LD, script/style injection |
+| `island.test.tsx`          | island placeholder emission + the four client strategies      |
+| `sitemap.test.ts`          | `sitemap-index.xml` / `sitemap-0.xml` and the exclusion filter |
+| `navCatalog.drift.test.ts` | the committed generated nav catalog matches the generator     |
+| `src/lib/__tests__/llms-txt.test.ts` | `llms.txt` content rules                            |
+| `src/lib/__tests__/schemaSurfaceParity.test.ts` | the schema surface the site exposes       |
 
-```
-PARITY OK — 1039 pages, 899 JSON endpoints, zero differences.
-```
+These are unit tests over the generator's **pieces**. They do not compose into a
+statement about the finished site.
 
-### `/changelog` grows forever, so it is compared for insertion, not equality
-
-The baseline is frozen at the last Astro commit, but `/changelog` renders at
-build time from the two `CHANGELOG.md` files release-please **prepends** to on
-every release. So it necessarily carries entries the baseline cannot have, and
-the gap widens with each release — permanently, by construction. Left as a
-strict equality check it would fail forever, and a gate that always fails is one
-people learn to ignore.
-
-It is therefore listed in `APPEND_ONLY_PAGES` and compared with `isInsertionOf`:
-**every character the baseline emitted must still be present, in order, with the
-growth confined to one contiguous insertion.** Deleting an old entry, reordering
-entries or rewording one all still FAIL, and the failure says the page is
-append-only so you know which rule it broke. The growth itself is reported in the
-scope block (`append-only growth on : 1 page(s), +N chars inserted`) — an
-exemption nobody can see is indistinguishable from the gate not running.
-
-This is deliberately **not** an ignore list. An ignore would make the page
-assert nothing; this asserts something stronger than "unchanged" can on a file
-that is designed to change. Verified 2026-08-06 against a freshly regenerated
-baseline: 1,039 pages, 899 endpoints, zero differences, exit 0.
-
-### If the baseline is missing, regenerate it — don't skip the gate
-
-The baseline is ~56 MB, so it is gitignored rather than committed, which means a
-fresh checkout has no baseline and `parity.ts` exits 2 with "baseline directory
-does not exist". That is not the gate being unavailable — the baseline is a pure
-function of a commit still in history:
-
-```bash
-cd apps/srd
-bun run parity:baseline   # ssg/make-parity-baseline.ts — minutes, needs network
-bun ssg/build.ts && bun run parity
-```
-
-`make-parity-baseline.ts` derives the last Astro commit (the parent of whichever
-commit deleted `apps/srd/astro.config.mjs` — not hardcoded), checks it out into a
-throwaway detached worktree, runs that commit's own install + `astro build`, and
-copies the result to `.parity-baseline/`. It is deliberately **not** part of
-`check:all`: the Astro-era install is ~2,200 packages.
+So when you change rendering, routing or emit, verify by **looking at real
+output** — build, then read the emitted HTML or serve `dist` and measure the
+rendered page — rather than by reasoning about the diff. That is not a lesser
+substitute for a gate; with no gate it is the only evidence there is.
 
 ## Key Directories
 

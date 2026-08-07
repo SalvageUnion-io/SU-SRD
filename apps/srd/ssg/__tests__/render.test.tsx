@@ -209,8 +209,10 @@ describe('registerDocument', () => {
       '<!doctype html><html lang="en"><head><title>Greembeem</title></head>' +
         '<body><p>pastiche</p></body></html>'
     )
-    // Everything BaseLayout would have added is exactly what the parity gate
-    // would call a regression on these pages.
+    // Everything BaseLayout would have added is exactly what must NOT appear on
+    // these pages. With the parity gate retired, these four assertions are the
+    // only thing standing between a `renderMode` slip and shipping og/canonical
+    // tags on a noindex page.
     expect(html).not.toContain('rel="canonical"')
     expect(html).not.toContain('og:title')
     expect(html).not.toContain('/assets/styles-CAFEBABE.css')

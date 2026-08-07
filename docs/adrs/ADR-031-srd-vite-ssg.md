@@ -13,6 +13,15 @@ it changes.** Astro is replaced by an in-house static-site generator at
 [`ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md). This ADR records _why_; that
 file records _how_, and is the one to read before changing the build.
 
+**Amended 2026-08-07 — decision 6 has expired.** `ssg/parity.ts`, its
+`make-parity-baseline.ts` companion and their tests (2,109 lines) have been
+**deleted**. This is the "shelf life" this ADR itself called out under
+_Consequences_, arriving: the gate's baseline was gone from every checkout, so
+it could not run at all. Nothing in the decision below changes — the migration
+still happened, and still passed on the gate's evidence. What changes is that
+**the evidence is now historical and there is no live whole-page-output check.**
+Everything this ADR says about parity should be read in the past tense.
+
 ## Context
 
 ADR-012 chose "**Astro, static, React islands**", and explicitly treated the
@@ -101,8 +110,10 @@ under Bun. `astro`, `@astrojs/react`, `@astrojs/sitemap`, `@astrojs/check` and
    finished `dist`; `ClientRouter` → cross-document
    `@view-transition { navigation: auto }`; `prefetch` →
    `<script type="speculationrules">`; `astro check` → `tsc --noEmit`.
-6. **`ssg/parity.ts` is the acceptance gate**, and it is kept rather than
-   discarded on green. It compares the built `dist` semantically against an
+6. **`ssg/parity.ts` was the acceptance gate** — kept rather than discarded on
+   green at the time, and since **retired** (see the amendment under _Status_;
+   the clause below describes what it did, not what exists).
+   It compared the built `dist` semantically against an
    archived Astro baseline: the exact emitted file set both directions, per-page
    `<title>` / description / canonical / every `og:*` and `twitter:*` / robots /
    every JSON-LD block deep-compared, the normalized visible text of `<main>`,
@@ -130,11 +141,15 @@ not the absence of a test.
 ### What was given up — stated plainly
 
 **This repo now owns ~1,500 lines of build tooling, forever.** Precisely: 2,388
-lines under `apps/srd/ssg/`, of which ~1,491 are the generator proper
-(`build.ts`, `dev.ts`, `render.tsx`, `document.tsx`, `routes.ts`,
-`endpoints.ts`, `sitemap.ts`, `pwa.ts`, `outputPath.ts`, `types.ts`,
-`vite.config.ts`) and 897 are the parity harness. That is traded against a
+lines under `apps/srd/ssg/` at the time of the migration, of which ~1,491 are the
+generator proper (`build.ts`, `dev.ts`, `render.tsx`, `document.tsx`,
+`routes.ts`, `endpoints.ts`, `sitemap.ts`, `pwa.ts`, `outputPath.ts`, `types.ts`,
+`vite.config.ts`) and 897 were the parity harness. That is traded against a
 dependency that cost this repo three commits in its entire history.
+
+The parity harness has since been deleted (see _Status_), so the standing cost is
+the ~1,491-line generator. The retirement removed a **verification** cost, not a
+generator cost — the tooling this ADR committed to maintaining is all still here.
 
 **This is not a free win, and it should not be sold as one.** Astro's routing,
 sitemap, PWA and SSR were maintained by other people, tested against far more
@@ -150,10 +165,12 @@ left, and no available version fixed it.
   `ssg/dev.ts` runs Vite in middleware mode and renders every request through the
   same `render` / `renderDocument` pair `ssg/build.ts` calls, via
   `ssrLoadModule`. It is slower than a client-rendered dev shell would be, on
-  purpose. If someone "optimizes" dev into a SPA fallback, the parity gate stops
-  covering what developers actually look at, and production-only bugs become
-  writable again. Every document dev serves was diffed whole against the built
-  file for the same route; keep it that way.
+  purpose. If someone "optimizes" dev into a SPA fallback, what developers look
+  at stops being what ships, and production-only bugs become writable again.
+  Every document dev serves was, at migration time, diffed whole against the
+  built file for the same route; keep the shared path even though the gate that
+  proved it is gone — with parity retired, dev rendering through the production
+  path is now the *main* thing keeping the two honest.
 - **The css/SSR stub is load-bearing and order-sensitive.** The SSR pass runs
   under Bun, not through Vite, and `component-lib`'s barrel reaches modules that
   `import './x.css'`. `ssg/build.ts` registers a `Bun.plugin` stubbing `.css` to
@@ -177,11 +194,16 @@ left, and no available version fixed it.
   deploy all still look healthy — the exact silent failure
   `tools/check-observability.ts` exists to catch. Renaming the variables instead
   was rejected because the values are already configured in the Netlify UI.
-- **The parity gate has a shelf life.** Its baseline is an archived Astro build.
-  Once that baseline is gone or the site has moved on, `ssg/parity.ts` is a
-  historical record of a clean migration, not a live gate — and nothing else in
-  CI compares whole-page output. Do not read a passing `--candidate` run as
-  broader coverage than it is.
+- **The parity gate had a shelf life, and it expired.** Its baseline was an
+  archived Astro build, so once that baseline was gone `ssg/parity.ts` was a
+  historical record of a clean migration rather than a live gate. That is what
+  happened: no checkout had a baseline, regenerating one meant installing ~2,200
+  Astro-era packages, and the gate was never in CI in the first place — so it
+  had quietly become a documented instruction nobody could follow. It was
+  deleted on 2026-08-07.
+  **Nothing compares whole-page output now.** That was already true of CI while
+  the gate existed; deleting it removed the last manual path. Do not cite parity
+  as coverage, and do not treat a green build as evidence the output is right.
 - **The route registry must be maintained by hand.** A new page that nobody adds
   to `ssg/routes.ts` is simply not built, and nothing fails. That is the stated
   trade for having one file that tells you what the site emits.

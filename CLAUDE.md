@@ -158,11 +158,11 @@ bun run build:web        # Build srd only (= `bun ssg/build.ts` in apps/srd)
 bun run build:itun       # Build ITUN app
 bun run build:bot        # Build Discord bot
 
-# srd migration acceptance gate (run from apps/srd, not the root)
+# srd static build (run from apps/srd, not the root)
 bun ssg/build.ts         # The static build: vite client build -> render every
                          # route -> endpoints, sitemap, PWA
-bun ssg/parity.ts        # Compare the built dist against the archived Astro
-                         # baseline. See "srd App" below — this is the gate.
+                         # There is NO whole-page-output gate — the Astro
+                         # migration's parity script is retired. See "srd App".
 ```
 
 ### Architecture
@@ -232,9 +232,8 @@ supersedes ADR-012). There are no `.astro` files, no `astro.config.mjs`, no
 generator implements — and then [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md).
 
 - **Framework:** in-house SSG at `apps/srd/ssg` (`build.ts` orchestrates, `dev.ts`
-  serves, `render.tsx` renders one route to an HTML string, `parity.ts` is the
-  acceptance gate). React 19 for rendering, Vite 8 for the client bundle. Static
-  output, no server runtime.
+  serves, `render.tsx` renders one route to an HTML string). React 19 for
+  rendering, Vite 8 for the client bundle. Static output, no server runtime.
 - **Routing:** **explicit**, not file-based. Route modules are
   `src/pages/**/*.page.tsx` exporting a `PageModule` (`pattern`, optional
   `getStaticPaths`, `page(ctx) => { meta, children }`) and each one must be
@@ -246,13 +245,15 @@ generator implements — and then [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md).
   **`createRoot`, never `hydrateRoot`**. Four client strategies: `load`, `idle`,
   `visible`, `only`. Because mounting is client-only, `ssr` is purely an SEO/no-JS
   choice per island and can never cause a hydration mismatch.
-- **Acceptance gate — `ssg/parity.ts`.** Run
-  `cd apps/srd && bun ssg/build.ts && bun ssg/parity.ts`. It diffs the built `dist`
-  **semantically** against an archived Astro baseline build: the emitted file set,
-  per-page head metadata, every JSON-LD block, `<main>` visible text, all 899 JSON
-  endpoints, and `llms.txt`. It reports zero differences across 1,039 pages today,
-  and is known to bite (it fails against eight deliberately-injected defects). Trust
-  it over any agent's opinion about whether output changed.
+- **There is NO whole-page-output gate.** The Astro-migration parity script was
+  retired once the migration was long finished and its baseline was gone
+  ([ADR-031](docs/adrs/ADR-031-srd-vite-ssg.md) anticipated this and called the
+  shelf life in the original decision). Nothing now compares the built `dist`
+  against a known-good reference, so a change that silently alters every page's
+  `<main>` text or drops a JSON-LD block is caught by no automated check. **A
+  green build is not evidence the output is right** — verify rendering/routing/emit
+  changes by reading the emitted HTML or serving `dist` and measuring the real
+  page, not by reasoning about the diff.
 - **Hard rule — no `.css` import may be reachable from an SSR module.** The SSR pass
   runs under Bun and never goes through Vite, so a stray `import './x.css'` anywhere
   in the SSR graph (`ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx`,

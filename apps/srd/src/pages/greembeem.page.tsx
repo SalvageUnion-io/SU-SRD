@@ -33,10 +33,11 @@
 
 // biome-ignore-all lint/a11y/useValidAnchor: the dead `href="#"` links ARE the page — it is a
 // Wikipedia pastiche whose links deliberately go nowhere, and the inline script below
-// preventDefaults every one of them. Giving them real targets would change the rendered output
-// the parity gate compares against the Astro baseline.
+// preventDefaults every one of them. Giving them real targets would change the rendered output,
+// which is a deliberate verbatim copy of the Astro original.
 // biome-ignore-all lint/a11y/useSemanticElements: `role="button"` on the `[edit]` anchors is
-// verbatim from the Astro original (Wikipedia's own markup shape). Same parity constraint.
+// verbatim from the Astro original (Wikipedia's own markup shape). Same constraint. The parity
+// gate used to hold both; it is retired, so these two comments are the constraint now.
 
 import { readFileSync } from 'node:fs'
 import type { DocumentPageModule } from '../../ssg/render'

@@ -21,8 +21,9 @@ export const ELDRIDGE_COAST_MAP = 'src/assets/eldridge-coast-map.webp'
  *
  * Throws rather than returning an empty `src`: the only way to miss is to drop
  * the asset's import from `src/runtime/assets.entry.ts`, and a silently broken
- * `<img>` in a static build is exactly the kind of regression the parity gate
- * cannot see.
+ * `<img>` in a static build is a regression no automated check here catches —
+ * not the retired parity gate, which never compared image bytes, and not the
+ * unit suite. Failing loudly at build time is the only signal available.
  */
 export function builtAssetUrl(assets: BuiltAssets, source: string): string {
   const url = assets[source]

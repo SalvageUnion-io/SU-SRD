@@ -61,12 +61,6 @@
       // Generated API-surface snapshot (tools/generateApiReport.ts, drift-checked
       // in CI) — a raw declaration rollup, not hand-authored source.
       "!packages/salvageunion-reference/etc",
-      // The Astro baseline that ssg/parity.ts diffs against (regenerate with
-      // `bun run parity:baseline`). It is a ~56 MB BUILD OUTPUT of a historical
-      // commit, gitignored and never hand-edited — but `!**/dist` does not cover
-      // it, so without this line anyone who regenerates the baseline gets ~31,000
-      // lint errors from minified vendor chunks and `check:fast` exits 1.
-      "!apps/srd/.parity-baseline",
       // Game-data JSON is crawler-sourced; CLAUDE.md's "Data Conventions"
       // section forbids automated formatters reformatting these arrays
       // (`json.dump`-style tools reflow crawler-authored line breaks). Biome's

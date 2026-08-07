@@ -251,8 +251,8 @@ for rendering) + React 19 islands. **Not Astro** — see
   endpoints are `src/endpoints/*.ts` (`EndpointModule`) registered in
   `ssg/endpoints.ts`. Nothing is discovered from the filesystem.
 - `bun ssg/build.ts` builds; `bun ssg/dev.ts` serves through the same
-  `ssg/render.tsx`; `bun ssg/parity.ts` is the acceptance gate that diffs the
-  built `dist` semantically against the archived Astro baseline.
+  `ssg/render.tsx`. There is no whole-page-output gate — the Astro-migration
+  parity script is retired.
 - **Hard rule:** no `.css` import may be reachable from an SSR module. All css is
   imported from `src/runtime/styles.entry.ts` (a client-bundle entry); all static
   assets from `src/runtime/assets.entry.ts`, addressed via
