@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.1.0...itun-v1.2.0) (2026-08-07)
+
+
+### Features
+
+* **about:** add a Special Thanks section to both about pages ([#716](https://github.com/SalvageUnion-io/SU-SRD/issues/716)) ([92d5cd8](https://github.com/SalvageUnion-io/SU-SRD/commit/92d5cd893669d5b50bd576fcb3a11e9ce27bc31d))
+
 ## [1.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.0.3...itun-v1.1.0) (2026-08-06)
 
 

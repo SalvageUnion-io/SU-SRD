@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.0.2...srd-v2.1.0) (2026-08-07)
+
+
+### Features
+
+* **about:** add a Special Thanks section to both about pages ([#716](https://github.com/SalvageUnion-io/SU-SRD/issues/716)) ([92d5cd8](https://github.com/SalvageUnion-io/SU-SRD/commit/92d5cd893669d5b50bd576fcb3a11e9ce27bc31d))
+
 ## [2.0.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.0.1...srd-v2.0.2) (2026-08-06)
 
 
