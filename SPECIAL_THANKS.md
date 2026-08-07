@@ -9,13 +9,25 @@
   second copy.
 
   Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
-  heading, then blank-line-separated paragraphs. `[label](href)` links are the
-  only inline markdown the renderer interprets — bold, italics and lists would
-  ship as literal punctuation.
+  heading, then blank-line-separated blocks. A block is either a paragraph or a
+  `- ` bullet list — a list only when EVERY line in the block is an item, so
+  keep the blank line between the lead-in line and the list below it.
+  `[label](href)` links are the only inline markdown the renderer interprets —
+  bold and italics would ship as literal punctuation.
 -->
 
 # Special Thanks
 
-A special thanks to Panny from Leyline Press.
+Thank you to Panny and all the folks at [Leyline Press](https://leyline.press) for their continued support.
 
-A special thanks to the #salvage-union-io active testers: Tommy_Dude, lunarsignals, the puppetter, Grandowl, kindalas, decivre, Saving Throw.
+A special thanks to the #salvage-union-io crew:
+
+- Tommy_Dude
+- lunarsignals
+- the puppetter
+- Grandowl
+- kindalas
+- decivre
+- Saving Throw
+
+[Join the Discord](https://discord.gg/kMwD2bWgtC) to join the conversation!
