@@ -15,14 +15,10 @@
 
 # LLM Statement
 
-This was started as a hand-made project, and it predates the LLMs now used to work on it. The site and its schema are still shaped by hand.
+This project was conceived and created before the popularization of LLM coding tools. In its continued development, I have made use of various LLM coding tools to aid in the production of code, features, design, API documentation, deployments, and bug fixes. These have included AugmentCode, Kilo, Claude, and various open weight models. All LLM changes were directed, reviewed, and deployed by me, in addition to any actions taken by the LLMs. The [GitHub](https://github.com/SalvageUnion-io/SU-SRD) shows the full extent of LLM involvement. Bugs and errors are my responsibility, and the blame for them falls on me.
 
-Much of the code since then has been written with LLM assistance. Every change is directed, read, run, and merged by me, and the commit history shows which parts.
-
-The content described in the SRD is all sourced from Leyline Press, and none of it has been authored by me or any of my LLM coding assistants.
-
-My job requires proficiency in these tools, and I best gain proficiency through passion projects like this. It has been my intention to use LLMs as a force multiplier, not as a replacement for my own judgment: to more consistently and efficiently implement my changes, not to decide on the changes themselves. Bugs or issues in this project are solely my responsibility and my fault.
+The data schema and the entity dataset are hand-authored and hand-corrected; where an LLM has touched them, it was to apply a change I specified, not to originate one. All game content is sourced from Leyline Press, and no LLMs have been used in the production of game rules or content on this site. No LLMs are in use or being called while using this site. No LLMs are used in the playing of this game, nor should they be.
 
 I support open-weight models. I am against consolidated ownership of LLM infrastructure, and against the obtrusive, environmentally unsound data centers built to serve it.
 
-Software is, and will always be, a human endeavor.
+Software, like games, will eternally be a human endeavor.
