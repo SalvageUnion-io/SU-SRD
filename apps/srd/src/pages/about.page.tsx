@@ -39,6 +39,7 @@ const repoRootFile = (name: string): string =>
 // site and ITUN render the same words.
 const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
+const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 
 const TITLE = 'About - Salvage Union System Reference Document'
 const DESCRIPTION =
@@ -277,15 +278,24 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               </p>
             </section>
 
-            {/* Colophon: About the Dev + support | LLM Statement (shared with ITUN).
+            {/* Colophon: About the Dev + Special Thanks + support | LLM Statement
+                (shared with ITUN).
                 `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
             <Island
               name="ColophonIsland"
               client="visible"
               ssr
-              props={{ aboutMarkdown: aboutJrvsMd, llmMarkdown: llmStatementMd }}
+              props={{
+                aboutMarkdown: aboutJrvsMd,
+                llmMarkdown: llmStatementMd,
+                specialThanksMarkdown: specialThanksMd,
+              }}
             >
-              <ColophonIsland aboutMarkdown={aboutJrvsMd} llmMarkdown={llmStatementMd} />
+              <ColophonIsland
+                aboutMarkdown={aboutJrvsMd}
+                llmMarkdown={llmStatementMd}
+                specialThanksMarkdown={specialThanksMd}
+              />
             </Island>
           </div>
         </div>

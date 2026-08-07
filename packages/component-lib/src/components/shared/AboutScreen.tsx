@@ -2,8 +2,8 @@
  * AboutScreen — the /about page for In the Union Now.
  *
  * Static content page: what ITUN is, its local-first stance, links to the SRD
- * and the official game, and the shared `Colophon` (author bio, LLM statement,
- * Ko-fi support widget). Styled in the ITUN paper/ink Workshop-Manual idiom
+ * and the official game, and the shared `Colophon` (author bio, special thanks,
+ * LLM statement, Ko-fi support widget). Styled in the ITUN paper/ink Workshop-Manual idiom
  * (mirrors the Roster main layout) rather than the SRD reference-site look, so
  * it reads as part of this app.
  */
@@ -22,9 +22,11 @@ type AboutScreenProps = {
   aboutJrvs: string
   /** Raw `LLM_STATEMENT.md`, same contract as `aboutJrvs`. */
   llmStatement: string
+  /** Raw `SPECIAL_THANKS.md`, same contract as `aboutJrvs`. */
+  specialThanks: string
 }
 
-export function AboutScreen({ version, aboutJrvs, llmStatement }: AboutScreenProps) {
+export function AboutScreen({ version, aboutJrvs, llmStatement, specialThanks }: AboutScreenProps) {
   return (
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
@@ -98,6 +100,7 @@ export function AboutScreen({ version, aboutJrvs, llmStatement }: AboutScreenPro
         <Colophon
           aboutMarkdown={aboutJrvs}
           llmMarkdown={llmStatement}
+          specialThanksMarkdown={specialThanks}
           kofiCode="C3Z82382ZC"
           className="border-t-2 border-ink pt-6 font-body text-ink"
           footer={<p className="font-body text-xs text-wk-muted">Version {version}</p>}
