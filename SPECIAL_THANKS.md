@@ -24,7 +24,7 @@ A special thanks to the #salvage-union-io crew:
 
 - Tommy_Dude
 - lunarsignals
-- the puppetter
+- The_Puppeteer
 - Grandowl
 - kindalas
 - decivre
