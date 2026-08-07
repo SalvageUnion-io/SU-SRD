@@ -31,7 +31,17 @@ type CardImageProps = {
  */
 export function CardImage({ url, alt, compact, aside }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
-  const [loaded, setLoaded] = useState(false)
+  // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
+  // the server. On srd an entity card is rendered by the ZERO-JS static path
+  // (`EntityCardStatic`) — it is not an island, so React never mounts over it
+  // and neither `onLoad` nor the cached-load effect below can ever run. A
+  // server-rendered `opacity: 0` therefore stays 0 forever, and every piece of
+  // entity artwork on the site downloads in full and then paints nothing.
+  //
+  // Diverging from the client's initial state is safe HERE specifically because
+  // srd's islands mount with `createRoot`, never `hydrateRoot` (see
+  // `apps/srd/ssg/DESIGN.md`), so there is no hydration pass to mismatch.
+  const [loaded, setLoaded] = useState(() => typeof window === 'undefined')
   const imgRef = useRef<HTMLImageElement>(null)
 
   // Reset the fade-in when the image URL changes so a swapped image fades in
