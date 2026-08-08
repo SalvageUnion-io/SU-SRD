@@ -37,6 +37,33 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 - **`playwright`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code. It is a _root_ dependency because that scanner lives in `tools/`, outside any workspace; the apps depend on `@playwright/test` separately for their e2e suites. This replaced `puppeteer-core`, which shipped no browser and had to borrow Playwright's Chromium — one browser stack now, not two.
 - **`sharp`** — Used by `tools/convert-lp-assets-to-webp.ts` to transcode the `lp-assets` Netlify Blobs artwork to WebP (`bun run assets:webp`). Not dead code.
 
+### Audit gate (`check:audit`) — two suppressed advisories
+
+`bun audit --audit-level=high` gates merges via the `audit` job, and
+`package.json` cannot carry comments, so the reasoning lives here.
+
+**Suppressed: `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`** — both
+`image-size <=2.0.2`, infinite loops in its ICNS / JXL / HEIF parsers (DoS).
+
+- **There is no fixed version.** `2.0.2` IS the latest release (published
+  2025-04-02) and the advisory covers `<=2.0.2`, so no `overrides` pin can
+  resolve it — `bun install` fails outright with "No version matching ^2.0.3".
+- **Nothing here can reach the vulnerable code.** The chain is
+  `@netlify/blobs → @netlify/dev-utils → image-size`, and dev-utils imports it
+  from **`src/test/image.ts`**, a test helper that generates images. This repo's
+  only use of that package is `getStore` in
+  `apps/su-assets/netlify/functions/asset.ts`; nothing in `apps/`, `packages/`
+  or `tools/` imports `image-size` or calls `imageSize()`. Exploiting it needs
+  attacker-controlled bytes fed to that parser, and no path does that.
+
+**Re-check when `@netlify/blobs` updates**: drop both `--ignore` flags and run
+`bun run check:audit`. If it passes, delete this section — a suppression that
+outlives its cause is how a real advisory gets hidden.
+
+The companion fix in the same change was real, not suppressed: `nanoid` is
+pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
+clearing `GHSA-2v37-7h3g-55p8`.
+
 ### Dead-code gate (knip)
 
 `bun run knip` runs with **`includeEntryExports: true`**, so it also reports unused

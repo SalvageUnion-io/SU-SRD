@@ -15,7 +15,8 @@
     "brace-expansion": "^5.0.9",
     "fast-uri": "^4.1.2",
     "@opentelemetry/core": "^2.8.0",
-    "@vitejs/plugin-react-swc": "^4.3.3"
+    "@vitejs/plugin-react-swc": "^4.3.3",
+    "nanoid": "^3.3.18"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.6",
@@ -76,7 +77,7 @@
     "reap": "tools/prune-stale-worktrees.sh",
     "knip": "knip",
     "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc",
-    "check:audit": "bun audit --audit-level=high",
+    "check:audit": "bun audit --audit-level=high --ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq",
     "check:tokens": "bun tools/check-design-tokens.ts",
     "check:styling": "bun tools/check-styling-ownership.ts",
     "check:printed-names": "bun tools/check-printed-names.ts",
