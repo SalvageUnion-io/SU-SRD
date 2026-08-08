@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.2.0...srd-v2.3.0) (2026-08-08)
+
+
+### Features
+
+* **itun:** represent hybrid pilot classes ([#714](https://github.com/SalvageUnion-io/SU-SRD/issues/714)) ([d547a89](https://github.com/SalvageUnion-io/SU-SRD/commit/d547a8956b179a7e832cc3c71bc7d5d4872eaec6))
+
 ## [2.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.1.0...srd-v2.2.0) (2026-08-08)
 
 

@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.3.0...itun-v1.4.0) (2026-08-08)
+
+
+### Features
+
+* **itun:** represent hybrid pilot classes ([#714](https://github.com/SalvageUnion-io/SU-SRD/issues/714)) ([d547a89](https://github.com/SalvageUnion-io/SU-SRD/commit/d547a8956b179a7e832cc3c71bc7d5d4872eaec6))
+
 ## [1.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.2.0...itun-v1.3.0) (2026-08-08)
 
 
