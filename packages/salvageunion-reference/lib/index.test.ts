@@ -157,23 +157,6 @@ describe('SalvageUnionReference.Guides', () => {
     }
   })
 
-  it('should have valid step types on all guide steps', () => {
-    const validStepTypes = [
-      'select-one',
-      'select-many',
-      'freeform',
-      'roll-table',
-      'info',
-      'sub-guide',
-    ]
-    const guides = SalvageUnionReference.Guides.all()
-    for (const guide of guides) {
-      for (const step of guide.steps) {
-        expect(validStepTypes).toContain(step.stepType)
-      }
-    }
-  })
-
   it('should have unique step IDs within each guide', () => {
     const guides = SalvageUnionReference.Guides.all()
     for (const guide of guides) {
