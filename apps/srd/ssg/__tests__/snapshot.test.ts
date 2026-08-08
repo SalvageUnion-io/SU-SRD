@@ -19,6 +19,7 @@ import {
   compare,
   isContentDigested,
   normalizeEmittedPath,
+  run,
   serializeSnapshot,
 } from '../snapshot'
 
@@ -277,5 +278,67 @@ describe('snapshot gate — the /changelog append-only exemption is a real asser
       })
     })
     expect(findings.some((f) => f.detail === 'title: "Changelog" -> "Chnagelog"')).toBe(true)
+  })
+})
+
+/**
+ * `run()` — the exit code IS the gate.
+ *
+ * Everything above tests `compare()`, which returns findings. CI does not read
+ * findings; it reads a process exit code, and that translation lives in `run()`.
+ * A comparator that finds a difference and a runner that returns 0 anyway is a
+ * gate that reports problems and blocks nothing — the retired parity gate's
+ * failure in a different form. So these drive the real entry point end to end.
+ */
+describe('snapshot gate — run() returns the exit code CI acts on', () => {
+  /**
+   * Write a dist, bless it into a snapshot file, and hand back both.
+   *
+   * The snapshot lives in its own temp dir, NOT inside the dist — the gate
+   * asserts the emitted file set in both directions, so a snapshot written
+   * under `dist/` is itself an unexpected file and every comparison fails by
+   * one. (Which is the gate being right, and this helper being wrong.)
+   */
+  const blessed = async (files: Record<string, string>) => {
+    const dist = await writeDist(files)
+    const holder = await mkdtemp(join(tmpdir(), 'srd-snapshot-blessed-'))
+    roots.push(holder)
+    const snapshot = join(holder, 'snapshot.json')
+    await writeFile(snapshot, serializeSnapshot(await buildSnapshot(dist)))
+    return { dist, snapshot }
+  }
+
+  /** The same fixture with one page's visible text rewritten. */
+  const rewritten = (): Record<string, string> => ({
+    ...FIXTURE,
+    'about/index.html': page({ title: 'About', main: 'Rewritten entirely.' }),
+  })
+
+  it('returns 0 when the built output matches', async () => {
+    const { dist, snapshot } = await blessed(FIXTURE)
+    expect(await run({ dist, snapshot, update: false })).toBe(0)
+  })
+
+  it('returns 1 when the output drifted', async () => {
+    const { snapshot } = await blessed(FIXTURE)
+    const dist = await writeDist(rewritten())
+    expect(await run({ dist, snapshot, update: false })).toBe(1)
+  })
+
+  it('returns 2 — not 0 — when there is no build to check', async () => {
+    // A missing dist must not read as "nothing changed". Returning 0 here would
+    // let any job that forgot to build report a clean gate.
+    const { snapshot } = await blessed(FIXTURE)
+    const absent = join(tmpdir(), 'srd-snapshot-dist-that-does-not-exist')
+    expect(await run({ dist: absent, snapshot, update: false })).toBe(2)
+  })
+
+  it('--update re-blesses, so the next run passes', async () => {
+    const { snapshot } = await blessed(FIXTURE)
+    const dist = await writeDist(rewritten())
+
+    expect(await run({ dist, snapshot, update: false })).toBe(1)
+    expect(await run({ dist, snapshot, update: true })).toBe(0)
+    expect(await run({ dist, snapshot, update: false })).toBe(0)
   })
 })

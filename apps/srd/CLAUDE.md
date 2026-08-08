@@ -182,11 +182,18 @@ Parity did not cover any of these either.
 
 ### It bites
 
-22 tests in `ssg/__tests__/snapshot.test.ts` inject a defect and assert it is
-reported — dropped route, changed title/description/canonical, removed `og:`
+26 tests in `ssg/__tests__/snapshot.test.ts`. Most inject a defect and assert it
+is reported — dropped route, changed title/description/canonical, removed `og:`
 tag, dropped JSON-LD block, altered `<main>` text, altered JSON endpoint,
 reflowed `llms.txt`. It was also run against **eight defects injected into the
 real 1,039-page build** and caught all eight.
+
+Four of them cover `run()` rather than `compare()`, because **the exit code is
+the gate**: CI never reads findings, it reads a process exit code, and a
+comparator that finds a difference paired with a runner that returns 0 anyway
+blocks nothing. They assert matches → 0, drifted → 1, no-build-to-check → 2
+(never 0 — a missing `dist` must not read as "nothing changed"), and that
+`--update` re-blesses so the next run passes.
 
 ### `/changelog` is compared for insertion, not equality
 
