@@ -47,7 +47,7 @@ import { GameRoster } from './GameRoster'
  * the way they see their own builds and can act on them from the same place.
  *
  * The instruments below it are what a Mediator has that a player does not:
- * presence, proposals, alerts, the Downtime phase, and the opposition tray.
+ * proposals, alerts, the Downtime phase, and the opposition tray.
  * That ordering is the claim — the table first, the apparatus second.
  */
 
@@ -247,36 +247,6 @@ function AlertBar({ gameId }: { gameId: Id<'games'> }) {
   )
 }
 
-function PresenceList({ gameId }: { gameId: Id<'games'> }) {
-  const rows = useQuery(api.mediator.presence, { gameId })
-  if (rows === undefined || rows.length === 0) return null
-
-  return (
-    <Card
-      headerBg="bg-ink"
-      headerContent={
-        <Badge shape="stamp" as="h2" size="full">
-          At the table
-        </Badge>
-      }
-    >
-      <div className="flex flex-col gap-1.5 p-4">
-        {rows.map((r) => (
-          <Row
-            key={r.userId}
-            name={r.displayName}
-            actions={
-              <Text as="span" variant="hint">
-                {r.present ? 'here' : 'away'}
-              </Text>
-            }
-          />
-        ))}
-      </div>
-    </Card>
-  )
-}
-
 function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
   const amMediator = useQuery(api.mediator.amMediator, { gameId })
 
@@ -310,7 +280,6 @@ function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
           <CrewVitals gameId={gameId} />
         </div>
       </Card>
-      <PresenceList gameId={gameId} />
       <ProposeForm gameId={gameId} />
       <AlertBar gameId={gameId} />
       <DowntimePanel gameId={gameId} />

@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
-import { PRESENCE_WINDOW_MS } from '../../convex/mediator'
 import { testConvex } from './harness'
 
 /**
@@ -150,60 +149,6 @@ describe('the tray parses what it stores', () => {
 
     const rows = await mediator.as.query(api.mediator.npcs, { gameId })
     expect((rows[0]?.body as { refSlug?: string })?.refSlug).toBe('wretch')
-  })
-})
-
-describe('presence', () => {
-  test('a heartbeat upserts rather than appending', async () => {
-    const t = testConvex()
-    const { mediator, gameId } = await seedMediatedGame(t)
-
-    await mediator.as.mutation(api.mediator.heartbeat, { gameId })
-    await mediator.as.mutation(api.mediator.heartbeat, { gameId })
-    await mediator.as.mutation(api.mediator.heartbeat, { gameId })
-
-    // Otherwise a long session grows presence without bound.
-    const rows = await t.run(async (ctx) => await ctx.db.query('presence').collect())
-    expect(rows).toHaveLength(1)
-  })
-
-  test('present is computed from lastSeen, not stored', async () => {
-    const t = testConvex()
-    const { mediator, gameId } = await seedMediatedGame(t)
-    await mediator.as.mutation(api.mediator.heartbeat, { gameId })
-
-    // Backdate past the window: nothing had to turn a flag off.
-    await t.run(async (ctx) => {
-      for (const row of await ctx.db.query('presence').collect()) {
-        await ctx.db.patch(row._id, { lastSeen: Date.now() - PRESENCE_WINDOW_MS - 1000 })
-      }
-    })
-
-    const rows = await mediator.as.query(api.mediator.presence, { gameId })
-    // A stored boolean needs something to clear it, and every such mechanism
-    // can fail in a way that leaves somebody present forever.
-    expect(rows[0]?.present).toBe(false)
-  })
-
-  test('any member may heartbeat and read presence', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seedMediatedGame(t)
-    await player.as.mutation(api.mediator.heartbeat, { gameId })
-
-    // Presence is not privileged: a Mediator needs to see players arrive
-    // exactly as much as players need to see each other.
-    const rows = await player.as.query(api.mediator.presence, { gameId })
-    expect(rows.some((r) => r.userId === player.userId && r.present)).toBe(true)
-  })
-
-  test('a non-member cannot heartbeat into a game they are not in', async () => {
-    const t = testConvex()
-    const { gameId } = await seedMediatedGame(t)
-    const outsider = await makeUser(t, 'Outsider')
-
-    await expect(outsider.as.mutation(api.mediator.heartbeat, { gameId })).rejects.toThrow(
-      /not a member/i
-    )
   })
 })
 

@@ -210,7 +210,6 @@ export const destroy = mutation({
       'inviteRedemptions',
       'joinRequests',
       'memberships',
-      'presence',
     ] as const) {
       const rows = await ctx.db
         .query(table)

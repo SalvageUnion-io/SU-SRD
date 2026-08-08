@@ -75,7 +75,6 @@ const EMPTY_LISTING = { pilots: [], mechs: [], crawlers: [], softLinks: [] }
 function mediatingQueries(
   crew: Record<string, unknown>,
   extra: {
-    presence?: unknown
     alerts?: unknown
     npcs?: unknown
     members?: unknown
@@ -92,7 +91,6 @@ function mediatingQueries(
     // Asked twice — by CrewVitals and by the propose form — and both readers
     // want the same answer.
     'crew:vitals': crew,
-    'mediator:presence': extra.presence ?? [],
     'proposals:alerts': extra.alerts ?? [],
     'downtime:state': DOWNTIME,
     'mediator:npcs': extra.npcs ?? [],
@@ -177,32 +175,6 @@ describe('proposing a change', () => {
 })
 
 describe('the rest of the table', () => {
-  test('presence reads as here or away, per person', () => {
-    withQueries(
-      mediatingQueries(
-        { viewerId: 'u1', pilots: [], mechs: [] },
-        {
-          presence: [
-            { userId: 'u2', displayName: 'Beefcake', present: true },
-            { userId: 'u3', displayName: 'Ash', present: false },
-          ],
-        }
-      )
-    )
-    wrap()
-
-    expect(screen.getByText('At the table')).toBeTruthy()
-    expect(screen.getByText('here')).toBeTruthy()
-    expect(screen.getByText('away')).toBeTruthy()
-  })
-
-  test('nobody at the table renders no panel at all', () => {
-    withQueries(mediatingQueries({ viewerId: 'u1', pilots: [], mechs: [] }, { presence: [] }))
-    wrap()
-    // An empty roster of who is present is noise, not information.
-    expect(screen.queryByText('At the table')).toBeNull()
-  })
-
   test('recent alerts are shown back, and Send needs a message', () => {
     withQueries(
       mediatingQueries(

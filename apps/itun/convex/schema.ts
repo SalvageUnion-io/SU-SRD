@@ -429,11 +429,4 @@ export default defineSchema({
   }).index('by_game', ['gameId']),
 
   /** Who is at the table right now. Ephemeral — never folded into an entity. */
-  presence: defineTable({
-    gameId: v.id('games'),
-    userId: v.id('users'),
-    lastSeen: v.number(),
-  })
-    .index('by_game', ['gameId'])
-    .index('by_game_user', ['gameId', 'userId']),
 })

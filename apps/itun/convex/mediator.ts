@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
 import { parseBody } from './model/entities'
-import { requireMediator, requireMember, requireUser } from './model/permissions'
+import { requireMediator, requireUser } from './model/permissions'
 
 /**
  * The Mediator surface's server layer (ADR-030 §6, Phase 3).
@@ -16,12 +16,21 @@ import { requireMediator, requireMember, requireUser } from './model/permissions
  * before it happens, which is the one leak that changes how the game is played
  * rather than merely who can edit what.
  *
- * ## Presence is deliberately not a subscription to everything
+ * ## There is no presence here any more
  *
- * "Who is at the table right now" is a heartbeat, not a stream of activity.
- * Storing a `lastSeen` and letting readers decide what counts as present keeps
- * it cheap and avoids inventing an online/offline state the app would then have
- * to keep truthful.
+ * A `presence` table, a `heartbeat` mutation and a `presence` query used to
+ * live in this file, with the design note that storing `lastSeen` and letting
+ * readers decide what counts as present avoids inventing an online/offline
+ * state the app has to keep truthful. The reasoning was sound; the feature was
+ * never finished. **No client ever called `heartbeat`** — not the web app, not
+ * the bot — so the table had no writer, the query always returned nothing, and
+ * `PresenceList` returned null on every render.
+ *
+ * It was not merely invisible. `botClient.channel` *read* it, so `/su game
+ * channel` rendered "0 at the table" and no `●` markers no matter who was
+ * actually there — a permanently-false indicator, which is worse than an absent
+ * one. All of it is gone rather than left as scaffolding. Rebuild it with the
+ * writer in the same change.
  *
  * ## The tray owes the same edge parse every other write does
  *
@@ -32,9 +41,6 @@ import { requireMediator, requireMember, requireUser } from './model/permissions
  * `entities.ts`; what it accepts here is deliberately looser than the local
  * store's record, and `model/entities.ts` says why.
  */
-
-/** How long since a heartbeat before somebody stops counting as at the table. */
-export const PRESENCE_WINDOW_MS = 90_000
 
 /** The Mediator's prepared opposition. Mediator-only, by design. */
 export const npcs = query({
@@ -76,68 +82,6 @@ export const removeNpc = mutation({
     if (doc === null) return
     await requireMediator(ctx, doc.gameId)
     await ctx.db.delete(args.npcId)
-  },
-})
-
-/**
- * Record that the caller is at the table.
- *
- * Upserts one row per (game, member) rather than appending, so presence cannot
- * grow without bound during a long session. Any member may heartbeat — presence
- * is not privileged information, and a Mediator needs to see players arrive
- * exactly as much as players need to see each other.
- */
-export const heartbeat = mutation({
-  args: { gameId: v.id('games') },
-  handler: async (ctx, args): Promise<void> => {
-    const membership = await requireMember(ctx, args.gameId)
-    const existing = await ctx.db
-      .query('presence')
-      .withIndex('by_game_user', (q) => q.eq('gameId', args.gameId).eq('userId', membership.userId))
-      .unique()
-
-    if (existing === null) {
-      await ctx.db.insert('presence', {
-        gameId: args.gameId,
-        userId: membership.userId,
-        lastSeen: Date.now(),
-      })
-      return
-    }
-    await ctx.db.patch(existing._id, { lastSeen: Date.now() })
-  },
-})
-
-/**
- * Who is at the table.
- *
- * `present` is computed at read time from `lastSeen` rather than stored. A
- * stored boolean would need something to turn it off — a timer, a disconnect
- * hook — and every one of those can fail in a way that leaves somebody
- * permanently "present" long after they closed the tab.
- */
-export const presence = query({
-  args: { gameId: v.id('games') },
-  handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
-    const now = Date.now()
-
-    const rows = await ctx.db
-      .query('presence')
-      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-      .collect()
-
-    return await Promise.all(
-      rows.map(async (r) => {
-        const user = await ctx.db.get(r.userId)
-        return {
-          userId: r.userId,
-          displayName: user?.displayName ?? user?.name ?? 'Crewmate',
-          lastSeen: r.lastSeen,
-          present: now - r.lastSeen < PRESENCE_WINDOW_MS,
-        }
-      })
-    )
   },
 })
 
