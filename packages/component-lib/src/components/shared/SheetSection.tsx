@@ -3,9 +3,12 @@
  * live sheets (redesign plan: three interaction archetypes, one editing cue,
  * one shared picker modal).
  *
- *   (A) FIELD sections: `SectionEditButton` — a per-section Edit/Done toggle
- *       that flips ONLY its own section's fields into inline-edit
- *       (InlineEditField, single-line or `multiline`). No global edit mode.
+ *   (A) FIELD sections: no primitive. This archetype was to have a
+ *       `SectionEditButton` per-section Edit/Done toggle, flipping only its own
+ *       fields into inline-edit. It was built and exported, and then never
+ *       adopted by any sheet — the sheets edit fields live instead — so it was
+ *       deleted rather than left as half a shipped API. Its (B) sibling below
+ *       IS used; that asymmetry is why this note exists rather than a silent gap.
  *   (B) COLLECTION sections: `SectionAddButton` — an always-visible,
  *       always-ENABLED '+ Add' opening the ONE shared picker modal
  *       (`SheetPickerModal` over ModalShell); `CardRemoveButton` is the
@@ -59,45 +62,6 @@ export function HButton({
     <button type={type} className={cn(HBTN_BASE, HBTN_VARIANT[variant], className)} {...props}>
       {children}
     </button>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// (A) FIELD sections — per-section Edit toggle
-// ---------------------------------------------------------------------------
-
-type SectionEditButtonProps = {
-  /** Section name for the accessible label, e.g. 'Identity'. */
-  section: string
-  editing: boolean
-  onToggle: () => void
-  className?: string
-}
-
-/** Per-section Edit/Done toggle — flips ONLY its own section into inline-edit. */
-export function SectionEditButton({
-  section,
-  editing,
-  onToggle,
-  className,
-}: SectionEditButtonProps) {
-  return (
-    <HButton
-      variant={editing ? 'done' : 'edit'}
-      aria-pressed={editing}
-      aria-label={
-        editing ? `Done editing ${section.toLowerCase()}` : `Edit ${section.toLowerCase()}`
-      }
-      onClick={onToggle}
-      className={className}
-    >
-      {editing ? (
-        <Glyph name="check" className="h-3.5 w-3.5" />
-      ) : (
-        <Glyph name="pencil" className="h-3.5 w-3.5" />
-      )}
-      {editing ? 'Done' : 'Edit'}
-    </HButton>
   )
 }
 

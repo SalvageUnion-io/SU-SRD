@@ -81,7 +81,6 @@ const CATALOG_PAGES = new Set([
  * justified here.
  */
 const PROTOTYPE_STORIES = new Set([
-  'components/wizard/MechInstallStep.stories.tsx', // legacy ITUN mech-install step
   'components/wizard/NewEntityScreen.stories.tsx', // legacy ITUN new-entity screen
 ])
 

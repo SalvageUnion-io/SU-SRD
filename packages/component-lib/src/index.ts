@@ -166,7 +166,6 @@ export { SearchField } from './components/shared/SearchField'
 // ITUN so the sheet containers come from the design system like their cards do.
 export {
   CardRemoveButton,
-  SectionEditButton,
   SectionManageButton,
   SheetPickerModal,
 } from './components/shared/SheetSection'
