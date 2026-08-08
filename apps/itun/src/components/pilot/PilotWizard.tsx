@@ -34,6 +34,7 @@ import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import {
   EMPTY_PILOT_FORM_STATE,
   pilotFormToCreateInput,
+  pilotFormToPartners,
   pilotFormToUpdatePatch,
 } from '../../lib/wizard/pilotFormState'
 import {
@@ -42,6 +43,7 @@ import {
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
+import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { ReviewStep } from './ReviewStep'
@@ -231,6 +233,15 @@ export function PilotWizard({
     schema: PilotSchema,
     toCreateInput: pilotFormToCreateInput,
     toUpdatePatch: pilotFormToUpdatePatch,
+    // A partner cannot outlive its grant: dropping the Survey Drone equipment
+    // drops the drone, and adding it back grants a fresh one. Runs here rather
+    // than in the patch because a partner holds live-play state (structure,
+    // energy, heat, cargo) that reconciliation has to preserve, and that means
+    // reading the stored partners — which `before` carries.
+    afterUpdate: async (store, id, before) => {
+      const partners = pilotFormToPartners(form, before?.partners)
+      await store.update('pilot', id, { partners }, WIZARD_TXN)
+    },
     failureMessage: 'Failed to save pilot. Please retry.',
     onComplete,
   })

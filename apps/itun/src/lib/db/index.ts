@@ -51,7 +51,7 @@ import { STORE_NAMES } from './stores'
  * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
  * it writes.)
  */
-export const DB_VERSION = 14
+export const DB_VERSION = 15
 
 const DB_NAME = 'itun-v1'
 

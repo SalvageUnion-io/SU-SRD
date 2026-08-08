@@ -12269,7 +12269,7 @@
       },
       {
         "type": "paragraph",
-        "value": "The Big Brother Drones act separately to [(CHASSIS)] on their own turn, and are controlled by the Pilot. They function effectively as Mechs, but cannot Push. They can be installed with Systems and Modules and restore their SP and EP in a T3 or higher Mech Bay during Downtime. If the Drones are damaged they can be repaired as though they were Mechs. If they are destroyed you may craft new Big Brother Drones for 2 Tech 5 Scrap as per the crafting rules. [(CHASSIS)] may have up to 4 active Big Brother Drones at a time. Big Brother Drone Stats: 3 SP, 4 EP, 4 Heat Cap, 4 System Slots, 1 Module Slot, 2 Cargo Cap, Tech Level 5, Salvage Value 1. Integrated Hover Locomotion System."
+        "value": "The Big Brother Drones act separately to [(CHASSIS)] on their own turn, and are controlled by the Pilot. They function effectively as Mechs, but cannot Push. They can be installed with Systems and Modules and restore their SP and EP in a T3 or higher Mech Bay during Downtime. If the Drones are damaged they can be repaired as though they were Mechs. If they are destroyed you may craft new Big Brother Drones for 2 Tech 5 Scrap as per the crafting rules. [(CHASSIS)] may have up to 4 active Big Brother Drones at a time."
       }
     ],
     "actionSource": "chassis",

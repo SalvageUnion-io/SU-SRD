@@ -42,7 +42,7 @@ sheet and no partner route.
   `titleOverride` for the instance name, `statsOverride` for SP/EP/Heat (a
   `StatItem` carrying an `onChange` renders as an editable +/- cell, so the
   card's own stat axis is the vitals editor), `controls` for the advisory cap
-  badge and removal, and `afterExtraContent` for the identity fields, the Hold,
+  badge, and `afterExtraContent` for the identity fields, the Hold,
   and the installed systems/modules. No new visual language was invented.
 - **Capability is preserved, not reduced.** Everything the live sheet did — name
   / A.I. personality / appearance, SP/EP/Heat, derived tech level and slot
@@ -92,3 +92,69 @@ sheet and no partner route.
   the Immobile trait means it is not a container with nothing in it — the Hold
   and the Cargo stat are both omitted rather than rendered as `0/0`.
 - **Carrier→carrier handoff remains unbuilt**, exactly as ADR-027 left it.
+
+## Amendment — the grant is the lifecycle
+
+ADR-027 and this record both describe a partner as a thing that "cannot outlive
+what grants it", and both were right about the model and silent about the
+lifecycle. That silence was load-bearing: **nothing in the app ever created a
+`PartnerInstance`.** The only writers were `removePartner` and the two v11/v12
+migrations, so every partner in existence was a converted legacy record.
+Building a Little Sestra dropped its Sestra Drone and a Big Brother on the
+DronTek pattern dropped all four, which made the `Partners` region on the mech
+sheet live code that could never render; equipping a pilot's Survey Drone
+produced an inert equipment card with no structure, energy or loadout.
+
+`apps/itun/src/lib/rules/partnerGrants.ts` closes it, and settles the lifecycle
+question the earlier records left open:
+
+- **A partner is a projection of its grant, in both directions.** It is created
+  when the grant appears and destroyed when the grant goes — unequip the Survey
+  Drone equipment and the drone goes with it; change a mech's chassis and its
+  drones change with it. Reconciliation runs on the pilot sheet's equipment
+  toggle and on both wizards' create and `afterUpdate` paths.
+- **There is therefore no standalone remove control**, and its absence is the
+  point rather than an omission. A partner that could be dropped on its own
+  would be unrecoverable, because nothing would ever grant it back. This is
+  what replaces `removePartner` on both sheet action sets.
+- **Both rosters are exact; only the source of the count differs.** A mech's
+  count comes from its pattern. A pilot's comes from their **abilities**, with
+  `pilot.equipment` acting only as the gate — it is a set, so it could never
+  express "two Mecha Companions". Mecha Packmaster's `grants` already lists
+  Mecha Companion **twice**, and it is the only ability in the dataset that
+  grants the same thing more than once; reading it is what fields the second
+  companion. The resolution is a **max** across the pilot's abilities, never a
+  sum: the Ranger L1 ability grants one and Packmaster grants two, so a
+  Legendary Ranger holding both would otherwise field three, which Packmaster's
+  own text denies. Abilities are therefore a second lifecycle edge alongside
+  equipment — taking Packmaster fields a companion, dropping it retires one.
+- **Reconciliation never costs live state.** A surviving partner keeps its id,
+  structure, energy, heat, conditions, name, appearance, A.I. personality and
+  cargo. Re-seeding a drone's guns on a pattern change is correct; re-seeding
+  its damage is data loss.
+- **A drone's systems are the union of two sources.** Integrated hardware lives
+  on the `drones` record (both player-facing drones carry a Hover Locomotion
+  System); the fitted loadout lives on `pattern.drones[].systems`. A live drone
+  needs both, which is a deliberate divergence from the SRD pattern card —
+  that card is describing a pattern, not accounting for slots in play.
+- **`partnerCap` is now derived, not hardcoded.** It used to string-match
+  `mecha-packmaster`, which was both a hardcode and a duplicate of a fact
+  already in the data — so the cap and the number actually seeded could drift
+  apart. It now reads the same grant count, and a future ability granting two
+  needs no code change. One hardcode survives on purpose: the Big Brother
+  controls four drones (False Flag p. 62), which is a chassis ability's prose
+  rather than a countable grant, and deriving it from "the most any pattern
+  fields" would report 1 for a Custom build that is still allowed four.
+- **Migration v15 makes the pilot invariant true.** Exact reconciliation means a
+  pilot partner whose `hostRef` is absent from `pilot.equipment` answers to no
+  grant and is reaped. v11 was careful about this ("the equipment slug stays in
+  `pilot.equipment[]`"); **v12 was not** — it minted partners from companion-mech
+  rows and never added the granting slug, which is precisely the case where the
+  player had not equipped the item. Left alone, Eldridge Coast's Custos,
+  Incitatus, PR-1 and Rek Jet would have disappeared on their pilot's next edit.
+  v15 backfills the missing slug rather than deleting the partner: the partner is
+  the evidence that something once granted it, so the honest repair is to restore
+  the grant. It is append-only, so it is a no-op on a consistent database. The
+  one real cost is that granting equipment occupies an inventory slot, so a
+  healed pilot's usage rises by one and may read as over capacity — advisory
+  only (ADR-007/021), and the true reading: under-reporting it was the bug.

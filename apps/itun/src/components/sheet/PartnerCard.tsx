@@ -76,7 +76,6 @@ type PartnerCardProps = {
   /** How many of this same stat block the host fields, for the "2 of 2" note. */
   fielded?: number
   readOnly?: boolean
-  onRemove?: () => void
   store?: typeof useEntityStore
 }
 
@@ -87,7 +86,6 @@ export function PartnerCard({
   hostAbilityRefs = [],
   fielded = 1,
   readOnly = false,
-  onRemove,
   store = useEntityStore,
 }: PartnerCardProps) {
   const { partner, hostKind, host } = found
@@ -187,15 +185,11 @@ export function PartnerCard({
   if (fielded > 1 || fielded > cap) {
     controls.push({ key: 'cap', badge: `${fielded} of ${cap}` })
   }
-  if (editable && onRemove) {
-    controls.push({
-      key: 'remove',
-      label: 'Remove',
-      ariaLabel: `Remove ${partnerDisplayName(partner)}`,
-      onClick: onRemove,
-      variant: 'danger',
-    })
-  }
+  // NO remove control, deliberately. A partner cannot outlive its grant, and it
+  // cannot be dropped independently of one either: nothing would ever grant it
+  // back, so a removed drone would be gone for good. Unequip the granting
+  // equipment (pilot) or change the chassis/pattern (mech) — see
+  // `lib/rules/partnerGrants.ts`.
 
   const conditionsFor = (kind: 'system' | 'module') =>
     (kind === 'system' ? partner.systemConditions : partner.moduleConditions) ?? {}

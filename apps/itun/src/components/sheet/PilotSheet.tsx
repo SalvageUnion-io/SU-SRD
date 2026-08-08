@@ -437,13 +437,6 @@ export function PilotSheet({
                 fielded={model.fieldedByRef[partner.hostRef] ?? 1}
                 readOnly={readOnly}
                 store={store}
-                onRemove={
-                  readOnly
-                    ? undefined
-                    : () => {
-                        actions.removePartner(partner.id)
-                      }
-                }
               />
             ))}
           </div>

@@ -34,6 +34,7 @@ import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import {
   EMPTY_MECH_FORM_STATE,
   mechFormToCreateInput,
+  mechFormToPartners,
   mechFormToUpdatePatch,
 } from '../../lib/wizard/mechFormState'
 import {
@@ -42,6 +43,7 @@ import {
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
+import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { CraftItemsStep } from './CraftItemsStep'
 import { InstallStep } from './InstallStep'
@@ -218,6 +220,17 @@ export function MechWizard({
     schema: MechSchema,
     toCreateInput: mechFormToCreateInput,
     toUpdatePatch: mechFormToUpdatePatch,
+    // Drones follow the chassis that grants them: change the chassis or the
+    // pattern and the roster changes with it — a drone the new chassis does not
+    // grant is dropped, one it does is added, and a drone that survives keeps
+    // its structure, energy, heat, name and cargo while its loadout is re-cut
+    // from the new pattern (exactly as the mech's own loadout already is).
+    // Runs here rather than in the patch because that live state has to be read
+    // before it can be preserved, and `before` is where it lives.
+    afterUpdate: async (store, id, before) => {
+      const partners = mechFormToPartners(form, before?.partners)
+      await store.update('mech', id, { partners }, WIZARD_TXN)
+    },
     failureMessage: 'Failed to save mech. Please retry.',
     onComplete,
   })

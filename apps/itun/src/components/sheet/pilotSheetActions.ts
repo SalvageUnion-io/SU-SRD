@@ -30,6 +30,7 @@
 import { useState } from 'react'
 import { enrichPilotSnapshot } from 'salvageunion-reference/rules'
 import { pilotMaxAP } from '../../lib/rules/derivedStats'
+import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import type { SoftWarning } from '../../lib/rules/types'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -68,7 +69,6 @@ export type PilotSheetActions = {
   handleSpendAP: (cost: number) => Promise<void>
   handleAbilityUsedChange: (slug: string, next: boolean) => Promise<void>
   handleGenericInventoryChange: (next: GenericInventoryEntry[]) => Promise<void>
-  removePartner: (partnerId: string) => void
   /** Advisory soft-warning state for the confirm dialog. */
   warnings: SoftWarning[]
   warningSubtitle: string | null
@@ -171,23 +171,50 @@ export function usePilotSheetActions({
   // the Advanced/Legendary prerequisites surface in a confirm dialog and the
   // user may always proceed.
   function toggleAbility(abilityId: string) {
-    const abilities = freshPilot().abilities
-    const removing = abilities.includes(abilityId)
+    const current = freshPilot()
+    const removing = current.abilities.includes(abilityId)
     const name = resolveAbility(abilityId)?.name ?? abilityId
+    const abilities = removing
+      ? current.abilities.filter((a) => a !== abilityId)
+      : [...current.abilities, abilityId]
     saveBuildEdit(
       {
-        abilities: removing ? abilities.filter((a) => a !== abilityId) : [...abilities, abilityId],
+        abilities,
+        // Abilities are the second grant-lifecycle edge, because they carry the
+        // COUNT: Mecha Packmaster's `grants` lists Mecha Companion twice, so
+        // taking it fields a second companion and dropping it retires one. The
+        // equipment slug does not move either way — it is a set, and it was
+        // already there.
+        partners: syncPartners(current.partners, pilotPartnerSeeds(current.equipment, abilities)),
       },
       `${removing ? 'Remove' : 'Add'} ${name}`
     )
   }
 
+  /**
+   * Equip / unequip, granting or revoking a partner in the SAME write.
+   *
+   * Auto-Turret, Survey Drone and Mecha Companion are not inventory: each is a
+   * statted partner that renders in place of its equipment card (ADR-028). The
+   * equipment slug IS the grant, so unequipping it takes the partner with it and
+   * re-equipping grants a fresh one — that is the only lifecycle a partner has,
+   * which is why no card offers a bare "remove" of its own.
+   */
   function toggleEquipment(equipmentId: string) {
-    const equipment = freshPilot().equipment
+    const current = freshPilot()
+    const equipment = current.equipment.includes(equipmentId)
+      ? current.equipment.filter((e) => e !== equipmentId)
+      : [...current.equipment, equipmentId]
     write({
-      equipment: equipment.includes(equipmentId)
-        ? equipment.filter((e) => e !== equipmentId)
-        : [...equipment, equipmentId],
+      equipment,
+      ...(isPartnerEquipment(equipmentId)
+        ? {
+            partners: syncPartners(
+              current.partners,
+              pilotPartnerSeeds(equipment, current.abilities)
+            ),
+          }
+        : {}),
     })
   }
 
@@ -231,12 +258,6 @@ export function usePilotSheetActions({
     await writeAwait({ genericInventory: next })
   }
 
-  /** Drop one ability-granted partner instance. */
-  function removePartner(partnerId: string) {
-    const partners = pilot.partners ?? []
-    write({ partners: partners.filter((p) => p.id !== partnerId) })
-  }
-
   return {
     patchPilot,
     overridePilotMax,
@@ -249,7 +270,6 @@ export function usePilotSheetActions({
     handleSpendAP,
     handleAbilityUsedChange,
     handleGenericInventoryChange,
-    removePartner,
     warnings: softWarnings.warnings,
     warningSubtitle,
     cancelBuildEdit: () => {

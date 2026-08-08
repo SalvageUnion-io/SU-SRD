@@ -16,8 +16,10 @@
  */
 
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Mech } from '../schemas/mech'
+import type { PartnerInstance } from '../schemas/partner'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
@@ -98,11 +100,37 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
 }
 
 /**
+ * Reconcile a mech's drones against the chassis + pattern it now carries.
+ *
+ * Kept OUT of `mechFormToUpdatePatch` on purpose: that patch is the set of
+ * fields an edit may overwrite blind, and a partner carries live-play state
+ * (structure, energy, heat, per-item conditions, cargo) that an edit must
+ * preserve. Reconciliation needs the stored partners as input, so the wizard
+ * runs it on the update path via `afterUpdate` instead.
+ *
+ * `reseedLoadout` because a mech's drones wear the pattern: a pattern change
+ * re-cuts their systems and modules exactly as it re-cuts the mech's own.
+ */
+export function mechFormToPartners(
+  form: MechWizardFormState,
+  existing?: readonly PartnerInstance[]
+) {
+  return syncPartners(existing, mechPartnerSeeds(form.chassisName, form.patternName), {
+    reseedLoadout: true,
+  })
+}
+
+/**
  * Create payload for a fresh mech. Fresh mechs start at full SP/EP from the
  * chassis and Heat 0 (plan 2.3, gap 7) — never Heat-at-capacity.
+ *
+ * Drones granted by the chassis ability (and kitted by the pattern) are seeded
+ * here: they are part of the machine being built, not something the player adds
+ * afterwards — there is no "add a drone" control, by design.
  */
 export function mechFormToCreateInput(form: MechWizardFormState) {
   const chassis = resolveChassisRef(form.chassisName)
+  const partners = mechFormToPartners(form)
   return {
     schemaVersion: 1 as const,
     ...mechFormToUpdatePatch(form),
@@ -110,5 +138,6 @@ export function mechFormToCreateInput(form: MechWizardFormState) {
     currentSP: chassis?.structurePoints,
     currentEP: chassis?.energyPoints,
     currentHeat: 0,
+    ...(partners !== undefined ? { partners } : {}),
   }
 }

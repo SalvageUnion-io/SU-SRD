@@ -456,13 +456,6 @@ export function MechSheet({
                 fielded={(mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length}
                 readOnly={readOnly}
                 store={store}
-                onRemove={
-                  readOnly
-                    ? undefined
-                    : () => {
-                        actions.removePartner(partner.id)
-                      }
-                }
               />
             ))}
           </div>
