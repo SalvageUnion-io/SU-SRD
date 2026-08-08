@@ -609,7 +609,6 @@ export const claimLocal = mutation({
       await ctx.db.insert('mechPatterns', {
         ownerId: userId,
         gameId: null,
-        sharedToGame: false,
         body: parsed.data,
       })
       bump('mechPatterns')

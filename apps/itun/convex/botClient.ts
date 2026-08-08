@@ -2,7 +2,6 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { internalMutation, internalQuery } from './_generated/server'
-import { PRESENCE_WINDOW_MS } from './mediator'
 import type { BotDenial } from './model/bot'
 import {
   bindChannelAs,
@@ -76,32 +75,25 @@ function asFailure(error: unknown): Failure {
   throw error
 }
 
-/** Owner display names for a Game, resolved once per request. */
-async function ownerNames(
-  ctx: QueryCtx,
-  gameId: Id<'games'>
-): Promise<Map<string, { name: string; present: boolean }>> {
-  const now = Date.now()
-  const [members, presence] = await Promise.all([
-    ctx.db
-      .query('memberships')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect(),
-    ctx.db
-      .query('presence')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .collect(),
-  ])
+/**
+ * Owner display names for a Game, resolved once per request.
+ *
+ * This used to return a `present` flag alongside the name, read from a
+ * `presence` table. Nothing ever wrote that table — `heartbeat` had no caller —
+ * so the flag was false for everybody, forever, and the bot dutifully rendered
+ * "0 at the table" to rooms full of people. The table and the flag are both
+ * gone; see `mediator.ts`'s header.
+ */
+async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<string, string>> {
+  const members = await ctx.db
+    .query('memberships')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .collect()
 
-  const lastSeen = new Map(presence.map((p) => [p.userId as string, p.lastSeen]))
-  const out = new Map<string, { name: string; present: boolean }>()
+  const out = new Map<string, string>()
   for (const member of members) {
     const user = await ctx.db.get(member.userId)
-    const seen = lastSeen.get(member.userId)
-    out.set(member.userId, {
-      name: displayNameOf(user),
-      present: seen !== undefined && now - seen < PRESENCE_WINDOW_MS,
-    })
+    out.set(member.userId, displayNameOf(user))
   }
   return out
 }
@@ -178,7 +170,7 @@ export const shelf = internalQuery({
   },
 })
 
-/** The bound Game's roster, presence and Downtime phase. */
+/** The bound Game's roster and Downtime phase. */
 export const channel = internalQuery({
   args: { discordId: v.string(), channelId: v.string() },
   handler: async (ctx, args): Promise<Failure | Success<Record<string, unknown>>> => {
@@ -201,8 +193,7 @@ export const channel = internalQuery({
       game: { gameId, name: game.name },
       members: memberships.map((m) => ({
         userId: m.userId,
-        displayName: names.get(m.userId)?.name ?? 'Crewmate',
-        present: names.get(m.userId)?.present ?? false,
+        displayName: names.get(m.userId) ?? 'Crewmate',
         mediator: m.mediator,
         organizer: m.organizer,
       })),
@@ -256,8 +247,7 @@ export const crew = internalQuery({
       // rather than emitting a dead one.
       appId: row.appId ?? null,
       ownerId: row.ownerId,
-      ownerName: row.ownerId === null ? null : (names.get(row.ownerId)?.name ?? null),
-      present: row.ownerId === null ? false : (names.get(row.ownerId)?.present ?? false),
+      ownerName: row.ownerId === null ? null : (names.get(row.ownerId) ?? null),
       body: row.body,
     })
 
@@ -318,7 +308,7 @@ export const sheet = internalQuery({
       table: args.table,
       id: args.entityId,
       appId: row.appId ?? null,
-      ownerName: row.ownerId === null ? null : (names.get(row.ownerId)?.name ?? null),
+      ownerName: row.ownerId === null ? null : (names.get(row.ownerId) ?? null),
       body: (doc as unknown as { body: unknown }).body,
     }
   },

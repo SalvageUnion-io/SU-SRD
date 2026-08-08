@@ -12501,14 +12501,6 @@ export declare const GuideSchema: z.ZodObject<{
     steps: z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
-        stepType: z.ZodEnum<{
-            freeform: "freeform";
-            info: "info";
-            "roll-table": "roll-table";
-            "select-many": "select-many";
-            "select-one": "select-one";
-            "sub-guide": "sub-guide";
-        }>;
         section: z.ZodOptional<z.ZodString>;
         content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
             type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
@@ -12643,7 +12635,6 @@ export declare const GuideSchema: z.ZodObject<{
             sidebar: "sidebar";
         }>>;
     }, z.core.$strict>>>;
-    repeatable: z.ZodOptional<z.ZodBoolean>;
 }, z.core.$strict>;
 /**
  * Source books and expansions
@@ -15669,14 +15660,6 @@ import { z } from '../../zod.js';
 export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
-    stepType: z.ZodEnum<{
-        freeform: "freeform";
-        info: "info";
-        "roll-table": "roll-table";
-        "select-many": "select-many";
-        "select-one": "select-one";
-        "sub-guide": "sub-guide";
-    }>;
     section: z.ZodOptional<z.ZodString>;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{

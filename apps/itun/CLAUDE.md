@@ -92,9 +92,10 @@ and remains the account-free way to share a build.
 - Sheet-side play-control panels (`HeatCheckControl`, `TakeDamageControl`,
   `SalvageControl`, `CraftingControl`, `DowntimeControl`, `ScrapMechControl`)
   were **removed** in the poster redesign — see the header comments in
-  `MechSheet.tsx` / `CrawlerSheet.tsx`. Don't reintroduce them; the surviving
-  sheet-local controls are `CrawlerEconomyControl.tsx` and the encounter tray's
-  `MediatorRollControl.tsx`.
+  `MechSheet.tsx` / `CrawlerSheet.tsx`. Don't reintroduce them; the one surviving
+  sheet-local control is `CrawlerEconomyControl.tsx`. (`MediatorRollControl.tsx`
+  was the other, in the `/encounter` tray — that whole surface was unreachable
+  from anywhere in the app and has been deleted.)
 - Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).
 
 ## Conventions

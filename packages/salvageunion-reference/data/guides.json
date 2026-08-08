@@ -33,7 +33,6 @@
       {
         "id": "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
         "name": "Boundaries",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -72,7 +71,6 @@
       {
         "id": "a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6e",
         "name": "Stop Sign",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -111,7 +109,6 @@
       {
         "id": "c8d41f23-7e56-4a19-b3c2-1e8f5d9a0b74",
         "name": "Fill out your Stats",
-        "stepType": "info",
         "paperOnly": true,
         "content": [
           {
@@ -127,7 +124,6 @@
       {
         "id": "801d291b-c684-4560-9ead-e047786f207b",
         "name": "Choose your Pilot Class",
-        "stepType": "select-one",
         "schema": ["classes"],
         "filters": [
           {
@@ -158,7 +154,6 @@
       {
         "id": "662d9643-c9bc-4246-9f9e-66fe5f9a9e15",
         "name": "Choose your first Ability",
-        "stepType": "select-one",
         "schema": ["abilities"],
         "filters": [
           {
@@ -180,7 +175,6 @@
       {
         "id": "3a7e9d12-5f84-4c6b-a1e9-7b2c4d8f6e31",
         "name": "Select Two Pilot Equipment",
-        "stepType": "select-many",
         "schema": ["equipment"],
         "filters": [
           {
@@ -228,7 +222,6 @@
       {
         "id": "bce6df59-d455-47fb-9005-56e921587cd5",
         "name": "Choose your Callsign",
-        "stepType": "roll-table",
         "rollTable": "Callsign Table",
         "content": [
           {
@@ -240,7 +233,6 @@
       {
         "id": "ab942d95-0d84-44ad-9f5b-11d28ad9a9d3",
         "name": "Choose your Background",
-        "stepType": "roll-table",
         "rollTable": "Background",
         "content": [
           {
@@ -252,7 +244,6 @@
       {
         "id": "f68fe49f-2d10-4abe-91ca-64423457e0ab",
         "name": "Choose your Motto",
-        "stepType": "roll-table",
         "rollTable": "Motto",
         "content": [
           {
@@ -264,7 +255,6 @@
       {
         "id": "2150dfdd-9f64-4dca-a8a2-3820e74c7da3",
         "name": "Choose your Keepsake",
-        "stepType": "roll-table",
         "rollTable": "Keepsake",
         "content": [
           {
@@ -276,7 +266,6 @@
       {
         "id": "4f06a901-ed7e-4dc7-a1bb-b11d7582780d",
         "name": "Choose your Appearance",
-        "stepType": "roll-table",
         "rollTable": "Pilot Appearance",
         "optional": true,
         "content": [
@@ -305,7 +294,6 @@
       {
         "id": "f1a2b3c4-d5e6-4f78-9012-3456789abcde",
         "name": "Gain Scrap",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -324,7 +312,6 @@
       {
         "id": "5d0d53e1-d2a5-4929-893c-01413b059450",
         "name": "Craft your Mech Chassis",
-        "stepType": "select-one",
         "schema": ["chassis"],
         "filters": [
           {
@@ -347,7 +334,6 @@
       {
         "id": "a2b3c4d5-e6f7-4890-1234-56789abcdef0",
         "name": "Note down your Mech's statistics",
-        "stepType": "info",
         "paperOnly": true,
         "content": [
           {
@@ -367,7 +353,6 @@
       {
         "id": "b3c4d5e6-f7a8-4901-2345-6789abcdef01",
         "name": "Craft your Systems",
-        "stepType": "select-many",
         "optional": true,
         "schema": ["systems"],
         "filters": [
@@ -414,7 +399,6 @@
       {
         "id": "c4d5e6f7-a8b9-4012-3456-789abcdef012",
         "name": "Craft your Modules",
-        "stepType": "select-many",
         "optional": true,
         "schema": ["modules"],
         "filters": [
@@ -453,7 +437,6 @@
       {
         "id": "09bd8668-7739-467d-ac6b-85fda9951d50",
         "name": "Choose your Quirk",
-        "stepType": "roll-table",
         "rollTable": "Quirks",
         "optional": true,
         "content": [
@@ -466,7 +449,6 @@
       {
         "id": "06844a83-139b-4db5-8c44-1c12cbc1bdc2",
         "name": "Describe your Mech's Appearance",
-        "stepType": "roll-table",
         "rollTable": "Mech Appearance",
         "optional": true,
         "content": [
@@ -479,7 +461,6 @@
       {
         "id": "e6afa346-6102-41d6-b359-6b7a21bf7b9d",
         "name": "Give your Mech a Pattern Name",
-        "stepType": "roll-table",
         "rollTable": "Mech Pattern Names",
         "content": [
           {
@@ -511,7 +492,6 @@
       {
         "id": "7719034d-b2af-4e4b-a782-a951f43e0576",
         "name": "Choose a Crawler Type",
-        "stepType": "select-one",
         "schema": ["crawlers"],
         "content": [
           {
@@ -527,7 +507,6 @@
       {
         "id": "d5e6f7a8-b9c0-4123-4567-89abcdef0123",
         "name": "Note down your Crawler statistics",
-        "stepType": "info",
         "paperOnly": true,
         "content": [
           {
@@ -547,7 +526,6 @@
       {
         "id": "e6f7a8b9-c0d1-4234-5678-9abcdef01234",
         "name": "Choose Weapons Systems",
-        "stepType": "select-many",
         "schema": ["systems"],
         "constraints": {
           "min": 1
@@ -580,7 +558,6 @@
       {
         "id": "f7a8b9c0-d1e2-4345-6789-abcdef012345",
         "name": "Name the Crawler's NPCs",
-        "stepType": "freeform",
         "schema": ["crawler-bays"],
         "content": [
           {
@@ -596,7 +573,6 @@
       {
         "id": "4f91fd50-bf04-4aaf-8c63-702e32cbd987",
         "name": "Give your Crawler a Name and Number",
-        "stepType": "roll-table",
         "rollTable": "Crawler Name",
         "content": [
           {
@@ -614,12 +590,10 @@
     "page": 218,
     "guideType": "progression",
     "guideColor": "#D14B8A",
-    "repeatable": true,
     "steps": [
       {
         "id": "5de3a137-4844-4bec-b894-8be617222b23",
         "name": "Union Crawler Tech Levels",
-        "stepType": "info",
         "schema": ["crawler-tech-levels"],
         "entityLayout": "sidebar",
         "content": [
@@ -661,7 +635,6 @@
       {
         "id": "b8ef9784-3967-4f7d-8e8c-b8d487788a39",
         "name": "Tally Salvage",
-        "stepType": "info",
         "section": "Post-Session",
         "content": [
           {
@@ -685,7 +658,6 @@
       {
         "id": "a1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
         "name": "Upkeep & Upgrade",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -704,7 +676,6 @@
       {
         "id": "b2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
         "name": "Restore your Mech & Pilot",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -719,7 +690,6 @@
       {
         "id": "c3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a",
         "name": "Trade",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -730,7 +700,6 @@
       {
         "id": "d4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
         "name": "Craft Mech Chassis, Systems, and Modules",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -741,7 +710,6 @@
       {
         "id": "e5a6b7c8-d9e0-4f1a-2b3c-4d5e6f7a8b9c",
         "name": "Customise your Mech",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -752,7 +720,6 @@
       {
         "id": "f6b7c8d9-e0f1-4a2b-3c4d-5e6f7a8b9c0d",
         "name": "Train your Pilot",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -767,7 +734,6 @@
       {
         "id": "a7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e",
         "name": "Obtain Pilot Equipment",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -778,7 +744,6 @@
       {
         "id": "b8d9e0f1-a2b3-4c4d-5e6f-7a8b9c0d1e2f",
         "name": "Gather Cantina Rumours",
-        "stepType": "info",
         "section": "Pre-Session",
         "content": [
           {
@@ -790,7 +755,6 @@
       {
         "id": "c9e0f1a2-b3c4-4d5e-6f7a-8b9c0d1e2f3a",
         "name": "Prepare for the next Salvage Run",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -818,7 +782,6 @@
       {
         "id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a",
         "name": "Pushing to Re-Roll",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -833,7 +796,6 @@
       {
         "id": "e6f7a8b9-c0d1-4e2f-3a4b-5c6d7e8f9a0b",
         "name": "Risks of Pushing",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -852,7 +814,6 @@
       {
         "id": "f7a8b9c0-d1e2-4f3a-4b5c-6d7e8f9a0b1c",
         "name": "Multiple Pushes",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -871,7 +832,6 @@
       {
         "id": "a8b9c0d1-e2f3-4a4b-5c6d-7e8f9a0b1c2d",
         "name": "Push Procedure",
-        "stepType": "info",
         "content": [
           {
             "type": "list-item",
@@ -919,7 +879,6 @@
       {
         "id": "b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e",
         "name": "Heat Check",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -942,14 +901,12 @@
       {
         "id": "c4d5e6f7-a8b9-4c0d-1e2f-3a4b5c6d7e8f",
         "name": "Reactor Overload Table",
-        "stepType": "roll-table",
         "rollTable": "Reactor Overload",
         "content": []
       },
       {
         "id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a",
         "name": "Venting Heat",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -980,7 +937,6 @@
       {
         "id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f",
         "name": "Activating a Mech",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -995,7 +951,6 @@
       {
         "id": "d6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a",
         "name": "Embarking and Disembarking from a Mech",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1039,7 +994,6 @@
       {
         "id": "d7e8f9a0-b1c2-4d3e-4f5a-6b7c8d9e0f1a",
         "name": "Critical Damage Table",
-        "stepType": "roll-table",
         "rollTable": "Critical Damage",
         "content": [
           {
@@ -1051,7 +1005,6 @@
       {
         "id": "e8f9a0b1-c2d3-4e4f-5a6b-7c8d9e0f1a2b",
         "name": "Restoring Mech Structure Points",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1066,7 +1019,6 @@
       {
         "id": "f9a0b1c2-d3e4-4f5a-6b7c-8d9e0f1a2b3c",
         "name": "Repairing Mech Chassis, Systems, and Modules",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1097,7 +1049,6 @@
       {
         "id": "a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d",
         "name": "Destroyed Mechs, Systems, and Modules",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1133,7 +1084,6 @@
       {
         "id": "e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3b",
         "name": "Critical Injury Table",
-        "stepType": "roll-table",
         "rollTable": "Critical Injury",
         "content": [
           {
@@ -1145,7 +1095,6 @@
       {
         "id": "f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c",
         "name": "Injuries",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1164,7 +1113,6 @@
       {
         "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5e",
         "name": "Restoring Pilot Health and Mending Injuries",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1208,7 +1156,6 @@
       {
         "id": "b5c6d7e8-f9a0-4b1c-2d3e-4f5a6b7c8d9e",
         "name": "Intact",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1219,7 +1166,6 @@
       {
         "id": "c6d7e8f9-a0b1-4c2d-3e4f-5a6b7c8d9e0a",
         "name": "Damaged",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1238,7 +1184,6 @@
       {
         "id": "d7e8f9a0-b1c2-4d3e-4f5a-6b7c8d9e0f1b",
         "name": "Destroyed",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1261,7 +1206,6 @@
       {
         "id": "c7d8e9f0-a1b2-4c3d-4e5f-6a7b8c9d0e1f",
         "name": "Area Salvage",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1296,7 +1240,6 @@
       {
         "id": "d8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2b",
         "name": "Salvaging a Mech",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1307,7 +1250,6 @@
       {
         "id": "e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3c",
         "name": "Salvaging a Non-Mech",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1326,7 +1268,6 @@
       {
         "id": "f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4d",
         "name": "Cargo Capacity",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1378,7 +1319,6 @@
       {
         "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
         "name": "Default Rules",
-        "stepType": "info",
         "content": [
           {
             "type": "heading",
@@ -1403,7 +1343,6 @@
       {
         "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
         "name": "Alternative Tough Choices",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1458,7 +1397,6 @@
       {
         "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
         "name": "Creative Actions",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1498,7 +1436,6 @@
       {
         "id": "a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d",
         "name": "Campaign Map",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1521,7 +1458,6 @@
       {
         "id": "b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8a",
         "name": "Region Map",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",
@@ -1544,7 +1480,6 @@
       {
         "id": "c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9a",
         "name": "Area Map",
-        "stepType": "info",
         "content": [
           {
             "type": "paragraph",

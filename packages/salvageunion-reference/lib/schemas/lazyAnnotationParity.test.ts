@@ -134,7 +134,6 @@ const ACTION_KEYS = [
 const GUIDE_STEP_KEYS = [
   'id',
   'name',
-  'stepType',
   'section',
   'content',
   'schema',

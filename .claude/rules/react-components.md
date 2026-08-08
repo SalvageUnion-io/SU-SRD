@@ -29,7 +29,7 @@ Inside an app:
   (app router glue, providers, gates)
 - `src/components/{feature}/` — feature-scoped components. In itun these are
   lowercase feature folders: `account/`, `container/`, `contextual/`,
-  `crawler/`, `dashboard/`, `encounter/`, `export/`, `games/`, `mech/`,
+  `crawler/`, `dashboard/`, `export/`, `games/`, `mech/`,
   `pilot/`, `roster/`, `sheet/`, `wiring/`, `wizard/`.
 
 ## UI Frameworks

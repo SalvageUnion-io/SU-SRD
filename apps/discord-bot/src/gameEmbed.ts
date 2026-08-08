@@ -412,7 +412,7 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: str
  * last and labelled, never omitted.
  */
 export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
-  type Bucket = { label: string; present: boolean; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
+  type Bucket = { label: string; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
 
   // Owners in a map, unclaimed in its own variable — rather than one map with a
   // sentinel key. A sentinel has to both sort last and never collide with a
@@ -424,14 +424,13 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
 
   const bucketFor = (entity: OwnedEntity): Bucket => {
     if (entity.ownerId === null) {
-      unclaimed ??= { label: UNCLAIMED, present: false, pilots: [], mechs: [] }
+      unclaimed ??= { label: UNCLAIMED, pilots: [], mechs: [] }
       return unclaimed
     }
     const existing = owned.get(entity.ownerId)
     if (existing !== undefined) return existing
     const created: Bucket = {
       label: ownerLabel(entity),
-      present: entity.present,
       pilots: [],
       mechs: [],
     }
@@ -447,7 +446,7 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
   if (unclaimed !== null) ordered.push(unclaimed)
 
   const fields = ordered.slice(0, LIMIT.fields).map((bucket) => ({
-    name: truncate(`${bucket.present ? '● ' : ''}${bucket.label}`, LIMIT.fieldName),
+    name: truncate(bucket.label, LIMIT.fieldName),
     value: truncate(crewFieldValue(bucket.pilots, bucket.mechs, webUrl), LIMIT.fieldValue),
     inline: true,
   }))
@@ -459,14 +458,12 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
   const anyWrecked = crew.mechs.some((m) => mechStats(m.body).sp === 0)
 
   const aboard = owned.size
-  const present = [...owned.values()].filter((b) => b.present).length
 
   return {
     title: truncate(`${crew.game.name} — Crew`, LIMIT.title),
     url: gameUrl(webUrl, crew.game.gameId),
     color: anyCritical || anyWrecked ? CRITICAL : NEUTRAL,
-    description:
-      fields.length === 0 ? 'Nothing in play yet.' : `${aboard} aboard · ${present} at the table`,
+    description: fields.length === 0 ? 'Nothing in play yet.' : `${aboard} aboard`,
     fields,
     footer: FOOTER,
   }
@@ -478,7 +475,7 @@ export function buildChannelEmbed(channel: ChannelResult, webUrl: string): Embed
     .map((m) => {
       const roles = [m.mediator ? 'Mediator' : 'Player']
       if (m.organizer) roles.push('Organizer')
-      return `${m.present ? '● ' : ''}${m.displayName} — ${roles.join(' · ')}`
+      return `${m.displayName} — ${roles.join(' · ')}`
     })
     .join('\n')
 

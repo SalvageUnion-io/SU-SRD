@@ -5,7 +5,7 @@
  *     add variants.
  *   - the section header row: a solid `Slab` (stamp label + leader rule +
  *     trailing controls) — the shape the sheets' field/collection sections use.
- *   - SectionEditButton / SectionManageButton: rebuilt on HButton — icon + label,
+ *   - SectionManageButton: rebuilt on HButton — icon + label,
  *     stable accessible names.
  *   - cardRemoveControls: the per-card ✕ (+ optional ⇄) icon-only cluster fed
  *     to Card's card-level `controls` slot.
@@ -16,7 +16,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { Slab } from '../../chrome/Slab'
 import { ControlButtons } from '../ControlButtons'
 import { cardRemoveControls } from '../editLanguage'
-import { HButton, SectionEditButton, SectionManageButton } from '../SheetSection'
+import { HButton, SectionManageButton } from '../SheetSection'
 
 describe('HButton', () => {
   test('renders as a button with the design chrome and keeps the tap floor', () => {
@@ -55,30 +55,6 @@ describe('section header (solid Slab)', () => {
     render(<Slab variant="solid" label="Bio" />)
     expect(screen.getByText('Bio')).toBeTruthy()
     expect(screen.queryByRole('button')).toBeNull()
-  })
-})
-
-describe('SectionEditButton', () => {
-  test('at rest reads "Edit {section}", aria-pressed false, pencil affordance', () => {
-    render(<SectionEditButton section="Identity" editing={false} onToggle={() => {}} />)
-    const btn = screen.getByRole('button', { name: 'Edit identity' })
-    expect(btn.getAttribute('aria-pressed')).toBe('false')
-    // Visible label matches the accessible name's leading word (WCAG 2.5.3).
-    expect(btn.textContent).toContain('Edit')
-  })
-
-  test('while editing reads "Done editing {section}", aria-pressed true', () => {
-    render(<SectionEditButton section="Identity" editing onToggle={() => {}} />)
-    const btn = screen.getByRole('button', { name: 'Done editing identity' })
-    expect(btn.getAttribute('aria-pressed')).toBe('true')
-    expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-rust))]')
-  })
-
-  test('fires onToggle when clicked', () => {
-    const onToggle = mock(() => {})
-    render(<SectionEditButton section="Identity" editing={false} onToggle={onToggle} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit identity' }))
-    expect(onToggle).toHaveBeenCalledTimes(1)
   })
 })
 

@@ -70,7 +70,6 @@ export type OwnedEntity = {
   appId: string | null
   ownerId: string | null
   ownerName: string | null
-  present: boolean
   body: EntityBody
 }
 
@@ -92,7 +91,6 @@ export type ChannelResult = {
   members: {
     userId: string
     displayName: string
-    present: boolean
     mediator: boolean
     organizer: boolean
   }[]

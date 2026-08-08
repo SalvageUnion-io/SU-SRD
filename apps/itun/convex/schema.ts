@@ -331,11 +331,18 @@ export default defineSchema({
     body: v.any(),
   }).index('by_game', ['gameId']),
 
-  /** Personal by default; `sharedToGame` exposes it to the crew (D26). */
+  /**
+   * A saved mech pattern. Personal — there is no sharing.
+   *
+   * This carried a `sharedToGame: v.boolean()` for D26 ('share a pattern with
+   * the crew'). It was written in exactly one place, hardcoded `false`, and no
+   * query ever returned it: `listForGame` serves pilots, mechs, crawlers and
+   * softLinks only. A one-way sink with a field nothing could set. Removed —
+   * add it back with the mutation that sets it and the query that reads it.
+   */
   mechPatterns: defineTable({
     ownerId: v.id('users'),
     gameId: v.union(v.id('games'), v.null()),
-    sharedToGame: v.boolean(),
     body: v.any(),
   })
     .index('by_owner', ['ownerId'])
@@ -429,11 +436,4 @@ export default defineSchema({
   }).index('by_game', ['gameId']),
 
   /** Who is at the table right now. Ephemeral — never folded into an entity. */
-  presence: defineTable({
-    gameId: v.id('games'),
-    userId: v.id('users'),
-    lastSeen: v.number(),
-  })
-    .index('by_game', ['gameId'])
-    .index('by_game_user', ['gameId', 'userId']),
 })

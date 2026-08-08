@@ -164,13 +164,7 @@ export const deleteAccount = mutation({
         const passedOn = await reassignOrganizer(ctx, membership.gameId, userId)
         if (!passedOn) {
           // Last member out: the Game has nobody left to run or play it.
-          for (const table of [
-            'crawlers',
-            'encounterNpcs',
-            'softLinks',
-            'invites',
-            'presence',
-          ] as const) {
+          for (const table of ['crawlers', 'encounterNpcs', 'softLinks', 'invites'] as const) {
             const rows = await ctx.db
               .query(table)
               .withIndex('by_game', (q) => q.eq('gameId', membership.gameId))

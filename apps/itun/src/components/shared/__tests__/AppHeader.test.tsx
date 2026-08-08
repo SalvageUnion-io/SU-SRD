@@ -91,6 +91,10 @@ describe('AppHeader', () => {
     expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
   })
 
+  // The `/encounter` route this guarded against is deleted, so the assertion can
+  // no longer regress by someone re-adding a link to a live screen. Kept because
+  // it still pins the intent: GM opposition belongs to the Mediator sheet's NPC
+  // tray, and a future Encounter surface should not reappear in the top-level nav.
   test('does not offer Encounter as a nav destination (it lives on the Mediator sheet)', () => {
     render(<AppHeader />)
     expect(screen.queryByRole('link', { name: /encounter/i })).toBeFalsy()

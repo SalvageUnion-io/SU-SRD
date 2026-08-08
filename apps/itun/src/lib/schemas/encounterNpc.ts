@@ -23,11 +23,9 @@ export const ENCOUNTER_REF_SCHEMAS = [
   'meld',
 ] as const
 export const EncounterRefSchemaSchema = z.enum(ENCOUNTER_REF_SCHEMAS)
-export type EncounterRefSchema = z.infer<typeof EncounterRefSchemaSchema>
 
 /** The three Mediator tables the tray can roll (Workshop Manual p.268). */
 export const MediatorTableIdSchema = z.enum(['reaction', 'morale', 'retreat'])
-export type MediatorTableId = z.infer<typeof MediatorTableIdSchema>
 
 /**
  * Recorded result of a Mediator table roll (Reaction / Morale / Retreat).
@@ -47,7 +45,6 @@ export const MediatorRollResultSchema = z
     rolledAt: z.string().datetime(),
   })
   .strict()
-export type MediatorRollResult = z.infer<typeof MediatorRollResultSchema>
 
 export const EncounterNpcSchema = z
   .object({

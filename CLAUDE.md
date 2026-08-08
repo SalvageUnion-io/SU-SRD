@@ -14,7 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   ADR-015–020 cover the Dashboard play surface, built at `apps/itun/src/components/dashboard/`.
 
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
-- `docs/rules/` — agent-readable digest of the Salvage Union core rules + expansions (turn loop, heat, damage, salvage, creation, GM guidance, Meld/Chimerium subsystems). **Generated, gitignored, not committed** (condensed from the copyright-bearing PDFs in `rules/`, also gitignored) — produce it locally with `bun run rules:regen`, then read it instead of re-parsing the PDFs. Generator/manifest: `tools/rules-digest/`.
+- **Rules text** — there is no curated digest. To answer "what does the book actually say", run `bun run rules:extract` (local only; the copyright-bearing PDFs in `rules/` are gitignored and absent in CI) and grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers so you can cite exact pages.
+  - A `docs/rules/` digest was planned and never existed. `tools/rules-digest/` generated *authoring briefs*, not documents — an agent still had to hand-write each file, and none was written, so the directory held nothing but a README while this file told every session to read it. Generator retired; don't rebuild it without writing the documents too.
 
 ## Critical Rules
 
@@ -35,6 +36,33 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 
 - **`playwright`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code. It is a _root_ dependency because that scanner lives in `tools/`, outside any workspace; the apps depend on `@playwright/test` separately for their e2e suites. This replaced `puppeteer-core`, which shipped no browser and had to borrow Playwright's Chromium — one browser stack now, not two.
 - **`sharp`** — Used by `tools/convert-lp-assets-to-webp.ts` to transcode the `lp-assets` Netlify Blobs artwork to WebP (`bun run assets:webp`). Not dead code.
+
+### Audit gate (`check:audit`) — two suppressed advisories
+
+`bun audit --audit-level=high` gates merges via the `audit` job, and
+`package.json` cannot carry comments, so the reasoning lives here.
+
+**Suppressed: `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`** — both
+`image-size <=2.0.2`, infinite loops in its ICNS / JXL / HEIF parsers (DoS).
+
+- **There is no fixed version.** `2.0.2` IS the latest release (published
+  2025-04-02) and the advisory covers `<=2.0.2`, so no `overrides` pin can
+  resolve it — `bun install` fails outright with "No version matching ^2.0.3".
+- **Nothing here can reach the vulnerable code.** The chain is
+  `@netlify/blobs → @netlify/dev-utils → image-size`, and dev-utils imports it
+  from **`src/test/image.ts`**, a test helper that generates images. This repo's
+  only use of that package is `getStore` in
+  `apps/su-assets/netlify/functions/asset.ts`; nothing in `apps/`, `packages/`
+  or `tools/` imports `image-size` or calls `imageSize()`. Exploiting it needs
+  attacker-controlled bytes fed to that parser, and no path does that.
+
+**Re-check when `@netlify/blobs` updates**: drop both `--ignore` flags and run
+`bun run check:audit`. If it passes, delete this section — a suppression that
+outlives its cause is how a real advisory gets hidden.
+
+The companion fix in the same change was real, not suppressed: `nanoid` is
+pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
+clearing `GHSA-2v37-7h3g-55p8`.
 
 ### Dead-code gate (knip)
 
@@ -142,8 +170,7 @@ bun run validate:ids     # Unique ID check only
 # there they would be a check that passes by doing nothing. Each no-ops with a
 # notice and exit 0 when the extract is missing. Advisory: read the findings,
 # do not apply them blind. See README.md "Local-only diagnostics".
-bun run rules:extract        # PDF → rules/extracted/ text layer (prerequisite)
-bun run rules:regen          # Regenerate the docs/rules/ agent digest
+bun run rules:extract        # PDF → rules/extracted/ text layer, then grep it
 bun run check:printed-names  # Diff every entity name + page against the Core
                              # Book index; run after a data import or a bulk
                              # name/page edit, not on a schedule
@@ -297,51 +324,38 @@ Pre-commit runs: lint --fix, format (parallel). Typecheck does NOT run pre-commi
 Pre-push runs (parallel): typecheck, test, validate:all, knip, check:tokens,
 check:styling, lint, check:schemas.
 
-### Merging — `main` is behind a merge queue
+### Merging — no merge queue
 
-`main`'s ruleset (`deletion`, `non_fast_forward`, `required_linear_history`,
-`required_status_checks`, **`merge_queue`**) means a PR is **enqueued, never merged
-directly.** Enqueue with:
-
-```bash
-gh pr merge <pr> --auto --squash
-```
-
-**A plain `gh pr merge <pr> --squash` does not fail — and does not merge.** It prints
-only `! The merge strategy for main is set by the merge queue`, **exits 0**, and adds
-the PR to the queue. Every obvious success signal is absent afterwards: the PR is still
-`OPEN`, `mergedAt` is `null`, `mergeCommit` is `none`, and `autoMergeRequest` is `off`.
-That combination looks exactly like a silent no-op, so **do not conclude the merge
-failed and retry** — read the queue itself:
+`main`'s ruleset is `deletion`, `non_fast_forward`, `required_linear_history` and
+`required_status_checks`. **There is no `merge_queue` rule.** Merge with:
 
 ```bash
-gh api graphql -f query='{repository(owner:"SalvageUnion-io",name:"SU-SRD"){
-  mergeQueue(branch:"main"){entries(first:20){nodes{position state
-  pullRequest{number}}}}}}'
+gh pr merge <pr> --squash          # or --auto --squash to wait for green
 ```
 
-A queued PR stays `OPEN` until the queue merges it, so **PR state alone is never proof
-of anything** here. The queue is also the reason a PR can go green and still sit
-unmerged: it re-tests each entry against the projected merge, and ejects any that
-conflicts rather than merging it.
+Both work, and a merged PR reports `MERGED` with a real `mergedAt` immediately.
 
-Note that `gh pr merge --auto` is what Dependabot PRs need too. A merge queue is
-mutually exclusive with a `GITHUB_TOKEN`-driven Dependabot auto-merge workflow, since
-that token cannot enqueue — so Dependabot PRs here require an enqueue from a PAT-backed
-session (or a human) and will otherwise sit open indefinitely.
+> This section previously described a merge queue at length and instructed the reader
+> **not to believe a successful merge** — to treat an `OPEN` PR with a null `mergedAt`
+> as normal and go read the queue via GraphQL instead. The queue was removed from the
+> ruleset and the section outlived it, so the one instruction it gave with real force
+> was to distrust a correct result. Verify the current rules rather than trusting this
+> paragraph: `gh api repos/SalvageUnion-io/SU-SRD/rulesets --jq '.[].id'`, then
+> `gh api repos/SalvageUnion-io/SU-SRD/rulesets/<id> --jq '.rules[].type'`.
+
+Dependabot PRs need no special handling now that there is no queue: a
+`GITHUB_TOKEN`-driven auto-merge workflow can merge them directly, which was
+impossible while the queue existed.
 
 ### Project Skills (`.claude/skills/`)
 
-When to reach for which skill (overlap explained):
+Four skills, and each encodes a **decision procedure or a silent failure mode** — something you would get wrong by reading the command alone:
 
-- `/build-package` — regenerate `salvageunion-reference`'s generated artifacts (registry, `schemas/*.schema.json`, API report). **There is no TypeScript compile step** — the package ships TS source. Use after Zod schema or data-file edits.
-- `/generate` — same as above **plus** `validate:all` (IDs, cross-refs, action refs). Use when you've changed JSON data and want integrity checks in one step.
-- `/validate` / `/verify` — run the full CI suite via `check:all`. `/verify` is a literal alias of `/validate`, so they genuinely do the same thing; either name works.
-- `/a11y-scan` — WCAG 2.1 AA scan via Playwright + axe-core (srd). **Not puppeteer** — `tools/a11y-scan.ts` moved to Playwright so the repo has one browser stack, not two (see "Root Dev Dependencies" above).
 - `/triage` — read every production and CI signal, then propose the day's work in priority order.
 - `/component-refresh` — redesign an existing component through the three-level loop (real SSR "before" → NEW\* Ladle comparison → staged cutover).
 - `/knip-triage` — resolve a knip dead-code failure. The command is one line; the failure mode is applying the wrong rule, so this encodes the decision procedure (delete by default; `@public` / `@knipignore` are the only exemptions and `@knipignore` requires showing the export is consumed).
 - `/convex-deploy-verify` — configure and verify an ITUN Convex deployment without signing in. Every failure on that path is silent and misattributes, so it carries the three required env vars, the `.convex.site` vs `.convex.cloud` distinction, the curl probe **including its bogus-provider control**, and presence-by-length (`convex env get` exits 0 for a variable that does not exist).
-- `/deploy-bot` — deploy Discord slash commands.
+
+**Six wrapper skills were deleted** — `/build-package`, `/generate`, `/validate`, `/verify`, `/a11y-scan`, `/deploy-bot`. Each was frontmatter around a single `bun run` this file already documents, none had ever been invoked in ~1,500 transcripts, and two had gone stale in a way that actively misled: `/verify` told you to run bare `bun test` and `/generate` described a compile step the package has not had since it started shipping source. A wrapper that adds no judgement is a second place for the command to rot. Run the script.
 
 There is deliberately **no `/commit`**. It was four lines with no frontmatter, and its last step — "commit and push to the current branch" — is a direct push to `main` when HEAD is `main`, which the user-level rebase-guard blocks anyway. Use `/ship` (user-level) or the `commit-commands` plugin.

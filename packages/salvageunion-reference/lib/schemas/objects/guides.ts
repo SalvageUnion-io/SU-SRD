@@ -29,18 +29,6 @@ const GuideStepFilterSchema = z
   .strict()
 
 /**
- * Type of decision a guide step represents
- */
-const GuideStepTypeSchema = z.enum([
-  'select-one',
-  'select-many',
-  'freeform',
-  'roll-table',
-  'info',
-  'sub-guide',
-])
-
-/**
  * A single step in a guide
  */
 export const GuideStepSchema = z
@@ -49,9 +37,6 @@ export const GuideStepSchema = z
       .object({
         id: IdSchema.describe('Unique identifier for this guide step'),
         name: NameSchema.describe('Display name of this guide step'),
-        stepType: GuideStepTypeSchema.describe(
-          'Type of decision this step represents (select-one, select-many, freeform, etc.)'
-        ),
         section: z
           .string()
           .describe('Section label; starts a new numbered group when present')

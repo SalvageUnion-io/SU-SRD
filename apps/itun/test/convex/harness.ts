@@ -43,7 +43,6 @@ const modules: Record<string, () => Promise<unknown>> = {
   './_generated/api.js': () => import('../../convex/_generated/api'),
   './_generated/server.js': () => import('../../convex/_generated/server'),
   './account.ts': () => import('../../convex/account'),
-  './bot.ts': () => import('../../convex/bot'),
   './botClient.ts': () => import('../../convex/botClient'),
   './crew.ts': () => import('../../convex/crew'),
   './downtime.ts': () => import('../../convex/downtime'),

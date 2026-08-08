@@ -10,7 +10,6 @@
 
 import type * as account from "../account.js";
 import type * as auth from "../auth.js";
-import type * as bot from "../bot.js";
 import type * as botClient from "../botClient.js";
 import type * as botHttp from "../botHttp.js";
 import type * as crew from "../crew.js";
@@ -37,7 +36,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   account: typeof account;
   auth: typeof auth;
-  bot: typeof bot;
   botClient: typeof botClient;
   botHttp: typeof botHttp;
   crew: typeof crew;

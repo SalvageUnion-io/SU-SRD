@@ -49,7 +49,11 @@ async function seedBoundGame(t: Ctx) {
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   const code = await organizer.as.mutation(api.invites.create, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
-  await organizer.as.mutation(api.bot.bindChannel, { gameId, channelId: 'chan-1' })
+  await t.mutation(internal.botClient.bind, {
+    discordId: 'discord-organizer',
+    channelId: 'chan-1',
+    gameId,
+  })
   return { organizer, player, gameId }
 }
 
@@ -61,31 +65,54 @@ describe('channel binding', () => {
 
     // A channel meaning two games makes every roll in it ambiguous, and the
     // bot has no way to ask which was meant.
-    await expect(
-      organizer.as.mutation(api.bot.bindChannel, { gameId: other, channelId: 'chan-1' })
-    ).rejects.toThrow(/already bound/i)
+    const clash = await t.mutation(internal.botClient.bind, {
+      discordId: 'discord-organizer',
+      channelId: 'chan-1',
+      gameId: other,
+    })
+    expect(clash).toMatchObject({ ok: false })
+
+    // The rejected bind leaves the original one standing.
+    const still = await t.query(internal.botClient.channel, {
+      discordId: 'discord-organizer',
+      channelId: 'chan-1',
+    })
+    expect(still).toMatchObject({ ok: true, game: { gameId } })
 
     // Re-binding the same pair is a no-op, not an error.
-    await organizer.as.mutation(api.bot.bindChannel, { gameId, channelId: 'chan-1' })
+    const same = await t.mutation(internal.botClient.bind, {
+      discordId: 'discord-organizer',
+      channelId: 'chan-1',
+      gameId,
+    })
+    expect(same).toMatchObject({ ok: true })
   })
 
-  test('only the Organizer may bind or unbind', async () => {
+  test('only the Organizer may unbind', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedBoundGame(t)
+    await seedBoundGame(t)
 
-    await expect(
-      player.as.mutation(api.bot.bindChannel, { gameId, channelId: 'chan-2' })
-    ).rejects.toThrow(/organizer/i)
-    await expect(
-      player.as.mutation(api.bot.unbindChannel, { channelId: 'chan-1' })
-    ).rejects.toThrow(/organizer/i)
+    const denied = await t.mutation(internal.botClient.unbind, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+    })
+    expect(denied).toMatchObject({ ok: false, reason: 'forbidden' })
+
+    const allowed = await t.mutation(internal.botClient.unbind, {
+      discordId: 'discord-organizer',
+      channelId: 'chan-1',
+    })
+    expect(allowed).toMatchObject({ ok: true })
   })
 
   test('resolves the game a channel speaks for', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedBoundGame(t)
-    const found = await player.as.query(api.bot.gameForChannel, { channelId: 'chan-1' })
-    expect(found?.gameId).toBe(gameId)
+    const { gameId } = await seedBoundGame(t)
+    const found = await t.query(internal.botClient.channel, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+    })
+    expect(found).toMatchObject({ ok: true, game: { gameId } })
   })
 
   test('the bot obeys the same Organizer rule as the web', async () => {
@@ -123,9 +150,15 @@ describe('the bot cannot act as anybody', () => {
     })
     expect(result).toMatchObject({ ok: true })
 
-    const rolls = await player.as.query(api.bot.rolls, { gameId })
+    // Read the Change Log directly: a roll IS a Change Log entry, and the
+    // `api.bot.rolls` wrapper that used to read it here was deleted with the
+    // rest of the unused web-facing bot surface.
+    const rolls = await t.run(async (ctx) =>
+      (await ctx.db.query('changeLog').collect()).filter((e) => e.field === 'roll')
+    )
     expect(rolls).toHaveLength(1)
     expect(rolls[0]?.actorId).toBe(player.userId)
+    expect(rolls[0]?.gameId).toBe(gameId)
   })
 
   test('an unlinked Discord id records nothing', async () => {
@@ -177,9 +210,10 @@ describe('the bot cannot act as anybody', () => {
 
     // A second Game, bound to a second channel, that the player is not in.
     const otherGame = await organizer.as.mutation(api.games.create, { name: 'Ashfall' })
-    await organizer.as.mutation(api.bot.bindChannel, {
-      gameId: otherGame,
+    await t.mutation(internal.botClient.bind, {
+      discordId: 'discord-organizer',
       channelId: 'chan-other',
+      gameId: otherGame,
     })
     const secretPilot = await t.run(
       async (ctx) =>
@@ -290,15 +324,16 @@ describe('identity comes from the sign-in itself', () => {
   })
 })
 
+/**
+ * A `a non-member cannot read them` case used to sit here, asserting that
+ * `api.bot.rolls` threw for an outsider. That query was the only public reader
+ * of roll history and it was deleted along with the rest of the unused
+ * web-facing bot module, so there is no longer a surface for an outsider to be
+ * refused *from* — the assertion would have been vacuous rather than reassuring.
+ * Membership gating on what the bot itself can read is covered above, against
+ * `botClient`, which is the path that actually runs.
+ */
 describe('rolls are Game history, not a separate store', () => {
-  test('a non-member cannot read them', async () => {
-    const t = testConvex()
-    const { gameId } = await seedBoundGame(t)
-    const outsider = await makeUser(t, 'Outsider')
-
-    await expect(outsider.as.query(api.bot.rolls, { gameId })).rejects.toThrow(/not a member/i)
-  })
-
   test('they live in the Change Log alongside everything else', async () => {
     const t = testConvex()
     await seedBoundGame(t)

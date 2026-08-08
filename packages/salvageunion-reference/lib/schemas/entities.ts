@@ -483,7 +483,6 @@ export const GuideSchema = BaseEntitySchema.extend({
     .default('#282019')
     .describe('Hex color for entity display header/footer'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
-  repeatable: z.boolean().optional().describe('Whether this guide can be executed multiple times'),
 })
   .strict()
   .describe('Player-facing guides and processes')

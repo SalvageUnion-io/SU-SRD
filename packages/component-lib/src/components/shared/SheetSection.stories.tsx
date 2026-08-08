@@ -4,13 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { Slab } from '../chrome/Slab'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
-import {
-  CardRemoveButton,
-  HButton,
-  SectionEditButton,
-  SectionManageButton,
-  SheetPickerModal,
-} from './SheetSection'
+import { CardRemoveButton, HButton, SectionManageButton, SheetPickerModal } from './SheetSection'
 
 export default {
   title: 'Compositions/Sheet Section',
@@ -21,35 +15,19 @@ const system = SalvageUnionReference.Systems.all()[0]
 const ability = SalvageUnionReference.Abilities.all()[0]
 
 /**
- * The three interaction archetypes of the live sheets' edit language, in the
- * arrangement the sheets actually use: a solid `Slab` section header whose
- * `actions` slot carries either a per-section Edit toggle (FIELD sections) or
- * an always-live Add (COLLECTION sections).
+ * The live sheets' edit language, in the arrangement the sheets actually use: a
+ * solid `Slab` section header whose `actions` slot carries an always-live Add
+ * (COLLECTION sections).
+ *
+ * The FIELD archetype's per-section Edit/Done toggle used to be demonstrated
+ * here too. `SectionEditButton` was built and exported but adopted by no sheet,
+ * so it was deleted and this story lost that panel with it.
  */
 export const Default: Story = () => {
-  const [editing, setEditing] = useState(false)
   const [open, setOpen] = useState(false)
 
   return (
     <div className="sheet--mech flex max-w-3xl flex-col gap-8 bg-paper p-4">
-      <div>
-        <Caption>FIELD section — per-section Edit/Done toggle</Caption>
-        <Slab
-          variant="solid"
-          label="Identity"
-          actions={
-            <SectionEditButton
-              section="Identity"
-              editing={editing}
-              onToggle={() => setEditing((v) => !v)}
-            />
-          }
-        />
-        <p className="mt-2 font-body text-caption text-wk-muted">
-          {editing ? 'Editing — fields show the dashed cue.' : 'Read-only.'}
-        </p>
-      </div>
-
       <div>
         <Caption>COLLECTION section — always-live Add + per-card remove</Caption>
         <Slab

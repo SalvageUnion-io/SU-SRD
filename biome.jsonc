@@ -61,6 +61,15 @@
       // Generated API-surface snapshot (tools/generateApiReport.ts, drift-checked
       // in CI) — a raw declaration rollup, not hand-authored source.
       "!packages/salvageunion-reference/etc",
+      // Astro's old codegen cache. apps/srd has not built through Astro since
+      // ADR-031, but `.astro/` survives on any working copy that predates the
+      // migration — it is gitignored, so it is invisible to `git status` while
+      // Biome formats `types.d.ts` and `content.d.ts` and `format:check` exits
+      // 1 on an otherwise-clean tree. CI never sees it (fresh checkout), so it
+      // only ever hits developers, which is how people learn `--no-verify`.
+      // Biome reads no `.gitignore` without a `vcs` block, so gitignored-ness
+      // alone excludes nothing — this list is the only mechanism.
+      "!**/.astro",
       // Game-data JSON is crawler-sourced; CLAUDE.md's "Data Conventions"
       // section forbids automated formatters reformatting these arrays
       // (`json.dump`-style tools reflow crawler-authored line breaks). Biome's

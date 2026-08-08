@@ -281,9 +281,14 @@ jobs:
     # The other floors do not bind on a fresh resolve today; they are kept as
     # cheap insurance against a parent range drifting back down.
     #
-    # No `--ignore` is needed. As of the audit-remediation change, a plain
-    # `bun audit` (no severity gate at all) reports ZERO vulnerabilities, so
-    # nothing is riding below this `--audit-level=high` threshold unnoticed.
+    # TWO ADVISORIES ARE NOW SUPPRESSED, and this comment used to say the
+    # opposite ("No `--ignore` is needed"). `check:audit` passes
+    # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both
+    # `image-size <=2.0.2` via `@netlify/blobs -> @netlify/dev-utils`. There is
+    # no fixed version to float a floor to — 2.0.2 IS latest — so the usual
+    # `bun update` / raise-the-floor remedy below cannot apply. Full reasoning
+    # and the removal condition are in CLAUDE.md, "Audit gate". The ignores are
+    # scoped to those two ids, so everything else still gates.
     # Getting there took DEDUPE floors, which are a different kind of entry from
     # the rest of the block and should not be confused with them:
     #
@@ -334,7 +339,11 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Audit dependencies
-        run: bun audit --audit-level=high
+        # `bun run check:audit`, NOT a bare `bun audit` — the script carries the
+        # `--ignore` flags, and this job ran the bare command for long enough
+        # that a fix landing in package.json passed locally and still failed
+        # here. One command, one source of truth.
+        run: bun run check:audit
 
   build-srd:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
