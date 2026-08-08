@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.1.0...srd-v2.2.0) (2026-08-08)
+
+
+### Features
+
+* **srd:** replace the retired parity gate with a self-hosted output snapshot ([#723](https://github.com/SalvageUnion-io/SU-SRD/issues/723)) ([d6de2a4](https://github.com/SalvageUnion-io/SU-SRD/commit/d6de2a4b621cdcd3ac0fe26d04f7ba52552ffd2f))
+
 ## [2.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.0.2...srd-v2.1.0) (2026-08-07)
 
 
