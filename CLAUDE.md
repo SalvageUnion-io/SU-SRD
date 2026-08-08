@@ -14,7 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   ADR-015–020 cover the Dashboard play surface, built at `apps/itun/src/components/dashboard/`.
 
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
-- `docs/rules/` — agent-readable digest of the Salvage Union core rules + expansions (turn loop, heat, damage, salvage, creation, GM guidance, Meld/Chimerium subsystems). **Generated, gitignored, not committed** (condensed from the copyright-bearing PDFs in `rules/`, also gitignored) — produce it locally with `bun run rules:regen`, then read it instead of re-parsing the PDFs. Generator/manifest: `tools/rules-digest/`.
+- **Rules text** — there is no curated digest. To answer "what does the book actually say", run `bun run rules:extract` (local only; the copyright-bearing PDFs in `rules/` are gitignored and absent in CI) and grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers so you can cite exact pages.
+  - A `docs/rules/` digest was planned and never existed. `tools/rules-digest/` generated *authoring briefs*, not documents — an agent still had to hand-write each file, and none was written, so the directory held nothing but a README while this file told every session to read it. Generator retired; don't rebuild it without writing the documents too.
 
 ## Critical Rules
 
@@ -142,8 +143,7 @@ bun run validate:ids     # Unique ID check only
 # there they would be a check that passes by doing nothing. Each no-ops with a
 # notice and exit 0 when the extract is missing. Advisory: read the findings,
 # do not apply them blind. See README.md "Local-only diagnostics".
-bun run rules:extract        # PDF → rules/extracted/ text layer (prerequisite)
-bun run rules:regen          # Regenerate the docs/rules/ agent digest
+bun run rules:extract        # PDF → rules/extracted/ text layer, then grep it
 bun run check:printed-names  # Diff every entity name + page against the Core
                              # Book index; run after a data import or a bulk
                              # name/page edit, not on a schedule
@@ -297,38 +297,28 @@ Pre-commit runs: lint --fix, format (parallel). Typecheck does NOT run pre-commi
 Pre-push runs (parallel): typecheck, test, validate:all, knip, check:tokens,
 check:styling, lint, check:schemas.
 
-### Merging — `main` is behind a merge queue
+### Merging — no merge queue
 
-`main`'s ruleset (`deletion`, `non_fast_forward`, `required_linear_history`,
-`required_status_checks`, **`merge_queue`**) means a PR is **enqueued, never merged
-directly.** Enqueue with:
-
-```bash
-gh pr merge <pr> --auto --squash
-```
-
-**A plain `gh pr merge <pr> --squash` does not fail — and does not merge.** It prints
-only `! The merge strategy for main is set by the merge queue`, **exits 0**, and adds
-the PR to the queue. Every obvious success signal is absent afterwards: the PR is still
-`OPEN`, `mergedAt` is `null`, `mergeCommit` is `none`, and `autoMergeRequest` is `off`.
-That combination looks exactly like a silent no-op, so **do not conclude the merge
-failed and retry** — read the queue itself:
+`main`'s ruleset is `deletion`, `non_fast_forward`, `required_linear_history` and
+`required_status_checks`. **There is no `merge_queue` rule.** Merge with:
 
 ```bash
-gh api graphql -f query='{repository(owner:"SalvageUnion-io",name:"SU-SRD"){
-  mergeQueue(branch:"main"){entries(first:20){nodes{position state
-  pullRequest{number}}}}}}'
+gh pr merge <pr> --squash          # or --auto --squash to wait for green
 ```
 
-A queued PR stays `OPEN` until the queue merges it, so **PR state alone is never proof
-of anything** here. The queue is also the reason a PR can go green and still sit
-unmerged: it re-tests each entry against the projected merge, and ejects any that
-conflicts rather than merging it.
+Both work, and a merged PR reports `MERGED` with a real `mergedAt` immediately.
 
-Note that `gh pr merge --auto` is what Dependabot PRs need too. A merge queue is
-mutually exclusive with a `GITHUB_TOKEN`-driven Dependabot auto-merge workflow, since
-that token cannot enqueue — so Dependabot PRs here require an enqueue from a PAT-backed
-session (or a human) and will otherwise sit open indefinitely.
+> This section previously described a merge queue at length and instructed the reader
+> **not to believe a successful merge** — to treat an `OPEN` PR with a null `mergedAt`
+> as normal and go read the queue via GraphQL instead. The queue was removed from the
+> ruleset and the section outlived it, so the one instruction it gave with real force
+> was to distrust a correct result. Verify the current rules rather than trusting this
+> paragraph: `gh api repos/SalvageUnion-io/SU-SRD/rulesets --jq '.[].id'`, then
+> `gh api repos/SalvageUnion-io/SU-SRD/rulesets/<id> --jq '.rules[].type'`.
+
+Dependabot PRs need no special handling now that there is no queue: a
+`GITHUB_TOKEN`-driven auto-merge workflow can merge them directly, which was
+impossible while the queue existed.
 
 ### Project Skills (`.claude/skills/`)
 

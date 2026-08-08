@@ -53,7 +53,6 @@
     "deploy-commands": "bun --filter discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter discord-bot deploy-commands:global",
     "rules:extract": "bun tools/extract-rules.ts",
-    "rules:regen": "bun tools/rules-digest/regenerate.ts",
     "assets:webp": "bun tools/convert-lp-assets-to-webp.ts",
     "typecheck": "bun --filter salvageunion-reference typecheck && concurrently -g 'bun run typecheck:tools' 'bun --filter component-lib typecheck' 'bun --filter srd typecheck' 'bun --filter itun typecheck' 'bun --filter discord-bot typecheck' 'bun --filter su-assets typecheck'",
     "typecheck:tools": "tsc --noEmit -p tsconfig.tools.json",

@@ -3,12 +3,18 @@
  *
  * Extracts the plain-text layer from every Salvage Union rules PDF in `rules/`
  * to `rules/extracted/<name>.txt`, inserting `<!-- page N -->` markers at page
- * boundaries so the curated digest in `docs/rules/` can cite exact pages.
+ * boundaries so a reader can cite exact pages.
  *
  * The PDFs and this extract are gitignored (`rules/*`) — they are copyright-
  * bearing verbatim material and must never be committed. This extract is a
- * local, regenerable substrate: a greppable full-text fallback and the source
- * material from which the curated digest is authored.
+ * local, regenerable substrate: a greppable full-text fallback for "what does
+ * the book actually say".
+ *
+ * This used to feed a `docs/rules/` digest pipeline (`tools/rules-digest/`).
+ * That pipeline was retired: it generated *authoring briefs*, not documents, so
+ * an agent still had to hand-write every `docs/rules/<slug>.md` — and none was
+ * ever written. The directory sat empty for months while CLAUDE.md told every
+ * session to read it instead of the PDFs. Grep this extract instead.
  *
  * Requires `pdftotext` (poppler) on PATH.
  *

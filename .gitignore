@@ -73,12 +73,13 @@ apps/srd/.vite
 .netlify
 
 # Salvage Union rules content is NOT checked into git. The source PDFs and their
-# text extract / authoring briefs (rules/) are copyright-bearing verbatim
-# material; the condensed digest (docs/rules/) is derived from them. Both are
-# generated and local-only — produce them with `bun run rules:regen`. Only the
-# tooling (tools/rules-digest/, tools/extract-rules.ts) lives in git.
+# text extract (rules/) are copyright-bearing verbatim material, generated and
+# local-only — produce the extract with `bun run rules:extract`. Only the tooling
+# (tools/extract-rules.ts) lives in git.
+#
+# `docs/rules/` was listed here for a digest that was never authored; the
+# generator behind it is retired. Nothing writes that path now.
 rules/*
-docs/rules/
 
 # Playwright artifacts (per-app)
 apps/itun/playwright-report

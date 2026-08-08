@@ -20,7 +20,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm working on accounts, Games, or the Discord bot as a game client** → [adrs/ADR-030-accounts-games-server-of-record.md](adrs/ADR-030-accounts-games-server-of-record.md) (**governing** ADR for identity + ownership) + [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (delivery phases + ops reference) + [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)
 
-**I need to know how a Salvage Union rule actually works** → run `bun run rules:regen` to produce the agent-readable rules digest in `docs/rules/` (gitignored — condensed from the PDFs in `rules/`, also gitignored). Read those instead of re-parsing the PDFs.
+**I need to know how a Salvage Union rule actually works** → run `bun run rules:extract` (local only — the PDFs in `rules/` are copyright-bearing and gitignored, so this is unavailable in CI) and grep `rules/extracted/*.txt`. It carries `<!-- page N -->` markers, so you can cite exact pages.
 
 **I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/itun/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
 
@@ -55,17 +55,19 @@ conventions, then the relevant architecture doc below.
 | [agent-tooling.md](architecture/agent-tooling.md)                     | **Service registry** — MCP servers + auth models, and every Netlify/Render/Sentry/Convex identifier    |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
 
-### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
+### Rules text — extract and grep, no digest
 
-Condensed markdown digest of the Salvage Union core rules + expansions, for
-agents that need to reference how the game works without re-parsing the source
-PDFs. Mechanics prose only; specific entities (chassis, systems, abilities, etc.)
-stay in `salvageunion-reference`.
+There is **no** curated rules digest, and `docs/rules/` is not a thing. Run
+`bun run rules:extract` to produce `rules/extracted/*.txt` from the PDFs and grep
+that. Both the PDFs and the extract are gitignored (copyright-bearing verbatim
+material) and absent in CI, so this is a local-only affordance. Specific entities
+— chassis, systems, abilities — live in `salvageunion-reference`, not in prose.
 
-**Not committed** — the digest is condensed from copyright-bearing PDFs, so both
-the PDFs (`rules/`) and the digest (`docs/rules/`) are gitignored. Only the
-generator is in git. Produce the digest locally with `bun run rules:regen`
-(page-map + per-doc scope in [`tools/rules-digest/manifest.ts`](../tools/rules-digest/manifest.ts)).
+A digest *was* planned. `tools/rules-digest/` emitted authoring briefs rather than
+documents, so every file still had to be hand-written and none ever was; the
+directory held one README while `CLAUDE.md` and this page both told readers to
+consult it. The generator is retired — if the digest is wanted, write the
+documents as part of the same change.
 
 ### [`adrs/`](adrs/) — Architecture Decision Records
 

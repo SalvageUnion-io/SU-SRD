@@ -79,8 +79,7 @@ and therefore unavailable to CI. They are advisory: read the findings, do not
 apply them blind.
 
 ```bash
-bun run rules:extract        # PDF → rules/extracted/ text layer (prerequisite)
-bun run rules:regen          # regenerate the docs/rules/ agent digest
+bun run rules:extract        # PDF → rules/extracted/ text layer, then grep it
 bun run check:printed-names  # diff every entity name + page against the Core
                              # Book index; run after a data import or a bulk
                              # name/page edit, not on a schedule
