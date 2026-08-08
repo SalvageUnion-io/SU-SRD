@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.2.0...itun-v1.3.0) (2026-08-08)
+
+
+### Features
+
+* **itun:** a mech's drones are granted, live, and tied to their chassis ([#715](https://github.com/SalvageUnion-io/SU-SRD/issues/715)) ([f4c6ca1](https://github.com/SalvageUnion-io/SU-SRD/commit/f4c6ca187b0f9ce13077cd5eb06b7e11296987ab))
+
 ## [1.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.1.0...itun-v1.2.0) (2026-08-07)
 
 
