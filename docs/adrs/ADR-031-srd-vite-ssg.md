@@ -13,14 +13,35 @@ it changes.** Astro is replaced by an in-house static-site generator at
 [`ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md). This ADR records _why_; that
 file records _how_, and is the one to read before changing the build.
 
-**Amended 2026-08-07 — decision 6 has expired.** `ssg/parity.ts`, its
-`make-parity-baseline.ts` companion and their tests (2,109 lines) have been
-**deleted**. This is the "shelf life" this ADR itself called out under
-_Consequences_, arriving: the gate's baseline was gone from every checkout, so
-it could not run at all. Nothing in the decision below changes — the migration
-still happened, and still passed on the gate's evidence. What changes is that
-**the evidence is now historical and there is no live whole-page-output check.**
-Everything this ADR says about parity should be read in the past tense.
+**Amended 2026-08-07 — decision 6 has been REPLACED.** `ssg/parity.ts`, its
+`make-parity-baseline.ts` companion and their tests (2,109 lines) were
+**deleted**: the "shelf life" this ADR called out under _Consequences_ had
+arrived, and the gate's Astro baseline was gone from every checkout, so it could
+not run at all. Everything below about parity should be read in the past tense.
+
+Its replacement is **`ssg/snapshot.ts`**, a self-hosted snapshot gate, and the
+swap is a deliberate change of KIND. Parity compared against a foreign
+**oracle** — Astro's own output — which is strictly stronger while it lasts,
+because it can catch output that was wrong from the very first build. It lasted
+until the oracle became unregenerable. The snapshot gate compares against **our
+own last-blessed output**, which is a weaker assertion (a wrong output committed
+as the snapshot stays wrong) traded for one that cannot expire:
+
+| | parity (retired) | snapshot (now) |
+| --- | --- | --- |
+| baseline | archived Astro `dist`, ~56 MB | our own output, ~680 KB digest |
+| in a fresh checkout | absent | committed |
+| regenerate | install ~2,200 Astro-era packages | `bun run snapshot:update`, ~3s |
+| in CI | **never** | yes, in `build-srd` |
+| catches wrong-from-the-start output | yes | no |
+
+The nine files that told people to run a gate nobody could run are the whole
+argument: a weaker check that actually executes beats a stronger one that does
+not. Coverage is otherwise the same — file set, head metadata, JSON-LD, `<main>`
+text, all 899 JSON endpoints, `llms.txt` — and `isInsertionOf`, parity's best
+idea, is carried over for `/changelog`. Parity's HTML-analysis layer survives
+verbatim as `ssg/htmlDigest.ts`, verified identical to the deleted code across
+all 1,039 pages; what rotted was the baseline, never the scanning.
 
 ## Context
 
@@ -147,9 +168,10 @@ generator proper (`build.ts`, `dev.ts`, `render.tsx`, `document.tsx`,
 `vite.config.ts`) and 897 were the parity harness. That is traded against a
 dependency that cost this repo three commits in its entire history.
 
-The parity harness has since been deleted (see _Status_), so the standing cost is
-the ~1,491-line generator. The retirement removed a **verification** cost, not a
-generator cost — the tooling this ADR committed to maintaining is all still here.
+The 897-line parity harness has since been replaced by `ssg/htmlDigest.ts` +
+`ssg/snapshot.ts` (see _Status_), which are smaller but not free. The standing
+cost is still roughly as stated: a ~1,491-line generator plus a verification
+harness. What changed is that the harness now runs.
 
 **This is not a free win, and it should not be sold as one.** Astro's routing,
 sitemap, PWA and SSR were maintained by other people, tested against far more
@@ -200,10 +222,10 @@ left, and no available version fixed it.
   happened: no checkout had a baseline, regenerating one meant installing ~2,200
   Astro-era packages, and the gate was never in CI in the first place — so it
   had quietly become a documented instruction nobody could follow. It was
-  deleted on 2026-08-07.
-  **Nothing compares whole-page output now.** That was already true of CI while
-  the gate existed; deleting it removed the last manual path. Do not cite parity
-  as coverage, and do not treat a green build as evidence the output is right.
+  replaced on 2026-08-07 by `ssg/snapshot.ts` (see _Status_).
+  **The lesson generalises: a verification baseline that lives outside the
+  system it checks will eventually stop being regenerable.** If a future gate
+  needs an oracle, plan its expiry at the same time as its adoption.
 - **The route registry must be maintained by hand.** A new page that nobody adds
   to `ssg/routes.ts` is simply not built, and nothing fails. That is the stated
   trade for having one file that tells you what the site emits.

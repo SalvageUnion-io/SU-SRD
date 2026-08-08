@@ -359,6 +359,16 @@ jobs:
       - name: Build srd
         run: bun --filter srd build
 
+      # The output gate (ssg/snapshot.ts). Runs HERE rather than as its own job
+      # because it needs the dist this step just produced, and rebuilding it in
+      # a second job would double the slowest thing in the workflow.
+      #
+      # This is the check the retired parity gate never had: parity lived only
+      # in a doc instruction, so nothing ever ran it. If this fails, the built
+      # site differs from the committed snapshot — intended or not.
+      - name: Check built output against the snapshot
+        run: bun --filter srd snapshot
+
   build-itun:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
     if: needs.changes.outputs.itun == 'true'

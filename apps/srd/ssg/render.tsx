@@ -133,8 +133,9 @@ export function register<Params extends Record<string, string>, Props>(
  * `noindex` and both are excluded from the sitemap, so none of what
  * `BaseLayout` adds — canonical URL, Open Graph, favicons, nav, footer,
  * speculation rules — belongs on them. Routing them through `renderDocument`
- * would inject all of it. The parity script used to catch every one of those
- * tags as a regression; it is retired, so this rule is now convention only.
+ * would inject all of it, and `ssg/snapshot.ts` reports every one of those tags
+ * appearing (canonical, the og/twitter digest, and a `<main>` where there was
+ * none).
  *
  * These pages get NO injected build assets: they are not part of the island
  * system, so there is no islands entry to load and no stylesheet to link. A

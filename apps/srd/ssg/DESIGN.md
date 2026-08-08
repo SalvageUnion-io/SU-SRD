@@ -245,10 +245,27 @@ packages — so in practice the gate had stopped being runnable at all, while th
 docs still told people to run it. [ADR-031](../../../docs/adrs/ADR-031-srd-vite-ssg.md)
 called this shelf life in the original decision.
 
-**Nothing replaced it.** No check now compares the finished site against a
-reference; the remaining tests cover this generator's individual pieces. Treat
-"the build succeeded" as saying nothing about whether the output is correct, and
-verify emit changes against real built HTML.
+Its **analysis** half survives as `ssg/htmlDigest.ts` and is used by the gate
+below — what rotted was the baseline, not the HTML scanning.
+
+## Verification — `ssg/snapshot.ts` is the output gate
+
+`bun run gate` (= `bun ssg/build.ts && bun ssg/snapshot.ts`) diffs the built
+`dist` against `ssg/output-snapshot.json`, a committed digest of the site. It
+covers the emitted file set both directions, per-page head metadata and JSON-LD,
+a digest of each page's `<main>` text, all 899 JSON endpoints, and `llms.txt`.
+`bun run snapshot:update` re-blesses it; the snapshot is one line per page, so
+that diff is the reviewable record of what a change did to the site.
+
+The design inverts every property that killed parity: the baseline is **our own
+output** (always regenerable), it is a ~680 KB digest rather than a copy (so it
+is committed and present in every checkout), regenerating takes one command and
+~3s, and it **runs in CI**.
+
+The trade is explicit and worth stating: parity compared against a foreign
+**oracle**, so it could catch output that was wrong from the outset. This
+compares against what was last blessed, so a wrong output committed as the
+snapshot stays wrong. Read the diff.
 
 ## Build orchestration (`ssg/build.ts`)
 

@@ -8,9 +8,8 @@ import { llmsTxtEndpoint } from '../../endpoints/llmsTxt'
  * `EndpointModule` with a `contentType` and a `body()` returning a string, so
  * the transport wrapper is gone and the content-type is declared rather than
  * set on a header. Every assertion about the BODY below is unchanged. These
- * assertions used to be backed up by `ssg/parity.ts` holding llms.txt
- * byte-identical to the Astro build; that gate is retired, so they are now the
- * whole of what checks this endpoint.
+ * cover the endpoint's content RULES; `ssg/snapshot.ts` separately digests the
+ * emitted file's exact bytes, so a reflow of the template literal fails there.
  */
 const render = () => llmsTxtEndpoint.body({} as RouteContext<Record<string, string>, unknown>)
 

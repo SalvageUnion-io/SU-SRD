@@ -6,9 +6,9 @@
 > a **historical record of the Astro 6 → 7 upgrade** and describes a stack that no
 > longer exists. Do not follow it as instruction. The `trailingSlash: 'ignore'`
 > decision it settled does still matter — the SSG's URL→file mapping reproduces it
-> exactly, and `ssg/__tests__/outputPath.test.ts` is what holds it now
-> (`ssg/parity.ts`, which used to enforce it against the archived Astro baseline,
-> has been retired).
+> exactly, and it is held now by `ssg/__tests__/outputPath.test.ts` plus
+> `ssg/snapshot.ts`'s file-set check (`ssg/parity.ts`, which used to enforce it
+> against the archived Astro baseline, has been retired).
 
 **Status:** ✅ **Merged** in #365 (and later superseded, see above). srd ran
 Astro 7 + Vite 8 from then until the SSG migration. This doc

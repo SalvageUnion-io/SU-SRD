@@ -2,9 +2,8 @@
  * URL -> dist file.
  *
  * The one rule the whole emit rests on: a page written to the wrong path is a
- * 404 in production. The parity gate used to catch that as a "missing from
- * candidate" line; with it retired, THIS FILE is the only check on the mapping,
- * so treat a gap here as shipping straight to production. The table in
+ * 404 in production. These are the unit cases; `ssg/snapshot.ts` catches the
+ * same class over the real build as a file-set difference. The table in
  * `ssg/DESIGN.md` is the spec; these are its cases.
  *
  * Three separate seams meet here, which is why they are tested together:
