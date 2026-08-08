@@ -1,6 +1,10 @@
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
+import {
+  isLegalCreationClass,
+  legalCreationAbilities,
+  offeredAbilityTrees,
+} from 'salvageunion-reference/rules'
 import { EmptyState } from '../chrome/EmptyState'
 import { Slab } from '../chrome/Slab'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -21,6 +25,7 @@ type ClassLike = {
   coreTrees?: string[]
   advancedTree?: string
   legendaryTree?: string
+  hybrid?: boolean
 }
 
 type ClassAbilityStepProps = {
@@ -41,21 +46,6 @@ type ClassAbilityStepProps = {
 
 function levelOrder(l: number | 'L' | 'G'): number {
   return typeof l === 'number' ? l : l === 'L' ? 90 : 99
-}
-
-/**
- * Trees offered in EDIT mode: core + advanced + legendary trees, plus the
- * trees of already-selected abilities — a pilot who switched to a Hybrid
- * specialisation keeps their learned core trees visible and toggleable.
- */
-function editTreesFor(cls: ClassLike, selectedTrees: string[]): string[] {
-  const trees: string[] = [...(cls.coreTrees ?? [])]
-  if (cls.advancedTree) trees.push(cls.advancedTree)
-  if (cls.legendaryTree) trees.push(cls.legendaryTree)
-  for (const tree of selectedTrees) {
-    if (!trees.includes(tree)) trees.push(tree)
-  }
-  return trees
 }
 
 /**
@@ -130,7 +120,13 @@ export function ClassAbilityStep({
   const selectedTrees = allAbilities
     .filter((a) => selectedAbilities.includes(a.id))
     .map((a) => a.tree)
-  const editTrees = selectedClass ? editTreesFor(selectedClass, selectedTrees) : []
+  // Trees offered in EDIT mode. `offeredAbilityTrees` owns this: core +
+  // advanced + legendary, a HYBRID's two borrowed trees, and the trees of
+  // already-selected abilities so a pilot keeps their learned (sealed) trees
+  // visible and toggleable.
+  const editTrees = selectedClass
+    ? offeredAbilityTrees(selectedClass, { allLevels: true, selectedTrees })
+    : []
   const editAbilitiesIn = (tree: string): SURefAbility[] =>
     allAbilities
       .filter((a) => a.tree === tree)

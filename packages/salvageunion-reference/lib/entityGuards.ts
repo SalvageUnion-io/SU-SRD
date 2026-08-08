@@ -74,26 +74,35 @@ export function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword {
 export function isCoreClass(
   entity: SURefMetaEntity
 ): entity is SURefClass & { coreTrees: string[] } {
+  // `maxAbilities` and `advanceable` used to be part of this test. They are now
+  // carried by hybrid records too, so they no longer discriminate anything —
+  // `coreTrees` and the explicit `hybrid` flag are what actually separate the
+  // two branches.
   return (
     entity !== null &&
     typeof entity === 'object' &&
-    'maxAbilities' in entity &&
     'coreTrees' in entity &&
-    'advanceable' in entity
+    'hybrid' in entity &&
+    entity.hybrid === false
   )
 }
 
 /**
- * Type guard to check if an entity is an Advanced Class
+ * Type guard to check if an entity is an Advanced/Hybrid Class
  * @param entity - The entity to check
- * @returns True if the entity is an Advanced Class
+ * @returns True if the entity is an Advanced/Hybrid Class
  */
 
 export function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass {
+  // This used to read `!('hybridTree' in entity)` — a field that exists in no
+  // schema and no data file, making the clause a tautology that returned true
+  // for every hybrid it was named to exclude. The flag it wanted is `hybrid`,
+  // which every class record now carries.
   return (
     entity !== null &&
     typeof entity === 'object' &&
     'advancedTree' in entity &&
-    !('hybridTree' in entity)
+    'hybrid' in entity &&
+    entity.hybrid === true
   )
 }

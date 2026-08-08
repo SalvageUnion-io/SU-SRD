@@ -145,9 +145,7 @@ export function usePilotSheetModel({
   // they are rendered from reference data in their own tree below.
   const abilityTrees = useMemo(() => {
     if (picker !== 'abilities') return null
-    const cls: ClassLike | undefined = SalvageUnionReference.Classes.find(
-      (c) => c.id === pilot.classRef
-    )
+    const cls: ClassLike | undefined = SalvageUnionReference.Classes.getById(pilot.classRef)
     if (!cls) return null
     const selectedTrees = SalvageUnionReference.Abilities.all()
       .filter((a) => pilot.abilities.includes(a.id))

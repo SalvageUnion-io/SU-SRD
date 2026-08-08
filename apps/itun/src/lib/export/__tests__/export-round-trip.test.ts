@@ -90,6 +90,10 @@ const richPilotInput = {
   name: 'Odessa Kray',
   callsign: 'Ghost',
   classRef: 'scavenger',
+  // The bundle must carry a hybrid pilot's origin: it is what decides which of
+  // their trees are sealed, and the change log — the only other place a class
+  // change is recorded — is local-only and never travels with an export.
+  originClassRef: 'hacker',
   abilities: ['first-aid', 'scrounge'],
   equipment: ['sidearm', 'medkit'],
   motto: 'Never look back.',

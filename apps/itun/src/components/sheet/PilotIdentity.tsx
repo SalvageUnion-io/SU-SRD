@@ -11,26 +11,29 @@
  * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
  * the `editing` prop rather than owning its own toggle state. Class is
  * picker-backed — its edit affordance opens the ONE shared picker modal
- * running the shared `EntitySearcher` (changing class KEEPS abilities,
- * matching the old edit-mode semantics).
+ * (changing class KEEPS abilities, matching the old edit-mode semantics).
+ *
+ * Its body is `ClassPathPicker`, NOT the shared `EntitySearcher` that every
+ * other reference-entity picker in this app routes through (#713). This is the
+ * deliberate exception: a class change is a move around the advancement ring,
+ * so the options are grouped by where this pilot can actually go and a hybrid
+ * destination may have to ASK which Core class they came from before it can
+ * seal the right two trees. `EntitySearcher` filters and facets a flat pool —
+ * it has no way to express "reachable from here", "this is the gate tree", or
+ * "answer this question first", and those are the whole feature.
  *
  * readOnly (no onToggleUsed / no patch): used chips render as static 'USED'
  * stamps only when set, and `editing` has no effect (no patch means no edit
  * affordance renders regardless).
  */
 
-import {
-  Badge,
-  Button,
-  EntitySearcher,
-  Field,
-  SheetPickerModal,
-  selectableClasses,
-} from 'component-lib'
+import { Badge, Button, Field, SheetPickerModal, selectableClasses } from 'component-lib'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
+import { ClassPathPicker } from '../pilot/ClassPathPicker'
+import { classChangePatch } from '../pilot/classPathOptions'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
@@ -120,16 +123,16 @@ export function PilotIdentityPanel({
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
   const [pendingClass, setPendingClass] = useState<string>(pilot.classRef)
+  // Only set when the destination is a hybrid this pilot cannot reach, so the
+  // origin cannot be derived and the player has to name it.
+  const [answeredOrigin, setAnsweredOrigin] = useState<string | undefined>(undefined)
 
   // Resolved lazily — only once the picker opens — so read-only/snapshot
   // renders never touch the (possibly unloaded) reference class catalog.
   const { base, specialisations } = classPickerOpen
     ? selectableClasses(undefined, true)
     : { base: [], specialisations: [] }
-  // Id sets, not lists: the searcher narrows its own pool by `filter` and
-  // derives the Kind facet per item, so both are membership questions.
-  const baseClassIds = new Set(base.map((c) => c.id))
-  const eligibleClassIds = new Set([...base, ...specialisations].map((c) => c.id))
+  const allClasses = [...base, ...specialisations]
 
   const canEdit = patch !== undefined
 
@@ -145,12 +148,17 @@ export function PilotIdentityPanel({
 
   function openClassPicker() {
     setPendingClass(pilot.classRef)
+    setAnsweredOrigin(undefined)
     setClassPickerOpen(true)
   }
 
   function confirmClass() {
     if (pendingClass && pendingClass !== pilot.classRef) {
-      patch?.({ classRef: pendingClass })
+      // ONE patch. `patchPilot` routes any patch containing `classRef` through
+      // the soft-warning confirm, so writing the origin separately would either
+      // slip past that gate or leave a pilot whose class moved and whose origin
+      // did not — the unknown-origin state the field exists to prevent.
+      patch?.(classChangePatch(allClasses, pendingClass, answeredOrigin))
     }
     setClassPickerOpen(false)
   }
@@ -256,52 +264,38 @@ export function PilotIdentityPanel({
 
       {/* Class — single-select through the ONE shared picker, same as every
           other "choose a reference entity" modal. */}
+      {/* NOT `floating`. That branch renders a bare shell and hands the frame
+          to a single `EntitySearcher` child; this body is a ClassPathPicker, so
+          it wants the modal's own frame. And since `SheetPickerModal` has no
+          `footer` prop by design (#713 removed it — a `floating` + `footer`
+          call silently dropped its confirm buttons), the actions render here,
+          as the picker's siblings. */}
       <SheetPickerModal
         open={classPickerOpen}
         onClose={() => setClassPickerOpen(false)}
         title="Change Class"
-        floating
       >
-        <EntitySearcher
-          schema="classes"
-          mode="single"
-          selected={pendingClass ? [pendingClass] : []}
-          onToggle={(ref) => setPendingClass((prev) => (prev === ref ? '' : ref))}
-          // The wizard writes a class ID into `classRef`, so that is what this
-          // picker emits too. Detection is looser than emission (`matchesRef`
-          // also accepts a name or slug), which is what the stored ref may
-          // legitimately be on an older pilot.
-          idOf={(item) => item.id}
-          // Only base classes and Advanced/Hybrid specialisations are
-          // selectable — reuse the wizard's own guards rather than re-deriving
-          // "is this a class you can take" from the entity shape here.
-          filter={(item) => eligibleClassIds.has(item.id)}
-          facets={{
-            status: false,
-            category: {
-              label: 'Kind',
-              of: (item) => (baseClassIds.has(item.id) ? 'Base' : 'Specialisation'),
-            },
-          }}
-          chosenLabel="Chosen"
-          subtitle="Changing class keeps the pilot's abilities."
-          emptyMessage="No matching classes."
-          railActions={
-            <>
-              <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="compact"
-                disabled={!pendingClass || pendingClass === pilot.classRef}
-                onClick={confirmClass}
-              >
-                Change Class
-              </Button>
-            </>
-          }
+        <ClassPathPicker
+          allClasses={allClasses}
+          currentClassRef={pilot.classRef}
+          pendingClassRef={pendingClass}
+          onSelect={setPendingClass}
+          answeredOrigin={answeredOrigin}
+          onAnswerOrigin={setAnsweredOrigin}
         />
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="compact"
+            disabled={!pendingClass || pendingClass === pilot.classRef}
+            onClick={confirmClass}
+          >
+            Change Class
+          </Button>
+        </div>
       </SheetPickerModal>
     </div>
   )

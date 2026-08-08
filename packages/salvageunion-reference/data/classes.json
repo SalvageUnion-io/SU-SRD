@@ -6,6 +6,7 @@
     "hasArtwork": true,
     "coreTrees": ["Mechanical Knowledge", "Forging", "Mech-Tech"],
     "maxAbilities": 10,
+    "hybrid": false,
     "advanceable": true,
     "advancedTree": "Advanced Engineer",
     "legendaryTree": "Legendary Engineer",
@@ -30,6 +31,7 @@
     "source": "Salvage Union Workshop Manual",
     "hasArtwork": true,
     "coreTrees": ["Hacking", "Electronics", "Augmentation"],
+    "hybrid": false,
     "advanceable": true,
     "advancedTree": "Advanced Hacking",
     "legendaryTree": "Legendary Hacker",
@@ -56,6 +58,7 @@
     "hasArtwork": true,
     "coreTrees": ["Salvaging", "Trading", "Leadership"],
     "page": 38,
+    "hybrid": false,
     "advanceable": true,
     "advancedTree": "Advanced Hauler",
     "legendaryTree": "Legendary Hauler",
@@ -97,6 +100,7 @@
       "Tactical Warfare"
     ],
     "page": 44,
+    "hybrid": false,
     "advanceable": false,
     "maxAbilities": 12,
     "content": [
@@ -120,6 +124,7 @@
     "hasArtwork": true,
     "coreTrees": ["Recon", "Sleuth", "Sniper"],
     "page": 46,
+    "hybrid": false,
     "advanceable": true,
     "advancedTree": "Advanced Scout",
     "legendaryTree": "Legendary Scout",
@@ -145,6 +150,7 @@
     "hasArtwork": true,
     "coreTrees": ["Survivalist", "Gladiatorial Combat", "Tactical Warfare"],
     "page": 52,
+    "hybrid": false,
     "advanceable": true,
     "advancedTree": "Advanced Soldier",
     "legendaryTree": "Legendary Soldier",
@@ -166,6 +172,8 @@
   {
     "id": "5fb0f656-b454-45ea-8367-b529e68c9b9e",
     "hybrid": true,
+    "advanceable": false,
+    "maxAbilities": 10,
     "name": "Fabricator",
     "source": "Salvage Union Workshop Manual",
     "hasArtwork": true,
@@ -182,6 +190,8 @@
   {
     "id": "44dad652-e1d3-4687-b088-1f104bfbe1ab",
     "hybrid": true,
+    "advanceable": false,
+    "maxAbilities": 10,
     "name": "Cyborg",
     "source": "Salvage Union Workshop Manual",
     "hasArtwork": true,
@@ -198,6 +208,8 @@
   {
     "id": "6ec4d177-fed2-4fed-8f2f-74ee74fdf48b",
     "hybrid": true,
+    "advanceable": false,
+    "maxAbilities": 10,
     "name": "Union Rep",
     "source": "Salvage Union Workshop Manual",
     "hasArtwork": true,
@@ -214,6 +226,8 @@
   {
     "id": "a4b7310f-cd95-4ff4-9fa3-98902c741144",
     "hybrid": true,
+    "advanceable": false,
+    "maxAbilities": 10,
     "name": "Smuggler",
     "source": "Salvage Union Workshop Manual",
     "hasArtwork": true,
@@ -230,6 +244,8 @@
   {
     "id": "4570fb02-10c4-4f53-8575-e54bd08d47d3",
     "hybrid": true,
+    "advanceable": false,
+    "maxAbilities": 10,
     "name": "Ranger",
     "source": "Salvage Union Workshop Manual",
     "hasArtwork": true,
