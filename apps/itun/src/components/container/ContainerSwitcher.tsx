@@ -1,5 +1,5 @@
 /**
- * ContainerSwitcher — Roster / Encounter header control (ADR-030 §2).
+ * ContainerSwitcher — Game / Shelf header control (ADR-030 §2).
  *
  * Replaces `WorkspaceSwitcher`. There is no "Workspace" any more: an entity is
  * in a shared **Game** or on the owner's personal **Shelf**, so this picks

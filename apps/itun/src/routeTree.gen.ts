@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ChangelogRouteImport } from './routes/changelog'
-import { Route as EncounterRouteImport } from './routes/encounter'
 import { Route as GamesRouteImport } from './routes/games'
 import { Route as CrawlersIdRouteImport } from './routes/crawlers/$id'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
@@ -49,11 +48,6 @@ const AccountRoute = AccountRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EncounterRoute = EncounterRouteImport.update({
-  id: '/encounter',
-  path: '/encounter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GamesRoute = GamesRouteImport.update({
@@ -143,7 +137,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/changelog': typeof ChangelogRoute
-  '/encounter': typeof EncounterRoute
   '/games': typeof GamesRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
@@ -166,7 +159,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/changelog': typeof ChangelogRoute
-  '/encounter': typeof EncounterRoute
   '/games': typeof GamesRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
@@ -190,7 +182,6 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/changelog': typeof ChangelogRoute
-  '/encounter': typeof EncounterRoute
   '/games': typeof GamesRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
@@ -215,7 +206,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/changelog'
-    | '/encounter'
     | '/games'
     | '/crawlers/$id'
     | '/crawlers/new'
@@ -238,7 +228,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/changelog'
-    | '/encounter'
     | '/games'
     | '/crawlers/$id'
     | '/crawlers/new'
@@ -261,7 +250,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/changelog'
-    | '/encounter'
     | '/games'
     | '/crawlers/$id'
     | '/crawlers/new'
@@ -285,7 +273,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   ChangelogRoute: typeof ChangelogRoute
-  EncounterRoute: typeof EncounterRoute
   GamesRoute: typeof GamesRoute
   CrawlersIdRoute: typeof CrawlersIdRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
@@ -332,13 +319,6 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog'
       preLoaderRoute: typeof ChangelogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/encounter': {
-      id: '/encounter'
-      path: '/encounter'
-      fullPath: '/encounter'
-      preLoaderRoute: typeof EncounterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/games': {
@@ -461,7 +441,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   ChangelogRoute: ChangelogRoute,
-  EncounterRoute: EncounterRoute,
   GamesRoute: GamesRoute,
   CrawlersIdRoute: CrawlersIdRoute,
   CrawlersNewRoute: CrawlersNewRoute,

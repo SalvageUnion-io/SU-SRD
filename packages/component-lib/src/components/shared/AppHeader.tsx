@@ -16,8 +16,11 @@ import { NavDrawer } from './NavDrawer'
  * app-supplied utility row (ITUN's account cluster) on a second row beneath.
  * Below `lg` the nav collapses into the shared `NavDrawer`.
  *
- * The Encounter tray is deliberately absent from the nav: it is reached through
- * the Mediator sheet now, not as a top-level destination.
+ * There is no Encounter entry. A standalone `/encounter` tray existed, was
+ * dropped from the nav on the understanding that the Mediator sheet would
+ * absorb it, and then sat unreachable — no link anywhere in the app — until it
+ * was deleted. GM opposition now lives on the Mediator sheet's NPC tray, backed
+ * by Convex (`api.mediator.*`), not at a top-level destination.
  *
  * Router-agnostic: internal links route through the injected `LinkComponent`
  * (ITUN passes its router-aware AppLink; defaults to a plain anchor).
