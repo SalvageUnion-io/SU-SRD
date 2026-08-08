@@ -25,6 +25,7 @@ import { ConvexPending } from '../shared/ConvexPending'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
 import { InvitePanel } from './InvitePanel'
+import { MediatorPanel } from './MediatorPanel'
 import { ProposalInbox } from './ProposalInbox'
 
 function GameBody({ gameId }: { gameId: string }) {
@@ -68,6 +69,11 @@ function GameBody({ gameId }: { gameId: string }) {
           </div>
         </Card>
       )}
+      {/* Appointing the Mediator is administrative, so it sits beside invites
+          and is Organizer-only — and it is the ONLY way the flag can be set:
+          `games.create` seats its creator with `mediator: false`. See
+          MediatorPanel's header. */}
+      {game.organizer && <MediatorPanel gameId={gameId as Id<'games'>} />}
       <ProposalInbox gameId={gameId as Id<'games'>} />
       <DowntimePanel gameId={gameId as Id<'games'>} />
       {game.mediator && (

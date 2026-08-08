@@ -110,6 +110,42 @@ describe('GameScreen', () => {
     expect(screen.getByLabelText('Require approval')).toBeTruthy()
   })
 
+  /**
+   * The regression this pins is a LOCKOUT, not a missing control.
+   *
+   * `games.create` seats its creator with `mediator: false`, and
+   * `games.setMediator` is the only mutation that flips it. Before this panel
+   * existed, that mutation had no caller outside tests — so `MediatorScreen`,
+   * which hard-gates on `amMediator`, was unreachable for the person who made
+   * the Game. Delete the panel and the whole GM surface silently strands again,
+   * with every other test still green.
+   */
+  test('an Organizer can appoint a Mediator', () => {
+    withQueries({
+      ...REST,
+      'games:get': { ...GAME, organizer: true },
+      'games:members': [
+        { userId: 'u1', displayName: 'Ash', mediator: false, organizer: true, joinedAt: 1 },
+        { userId: 'u2', displayName: 'Bly', mediator: false, organizer: false, joinedAt: 2 },
+      ],
+    })
+    wrap()
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Who mediates' })).toBeTruthy()
+    // One per member — the Organizer can appoint themselves OR somebody else,
+    // because the person running the session often is not the one who made the
+    // Game.
+    expect(screen.getAllByRole('button', { name: 'Make Mediator' })).toHaveLength(2)
+  })
+
+  test('a plain member is not offered the Mediator appointment', () => {
+    withQueries({ ...REST, 'games:get': GAME })
+    wrap()
+
+    // `setMediator` calls requireOrganizer, so this would only ever error.
+    expect(screen.queryByRole('heading', { level: 2, name: 'Who mediates' })).toBeNull()
+  })
+
   test('a game you are not in explains itself instead of crashing', () => {
     withQueries({ ...REST, 'games:get': null })
     wrap()
