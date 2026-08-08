@@ -264,11 +264,16 @@ export function PilotIdentityPanel({
 
       {/* Class — single-select through the ONE shared picker, same as every
           other "choose a reference entity" modal. */}
+      {/* NOT `floating`. That branch renders a bare shell and hands the frame
+          to a single `EntitySearcher` child; this body is a ClassPathPicker, so
+          it wants the modal's own frame. And since `SheetPickerModal` has no
+          `footer` prop by design (#713 removed it — a `floating` + `footer`
+          call silently dropped its confirm buttons), the actions render here,
+          as the picker's siblings. */}
       <SheetPickerModal
         open={classPickerOpen}
         onClose={() => setClassPickerOpen(false)}
         title="Change Class"
-        floating
       >
         <ClassPathPicker
           allClasses={allClasses}
@@ -278,6 +283,19 @@ export function PilotIdentityPanel({
           answeredOrigin={answeredOrigin}
           onAnswerOrigin={setAnsweredOrigin}
         />
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="compact"
+            disabled={!pendingClass || pendingClass === pilot.classRef}
+            onClick={confirmClass}
+          >
+            Change Class
+          </Button>
+        </div>
       </SheetPickerModal>
     </div>
   )
