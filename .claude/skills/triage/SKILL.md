@@ -60,12 +60,6 @@ recommendation you cannot justify.
    gh pr list --state open --json number,title,isDraft,statusCheckRollup
    ```
 
-6. **Agent fleet health** — only when something feels slow or wasteful:
-
-   ```bash
-   bun tools/agent-digest.ts --days 7
-   ```
-
 ## Output
 
 Propose an ordered list of at most **five** items. For each: the signal that

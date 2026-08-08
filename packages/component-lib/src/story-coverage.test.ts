@@ -80,9 +80,12 @@ const CATALOG_PAGES = new Set([
  * silently becoming the norm — a new componentless story fails CI until it is
  * justified here.
  */
-const PROTOTYPE_STORIES = new Set([
-  'components/wizard/NewEntityScreen.stories.tsx', // legacy ITUN new-entity screen
-])
+// Deliberately EMPTY, and annotated so it stays typed as a string set rather
+// than inferring `never[]`. It held two entries — MechInstallStep (a story for
+// a component that existed nowhere) and NewEntityScreen (a mock-up of a
+// component that lives in ITUN); both stories were deleted rather than
+// re-justified. An empty allowlist is the intended steady state.
+const PROTOTYPE_STORIES = new Set<string>([])
 
 function read(rel: string): string {
   return readFileSync(join(SRC, rel), 'utf8')

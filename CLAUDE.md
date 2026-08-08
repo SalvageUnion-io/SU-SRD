@@ -322,16 +322,13 @@ impossible while the queue existed.
 
 ### Project Skills (`.claude/skills/`)
 
-When to reach for which skill (overlap explained):
+Four skills, and each encodes a **decision procedure or a silent failure mode** — something you would get wrong by reading the command alone:
 
-- `/build-package` — regenerate `salvageunion-reference`'s generated artifacts (registry, `schemas/*.schema.json`, API report). **There is no TypeScript compile step** — the package ships TS source. Use after Zod schema or data-file edits.
-- `/generate` — same as above **plus** `validate:all` (IDs, cross-refs, action refs). Use when you've changed JSON data and want integrity checks in one step.
-- `/validate` / `/verify` — run the full CI suite via `check:all`. `/verify` is a literal alias of `/validate`, so they genuinely do the same thing; either name works.
-- `/a11y-scan` — WCAG 2.1 AA scan via Playwright + axe-core (srd). **Not puppeteer** — `tools/a11y-scan.ts` moved to Playwright so the repo has one browser stack, not two (see "Root Dev Dependencies" above).
 - `/triage` — read every production and CI signal, then propose the day's work in priority order.
 - `/component-refresh` — redesign an existing component through the three-level loop (real SSR "before" → NEW\* Ladle comparison → staged cutover).
 - `/knip-triage` — resolve a knip dead-code failure. The command is one line; the failure mode is applying the wrong rule, so this encodes the decision procedure (delete by default; `@public` / `@knipignore` are the only exemptions and `@knipignore` requires showing the export is consumed).
 - `/convex-deploy-verify` — configure and verify an ITUN Convex deployment without signing in. Every failure on that path is silent and misattributes, so it carries the three required env vars, the `.convex.site` vs `.convex.cloud` distinction, the curl probe **including its bogus-provider control**, and presence-by-length (`convex env get` exits 0 for a variable that does not exist).
-- `/deploy-bot` — deploy Discord slash commands.
+
+**Six wrapper skills were deleted** — `/build-package`, `/generate`, `/validate`, `/verify`, `/a11y-scan`, `/deploy-bot`. Each was frontmatter around a single `bun run` this file already documents, none had ever been invoked in ~1,500 transcripts, and two had gone stale in a way that actively misled: `/verify` told you to run bare `bun test` and `/generate` described a compile step the package has not had since it started shipping source. A wrapper that adds no judgement is a second place for the command to rot. Run the script.
 
 There is deliberately **no `/commit`**. It was four lines with no frontmatter, and its last step — "commit and push to the current branch" — is a direct push to `main` when HEAD is `main`, which the user-level rebase-guard blocks anyway. Use `/ship` (user-level) or the `commit-commands` plugin.
