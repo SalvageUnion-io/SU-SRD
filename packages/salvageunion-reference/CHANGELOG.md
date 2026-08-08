@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.9.1...salvageunion-reference-v2.10.0) (2026-08-08)
+
+
+### Features
+
+* **itun:** a mech's drones are granted, live, and tied to their chassis ([#715](https://github.com/SalvageUnion-io/SU-SRD/issues/715)) ([f4c6ca1](https://github.com/SalvageUnion-io/SU-SRD/commit/f4c6ca187b0f9ce13077cd5eb06b7e11296987ab))
+
 ## [2.9.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.9.0...salvageunion-reference-v2.9.1) (2026-08-05)
 
 
