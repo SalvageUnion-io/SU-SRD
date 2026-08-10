@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
-import { isServerRefusal, serverMessage } from '../serverError'
+import { convexFunctionName, isServerRefusal, serverMessage } from '../serverError'
 
 /**
  * Telling a refusal apart from a defect on the client.
@@ -48,5 +48,43 @@ describe('serverMessage', () => {
     // than rendering as a blank or a JSON blob.
     expect(serverMessage(new ConvexError({ code: 'nope' }))).toBeNull()
     expect(serverMessage(new ConvexError(''))).toBeNull()
+  })
+})
+
+describe('convexFunctionName', () => {
+  test('extracts the function from a redacted defect', () => {
+    // The one durable fact a redacted error still carries. Everything else in
+    // the string is either constant or a per-request id.
+    const defect = new Error(
+      '[CONVEX M(entities:upsertByAppId)] [Request ID: 1b66d281943b5176] Server Error'
+    )
+
+    expect(convexFunctionName(defect)).toBe('entities:upsertByAppId')
+  })
+
+  test('handles queries and actions, not just mutations', () => {
+    expect(convexFunctionName(new Error('[CONVEX Q(games:members)] Server Error'))).toBe(
+      'games:members'
+    )
+    expect(convexFunctionName(new Error('[CONVEX A(auth:signIn)] Server Error'))).toBe(
+      'auth:signIn'
+    )
+  })
+
+  test('returns null for anything without the prefix', () => {
+    expect(convexFunctionName(new Error('TypeError: x is not a function'))).toBeNull()
+    expect(convexFunctionName(new ConvexError('Only the Mediator can do that'))).toBeNull()
+    expect(convexFunctionName(null)).toBeNull()
+    expect(convexFunctionName(undefined)).toBeNull()
+  })
+
+  test('is a diagnostic label, not a refusal classifier', () => {
+    // Guards the one way this helper could be misused. A refusal and a defect
+    // are told apart by `instanceof ConvexError` — never by this string, which
+    // is why a ConvexError carrying the prefix must still read as a refusal.
+    const refusalWithPrefix = new ConvexError('[CONVEX M(games:create)] Only the organizer can')
+
+    expect(isServerRefusal(refusalWithPrefix)).toBe(true)
+    expect(convexFunctionName(refusalWithPrefix)).toBe('games:create')
   })
 })

@@ -322,8 +322,25 @@ repo):
   Convex errors will not carry a commit SHA the way the Netlify and Render
   surfaces do.
 
-**Status: enabled on production** (`exuberant-porpoise-183` → the `itun-convex`
-Sentry project), 2026-08-05.
+**Status: configured 2026-08-05, and NOT delivering.** Measured 2026-08-10: the
+`itun-convex` Sentry project has received **zero events in 30 days** — over a
+window that contains 39 failed `entities:upsertByAppId` mutations in a single
+evening, every one of which should have landed there.
+
+That number is the whole point of writing this down. "Enabled" was recorded here
+as a status and then believed for five days, and a reporting integration that
+reports nothing is indistinguishable from a healthy one with no errors — the
+same trap `tools/check-observability.ts` exists to close for the browser SDKs.
+The **Pro-plan gate above is the first thing to check**; until it is resolved,
+the honest description of this repo is *Convex errors are visible in the
+deployment's function logs only*, and the way you read them is:
+
+```bash
+timeout 120 bunx convex logs --deployment alex-jarvis:suref-itun:prod \
+  --history 4000 --jsonl > logs.jsonl   # streams; wrap in timeout, read the file
+```
+
+Do not treat a quiet `itun-convex` as evidence that the backend is healthy.
 
 #### What reaches Sentry, and what reaches the player
 

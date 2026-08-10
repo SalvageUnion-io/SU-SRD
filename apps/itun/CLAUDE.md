@@ -111,7 +111,12 @@ and remains the account-free way to share a build.
   (`src/lib/observability.ts`) and the Netlify Functions
   (`netlify/functions/_observability.ts`) each own one; Convex instead uses its
   first-party Exception Reporting integration, enabled in the Convex dashboard
-  with no application code (**on for production since 2026-08-05**). Queries and
+  with no application code. **It was configured on 2026-08-05 and is not
+  delivering** — the `itun-convex` Sentry project has had zero events in 30 days
+  (measured 2026-08-10, over a window containing 39 real mutation failures), so
+  a quiet project is not evidence of a healthy backend. Read Convex errors with
+  `bunx convex logs --deployment alex-jarvis:suref-itun:prod`; the Pro-plan gate
+  is the first suspect. Queries and
   mutations run in a deterministic runtime with no `fetch`, so an in-function SDK
   could not report from them at all — rationale and the enable-it runbook are in
   [docs/architecture/accounts-and-games.md](../../docs/architecture/accounts-and-games.md)

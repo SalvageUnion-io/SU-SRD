@@ -154,6 +154,32 @@ describe('observability', () => {
     expect(sentryCalls.find((c) => c.fn === 'captureException')?.args[1]).toBeUndefined()
   })
 
+  test('captureException forwards fingerprint and tags alongside extra', () => {
+    // The grouping half of the hint. Without it a Convex defect groups by its
+    // own message, which carries a per-request id — one condition, N issues,
+    // none of them titled with anything you can search for.
+    const boom = new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error')
+    captureException(
+      boom,
+      { source: 'mirrorWrite' },
+      { fingerprint: ['itun-mirror-write-failed', 'entities:upsertByAppId', 'defect'] }
+    )
+
+    const captured = sentryCalls.find((c) => c.fn === 'captureException')
+    expect(captured?.args[1]).toEqual({
+      extra: { source: 'mirrorWrite' },
+      fingerprint: ['itun-mirror-write-failed', 'entities:upsertByAppId', 'defect'],
+    })
+  })
+
+  test('captureException with only options still omits extra', () => {
+    captureException(new Error('tagged'), undefined, { tags: { convex_function: 'games:create' } })
+
+    expect(sentryCalls.find((c) => c.fn === 'captureException')?.args[1]).toEqual({
+      tags: { convex_function: 'games:create' },
+    })
+  })
+
   test('captureMessage forwards too — snapshot-backend outages are not exceptions', () => {
     // `probeSnapshotService` feature-detects an outage and handles it; without
     // this verb that detection stays silent and nobody learns the backend is
