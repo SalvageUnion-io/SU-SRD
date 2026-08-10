@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.4.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.4.0...itun-v1.4.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **itun:** make a stale Convex backend impossible to ship silently ([#729](https://github.com/SalvageUnion-io/SU-SRD/issues/729)) ([64bb2c5](https://github.com/SalvageUnion-io/SU-SRD/commit/64bb2c5e38d028a1d22d48d8c2eee5bce92ea4e4))
+
 ## [1.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.3.0...itun-v1.4.0) (2026-08-08)
 
 
