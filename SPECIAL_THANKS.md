@@ -22,12 +22,13 @@ Thank you to Panny and all the folks at [Leyline Press](https://leyline.press) f
 
 A special thanks to the #salvage-union-io crew:
 
-- Tommy_Dude
-- lunarsignals
-- The_Puppeteer
+- Aevox
+- decivre
 - Grandowl
 - kindalas
-- decivre
+- lunarsignals
 - Saving Throw
+- The_Puppeteer
+- Tommy_Dude
 
 [Join the Discord](https://discord.gg/kMwD2bWgtC) to join the conversation!
