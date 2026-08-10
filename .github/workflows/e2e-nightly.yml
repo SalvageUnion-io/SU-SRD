@@ -259,8 +259,46 @@ jobs:
       - name: Probe production for the Sentry SDK
         run: bun run validate:observability:live
 
+  convex-parity:
+    # The other thing CI structurally cannot do on a PR: know what is actually
+    # deployed. ITUN ships from two mechanisms — Netlify publishes the client,
+    # `convex deploy` pushes the backend — and only convention ties them to the
+    # same commit. When they came apart, nothing was red: the site served the
+    # current commit and the backend was four days stale, so the published
+    # bundle called `entities:upsertSoftLink` against a deployment that had no
+    # such function. Every soft-link write failed, mirrored pilot and mech
+    # writes died on the pre-#705 `byAppId`, and the UI rendered all of it as
+    # saved. The only trace was a Convex log stream nobody tails.
+    #
+    # The static half of this check (the netlify.toml guard that now makes an
+    # absent CONVEX_DEPLOY_KEY fatal in production) runs on every PR via
+    # `validate:all`. This is the half that needs the deployment itself.
+    #
+    # Gated on the CONVEX_PARITY_PROBE repo variable for the same reason
+    # observability-probe is: an alarm that rings nightly for a credential that
+    # has not been provisioned is a broken window, and the failure mode is that
+    # you stop reading it. Provision `CONVEX_DEPLOY_KEY` (repo → Settings →
+    # Secrets and variables → Actions → Secrets — a Convex *production* deploy
+    # key from the Convex dashboard), then set CONVEX_PARITY_PROBE = on.
+    if: vars.CONVEX_PARITY_PROBE == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Compare the deployed function set against this commit
+        env:
+          # With the key present the Convex CLI resolves its own target, so no
+          # deployment name is passed and none can be wrong.
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: bun run validate:convex-parity:live
+
   notify-failure:
-    needs: [e2e-itun, e2e-srd, observability-probe]
+    needs: [e2e-itun, e2e-srd, observability-probe, convex-parity]
     # NOT `failure()`. A job that exhausts its `timeout-minutes` is reported with
     # result `cancelled`, and `failure()` does not cover `cancelled` — so when
     # e2e-itun started timing out, `notify-failure` AND `notify-recovery` were
@@ -281,7 +319,8 @@ jobs:
     if: >-
       always() && !cancelled() &&
       (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success' ||
-       needs.observability-probe.result == 'failure')
+       needs.observability-probe.result == 'failure' ||
+       needs.convex-parity.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -349,7 +388,7 @@ jobs:
             }
 
   notify-recovery:
-    needs: [e2e-itun, e2e-srd, observability-probe]
+    needs: [e2e-itun, e2e-srd, observability-probe, convex-parity]
     # NOT a bare `success()`. A job whose `needs:` includes a SKIPPED job is
     # itself skipped unless its condition starts with always()/!cancelled() —
     # and observability-probe is skipped whenever the OBSERVABILITY_PROBE
@@ -360,7 +399,8 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.e2e-itun.result == 'success' && needs.e2e-srd.result == 'success' &&
-      needs.observability-probe.result != 'failure'
+      needs.observability-probe.result != 'failure' &&
+      needs.convex-parity.result != 'failure'
     runs-on: ubuntu-latest
     permissions:
       issues: write

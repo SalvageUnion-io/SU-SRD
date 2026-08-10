@@ -8,7 +8,7 @@ import {
   usesServerOfRecord,
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
-import { serverMessage } from '../lib/connection/serverError'
+import { convexFunctionName, serverMessage } from '../lib/connection/serverError'
 import { captureException } from '../lib/observability'
 import type { EntityRef } from '../lib/schemas/entity'
 import type { SoftLink } from '../lib/schemas/softLink'
@@ -185,7 +185,38 @@ let lastMirrorToastAt = 0
 function reportMirrorFailure(err: unknown, context: Record<string, string>): void {
   const refusal = serverMessage(err)
   console.warn('[itun] failed to mirror write to the server of record', refusal ?? err)
-  captureException(err, { ...context, refusal: refusal ?? 'none' })
+
+  /*
+   * Grouped by what the condition IS, not by what the message says.
+   *
+   * Left to Sentry's defaults these events are close to useless, and were: a
+   * redacted defect arrives as `"[CONVEX M(entities:upsertByAppId)] [Request ID:
+   * 1b66…] Server Error"`, so the request id makes every message unique and the
+   * culprit frame is a minified symbol in a hashed bundle. Production ended up
+   * with two issues, both titled with a request id, for one condition — and
+   * neither title named the mutation, which is the single fact a redacted error
+   * still carries and the only one that points anywhere.
+   *
+   * So: fingerprint on the mutation and the kind of failure, tag with the same,
+   * and let the request id stay in `extra` where it belongs. One condition, one
+   * issue, titled with something searchable.
+   */
+  const convexFunction = convexFunctionName(err) ?? 'unknown'
+  const kind = refusal === null ? 'defect' : 'refusal'
+
+  captureException(
+    err,
+    { ...context, refusal: refusal ?? 'none' },
+    {
+      fingerprint: ['itun-mirror-write-failed', convexFunction, kind],
+      tags: {
+        convex_function: convexFunction,
+        mirror_source: context.source ?? 'unknown',
+        mirror_op: context.op ?? 'unknown',
+        server_response: kind,
+      },
+    }
+  )
 
   const now = Date.now()
   if (now - lastMirrorToastAt < MIRROR_TOAST_WINDOW_MS) return

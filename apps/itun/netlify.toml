@@ -25,7 +25,29 @@
   # a plain Solo build (ADR-030 §1). That is the supported state for deploy
   # previews and branch deploys, which have no Convex deployment of their own,
   # and it means adding this step cannot break them.
-  command = 'bun install --frozen-lockfile && if [ -n "$CONVEX_DEPLOY_KEY" ]; then cd apps/itun && VITE_COMMIT_REF="$COMMIT_REF" bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"; else VITE_COMMIT_REF="$COMMIT_REF" bun --filter itun build; fi'
+  #
+  # It is NOT a supported state for production, and the leading guard is what
+  # says so. Until it existed, `if [ -n "$CONVEX_DEPLOY_KEY" ]` made a
+  # *misconfiguration* indistinguishable from an *intended Solo build*: an
+  # absent key silently took the else branch, the build went green, and the site
+  # shipped a current client against a backend nobody had pushed. That is not a
+  # hypothetical — production ran that way from 2026-08-06 to 2026-08-10. The
+  # client called `entities:upsertSoftLink`, prod had no such function, every
+  # soft-link write failed, and `byAppId` was still the pre-#705 version that
+  # throws on a duplicate `appId`, so mirrored pilot and mech writes died with
+  # an opaque `Server Error` while every surface kept rendering them as saved.
+  # Nothing was red. The site was current; only the backend was four days stale.
+  #
+  # So in the production context an absent key is fatal, loudly, before anything
+  # is built. A deploy that cannot push the backend must not ship the client
+  # that expects it. `$CONTEXT` is Netlify's own — `production`,
+  # `deploy-preview` or `branch-deploy` — so previews keep the Solo fallback
+  # they legitimately need.
+  #
+  # tools/check-convex-parity.ts asserts this guard is still here (it runs in
+  # `validate:all`, so on every PR). A guard nothing checks is a guard that gets
+  # deleted in a cleanup six months from now.
+  command = 'bun install --frozen-lockfile && if [ "$CONTEXT" = "production" ] && [ -z "$CONVEX_DEPLOY_KEY" ]; then echo "FATAL: production build with no CONVEX_DEPLOY_KEY. Refusing to ship a Solo client against an un-pushed Convex backend. Set it in Site settings > Environment variables (scope: builds, context: production)." >&2; exit 1; fi; if [ -n "$CONVEX_DEPLOY_KEY" ]; then cd apps/itun && VITE_COMMIT_REF="$COMMIT_REF" bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"; else VITE_COMMIT_REF="$COMMIT_REF" bun --filter itun build; fi'
   publish = "apps/itun/dist"
   functions = "apps/itun/netlify/functions"
   # Skip the build when nothing affecting ITUN changed since the last published

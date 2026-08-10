@@ -52,3 +52,27 @@ export function serverMessage(err: unknown): string | null {
 export function isServerRefusal(err: unknown): boolean {
   return serverMessage(err) !== null
 }
+
+/**
+ * The Convex function a redacted error came from, e.g. `entities:upsertByAppId`.
+ *
+ * Convex strips the message but keeps the address: the wire string is
+ * `"[CONVEX M(entities:upsertByAppId)] [Request ID: 1b66…] Server Error"`. That
+ * prefix is the only durable fact a redacted defect carries, and it is exactly
+ * the one an operator needs — "which mutation is failing" is answerable, "what
+ * went wrong inside it" is not (that lives in the Convex deployment logs).
+ *
+ * This is for **diagnostics only** — a Sentry tag and a grouping key. It is
+ * deliberately not a way to classify refusal-vs-defect: that stays
+ * `instanceof ConvexError` above, because the prefix appears on both sides of
+ * Convex's line and reading it as a classifier would be the string-matching
+ * this module exists to replace.
+ *
+ * Returns `null` for anything not carrying the prefix, which includes every
+ * client-side error and every `ConvexError` thrown without one.
+ */
+export function convexFunctionName(err: unknown): string | null {
+  const message = err instanceof Error ? err.message : typeof err === 'string' ? err : ''
+  // M/Q/A are Convex's own markers for mutation, query and action.
+  return /\[CONVEX [MQA]\(([^)]+)\)\]/.exec(message)?.[1] ?? null
+}
