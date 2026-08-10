@@ -153,22 +153,41 @@ const REGISTRARS = [
  */
 function functionsDefinedInRepo(): Set<string> {
   const defined = new Set<string>()
+  const pattern = new RegExp(`^export const (\\w+) = (?:${REGISTRARS.join('|')})\\(`, 'gm')
 
-  for (const entry of readdirSync(CONVEX_DIR, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith('.ts')) continue
-    // Not function modules: the schema, the auth provider config, and the
-    // generated directory (which `withFileTypes` already excludes as a dir).
-    if (entry.name === 'schema.ts' || entry.name === 'auth.config.ts') continue
+  /**
+   * Walks nested directories, because Convex modules do. `convex/games/list.ts`
+   * is the module `games/list`, and a non-recursive scan would simply not see
+   * it — the parity check would go green while that function sat undeployed,
+   * which is precisely the failure it exists to catch. `convex/model/` holds
+   * only helpers today, so this changes nothing now and stops the check from
+   * silently narrowing the first time the backend grows a subdirectory.
+   */
+  const walk = (dir: string, prefix: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      // Convex ignores anything under a leading-underscore name, which is how
+      // `_generated` stays out of the module namespace.
+      if (entry.name.startsWith('_')) continue
 
-    const moduleName = entry.name.replace(/\.ts$/, '')
-    const source = readFileSync(join(CONVEX_DIR, entry.name), 'utf8')
-    const pattern = new RegExp(`^export const (\\w+) = (?:${REGISTRARS.join('|')})\\(`, 'gm')
+      if (entry.isDirectory()) {
+        walk(join(dir, entry.name), `${prefix}${entry.name}/`)
+        continue
+      }
 
-    for (const match of source.matchAll(pattern)) {
-      defined.add(`${moduleName}.js:${match[1]}`)
+      if (!entry.name.endsWith('.ts')) continue
+      // Not function modules: the schema and the auth provider config.
+      if (prefix === '' && (entry.name === 'schema.ts' || entry.name === 'auth.config.ts')) continue
+
+      const moduleName = `${prefix}${entry.name.replace(/\.ts$/, '')}`
+      const source = readFileSync(join(dir, entry.name), 'utf8')
+
+      for (const match of source.matchAll(pattern)) {
+        defined.add(`${moduleName}.js:${match[1]}`)
+      }
     }
   }
 
+  walk(CONVEX_DIR, '')
   return defined
 }
 

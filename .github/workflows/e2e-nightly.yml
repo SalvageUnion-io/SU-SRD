@@ -320,7 +320,9 @@ jobs:
       always() && !cancelled() &&
       (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success' ||
        needs.observability-probe.result == 'failure' ||
-       needs.convex-parity.result == 'failure')
+       needs.observability-probe.result == 'cancelled' ||
+       needs.convex-parity.result == 'failure' ||
+       needs.convex-parity.result == 'cancelled')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -396,11 +398,22 @@ jobs:
     # tracking issue entirely the moment that job was added, quietly undoing the
     # recovery half of this suite. Spell the conditions out instead, treating a
     # skipped probe as "nothing to say" rather than as a failure.
+    #
+    # `cancelled` is spelled out separately from `failure` for both probes for
+    # the reason notify-failure documents at length: a job that exhausts its
+    # `timeout-minutes` reports `cancelled`, not `failure`. Without these two
+    # clauses a timed-out probe would satisfy the recovery condition and CLOSE
+    # an open tracking issue — the silent-break shape this suite has already
+    # been bitten by once. It matters more for convex-parity than for
+    # observability-probe: that job does a checkout, an install and a network
+    # round-trip to Convex inside five minutes.
     if: >-
       always() && !cancelled() &&
       needs.e2e-itun.result == 'success' && needs.e2e-srd.result == 'success' &&
       needs.observability-probe.result != 'failure' &&
-      needs.convex-parity.result != 'failure'
+      needs.observability-probe.result != 'cancelled' &&
+      needs.convex-parity.result != 'failure' &&
+      needs.convex-parity.result != 'cancelled'
     runs-on: ubuntu-latest
     permissions:
       issues: write

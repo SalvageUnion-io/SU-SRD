@@ -101,7 +101,17 @@ export function captureException(
 ): void {
   if (!sentryModule) return
 
-  const hint: Parameters<typeof sentryModule.captureException>[1] = {}
+  // Spelled out rather than derived from `Parameters<typeof
+  // sentryModule.captureException>[1]`. That compiles, but it pins this local to
+  // Sentry's `ExclusiveEventHintOrCaptureContext` union — three overlapping
+  // shapes whose members are mutually `never` — so the day the SDK reshapes that
+  // union the breakage lands here rather than at the call. These three fields
+  // are the whole contract we use; naming them is both clearer and stabler.
+  const hint: {
+    extra?: Record<string, unknown>
+    tags?: Record<string, string>
+    fingerprint?: string[]
+  } = {}
   if (context) hint.extra = context
   if (options?.tags) hint.tags = options.tags
   if (options?.fingerprint) hint.fingerprint = options.fingerprint

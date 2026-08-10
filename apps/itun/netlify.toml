@@ -47,7 +47,15 @@
   # tools/check-convex-parity.ts asserts this guard is still here (it runs in
   # `validate:all`, so on every PR). A guard nothing checks is a guard that gets
   # deleted in a cleanup six months from now.
-  command = 'bun install --frozen-lockfile && if [ "$CONTEXT" = "production" ] && [ -z "$CONVEX_DEPLOY_KEY" ]; then echo "FATAL: production build with no CONVEX_DEPLOY_KEY. Refusing to ship a Solo client against an un-pushed Convex backend. Set it in Site settings > Environment variables (scope: builds, context: production)." >&2; exit 1; fi; if [ -n "$CONVEX_DEPLOY_KEY" ]; then cd apps/itun && VITE_COMMIT_REF="$COMMIT_REF" bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"; else VITE_COMMIT_REF="$COMMIT_REF" bun --filter itun build; fi'
+  # The guard runs FIRST, before `bun install`, and the whole thing is one `&&`
+  # chain. Both details are load-bearing. `;` between two `if` blocks ends the
+  # AND-list, so a version of this that read `bun install && if <guard>; fi; if
+  # <build>; fi` would skip the guard entirely when the install failed and run
+  # the build branch anyway — the "fatal before anything is built" property
+  # quietly not holding in exactly the situation where the build is already
+  # going wrong. Putting the guard ahead of the install makes it unconditional
+  # and makes it fail in seconds rather than after a full dependency fetch.
+  command = 'if [ "$CONTEXT" = "production" ] && [ -z "$CONVEX_DEPLOY_KEY" ]; then echo "FATAL: production build with no CONVEX_DEPLOY_KEY. Refusing to ship a Solo client against an un-pushed Convex backend. Set it in Site settings > Environment variables (scope: builds, context: production)." >&2; exit 1; fi && bun install --frozen-lockfile && if [ -n "$CONVEX_DEPLOY_KEY" ]; then cd apps/itun && VITE_COMMIT_REF="$COMMIT_REF" bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"; else VITE_COMMIT_REF="$COMMIT_REF" bun --filter itun build; fi'
   publish = "apps/itun/dist"
   functions = "apps/itun/netlify/functions"
   # Skip the build when nothing affecting ITUN changed since the last published
