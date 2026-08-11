@@ -11,10 +11,11 @@ linker = 'isolated'
 # survives before it is noticed and unpublished, so this makes the compromised
 # version unresolvable here rather than relying on that glance to catch it.
 #
-# (There is NO dependabot auto-merge workflow in this repo — .github/workflows
-# holds ci, codeql, e2e-nightly and release-please only. A human or an agent
-# merges these. Do not "restore" an auto-merge rationale here without checking;
-# an earlier draft of this comment asserted that workflow existed.)
+# (There is NO dependabot auto-merge workflow in this repo — a human or an agent
+# merges these. Do not "restore" an auto-merge rationale here without checking
+# `ls .github/workflows`; an earlier draft of this comment asserted that
+# workflow existed. Deliberately not listing the workflows by name: a hardcoded
+# inventory in a comment is stale the next time one is added.)
 #
 # TWO BEHAVIOURS, and the difference matters when this bites (both measured
 # against 1.3.14, not inferred):
