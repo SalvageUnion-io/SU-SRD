@@ -2,6 +2,52 @@
 # Use isolated linker for better dependency isolation and security
 linker = 'isolated'
 
+# Supply-chain cooldown: refuse versions published less than 3 days ago.
+#
+# The window this closes is specific. Dependabot runs weekly and deliberately
+# GROUPS minor/patch bumps into one PR to keep churn manageable, which means the
+# realistic review of that PR is a glance at a list of version numbers — nobody
+# is reading tarballs. Three days is roughly how long a hijacked npm release
+# survives before it is noticed and unpublished, so this makes the compromised
+# version unresolvable here rather than relying on that glance to catch it.
+#
+# (There is NO dependabot auto-merge workflow in this repo — a human or an agent
+# merges these. Do not "restore" an auto-merge rationale here without checking
+# `ls .github/workflows`; an earlier draft of this comment asserted that
+# workflow existed. Deliberately not listing the workflows by name: a hardcoded
+# inventory in a comment is stale the next time one is added.)
+#
+# TWO BEHAVIOURS, and the difference matters when this bites (both measured
+# against 1.3.14, not inferred):
+#
+#   - An EXACT pin the gate cannot satisfy is a hard error, and it says so:
+#       error: No version matching "typescript" found for specifier "7.0.2"
+#              (blocked by minimum-release-age: N seconds)
+#     Most of this repo's deps are exact pins, so this is the common case.
+#
+#   - A RANGE (caret) silently resolves DOWN to the newest version old enough.
+#     No warning. That is the footgun: the `overrides` block in package.json is
+#     a set of security FLOORS, and a caret floor whose fix shipped in the last
+#     three days resolves to something below what you think you pinned. It can
+#     never resolve below the floor itself (that would error, per above), so the
+#     floors still hold — but `bun update <pkg>` to clear a FRESH advisory will
+#     appear to do nothing until the cooldown elapses.
+#
+# `bun install --frozen-lockfile` is unaffected: it installs what bun.lock
+# already resolved and does no resolution, so CI and every deploy target never
+# see this gate. It only applies where a version is being chosen.
+#
+# WHEN IT BLOCKS SOMETHING YOU ACTUALLY WANT, the escape hatch is
+# `minimumReleaseAgeExcludes` below — not lowering this number.
+minimumReleaseAge = 259200 # 3 days, in seconds
+
+# `bun-types` must match .bun-version EXACTLY — tools/check-bun-version.ts fails
+# `validate:all` when they disagree, and it is an exact pin, so the gate turns a
+# routine Bun upgrade into a hard install error for three days. It carries no
+# install scripts and no runtime code (type declarations only), so the cooldown
+# buys nothing here that it does not already cost.
+minimumReleaseAgeExcludes = ["bun-types"]
+
 [test]
 # Preloads for a ROOT-level `bun test` run. Paths are relative to the repo root.
 #

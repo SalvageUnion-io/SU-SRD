@@ -64,6 +64,30 @@ The companion fix in the same change was real, not suppressed: `nanoid` is
 pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
 clearing `GHSA-2v37-7h3g-55p8`.
 
+### Install cooldown (`minimumReleaseAge`)
+
+`bunfig.toml` refuses dependency versions **published less than 3 days ago**.
+Dependabot opens *grouped* minor/patch PRs weekly, so reviewing one realistically
+means glancing at a list of version numbers — three days is about how long a
+hijacked npm release lasts before it is noticed and unpublished, and this makes
+such a version unresolvable rather than trusting that glance to catch it.
+
+Two behaviours, measured on Bun 1.3.14 — know which one you are hitting:
+
+- an **exact pin** the gate cannot satisfy is a hard, self-describing error
+  (`... (blocked by minimum-release-age: N seconds)`). Most deps here are exact
+  pins, so this is the usual case.
+- a **caret range silently resolves *down*** to the newest version old enough.
+  No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
+  did nothing — check the publish date before concluding the fix is broken. The
+  `overrides` floors still hold (resolving below a floor errors instead).
+
+`bun install --frozen-lockfile` does no resolution and is **unaffected** —
+verified; CI and all four deploy targets never see this gate.
+
+The escape hatch is `minimumReleaseAgeExcludes` (currently `bun-types`, which
+must track `.bun-version` exactly), **not** lowering the number.
+
 ### Dead-code gate (knip)
 
 `bun run knip` runs with **`includeEntryExports: true`**, so it also reports unused
