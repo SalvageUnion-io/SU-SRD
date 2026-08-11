@@ -6,8 +6,11 @@ name: CodeQL
 on:
   push:
     branches: ['main']
+  # Unfiltered for the same reason as ci.yml: `branches:` matches the PR's BASE
+  # branch, so it gave no run at all to a PR stacked on another PR — and
+  # `Analyze (javascript-typescript)` is its OWN required status on main, so
+  # that left those PRs permanently unmergeable rather than merely unscanned.
   pull_request:
-    branches: ['main']
   # Required before `Analyze (javascript-typescript)` may be made a required
   # status context on `main`, and the order matters: this repo merges through a
   # merge queue, whose temporary `gh-readonly-queue/**` branches fire NEITHER
