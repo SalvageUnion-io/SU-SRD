@@ -358,9 +358,17 @@ check:styling, lint, check:schemas.
 **Pre-push `test` is scoped, and CI's is not.** It runs `bun test --changed=<merge-base
 with origin/main>`, which selects by **module graph**: one edit to
 `displayMode.ts` pulls in 37 of component-lib's 84 test files (2.3s), while a
-config- or docs-only push selects nothing and skips the full ~32s sweep. CI still
-runs the entire suite on every PR — that is the gate. If you want the full sweep
-locally, run `bun run test`, which is unchanged.
+docs-only push selects nothing and skips the full ~32s sweep. CI still runs the
+entire suite on every PR — that is the gate. For the full sweep locally, run
+`bun run test`, which is unchanged.
+
+**`--changed` does not cross workspace boundaries** — the one thing to know
+before trusting it. Editing `packages/salvageunion-reference/lib/utilities.ts`
+selects 27/49 of that package's own tests but **zero** of component-lib's, which
+consumes it. The hook therefore diffs the shared surface first (`packages/`,
+`test/`, `bunfig.toml`, the root manifests, any `apps/*/package.json`) and runs
+the **full** suite when any of it moved; only app-source-only pushes take the
+fast path. Don't "simplify" that away.
 
 ### Merging — no merge queue
 

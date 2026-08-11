@@ -34,28 +34,43 @@ pre-push:
       run: bun run typecheck
 
     test:
-      # Runs only the test files the push can actually affect, via Bun's
-      # `--changed`, which walks the MODULE GRAPH rather than matching paths —
-      # editing packages/component-lib/src/components/shared/displayMode.ts
-      # selects 37 of component-lib's 84 test files (2.3s), and a push touching
-      # only config or docs selects none at all instead of paying the full ~32s.
+      # Runs only the test files the push can affect, via Bun's `--changed`,
+      # which selects by module graph rather than by path: editing
+      # packages/component-lib/src/components/shared/displayMode.ts selects 37 of
+      # component-lib's 84 test files (2.3s), and a push touching only docs
+      # selects none at all instead of paying the full ~32s.
       #
-      # The base is the merge-base with origin/main, i.e. everything this branch
-      # is about to push, not just the last commit. On a long-lived branch that
-      # selects MORE, which is the safe direction to be wrong in.
+      # CRITICAL: `--changed` DOES NOT CROSS WORKSPACE BOUNDARIES, so it cannot
+      # be used alone here. Measured: edit
+      # packages/salvageunion-reference/lib/utilities.ts and
+      # `bun --filter salvageunion-reference test --changed` correctly selects
+      # 27/49 — while `bun --filter component-lib test --changed` reports "no
+      # test files are affected" and runs ZERO, even though component-lib
+      # consumes that module. Relying on it for a shared-package edit would skip
+      # exactly the cross-app regressions this repo tells you to go looking for.
       #
-      # This is a local fast path, NOT a narrowing of the gate: CI still runs
-      # the whole suite (`bun run test`) on every PR, and that is what merge
-      # protection depends on. Run `bun run test` by hand any time you want the
-      # full sweep locally.
+      # So the shared surface is diffed FIRST and forces the full suite. The list
+      # mirrors ci.yml's `shared` path filter (which treats these as affecting
+      # everything) plus `apps/*/package.json`, since a dependency change in one
+      # app can still move the resolved tree for all of them. Only a change
+      # confined to app source takes the fast path.
       #
-      # Falls back to the full suite when there is no origin/main to diff
-      # against (fresh clone, renamed trunk) — a missing base must never mean
-      # "nothing to test".
+      # The base is the merge-base with origin/main — everything this branch is
+      # about to push, not just the last commit. On a long-lived branch that
+      # over-selects, which is the safe direction.
+      #
+      # Even so this is a local fast path, NOT a narrowing of the gate: CI runs
+      # `bun run test` in full on every PR and that is what branch protection
+      # requires. Falls back to the full suite when there is no origin/main to
+      # diff against — a missing base must never mean "nothing to test".
       run: |
         base=$(git merge-base HEAD origin/main 2>/dev/null || true)
         if [ -z "$base" ]; then
           echo "pre-push: no origin/main to diff against — running the full suite"
+          bun run test
+        elif git diff --name-only "$base" -- packages test bunfig.toml package.json bun.lock 'apps/*/package.json' | grep -q .; then
+          echo "pre-push: shared code or dependency manifests changed — running the full suite"
+          echo "          (bun test --changed does not cross workspace boundaries)"
           bun run test
         else
           bun --filter "*" test --changed="$base" && bun test ./tools --changed="$base"
