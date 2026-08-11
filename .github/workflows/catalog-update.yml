@@ -53,6 +53,12 @@ jobs:
           # The updater diffs against the base branch, so it needs real history.
           fetch-depth: 0
 
+      # No `setup-bun` step here on purpose: the action is composite and runs
+      # `oven-sh/setup-bun@v2` itself before regenerating bun.lock. Note it does
+      # NOT pin a version there, so the lockfile is rewritten by whatever Bun is
+      # current rather than by this repo's .bun-version — check the diff on the
+      # first real run, and prefer a `workflow_dispatch` with dry-run: true
+      # before trusting the schedule.
       - name: Update catalog dependencies
         uses: brandhaug/catalog-update-action@6c6e67170395d9012c38a3dea0fea85df5feb344 # v0.10.0
         with:

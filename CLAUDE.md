@@ -96,11 +96,16 @@ written.
 Two things this interacts with, both of which have bitten:
 
 - **`overrides` beats the catalog.** An `overrides` entry forces a version
-  tree-wide, so bumping a catalogued dep that also has an exact override leaves
-  the catalog stating a version that is not what resolves. `sharp` is exactly
-  this case (exact override, per the audit-gate section) and is therefore in
-  `.catalog-updaterc.json`'s `ignore` list — bump `sharp` in **both** places by
-  hand, together.
+  tree-wide, so raising a catalogued dep past the range its override allows
+  leaves the catalog stating a version that is not what resolves — the catalog
+  becomes fiction, silently. Exactly one dependency is in both places:
+  **`@vitejs/plugin-react-swc`** (catalogued, and overridden at `^4.3.3`). A
+  major bump is therefore ignored in `.catalog-updaterc.json`; minor and patch
+  updates stay automated because the caret absorbs them. To take a major, bump
+  the catalog entry **and** the override together, by hand.
+  (`sharp` is *not* an example of this — it has no override at all. Check
+  `overrides` before assuming; the comment in `ci.yml`'s audit job asserted a
+  `sharp` override that has never existed and is corrected in this change.)
 - **Dependabot cannot read `catalog:`.** It will not update catalogued deps
   (dependabot-core #14320) and may strip the `catalog` field from a manifest it
   rewrites (#12522) — both still open.

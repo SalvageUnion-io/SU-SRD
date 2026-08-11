@@ -13,5 +13,5 @@
     { "name": "fontsource", "patterns": ["@fontsource/*"] },
     { "name": "all-patch-updates", "patterns": ["*"], "updateTypes": ["patch"] }
   ],
-  "ignore": [{ "pattern": "sharp" }]
+  "ignore": [{ "pattern": "@vitejs/plugin-react-swc", "updateTypes": ["major"] }]
 }

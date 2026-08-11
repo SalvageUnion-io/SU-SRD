@@ -336,11 +336,20 @@ jobs:
     # (#673) — each time after the exact pin had blocked every open PR.
     # Raise the floor, never freeze it.
     #
-    # `sharp` is the one deliberate exception: it is ALSO a real pinned
-    # devDependency in the root and apps/srd, so its override is kept exact and
-    # in lockstep with those pins rather than floated. It is still a security
-    # floor (see the advisory above) — do not drop it. The cost of that choice
-    # is that a future sharp advisory needs all three pins bumped by hand.
+    # CORRECTION (this comment was wrong for months): it claimed `sharp` was "the
+    # one deliberate exception", carrying an EXACT override kept in lockstep with
+    # its root and apps/srd pins. There is no `sharp` entry in `overrides` at all
+    # — verify with `bun why sharp` and by reading the block itself. `sharp` is a
+    # plain pinned devDependency, now expressed once in `workspaces.catalog`, and
+    # is bumped like any other. The claim was load-bearing in the wrong
+    # direction: it was copied into CLAUDE.md and used to justify excluding
+    # `sharp` from automated catalog updates, protecting a constraint that did
+    # not exist.
+    #
+    # The dependency that IS in both `overrides` and the catalog is
+    # `@vitejs/plugin-react-swc` (`^4.3.3`). Raising the catalog past that caret
+    # would leave the catalog stating a version the override prevents resolving,
+    # so `.catalog-updaterc.json` ignores its MAJOR updates only.
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
