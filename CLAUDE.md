@@ -81,6 +81,37 @@ The companion fix in the same change was real, not suppressed: `nanoid` is
 pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
 clearing `GHSA-2v37-7h3g-55p8`.
 
+### Shared versions live in the catalog
+
+Any dependency used by **two or more** manifests is declared once in the root
+`package.json` under `workspaces.catalog` and referenced everywhere as
+`"react": "catalog:"`. 19 deps, 44 references. Bump the catalog entry, not the
+workspace — a version literal in a workspace manifest for a catalogued package
+is a bug, and it silently un-shares that dep.
+
+Adopting it changed **zero** resolved versions (`bun install` reported
+"Checked 953 installs ... (no changes)"); it only changed where the version is
+written.
+
+Two things this interacts with, both of which have bitten:
+
+- **`overrides` beats the catalog.** An `overrides` entry forces a version
+  tree-wide, so bumping a catalogued dep that also has an exact override leaves
+  the catalog stating a version that is not what resolves. `sharp` is exactly
+  this case (exact override, per the audit-gate section) and is therefore in
+  `.catalog-updaterc.json`'s `ignore` list — bump `sharp` in **both** places by
+  hand, together.
+- **Dependabot cannot read `catalog:`.** It will not update catalogued deps
+  (dependabot-core #14320) and may strip the `catalog` field from a manifest it
+  rewrites (#12522) — both still open.
+  `.github/workflows/catalog-update.yml` covers updates instead, pinned to a
+  commit SHA because it is a young composite action running in this repo's
+  runner. **Delete that workflow when dependabot-core supports `catalog:`.**
+
+`tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
+majors; anything else that learns a version by reading a workspace manifest
+needs the same treatment.
+
 ### Install cooldown (`minimumReleaseAge`)
 
 `bunfig.toml` refuses dependency versions **published less than 3 days ago**.

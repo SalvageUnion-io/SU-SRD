@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/brandhaug/catalog-update-action/master/schema.json",
+  "branchPrefix": "catalog-update",
+  "defaultBranch": "main",
+  "maxOpenPrs": 5,
+  "packageManager": "bun",
+  "minReleaseAgeDays": 3,
+  "groups": [
+    { "name": "react", "patterns": ["react", "react-dom"] },
+    { "name": "sentry", "patterns": ["@sentry/*"] },
+    { "name": "playwright", "patterns": ["playwright", "@playwright/test"] },
+    { "name": "vite", "patterns": ["vite", "@vitejs/*"] },
+    { "name": "fontsource", "patterns": ["@fontsource/*"] },
+    { "name": "all-patch-updates", "patterns": ["*"], "updateTypes": ["patch"] }
+  ],
+  "ignore": [{ "pattern": "sharp" }]
+}

@@ -1,0 +1,69 @@
+# Dependency updates for the root `workspaces.catalog`.
+#
+# WHY THIS EXISTS: Dependabot cannot read Bun's `catalog:` protocol. Two issues
+# are open against dependabot-core and both are unresolved —
+#   #12522 "Dependabot removes catalog/catalogs field with bun"  (open Jun 2025)
+#   #14320 "Bun catalogs are not properly checked for updates"   (open Mar 2026)
+# — so without this workflow, moving 19 shared deps into the catalog would
+# SILENTLY stop them being updated. .github/dependabot.yml still owns everything
+# that is not catalogued (per-workspace deps, GitHub Actions).
+#
+# DELETE THIS FILE the day dependabot-core supports `catalog:` — the whole point
+# is coverage Dependabot cannot yet give, not a preference for this tool.
+#
+# ---------------------------------------------------------------------------
+# THE ACTION IS PINNED TO A COMMIT SHA, DELIBERATELY.
+#
+# brandhaug/catalog-update-action is a young, low-adoption project (created
+# 2026-02-27; 0 stars, 0 forks at time of writing; MIT). It is a COMPOSITE
+# action, so everything it does runs here, in this repo's runner, with the
+# permissions granted below. A moving `@v1` tag would therefore be unattended
+# code execution on every scheduled run — the same argument that keeps plugin
+# `autoUpdate` off elsewhere. The SHA below is `v1` / `catalog-update-action-
+# v0.10.0` (they point at the same commit). Re-pin deliberately, after reading
+# the diff; never widen this back to a tag.
+# ---------------------------------------------------------------------------
+name: Catalog Update
+
+on:
+  schedule:
+    # Mondays, an hour after Dependabot's weekly run, so the two batches of
+    # dependency PRs land together and get reviewed in one sitting.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Preview updates without opening PRs'
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      # The minimum the action needs: commit a branch, open a PR against it.
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # The updater diffs against the base branch, so it needs real history.
+          fetch-depth: 0
+
+      - name: Update catalog dependencies
+        uses: brandhaug/catalog-update-action@6c6e67170395d9012c38a3dea0fea85df5feb344 # v0.10.0
+        with:
+          config: '.catalog-updaterc.json'
+          dry-run: ${{ inputs.dry-run || 'false' }}
+          # NOTE: this uses the default GITHUB_TOKEN, so the PRs it opens will
+          # NOT trigger ci.yml — GitHub suppresses workflow runs for events
+          # raised by GITHUB_TOKEN, to prevent recursion.
+          #
+          # That fails CLOSED here rather than open: `quality-checks` is a
+          # required status on main, so a catalog PR with no CI run simply
+          # cannot be merged. To get checks running, either close and reopen the
+          # PR, or give the action a GitHub App token (see the action's README)
+          # — which is a credential decision, not something to wire in silently.

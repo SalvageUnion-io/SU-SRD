@@ -736,6 +736,27 @@ const FRAMEWORKS: FrameworkFact[] = [
   },
 ]
 
+/**
+ * Resolve a `catalog:` specifier to the version the root actually declares.
+ *
+ * `catalog:` uses the DEFAULT catalog (`workspaces.catalog`); `catalog:<name>`
+ * selects a NAMED one (`workspaces.catalogs[<name>]`) — in both cases the key
+ * inside the catalog is the package name, never the suffix. Returns undefined
+ * for the plain array form of `workspaces`, or an unknown catalog.
+ */
+function resolveCatalog(root: string, spec: string, dependency: string): string | undefined {
+  const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as {
+    workspaces?:
+      | string[]
+      | { catalog?: Record<string, string>; catalogs?: Record<string, Record<string, string>> }
+  }
+  const ws = rootPkg.workspaces
+  if (!ws || Array.isArray(ws)) return undefined
+
+  const name = spec.slice('catalog:'.length).trim()
+  return name === '' ? ws.catalog?.[dependency] : ws.catalogs?.[name]?.[dependency]
+}
+
 function installedMajor(root: string, fact: FrameworkFact): string | null {
   const manifestPath = join(root, fact.manifest)
   if (!existsSync(manifestPath)) return null
@@ -743,8 +764,16 @@ function installedMajor(root: string, fact: FrameworkFact): string | null {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
   }
-  const range =
+  let range =
     manifest.dependencies?.[fact.dependency] ?? manifest.devDependencies?.[fact.dependency]
+
+  // Shared deps are declared once in the root `workspaces.catalog` and referenced
+  // as `catalog:` (or `catalog:<name>`) from each workspace, so the manifest no
+  // longer carries a version to read. Resolve one hop to the catalog. Without
+  // this the check reports "has the dependency moved?" for every catalogued
+  // framework — which is exactly what it did when catalogs landed.
+  if (range?.startsWith('catalog:')) range = resolveCatalog(root, range, fact.dependency)
+
   const major = range?.match(/(\d+)/)
   return major?.[1] ?? null
 }
