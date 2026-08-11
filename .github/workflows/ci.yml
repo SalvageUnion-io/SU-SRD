@@ -3,8 +3,21 @@ name: CI
 on:
   push:
     branches: ['main']
+  # NO `branches:` filter here, deliberately. That filter matches the PR's BASE
+  # branch, so `branches: ['main']` silently gave ZERO checks to any PR based on
+  # something other than main — i.e. every layer of a stacked PR above the
+  # bottom one. Since `quality-checks` is a required status on main, those PRs
+  # were not merely unchecked, they were unmergeable, with nothing on the PR
+  # saying why: `gh pr checks` reports "no checks reported" and the required
+  # check simply never arrives.
+  #
+  # Observed on stack #742: #738 (base main) got a full run, while #739 and #740
+  # (bases bun-bot-sourcemaps / bun-install-cooldown) got none at all.
+  #
+  # Stacked PRs are the preferred shape for multi-part work here, so CI has to
+  # run regardless of base. The cost is that a PR targeting any branch now runs
+  # CI, which is the intended behaviour rather than a side effect.
   pull_request:
-    branches: ['main']
   # Run on the merge queue's temporary branches so the required `quality-checks`
   # gate reports on queued PRs; without this the merge queue hangs forever
   # waiting for a check that never fires.
