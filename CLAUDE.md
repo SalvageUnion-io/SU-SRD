@@ -387,18 +387,29 @@ profiles as grep-friendly markdown, which is readable in a terminal and in a
 transcript — a binary profile that needs a flamegraph UI is close to useless to
 an agent, and most of the work in this repo is done by one:
 
+Write the artifacts to `.profiles/`, which is gitignored — the profilers and
+`--metafile-md` otherwise drop files in the cwd, and the next `git add -A`
+sweeps them into a commit.
+
 ```bash
-# where the time went (any bun-run script; --cpu-prof-dir to place the output)
-bun --cpu-prof --cpu-prof-md tools/check-doc-drift.ts
+# where the time went (any bun-run script)
+bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles tools/check-doc-drift.ts
 # what was retained — from apps/srd, since ssg/build.ts resolves relative to it
-bun --heap-prof --heap-prof-md ssg/build.ts
+bun --heap-prof --heap-prof-md --heap-prof-dir=../../.profiles ssg/build.ts
 # module graph + a "Raw Data for Searching" section, for bundle-size questions
-bun build --metafile-md=graph.md --target node apps/discord-bot/src/index.ts
+bun build --metafile-md=.profiles/graph.md --outdir=.profiles/build \
+  --target node apps/discord-bot/src/index.ts
 ```
 
+**`--outdir` is not optional there.** `bun build` with no `--outdir` writes the
+bundle to *stdout*, so omitting it dumps the whole 2 MB Discord bot into your
+terminal and the transcript — the exact thing this section exists to avoid.
+
 `--cpu-prof-interval` tightens the 1000µs default sampling when a hot path is
-too short to sample. These are diagnostics — nothing in `check:all` or CI runs
-them, and they should not be wired in.
+too short to sample. (It is real but undocumented — it appears in `bun --help`
+for 1.3.14, not in the bundled markdown docs, so don't "correct" it away.) These
+are diagnostics: nothing in `check:all` or CI runs them, and they should not be
+wired in.
 
 ### Pre-commit Hooks (Lefthook)
 
