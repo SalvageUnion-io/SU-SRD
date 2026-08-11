@@ -44,7 +44,19 @@ const NOT_MODULES = new Set(['schema.ts', 'auth.config.ts'])
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
-    if (entry === '_generated') continue
+    /*
+     * Convex's own rule, not a special case for `_generated`: any path segment
+     * beginning with `_` is outside the function namespace entirely. That is
+     * what makes `convex/__tests__/` a legal place to put tests — Convex never
+     * tries to register them, so they cannot appear in `api.d.ts` and their
+     * absence from it is not drift.
+     *
+     * Matching only `_generated` here made this check fail on the first test
+     * file added under `convex/`, demanding the impossible: that codegen
+     * register a module Convex refuses to see. Anyone hitting that reasonably
+     * concludes tests do not belong in `convex/` and puts them nowhere.
+     */
+    if (entry.startsWith('_')) continue
     if (statSync(full).isDirectory()) {
       walk(full, out)
       continue
