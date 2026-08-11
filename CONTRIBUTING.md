@@ -57,9 +57,12 @@ bun --filter srd test          # test one workspace
 bun run typecheck:itun               # typecheck one workspace
 ```
 
-> **Never run a bare `bun test` at the repo root** — it skips each workspace's
-> `bunfig.toml` preloads (fake-indexeddb, happy-dom, reference preload) and fails
-> by the hundreds. Always use `bun run test` or `bun --filter <pkg> test`.
+> **Prefer `bun run test` or `bun --filter <pkg> test`.** A bare `bun test` at
+> the repo root used to fail by the hundreds because it skipped each workspace's
+> `bunfig.toml` preloads; the root `bunfig.toml` now preloads the union of them,
+> so it runs. It is still not identical to the per-workspace run — the preload
+> *sets* differ, and one component-lib SSR test fails only from the root. Use
+> `bun run test` as the source of truth; it is what CI runs.
 
 ## Conventions
 

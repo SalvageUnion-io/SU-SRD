@@ -31,6 +31,13 @@ coverage-output.txt
 # (the committed snapshot lives at packages/salvageunion-reference/etc/)
 packages/salvageunion-reference/.api-dts/
 
+# Profiling artifacts (bun --cpu-prof / --heap-prof, bun build --metafile-md).
+# These default to the cwd, so without this they land beside the source they
+# profiled and get swept into the next `git add -A`.
+/.profiles/
+*.cpuprofile
+*.heapsnapshot
+
 # Vite
 .vite
 apps/srd/.vite

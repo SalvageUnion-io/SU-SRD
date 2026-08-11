@@ -61,8 +61,9 @@ bun run build:package    # Reference package only
 bun run lint
 bun run format        # bun run format:check to verify only
 bun run typecheck
-bun run test          # never bare `bun test` at the root — it skips the
-                      # per-workspace bunfig preloads and fails by the hundreds
+bun run test          # prefer this — each workspace with its own bunfig.
+                      # A bare root `bun test` is viable (the root bunfig
+                      # preloads the union) but is not identical; see CLAUDE.md
 bun run validate:all  # Data integrity: IDs, cross-refs, action refs
 bun run check:all     # Full CI suite (lint, format, typecheck, test, validate, knip)
 ```

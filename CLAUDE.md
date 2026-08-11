@@ -60,6 +60,23 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 `bun run check:audit`. If it passes, delete this section — a suppression that
 outlives its cause is how a real advisory gets hidden.
 
+**Re-derive the chain, don't trust this prose.** `bun why <pkg>` prints the real
+path from the lockfile, so a suppression's justification can be checked in one
+command instead of read:
+
+```
+$ bun why image-size
+image-size@2.0.2
+  └─ @netlify/dev-utils@4.4.7 (requires ^2.0.2)
+     └─ @netlify/blobs@10.7.12 (requires 4.4.7)
+        ├─ itun@workspace (requires ^10.7.11)
+        └─ su-assets@workspace (requires ^10.7.11)
+```
+
+Use it before editing an `overrides` floor too — the CI comment in
+`.github/workflows/ci.yml` documents which floors bind and via what, and that
+comment can go stale while `bun why` cannot.
+
 The companion fix in the same change was real, not suppressed: `nanoid` is
 pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
 clearing `GHSA-2v37-7h3g-55p8`.
@@ -158,10 +175,26 @@ bun run test             # Canonical FULL suite: each workspace with its own
                          # Pre-push does NOT run this; it runs the --changed
                          # subset (see "Pre-commit Hooks" below), so run this by
                          # hand when you want the whole sweep locally.
-bun test                 # Also works now. The root bunfig.toml preloads the
-                         # UNION of the workspace preloads, so a bare root run
-                         # is green (4712 pass). It used to fail by the hundreds
-                         # (639) purely from missing preloads; that is fixed.
+bun test                 # Also works. The root bunfig.toml preloads the UNION
+                         # of the workspace preloads, so a bare root run is
+                         # viable; it used to fail by the hundreds (639) purely
+                         # from missing preloads. NOT byte-identical to the
+                         # per-workspace run though — measured 2026-08-11 it is
+                         # 4990 pass / 1 fail, the failure being
+                         # component-lib CardImage.ssr.test.tsx, which passes in
+                         # its own workspace. That is a PRELOAD-SET difference
+                         # (the root bunfig adds fake-indexeddb + the bot env
+                         # shim), not cross-file leakage — it fails the same way
+                         # under --isolate. Prefer `bun run test`.
+
+# DO NOT reach for --parallel or --isolate to speed the suite up. Both are large
+# regressions here and this is measured, not assumed (1.3.14, this machine):
+#   bun test              34.4s   4991 tests / 365 files
+#   bun test --parallel   65.1s   + 2 spurious 5s-timeout failures
+#   bun test --isolate   234.1s   6.8x slower
+# The preloads (happy-dom, testing-library, a full ORM schema load,
+# fake-indexeddb) are expensive and both flags re-pay them per isolated file.
+# --changed is the flag that actually makes the suite cheaper; see pre-push.
 bun --filter salvageunion-reference test   # Test package only
 bun --filter component-lib test              # Test shared components only
 bun --filter srd test                # Test reference site only
@@ -348,6 +381,35 @@ When adding a prop that must reach nested cards, pass it explicitly and run type
 ### Debugging
 
 For styling bugs, check Tailwind configuration (@source paths, plugin setup) early before diving into component/data logic. Many visual bugs trace back to Tailwind config rather than application code.
+
+**Profile in markdown, not in `.cpuprofile`.** Bun can emit its CPU and heap
+profiles as grep-friendly markdown, which is readable in a terminal and in a
+transcript — a binary profile that needs a flamegraph UI is close to useless to
+an agent, and most of the work in this repo is done by one:
+
+Write the artifacts to `.profiles/`, which is gitignored — the profilers and
+`--metafile-md` otherwise drop files in the cwd, and the next `git add -A`
+sweeps them into a commit.
+
+```bash
+# where the time went (any bun-run script)
+bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles tools/check-doc-drift.ts
+# what was retained — from apps/srd, since ssg/build.ts resolves relative to it
+bun --heap-prof --heap-prof-md --heap-prof-dir=../../.profiles ssg/build.ts
+# module graph + a "Raw Data for Searching" section, for bundle-size questions
+bun build --metafile-md=.profiles/graph.md --outdir=.profiles/build \
+  --target node apps/discord-bot/src/index.ts
+```
+
+**`--outdir` is not optional there.** `bun build` with no `--outdir` writes the
+bundle to *stdout*, so omitting it dumps the whole 2 MB Discord bot into your
+terminal and the transcript — the exact thing this section exists to avoid.
+
+`--cpu-prof-interval` tightens the 1000µs default sampling when a hot path is
+too short to sample. (It is real but undocumented — it appears in `bun --help`
+for 1.3.14, not in the bundled markdown docs, so don't "correct" it away.) These
+are diagnostics: nothing in `check:all` or CI runs them, and they should not be
+wired in.
 
 ### Pre-commit Hooks (Lefthook)
 
