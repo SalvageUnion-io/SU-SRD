@@ -736,25 +736,39 @@ const FRAMEWORKS: FrameworkFact[] = [
   },
 ]
 
+type CatalogHost = {
+  catalog?: Record<string, string>
+  catalogs?: Record<string, Record<string, string>>
+}
+
 /**
  * Resolve a `catalog:` specifier to the version the root actually declares.
  *
- * `catalog:` uses the DEFAULT catalog (`workspaces.catalog`); `catalog:<name>`
- * selects a NAMED one (`workspaces.catalogs[<name>]`) — in both cases the key
- * inside the catalog is the package name, never the suffix. Returns undefined
- * for the plain array form of `workspaces`, or an unknown catalog.
+ * `catalog:` uses the DEFAULT catalog; `catalog:<name>` selects a NAMED one —
+ * in both cases the key inside the catalog is the package name, never the
+ * suffix. Returns undefined for an unknown catalog or a missing entry.
+ *
+ * Both fields are read from `workspaces` AND from the top level of
+ * package.json, because Bun accepts either ("If you put `catalog` or `catalogs`
+ * at the top level of the package.json file, that will work too"). This repo
+ * uses the `workspaces` form, but the fallback is not hypothetical tidiness:
+ * dependabot-core #12522 rewrites this field, and a check that returns
+ * undefined here fails `validate:all` with "has the dependency moved?" —
+ * pointing at the dependency rather than at the rewrite that actually broke it.
  */
 function resolveCatalog(root: string, spec: string, dependency: string): string | undefined {
-  const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as {
-    workspaces?:
-      | string[]
-      | { catalog?: Record<string, string>; catalogs?: Record<string, Record<string, string>> }
+  const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as CatalogHost & {
+    workspaces?: string[] | CatalogHost
   }
   const ws = rootPkg.workspaces
-  if (!ws || Array.isArray(ws)) return undefined
+  const hosts: CatalogHost[] = [...(ws && !Array.isArray(ws) ? [ws] : []), rootPkg]
 
   const name = spec.slice('catalog:'.length).trim()
-  return name === '' ? ws.catalog?.[dependency] : ws.catalogs?.[name]?.[dependency]
+  for (const host of hosts) {
+    const found = name === '' ? host.catalog?.[dependency] : host.catalogs?.[name]?.[dependency]
+    if (found !== undefined) return found
+  }
+  return undefined
 }
 
 function installedMajor(root: string, fact: FrameworkFact): string | null {

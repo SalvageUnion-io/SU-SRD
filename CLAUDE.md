@@ -113,6 +113,13 @@ Two things this interacts with, both of which have bitten:
   commit SHA because it is a young composite action running in this repo's
   runner. **Delete that workflow when dependabot-core supports `catalog:`.**
 
+`.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
+takes no comments, so the reason lives here. That feature defaults to **on** at
+`moderate` severity and writes `overrides` entries automatically; this repo
+curates `overrides` by hand as documented security floors, and gates at
+`--audit-level=high`. Leaving it on would open PRs editing that block for
+advisories `check:audit` deliberately ignores.
+
 `tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
 majors; anything else that learns a version by reading a workspace manifest
 needs the same treatment.
