@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.3.1...srd-v2.4.0) (2026-08-11)
+
+
+### Features
+
+* **deps:** hoist shared versions into a workspace catalog ([#743](https://github.com/SalvageUnion-io/SU-SRD/issues/743)) ([e944fc5](https://github.com/SalvageUnion-io/SU-SRD/commit/e944fc5b905cc5a2790e76fc9885eafe4c5817f2))
+
 ## [2.3.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.3.0...srd-v2.3.1) (2026-08-11)
 
 

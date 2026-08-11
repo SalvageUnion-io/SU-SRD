@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.4.1...itun-v1.5.0) (2026-08-11)
+
+
+### Features
+
+* **deps:** hoist shared versions into a workspace catalog ([#743](https://github.com/SalvageUnion-io/SU-SRD/issues/743)) ([e944fc5](https://github.com/SalvageUnion-io/SU-SRD/commit/e944fc5b905cc5a2790e76fc9885eafe4c5817f2))
+
 ## [1.4.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.4.0...itun-v1.4.1) (2026-08-10)
 
 
