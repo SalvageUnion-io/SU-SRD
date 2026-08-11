@@ -21,8 +21,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@randsum/roller": "^4.0.0",
-    "@sentry/node": "10.69.0",
+    "@randsum/roller": "catalog:",
+    "@sentry/node": "catalog:",
     "discord.js": "^14.27.0",
     "salvageunion-reference": "workspace:*"
   },

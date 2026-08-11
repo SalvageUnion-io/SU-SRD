@@ -19,6 +19,21 @@
 # package.json files, so ungrouped majors opened a separate PR for each — a
 # flood of a dozen PRs on the first run. Majors are still held for deliberate
 # review (never a "just merge it"); they just arrive as one reviewable batch.
+#
+# CATALOGUED DEPS ARE NOT DEPENDABOT'S ANY MORE. The 19 dependencies shared by
+# two or more workspaces now live once in the root `workspaces.catalog` and are
+# referenced as `catalog:`, which Dependabot cannot read — dependabot-core
+# #14320 (open) means it will not update them, and #12522 (open) means it may
+# strip the `catalog` field outright from a package.json it rewrites.
+# `.github/workflows/catalog-update.yml` covers those deps instead; everything
+# below still owns per-workspace deps and GitHub Actions.
+#
+# #12522 FAILS CLOSED, so watch for it rather than fearing it: deleting the
+# catalog makes every `catalog:` reference unresolvable, so
+# `bun install --frozen-lockfile` fails in CI and the PR cannot merge. If a
+# Dependabot PR here fails with an unresolvable `catalog:` specifier, that is
+# this bug — restore the `workspaces.catalog` block, do not "fix" the reference
+# by inlining a version.
 version: 2
 updates:
   # ------------------------------------------------------------------ Bun / npm
