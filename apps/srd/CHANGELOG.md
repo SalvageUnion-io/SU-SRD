@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.3.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.3.0...srd-v2.3.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* **srd:** re-bless the output snapshot for the About page ([#736](https://github.com/SalvageUnion-io/SU-SRD/issues/736)) ([2ad0dfd](https://github.com/SalvageUnion-io/SU-SRD/commit/2ad0dfd4dd0fb8f52fb32e640c2f56f194679058))
+
 ## [2.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.2.0...srd-v2.3.0) (2026-08-08)
 
 
