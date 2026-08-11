@@ -91,6 +91,39 @@ jobs:
               - 'bunfig.toml'
               - 'patches/**'
               - 'coverage-baseline.json'
+              # Root prose with THREE consumers, none of them under a path
+              # matched above: `apps/srd/src/pages/about.page.tsx` reads it off
+              # disk at build time and renders it into `about/index.html`,
+              # `apps/itun/src/routes/about.tsx` imports it `?raw` into the ITUN
+              # bundle, and
+              # `packages/component-lib/src/markdownSection/MarkdownSection.test.tsx`
+              # reads the real files and asserts on their headings.
+              #
+              # `shared` rather than `web`, for two reasons. The obvious one is
+              # that ITUN and component-lib are consumers too, so `web` alone
+              # would leave `build-itun` and `test` skipped on a prose edit that
+              # renames a heading. The subtle one is that `web` alone does not
+              # even fix srd: `build-srd` has `needs: [build-package, lint,
+              # typecheck, test, validate, knip, audit]`, every one of them
+              # gated on `code`. A prose-only PR would resolve to `web=true,
+              # code=false`, those jobs would skip, and GitHub skips a dependent
+              # job when any `needs:` job is skipped — so `build-srd` would skip
+              # anyway and the snapshot gate would still never run.
+              #
+              # That is not hypothetical. #731 added one name to
+              # SPECIAL_THANKS.md and nothing else; CI skipped build-srd, main
+              # went green carrying a stale snapshot, and the next three PRs to
+              # trigger that job (#732, #733, #734 — a codeql bump and two
+              # Dependabot groups) were all red on a six-character difference
+              # none of them introduced. The gate was working; it was never
+              # asked.
+              #
+              # Keep this in step with what those three modules read. The
+              # changelog page's two CHANGELOG.md sources need no entry: they
+              # sit under `apps/srd/` and `packages/salvageunion-reference/`.
+              - 'ABOUT_JRVS.md'
+              - 'LLM_STATEMENT.md'
+              - 'SPECIAL_THANKS.md'
             itun:
               - *shared
               - 'apps/itun/**'
@@ -99,26 +132,6 @@ jobs:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
-              # Root prose that `src/pages/about.page.tsx` reads off disk at
-              # BUILD time and renders into `about/index.html`. They are not
-              # under `apps/srd/`, so without these three lines a change to one
-              # matches no filter, `build-srd` is skipped, and the output
-              # snapshot gate never runs on the change that moved the output.
-              #
-              # That is not hypothetical. #731 added a name to SPECIAL_THANKS.md
-              # and nothing else; CI skipped build-srd, main went green with a
-              # stale snapshot, and the next three PRs to trigger the job (#732,
-              # #733, #734 — a codeql bump and two Dependabot groups) were all
-              # red on a difference none of them introduced. The gate was
-              # working; it was simply never asked.
-              #
-              # Keep this list in step with what `about.page.tsx` reads. The
-              # changelog page's two CHANGELOG.md sources need no entry: they
-              # live under `apps/srd/` and
-              # `packages/salvageunion-reference/`, both already matched above.
-              - 'ABOUT_JRVS.md'
-              - 'LLM_STATEMENT.md'
-              - 'SPECIAL_THANKS.md'
             bot:
               - *shared
               - 'apps/discord-bot/**'
