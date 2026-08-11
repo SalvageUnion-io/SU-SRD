@@ -24,6 +24,16 @@ on:
     # top of the hour to avoid the scheduling stampede.
     - cron: '30 5 * * 1'
 
+# Cancel superseded runs, mirroring ci.yml. This became load-bearing when the
+# `pull_request` base filter came off above: CodeQL now fires on every layer of
+# a stack, and one `gh stack sync` force-pushes all of them at once. Without
+# this, an N-layer stack starts N analyses per sync and leaves every earlier
+# in-flight analysis running to its `timeout-minutes: 360`, which the old
+# main-only filter had bounded by accident.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
 # CodeQL needs its own permissions block — the ci.yml block does not apply here.
 permissions:
   contents: read
