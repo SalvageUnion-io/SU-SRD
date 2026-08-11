@@ -11,6 +11,17 @@ at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
 - **Library:** Discord.js v14
 - **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
 
+## Sourcemaps are half of Sentry here
+
+`build` bundles with `--sourcemap=linked` and `start` runs
+`node --enable-source-maps`. **Both halves are required and neither is a debug
+nicety.** The bot ships a 2 MB bundle, so without them every Sentry issue points
+at an offset in `dist/index.js` and names no real file; with them Node maps the
+frames in-process *before* `@sentry/node` builds the event, which is also why the
+bot needs no sourcemap upload step. Verified: `dist/index.js:58721` resolves to
+`src/config.ts:4:11`. `render.yaml`'s `startCommand` carries the runtime half and
+the full reasoning — change the two together or not at all.
+
 ## Structure
 
 - `src/index.ts` - Bot entry point

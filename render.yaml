@@ -8,7 +8,15 @@ services:
     # Global slash commands are registered manually (an explicit step) only
     # when the command shape changes — see apps/discord-bot/README.md.
     buildCommand: 'bun install --ignore-scripts && bun run build:bot'
-    startCommand: 'node apps/discord-bot/dist/index.js'
+    # `--enable-source-maps` is load-bearing for Sentry, not a debug nicety.
+    # `build:bot` bundles with `--sourcemap=linked`, which emits dist/index.js.map;
+    # this flag is what makes Node apply it, so the stack frames @sentry/node
+    # captures are already mapped back to src/*.ts. Without it every bot issue in
+    # Sentry points at a bundled offset in dist/index.js and names no real file.
+    # Sentry needs no sourcemap upload for the bot precisely because the mapping
+    # happens in-process before the event is built. Keep the two halves together:
+    # dropping either the build flag or this one silently restores bundled frames.
+    startCommand: 'node --enable-source-maps apps/discord-bot/dist/index.js'
     # Without this, every commit to main rebuilds and redeploys the bot —
     # including srd/itun/component-lib work and release-please chores that it
     # cannot possibly depend on. Measured over the 71 commits between
