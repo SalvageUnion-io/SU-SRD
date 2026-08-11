@@ -153,8 +153,11 @@ bun run dev:bot          # Start Discord bot locally
 bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
-bun run test             # Canonical: runs each workspace with its own bunfig.
-                         # This is what CI and pre-push run — prefer it.
+bun run test             # Canonical FULL suite: each workspace with its own
+                         # bunfig. This is what CI runs — prefer it.
+                         # Pre-push does NOT run this; it runs the --changed
+                         # subset (see "Pre-commit Hooks" below), so run this by
+                         # hand when you want the whole sweep locally.
 bun test                 # Also works now. The root bunfig.toml preloads the
                          # UNION of the workspace preloads, so a bare root run
                          # is green (4712 pass). It used to fail by the hundreds
@@ -351,6 +354,13 @@ For styling bugs, check Tailwind configuration (@source paths, plugin setup) ear
 Pre-commit runs: lint --fix, format (parallel). Typecheck does NOT run pre-commit.
 Pre-push runs (parallel): typecheck, test, validate:all, knip, check:tokens,
 check:styling, lint, check:schemas.
+
+**Pre-push `test` is scoped, and CI's is not.** It runs `bun test --changed=<merge-base
+with origin/main>`, which selects by **module graph**: one edit to
+`displayMode.ts` pulls in 37 of component-lib's 84 test files (2.3s), while a
+config- or docs-only push selects nothing and skips the full ~32s sweep. CI still
+runs the entire suite on every PR — that is the gate. If you want the full sweep
+locally, run `bun run test`, which is unchanged.
 
 ### Merging — no merge queue
 

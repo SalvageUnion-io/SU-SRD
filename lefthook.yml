@@ -34,7 +34,32 @@ pre-push:
       run: bun run typecheck
 
     test:
-      run: bun run test
+      # Runs only the test files the push can actually affect, via Bun's
+      # `--changed`, which walks the MODULE GRAPH rather than matching paths —
+      # editing packages/component-lib/src/components/shared/displayMode.ts
+      # selects 37 of component-lib's 84 test files (2.3s), and a push touching
+      # only config or docs selects none at all instead of paying the full ~32s.
+      #
+      # The base is the merge-base with origin/main, i.e. everything this branch
+      # is about to push, not just the last commit. On a long-lived branch that
+      # selects MORE, which is the safe direction to be wrong in.
+      #
+      # This is a local fast path, NOT a narrowing of the gate: CI still runs
+      # the whole suite (`bun run test`) on every PR, and that is what merge
+      # protection depends on. Run `bun run test` by hand any time you want the
+      # full sweep locally.
+      #
+      # Falls back to the full suite when there is no origin/main to diff
+      # against (fresh clone, renamed trunk) — a missing base must never mean
+      # "nothing to test".
+      run: |
+        base=$(git merge-base HEAD origin/main 2>/dev/null || true)
+        if [ -z "$base" ]; then
+          echo "pre-push: no origin/main to diff against — running the full suite"
+          bun run test
+        else
+          bun --filter "*" test --changed="$base" && bun test ./tools --changed="$base"
+        fi
 
     lint:
       # Pre-commit lints STAGED FILES ONLY, so a lint error can still reach the
