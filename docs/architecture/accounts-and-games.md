@@ -322,25 +322,44 @@ repo):
   Convex errors will not carry a commit SHA the way the Netlify and Render
   surfaces do.
 
-**Status: configured 2026-08-05, and NOT delivering.** Measured 2026-08-10: the
-`itun-convex` Sentry project has received **zero events in 30 days** — over a
-window that contains 39 failed `entities:upsertByAppId` mutations in a single
-evening, every one of which should have landed there.
+**Status: DELIVERING since 2026-08-12**, confirmed end to end — a forced error
+was seen in `convex logs` and then in Sentry as `ITUN-CONVEX-1`, the first event
+that project had ever received. Step 2 above (pasting the DSN) is what had been
+missing; the Pro-plan caveat turned out not to apply.
 
-That number is the whole point of writing this down. "Enabled" was recorded here
-as a status and then believed for five days, and a reporting integration that
-reports nothing is indistinguishable from a healthy one with no errors — the
-same trap `tools/check-observability.ts` exists to close for the browser SDKs.
-The **Pro-plan gate above is the first thing to check**; until it is resolved,
-the honest description of this repo is *Convex errors are visible in the
-deployment's function logs only*, and the way you read them is:
+It forwards `ArgumentValidationError` as well as handler throws, which was an
+open question until the probe answered it.
+
+**How it was wrong for a week, because the shape recurs.** This section said
+"enabled" from 2026-08-05, recorded as a status the moment the *Sentry project*
+was created — step 1 of two. Nobody clicked step 2, and nothing about the result
+looked different: a reporting integration that reports nothing is
+indistinguishable from a healthy one with no errors. It stayed that way through
+39 failed `entities:upsertByAppId` mutations in a single evening, every one of
+which should have landed there, and the incident surfaced instead as a Discord
+message from a player. `tools/check-observability.ts` exists to close exactly
+this trap for the browser SDKs; there is no equivalent here, because "zero
+events" is also what a healthy quiet week looks like, so it cannot be asserted.
+
+**So verify by probe, never by status line.** Force an error, then check both
+channels — the deployment log is the ground truth and Sentry is the thing being
+tested:
 
 ```bash
-timeout 120 bunx convex logs --deployment alex-jarvis:suref-itun:prod \
-  --history 4000 --jsonl > logs.jsonl   # streams; wrap in timeout, read the file
+cd apps/itun
+CONVEX_DEPLOYMENT=dev:perfect-donkey-72 bunx convex run --prod \
+  maintenance:dedupeAppIds '{"apply":"not-a-boolean"}'      # forces one error
+bunx convex logs --deployment alex-jarvis:suref-itun:prod --history 6 --jsonl
 ```
 
+then <https://susrd.sentry.io/issues/?project=itun-convex>. In the log but not
+in Sentry means it has stopped delivering again.
+
 Do not treat a quiet `itun-convex` as evidence that the backend is healthy.
+
+**Events arriving is not the same as anyone reading them.** There is no alert
+rule on this project yet, and Sentry's default is to collect silently — which
+is how an evening of 39 backend errors reached a player before it reached us.
 
 #### What reaches Sentry, and what reaches the player
 
