@@ -111,12 +111,16 @@ and remains the account-free way to share a build.
   (`src/lib/observability.ts`) and the Netlify Functions
   (`netlify/functions/_observability.ts`) each own one; Convex instead uses its
   first-party Exception Reporting integration, enabled in the Convex dashboard
-  with no application code. **It was configured on 2026-08-05 and is not
-  delivering** — the `itun-convex` Sentry project has had zero events in 30 days
-  (measured 2026-08-10, over a window containing 39 real mutation failures), so
-  a quiet project is not evidence of a healthy backend. Read Convex errors with
-  `bunx convex logs --deployment alex-jarvis:suref-itun:prod`; the Pro-plan gate
-  is the first suspect. Queries and
+  with no application code. **Delivering since 2026-08-12**, verified end to end
+  rather than assumed: a forced error appeared in `convex logs` and then in
+  Sentry as `ITUN-CONVEX-1`, the first event that project had ever received.
+  It also forwards `ArgumentValidationError`, not only handler throws.
+  Before that it had been recorded as "enabled" on 2026-08-05 while the DSN
+  had never actually been pasted into the dashboard, and it sat silent for a
+  week — through 39 real mutation failures. **A quiet Sentry project is not
+  evidence of a healthy backend**; re-verify by forcing an error and comparing
+  against `bunx convex logs --deployment alex-jarvis:suref-itun:prod`, which
+  remains the ground truth. Queries and
   mutations run in a deterministic runtime with no `fetch`, so an in-function SDK
   could not report from them at all — rationale and the enable-it runbook are in
   [docs/architecture/accounts-and-games.md](../../docs/architecture/accounts-and-games.md)
