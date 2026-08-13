@@ -23,9 +23,19 @@ type PublicSheetProps = {
   kind: string
   /** The bare entity body, exactly as Convex stores it — not yet validated. */
   body: unknown
+  /**
+   * Ability refs of the pilot flying this mech, resolved server-side.
+   *
+   * Load-bearing, not decorative: a mech's Max SP and Cargo depend on its pilot
+   * (ADR-029), and the frozen store deliberately carries no pilot and no soft
+   * links. Without this a published mech reads LOWER than the same mech on its
+   * owner's sheet — the exact defect a snapshot works around by shipping
+   * `context.pilotAbilities` in its payload.
+   */
+  pilotAbilities?: string[]
 }
 
-export function PublicSheet({ kind, body }: PublicSheetProps) {
+export function PublicSheet({ kind, body, pilotAbilities }: PublicSheetProps) {
   const result = useMemo(() => parseFrozenEntity(kind, body), [kind, body])
   const store = useMemo(() => (result.ok ? makeFrozenStore(result) : null), [result])
 
@@ -58,7 +68,13 @@ export function PublicSheet({ kind, body }: PublicSheetProps) {
         This sheet is shared read-only. It updates as its owner plays.
       </div>
 
-      <Sheet kind={result.kind} id={result.entity.id} store={store} readOnly />
+      <Sheet
+        kind={result.kind}
+        id={result.entity.id}
+        store={store}
+        pilotAbilities={result.kind === 'mech' ? pilotAbilities : undefined}
+        readOnly
+      />
     </div>
   )
 }

@@ -195,14 +195,92 @@ describe('a body that cannot be rendered is refused at publish time', () => {
       })
     )
 
+    // The MESSAGE matters, not just the throw. `parseBody` throws a plain
+    // Error, which Convex redacts to "Server Error" before the client sees it,
+    // so a bare `rejects.toThrow()` would pass while the owner was shown
+    // nothing but "that could not be saved". Re-throwing as `ConvexError` is
+    // what makes the reason survive the trip.
     await expect(
       owner.as.mutation(api.publicSheet.setPublic, {
         kind: 'pilot',
         appId: 'broken',
         isPublic: true,
       })
-    ).rejects.toThrow()
+    ).rejects.toThrow(/cannot be shared publicly/)
 
     expect(await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'broken' })).toBeNull()
+  })
+})
+
+describe('a published mech carries its pilot’s contributions', () => {
+  test('resolves the piloting pilot through softLinks', async () => {
+    // ADR-029: Beefcake raises the PILOTED mech's Max SP and Cargo. The frozen
+    // store carries no pilot and no links, so without this a public mech reads
+    // lower than the same mech on its owner's sheet — which would make the live
+    // path worse than the snapshot it is offered as an upgrade to.
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId: null,
+        ownerId: owner.userId,
+        appId: 'pilot-app',
+        body: { callsign: 'Vex', abilities: ['beefcake'] },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('mechs', {
+        gameId: null,
+        ownerId: owner.userId,
+        appId: 'mech-app',
+        publicRead: true,
+        body: { name: 'Rustjaw', chassisRef: 'mule' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('softLinks', {
+        gameId: null,
+        from: { type: 'mech', id: 'mech-app' },
+        to: { type: 'pilot', id: 'pilot-app' },
+        type: 'mech-to-pilot',
+      })
+    })
+
+    const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'mech-app' })
+    expect(result?.pilotAbilities).toEqual(['beefcake'])
+  })
+
+  test('an unpiloted mech reports no abilities rather than failing', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    await t.run(async (ctx) =>
+      ctx.db.insert('mechs', {
+        gameId: null,
+        ownerId: owner.userId,
+        appId: 'lonely',
+        publicRead: true,
+        body: { name: 'Rustjaw', chassisRef: 'mule' },
+        updatedAt: Date.now(),
+      })
+    )
+
+    const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'lonely' })
+    expect(result?.pilotAbilities).toEqual([])
+  })
+
+  test('a pilot sheet carries no pilotAbilities key at all', async () => {
+    // Only a mech has a piloting context; emitting an empty array everywhere
+    // would imply the concept applies where it does not.
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    await seedPilot(t, owner.userId)
+    await owner.as.mutation(api.publicSheet.setPublic, {
+      kind: 'pilot',
+      appId: 'app-1',
+      isPublic: true,
+    })
+
+    const result = await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'app-1' })
+    expect(result).not.toBeNull()
+    expect(result === null ? true : 'pilotAbilities' in result).toBe(false)
   })
 })

@@ -78,14 +78,59 @@ async function byAppId(
  */
 export const get = query({
   args: { kind: kindValidator, appId: v.string() },
-  handler: async (ctx, args): Promise<{ kind: Kind; body: unknown } | null> => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ kind: Kind; body: unknown; pilotAbilities?: string[] } | null> => {
     const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
     if (row === null || row.publicRead !== true) return null
-    return { kind: args.kind, body: row.body }
+
+    return {
+      kind: args.kind,
+      body: row.body,
+      ...(args.kind === 'mech'
+        ? { pilotAbilities: await pilotAbilitiesForMech(ctx, args.appId) }
+        : {}),
+    }
   },
 })
+
+/**
+ * The abilities of the pilot flying this mech, for the renderer's maxima.
+ *
+ * A mech's Max SP and Cargo depend on its PILOT: Beefcake raises both on the
+ * mech being piloted (ADR-029). A frozen sheet cannot see that — which is
+ * exactly why a published snapshot has to carry `context.pilotAbilities`
+ * alongside the entity — so without this a public mech would read *lower* than
+ * the same mech on its owner's sheet.
+ *
+ * Resolving it here is the concrete form of ADR-032's claim that serving live
+ * fixes what the frozen path cannot: the query runs on the server of record
+ * with the whole `softLinks` graph in reach, rather than being handed whatever
+ * was true when somebody last pressed publish.
+ *
+ * Deliberately does NOT check the pilot's own `publicRead`. This discloses no
+ * pilot — not their name, not their existence, only a set of ability slugs
+ * already implied by the mech's own numbers. Requiring the pilot to be public
+ * too would silently give a wrong maximum, which is the bug this exists to fix.
+ */
+async function pilotAbilitiesForMech(ctx: QueryCtx, mechAppId: string): Promise<string[]> {
+  const link = (
+    await ctx.db
+      .query('softLinks')
+      .withIndex('by_from', (q) => q.eq('from.id', mechAppId))
+      .collect()
+  ).find((l) => l.type === 'mech-to-pilot')
+  if (link === undefined) return []
+
+  // Soft links address entities by APP id (ADR-027), the same id this route
+  // takes — not by Convex row id.
+  const pilot = await byAppId(ctx, 'pilots', link.to.id)
+  const abilities = (pilot?.body as { abilities?: unknown } | undefined)?.abilities
+  return Array.isArray(abilities) ? abilities.filter((a): a is string => typeof a === 'string') : []
+}
 
 /**
  * Whether the caller may publish this entity.
@@ -104,8 +149,9 @@ async function assertMayPublish(
   userId: Id<'users'>
 ): Promise<void> {
   if (!('ownerId' in row)) {
-    // A crawler always belongs to a Game; a shelf crawler is not a thing.
-    if (row.gameId === null) throw new NotAuthorized('That crawler is not in a game')
+    // `crawlers.gameId` is `v.id('games')` and never null — a crawler is always
+    // in a Game, and a shelf crawler is not a thing — so there is deliberately
+    // no null branch here to write.
     await requireTableRunner(ctx, row.gameId)
     return
   }
@@ -146,16 +192,26 @@ export const setPublic = mutation({
     // cover that table; `entities.ts` validates crawler writes the same way,
     // for the same reason. Widening `PARSERS` would change how crawler writes
     // behave elsewhere, which is not this change's business.
+    //
+    // Both branches throw `ConvexError`, and that is the load-bearing part.
+    // `parseBody` throws a plain `Error`, which Convex redacts to "Server
+    // Error" before the client sees it — so re-throwing as `ConvexError` is
+    // what makes this message actually reach the owner instead of being
+    // written and then discarded. Without it the promise above ("fails HERE,
+    // where the owner can see it") would have held for crawlers only.
     if (args.isPublic) {
-      if (table === 'crawlers') {
-        const parsed = CrawlerSchema.safeParse(row.body)
-        if (!parsed.success) {
-          throw new ConvexError(
-            `This crawler cannot be published: ${parsed.error.issues[0]?.message ?? 'unknown'}`
-          )
+      try {
+        if (table === 'crawlers') {
+          const parsed = CrawlerSchema.safeParse(row.body)
+          if (!parsed.success) {
+            throw new Error(parsed.error.issues[0]?.message ?? 'unknown')
+          }
+        } else {
+          parseBody(table, row.body)
         }
-      } else {
-        parseBody(table, row.body)
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : 'unknown'
+        throw new ConvexError(`This ${args.kind} cannot be shared publicly: ${detail}`)
       }
     }
 
