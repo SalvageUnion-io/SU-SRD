@@ -145,6 +145,36 @@ describe('Print markup — PilotSheet', () => {
     const backLink = container.querySelector('header a[aria-label="Back to roster"]')
     expect(backLink).toBeTruthy()
   })
+
+  /**
+   * Regression (#616). A picker `Field` renders its VALUE *inside* the button
+   * rather than beside it, so the print rule `button:not([data-print='keep'])`
+   * hid the pilot's class on paper — the one field saying what the pilot IS.
+   * The sibling fields printed fine because `InlineEditField` renders a
+   * `<span role="button">`, which that element selector never matched, so the
+   * loss looked like a quirk of one field instead of a rule hitting a whole
+   * variant. Same shape on the mech (chassis) and crawler (type) sheets.
+   *
+   * jsdom applies no `@media print` rules, so assert the opt-in attribute and
+   * the containment that makes it necessary — not a computed style.
+   */
+  test('class picker opts into print, so its value survives the button-hide rule', () => {
+    const { container } = render(
+      <Sheet
+        kind="pilot"
+        id="print-pilot-1"
+        entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeEmptySoftLinkStore()}
+      />
+    )
+    const picker = container.querySelector('button[aria-label="Change class"]')
+    expect(picker).toBeTruthy()
+    // The value is inside the button — this containment is why the hatch is
+    // required, so assert it too; if it ever moves out, this test should be
+    // revisited rather than silently passing on the attribute alone.
+    expect(picker?.textContent).toContain('Engineer')
+    expect(picker?.getAttribute('data-print')).toBe('keep')
+  })
 })
 
 describe('Print markup — MechSheet', () => {
