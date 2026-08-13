@@ -241,9 +241,9 @@ export function publicSheetUrl(
   webUrl: string,
   table: SheetTable,
   appId: string | null,
-  publicRead: boolean
+  publicRead: boolean | undefined
 ): string | null {
-  if (!publicRead) return null
+  if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
   return `${webUrl.replace(/\/+$/, '')}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
 }

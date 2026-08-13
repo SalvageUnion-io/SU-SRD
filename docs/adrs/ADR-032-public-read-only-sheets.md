@@ -55,10 +55,26 @@ no account to open, is always current, and requires no publishing step.
    therefore the default for every row that exists today.
 
 2. **The owner decides; the table runner decides for the crawler.** Turning it
-   on is `assertMayWrite` for a pilot or mech — the same owner-only gate every
-   other write uses, with no Mediator override. The crawler has no `ownerId` at
-   all, so it follows §5a and is the table runner's act (Mediator, or Organizer
-   where a Game has no Mediator).
+   **on** is owner-only for a pilot or mech, with no Mediator override — the
+   same rule `assertMayWrite` applies to edits, though this is its own gate
+   (`assertMayPublish`) rather than a reuse, for the reason in the next clause.
+   The crawler has no `ownerId` at all, so it follows §5a and is the table
+   runner's act (Mediator, or Organizer where a Game has no Mediator).
+
+   Turning it **off is always permitted**, including on an entity whose
+   `ownerId` has become null. This is where publishing deliberately diverges
+   from `assertMayWrite`, and it is not a detail: `ownership.release` and the
+   leave-Game sweep both null an `ownerId` on a row that is still in the Game,
+   so refusing there would leave a published sheet permanently world-readable
+   with its "Stop sharing" button refusing forever. Withdrawal can only ever
+   reduce what is exposed, so it needs no owner to authorise it.
+
+   One further path exists and is deliberate: a published **mech** resolves the
+   abilities of the pilot flying it (see Consequences), and that pilot may be an
+   **unclaimed** one in the same Game. Such a pilot has no owner to ask and is
+   already visible to the whole table, so its ability slugs travel with the
+   mech's numbers. A *claimed* crewmate's pilot never does — republishing their
+   data past the membership boundary is theirs to decide, not their crewmate's.
 
 3. **Addressed by `appId`, at `/p/:kind/:appId`.** Not the Convex row id,
    for two reasons: the owner already holds the app id, so the Share screen can
@@ -76,7 +92,9 @@ no account to open, is always current, and requires no publishing step.
 
 6. **Turning it off revokes it everywhere, immediately.** There is one URL per
    entity and it is derived, not minted, so there is no set of outstanding
-   links to chase.
+   links to chase. This holds unconditionally — see the second half of decision
+   2 — because a promise of revocation that an ordinary sequence of play can
+   take away is not a promise.
 
 ## Consequences
 

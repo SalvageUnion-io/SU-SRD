@@ -88,10 +88,7 @@ describe('the Share field', () => {
   test('is absent when the server does not send the flag at all', () => {
     // An older deployment sends no `publicRead`. Absent must read as private,
     // never as published.
-    const embed = buildSheetEmbed(
-      { ...sheetResult(), publicRead: undefined as unknown as boolean },
-      WEB
-    )
+    const embed = buildSheetEmbed({ ...sheetResult(), publicRead: undefined }, WEB)
     expect(embed.fields.some((f) => f.name === 'Share')).toBe(false)
   })
 })

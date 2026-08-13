@@ -125,8 +125,13 @@ export type SheetResult = {
    * sheet. The bot renders a `/p/<kind>/<appId>` link **only** when it is true:
    * a private sheet has no public URL, and offering one would hand the reader a
    * 404. It is also why `/su sheet` stays ephemeral — see `crew.ts`.
+   *
+   * Optional because this is a network payload and a deployment running an
+   * older `botClient` sends no such key at all — the same reason `gameId` is
+   * read tolerantly. Absent must read as private, never as published, which is
+   * what makes the falsy default the safe one here.
    */
-  publicRead: boolean
+  publicRead?: boolean
   ownerName: string | null
   body: EntityBody
 }
