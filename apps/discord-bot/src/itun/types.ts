@@ -118,6 +118,20 @@ export type SheetResult = {
    * own IndexedDB, so it opens nothing for anybody but the owner.
    */
   gameId: string
+  /**
+   * Whether this sheet has a public, account-free URL (ADR-032).
+   *
+   * Opt-in per entity and off by default, so this is `false` for almost every
+   * sheet. The bot renders a `/p/<kind>/<appId>` link **only** when it is true:
+   * a private sheet has no public URL, and offering one would hand the reader a
+   * 404. It is also why `/su sheet` stays ephemeral — see `crew.ts`.
+   *
+   * Optional because this is a network payload and a deployment running an
+   * older `botClient` sends no such key at all — the same reason `gameId` is
+   * read tolerantly. Absent must read as private, never as published, which is
+   * what makes the falsy default the safe one here.
+   */
+  publicRead?: boolean
   ownerName: string | null
   body: EntityBody
 }

@@ -43,6 +43,8 @@ import { useEffect, useState } from 'react'
 import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
 import { useEntity } from '../../hooks/queries'
 import { resolveClassName } from '../../lib/classRef'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { captureMessage } from '../../lib/observability'
 import {
@@ -72,6 +74,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from './composition'
 import { resolveSheetComposition } from './composition'
+import { PublicSheetPanel } from './PublicSheetPanel'
 
 type ShareSnapshotScreenProps = {
   kind: EntityRef['type']
@@ -117,6 +120,9 @@ export function ShareSnapshotScreen({
   // Reactive read from the live store; unused when a lookup is injected
   // (hook is still called unconditionally — Rules of Hooks).
   const liveEntity = useEntity(kind, id)
+
+  // Decides whether the public-sheet panel mounts at all — see its use below.
+  const { mode: connectionMode } = useConnection()
 
   const [service, setService] = useState<ServiceState>('checking')
   const [publishState, setPublishState] = useState<PublishState>({
@@ -298,12 +304,45 @@ export function ShareSnapshotScreen({
           <SnapshotPreviewCard entity={entity} />
           <p className="text-wk-muted mb-0 mt-3.5 font-body text-caption leading-relaxed">
             A snapshot is frozen at publish time — later edits to {entity.name} won&rsquo;t change
-            what the link shows. Publish again to share an updated build.
+            what the link shows. Publish again to share an updated build. For a link that stays
+            current, use the public sheet below.
           </p>
         </Panel>
 
-        {/* Aside — anonymous link, QR, print */}
-        <aside className="flex flex-col gap-5">
+        {/*
+          The live counterpart to the snapshot above (ADR-032).
+
+          Mounted only when connected, and the check belongs HERE rather than
+          inside the panel: it calls Convex hooks, which cannot be called
+          conditionally and throw with no provider — which is precisely the
+          Solo case. Gating on render is what keeps Solo working.
+        */}
+        {isConvexConfigured && connectionMode === 'connected' && (
+          <PublicSheetPanel
+            kind={kind}
+            appId={id}
+            entityName={entity.name}
+            headingClass={PANEL_HEADING_CLASS}
+            // Load-bearing, not cosmetic. This is a third direct child of a
+            // two-column grid, so auto-placement would drop it into the 360px
+            // rail and push the existing aside into the wide column — quietly
+            // relaying a screen this change is not meant to touch. Pinning this
+            // to column one is only half the fix: sparse auto-placement leaves
+            // the cursor past it, so the aside must be pinned too (see below)
+            // or it lands on row two with an empty cell above it.
+            className="lg:col-start-1 lg:row-start-2"
+          />
+        )}
+
+        {/*
+          Aside — anonymous link, QR, print.
+
+          Explicitly pinned to the rail's top cell. The public-sheet panel above
+          is placed by hand, which leaves grid auto-placement's cursor past it,
+          so without this the rail would start on row two with an empty cell
+          above it. Both are pinned or neither works.
+        */}
+        <aside className="flex flex-col gap-5 lg:col-start-2 lg:row-start-1">
           <Panel className="p-4 sm:p-5">
             <h2 className={PANEL_HEADING_CLASS}>Anonymous link</h2>
 

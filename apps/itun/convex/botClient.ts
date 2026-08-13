@@ -322,6 +322,10 @@ export const sheet = internalQuery({
       // build the local `/sheet/<kind>/<appId>` URL, which resolves out of the
       // clicker's own IndexedDB and so opens nothing for a crewmate.
       gameId: actor.value.gameId,
+      // Whether this sheet has a PUBLIC url (ADR-032). The bot renders the
+      // `/p/<kind>/<appId>` link only when this is true — a private sheet has
+      // no public URL, and advertising one would 404 the reader.
+      publicRead: (doc as unknown as { publicRead?: boolean }).publicRead === true,
       ownerName: ownerId === null ? null : (names.get(ownerId) ?? null),
       body: (doc as unknown as { body: unknown }).body,
     }
