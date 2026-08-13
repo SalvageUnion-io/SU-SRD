@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.5.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.5.0...itun-v1.5.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **itun:** stop printed sheets losing the pilot class, mech chassis and crawler type ([#750](https://github.com/SalvageUnion-io/SU-SRD/issues/750)) ([8fed0eb](https://github.com/SalvageUnion-io/SU-SRD/commit/8fed0eb7b836759fc085d219f869689398357d34))
+
 ## [1.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.4.1...itun-v1.5.0) (2026-08-11)
 
 
