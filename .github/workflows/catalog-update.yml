@@ -42,6 +42,10 @@ permissions: {}
 jobs:
   update:
     runs-on: ubuntu-latest
+    # Bounded like every job in ci.yml and e2e-nightly.yml — GitHub's default is
+    # 360 minutes, and an unattended weekly job is the least likely place anyone
+    # would notice one hanging.
+    timeout-minutes: 15
     permissions:
       # The minimum the action needs: commit a branch, open a PR against it.
       contents: write

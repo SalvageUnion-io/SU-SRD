@@ -248,7 +248,15 @@ jobs:
     # goes dark again opens the tracking issue like any other nightly failure.
     if: vars.OBSERVABILITY_PROBE == 'on'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Must EXCEED the probe's own PROBE_BUDGET_MS (120s in
+    # tools/check-observability.ts), so the tool always loses the race and
+    # reports a real reason. It was 5 minutes, and the arithmetic never worked:
+    # the probe crawls ~134 chunks and its retry ladder costs up to 7s each, so
+    # a bad-weather run could spend ~938s — 3x the job timeout. Every nightly
+    # from 2026-08-05 died at exactly 5m having printed NOTHING, which read as
+    # "cancelled" in the run list and told nobody anything. The probe itself was
+    # healthy the whole time (3-21s locally, DSN present on both sites).
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -324,6 +332,11 @@ jobs:
        needs.convex-parity.result == 'failure' ||
        needs.convex-parity.result == 'cancelled')
     runs-on: ubuntu-latest
+    # Bounded like every other job here: this one is two REST calls, so if it is
+    # still running at 5 minutes it is wedged, and a wedged notifier is the
+    # worst one to leave unbounded — it is the thing that tells you the rest
+    # broke.
+    timeout-minutes: 5
     permissions:
       issues: write
     steps:
@@ -333,6 +346,7 @@ jobs:
           ITUN_RESULT: ${{ needs.e2e-itun.result }}
           SRD_RESULT: ${{ needs.e2e-srd.result }}
           PROBE_RESULT: ${{ needs.observability-probe.result }}
+          PARITY_RESULT: ${{ needs.convex-parity.result }}
         with:
           script: |
             const label = 'nightly-e2e-failure'
@@ -347,12 +361,21 @@ jobs:
             // still being filed — an alarm that refuses to say what tripped it.
             // Omitted entirely when skipped (the OBSERVABILITY_PROBE variable is
             // off), so the report never lists a job that did not run.
+            //
+            // convex-parity obeys the same rule for the same reason, and did NOT
+            // when it was added: it sat in `needs:` and in the `if:` above — so it
+            // could open this issue entirely on its own — while having no line
+            // here at all. A parity failure therefore filed an issue reading
+            // "e2e-itun: success, e2e-srd: success" and nothing else, which is
+            // precisely the alarm-that-won't-say-what-tripped-it the paragraph
+            // above describes. Anything in that `if:` MUST appear in this list.
+            const optional = (job, result) =>
+              result && result !== 'skipped' ? [[job, result]] : []
             const results = [
               ['e2e-itun', process.env.ITUN_RESULT],
               ['e2e-srd', process.env.SRD_RESULT],
-              ...(process.env.PROBE_RESULT && process.env.PROBE_RESULT !== 'skipped'
-                ? [['observability-probe', process.env.PROBE_RESULT]]
-                : []),
+              ...optional('observability-probe', process.env.PROBE_RESULT),
+              ...optional('convex-parity', process.env.PARITY_RESULT),
             ]
             const body = [
               `Nightly E2E (\`e2e-nightly.yml\`) did not pass on \`${context.ref}\`.`,
@@ -415,6 +438,8 @@ jobs:
       needs.convex-parity.result != 'failure' &&
       needs.convex-parity.result != 'cancelled'
     runs-on: ubuntu-latest
+    # Bounded for the same reason as notify-failure above.
+    timeout-minutes: 5
     permissions:
       issues: write
     steps:

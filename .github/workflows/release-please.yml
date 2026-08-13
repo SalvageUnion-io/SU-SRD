@@ -19,6 +19,8 @@ concurrency:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    # Bounded like every job in ci.yml and e2e-nightly.yml — see the note there.
+    timeout-minutes: 15
     steps:
       - uses: googleapis/release-please-action@v5
         with:
