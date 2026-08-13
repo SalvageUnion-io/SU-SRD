@@ -1,5 +1,7 @@
+import type { SURefEnumSchemaName } from 'salvageunion-reference'
+import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
 import { mechMaxHeat, mechMaxSP, pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
-import { ROLL_COLORS, truncate } from './format.js'
+import { EMBED_LIMIT, ROLL_COLORS, truncate } from './format.js'
 import type {
   ChannelResult,
   CrewResult,
@@ -9,6 +11,7 @@ import type {
   MeResult,
   OwnedEntity,
   SheetResult,
+  SheetTable,
   ShelfResult,
 } from './itun/types.js'
 
@@ -45,13 +48,14 @@ const NEUTRAL = 0xb7410e
  */
 const CRITICAL = ROLL_COLORS.cascade
 
-const LIMIT = {
-  title: 256,
-  description: 4096,
-  fieldName: 256,
-  fieldValue: 1024,
-  fields: 25,
-} as const
+/**
+ * Shared with `lookupEmbed.ts` via `format.ts`. This module used to declare its
+ * own, omitting `footer` and `total` — so nothing here enforced the 6000-char
+ * ceiling, and an oversized embed would have been rejected by Discord with a
+ * 400 rather than trimmed. Harmless while these embeds were three fields long;
+ * not harmless now that a sheet renders its whole collection list.
+ */
+const LIMIT = EMBED_LIMIT
 
 export type EmbedData = {
   title: string
@@ -60,6 +64,15 @@ export type EmbedData = {
   description?: string
   fields: { name: string; value: string; inline: boolean }[]
   footer: string
+  /**
+   * Absolute URL of a small image shown top-right.
+   *
+   * Always a remote `https://` URL — the artwork CDN — never an attachment, so
+   * no bytes pass through the worker. Undefined when the entity has no artwork,
+   * which is the common case; an entity without art omits the field rather than
+   * rendering a broken image.
+   */
+  thumbnail?: string
 }
 
 const FOOTER = 'In The Union Now'
@@ -207,22 +220,58 @@ export function gameUrl(webUrl: string, gameId: string): string {
   return `${webUrl.replace(/\/+$/, '')}/games/${encodeURIComponent(gameId)}`
 }
 
+/** `pilots` → `pilot`. The web routes speak singular; the tables speak plural. */
+function kindOf(table: SheetTable): string {
+  if (table === 'pilots') return 'pilot'
+  return table === 'mechs' ? 'mech' : 'crawler'
+}
+
 /**
- * A sheet URL, or null when the entity cannot be opened from a browser.
+ * A link to **your own** entity, or null when there is nothing to open.
  *
  * Takes the **app-level** id, never the Convex `_id`: `/sheet/$kind/$id`
  * resolves out of IndexedDB by app id, so a URL built from `_id` opens nothing.
  * Null in, null out — a server-created entity nobody has claimed has no local
  * counterpart, and renders as a bare name.
+ *
+ * Correct **only** for the shelf, where the reader and the owner are the same
+ * person and the entity is therefore in the reader's own browser. For anything
+ * belonging to a crewmate use {@link gameSheetUrl}.
  */
-export function sheetUrl(
+export function shelfSheetUrl(
   webUrl: string,
-  table: 'pilots' | 'mechs',
+  table: SheetTable,
   appId: string | null
 ): string | null {
   if (appId === null || appId.length === 0) return null
-  const kind = table === 'pilots' ? 'pilot' : 'mech'
-  return `${webUrl.replace(/\/+$/, '')}/sheet/${kind}/${encodeURIComponent(appId)}`
+  return `${webUrl.replace(/\/+$/, '')}/sheet/${kindOf(table)}/${encodeURIComponent(appId)}`
+}
+
+/**
+ * A link to a **crewmate's** entity: the read-only Game view.
+ *
+ * This route is addressed by the Convex row id precisely because the viewer has
+ * no local copy of somebody else's build, and it is the only one that resolves
+ * for them. The crew board and `/su sheet` both previously linked
+ * `/sheet/$kind/$appId` instead, which reads the clicker's own IndexedDB — so
+ * every link the bot handed a crewmate opened an entity they do not have.
+ * Nothing errored; the page simply had nothing to show.
+ */
+export function gameSheetUrl(
+  webUrl: string,
+  gameId: string | null | undefined,
+  table: SheetTable,
+  entityId: string | null | undefined
+): string | null {
+  // Tolerant of an absent id rather than typed-and-trusted: this is a network
+  // payload, and `itun/types.ts` states the rule for exactly this reason — a
+  // field the server stops sending must degrade to "no link", never throw
+  // inside a slash command. A deployment running an older `botClient` sends no
+  // `gameId` at all.
+  if (typeof gameId !== 'string' || gameId.length === 0) return null
+  if (typeof entityId !== 'string' || entityId.length === 0) return null
+  const base = webUrl.replace(/\/+$/, '')
+  return `${base}/games/${encodeURIComponent(gameId)}/view/${kindOf(table)}/${encodeURIComponent(entityId)}`
 }
 
 /** `name` as a markdown link when there is somewhere to go, else bare. */
@@ -341,7 +390,7 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
       value: truncate(
         shelf.pilots
           .map((p) =>
-            maybeLink(name(p.body, ['callsign', 'name']), sheetUrl(webUrl, 'pilots', p.appId))
+            maybeLink(name(p.body, ['callsign', 'name']), shelfSheetUrl(webUrl, 'pilots', p.appId))
           )
           .join('\n'),
         LIMIT.fieldValue
@@ -354,7 +403,7 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
       name: `Mechs (${shelf.mechs.length})`,
       value: truncate(
         shelf.mechs
-          .map((m) => maybeLink(name(m.body, ['name']), sheetUrl(webUrl, 'mechs', m.appId)))
+          .map((m) => maybeLink(name(m.body, ['name']), shelfSheetUrl(webUrl, 'mechs', m.appId)))
           .join('\n'),
         LIMIT.fieldValue
       ),
@@ -376,14 +425,19 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
 }
 
 /** One crewmate's block on the crew board: their pilots, then their mechs. */
-function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: string): string {
+function crewFieldValue(
+  pilots: OwnedEntity[],
+  mechs: OwnedEntity[],
+  webUrl: string,
+  gameId: string
+): string {
   const lines: string[] = []
   for (const pilot of pilots) {
     const stats = pilotStats(pilot.body)
     const dead = stats.maxHp <= 0 || stats.hp === 0
     const pilotName = maybeLink(
       str(pilot.body, 'callsign') ?? 'Pilot',
-      sheetUrl(webUrl, 'pilots', pilot.appId)
+      gameSheetUrl(webUrl, gameId, 'pilots', pilot.id)
     )
     lines.push(`**${pilotName}**${dead ? ' ✖' : ''}`)
     lines.push(`HP ${gauge(stats.hp, stats.maxHp)}`)
@@ -395,7 +449,7 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: str
     const overheated = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
     const mechName = maybeLink(
       str(mech.body, 'name') ?? 'Mech',
-      sheetUrl(webUrl, 'mechs', mech.appId)
+      gameSheetUrl(webUrl, gameId, 'mechs', mech.id)
     )
     lines.push(`${mechName}${destroyed ? ' ✖' : ''}`)
     lines.push(`SP ${gauge(stats.sp, stats.maxSp)}`)
@@ -447,7 +501,10 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
 
   const fields = ordered.slice(0, LIMIT.fields).map((bucket) => ({
     name: truncate(bucket.label, LIMIT.fieldName),
-    value: truncate(crewFieldValue(bucket.pilots, bucket.mechs, webUrl), LIMIT.fieldValue),
+    value: truncate(
+      crewFieldValue(bucket.pilots, bucket.mechs, webUrl, crew.game.gameId),
+      LIMIT.fieldValue
+    ),
     inline: true,
   }))
 
@@ -512,41 +569,339 @@ export function buildChannelEmbed(channel: ChannelResult, webUrl: string): Embed
   }
 }
 
-/** `/su sheet` — a crewmate's sheet, read-only, at a glance. */
+/**
+ * One accent per sheet, mirroring `.sheet--{pilot,mech,crawler}` in
+ * `component-lib`'s `theme.css` (`--color-sheet-*`).
+ *
+ * This is a deliberate amendment to "colour carries one meaning only, and that
+ * meaning is rust". The strip down an embed's left edge is the one thing
+ * Discord renders that a sheet also has, and spending it on the sheet's own
+ * accent is what makes the card read as *a sheet* rather than as another bot
+ * reply. `CRITICAL` still wins wherever both apply — a wrecked mech is a
+ * wrecked mech before it is a mech.
+ */
+const SHEET_ACCENT = {
+  pilots: 0xef894f,
+  mechs: 0x7a978a,
+  crawlers: 0xce5898,
+} as const
+
+/** What a sheet renderer produces, before the shared shell is wrapped round it. */
+type RenderedSheet = {
+  name: string
+  /** Italic identity line — class/chassis/tech level — or '' for none. */
+  subtitle: string
+  fields: EmbedData['fields']
+  thumbnail?: string
+  critical: boolean
+}
+
+/**
+ * Resolve one SRD slug to a linked name.
+ *
+ * Entity bodies store slugs (`classRef: 'salvager'`, `systems: ['armour-
+ * plating']`) and never copies of game data, so a sheet that prints them raw
+ * shows `armour-plating` where the book says *Armour Plating*. The bot already
+ * has the whole dataset in memory — it preloads at startup — so resolving is a
+ * map lookup, not a fetch.
+ *
+ * Falls back to the bare slug rather than dropping the row: a slug the dataset
+ * does not know is still something the player put on their sheet, and hiding it
+ * would make the embed disagree with the app about what they own.
+ */
+function refLink(schemaName: SURefEnumSchemaName, slug: string): string {
+  const entity = findEntityBySlug(schemaName, slug)
+  if (entity === null) return slug
+  return `[${entity.name}](${srdEntityUrl(schemaName, getEntitySlug(entity))})`
+}
+
+/** A resolved display name, or the slug when the dataset does not know it. */
+function refName(schemaName: SURefEnumSchemaName, slug: string | null): string {
+  if (slug === null) return '—'
+  return findEntityBySlug(schemaName, slug)?.name ?? slug
+}
+
+/**
+ * Artwork URL for a slug, or undefined.
+ *
+ * `getAssetUrl` derives it from schema name + slug and returns undefined unless
+ * the entity is flagged `hasArtwork`, so an entity without art omits the
+ * thumbnail rather than pointing Discord at a 404.
+ */
+function refArtwork(schemaName: SURefEnumSchemaName, slug: string | null): string | undefined {
+  if (slug === null) return undefined
+  const entity = findEntityBySlug(schemaName, slug)
+  return entity === null ? undefined : getAssetUrl(entity)
+}
+
+/** Item condition as stored per-slug on a mech body. */
+type ItemCondition = 'intact' | 'damaged' | 'destroyed'
+
+function conditionOf(body: EntityBody, key: string, slug: string): ItemCondition {
+  const map = body[key]
+  if (map === null || typeof map !== 'object') return 'intact'
+  const value = (map as Record<string, unknown>)[slug]
+  return value === 'damaged' || value === 'destroyed' ? value : 'intact'
+}
+
+/**
+ * One collection rendered as lines, condition markers included.
+ *
+ * Damaged and destroyed gear is the difference between a sheet and a roster —
+ * it is what a table actually asks about mid-session — so it rides on the line
+ * rather than being dropped. Destroyed is struck through, which is the closest
+ * Discord gets to the card treatment ADR-009 defines.
+ */
+function collectionLines(
+  slugs: string[],
+  schemaName: SURefEnumSchemaName,
+  body?: EntityBody,
+  conditionKey?: string
+): string {
+  if (slugs.length === 0) return '_None._'
+  return slugs
+    .map((slug) => {
+      const link = refLink(schemaName, slug)
+      if (body === undefined || conditionKey === undefined) return link
+      const condition = conditionOf(body, conditionKey, slug)
+      if (condition === 'damaged') return `${link} · damaged`
+      if (condition === 'destroyed') return `~~${link}~~ · destroyed`
+      return link
+    })
+    .join('\n')
+}
+
+/**
+ * Pilot abilities, grouped by ability tree exactly as the live sheet groups
+ * them under its dashed sub-slabs.
+ *
+ * Faithfulness is the reason, and the field cap is the dividend: a Salvager may
+ * take twelve abilities, and twelve worst-case linked names run past Discord's
+ * 1024-character-per-field limit. One field per tree keeps each comfortably
+ * under it without inventing a pagination scheme the sheet does not have.
+ */
+function abilityFields(slugs: string[]): EmbedData['fields'] {
+  if (slugs.length === 0) {
+    return [{ name: 'Abilities', value: '_None yet._', inline: false }]
+  }
+  const byTree = new Map<string, string[]>()
+  for (const slug of slugs) {
+    const entity = findEntityBySlug('abilities', slug)
+    const tree =
+      entity !== null && typeof (entity as { tree?: unknown }).tree === 'string'
+        ? (entity as { tree: string }).tree
+        : 'Other'
+    const bucket = byTree.get(tree)
+    if (bucket === undefined) byTree.set(tree, [slug])
+    else bucket.push(slug)
+  }
+  return [...byTree.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([tree, treeSlugs]) => ({
+      name: `${tree} — ${treeSlugs.length} known`,
+      value: collectionLines(treeSlugs, 'abilities'),
+      inline: false,
+    }))
+}
+
+/** A `·`-joined run of chips, or null when there are none to show. */
+function chipRun(values: string[]): string | null {
+  const kept = values.filter((v) => v.trim().length > 0)
+  return kept.length > 0 ? kept.join(' · ') : null
+}
+
+/** Identity band + vitals rail + Abilities + Inventory. */
+function pilotSheet(body: EntityBody): RenderedSheet {
+  const stats = pilotStats(body)
+  const classRef = str(body, 'classRef')
+  const fields: EmbedData['fields'] = [
+    { name: 'HP', value: gauge(stats.hp, stats.maxHp), inline: true },
+    { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
+    { name: 'Class', value: refName('classes', classRef), inline: true },
+  ]
+
+  fields.push(...abilityFields(strArray(body, 'abilities')))
+
+  const equipment = strArray(body, 'equipment')
+  fields.push({
+    name: `Inventory — ${equipment.length}`,
+    value: collectionLines(equipment, 'equipment'),
+    inline: false,
+  })
+
+  const conditions = chipRun(strArray(body, 'conditions'))
+  if (conditions !== null) {
+    fields.push({ name: 'Conditions', value: conditions, inline: true })
+  }
+
+  const level = num(body, 'crawlerLevel')
+  const subtitleParts = [refName('classes', classRef)]
+  if (level !== null) subtitleParts.push(`Crawler Level ${level}`)
+  const motto = str(body, 'motto')
+
+  return {
+    name: str(body, 'callsign') ?? str(body, 'name') ?? 'Pilot',
+    subtitle: `*${subtitleParts.join(' · ')}*${motto === null ? '' : `\n> ${motto}`}`,
+    fields,
+    thumbnail: refArtwork('classes', classRef),
+    // Max HP of zero is the app's own "killed in action" condition.
+    critical: stats.maxHp <= 0 || stats.hp === 0,
+  }
+}
+
+/** Identity band + vitals rail + Systems + Modules + The Hold. */
+function mechSheet(body: EntityBody): RenderedSheet {
+  const stats = mechStats(body)
+  const chassisRef = str(body, 'chassisRef')
+  const fields: EmbedData['fields'] = [
+    { name: 'SP', value: gauge(stats.sp, stats.maxSp), inline: true },
+    { name: 'Heat', value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
+    { name: 'Chassis', value: refName('chassis', chassisRef), inline: true },
+  ]
+
+  const systems = strArray(body, 'systems')
+  fields.push({
+    name: `Systems — ${systems.length}`,
+    value: collectionLines(systems, 'systems', body, 'systemConditions'),
+    inline: false,
+  })
+
+  const modules = strArray(body, 'modules')
+  fields.push({
+    name: `Modules — ${modules.length}`,
+    value: collectionLines(modules, 'modules', body, 'moduleConditions'),
+    inline: false,
+  })
+
+  const status = chipRun([
+    body.shutdown === true ? 'Shutdown' : '',
+    body.vulnerable === true ? 'Vulnerable' : '',
+    body.destroyed === true ? 'Destroyed' : '',
+    ...strArray(body, 'conditions'),
+  ])
+  if (status !== null) fields.push({ name: 'Status', value: status, inline: true })
+
+  const quirk = str(body, 'quirk')
+  return {
+    name: str(body, 'name') ?? 'Mech',
+    subtitle: `*${refName('chassis', chassisRef)}*${quirk === null ? '' : `\n> ${quirk}`}`,
+    fields,
+    thumbnail: refArtwork('chassis', chassisRef),
+    critical: body.destroyed === true || stats.sp === 0,
+  }
+}
+
+/**
+ * Identity band + Bays + Scrap Pool.
+ *
+ * Bays are `{ bayRef }` objects rather than bare slugs, which is why this reads
+ * them structurally instead of through `strArray`.
+ */
+function crawlerSheet(body: EntityBody): RenderedSheet {
+  const typeRef = str(body, 'typeRef') ?? str(body, 'type')
+  const techLevel = str(body, 'techLevel')
+  const fields: EmbedData['fields'] = []
+
+  const sp = num(body, 'currentSP', 'currentSp')
+  const maxSp = num(body, 'maxSpOverride')
+  fields.push({
+    name: 'SP',
+    value: maxSp === null ? (sp === null ? '—' : String(sp)) : gauge(sp, maxSp),
+    inline: true,
+  })
+  fields.push({ name: 'Tech Level', value: techLevel ?? '—', inline: true })
+
+  const bayRefs = Array.isArray(body.crawlerBays)
+    ? (body.crawlerBays as unknown[]).flatMap((bay) => {
+        if (bay === null || typeof bay !== 'object') return []
+        const ref = (bay as { bayRef?: unknown }).bayRef
+        return typeof ref === 'string' ? [ref] : []
+      })
+    : []
+  fields.push({
+    name: `Bays — ${bayRefs.length}`,
+    value: collectionLines(bayRefs, 'crawler-bays'),
+    inline: false,
+  })
+
+  const systems = strArray(body, 'systems')
+  if (systems.length > 0) {
+    fields.push({
+      name: `Armament — ${systems.length}`,
+      value: collectionLines(systems, 'systems'),
+      inline: false,
+    })
+  }
+
+  const pool = body.scrapPool
+  if (pool !== null && typeof pool === 'object') {
+    const entries = Object.entries(pool as Record<string, unknown>)
+      .filter(([, v]) => typeof v === 'number' && v > 0)
+      .map(([tier, v]) => `${tier.toUpperCase()} ×${String(v)}`)
+    const run = chipRun(entries)
+    if (run !== null) fields.push({ name: 'Scrap Pool', value: run, inline: false })
+  }
+
+  const subtitleParts = [refName('crawlers', typeRef)]
+  if (techLevel !== null) subtitleParts.push(`Tech Level ${techLevel}`)
+
+  return {
+    name: str(body, 'name') ?? 'Crawler',
+    subtitle: `*${subtitleParts.join(' · ')}*`,
+    fields,
+    thumbnail: refArtwork('crawlers', typeRef),
+    critical: sp === 0,
+  }
+}
+
+/**
+ * `/su sheet` — a crewmate's sheet, folded into an embed.
+ *
+ * The live sheet is an identity band (fields beside a vitals rail) followed by
+ * a stack of section slabs, each led by a stamp title and a count. An embed is
+ * a title, a description, and fields that sit three-across or full width. Those
+ * are the same structure, so the mapping is deliberate and one-to-one:
+ *
+ * - identity band fields   → description
+ * - vitals rail            → inline fields, one gauge each
+ * - section slab + count   → one full-width field, count in the field NAME
+ * - a `ReferenceEntityCard` → one line, linked to the reference site
+ * - sheet accent           → embed colour strip
+ * - reserved image seat    → thumbnail
+ *
+ * The one concession to the medium is the vitals rail, which is a vertical
+ * stack on the sheet and a three-across row here. The crew board already reads
+ * that way, so it is consistent rather than novel.
+ */
 export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
   const body = sheet.body
   const owner = sheet.ownerName ?? UNCLAIMED
 
-  const fields: EmbedData['fields'] =
+  const rendered =
     sheet.table === 'pilots'
-      ? (() => {
-          const stats = pilotStats(body)
-          return [
-            { name: 'HP', value: gauge(stats.hp, stats.maxHp), inline: true },
-            { name: 'AP', value: gauge(stats.ap, stats.maxAp), inline: true },
-            { name: 'Class', value: str(body, 'classRef') ?? '—', inline: true },
-          ]
-        })()
-      : (() => {
-          const stats = mechStats(body)
-          return [
-            { name: 'SP', value: gauge(stats.sp, stats.maxSp), inline: true },
-            { name: 'Heat', value: gauge(stats.heat, stats.maxHeat, '▲'), inline: true },
-            { name: 'Chassis', value: str(body, 'chassisRef') ?? '—', inline: true },
-          ]
-        })()
+      ? pilotSheet(body)
+      : sheet.table === 'mechs'
+        ? mechSheet(body)
+        : crawlerSheet(body)
 
-  const name =
-    sheet.table === 'pilots' ? (str(body, 'callsign') ?? 'Pilot') : (str(body, 'name') ?? 'Mech')
+  const fields = rendered.fields
+  const name = rendered.name
 
-  const url = sheetUrl(webUrl, sheet.table, sheet.appId)
+  const url = gameSheetUrl(webUrl, sheet.gameId, sheet.table, sheet.id)
+  // The crawler is communal — it has no owner to name, and saying "Unclaimed"
+  // would report a missing owner rather than an absent concept (ADR-030 §5).
+  const provenance =
+    sheet.table === 'crawlers' ? 'Communal · read-only' : `Owned by **${owner}** · read-only`
+  const description = [rendered.subtitle, provenance].filter((line) => line.length > 0).join('\n')
+
   return {
     title: truncate(name, LIMIT.title),
     // Omitted rather than dead: an unclaimed entity has nothing to open.
     ...(url === null ? {} : { url }),
-    color: NEUTRAL,
-    description: `Owned by **${owner}** · read-only`,
+    color: rendered.critical ? CRITICAL : SHEET_ACCENT[sheet.table],
+    description,
     fields,
     footer: FOOTER,
+    ...(rendered.thumbnail === undefined ? {} : { thumbnail: rendered.thumbnail }),
   }
 }

@@ -7,6 +7,7 @@ import type {
   ItunResult,
   MeResult,
   SheetResult,
+  SheetTable,
   ShelfResult,
 } from './types.js'
 
@@ -60,7 +61,7 @@ export type ItunClient = {
   sheet(
     discordId: string,
     channelId: string,
-    table: 'pilots' | 'mechs',
+    table: SheetTable,
     entityId: string
   ): Promise<ItunResult<SheetResult>>
   bind(discordId: string, channelId: string, gameId: string): Promise<ItunResult<BindResult>>

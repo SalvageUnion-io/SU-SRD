@@ -98,6 +98,17 @@ export const sheetCommand = {
         name: `${entityLabel(m.body, ['name'])} — mech`,
         value: `mechs:${m.id}`,
       })),
+      // The crawler is communal, so there is at most one and it belongs to
+      // nobody. It was on the crew board and openable nowhere until the server
+      // op learned the `crawlers` table.
+      ...(result.value.crawler === null
+        ? []
+        : [
+            {
+              name: `${entityLabel(result.value.crawler.body, ['name'])} — crawler`,
+              value: `crawlers:${result.value.crawler.id}`,
+            },
+          ]),
     ]
       .filter((choice) => choice.name.toLowerCase().includes(focused))
       .slice(0, 25) // Discord's hard cap on choices.
@@ -122,7 +133,10 @@ export const sheetCommand = {
     // Union Now could not be reached" rather than as "pick from the list".
     const table = separator === -1 ? '' : raw.slice(0, separator)
     const entityId = separator === -1 ? '' : raw.slice(separator + 1)
-    if ((table !== 'pilots' && table !== 'mechs') || entityId.length === 0) {
+    if (
+      (table !== 'pilots' && table !== 'mechs' && table !== 'crawlers') ||
+      entityId.length === 0
+    ) {
       await interaction.reply({
         content: 'Pick an entity from the list rather than typing a name.',
         flags: MessageFlags.Ephemeral,

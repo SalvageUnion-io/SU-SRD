@@ -102,10 +102,22 @@ export type ChannelResult = {
   }
 }
 
+/** The tables `/su sheet` can open. The crawler is communal and has no owner. */
+export type SheetTable = 'pilots' | 'mechs' | 'crawlers'
+
 export type SheetResult = {
-  table: 'pilots' | 'mechs'
+  table: SheetTable
   id: string
   appId: string | null
+  /**
+   * The Game this sheet belongs to.
+   *
+   * Load-bearing for the link: the read-only web view is addressed as
+   * `/games/<gameId>/view/<kind>/<convexId>`, and it is the only route that
+   * resolves a *crewmate's* entity — `/sheet/<kind>/<appId>` reads the clicker's
+   * own IndexedDB, so it opens nothing for anybody but the owner.
+   */
+  gameId: string
   ownerName: string | null
   body: EntityBody
 }

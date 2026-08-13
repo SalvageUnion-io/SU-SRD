@@ -5,10 +5,11 @@ import {
   buildGamesEmbed,
   buildShelfEmbed,
   denialMessage,
+  gameSheetUrl,
   gameUrl,
   gauge,
   ownerLabel,
-  sheetUrl,
+  shelfSheetUrl,
 } from '../gameEmbed.js'
 import type { CrewResult, OwnedEntity } from '../itun/types.js'
 
@@ -309,20 +310,37 @@ describe('deep links', () => {
     expect(gameUrl(WEB, 'g1')).toBe(`${WEB}/games/g1`)
   })
 
-  test('a sheet links by APP id, never by the Convex id', () => {
-    // /sheet/$kind/$id resolves out of IndexedDB by app-level id, so a URL
-    // built from the Convex `_id` opens nothing at all.
-    expect(sheetUrl(WEB, 'pilots', 'app-p1')).toBe(`${WEB}/sheet/pilot/app-p1`)
-    expect(sheetUrl(WEB, 'mechs', 'app-m1')).toBe(`${WEB}/sheet/mech/app-m1`)
+  test('your OWN shelf entity links by app id, into your own browser', () => {
+    // /sheet/$kind/$id resolves out of IndexedDB by app-level id. That is right
+    // for the shelf, where the reader IS the owner and holds the entity.
+    expect(shelfSheetUrl(WEB, 'pilots', 'app-p1')).toBe(`${WEB}/sheet/pilot/app-p1`)
+    expect(shelfSheetUrl(WEB, 'mechs', 'app-m1')).toBe(`${WEB}/sheet/mech/app-m1`)
   })
 
-  test('an entity with no app id has no link at all', () => {
+  test('a shelf entity with no app id has no link at all', () => {
     // Unclaimed server-side entities have no local counterpart to open.
-    expect(sheetUrl(WEB, 'pilots', null)).toBeNull()
-    expect(sheetUrl(WEB, 'pilots', '')).toBeNull()
+    expect(shelfSheetUrl(WEB, 'pilots', null)).toBeNull()
+    expect(shelfSheetUrl(WEB, 'pilots', '')).toBeNull()
   })
 
-  test('the crew board links what it can and leaves the rest bare', () => {
+  test("a CREWMATE's sheet links to the Game view, by Convex id", () => {
+    // The regression this guards: the crew board and /su sheet both used to
+    // emit /sheet/$kind/$appId for other people's entities, which reads the
+    // CLICKER's IndexedDB. A crewmate does not have that entity locally, so
+    // every such link opened an empty page. /games/$gameId/view/... is the
+    // read-only route addressed by the Convex row id precisely because the
+    // viewer has no local copy.
+    expect(gameSheetUrl(WEB, 'g1', 'pilots', 'cx-p1')).toBe(`${WEB}/games/g1/view/pilot/cx-p1`)
+    expect(gameSheetUrl(WEB, 'g1', 'mechs', 'cx-m1')).toBe(`${WEB}/games/g1/view/mech/cx-m1`)
+    expect(gameSheetUrl(WEB, 'g1', 'crawlers', 'cx-c1')).toBe(`${WEB}/games/g1/view/crawler/cx-c1`)
+  })
+
+  test('the game view link needs both ids', () => {
+    expect(gameSheetUrl(WEB, '', 'pilots', 'cx-p1')).toBeNull()
+    expect(gameSheetUrl(WEB, 'g1', 'pilots', '')).toBeNull()
+  })
+
+  test('the crew board links every crewmate into the Game view', () => {
     const embed = buildCrewEmbed(
       {
         game: { gameId: 'g1', name: 'Tenacity' },
@@ -343,10 +361,20 @@ describe('deep links', () => {
       WEB
     )
     const linked = embed.fields.find((f) => f.name.includes('alxjrvs'))?.value ?? ''
-    const bare = embed.fields.find((f) => f.name.includes('Unclaimed'))?.value ?? ''
-    expect(linked).toContain(`${WEB}/sheet/pilot/app-p1`)
-    expect(bare).toContain('Nobody')
-    expect(bare).not.toContain('](')
+    const unclaimed = embed.fields.find((f) => f.name.includes('Unclaimed'))?.value ?? ''
+
+    // By Convex id into the Game view, not by app id into /sheet/…: a crew
+    // board is read by the whole table, and nobody but the owner has the
+    // owner's IndexedDB.
+    expect(linked).toContain(`${WEB}/games/g1/view/pilot/p1`)
+    expect(linked).not.toContain(`${WEB}/sheet/pilot/app-p1`)
+
+    // An UNCLAIMED entity is now linkable, where it previously rendered bare.
+    // That is the point of addressing by row id: the entity exists on the
+    // server whether or not anyone has ever claimed it into a browser, so
+    // there is a real page to open. Only the local route needed an app id.
+    expect(unclaimed).toContain('Nobody')
+    expect(unclaimed).toContain(`${WEB}/games/g1/view/pilot/p2`)
   })
 
   test('the shelf renders an unlinkable entity as a bare name', () => {

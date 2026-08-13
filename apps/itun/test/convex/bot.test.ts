@@ -293,6 +293,107 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     })
     expect(result).toMatchObject({ ok: false, reason: 'not-found' })
   })
+
+  test('widening to crawlers did not open a path to the NPC tray', async () => {
+    // `crawlers` joined the table union so the communal crawler could be
+    // opened. `normalizeId` is what keeps that from being a hole: an
+    // encounterNpcs row lives in the same Game, so a gameId-only check would
+    // now serve it as a crawler.
+    const t = testConvex()
+    const { gameId } = await seedBoundGame(t)
+    const npcId = await t.run(
+      async (ctx) => await ctx.db.insert('encounterNpcs', { gameId, body: { name: 'Ambush' } })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'crawlers',
+      entityId: npcId,
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'not-found' })
+  })
+})
+
+describe('the communal crawler is readable', () => {
+  test('a member may open the crawler, which has no owner at all', async () => {
+    const t = testConvex()
+    const { gameId } = await seedBoundGame(t)
+    const crawlerId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', {
+          gameId,
+          body: { name: 'The Ossuary', techLevel: '3' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'crawlers',
+      entityId: crawlerId,
+    })
+
+    // `ownerName: null` is the crawler being communal (ADR-030 §5), not an
+    // owner lookup that failed. The table has no `ownerId` column to read.
+    expect(result).toMatchObject({
+      ok: true,
+      table: 'crawlers',
+      gameId,
+      ownerName: null,
+      body: { name: 'The Ossuary' },
+    })
+  })
+
+  test('the sheet carries its gameId, so the bot can address the Game view', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedBoundGame(t)
+    const pilotId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId,
+          ownerId: organizer.userId,
+          body: { callsign: 'Rook' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'pilots',
+      entityId: pilotId,
+    })
+    // Without this the bot can only build `/sheet/<kind>/<appId>`, which reads
+    // the CLICKER's IndexedDB and so opens nothing for a crewmate.
+    expect(result).toMatchObject({ ok: true, gameId })
+  })
+
+  test('a crawler belonging to another table is not-found', async () => {
+    const t = testConvex()
+    const { organizer } = await seedBoundGame(t)
+
+    // A second Game this channel is NOT bound to. Membership alone must not
+    // be enough — the entity has to belong to *this channel's* Game.
+    const otherGameId = await organizer.as.mutation(api.games.create, { name: 'Elsewhere' })
+    const foreign = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', {
+          gameId: otherGameId,
+          body: { name: 'Not Yours' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'crawlers',
+      entityId: foreign,
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'not-found' })
+  })
 })
 
 describe('identity comes from the sign-in itself', () => {
