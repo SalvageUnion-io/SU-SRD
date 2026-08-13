@@ -34,6 +34,18 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# EVERY job below declares `timeout-minutes`. GitHub's default is 360 (six
+# hours), so an unbounded job that hangs does not fail — it sits, burning runner
+# minutes and holding the `quality-checks` gate, and therefore the PR, open for
+# the rest of the day. Until now only the two e2e jobs were bounded and the
+# other thirteen were not, which is the same hole that let the nightly
+# observability probe hang undiagnosed: nothing is red, so nothing is read.
+#
+# 15 minutes is deliberately generous — the slowest job on main measures 2.1m,
+# so this is ~7x headroom and will only ever fire on a genuine hang, never on a
+# slow runner. The e2e jobs keep their own 20: they boot a dev server and drive
+# a browser, so their spread is wider. Raise a specific job's number when its
+# real work grows; do not remove the key.
 jobs:
   # ---------------------------------------------------------------------------
   # Path filter — decide which areas a change touches so we can skip heavy jobs
@@ -45,6 +57,7 @@ jobs:
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       itun: ${{ steps.filter.outputs.itun || steps.all.outputs.all }}
       web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
@@ -154,6 +167,7 @@ jobs:
     # Always runs — format:check covers docs (markdown/yaml) too, and the two
     # static design guards below are unconditional by design.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -186,6 +200,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -214,6 +229,7 @@ jobs:
     needs: [changes, build-package]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -228,6 +244,7 @@ jobs:
     needs: [changes, build-package]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -242,6 +259,7 @@ jobs:
     needs: [changes, build-package]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -261,6 +279,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -288,6 +307,7 @@ jobs:
     needs: [changes, build-package]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -386,6 +406,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -404,6 +425,7 @@ jobs:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -428,6 +450,7 @@ jobs:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
     if: needs.changes.outputs.itun == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -458,6 +481,7 @@ jobs:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
     if: needs.changes.outputs.bot == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -630,6 +654,7 @@ jobs:
       # it would race the other workflow, and a poll that times out or 404s
       # reports green — worse than the advisory state it replaced.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Verify no job failed
         run: |

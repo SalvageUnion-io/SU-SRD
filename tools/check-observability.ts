@@ -197,12 +197,52 @@ function checkStatic(app: BrowserApp): void {
  *
  * Retries only what is plausibly transient: network errors and 5xx. A 4xx is a
  * real answer from a working server and is returned immediately.
+ *
+ * ## Both bounds below are load-bearing — the retry ladder outgrew its job
+ *
+ * This policy is deliberately patient, and patience without a ceiling is a
+ * hang. `fetch` has NO default timeout, so one stalled socket blocked the probe
+ * forever; and the ladder costs 1+2+4 = 7s per URL, which across the ~43 chunks
+ * the two apps actually serve is 301s of retrying — just past the job's
+ * `timeout-minutes: 5`. So the nightly job died at exactly its timeout having
+ * printed nothing at all, for a week, while the probe itself was healthy and
+ * finishes in 3-21s locally. The runner saw weather the laptop did not, and the
+ * policy had no way to say so.
+ *
+ * Hence two ceilings, and a distinct error type for the second:
+ *
+ *   REQUEST_TIMEOUT_MS  one attempt cannot stall forever
+ *   PROBE_BUDGET_MS     the whole probe cannot outlive its own job timeout
+ *
+ * Budget exhaustion must NOT be reported as "production is dark". It is a
+ * statement about the probe's network, not about the deploy, and this job opens
+ * a tracking issue — mislabelling it is the cry-wolf failure this retry policy
+ * was written to avoid in the first place.
  */
+const REQUEST_TIMEOUT_MS = 15_000
+const PROBE_BUDGET_MS = 120_000
+const probeDeadline = Date.now() + PROBE_BUDGET_MS
+
+/** The probe ran out of wall-clock. Distinct so it never reads as "SDK absent". */
+class ProbeBudgetExhausted extends Error {
+  constructor(url: string, cause: unknown) {
+    super(
+      `probe budget of ${PROBE_BUDGET_MS / 1000}s exhausted while fetching ${url} ` +
+        `(last error: ${String(cause)})`
+    )
+    this.name = 'ProbeBudgetExhausted'
+  }
+}
+
 async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
   let lastError: unknown = new Error('no attempt made')
   for (let attempt = 0; attempt < attempts; attempt++) {
+    if (Date.now() > probeDeadline) throw new ProbeBudgetExhausted(url, lastError)
     try {
-      const res = await fetch(url, { redirect: 'follow' })
+      const res = await fetch(url, {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
       if (res.status < 500) return res
       lastError = new Error(`HTTP ${res.status}`)
     } catch (error) {
@@ -264,7 +304,11 @@ async function reachableChunks(seeds: string[], origin: string): Promise<Map<str
     let body: string
     try {
       body = await (await fetchWithRetry(url)).text()
-    } catch {
+    } catch (error) {
+      // Running out of budget is NOT "this chunk is missing" — swallowing it
+      // would walk the rest of the queue finding nothing and report the deploy
+      // as dark. Abort and let the caller say what actually happened.
+      if (error instanceof ProbeBudgetExhausted) throw error
       // A single unreachable chunk is not proof of absence; keep looking.
       continue
     }
@@ -295,6 +339,9 @@ async function checkLive(app: BrowserApp): Promise<void> {
   // and a CSP can lag a merge, be overridden in the Netlify UI, or come from a
   // _headers file this repo never sees.
   let servedCsp: string | null = null
+  // Announced BEFORE the first network call, so a stall names the app it stalled
+  // on. Previously the whole job could be killed having printed nothing.
+  console.log(`  [${app.name}] fetching ${app.productionUrl}…`)
   try {
     const res = await fetchWithRetry(app.productionUrl)
     if (!res.ok) {
@@ -304,6 +351,13 @@ async function checkLive(app: BrowserApp): Promise<void> {
     servedCsp = res.headers.get('content-security-policy')
     html = await res.text()
   } catch (error) {
+    // Same distinction the chunk crawl makes: out of budget is a statement
+    // about the probe's own network, and "production unreachable" would point
+    // the resulting tracking issue squarely at an innocent deploy.
+    if (error instanceof ProbeBudgetExhausted) {
+      fail(app.name, `${error.message} — this is a PROBE failure, not evidence the deploy is dark`)
+      return
+    }
     fail(app.name, `production unreachable (${app.productionUrl}): ${String(error)}`)
     return
   }
@@ -316,7 +370,17 @@ async function checkLive(app: BrowserApp): Promise<void> {
 
   // Follow the module graph — the SDK and the inlined DSN routinely land in a
   // chunk the HTML never names (see reachableChunks).
-  const chunks = await reachableChunks(urls, app.productionUrl)
+  let chunks: Map<string, string>
+  try {
+    chunks = await reachableChunks(urls, app.productionUrl)
+  } catch (error) {
+    if (error instanceof ProbeBudgetExhausted) {
+      fail(app.name, `${error.message} — this is a PROBE failure, not evidence the deploy is dark`)
+      return
+    }
+    throw error
+  }
+  console.log(`  [${app.name}] scanned ${chunks.size} chunk(s) from ${urls.length} entry point(s)`)
   let sdkFoundIn: string | null = null
   let dsnHost: string | null = null
   let dsnFoundIn: string | null = null
