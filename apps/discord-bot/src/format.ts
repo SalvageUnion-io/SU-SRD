@@ -59,6 +59,127 @@ export function truncate(text: string, max: number): string {
   return `${cut.slice(0, lastSpace > max * 0.6 ? lastSpace : max - 1)}…`
 }
 
+/**
+ * Discord's embed limits, per the API.
+ *
+ * Lives here rather than in one builder because there are two of them —
+ * `lookupEmbed.ts` and `gameEmbed.ts` — and only the first had these. The
+ * second omitted `footer` and `total` entirely and enforced nothing beyond a
+ * per-field truncate, which was harmless only for as long as its embeds stayed
+ * three fields long. `total` is the one that bites: an embed over 6000 rendered
+ * characters is rejected outright with a 400, so the reply fails rather than
+ * degrading.
+ */
+export const EMBED_LIMIT = {
+  title: 256,
+  description: 4096,
+  fieldName: 256,
+  fieldValue: 1024,
+  fields: 25,
+  footer: 2048,
+  total: 6000,
+} as const
+
+/**
+ * Any embed shape these helpers can trim. Both builders' types structurally
+ * satisfy it, which is why this is a constraint rather than a shared base —
+ * neither builder has to change its own exported type to be enforceable.
+ */
+export type EnforceableEmbed = {
+  title: string
+  url?: string
+  description?: string
+  fields: { name: string; value: string; inline?: boolean }[]
+  footer: string
+}
+
+/**
+ * `truncate` cuts at a character count and knows nothing about markdown, so a
+ * cut can land inside `[label](url)` and Discord then renders the broken syntax
+ * literally. If the tail holds an unterminated link (a trailing `[` with no
+ * complete `](url)` after it), drop back to before that `[`.
+ *
+ * Was private to `lookupEmbed.ts`. Shared because collection fields on a sheet
+ * embed are lists of links and are exactly the thing that hits a cap.
+ */
+export function stripDanglingLink(text: string): string {
+  const lastOpen = text.lastIndexOf('[')
+  if (lastOpen === -1) return text
+  const tail = text.slice(lastOpen)
+  // A complete link at the tail is fine; anything else is a dangling cut.
+  if (/^\[[^\]]*\]\([^)]*\)/.test(tail)) return text
+  return text.slice(0, lastOpen).trimEnd()
+}
+
+/** Rendered length as Discord counts it: title + description + fields + footer. */
+export function embedLength(embed: EnforceableEmbed): number {
+  const fields = embed.fields.reduce((n, f) => n + f.name.length + f.value.length, 0)
+  return embed.title.length + (embed.description?.length ?? 0) + embed.footer.length + fields
+}
+
+/**
+ * Apply every per-element cap: title, description, footer, field names/values,
+ * and the 25-field count. Mutates and returns the same object.
+ *
+ * Field values are link-aware — a value trimmed to `fieldValue` runs through
+ * {@link stripDanglingLink}, because a collection field is a list of markdown
+ * links and truncating one mid-URL is how you ship visible `[Name](https://`.
+ */
+export function enforceElementLimits<T extends EnforceableEmbed>(embed: T): T {
+  embed.title = truncate(embed.title, EMBED_LIMIT.title)
+  embed.footer = truncate(embed.footer, EMBED_LIMIT.footer)
+  if (embed.description !== undefined) {
+    embed.description = truncate(embed.description, EMBED_LIMIT.description)
+  }
+  embed.fields = embed.fields.slice(0, EMBED_LIMIT.fields).map((f) => ({
+    name: truncate(f.name, EMBED_LIMIT.fieldName),
+    value:
+      f.value.length > EMBED_LIMIT.fieldValue
+        ? stripDanglingLink(truncate(f.value, EMBED_LIMIT.fieldValue))
+        : f.value,
+    inline: f.inline,
+  }))
+  return embed
+}
+
+/**
+ * Trim an embed to fit Discord's 6000-character total, shedding whole fields
+ * from the end until it does.
+ *
+ * Fields rather than description, because that is where a sheet keeps its
+ * content — the opposite of `lookupEmbed`, whose body is one long description
+ * and which therefore sheds the other way. Dropping a whole field is
+ * deliberate: half a collection with no indication it was cut is worse than a
+ * sheet that visibly stops, so the last surviving field is replaced with a
+ * marker naming how many sections were dropped.
+ *
+ * The title and footer are never shed. If those alone exceeded the budget the
+ * embed would be unfixable, and they cannot: 256 + 2048 leaves headroom.
+ */
+export function enforceEmbedLimits<T extends EnforceableEmbed>(embed: T): T {
+  enforceElementLimits(embed)
+  if (embedLength(embed) <= EMBED_LIMIT.total) return embed
+
+  const dropped: string[] = []
+  while (embed.fields.length > 0 && embedLength(embed) > EMBED_LIMIT.total) {
+    const last = embed.fields.pop()
+    if (last !== undefined) dropped.push(last.name)
+  }
+  if (dropped.length > 0) {
+    const notice = {
+      name: 'Trimmed',
+      value: `${dropped.length} section${dropped.length === 1 ? '' : 's'} omitted — open the sheet for the rest.`,
+      inline: false,
+    }
+    embed.fields.push(notice)
+    // Adding the notice can itself re-cross the line on a pathological embed.
+    while (embed.fields.length > 1 && embedLength(embed) > EMBED_LIMIT.total) {
+      embed.fields.splice(embed.fields.length - 2, 1)
+    }
+  }
+  return embed
+}
+
 type EmbedData = {
   title: string
   color: number

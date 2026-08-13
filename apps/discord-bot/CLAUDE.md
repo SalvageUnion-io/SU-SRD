@@ -68,6 +68,41 @@ does not exist.
 and cannot compute max HP/SP/Heat, so `gameEmbed.ts` derives them via
 `salvageunion-reference/rules` ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)).
 
+**`/su sheet` is the live sheet folded into an embed.** The mapping is
+deliberate and one-to-one — identity band → description, vitals rail → inline
+fields, section slab → one full-width field with the slab's count in the field
+*name*, `ReferenceEntityCard` → one linked line, sheet accent → colour strip,
+image seat → thumbnail. Two consequences worth knowing before editing it:
+
+- **Slugs are resolved, not printed.** Bodies store `classRef: 'salvager'` and
+  `systems: ['armour-plating']`; the bot has the whole dataset in memory, so
+  these render as the names the book prints, linked to salvageunion.io. An
+  unknown slug falls back to the slug rather than vanishing — the embed must not
+  disagree with the app about what a player owns.
+- **Abilities group by tree**, exactly as the sheet groups them under dashed
+  sub-slabs. That is faithfulness first and a field-cap fix second: a Salvager
+  may take 12 abilities and 12 worst-case linked names exceed Discord's
+  1024-per-field limit, which one field per tree avoids without inventing
+  pagination.
+
+**Per-sheet accents amend "colour carries one meaning".** Pilot / mech / crawler
+take their `--color-sheet-*` tones from `theme.css`; `CRITICAL` still wins where
+both apply. Rust remains the tone for every *non-sheet* embed.
+
+**There are two link shapes, and picking the wrong one silently breaks the
+link.** `shelfSheetUrl` builds `/sheet/<kind>/<appId>`, which resolves out of
+the **clicker's own** IndexedDB — correct only for your own shelf.
+`gameSheetUrl` builds `/games/<gameId>/view/<kind>/<convexId>`, the read-only
+Game view, which is the only route that resolves a **crewmate's** entity.
+`/su crew` and `/su sheet` both used the former and so handed every crewmate a
+link that opened an empty page; neither errored.
+
+**Embed limits are enforced in `toEmbed`, not in the builders.** One choke point
+means a new builder cannot forget, and the builders stay pure `data → EmbedData`.
+`format.ts` owns `EMBED_LIMIT`, `stripDanglingLink` and `enforceEmbedLimits`,
+shared with `lookupEmbed.ts` — which sheds *description* where a sheet sheds
+*fields*, because that is where each keeps its content.
+
 ## Conventions
 
 - Slash commands use Discord.js SlashCommandBuilder

@@ -293,6 +293,16 @@ to the Dashboard is the honest version.
    destroyed/critical state, which reuses the colour
    [ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md) already defines
    rather than inventing a bot palette.
+
+   > **Amended when `/su sheet` became a sheet.** A *sheet* embed now takes its
+   > own sheet's accent — pilot `#EF894F`, mech `#7A978A`, crawler `#CE5898`,
+   > read from the same `--color-sheet-*` tokens `theme.css` defines. The strip
+   > down an embed's left edge is the one element Discord renders that a live
+   > sheet also has, and spending it on the sheet's accent is what makes the
+   > card read as a sheet rather than as another bot reply. This is still not a
+   > bot palette: the values are the design system's, not invented here.
+   > Critical state continues to win wherever both apply, and every non-sheet
+   > embed is still rust.
 5. **Reuse `format.ts` and the existing `LIMIT` budget.** `lookupEmbed.ts`
    already encodes Discord's real limits (25 fields, 1024/field, 6000 total);
    crew boards must respect the same ceiling.
@@ -450,6 +460,34 @@ The _Post to channel_ button was **not** built. `/su crew` is public already —
 the case it was meant to serve — and adding a stateful component before anyone
 has asked to share a sheet is speculative surface. The customId scheme has room
 for a `share` action whenever it earns one.
+
+> **Phase 3b — the sheet became a sheet.** `/su sheet` shipped as three fields
+> (HP/AP/Class, SP/Heat/Chassis) with `classRef` and `chassisRef` printed as raw
+> slugs. It now renders the live sheet region-for-region: resolved and linked
+> entity names, abilities grouped by tree, item conditions, the sheet's accent,
+> and chassis/class artwork as a thumbnail. Three things landed with it:
+>
+> - **The crawler is openable.** `botClient.sheet` typed `table` as
+>   `'pilots' | 'mechs'`, so the crawler appeared on the crew board and could be
+>   opened nowhere. It is communal (no `ownerId`), so it reports no owner rather
+>   than an absent one.
+> - **The deep links were repointed.** Both surfaces linked
+>   `/sheet/<kind>/<appId>`, which resolves out of the **clicker's** IndexedDB —
+>   so every link the bot gave a crewmate opened an empty page, silently. They
+>   now use `/games/<gameId>/view/<kind>/<convexId>`, the read-only Game view,
+>   which is addressed by row id precisely because the viewer has no local copy.
+>   `sheet` gained `gameId` to make that addressable. A side effect worth
+>   knowing: an **unclaimed** entity is now linkable, because it exists
+>   server-side whether or not anybody has claimed it into a browser.
+> - **Embed limits are enforced at all.** `gameEmbed.ts` had no `total` in its
+>   limits and no enforcement pass, so an oversized embed would have been
+>   rejected with a 400 rather than trimmed. `format.ts` now owns the shared
+>   caps, `stripDanglingLink`, and a field-shedding `enforceEmbedLimits` applied
+>   once in `toEmbed`.
+>
+> Measured rather than estimated: a fully-linked pilot embed is ~2000 of 6000
+> characters, so the 6000 total is not the binding constraint — the
+> 1024-per-field cap is, which is what the tree grouping addresses.
 
 ### Phase 4 — Roll attribution ✅
 

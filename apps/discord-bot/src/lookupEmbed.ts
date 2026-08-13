@@ -45,21 +45,18 @@ import {
   srdEntityUrl,
   visiblePatterns,
 } from 'salvageunion-reference'
-import { truncate } from './format.js'
+import { EMBED_LIMIT, stripDanglingLink, truncate } from './format.js'
 
 const NEUTRAL = 0xb7410e
 
-// Discord embed limits (per the API): a single embed's total rendered text
-// across title/description/fields/footer must not exceed 6000 chars.
-const LIMIT = {
-  title: 256,
-  description: 4096,
-  fieldName: 256,
-  fieldValue: 1024,
-  fields: 25,
-  footer: 2048,
-  total: 6000,
-} as const
+/**
+ * Discord embed limits (per the API): a single embed's total rendered text
+ * across title/description/fields/footer must not exceed 6000 chars.
+ *
+ * Now shared with `gameEmbed.ts` via `format.ts`; aliased here so the many
+ * `LIMIT.*` references below read unchanged.
+ */
+const LIMIT = EMBED_LIMIT
 
 export type LookupEmbed = {
   title: string
@@ -313,24 +310,16 @@ function footerFor(entity: SURefEntity): string {
 }
 
 /**
- * A truncation cut can land mid-`[label](url)`, which Discord renders as
- * broken markdown. If the tail holds an unterminated link (a trailing `[`
- * with no complete `](url)` after it), drop it back to before that `[`.
- */
-function stripDanglingLink(text: string): string {
-  const lastOpen = text.lastIndexOf('[')
-  if (lastOpen === -1) return text
-  const tail = text.slice(lastOpen)
-  // A complete link at the tail is fine; anything else is a dangling cut.
-  if (/^\[[^\]]*\]\([^)]*\)/.test(tail)) return text
-  return text.slice(0, lastOpen).trimEnd()
-}
-
-/**
  * Trim an assembled embed to Discord's limits: field caps first (title,
  * field names/values, field count, description), then the 6000-char total —
  * shed trailing description with a link-out note rather than emit an invalid
  * embed. Measures rendered markdown (URLs included).
+ *
+ * Sheds **description**, where `gameEmbed`'s `enforceEmbedLimits` sheds
+ * **fields**. That is not duplication: a lookup entry is one long description
+ * with a few fields beside it, and a sheet is the other way round, so each
+ * trims the part that actually holds its content. `stripDanglingLink` and the
+ * per-element caps are shared via `format.ts`.
  */
 function enforce(embed: LookupEmbed): LookupEmbed {
   embed.title = truncate(embed.title, LIMIT.title)

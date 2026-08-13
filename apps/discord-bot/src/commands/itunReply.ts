@@ -1,6 +1,6 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js'
 import { config } from '../config.js'
-import { BRAND_NAME } from '../format.js'
+import { BRAND_NAME, enforceEmbedLimits } from '../format.js'
 import type { EmbedData } from '../gameEmbed.js'
 import { denialMessage } from '../gameEmbed.js'
 import type { ItunClient } from '../itun/client.js'
@@ -73,16 +73,30 @@ export const SOLO_NOTICE = [
   'deployment.',
 ].join('\n')
 
-/** Turn pure `EmbedData` into a discord.js embed, branded like every other. */
+/**
+ * Turn pure `EmbedData` into a discord.js embed, branded like every other.
+ *
+ * This is where Discord's limits are enforced, rather than in each builder.
+ * One choke point means a new builder cannot forget: every `EmbedData` in the
+ * bot becomes a real embed here and nowhere else. Keeping it out of the
+ * builders also keeps them pure `data → EmbedData`, which is what makes them
+ * testable without a Discord client.
+ *
+ * `enforceEmbedLimits` mutates, which is safe precisely because the argument is
+ * always a freshly-built literal from a `build*Embed` call.
+ */
 export function toEmbed(data: EmbedData, iconURL?: string): EmbedBuilder {
+  const safe = enforceEmbedLimits(data)
   const embed = new EmbedBuilder()
-    .setTitle(data.title)
-    .setColor(data.color)
-    .addFields(data.fields)
-    .setFooter({ text: data.footer })
+    .setTitle(safe.title)
+    .setColor(safe.color)
+    .addFields(safe.fields)
+    .setFooter({ text: safe.footer })
     .setTimestamp()
-  if (data.description) embed.setDescription(data.description)
-  if (data.url) embed.setURL(data.url)
+  if (safe.description) embed.setDescription(safe.description)
+  if (safe.url) embed.setURL(safe.url)
+  // Remote CDN URL, never an attachment — see `EmbedData.thumbnail`.
+  if (safe.thumbnail) embed.setThumbnail(safe.thumbnail)
   if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
   return embed
 }

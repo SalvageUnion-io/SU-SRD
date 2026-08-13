@@ -266,15 +266,22 @@ export const crew = internalQuery({
  * One crewmate's sheet, read-only.
  *
  * Membership is the whole check — inside a Game you may read any crewmate's
- * pilot or mech, which is what "lean over and look at their sheet" means at a
- * physical table. The entity must belong to *this channel's* Game, so a
- * member of one table cannot read another table's sheets by id.
+ * pilot, mech or the communal crawler, which is what "lean over and look at
+ * their sheet" means at a physical table. The entity must belong to *this
+ * channel's* Game, so a member of one table cannot read another table's sheets
+ * by id.
+ *
+ * `crawlers` joined the union after the fact. It was reachable on the crew
+ * board and openable nowhere, which made the crawler the one thing a table
+ * could see and not inspect. It carries **no `ownerId` at all** (it is
+ * communal, ADR-030 §5), so ownership is read off the row optionally rather
+ * than assumed present — a crawler reports no owner rather than an absent one.
  */
 export const sheet = internalQuery({
   args: {
     discordId: v.string(),
     channelId: v.string(),
-    table: v.union(v.literal('pilots'), v.literal('mechs')),
+    table: v.union(v.literal('pilots'), v.literal('mechs'), v.literal('crawlers')),
     entityId: v.string(),
   },
   handler: async (ctx, args): Promise<Failure | Success<Record<string, unknown>>> => {
@@ -295,7 +302,8 @@ export const sheet = internalQuery({
 
     const row = doc as unknown as {
       gameId: Id<'games'> | null
-      ownerId: Id<'users'> | null
+      // Optional, not nullable: `crawlers` has no such column at all.
+      ownerId?: Id<'users'> | null
       appId?: string
     }
     // Not `forbidden` — telling somebody an id exists but is another table's is
@@ -303,12 +311,18 @@ export const sheet = internalQuery({
     if (row.gameId !== actor.value.gameId) return fail('not-found')
 
     const names = await ownerNames(ctx, actor.value.gameId)
+    const ownerId = row.ownerId ?? null
     return {
       ok: true,
       table: args.table,
       id: args.entityId,
       appId: row.appId ?? null,
-      ownerName: row.ownerId === null ? null : (names.get(row.ownerId) ?? null),
+      // The Game this sheet belongs to, so the bot can address the read-only
+      // web view (`/games/<gameId>/view/…`). Without it the bot could only
+      // build the local `/sheet/<kind>/<appId>` URL, which resolves out of the
+      // clicker's own IndexedDB and so opens nothing for a crewmate.
+      gameId: actor.value.gameId,
+      ownerName: ownerId === null ? null : (names.get(ownerId) ?? null),
       body: (doc as unknown as { body: unknown }).body,
     }
   },
