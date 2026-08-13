@@ -53,6 +53,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './maintenance.ts': () => import('../../convex/maintenance'),
   './ownership.ts': () => import('../../convex/ownership'),
   './proposals.ts': () => import('../../convex/proposals'),
+  './publicSheet.ts': () => import('../../convex/publicSheet'),
   './templates.ts': () => import('../../convex/templates'),
   './model/bot.ts': () => import('../../convex/model/bot'),
   './model/entities.ts': () => import('../../convex/model/entities'),

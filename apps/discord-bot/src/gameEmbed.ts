@@ -227,6 +227,28 @@ function kindOf(table: SheetTable): string {
 }
 
 /**
+ * The public, account-free URL for a sheet — or null when it has none.
+ *
+ * Null is the common case and the safe default. `publicRead` is opt-in per
+ * entity (ADR-032), so a sheet nobody has published has no public page at all
+ * and this must not invent one: `/p/…` for an unpublished entity renders "this
+ * sheet isn't available", so linking it would advertise a dead page.
+ *
+ * Addressed by `appId` rather than the Convex row id, which is what the route
+ * takes and what this payload already carries.
+ */
+export function publicSheetUrl(
+  webUrl: string,
+  table: SheetTable,
+  appId: string | null,
+  publicRead: boolean
+): string | null {
+  if (!publicRead) return null
+  if (appId === null || appId.length === 0) return null
+  return `${webUrl.replace(/\/+$/, '')}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
+}
+
+/**
  * A link to **your own** entity, or null when there is nothing to open.
  *
  * Takes the **app-level** id, never the Convex `_id`: `/sheet/$kind/$id`
@@ -886,6 +908,17 @@ export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
 
   const fields = rendered.fields
   const name = rendered.name
+
+  // Only when the owner has actually published it. A sheet with no public URL
+  // gets no Share field at all — not a disabled one, and not a link that 404s.
+  const publicUrl = publicSheetUrl(webUrl, sheet.table, sheet.appId, sheet.publicRead)
+  if (publicUrl !== null) {
+    fields.push({
+      name: 'Share',
+      value: `[Public sheet](${publicUrl}) — always current, no account needed`,
+      inline: false,
+    })
+  }
 
   const url = gameSheetUrl(webUrl, sheet.gameId, sheet.table, sheet.id)
   // The crawler is communal — it has no owner to name, and saying "Unclaimed"

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Start here for navigation:** [`docs/README.md`](docs/README.md) maps user intent → relevant doc (architecture, ADRs, per-package CLAUDE.md).
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **31 of them** (ADR-001 through ADR-031). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028). The three that govern:
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **32 of them** (ADR-001 through ADR-032). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028). The three that govern:
   - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record for identity/ownership/sharing. **Supersedes ADR-001** (local-first, no backend, no auth) and amends ADR-022. Decision accepted; delivery is phased — see [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md) for what has actually landed.
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**. ADR-030 adds an ownership axis to it without changing its enforcement modes.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.

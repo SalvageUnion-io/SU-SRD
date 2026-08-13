@@ -144,6 +144,18 @@ export const sheetCommand = {
       return
     }
 
+    // EPHEMERAL, ALWAYS — never `visibility: 'public'`.
+    //
+    // Most sheets are private (ADR-032 makes a public URL opt-in and off by
+    // default), so a public reply would post a sheet into the channel that has
+    // no shareable page behind it: readers would see somebody's build, and any
+    // link they tried to follow would 404. Reading is private; publishing is
+    // the owner's separate, deliberate act.
+    //
+    // The default here is ephemeral, so this is a comment rather than a flag —
+    // and `sheetVisibility.test.ts` holds it, because "someone adds
+    // visibility: 'public' to make sharing easier" is exactly the plausible
+    // future change that would break it silently.
     await respondWithItun(interaction, {
       call: (client) => client.sheet(interaction.user.id, channelId, table, entityId),
       render: (value) => buildSheetEmbed(value, config.itunWebUrl),

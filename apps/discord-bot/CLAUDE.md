@@ -97,6 +97,15 @@ Game view, which is the only route that resolves a **crewmate's** entity.
 `/su crew` and `/su sheet` both used the former and so handed every crewmate a
 link that opened an empty page; neither errored.
 
+**`/su sheet` is ephemeral, always — and that is a rule, not a default.** Most
+sheets are private ([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)
+makes a public URL opt-in and off by default), so replying publicly would post a
+build into the channel with no shareable page behind it and every link on it
+404ing. The Share field appears **only** when the server reports
+`publicRead: true`, and the reply stays ephemeral even then — publishing a page
+is the owner's act; posting it to this channel is not the asker's to make on
+their behalf. `src/__tests__/sheetVisibility.test.ts` holds both halves.
+
 **Embed limits are enforced in `toEmbed`, not in the builders.** One choke point
 means a new builder cannot forget, and the builders stay pure `data → EmbedData`.
 `format.ts` owns `EMBED_LIMIT`, `stripDanglingLink` and `enforceEmbedLimits`,

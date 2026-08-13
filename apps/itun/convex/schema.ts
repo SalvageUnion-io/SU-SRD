@@ -268,6 +268,19 @@ export default defineSchema({
      * counterpart until somebody claims them.
      */
     appId: v.optional(v.string()),
+    /**
+     * Whether this entity is readable by anybody, with no account
+     * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
+     *
+     * A column rather than a body field because it is a **visibility** fact,
+     * which is server state in the same way `gameId` and `ownerId` are — and
+     * because the body is `v.any()`, so nothing here could enforce it.
+     *
+     * Absent means not public. That is the existing rule (ADR-030 §5:
+     * visibility begins at membership) and therefore the correct default for
+     * every row that already exists.
+     */
+    publicRead: v.optional(v.boolean()),
     body: v.any(),
     updatedAt: v.number(),
   })
@@ -291,6 +304,19 @@ export default defineSchema({
      * counterpart until somebody claims them.
      */
     appId: v.optional(v.string()),
+    /**
+     * Whether this entity is readable by anybody, with no account
+     * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
+     *
+     * A column rather than a body field because it is a **visibility** fact,
+     * which is server state in the same way `gameId` and `ownerId` are — and
+     * because the body is `v.any()`, so nothing here could enforce it.
+     *
+     * Absent means not public. That is the existing rule (ADR-030 §5:
+     * visibility begins at membership) and therefore the correct default for
+     * every row that already exists.
+     */
+    publicRead: v.optional(v.boolean()),
     body: v.any(),
     updatedAt: v.number(),
   })
@@ -308,6 +334,19 @@ export default defineSchema({
     gameId: v.id('games'),
     /** See `pilots.appId` — same reason, same lookup path. */
     appId: v.optional(v.string()),
+    /**
+     * Whether this entity is readable by anybody, with no account
+     * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
+     *
+     * A column rather than a body field because it is a **visibility** fact,
+     * which is server state in the same way `gameId` and `ownerId` are — and
+     * because the body is `v.any()`, so nothing here could enforce it.
+     *
+     * Absent means not public. That is the existing rule (ADR-030 §5:
+     * visibility begins at membership) and therefore the correct default for
+     * every row that already exists.
+     */
+    publicRead: v.optional(v.boolean()),
     body: v.any(),
     updatedAt: v.number(),
   })

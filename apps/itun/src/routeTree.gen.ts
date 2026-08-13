@@ -26,6 +26,7 @@ import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
+import { Route as PKindAppIdRouteImport } from './routes/p.$kind.$appId'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.share'
 import { Route as GamesGameIdViewKindEntityIdRouteImport } from './routes/games_.$gameId_.view.$kind.$entityId'
@@ -115,6 +116,11 @@ const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
   path: '/mechs/patterns/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PKindAppIdRoute = PKindAppIdRouteImport.update({
+  id: '/p/$kind/$appId',
+  path: '/p/$kind/$appId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SheetKindIdRoute = SheetKindIdRouteImport.update({
   id: '/sheet/$kind/$id',
   path: '/sheet/$kind/$id',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
+  '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
+  '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
+  '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id_/share': typeof SheetKindIdShareRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
+    | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
     | '/sheet/$kind/$id/share'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
+    | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/mechs/patterns'
     | '/sheet/$kind/$id/share'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
+    | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
     | '/sheet/$kind/$id_/share'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   PilotsIdRoute: typeof PilotsIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
   SIdRoute: typeof SIdRoute
+  PKindAppIdRoute: typeof PKindAppIdRoute
   SheetKindIdRoute: typeof SheetKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
   SheetKindIdShareRoute: typeof SheetKindIdShareRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MechsPatternsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$kind/$appId': {
+      id: '/p/$kind/$appId'
+      path: '/p/$kind/$appId'
+      fullPath: '/p/$kind/$appId'
+      preLoaderRoute: typeof PKindAppIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sheet/$kind/$id': {
       id: '/sheet/$kind/$id'
       path: '/sheet/$kind/$id'
@@ -453,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
   PilotsIdRoute: PilotsIdRoute,
   PilotsNewRoute: PilotsNewRoute,
   SIdRoute: SIdRoute,
+  PKindAppIdRoute: PKindAppIdRoute,
   SheetKindIdRoute: SheetKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
   SheetKindIdShareRoute: SheetKindIdShareRoute,

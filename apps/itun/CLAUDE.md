@@ -13,9 +13,22 @@ supersedes ADR-001):
   IndexedDB becomes a cache. Offline means **read-only**, not a write queue.
 
 Resolve the mode through `src/lib/connection/` — never by reading
-`navigator.onLine` or an auth flag directly. Snapshot sharing
-([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md)) is unchanged
-and remains the account-free way to share a build.
+`navigator.onLine` or an auth flag directly.
+
+**Two account-free ways to share, and they are not interchangeable
+([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)):**
+
+- **Snapshot** ([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md))
+  — a **frozen** copy, minted per share, stored as an opaque Netlify Blob. Its
+  id is the whole capability, including for revocation. Unchanged.
+- **Public sheet** — a **live** read-only page at `/p/:kind/:appId`, opt-in per
+  entity via the `publicRead` Convex column, addressed by app id, and served by
+  one deliberately unauthenticated query (`convex/publicSheet.ts`). Off by
+  default; turning it off revokes everywhere at once, because the URL is derived
+  rather than minted.
+
+Both render through `frozenSheet.ts`, which the Game crew view also uses — three
+consumers, one renderer. Don't add a fourth read-only sheet renderer.
 
 ## Stack
 
