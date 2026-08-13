@@ -30,6 +30,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
+import { cn } from '../../lib/utils'
 
 type PublicSheetPanelProps = {
   kind: 'pilot' | 'mech' | 'crawler'
@@ -37,9 +38,17 @@ type PublicSheetPanelProps = {
   appId: string
   entityName: string
   headingClass?: string
+  /** Grid placement from the parent — see its use in ShareSnapshotScreen. */
+  className?: string
 }
 
-export function PublicSheetPanel({ kind, appId, entityName, headingClass }: PublicSheetPanelProps) {
+export function PublicSheetPanel({
+  kind,
+  appId,
+  entityName,
+  headingClass,
+  className,
+}: PublicSheetPanelProps) {
   const setPublic = useMutation(api.publicSheet.setPublic)
   const published = useQuery(api.publicSheet.get, { kind, appId })
   const [busy, setBusy] = useState(false)
@@ -75,7 +84,7 @@ export function PublicSheetPanel({ kind, appId, entityName, headingClass }: Publ
   }
 
   return (
-    <Panel className="p-4 sm:p-5">
+    <Panel className={cn('p-4 sm:p-5', className)}>
       <h2 className={headingClass}>Public sheet</h2>
 
       <p className="text-wk-muted mb-3 font-body text-caption leading-relaxed">

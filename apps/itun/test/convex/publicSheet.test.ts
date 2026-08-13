@@ -267,6 +267,43 @@ describe('a published mech carries its pilot’s contributions', () => {
     expect(result?.pilotAbilities).toEqual([])
   })
 
+  test('refuses to follow a link pointed at a stranger’s pilot', async () => {
+    // `upsertSoftLink` validates only the `from` anchor and `to.id` is a
+    // free-form string, so anyone can point a link from their own published
+    // mech at any pilot's appId. Without an ownership check this
+    // unauthenticated query would read that stranger's abilities back out.
+    const t = testConvex()
+    const attacker = await makeUser(t, 'Attacker')
+    const victim = await makeUser(t, 'Victim')
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId: null,
+        ownerId: victim.userId,
+        appId: 'victim-pilot',
+        body: { callsign: 'Mark', abilities: ['secret-ability'] },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('mechs', {
+        gameId: null,
+        ownerId: attacker.userId,
+        appId: 'attacker-mech',
+        publicRead: true,
+        body: { name: 'Bait', chassisRef: 'mule' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('softLinks', {
+        gameId: null,
+        from: { type: 'mech', id: 'attacker-mech' },
+        to: { type: 'pilot', id: 'victim-pilot' },
+        type: 'mech-to-pilot',
+      })
+    })
+
+    const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'attacker-mech' })
+    expect(result?.pilotAbilities).toEqual([])
+  })
+
   test('a pilot sheet carries no pilotAbilities key at all', async () => {
     // Only a mech has a piloting context; emitting an empty array everywhere
     // would imply the concept applies where it does not.

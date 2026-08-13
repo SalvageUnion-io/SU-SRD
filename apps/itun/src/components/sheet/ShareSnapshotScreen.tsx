@@ -323,6 +323,13 @@ export function ShareSnapshotScreen({
             appId={id}
             entityName={entity.name}
             headingClass={PANEL_HEADING_CLASS}
+            // `lg:col-start-1` is load-bearing, not cosmetic. This is a third
+            // direct child of a two-column grid, so auto-placement would put it
+            // in the 360px rail and push the existing aside down into the wide
+            // column — quietly relaying a screen this change is not meant to
+            // touch. Pinning it to column one keeps it under the preview, where
+            // it belongs, and leaves the rail alone.
+            className="lg:col-start-1"
           />
         )}
 

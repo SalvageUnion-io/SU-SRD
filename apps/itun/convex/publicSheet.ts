@@ -90,9 +90,7 @@ export const get = query({
     return {
       kind: args.kind,
       body: row.body,
-      ...(args.kind === 'mech'
-        ? { pilotAbilities: await pilotAbilitiesForMech(ctx, args.appId) }
-        : {}),
+      ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
     }
   },
 })
@@ -115,8 +113,24 @@ export const get = query({
  * pilot — not their name, not their existence, only a set of ability slugs
  * already implied by the mech's own numbers. Requiring the pilot to be public
  * too would silently give a wrong maximum, which is the bug this exists to fix.
+ *
+ * It DOES check that the pilot actually belongs with the mech, and that check
+ * is load-bearing. `upsertSoftLink` validates only the `from` anchor — wiring
+ * your own mech to a crewmate's pilot is your business — and `to.id` is a
+ * free-form string. So without this, anyone could point a link from their own
+ * published mech at an arbitrary pilot's `appId` and have this unauthenticated
+ * query read that stranger's abilities back out. The "discloses no pilot"
+ * argument above only holds while the linked pilot is genuinely this mech's
+ * pilot, so that is required rather than assumed.
  */
-async function pilotAbilitiesForMech(ctx: QueryCtx, mechAppId: string): Promise<string[]> {
+async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Promise<string[]> {
+  // Takes the row union rather than `Doc<'mechs'>` because `args.kind` and the
+  // row's table are correlated in fact but not in the type system, and a cast
+  // to bridge that would be a worse trade than reading three fields
+  // structurally. `ownerId` is absent on crawlers, which this handles.
+  const mechAppId = mech.appId
+  if (mechAppId === undefined) return []
+
   const link = (
     await ctx.db
       .query('softLinks')
@@ -128,7 +142,21 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mechAppId: string): Promise<
   // Soft links address entities by APP id (ADR-027), the same id this route
   // takes — not by Convex row id.
   const pilot = await byAppId(ctx, 'pilots', link.to.id)
-  const abilities = (pilot?.body as { abilities?: unknown } | undefined)?.abilities
+  if (pilot === null) return []
+
+  // Same owner, or same Game. Either makes the pair a real pilot-and-mech;
+  // neither is satisfiable by pointing a link at a stranger's id.
+  //
+  // Both ends are read through an `in` guard because `byAppId` returns the row
+  // union — `crawlers` has no `ownerId` column at all — and narrowing it by the
+  // table argument is not something Convex's index typing survives.
+  const mechOwnerId = 'ownerId' in mech ? mech.ownerId : null
+  const pilotOwnerId = 'ownerId' in pilot ? pilot.ownerId : null
+  const sameOwner = pilotOwnerId !== null && pilotOwnerId === mechOwnerId
+  const sameGame = mech.gameId !== null && pilot.gameId === mech.gameId
+  if (!sameOwner && !sameGame) return []
+
+  const abilities = (pilot.body as { abilities?: unknown }).abilities
   return Array.isArray(abilities) ? abilities.filter((a): a is string => typeof a === 'string') : []
 }
 
