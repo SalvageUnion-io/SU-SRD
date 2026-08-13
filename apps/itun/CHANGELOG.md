@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.5.1...itun-v1.6.0) (2026-08-13)
+
+
+### Features
+
+* **bot:** fold the live sheet into /su sheet, and unbreak its links ([#753](https://github.com/SalvageUnion-io/SU-SRD/issues/753)) ([cd1b38c](https://github.com/SalvageUnion-io/SU-SRD/commit/cd1b38c36ae86ba2881632a8e3c6ded98b12a800))
+
 ## [1.5.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.5.0...itun-v1.5.1) (2026-08-13)
 
 
