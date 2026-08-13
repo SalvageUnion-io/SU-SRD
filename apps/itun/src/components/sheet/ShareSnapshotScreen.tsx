@@ -323,18 +323,26 @@ export function ShareSnapshotScreen({
             appId={id}
             entityName={entity.name}
             headingClass={PANEL_HEADING_CLASS}
-            // `lg:col-start-1` is load-bearing, not cosmetic. This is a third
-            // direct child of a two-column grid, so auto-placement would put it
-            // in the 360px rail and push the existing aside down into the wide
-            // column — quietly relaying a screen this change is not meant to
-            // touch. Pinning it to column one keeps it under the preview, where
-            // it belongs, and leaves the rail alone.
-            className="lg:col-start-1"
+            // Load-bearing, not cosmetic. This is a third direct child of a
+            // two-column grid, so auto-placement would drop it into the 360px
+            // rail and push the existing aside into the wide column — quietly
+            // relaying a screen this change is not meant to touch. Pinning this
+            // to column one is only half the fix: sparse auto-placement leaves
+            // the cursor past it, so the aside must be pinned too (see below)
+            // or it lands on row two with an empty cell above it.
+            className="lg:col-start-1 lg:row-start-2"
           />
         )}
 
-        {/* Aside — anonymous link, QR, print */}
-        <aside className="flex flex-col gap-5">
+        {/*
+          Aside — anonymous link, QR, print.
+
+          Explicitly pinned to the rail's top cell. The public-sheet panel above
+          is placed by hand, which leaves grid auto-placement's cursor past it,
+          so without this the rail would start on row two with an empty cell
+          above it. Both are pinned or neither works.
+        */}
+        <aside className="flex flex-col gap-5 lg:col-start-2 lg:row-start-1">
           <Panel className="p-4 sm:p-5">
             <h2 className={PANEL_HEADING_CLASS}>Anonymous link</h2>
 

@@ -913,7 +913,14 @@ export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
   // gets no Share field at all — not a disabled one, and not a link that 404s.
   const publicUrl = publicSheetUrl(webUrl, sheet.table, sheet.appId, sheet.publicRead)
   if (publicUrl !== null) {
-    fields.push({
+    // Inserted after the vitals rail rather than appended, because
+    // `enforceEmbedLimits` sheds from the END. Appended, this would be the
+    // FIRST thing dropped on a large sheet — a Salvager with many ability
+    // trees, a fully-fitted crawler — and it would be counted in the "N
+    // sections omitted" notice as though it were a section of the sheet. The
+    // one link that works without an account should not be the one that goes.
+    const afterVitals = fields.findIndex((f) => !f.inline)
+    fields.splice(afterVitals === -1 ? fields.length : afterVitals, 0, {
       name: 'Share',
       value: `[Public sheet](${publicUrl}) — always current, no account needed`,
       inline: false,

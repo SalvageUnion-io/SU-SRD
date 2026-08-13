@@ -144,8 +144,16 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   const pilot = await byAppId(ctx, 'pilots', link.to.id)
   if (pilot === null) return []
 
-  // Same owner, or same Game. Either makes the pair a real pilot-and-mech;
-  // neither is satisfiable by pointing a link at a stranger's id.
+  // The pilot must be the mech owner's own, or unclaimed alongside it.
+  //
+  // "Same Game" is deliberately NOT enough. `upsertSoftLink` validates only the
+  // `from` anchor, so a member could point a link from their own mech at a
+  // crewmate's pilot, publish the mech, and have this hand that pilot's
+  // abilities to anonymous readers. Members can already read each other's
+  // sheets inside a Game — but republishing that outside the membership
+  // boundary is the owner's call, which is the whole consent argument this
+  // module rests on. An unclaimed pilot in the same Game has no owner to ask
+  // and is already visible to the table, so it stays allowed.
   //
   // Both ends are read through an `in` guard because `byAppId` returns the row
   // union — `crawlers` has no `ownerId` column at all — and narrowing it by the
@@ -153,8 +161,9 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   const mechOwnerId = 'ownerId' in mech ? mech.ownerId : null
   const pilotOwnerId = 'ownerId' in pilot ? pilot.ownerId : null
   const sameOwner = pilotOwnerId !== null && pilotOwnerId === mechOwnerId
-  const sameGame = mech.gameId !== null && pilot.gameId === mech.gameId
-  if (!sameOwner && !sameGame) return []
+  const unclaimedInSameGame =
+    pilotOwnerId === null && mech.gameId !== null && pilot.gameId === mech.gameId
+  if (!sameOwner && !unclaimedInSameGame) return []
 
   const abilities = (pilot.body as { abilities?: unknown }).abilities
   return Array.isArray(abilities) ? abilities.filter((a): a is string => typeof a === 'string') : []
@@ -174,7 +183,8 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
 async function assertMayPublish(
   ctx: MutationCtx,
   row: Doc<PublicTable>,
-  userId: Id<'users'>
+  userId: Id<'users'>,
+  isPublic: boolean
 ): Promise<void> {
   if (!('ownerId' in row)) {
     // `crawlers.gameId` is `v.id('games')` and never null — a crawler is always
@@ -185,6 +195,15 @@ async function assertMayPublish(
   }
   if (row.ownerId === userId) return
   if (row.ownerId === null) {
+    // **Unclaimed blocks publishing, never UN-publishing.** Mirroring
+    // `assertMayWrite` here was wrong in one direction: `ownership.release` and
+    // the leave-Game sweep both null an `ownerId` on a row that is still in the
+    // Game, so a published sheet whose owner walks away would have become
+    // permanently un-revocable — still served to anonymous readers, with "Stop
+    // sharing" refusing for as long as nobody reassigned it. That directly
+    // falsifies what ADR-032 §6 and the panel copy both promise. Withdrawal is
+    // always allowed; it can only ever reduce what is exposed.
+    if (!isPublic) return
     throw new NotAuthorized(
       'That entity is unclaimed — it must be assigned before it can be shared'
     )
@@ -207,7 +226,7 @@ export const setPublic = mutation({
     const row = await byAppId(ctx, table, args.appId)
     if (row === null) throw new NotAuthorized('That entity no longer exists')
 
-    await assertMayPublish(ctx, row, userId)
+    await assertMayPublish(ctx, row, userId, args.isPublic)
 
     // Parse before publishing, exactly as every other mutation parses before
     // persisting (ADR-030): the Zod schemas in `src/lib/schemas/` are the

@@ -135,6 +135,34 @@ describe('only the owner may publish', () => {
     ).rejects.toThrow()
   })
 
+  test('an unclaimed entity can still be UN-published', async () => {
+    // The revocation promise has to survive the owner walking away.
+    // `ownership.release` and the leave-Game sweep both null an `ownerId` on a
+    // row that is still in the Game, so refusing every call on an unclaimed
+    // entity would leave a published sheet permanently world-readable with
+    // "Stop sharing" refusing forever.
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    const rowId = await seedPilot(t, owner.userId, 'abandoned')
+
+    await owner.as.mutation(api.publicSheet.setPublic, {
+      kind: 'pilot',
+      appId: 'abandoned',
+      isPublic: true,
+    })
+    // The owner leaves; the row is released and keeps serving.
+    await t.run(async (ctx) => ctx.db.patch(rowId, { ownerId: null }))
+    expect(await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'abandoned' })).not.toBeNull()
+
+    // Withdrawal is always allowed — it can only ever reduce what is exposed.
+    await owner.as.mutation(api.publicSheet.setPublic, {
+      kind: 'pilot',
+      appId: 'abandoned',
+      isPublic: false,
+    })
+    expect(await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'abandoned' })).toBeNull()
+  })
+
   test('an unclaimed entity cannot be published by anyone', async () => {
     // Making a character world-readable is the owner's call, and an unclaimed
     // entity has no owner to make it.
@@ -302,6 +330,78 @@ describe('a published mech carries its pilot’s contributions', () => {
 
     const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'attacker-mech' })
     expect(result?.pilotAbilities).toEqual([])
+  })
+
+  test('refuses to expose a CREWMATE’s pilot to anonymous readers', async () => {
+    // Members can already read each other's sheets inside a Game. Republishing
+    // that outside the membership boundary is the pilot owner's call, and
+    // `upsertSoftLink` validates only the `from` anchor — so "same Game" is not
+    // enough to follow the link.
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+    const crewmate = await makeUser(t, 'Crewmate')
+    const gameId = await me.as.mutation(api.games.create, { name: 'Tenacity' })
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: crewmate.userId,
+        appId: 'crewmate-pilot',
+        body: { callsign: 'Theirs', abilities: ['their-ability'] },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('mechs', {
+        gameId,
+        ownerId: me.userId,
+        appId: 'my-mech',
+        publicRead: true,
+        body: { name: 'Mine', chassisRef: 'mule' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('softLinks', {
+        gameId,
+        from: { type: 'mech', id: 'my-mech' },
+        to: { type: 'pilot', id: 'crewmate-pilot' },
+        type: 'mech-to-pilot',
+      })
+    })
+
+    const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'my-mech' })
+    expect(result?.pilotAbilities).toEqual([])
+  })
+
+  test('still follows a link to an UNCLAIMED pilot in the same game', async () => {
+    // No owner to ask, and already visible to the whole table.
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+    const gameId = await me.as.mutation(api.games.create, { name: 'Tenacity' })
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: null,
+        appId: 'spare-pilot',
+        body: { callsign: 'Spare', abilities: ['beefcake'] },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('mechs', {
+        gameId,
+        ownerId: me.userId,
+        appId: 'my-mech-2',
+        publicRead: true,
+        body: { name: 'Mine', chassisRef: 'mule' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('softLinks', {
+        gameId,
+        from: { type: 'mech', id: 'my-mech-2' },
+        to: { type: 'pilot', id: 'spare-pilot' },
+        type: 'mech-to-pilot',
+      })
+    })
+
+    const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'my-mech-2' })
+    expect(result?.pilotAbilities).toEqual(['beefcake'])
   })
 
   test('a pilot sheet carries no pilotAbilities key at all', async () => {

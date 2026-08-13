@@ -70,6 +70,21 @@ describe('the Share field', () => {
     expect(share?.value).toContain(`${WEB}/p/pilot/app1`)
   })
 
+  test('sits above the collections, so trimming cannot eat it first', () => {
+    // `enforceEmbedLimits` sheds from the END. Appended, the Share field would
+    // be the first thing dropped on a large sheet — and counted in the "N
+    // sections omitted" notice as though it were part of the sheet. The one
+    // link that works without an account should not be the one that goes.
+    const embed = buildSheetEmbed(sheetResult({ publicRead: true }), WEB)
+    const shareAt = embed.fields.findIndex((f) => f.name === 'Share')
+    const lastCollection = embed.fields.reduce(
+      (last, f, i) => (f.name.startsWith('Inventory') || f.name.includes('known') ? i : last),
+      -1
+    )
+    expect(shareAt).toBeGreaterThanOrEqual(0)
+    expect(shareAt).toBeLessThan(lastCollection)
+  })
+
   test('is absent when the server does not send the flag at all', () => {
     // An older deployment sends no `publicRead`. Absent must read as private,
     // never as published.
