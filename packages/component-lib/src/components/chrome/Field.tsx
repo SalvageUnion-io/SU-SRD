@@ -151,6 +151,18 @@ export function Field(props: FieldProps) {
             type="button"
             aria-label={`Change ${labelText.toLowerCase()}`}
             onClick={onEditClick}
+            // The VALUE lives inside this button, not beside it, so the print
+            // stylesheets' `button:not([data-print='keep'])` rule took the
+            // field's content along with its affordance: a printed sheet lost
+            // the pilot's class, the mech's chassis and the crawler's type —
+            // each surface's single most identifying field — while every other
+            // field printed, because `InlineEditField` renders a
+            // `<span role="button">` that the element selector never matched.
+            // This is the case the hatch was written for; it is shared verbatim
+            // by both apps' print CSS, so the opt-in belongs on the markup.
+            // Only the editable branch needs it: a read-only Field renders the
+            // `<div>` below and was never hidden.
+            data-print="keep"
             className={cn(
               FIELD_BOX,
               'cursor-pointer text-left hover:bg-ink-8',
