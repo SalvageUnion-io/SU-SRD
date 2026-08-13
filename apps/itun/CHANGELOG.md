@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.6.0...itun-v1.7.0) (2026-08-13)
+
+
+### Features
+
+* **itun:** public read-only sheets, and a Discord link that isn't a 404 ([#755](https://github.com/SalvageUnion-io/SU-SRD/issues/755)) ([28fedf3](https://github.com/SalvageUnion-io/SU-SRD/commit/28fedf31e12f9ca4e617bbb299152bd329a79714))
+
 ## [1.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.5.1...itun-v1.6.0) (2026-08-13)
 
 
