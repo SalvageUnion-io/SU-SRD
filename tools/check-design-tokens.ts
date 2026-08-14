@@ -20,6 +20,7 @@
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { assertScanFloor } from './lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
 
@@ -312,34 +313,41 @@ type Violation = { file: string; line: number; text: string; match: string; rule
 
 const violations: Violation[] = []
 
-for (const dir of SCAN_DIRS) {
-  for (const file of walk(join(ROOT, dir))) {
-    const relPath = relative(ROOT, file)
-    // Generated files and test fixtures are not authored surfaces. Test files
-    // are here rather than in EXEMPTIONS because it is a category, not a
-    // judgement call about one file: a colour literal in a test is an ASSERTION
-    // about behaviour (`expect(borderColorFromHeaderBg('bg-pilot', '#D46A30'))
-    // .toBe('#D46A30')` — the point of the case is that an arbitrary override
-    // passes through untouched). Tokenising it would delete the test.
-    if (relPath.includes('.gen.') || relPath.includes('routeTree')) continue
-    if (relPath.includes('__tests__') || /\.test\.[tj]sx?$/.test(relPath)) continue
+/**
+ * Catastrophe floor for SCAN_DIRS. 998 files today; see tools/lib/scanFloor.ts
+ * for why this is deliberately far below the real count.
+ */
+const SCAN_FLOOR = 650
 
-    const lines = readFileSync(file, 'utf8').split('\n')
-    for (const rule of RULES) {
-      if (isExempt(relPath, rule.id)) continue
-      if (rule.skip?.some((s) => relPath.includes(s))) continue
+const scannedFiles = SCAN_DIRS.flatMap((dir) => walk(join(ROOT, dir)))
+assertScanFloor('design tokens', scannedFiles.length, SCAN_FLOOR)
 
-      lines.forEach((text, i) => {
-        // A line may opt out with a cited reason.
-        if (text.includes('design-tokens-ignore')) return
-        const matches = text.match(rule.pattern)
-        if (matches) {
-          for (const match of matches) {
-            violations.push({ file: relPath, line: i + 1, text: text.trim(), match, rule })
-          }
+for (const file of scannedFiles) {
+  const relPath = relative(ROOT, file)
+  // Generated files and test fixtures are not authored surfaces. Test files
+  // are here rather than in EXEMPTIONS because it is a category, not a
+  // judgement call about one file: a colour literal in a test is an ASSERTION
+  // about behaviour (`expect(borderColorFromHeaderBg('bg-pilot', '#D46A30'))
+  // .toBe('#D46A30')` — the point of the case is that an arbitrary override
+  // passes through untouched). Tokenising it would delete the test.
+  if (relPath.includes('.gen.') || relPath.includes('routeTree')) continue
+  if (relPath.includes('__tests__') || /\.test\.[tj]sx?$/.test(relPath)) continue
+
+  const lines = readFileSync(file, 'utf8').split('\n')
+  for (const rule of RULES) {
+    if (isExempt(relPath, rule.id)) continue
+    if (rule.skip?.some((s) => relPath.includes(s))) continue
+
+    lines.forEach((text, i) => {
+      // A line may opt out with a cited reason.
+      if (text.includes('design-tokens-ignore')) return
+      const matches = text.match(rule.pattern)
+      if (matches) {
+        for (const match of matches) {
+          violations.push({ file: relPath, line: i + 1, text: text.trim(), match, rule })
         }
-      })
-    }
+      }
+    })
   }
 }
 
