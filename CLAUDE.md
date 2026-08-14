@@ -77,9 +77,19 @@ Use it before editing an `overrides` floor too — the CI comment in
 `.github/workflows/ci.yml` documents which floors bind and via what, and that
 comment can go stale while `bun why` cannot.
 
-The companion fix in the same change was real, not suppressed: `nanoid` is
-pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
-clearing `GHSA-2v37-7h3g-55p8`.
+**`overrides` is now a single entry** (`@discordjs/rest`), and it is a *dedupe
+pin*, not a security floor — it lifts one stale `discord.js` edge onto a
+`@discordjs/rest` its own range already allows, so `undici` clears
+`GHSA-vxpw-j846-p89q` unaided. The seven other entries were removed in #787
+after measuring what each held back; `ci.yml` records the per-entry evidence
+and the removal condition. `nanoid` was among them — it is no longer pinned
+anywhere, and `3.3.18` now holds only because `postcss`'s `^3.3.16` caret
+happens to resolve there. That is a caret, not a guarantee: **`bunfig.toml`'s
+`minimumReleaseAge` makes a caret resolve silently *down*** to the newest
+version old enough (CLAUDE.md, "Install cooldown"), where a floor would have
+errored. So if `bun audit` ever reports `nanoid`, `fast-uri` or
+`brace-expansion`, the fix is to restore that package's floor — not to hunt for
+a new consumer.
 
 ### Shared versions live in the catalog
 

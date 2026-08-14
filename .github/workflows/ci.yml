@@ -339,6 +339,17 @@ jobs:
       #     (`ajv` asks fast-uri ^3.0.1) cannot reach it and the floor must come
       #     back. That is the restore condition — do not treat a red audit on
       #     either package as a mystery.
+      #
+      #     THE SHARPER EDGE, and the reason a floor is not merely redundant here:
+      #     a floor fails LOUDLY and a caret fails SILENTLY. `bunfig.toml` sets
+      #     `minimumReleaseAge`, and a caret range under it resolves *down* to the
+      #     newest version old enough (CLAUDE.md, "Install cooldown") — so a
+      #     re-resolve while a fresh fix is still inside the 3-day window lands the
+      #     older, in-advisory version with no warning at all, where resolving
+      #     below an override would have errored. `check:audit` still gates the
+      #     resolved lockfile, so this is a hardening regression, not a hole.
+      #     If any of these three go red, restore that package's floor rather than
+      #     hunting for a new consumer.
       #   - the last two entries were DEDUPE floors, not security floors, and
       #     removing them costs one duplicate copy each. That is install weight
       #     only; neither duplicate carries an advisory.
