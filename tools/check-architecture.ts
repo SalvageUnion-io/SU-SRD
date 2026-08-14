@@ -101,7 +101,7 @@ const LIFECYCLE_EXEMPT = new Set(['preload', 'isLoaded'])
 
 type Violation = { file: string; line: number; snippet: string; rule: RuleId }
 
-type RuleId = 'module-scope-orm' | 'inline-pool-default'
+type RuleId = 'module-scope-orm' | 'inline-pool-default' | 'oversized-function'
 
 /**
  * "An unset pool means FULL" — the rule `resolvePool` / `resolveGauge` own
@@ -123,6 +123,30 @@ type RuleId = 'module-scope-orm' | 'inline-pool-default'
  * walks every file's AST, so the rule lives here instead.
  */
 const POOL_FIELD = /^current[A-Z]/
+
+/**
+ * Function-body ratchet for `packages/component-lib`.
+ *
+ * `ReferenceEntityCard.tsx` is 2,479 lines and the most-churned source file in
+ * the repo — 24 commits in three months — because ONE function inside it is
+ * ~1,870 lines with 45 props and four exits. Six independent workstreams edit
+ * that single body, so every change has blast radius across all six render
+ * regions and parallel work conflicts on one file.
+ *
+ * This does NOT decompose it. It stops it growing, which is the part a tool can
+ * do: the cap is seeded at today's largest body, so the file can only get
+ * smaller. Decomposition wants a human and a visual review — the srd snapshot
+ * gate digests `<main>` TEXT, not markup, and says so explicitly, so a
+ * class-level regression in this renderer would pass every gate in the repo.
+ *
+ * Seeded at 1,823 — the exact size of `ReferenceEntityCardInner` today, so ONE
+ * more line in it fails CI. The next largest body in the package is 364 lines,
+ * so this constrains exactly the one function that needs constraining and
+ * nothing else.
+ *
+ * Lower the number when a seam lands. Never raise it.
+ */
+const COMPONENT_LIB_FUNCTION_CAP = 1823
 
 function isFunctionLike(node: ts.Node): boolean {
   return (
@@ -183,6 +207,31 @@ function checkFile(filePath: string): Violation[] {
       }
     }
 
+    // An oversized function body in component-lib.
+    if (RATCHET_SCOPE.test(relative(root, filePath))) {
+      const fn = node as ts.FunctionLikeDeclaration
+      const isFn =
+        ts.isFunctionDeclaration(node) ||
+        ts.isFunctionExpression(node) ||
+        ts.isArrowFunction(node) ||
+        ts.isMethodDeclaration(node)
+      if (isFn && fn.body) {
+        const startLine = sourceFile.getLineAndCharacterOfPosition(
+          fn.body.getStart(sourceFile)
+        ).line
+        const endLine = sourceFile.getLineAndCharacterOfPosition(fn.body.getEnd()).line
+        const length = endLine - startLine + 1
+        if (length > COMPONENT_LIB_FUNCTION_CAP) {
+          violations.push({
+            file: relative(root, filePath),
+            line: startLine + 1,
+            snippet: `${(node as ts.FunctionDeclaration).name?.getText(sourceFile) ?? '<anonymous>'} — ${length} lines (cap ${COMPONENT_LIB_FUNCTION_CAP})`,
+            rule: 'oversized-function',
+          })
+        }
+      }
+    }
+
     // `<something>.currentX ?? <fallback>` — the inlined pool rule.
     if (
       ts.isBinaryExpression(node) &&
@@ -232,12 +281,20 @@ async function collectFiles(): Promise<string[]> {
  */
 const SCAN_FLOOR = 400
 
+/** Only the shared component library is ratcheted; apps are not (yet). */
+const RATCHET_SCOPE = /^packages\/component-lib\//
+
 const RULE_EXPLANATION: Record<RuleId, string> = {
   'module-scope-orm':
     'These execute at import time, before preload() has run, and will throw\n' +
     '  "Schema not loaded" the instant the module is imported.\n' +
     "  Move the call inside a function, hook, or effect that runs after the app's\n" +
     '  preload bootstrap — see docs/architecture/package-contracts.md, "Module-Scope ORM Call Risk".',
+  'oversized-function':
+    'This function body is over the component-lib ratchet.\n' +
+    '  The cap is seeded at the largest body that existed when it was added, so it\n' +
+    '  only ever goes DOWN. Extract a seam rather than raising it — and lower the\n' +
+    '  constant in tools/check-architecture.ts in the same commit.',
   'inline-pool-default':
     'This inlines the "an unset pool means FULL" rule instead of using it.\n' +
     "  Use resolvePool(entity.currentX, maxX) from 'salvageunion-reference/rules' —\n" +
@@ -251,6 +308,7 @@ const RULE_EXPLANATION: Record<RuleId, string> = {
 const RULE_HEADLINE: Record<RuleId, string> = {
   'module-scope-orm': 'module-scope SalvageUnionReference call(s)',
   'inline-pool-default': 'inlined pool/gauge default(s)',
+  'oversized-function': 'function(s) over the component-lib size ratchet',
 }
 
 async function main() {

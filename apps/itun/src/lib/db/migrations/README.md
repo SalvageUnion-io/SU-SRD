@@ -19,7 +19,7 @@ Example: `3-cargo-to-cargo-lots.ts`
    performs the record rewrites for that version:
 
    ```typescript
-   import type { UpgradeTransaction } from './index'
+   import type { UpgradeTransaction } from './types'
 
    export async function migrate(tx: UpgradeTransaction): Promise<void> {
      let cursor = await tx.objectStore('mechs').openCursor()

@@ -1,4 +1,4 @@
-import type { UpgradeTransaction } from './index'
+import type { UpgradeTransaction } from './types'
 
 /**
  * v12 → v13: give every entity an explicit container (ADR-030 §2).

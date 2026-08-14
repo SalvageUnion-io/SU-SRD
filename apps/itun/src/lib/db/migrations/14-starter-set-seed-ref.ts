@@ -1,4 +1,4 @@
-import type { UpgradeTransaction } from './index'
+import type { UpgradeTransaction } from './types'
 
 /**
  * v13 → v14: record Starter Set provenance as `seedRef`.
