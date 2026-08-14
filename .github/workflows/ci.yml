@@ -351,8 +351,24 @@ jobs:
       #     If any of these three go red, restore that package's floor rather than
       #     hunting for a new consumer.
       #   - the last two entries were DEDUPE floors, not security floors, and
-      #     removing them costs one duplicate copy each. That is install weight
-      #     only; neither duplicate carries an advisory.
+      #     removing them costs one duplicate copy each. Neither duplicate carries
+      #     an advisory — but "install weight" is the wrong ceiling for one of
+      #     them, so do not record it that way:
+      #
+      #     @opentelemetry/core is the one to understand. `@netlify/otel@6.0.5`
+      #     pins core at exactly 2.8.0 while its own
+      #     `@opentelemetry/sdk-trace-node@2.9.0` depends on core 2.9.0 — so
+      #     without the override there are TWO core instances inside a single
+      #     package's subtree (`bun.lock` has both a nested
+      #     `@netlify/otel/@opentelemetry/core@2.8.0` and the top-level 2.9.0).
+      #     OTel's context keys are non-registered `Symbol`s, which do not compare
+      #     equal across copies, so a duplicated core can silently DESYNC context
+      #     and suppression between the two rather than merely costing disk.
+      #     Kept out anyway because the blast radius is `@netlify/blobs`' own
+      #     internal tracing, which nothing here consumes — this repo's
+      #     observability is Sentry (see packages/observability). RESTORE
+      #     `"@opentelemetry/core": "^2.8.0"` the moment anything starts reading
+      #     Netlify's traces, or if blobs behaviour ever looks context-dependent.
       #
       # TWO ADVISORIES ARE SUPPRESSED. `check:audit` passes
       # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both

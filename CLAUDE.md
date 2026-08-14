@@ -128,7 +128,8 @@ Two things this interacts with, both of which have bitten:
 `.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
 takes no comments, so the reason lives here. That feature defaults to **on** at
 `moderate` severity and writes `overrides` entries automatically; this repo
-curates `overrides` by hand as documented security floors, and gates at
+curates `overrides` by hand — every entry documented in `ci.yml`, and as of
+#787 that is a single dedupe pin with zero security floors — and gates at
 `--audit-level=high`. Leaving it on would open PRs editing that block for
 advisories `check:audit` deliberately ignores.
 
@@ -152,7 +153,12 @@ Two behaviours, measured on Bun 1.3.14 — know which one you are hitting:
 - a **caret range silently resolves *down*** to the newest version old enough.
   No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
   did nothing — check the publish date before concluding the fix is broken. The
-  `overrides` floors still hold (resolving below a floor errors instead).
+  An `overrides` floor is the loud alternative — resolving below one errors
+  instead of silently stepping down. **There is currently only one `overrides`
+  entry and it is not a floor** (see "Audit gate"), so nothing in this repo is
+  protected that way today. That is the accepted cost of #787, not an oversight:
+  the packages it applies to (`nanoid`, `fast-uri`, `brace-expansion`) are named
+  there with the instruction to restore a floor if any of them goes red.
 
 `bun install --frozen-lockfile` does no resolution and is **unaffected** —
 verified; CI and all four deploy targets never see this gate.
