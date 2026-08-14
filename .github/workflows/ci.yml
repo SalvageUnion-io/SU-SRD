@@ -278,22 +278,43 @@ jobs:
       # high/critical advisories so a vulnerable dependency blocks merge; lower
       # severities are reported by `bun audit` locally but do not gate CI.
       #
-      # THE BLOCK IS NOW `{ "undici": "^6.28.0" }`. It held eight entries until
-      # #787; seven were removed after measuring, one at a time, what each was
-      # actually holding back. The method is the point, so that it can be redone:
-      # empty the block, `bun install`, then `bun run check:audit`. Anything that
-      # reappears earned its floor; anything that does not, did not.
+      # THE BLOCK IS NOW `{ "@discordjs/rest": "^2.6.3" }` — ONE entry. It held
+      # eight until #787; seven were removed after measuring, one at a time, what
+      # each was actually holding back, and the eighth was REPLACED by a better
+      # fix. The method is the point, so that it can be redone: empty the block,
+      # `bun install`, then `bun run check:audit`. Anything that reappears earned
+      # its floor; anything that does not, did not.
       #
-      #   undici: ^6.28.0 — KEPT, and the only genuine security floor here.
-      #     `@discordjs/rest@2.6.1` requires undici at EXACTLY 6.24.1, and
-      #     GHSA-vxpw-j846-p89q is HIGH over `< 6.27.0` — so without this entry a
-      #     high advisory is back in the tree via discord.js. Floored at ^6.28.0
-      #     rather than ^6.27.0 because three further MODERATE advisories
-      #     (GHSA-m8rv-5g2x-5cg5, GHSA-v3r7-h72x-cjcm, GHSA-8xcm-r25x-g524) run
-      #     to `< 6.28.0`. Verify with:
+      #   @discordjs/rest: ^2.6.3 — a DEDUPE pin that removes the need for a
+      #     security floor, rather than a security floor itself.
+      #
+      #     The problem it solves: `discord.js@14.27.0` -> `@discordjs/ws@1.2.3`
+      #     -> `@discordjs/rest@2.6.1`, and 2.6.1 requires undici at EXACTLY
+      #     6.24.1. GHSA-vxpw-j846-p89q is HIGH over `< 6.27.0`, so that one
+      #     stale edge put a high advisory in the tree via discord.js.
+      #
+      #     This block used to answer that with `undici: ^6.28.0` — floor the
+      #     symptom. The better lever is one level up: `@discordjs/rest@2.6.3`
+      #     asks undici for `^6.27.0`, and `@discordjs/ws@1.2.3` already accepts
+      #     `^2.5.1`, so 2.6.3 is INSIDE its declared range. Pinning it there is a
+      #     dedupe, not a forced upgrade — the tree drops a duplicate
+      #     `@discordjs/rest` (2.6.1 alongside 2.6.3) and undici then floats to
+      #     6.28.0 on its own, with no undici entry at all. One fewer package
+      #     installed, and the lockfile diff is a pure deletion.
+      #
+      #     REMOVAL CONDITION: `discord.js` is ALREADY at the latest release
+      #     (14.27.0 — there is no upgrade to take, checked with `bun pm view
+      #     discord.js version`), and it requires `@discordjs/ws ^1.2.3`, so the
+      #     fixed `@discordjs/ws@2.0.4` is unreachable across that major. When a
+      #     discord.js release ships a `ws` that pulls `rest >= 2.6.3` itself,
+      #     delete this entry and the block goes to ZERO. Re-check with
+      #     `bun why undici` — if it resolves >= 6.27.0 unaided, the entry is dead.
+      #
+      #     Verify the advisory ranges with:
       #       gh api graphql -f query='{securityVulnerabilities(package:"undici",
       #         ecosystem:NPM,first:60){nodes{severity vulnerableVersionRange
       #         advisory{ghsaId}}}}'
+      #     Verified here with `bun run build:bot` and the bot's 225 tests.
       #
       # WHAT THE SEVEN REMOVALS ACTUALLY DID (from the #787 bun.lock diff — the
       # resolved versions, not the ranges, because only the former can be audited):
@@ -374,7 +395,11 @@ jobs:
       #   - It then claimed deleting the block brought back two high advisories,
       #     `sharp` AND `undici` — while also, three paragraphs down, correcting
       #     that `sharp` is not in the block at all. Only the undici half was ever
-      #     true, and #787 measured it: seven entries out, audit unchanged.
+      #     true, and #787 measured it: seven entries out, audit unchanged. The
+      #     undici half was true but was being answered at the wrong level — see
+      #     the `@discordjs/rest` entry above. A floor on the vulnerable package
+      #     is the LAST resort; first look for a parent whose own range already
+      #     admits a fixed version, because that is a dedupe rather than a pin.
       #
       # No dependency is in BOTH `overrides` and `workspaces.catalog` any more, so
       # the catalog-becomes-fiction hazard described in CLAUDE.md is dormant.

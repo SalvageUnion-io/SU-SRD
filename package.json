@@ -35,7 +35,7 @@
     }
   },
   "overrides": {
-    "undici": "^6.28.0"
+    "@discordjs/rest": "^2.6.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",
