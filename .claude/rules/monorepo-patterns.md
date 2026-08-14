@@ -9,6 +9,7 @@ Bun workspace monorepo with multiple apps and shared packages.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from Netlify Blobs; `salvageunion-reference` resolves artwork URLs against it at runtime
 - `packages/component-lib/` - Shared React component library (no build step, exports TypeScript source)
+- `packages/observability/` - Sentry wiring shared by the Node surfaces (`/node`) and the browser capture-hint helper (`/browser`)
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 ## Bun Workspace Best Practices

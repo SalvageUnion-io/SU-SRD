@@ -16,6 +16,11 @@
  * snapshot Netlify function.
  */
 
+import type { CaptureOptions } from 'observability/browser'
+import { buildCaptureHint } from 'observability/browser'
+
+export type { CaptureOptions }
+
 let initialized = false
 let sentryModule: typeof import('@sentry/browser') | null = null
 
@@ -63,28 +68,6 @@ export function captureMessage(message: string, context?: Record<string, unknown
 }
 
 /**
- * Grouping and labelling for a captured event.
- *
- * Both fields exist for the same reason: a Sentry issue is only useful if all
- * the events of one condition land in it and its title says what the condition
- * is. Convex's redacted errors satisfy neither by default — the message is
- * `"[CONVEX M(fn)] [Request ID: 1b66…] Server Error"`, so the request id makes
- * every event's message unique and the rest of it says nothing. In production
- * that produced two separate issues titled with request ids, for one condition,
- * with the actual cause nowhere in either.
- */
-export type CaptureOptions = {
-  /**
-   * Stable grouping key. Overrides Sentry's default fingerprint entirely, so
-   * pass the things that identify the *condition* and nothing that varies per
-   * event (never a request id, an entity id, or a bundle hash).
-   */
-  fingerprint?: string[]
-  /** Searchable, aggregatable labels. Sentry indexes these; `extra` it does not. */
-  tags?: Record<string, string>
-}
-
-/**
  * Reports a caught exception to Sentry when enabled; otherwise a no-op.
  *
  * This exists because catching is exactly what PREVENTS an error reaching
@@ -101,20 +84,5 @@ export function captureException(
 ): void {
   if (!sentryModule) return
 
-  // Spelled out rather than derived from `Parameters<typeof
-  // sentryModule.captureException>[1]`. That compiles, but it pins this local to
-  // Sentry's `ExclusiveEventHintOrCaptureContext` union — three overlapping
-  // shapes whose members are mutually `never` — so the day the SDK reshapes that
-  // union the breakage lands here rather than at the call. These three fields
-  // are the whole contract we use; naming them is both clearer and stabler.
-  const hint: {
-    extra?: Record<string, unknown>
-    tags?: Record<string, string>
-    fingerprint?: string[]
-  } = {}
-  if (context) hint.extra = context
-  if (options?.tags) hint.tags = options.tags
-  if (options?.fingerprint) hint.fingerprint = options.fingerprint
-
-  sentryModule.captureException(error, Object.keys(hint).length > 0 ? hint : undefined)
+  sentryModule.captureException(error, buildCaptureHint(context, options))
 }

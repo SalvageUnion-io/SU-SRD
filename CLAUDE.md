@@ -305,6 +305,7 @@ bun --filter srd gate             # build, then diff the output against the comm
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
+- `packages/observability/` - Sentry wiring shared by the Node surfaces (`/node`: the two Netlify Functions + the Discord bot) plus the capture-hint helper the two browser shims share (`/browser`, imports no Sentry code).
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 **Dependency graph:**

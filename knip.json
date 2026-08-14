@@ -30,6 +30,12 @@
       "project": ["lib/**/*.ts", "tools/**/*.ts"],
       "ignore": ["etc/**"]
     },
+    "packages/observability": {
+      // No `entry` here on purpose: knip derives both subpaths from the
+      // manifest's `exports` map, and listing them again is reported as a
+      // redundant pattern.
+      "project": ["src/**/*.ts"]
+    },
     "packages/component-lib": {
       "project": ["src/**/*.{ts,tsx}"],
       "includeEntryExports": false

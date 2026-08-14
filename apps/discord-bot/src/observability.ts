@@ -1,15 +1,26 @@
 /**
  * observability — optional Sentry error tracking for the Discord bot.
  *
+ * The wiring lives in `observability/node`; this file is the worker's
+ * configuration of it, plus the two things that are genuinely this surface's
+ * own: the missing-DSN warning and the liveness log line.
+ *
  * Entirely env-gated: when SENTRY_DSN is unset (local dev, tests), every
  * function here is a no-op and no Sentry network calls are made. No DSN is
  * ever committed — it is supplied via the Render worker's environment.
  */
 
-import * as Sentry from '@sentry/node'
+import { createObservability } from 'observability/node'
 import { config } from './config.js'
 
-let enabled = false
+const observability = createObservability(() => ({
+  dsn: config.sentryDsn,
+  environment: config.nodeEnv ?? 'production',
+  // Tags events with the deployed commit SHA (Render's RENDER_GIT_COMMIT) so a
+  // Sentry error maps back to the exact deploy that produced it. Undefined when
+  // unset (e.g. local dev) — Sentry simply omits the tag.
+  release: config.releaseSha,
+}))
 
 /**
  * Initializes Sentry if SENTRY_DSN is configured. Idempotent and safe to call
@@ -17,7 +28,7 @@ let enabled = false
  * production worker is visible in the Render logs instead of silently blind.
  */
 export function initObservability(): void {
-  if (enabled) return
+  if (observability.enabled) return
   if (!config.sentryDsn) {
     console.warn(
       '[observability] SENTRY_DSN not set — error tracking disabled. ' +
@@ -25,15 +36,7 @@ export function initObservability(): void {
     )
     return
   }
-  Sentry.init({
-    dsn: config.sentryDsn,
-    environment: config.nodeEnv ?? 'production',
-    // Tags events with the deployed commit SHA (Render's RENDER_GIT_COMMIT)
-    // so a Sentry error maps back to the exact deploy that produced it.
-    // Undefined when unset (e.g. local dev) — Sentry simply omits the tag.
-    release: config.releaseSha,
-  })
-  enabled = true
+  observability.init()
   // Deliberately avoids the word "error": Render classifies log level from
   // message *content*, not the stream it arrived on. This is a console.log on
   // stdout, exactly like the "Starting Salvage Union Discord Bot..." line that
@@ -50,12 +53,7 @@ export function initObservability(): void {
  * after the flush completes or the timeout elapses; never rejects.
  */
 export async function flushObservability(timeoutMs = 2000): Promise<void> {
-  if (!enabled) return
-  try {
-    await Sentry.flush(timeoutMs)
-  } catch {
-    // Exiting anyway — nothing useful to do with a flush failure.
-  }
+  await observability.flush(timeoutMs)
 }
 
 /**
@@ -63,9 +61,7 @@ export async function flushObservability(timeoutMs = 2000): Promise<void> {
  * caller is still responsible for any local logging it wants.
  */
 export function captureException(error: unknown, context?: Record<string, unknown>): void {
-  if (enabled) {
-    Sentry.captureException(error, context ? { extra: context } : undefined)
-  }
+  observability.captureException(error, context)
 }
 
 /**
@@ -76,7 +72,5 @@ export function captureException(error: unknown, context?: Record<string, unknow
  * the expected daily cadence of these events is itself the signal.
  */
 export function captureMessage(message: string, context?: Record<string, unknown>): void {
-  if (enabled) {
-    Sentry.captureMessage(message, context ? { extra: context } : undefined)
-  }
+  observability.captureMessage(message, context)
 }

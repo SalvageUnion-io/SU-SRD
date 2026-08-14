@@ -24,6 +24,7 @@
     "@randsum/roller": "catalog:",
     "@sentry/node": "catalog:",
     "discord.js": "^14.27.0",
+    "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {}
