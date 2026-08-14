@@ -19,6 +19,9 @@
  * default configuration raises no CSP violation.
  */
 
+import type { CaptureOptions } from 'observability/browser'
+import { buildCaptureHint } from 'observability/browser'
+
 let initialized = false
 let sentryModule: typeof import('@sentry/browser') | null = null
 
@@ -84,7 +87,11 @@ export async function initBrowserObservability(): Promise<void> {
  * deliberately-caught error in the browser was structurally unreportable and
  * a render crash inside an island produced no production signal whatsoever.
  */
-export function captureException(error: unknown, context?: Record<string, unknown>): void {
+export function captureException(
+  error: unknown,
+  context?: Record<string, unknown>,
+  options?: CaptureOptions
+): void {
   if (!sentryModule) return
-  sentryModule.captureException(error, context ? { extra: context } : undefined)
+  sentryModule.captureException(error, buildCaptureHint(context, options))
 }

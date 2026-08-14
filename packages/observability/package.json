@@ -1,0 +1,27 @@
+{
+  "name": "observability",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Salvage Union Open Game Licence 1.0b",
+  "exports": {
+    "./node": {
+      "types": "./src/node.ts",
+      "default": "./src/node.ts"
+    },
+    "./browser": {
+      "types": "./src/browser.ts",
+      "default": "./src/browser.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@sentry/node": "catalog:"
+  }
+}

@@ -32,20 +32,38 @@
  * target.
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { assertScanFloor } from './lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
 
-const MANIFESTS = [
-  'package.json',
-  'apps/srd/package.json',
-  'apps/itun/package.json',
-  'apps/discord-bot/package.json',
-  'apps/su-assets/package.json',
-  'packages/component-lib/package.json',
-  'packages/salvageunion-reference/package.json',
-] as const
+/**
+ * Every manifest in the workspace, DISCOVERED rather than listed.
+ *
+ * A hardcoded list is the same defect this repo has been removing elsewhere: a
+ * new workspace would silently escape the check while it kept reporting
+ * success. (That is not hypothetical — `packages/observability` was added in
+ * the same change that made this dynamic.)
+ *
+ * The floor below is the catastrophe detector for the glob itself, in the shape
+ * `tools/lib/scanFloor.ts` documents.
+ */
+function discoverManifests(): string[] {
+  const found = ['package.json']
+  for (const dir of ['apps', 'packages']) {
+    for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      const rel = `${dir}/${entry.name}/package.json`
+      if (existsSync(join(ROOT, rel))) found.push(rel)
+    }
+  }
+  return found.sort()
+}
+
+const MANIFESTS = discoverManifests()
+
+assertScanFloor('catalog (workspace manifests)', MANIFESTS.length, 6)
 
 type Manifest = {
   dependencies?: Record<string, string>
