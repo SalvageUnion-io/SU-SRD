@@ -18,9 +18,18 @@ on:
   # run regardless of base. The cost is that a PR targeting any branch now runs
   # CI, which is the intended behaviour rather than a side effect.
   pull_request:
-  # Run on the merge queue's temporary branches so the required `quality-checks`
-  # gate reports on queued PRs; without this the merge queue hangs forever
-  # waiting for a check that never fires.
+  # THERE IS CURRENTLY NO MERGE QUEUE on `main`. Verified against the live
+  # ruleset, whose rules are `deletion`, `non_fast_forward`,
+  # `required_linear_history` and `required_status_checks` — no `merge_queue`.
+  # Root CLAUDE.md says the same; this comment used to assert the opposite and
+  # was the wrong copy sitting in the file a CI change is read from.
+  #
+  # The trigger is kept DORMANT on purpose. If a queue is ever enabled, its
+  # temporary `gh-readonly-queue/**` branches fire neither `push: [main]` nor
+  # `pull_request`, so a required check with no `merge_group:` trigger leaves
+  # the queue waiting forever for a status that can never arrive — and the
+  # trigger has to be live on `main` BEFORE the ruleset changes. Costs nothing
+  # while unused; removing it would have to be undone first.
   merge_group:
 
 permissions:
@@ -37,8 +46,9 @@ concurrency:
 # EVERY job below declares `timeout-minutes`. GitHub's default is 360 (six
 # hours), so an unbounded job that hangs does not fail — it sits, burning runner
 # minutes and holding the `quality-checks` gate, and therefore the PR, open for
-# the rest of the day. Until now only the two e2e jobs were bounded and the
-# other thirteen were not, which is the same hole that let the nightly
+# the rest of the day. Only the two e2e jobs used to be bounded and the other
+# thirteen were not — every job now declares one, and there are seven of them
+# since the static checks merged. That gap is the same hole that let the nightly
 # observability probe hang undiagnosed: nothing is red, so nothing is read.
 #
 # 15 minutes is deliberately generous — the slowest job on main measures 2.1m,
@@ -116,9 +126,9 @@ jobs:
               # that ITUN and component-lib are consumers too, so `web` alone
               # would leave `build-itun` and `test` skipped on a prose edit that
               # renames a heading. The subtle one is that `web` alone does not
-              # even fix srd: `build-srd` has `needs: [build-package, lint,
-              # typecheck, test, validate, knip, audit]`, every one of them
-              # gated on `code`. A prose-only PR would resolve to `web=true,
+              # even fix srd: `build-srd` has `needs: [changes, static-checks,
+              # test]`, and both are gated on `code`. A prose-only PR would
+              # resolve to `web=true,
               # code=false`, those jobs would skip, and GitHub skips a dependent
               # job when any `needs:` job is skipped — so `build-srd` would skip
               # anyway and the snapshot gate would still never run.
@@ -163,11 +173,25 @@ jobs:
               - 'tools/**'
               - 'docs/**'
 
-  lint:
-    # Always runs — format:check covers docs (markdown/yaml) too, and the two
-    # static design guards below are unconditional by design.
+  static-checks:
+    # SIX jobs merged into one: lint, build-package, knip, typecheck, validate,
+    # audit. Measured before the merge, they spent 134 s of `Setup Bun` between
+    # them to do 23 s of actual work — checkout + Bun + install, six times over,
+    # for six commands that share one working tree.
+    #
+    # NO job-level `if:`. The lint/format/design-guard steps below are
+    # deliberately unfiltered (see their own note), and this job is a required
+    # input to `quality-checks`, so it must always report. The code-gated work
+    # carries a per-step `if:` instead, which skips in seconds on a docs-only PR
+    # rather than skipping the whole job.
+    #
+    # `test` and `coverage` stay SEPARATE. `test` is 62 s — the long pole — and
+    # folding it in would serialise it behind these; `coverage` re-runs the
+    # suite with instrumentation and is deliberately isolated so a coverage
+    # hiccup cannot fail the gate every build job depends on.
+    needs: [changes]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -181,82 +205,161 @@ jobs:
       - name: Format check
         run: bun run format:check
 
-      # The design-token and styling-ownership guards sit at a hard ZERO
-      # baseline (tools/design-tokens-baseline.json,
-      # tools/styling-ownership-baseline.json) after a full burn-down. They used
-      # to run ONLY in lefthook's `pre-push` hook, which is bypassable with
-      # `git push --no-verify`, never runs for a GitHub web edit, and does not
-      # exist at all for anyone who has not installed the hooks — so the only
-      # mechanical backstop for those baselines was opt-in. Both are sub-0.2s
-      # static scans with no path filter, so running them on every event costs
-      # nothing and this job is already in `quality-checks`' needs list.
+      # The design-token and styling-ownership guards are unconditional by
+      # design. They used to run ONLY in lefthook's `pre-push` hook, which is
+      # bypassable with `git push --no-verify`, never runs for a GitHub web
+      # edit, and does not exist for anyone who has not installed the hooks — so
+      # the only mechanical backstop for those baselines was opt-in. Both are
+      # sub-0.2 s static scans, and both now assert a non-zero scan floor, so a
+      # renamed directory fails them instead of passing silently.
       - name: Design token check
         run: bun run check:tokens
 
       - name: Styling ownership check
         run: bun run check:styling
 
-  build-package:
-    needs: [changes]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      # The package ships TypeScript source (no dist; audit item 16) — this
-      # job guards the committed generated artifacts: the JSON schemas, the
-      # registry-mechanism codegen (lib/generated/*.generated.ts, produced by
-      # tools/generateRegistry.ts from lib/schemas/registry.ts), and the
-      # marker-injected static-accessor block inside lib/index.ts. If any of
-      # them drift from the generator output, fail so stale generated code
-      # never ships (as a stale crawler-bays.schema.json once did on main).
-      - name: Regenerate JSON schemas + registry codegen
+      # The package ships TypeScript source (no dist) — this step guards the
+      # committed generated artifacts: the JSON schemas, the schema catalog, the
+      # generated docs, the registry codegen (lib/generated/*.generated.ts) and
+      # the marker-injected static-accessor block inside lib/index.ts. If any
+      # drift from the generator output, fail so stale generated code never
+      # ships (as a stale crawler-bays.schema.json once did on main).
+      - name: Regenerate generated artifacts
+        if: needs.changes.outputs.code == 'true'
         run: bun run build:package
 
+      # `git diff` reports MODIFICATIONS to tracked files only, so a newly
+      # emitted artifact — adding a schema produces an untracked
+      # `schemas/<id>.schema.json` and now a `docs/schemas/<id>.md` — was
+      # invisible here and the step passed while the "generated code is never
+      # stale" guarantee did not hold for additions. `--exit-code` on the diff
+      # plus a check for untracked files under the same paths covers both.
       - name: Verify generated files are up to date
+        if: needs.changes.outputs.code == 'true'
         run: |
-          if ! git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc; then
-            echo "::error::Committed generated files are stale. Run 'bun run build:package' and commit packages/salvageunion-reference/schemas/, packages/salvageunion-reference/lib/generated/, packages/salvageunion-reference/lib/index.ts, and packages/salvageunion-reference/etc/." >&2
+          paths='packages/salvageunion-reference/schemas packages/salvageunion-reference/docs packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc .vscode/settings.json'
+          stale=0
+          if ! git diff --exit-code -- $paths; then stale=1; fi
+          untracked="$(git ls-files --others --exclude-standard -- $paths)"
+          if [ -n "$untracked" ]; then
+            echo "::error::Generated files exist that are not committed:" >&2
+            echo "$untracked" >&2
+            stale=1
+          fi
+          if [ "$stale" -ne 0 ]; then
+            echo "::error::Committed generated files are stale. Run 'bun run build:package' and commit the result." >&2
             exit 1
           fi
 
-  knip:
-    needs: [changes, build-package]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Knip
-        run: bun run knip
-
-  typecheck:
-    needs: [changes, build-package]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
       - name: Typecheck
+        if: needs.changes.outputs.code == 'true'
         run: bun run typecheck
 
+      - name: Knip
+        if: needs.changes.outputs.code == 'true'
+        run: bun run knip
+
+      # `validate:all` runs the reference package's unified validator (one
+      # in-memory pass over data/*.json for all 8 checks) plus the repo-level
+      # gates: architecture, doc drift, observability, Convex codegen/parity and
+      # the catalog check.
+      - name: Validate data and repo invariants
+        if: needs.changes.outputs.code == 'true'
+        run: bun run validate:all
+
+      # ---------------------------------------------------------------
+      # The dependency audit, and WHY the `overrides` block exists.
+      #
+      # This block was nearly lost when six jobs merged into one: CLAUDE.md
+      # points here twice ("the CI comment in .github/workflows/ci.yml") for
+      # which security floors bind and via what, and package.json cannot
+      # carry comments. Deleting it would have left an 8-entry `overrides`
+      # block with no surviving record of its reasoning.
+      # ---------------------------------------------------------------
+      # Dependency vulnerability scan against the resolved lockfile. Fails on
+      # high/critical advisories so a vulnerable dependency blocks merge; lower
+      # severities are reported by `bun audit` locally but do not gate CI.
+      #
+      # HOW ADVISORIES GET CLEARED HERE. Most resolve on their own when the
+      # lockfile moves. The rest are held above the vulnerable range by the
+      # `overrides` block in the root package.json — those entries are SECURITY
+      # FLOORS, and the block is load-bearing: delete it, re-resolve, and two high
+      # advisories come straight back — `sharp` (GHSA-f88m-g3jw-g9cj; it reached
+      # the graph via workspace:srd -> astro until srd left Astro, and is now a
+      # direct srd devDependency for the OG-screenshot pass) and `undici`
+      # (GHSA-vxpw-j846-p89q, via discord.js).
+      # The other floors do not bind on a fresh resolve today; they are kept as
+      # cheap insurance against a parent range drifting back down.
+      #
+      # TWO ADVISORIES ARE NOW SUPPRESSED, and this comment used to say the
+      # opposite ("No `--ignore` is needed"). `check:audit` passes
+      # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both
+      # `image-size <=2.0.2` via `@netlify/blobs -> @netlify/dev-utils`. There is
+      # no fixed version to float a floor to — 2.0.2 IS latest — so the usual
+      # `bun update` / raise-the-floor remedy below cannot apply. Full reasoning
+      # and the removal condition are in CLAUDE.md, "Audit gate". The ignores are
+      # scoped to those two ids, so everything else still gates.
+      # Getting there took DEDUPE floors, which are a different kind of entry from
+      # the rest of the block and should not be confused with them:
+      #
+      #   (An `astro: ^7.1.4` dedupe floor used to sit here. `@vite-pwa/astro@1.2.0`
+      #   peer-required `astro ^1 || … || ^5`, so bun installed a SECOND, complete
+      #   astro@6.4.6 tree beside the real one — in-advisory, and it dragged in a
+      #   vulnerable esbuild. Both the floor and the problem are gone: srd left
+      #   Astro for the in-house SSG (ADR-031), and @vite-pwa/astro went with it.
+      #   Do not restore the override; nothing depends on astro any more.)
+      #
+      #   @vitejs/plugin-react-swc: ^4.3.3
+      #     A `@ladle/react@5.1.1` dependency, pinned there at ^3.7.2 whose vite
+      #     peer stops at ^7 — so bun resolved vite@7.3.5 for it, which pulled
+      #     esbuild@0.27.7, the one genuinely vulnerable esbuild in the tree.
+      #     4.3.x widened the peer to include ^8, so it dedupes onto the vite 8
+      #     already present. Verified with `bun --filter component-lib ladle:build`.
+      #
+      #     NOTE the road not taken: a blanket `esbuild` floor would ALSO have
+      #     cleared this, but `convex` pins esbuild to exactly 0.27.0 — which is
+      #     BELOW the advisory range and therefore not vulnerable — so a global
+      #     floor would have forced Convex's bundler off a deliberate pin to fix
+      #     a Windows-dev-server issue in Ladle's tooling. Move the offending
+      #     subtree, not every consumer of the package it happens to contain.
+      #
+      # WHEN THIS JOB FAILS ON A TRANSITIVE DEP, the fix is `bun update <pkg>`
+      # plus the regenerated bun.lock. The floors are caret ranges so that works.
+      # Do NOT pin a floor to an exact version: an exact override pins the package
+      # *down* as well as up, so when the next advisory is fixed one patch above
+      # it, the override itself becomes the thing holding the vulnerable version
+      # in place and no `bun update` can clear it. `brace-expansion` alone was
+      # hand-bumped that way twice — 5.0.7 -> 5.0.8 (#565) and 5.0.8 -> 5.0.9
+      # (#673) — each time after the exact pin had blocked every open PR.
+      # Raise the floor, never freeze it.
+      #
+      # CORRECTION (this comment was wrong for months): it claimed `sharp` was "the
+      # one deliberate exception", carrying an EXACT override kept in lockstep with
+      # its root and apps/srd pins. There is no `sharp` entry in `overrides` at all
+      # — verify with `bun why sharp` and by reading the block itself. `sharp` is a
+      # plain pinned devDependency, now expressed once in `workspaces.catalog`, and
+      # is bumped like any other. The claim was load-bearing in the wrong
+      # direction: it was copied into CLAUDE.md and used to justify excluding
+      # `sharp` from automated catalog updates, protecting a constraint that did
+      # not exist.
+      #
+      # The dependency that IS in both `overrides` and the catalog is
+      # `@vitejs/plugin-react-swc` (`^4.3.3`). Raising the catalog past that caret
+      # would leave the catalog stating a version the override prevents resolving,
+      # so `.catalog-updaterc.json` ignores its MAJOR updates only.
+      - name: Audit dependencies
+        # `bun run check:audit`, NOT a bare `bun audit` — the script carries the
+        # `--ignore` flags, and this ran the bare command for long enough that a
+        # fix landing in package.json passed locally and still failed here. One
+        # command, one source of truth.
+        if: needs.changes.outputs.code == 'true'
+        run: bun run check:audit
+
   test:
-    needs: [changes, build-package]
+    # No `needs: build-package`. That edge passed no artifact — this job
+    # re-checks out the repo and reads the COMMITTED generated files — so it was a
+    # pure ~39 s serialisation hop.
+    needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -269,26 +372,6 @@ jobs:
 
       - name: Test
         run: bun run test
-
-  validate:
-    # `validate:all` now runs packages/salvageunion-reference/tools/validate.ts,
-    # a unified runner that loads data/*.json once and runs all 8 checks
-    # (ids/slugs/references/actions/action-backrefs/orphans/traits/schemas)
-    # against that single in-memory pass, instead of chaining 8 separate
-    # process invocations that each re-read and re-parse the data corpus.
-    needs: [changes]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Validate data
-        run: bun run validate:all
 
   coverage:
     # Coverage visibility + ratchet (previously invisible — `test:coverage`
@@ -304,7 +387,7 @@ jobs:
     # Keeping it separate also means a rare coverage-instrumentation hiccup
     # can only fail this job, never the primary `test` gate every build job
     # depends on.
-    needs: [changes, build-package]
+    needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -331,101 +414,11 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  audit:
-    # Dependency vulnerability scan against the resolved lockfile. Fails on
-    # high/critical advisories so a vulnerable dependency blocks merge; lower
-    # severities are reported by `bun audit` locally but do not gate CI.
-    #
-    # HOW ADVISORIES GET CLEARED HERE. Most resolve on their own when the
-    # lockfile moves. The rest are held above the vulnerable range by the
-    # `overrides` block in the root package.json — those entries are SECURITY
-    # FLOORS, and the block is load-bearing: delete it, re-resolve, and two high
-    # advisories come straight back — `sharp` (GHSA-f88m-g3jw-g9cj; it reached
-    # the graph via workspace:srd -> astro until srd left Astro, and is now a
-    # direct srd devDependency for the OG-screenshot pass) and `undici`
-    # (GHSA-vxpw-j846-p89q, via discord.js).
-    # The other floors do not bind on a fresh resolve today; they are kept as
-    # cheap insurance against a parent range drifting back down.
-    #
-    # TWO ADVISORIES ARE NOW SUPPRESSED, and this comment used to say the
-    # opposite ("No `--ignore` is needed"). `check:audit` passes
-    # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both
-    # `image-size <=2.0.2` via `@netlify/blobs -> @netlify/dev-utils`. There is
-    # no fixed version to float a floor to — 2.0.2 IS latest — so the usual
-    # `bun update` / raise-the-floor remedy below cannot apply. Full reasoning
-    # and the removal condition are in CLAUDE.md, "Audit gate". The ignores are
-    # scoped to those two ids, so everything else still gates.
-    # Getting there took DEDUPE floors, which are a different kind of entry from
-    # the rest of the block and should not be confused with them:
-    #
-    #   (An `astro: ^7.1.4` dedupe floor used to sit here. `@vite-pwa/astro@1.2.0`
-    #   peer-required `astro ^1 || … || ^5`, so bun installed a SECOND, complete
-    #   astro@6.4.6 tree beside the real one — in-advisory, and it dragged in a
-    #   vulnerable esbuild. Both the floor and the problem are gone: srd left
-    #   Astro for the in-house SSG (ADR-031), and @vite-pwa/astro went with it.
-    #   Do not restore the override; nothing depends on astro any more.)
-    #
-    #   @vitejs/plugin-react-swc: ^4.3.3
-    #     A `@ladle/react@5.1.1` dependency, pinned there at ^3.7.2 whose vite
-    #     peer stops at ^7 — so bun resolved vite@7.3.5 for it, which pulled
-    #     esbuild@0.27.7, the one genuinely vulnerable esbuild in the tree.
-    #     4.3.x widened the peer to include ^8, so it dedupes onto the vite 8
-    #     already present. Verified with `bun --filter component-lib ladle:build`.
-    #
-    #     NOTE the road not taken: a blanket `esbuild` floor would ALSO have
-    #     cleared this, but `convex` pins esbuild to exactly 0.27.0 — which is
-    #     BELOW the advisory range and therefore not vulnerable — so a global
-    #     floor would have forced Convex's bundler off a deliberate pin to fix
-    #     a Windows-dev-server issue in Ladle's tooling. Move the offending
-    #     subtree, not every consumer of the package it happens to contain.
-    #
-    # WHEN THIS JOB FAILS ON A TRANSITIVE DEP, the fix is `bun update <pkg>`
-    # plus the regenerated bun.lock. The floors are caret ranges so that works.
-    # Do NOT pin a floor to an exact version: an exact override pins the package
-    # *down* as well as up, so when the next advisory is fixed one patch above
-    # it, the override itself becomes the thing holding the vulnerable version
-    # in place and no `bun update` can clear it. `brace-expansion` alone was
-    # hand-bumped that way twice — 5.0.7 -> 5.0.8 (#565) and 5.0.8 -> 5.0.9
-    # (#673) — each time after the exact pin had blocked every open PR.
-    # Raise the floor, never freeze it.
-    #
-    # CORRECTION (this comment was wrong for months): it claimed `sharp` was "the
-    # one deliberate exception", carrying an EXACT override kept in lockstep with
-    # its root and apps/srd pins. There is no `sharp` entry in `overrides` at all
-    # — verify with `bun why sharp` and by reading the block itself. `sharp` is a
-    # plain pinned devDependency, now expressed once in `workspaces.catalog`, and
-    # is bumped like any other. The claim was load-bearing in the wrong
-    # direction: it was copied into CLAUDE.md and used to justify excluding
-    # `sharp` from automated catalog updates, protecting a constraint that did
-    # not exist.
-    #
-    # The dependency that IS in both `overrides` and the catalog is
-    # `@vitejs/plugin-react-swc` (`^4.3.3`). Raising the catalog past that caret
-    # would leave the catalog stating a version the override prevents resolving,
-    # so `.catalog-updaterc.json` ignores its MAJOR updates only.
-    needs: [changes]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Audit dependencies
-        # `bun run check:audit`, NOT a bare `bun audit` — the script carries the
-        # `--ignore` flags, and this job ran the bare command for long enough
-        # that a fix landing in package.json passed locally and still failed
-        # here. One command, one source of truth.
-        run: bun run check:audit
-
   build-srd:
-    needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
+    needs: [changes, static-checks, test]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -446,11 +439,49 @@ jobs:
       - name: Check built output against the snapshot
         run: bun --filter srd snapshot
 
+      # The PR-blocking browser tier, folded in from the former `e2e-web` job.
+      #
+      # `playwright.config.ts`'s `webServer` builds under CI only when `dist` is
+      # ABSENT, so here it serves what the step above just built. Folding alone
+      # would NOT have done that — the config used to rebuild unconditionally,
+      # so as a separate job it cost a second full build of srd on every PR, and
+      # folding without the config change would simply have moved that second
+      # build inside this job. Both halves are the change.
+      #
+      # The trade, stated plainly: a browser flake now fails the build job rather
+      # than a separate one. Failure attribution survives via Playwright's
+      # `github` reporter, which annotates by spec file and test title.
+      #
+      # If you add a third PR-blocking spec, add it to the run line; do NOT add
+      # a job.
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/srd
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run smoke + bundle-budget specs
+        working-directory: apps/srd
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-e2e-web
+          path: apps/srd/playwright-report/
+          retention-days: 7
+
   build-itun:
-    needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
+    needs: [changes, static-checks, test]
     if: needs.changes.outputs.itun == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -477,97 +508,20 @@ jobs:
             exit 1
           fi
 
-  build-discord-bot:
-    needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
-    if: needs.changes.outputs.bot == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Build discord-bot
-        run: bun --filter discord-bot build
-
-  e2e-web:
-    # PR-blocking browser tier for srd (previously e2e/visual only ran nightly,
-    # so a broken route could merge to main and sit broken for up to a day).
-    # Runs exactly two specs — apps/srd/e2e/smoke.e2e.ts (routes render) and
-    # apps/srd/e2e/bundle-budget.e2e.ts (per-route data loading stays inside its
-    # byte budget; see src/lib/schemaPreloadDeps.ts and src/lib/searchIndexBuild.ts).
-    # The full suite stays nightly-only (.github/workflows/e2e-nightly.yml) so
-    # the PR gate stays fast and free of the flakiness that got browser e2e
-    # demoted from PR-blocking in the first place. Uses the same hermetic
-    # `bun ssg/build.ts` + `bun ssg/preview.ts` pattern the nightly job already
-    # proves works — no live Netlify deploy preview.
-    #
-    # These two specs used to be two separate jobs (smoke-web / bundle-budget-web)
-    # so a budget regression would read as its own clearly-named failure. They
-    # are one job now because that split cost a WHOLE EXTRA srd build:
-    # playwright.config.ts's `webServer` rebuilds the app under CI, so srd was
-    # built three times per PR (build-srd + one per e2e job). Failure attribution
-    # is preserved by Playwright's `github` reporter, which annotates by spec
-    # file and test title, so the budget failure is still named — it just names
-    # the spec instead of the job. If you add a third PR-blocking spec, add it to
-    # the run line below; do NOT add a third job.
-    needs: [changes, build-package, build-srd]
-    if: needs.changes.outputs.web == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/srd
-        run: bunx playwright install --with-deps chromium
-
-      - name: Run smoke + bundle-budget specs
-        working-directory: apps/srd
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-e2e-web
-          path: apps/srd/playwright-report/
-          retention-days: 7
-
-  e2e-itun:
-    # PR-blocking browser tier for ITUN — same rationale and same two-spec shape
-    # as e2e-web, against a self-contained static build (`vite preview`, no
-    # deploy preview), mirroring e2e-nightly.yml's e2e-itun job.
-    # apps/itun/e2e/bundle-budget.e2e.ts asserts per-route total JS stays under
-    # a byte budget and that no single chunk balloons back to a monolithic entry
-    # bundle (the guard for `autoCodeSplitting` in apps/itun/vite.config.ts).
-    #
-    # Merging the former smoke-itun / bundle-budget-itun pair matters more here
-    # than on srd: apps/itun/package.json's `build` is `tsc --noEmit && vite build`
-    # and playwright.config.ts's `webServer` runs it, so each extra e2e job cost
-    # a full extra typecheck of itun on top of the extra build.
-    needs: [changes, build-package, build-itun]
-    if: needs.changes.outputs.itun == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
+      # The PR-blocking browser tier, folded in from the former `e2e-itun` job.
+      #
+      # As on srd, and it mattered more here: `playwright.config.ts`'s
+      # `webServer` used to rebuild unconditionally, and itun's `build` is
+      # `tsc --noEmit && vite build`, so a separate e2e job cost a second full
+      # build AND a second typecheck every PR. The config now serves an existing
+      # `apps/itun/dist`, which is what the step above produced.
+      #
+      # The trade, stated plainly: a browser flake now fails the build job rather
+      # than a separate one. Failure attribution survives via Playwright's
+      # `github` reporter, which annotates by spec file and test title.
+      #
+      # If you add a third PR-blocking spec, add it to the run line; do NOT add
+      # a job.
 
       - name: Cache Playwright browsers
         uses: actions/cache@v6
@@ -591,32 +545,42 @@ jobs:
           path: apps/itun/playwright-report/
           retention-days: 7
 
+  build-discord-bot:
+    needs: [changes, static-checks, test]
+    if: needs.changes.outputs.bot == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Build discord-bot
+        run: bun --filter discord-bot build
+
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
   # this one check (`quality-checks`) so the per-area gating above never leaves
   # a required check stuck pending.
   # ---------------------------------------------------------------------------
+
   quality-checks:
     if: always()
     needs:
       - changes
-      - lint
-      - build-package
-      - knip
-      - typecheck
+      - static-checks
       - test
       - coverage
-      - validate
-      - audit
       - build-srd
       - build-itun
       - build-discord-bot
-      - e2e-web
-      - e2e-itun
       # NOTE: the FULL browser e2e suites (ITUN + srd) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.
-      # e2e-web/e2e-itun above cover only the PR-blocking tier (the smoke and
+      # the PR-blocking browser tier folded into build-srd/build-itun covers
+      # only the smoke and
       # bundle-budget specs), so the PR gate stays fast and free of full-suite
       # preview/browser flakiness; deeper regressions are still caught nightly.
       #

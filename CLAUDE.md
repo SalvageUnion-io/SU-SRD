@@ -39,7 +39,7 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 
 ### Audit gate (`check:audit`) — two suppressed advisories
 
-`bun audit --audit-level=high` gates merges via the `audit` job, and
+`bun audit --audit-level=high` gates merges via the `static-checks` job, and
 `package.json` cannot carry comments, so the reasoning lives here.
 
 **Suppressed: `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`** — both

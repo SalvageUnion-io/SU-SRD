@@ -11,13 +11,17 @@ on:
   # `Analyze (javascript-typescript)` is its OWN required status on main, so
   # that left those PRs permanently unmergeable rather than merely unscanned.
   pull_request:
-  # Required before `Analyze (javascript-typescript)` may be made a required
-  # status context on `main`, and the order matters: this repo merges through a
-  # merge queue, whose temporary `gh-readonly-queue/**` branches fire NEITHER
-  # `push: [main]` NOR `pull_request`. Requiring a context that never reports on
-  # those branches leaves the queue waiting for a check that cannot arrive — the
-  # same wedge the `merge_group:` trigger at the top of ci.yml exists to prevent.
-  # So this trigger must be live on `main` BEFORE the ruleset is changed.
+  # Kept DORMANT: there is currently no merge queue on `main` (the live ruleset
+  # has `deletion`, `non_fast_forward`, `required_linear_history` and
+  # `required_status_checks`, and no `merge_queue`). This comment used to assert
+  # the repo "merges through a merge queue", which was wrong and sat in a file a
+  # CI change gets read from.
+  #
+  # It stays because the ORDER matters if a queue is ever enabled: the queue's
+  # temporary `gh-readonly-queue/**` branches fire NEITHER `push: [main]` NOR
+  # `pull_request`, so requiring a context that never reports on them leaves the
+  # queue waiting for a check that cannot arrive. This trigger must be live on
+  # `main` BEFORE the ruleset is changed — same reasoning as ci.yml's.
   merge_group:
   schedule:
     # Mondays at 05:30 UTC — same cadence as Dependabot, offset from the

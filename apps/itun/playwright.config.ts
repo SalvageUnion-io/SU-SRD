@@ -82,8 +82,14 @@ export default defineConfig({
         // resolve consistently. CI builds a static bundle and serves it with
         // `vite preview` (no per-request compile); locally we reuse the
         // running dev server when one exists.
+        // REUSE an existing `apps/itun/dist` under CI, build only if absent.
+        // Same reasoning as apps/srd's config: the PR-blocking specs run inside
+        // `build-itun`, which has already built. Unconditionally rebuilding
+        // meant a second `vite build` AND a second `tsc --noEmit` (itun's
+        // `build` is both) on every PR. The nightly workflow has no build step,
+        // so the fallback stays.
         command: process.env.CI
-          ? 'bun --filter itun build && cd apps/itun && bunx --bun vite preview --port 5173 --strictPort'
+          ? '[ -d apps/itun/dist ] || bun --filter itun build; cd apps/itun && bunx --bun vite preview --port 5173 --strictPort'
           : 'bun run dev:itun',
         cwd: '../..',
         url: 'http://localhost:5173',

@@ -53,7 +53,17 @@ export default defineConfig({
   // webServer.cwd defaults to this config file's directory (apps/srd), so the
   // ssg/ scripts and dist/ resolve without a `cd`.
   webServer: {
-    command: process.env.CI ? 'bun ssg/build.ts && bun ssg/preview.ts --port 4321' : 'bun run dev',
+    // REUSE an existing `dist` under CI, build only if there isn't one.
+    //
+    // This used to build unconditionally. The PR-blocking specs now run inside
+    // `build-srd`, which has already produced `dist` — so an unconditional
+    // build meant the app was built TWICE per PR, and the "folding e2e into the
+    // build job reuses the build" rationale was simply false. The nightly
+    // workflow runs `playwright test` with no build step of its own, so the
+    // fallback is load-bearing: keep both halves.
+    command: process.env.CI
+      ? '[ -d dist ] || bun ssg/build.ts; bun ssg/preview.ts --port 4321'
+      : 'bun run dev',
     url: 'http://localhost:4321',
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
