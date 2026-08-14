@@ -195,15 +195,24 @@ describe('ControlButtons', () => {
     expect(button.className).not.toContain('bg-paper')
   })
 
-  test('icon-only control keeps the 44px coarse-pointer tap floor', () => {
+  test('icon-only control takes its coarse-pointer tap floor from a ::before, not its box', () => {
     render(
       <ControlButtons
         controls={[makeControl({ label: undefined, ariaLabel: 'Remove', icon: RemoveGlyph })]}
       />
     )
     const button = screen.getByLabelText('Remove')
-    expect(button.className).toContain('min-h-11')
-    expect(button.className).toContain('sm:min-h-0')
+    // The 44px reach is an invisible pseudo-element. Growing the BOX instead
+    // (the former `min-h-11 min-w-11`) doubled the height of `CardControlRail`,
+    // an absolute row centred on the card's top frame line, pushing the button
+    // down over the header's TL/SV stats at mobile widths.
+    expect(button.className).toContain('before:h-11')
+    expect(button.className).toContain('sm:before:hidden')
+    expect(button.className).toContain('relative')
+    expect(button.className).not.toContain('min-h-11')
+    // Narrower than it is tall on purpose: siblings in the rail sit 4–6px away
+    // and a 44px-wide hit box would swallow taps meant for the status badge.
+    expect(button.className).toContain('before:w-7')
   })
 
   test('icon-only control fires onClick', () => {

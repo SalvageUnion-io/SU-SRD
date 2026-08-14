@@ -101,8 +101,27 @@ function ControlButton({
   // remove/swap/fold cluster. It is a STAMP like every other control in the
   // rail: same padding, same height, the glyph sized to the label line it
   // replaces, so an icon button and a worded one are interchangeable in the
-  // row. `min-h-11`/`min-w-11` still holds the 44px coarse-pointer tap target
-  // without changing the desktop size.
+  // row.
+  //
+  // The coarse-pointer tap target is an invisible ::before, NOT a bigger box.
+  // This used to be `min-h-11 min-w-11 sm:min-h-0 sm:min-w-0` — the repo-wide
+  // 44px touch floor, which is correct everywhere it sits in normal flow
+  // (SmallButtons, the Stat steppers, Field). Here it is not: this button
+  // renders inside `CardControlRail`, an ABSOLUTE row centred on the card's top
+  // frame line, so growing the box grows the rail with it. Measured at 390px
+  // the rail went 22px → 44px tall and the button 24×20 → 44×44, which (a) hung
+  // 22px down into the header band, covering the TL/SV stat cells the rail is
+  // z-30 over, and (b) put a 44px square next to a 22px status badge in a row
+  // whose whole premise is that every cell is the same stamp height.
+  // Expanding the HIT AREA instead keeps the rail one uniform stamp row at
+  // every width while still giving a finger 44px of vertical reach.
+  //
+  // The pseudo-element is deliberately NOT 44px wide: siblings in this row are
+  // only 4px away (`flex gap-1`) and the rail's other groups 6px
+  // (`gap-1.5`), so a 44px-wide invisible box would swallow taps meant for the
+  // status badge beside it. `w-7` (28px on a 24px button) leaves 2px of
+  // clearance and still clears the 24×24 floor in WCAG 2.2 §2.5.8, which
+  // measures the target, not the ink.
   //
   // A `danger` icon (the ✕ remove) is a RED stamp — filled, not outlined —
   // because it is the one control in the rail that destroys something, and as
@@ -115,8 +134,8 @@ function ControlButton({
       <button
         type="button"
         className={cn(
-          'inline-flex shrink-0 items-center justify-center border-2 transition-colors',
-          'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
+          'relative inline-flex shrink-0 items-center justify-center border-2 transition-colors',
+          "before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-7 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] sm:before:hidden",
           RUNG_INLINE_PADDING.mini,
           RUNG_TYPE.mini.label,
           isDisabled
