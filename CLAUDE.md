@@ -77,19 +77,25 @@ Use it before editing an `overrides` floor too — the CI comment in
 `.github/workflows/ci.yml` documents which floors bind and via what, and that
 comment can go stale while `bun why` cannot.
 
-**`overrides` is now a single entry** (`@discordjs/rest`), and it is a *dedupe
-pin*, not a security floor — it lifts one stale `discord.js` edge onto a
-`@discordjs/rest` its own range already allows, so `undici` clears
-`GHSA-vxpw-j846-p89q` unaided. The seven other entries were removed in #787
-after measuring what each held back; `ci.yml` records the per-entry evidence
-and the removal condition. `nanoid` was among them — it is no longer pinned
-anywhere, and `3.3.18` now holds only because `postcss`'s `^3.3.16` caret
-happens to resolve there. That is a caret, not a guarantee: **`bunfig.toml`'s
-`minimumReleaseAge` makes a caret resolve silently *down*** to the newest
-version old enough (CLAUDE.md, "Install cooldown"), where a floor would have
-errored. So if `bun audit` ever reports `nanoid`, `fast-uri` or
-`brace-expansion`, the fix is to restore that package's floor — not to hunt for
-a new consumer.
+**`overrides` is now two entries, and NEITHER is a security floor** — both are
+dedupe pins. `@discordjs/rest` lifts one stale `discord.js` edge onto a version
+its own range already allows, so `undici` clears `GHSA-vxpw-j846-p89q` unaided;
+`@opentelemetry/core` collapses two OTel cores that would otherwise coexist in
+one subtree and silently desync `@sentry/node`'s span context. The other six
+entries were removed in #787 after measuring what each held back; `ci.yml`
+records the per-entry evidence, the watch list and the restore conditions.
+
+**Read that comment before removing an entry here**, because "the audit is still
+clean" is necessary but *not sufficient* — `@opentelemetry/core` is the worked
+example of a removal that audits clean and still degrades behaviour.
+
+`nanoid` was among the six: it is no longer pinned anywhere, and `3.3.18` holds
+only because `postcss`'s `^3.3.16` caret happens to resolve there. That is a
+caret, not a guarantee — **`bunfig.toml`'s `minimumReleaseAge` makes a caret
+resolve silently *down*** to the newest version old enough (see "Install
+cooldown"), where a floor would have errored. So if `bun audit` ever reports
+`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote` or `filelist`, the fix is
+to restore that package's floor — not to hunt for a new consumer.
 
 ### Shared versions live in the catalog
 
@@ -129,7 +135,7 @@ Two things this interacts with, both of which have bitten:
 takes no comments, so the reason lives here. That feature defaults to **on** at
 `moderate` severity and writes `overrides` entries automatically; this repo
 curates `overrides` by hand — every entry documented in `ci.yml`, and as of
-#787 that is a single dedupe pin with zero security floors — and gates at
+#787 that is two dedupe pins with zero security floors — and gates at
 `--audit-level=high`. Leaving it on would open PRs editing that block for
 advisories `check:audit` deliberately ignores.
 
@@ -152,13 +158,14 @@ Two behaviours, measured on Bun 1.3.14 — know which one you are hitting:
   pins, so this is the usual case.
 - a **caret range silently resolves *down*** to the newest version old enough.
   No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
-  did nothing — check the publish date before concluding the fix is broken. The
-  An `overrides` floor is the loud alternative — resolving below one errors
-  instead of silently stepping down. **There is currently only one `overrides`
-  entry and it is not a floor** (see "Audit gate"), so nothing in this repo is
-  protected that way today. That is the accepted cost of #787, not an oversight:
-  the packages it applies to (`nanoid`, `fast-uri`, `brace-expansion`) are named
-  there with the instruction to restore a floor if any of them goes red.
+  did nothing — check the publish date before concluding the fix is broken.
+  An `overrides` floor is the loud alternative: resolving below one errors
+  instead of silently stepping down. **Both current `overrides` entries are
+  dedupe pins, not floors** (see "Audit gate"), so nothing here is protected that
+  way today. That is the accepted cost of #787, not an oversight — the five
+  packages it applies to (`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote`,
+  `filelist`) are listed there with the instruction to restore a floor if any of
+  them goes red.
 
 `bun install --frozen-lockfile` does no resolution and is **unaffected** —
 verified; CI and all four deploy targets never see this gate.

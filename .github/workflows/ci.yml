@@ -278,12 +278,17 @@ jobs:
       # high/critical advisories so a vulnerable dependency blocks merge; lower
       # severities are reported by `bun audit` locally but do not gate CI.
       #
-      # THE BLOCK IS NOW `{ "@discordjs/rest": "^2.6.3" }` — ONE entry. It held
-      # eight until #787; seven were removed after measuring, one at a time, what
-      # each was actually holding back, and the eighth was REPLACED by a better
-      # fix. The method is the point, so that it can be redone: empty the block,
-      # `bun install`, then `bun run check:audit`. Anything that reappears earned
-      # its floor; anything that does not, did not.
+      # THE BLOCK IS NOW TWO ENTRIES — `@discordjs/rest` and
+      # `@opentelemetry/core`, and NEITHER is a security floor; both are dedupe
+      # pins. It held eight until #787: six were removed after measuring, one at a
+      # time, what each was actually holding back, one was REPLACED by a better
+      # fix a level up, and one was removed and then put back when review showed
+      # the removal was not inert. The method is the point, so that it can be
+      # redone: empty the block, `bun install`, then `bun run check:audit`.
+      # Anything that reappears earned its floor; anything that does not, did not.
+      # Note what that method does NOT catch — `@opentelemetry/core` below is the
+      # worked example, and it is why "audit is clean" is a necessary rather than
+      # a sufficient answer.
       #
       #   @discordjs/rest: ^2.6.3 — a DEDUPE pin that removes the need for a
       #     security floor, rather than a security floor itself.
@@ -316,7 +321,28 @@ jobs:
       #         advisory{ghsaId}}}}'
       #     Verified here with `bun run build:bot` and the bot's 225 tests.
       #
-      # WHAT THE SEVEN REMOVALS ACTUALLY DID (from the #787 bun.lock diff — the
+      #   @opentelemetry/core: ^2.8.0 — KEPT, and the cautionary tale of this whole
+      #     change. It was removed with the other six on the grounds that the audit
+      #     stayed clean, which it did. That was the wrong test.
+      #
+      #     `@netlify/otel@6.0.5` pins core at EXACTLY 2.8.0 while its own
+      #     `@opentelemetry/sdk-trace-node@2.9.0` depends on core 2.9.0 — so with
+      #     no override the lockfile carries a nested
+      #     `@netlify/otel/@opentelemetry/core@2.8.0` AND a top-level 2.9.0: two
+      #     copies inside one package's subtree. OTel's context keys are
+      #     non-registered `Symbol`s, which never compare equal across copies, so
+      #     the two disagree about what is in context and what is suppressed.
+      #
+      #     That is not confined to Netlify's own tracing, which is what the first
+      #     draft of this comment claimed. `@sentry/node@10.69.0` IS an OTel SDK
+      #     (it requires `@opentelemetry/sdk-trace-base ^2.9.0`), and it shares a
+      #     process with `@netlify/blobs`: `apps/su-assets/netlify/functions/
+      #     asset.ts` imports `getStore` and `initObservability` together, as do
+      #     the ITUN snapshot functions. So the desync can mis-parent or
+      #     un-suppress SENTRY's spans — silently, with no crash and no advisory.
+      #     Keep this entry. `grep -c 'opentelemetry/core@2' bun.lock` must be 1.
+      #
+      # WHAT THE SIX REMOVALS ACTUALLY DID (from the #787 bun.lock diff — the
       # resolved versions, not the ranges, because only the former can be audited):
       #   shell-quote  ^1.10.0 -> resolves 1.9.0   (worst advisory is `<= 1.8.4`)
       #   fast-uri     ^4.1.2  -> resolves 3.1.5   (`< 3.1.5`; newest of the 3.x line)
@@ -324,21 +350,27 @@ jobs:
       #                           brace-expansion@2.1.4 (`< 2.1.4`) with it
       #   brace-expansion ^5.0.9 -> top level unchanged at 5.0.9 (minimatch@10 asks ^5.0.5)
       #   nanoid       ^3.3.18 -> NOT ONE LOCKFILE LINE CHANGED; a pure no-op
-      #   @opentelemetry/core ^2.8.0 -> adds a nested @netlify/otel copy at 2.8.0
       #   @vitejs/plugin-react-swc ^4.3.3 -> adds a nested @ladle/react copy at 3.11.0
       # Post-removal `bun run check:audit` is EMPTY, and full `bun audit` reports
       # only the two suppressed image-size ids below — i.e. no new advisory at any
-      # severity. `check:all`, `bun --filter component-lib ladle:build` and
-      # `bun install --frozen-lockfile` were all green on that lockfile.
+      # severity. `check:all`, `bun --filter component-lib ladle:build`,
+      # `bun run build:bot` and `bun install --frozen-lockfile` were all green.
       #
       # KNOW WHAT THIS TRADED AWAY, because it is a real cost and not zero.
-      # The last three of those seven are the ones to watch:
-      #   - fast-uri 3.1.5 and brace-expansion 2.1.4 each sit at EXACTLY the last
-      #     patch of an older line. Today that is clean. If a new advisory lands on
-      #     3.x / 2.x and the fix ships only on the newer major, the parent caret
-      #     (`ajv` asks fast-uri ^3.0.1) cannot reach it and the floor must come
-      #     back. That is the restore condition — do not treat a red audit on
-      #     either package as a mystery.
+      # FIVE of the six are downgrades onto an older line, and all five are on the
+      # watch list — do not shorten it, and do not treat a red audit on any of
+      # them as a mystery:
+      #
+      #     fast-uri 3.1.5, brace-expansion 2.1.4 (nested, via filelist),
+      #     shell-quote 1.9.0, filelist 1.0.6, nanoid 3.3.18
+      #
+      #   - The first four sit at or near the LAST patch of an older line, and
+      #     nanoid sits at exactly the fixed version with a caret above it. Today
+      #     all of that is clean. If a new advisory lands on one of those lines and
+      #     the fix ships only on a newer major, the parent caret (`ajv` asks
+      #     fast-uri ^3.0.1; `jake` asks filelist ^1.0.4; `concurrently` pins
+      #     shell-quote at exactly 1.9.0) cannot reach it and the floor must come
+      #     back. Restoring one is a one-line edit plus `bun install`.
       #
       #     THE SHARPER EDGE, and the reason a floor is not merely redundant here:
       #     a floor fails LOUDLY and a caret fails SILENTLY. `bunfig.toml` sets
@@ -348,27 +380,11 @@ jobs:
       #     older, in-advisory version with no warning at all, where resolving
       #     below an override would have errored. `check:audit` still gates the
       #     resolved lockfile, so this is a hardening regression, not a hole.
-      #     If any of these three go red, restore that package's floor rather than
-      #     hunting for a new consumer.
-      #   - the last two entries were DEDUPE floors, not security floors, and
-      #     removing them costs one duplicate copy each. Neither duplicate carries
-      #     an advisory — but "install weight" is the wrong ceiling for one of
-      #     them, so do not record it that way:
-      #
-      #     @opentelemetry/core is the one to understand. `@netlify/otel@6.0.5`
-      #     pins core at exactly 2.8.0 while its own
-      #     `@opentelemetry/sdk-trace-node@2.9.0` depends on core 2.9.0 — so
-      #     without the override there are TWO core instances inside a single
-      #     package's subtree (`bun.lock` has both a nested
-      #     `@netlify/otel/@opentelemetry/core@2.8.0` and the top-level 2.9.0).
-      #     OTel's context keys are non-registered `Symbol`s, which do not compare
-      #     equal across copies, so a duplicated core can silently DESYNC context
-      #     and suppression between the two rather than merely costing disk.
-      #     Kept out anyway because the blast radius is `@netlify/blobs`' own
-      #     internal tracing, which nothing here consumes — this repo's
-      #     observability is Sentry (see packages/observability). RESTORE
-      #     `"@opentelemetry/core": "^2.8.0"` the moment anything starts reading
-      #     Netlify's traces, or if blobs behaviour ever looks context-dependent.
+      #     If any of the five above goes red, restore that package's floor rather
+      #     than hunting for a new consumer.
+      #   - `@vitejs/plugin-react-swc` was a DEDUPE floor, not a security floor.
+      #     Removing it costs one duplicate copy (a nested @ladle/react 3.11.0)
+      #     and no advisory — install weight only, in a dev-only tool.
       #
       # TWO ADVISORIES ARE SUPPRESSED. `check:audit` passes
       # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both

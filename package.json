@@ -35,7 +35,8 @@
     }
   },
   "overrides": {
-    "@discordjs/rest": "^2.6.3"
+    "@discordjs/rest": "^2.6.3",
+    "@opentelemetry/core": "^2.8.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",
