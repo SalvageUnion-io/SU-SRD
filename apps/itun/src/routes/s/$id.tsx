@@ -18,6 +18,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { buttonVariants, SheetSkeleton } from 'component-lib'
 import { AppLink } from '../../components/shared/AppLink'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
+import { captureException } from '../../lib/observability'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/client'
 import { cn } from '../../lib/utils'
@@ -35,6 +36,30 @@ export const Route = createFileRoute('/s/$id')({
       if (err instanceof SnapshotNotFoundError) {
         return { snapshot: null, notFound: true as const, error: null }
       }
+
+      // Report before rendering the error state. Catching is exactly what stops
+      // an error reaching Sentry's global handler, so until now every failure on
+      // this route — timeouts, 503s from a Blobs outage, the MIME-type rejection
+      // from a rotated-away chunk — was converted into calm on-screen prose and
+      // nothing else. The route looked healthy from the outside while being the
+      // single most-reported broken surface in the app.
+      //
+      // A 404 above is deliberately NOT reported: a revoked or expired snapshot
+      // is a designed outcome, not a fault, and reporting it would bury the real
+      // failures in noise.
+      //
+      // Fingerprinted on the route rather than the message, because the messages
+      // embed a timeout figure and HTTP status and would otherwise shard one
+      // condition across many issues.
+      captureException(
+        err,
+        { snapshotId: params.id },
+        {
+          fingerprint: ['snapshot-retrieve-failed'],
+          tags: { route: '/s/$id' },
+        }
+      )
+
       const message = err instanceof Error ? err.message : 'Unknown error'
       return { snapshot: null, notFound: false as const, error: message }
     }
