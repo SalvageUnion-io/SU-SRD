@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { SalvageUnionReference } from '../index.js'
 import type { FindRollTable } from './mediatorTables.js'
 import {
   describeMediatorRoll,
@@ -139,6 +140,22 @@ describe('table-name mapping', () => {
       morale: 'Morale',
       retreat: 'Retreat',
     })
+  })
+
+  /**
+   * The assertion above compares the map to its own literal, so it passes for
+   * any pair of strings and never touches the dataset. This one does.
+   *
+   * These names bind code to a roll table's `name` — the most editable field
+   * in the data. A rename passes every existing validator and then silently
+   * empties whatever surface rolls on it, with no error anywhere. Resolution
+   * is the only thing worth asserting.
+   */
+  test('every mapped name resolves to a real roll table', () => {
+    for (const [id, name] of Object.entries(MEDIATOR_TABLE_NAMES)) {
+      const table = SalvageUnionReference.RollTables.getByName(name)
+      expect(table, `MEDIATOR_TABLE_NAMES.${id} = "${name}" resolves no roll table`).toBeDefined()
+    }
   })
 })
 
