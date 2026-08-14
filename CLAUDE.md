@@ -78,8 +78,11 @@ Use it before editing an `overrides` entry too — the CI comment in
 and that comment can go stale while `bun why` cannot.
 
 **`overrides` is now two entries, and NEITHER is a security floor** — both are
-dedupe pins. `@discordjs/rest` lifts one stale `discord.js` edge onto a version
-its own range already allows, so `undici` clears `GHSA-vxpw-j846-p89q` unaided;
+dedupe pins. **Neither is optional, though: do not drop either as install
+weight.** `@discordjs/rest` lifts one stale `discord.js` edge onto a version its
+own range already allows, so `undici` clears `GHSA-vxpw-j846-p89q` unaided —
+which makes that pin the only thing keeping a **HIGH** advisory out of the tree,
+dedupe or not;
 `@opentelemetry/core` collapses two OTel cores that would otherwise coexist in
 one subtree and silently desync `@sentry/node`'s span context. The other six
 entries were removed in #787 after measuring what each held back; `ci.yml`
