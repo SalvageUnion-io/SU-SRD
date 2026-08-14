@@ -464,6 +464,13 @@ export function EntityRow(props: EntityRowProps) {
               {sheetHref !== undefined && (
                 <Link
                   href={sheetHref}
+                  // The visible label is "View" on every row, so without this
+                  // every link in a rail has the same accessible name and a
+                  // screen-reader user hears "View, View, View" with no way to
+                  // tell which unit each one opens (WCAG 2.4.4, link purpose
+                  // from its name). The visible text stays "View" — the rail is
+                  // tight and the name already has its own band above.
+                  aria-label={`View ${name}`}
                   className={cn(
                     buttonVariants({ variant: 'default', size: 'mini' }),
                     'no-underline'

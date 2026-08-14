@@ -408,26 +408,26 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 
 /**
  * Wire a pilot onto the mech sheet currently open, via the rail's
- * 'Assign Pilot' dialog. Resolves when the pilot's RailChip renders.
+ * 'Assign Pilot' dialog. Resolves when the pilot's rail row renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
   await page.getByRole('button', { name: /assign pilot to mech/i }).click()
   await page.getByRole('dialog').getByText(pilotName).click()
   await page.getByRole('button', { name: /confirm pilot assignment/i }).click()
-  await expect(
-    page.getByRole('link', { name: new RegExp(`Assigned Pilot: ${pilotName}`, 'i') })
-  ).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('link', { name: new RegExp(`View ${pilotName}`, 'i') })).toBeVisible({
+    timeout: 10_000,
+  })
 }
 
 /**
  * Wire a crawler onto the pilot sheet currently open, via the rail's
- * 'Assign Crawler' dialog. Resolves when the crawler's RailChip renders.
+ * 'Assign Crawler' dialog. Resolves when the crawler's rail row renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {
   await page.getByRole('button', { name: /assign crawler to pilot/i }).click()
   await page.getByRole('dialog').getByText(crawlerName).click()
   await page.getByRole('button', { name: /confirm crawler assignment/i }).click()
   await expect(
-    page.getByRole('link', { name: new RegExp(`Home Crawler: ${crawlerName}`, 'i') })
+    page.getByRole('link', { name: new RegExp(`View ${crawlerName}`, 'i') })
   ).toBeVisible({ timeout: 10_000 })
 }

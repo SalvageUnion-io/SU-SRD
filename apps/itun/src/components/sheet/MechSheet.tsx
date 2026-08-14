@@ -103,7 +103,7 @@ type MechSheetProps = {
    */
   crawler?: Crawler | null
   /**
-   * The Linked Units rail content (pilot + crawler RailChip/RailEmpty), built
+   * The Linked Units rail content (pilot + crawler rail row/RailEmpty), built
    * by SheetMech from `composition` — MechSheet has no composition access of
    * its own, so this is passed straight through into the R4 section.
    */

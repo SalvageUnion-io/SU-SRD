@@ -44,7 +44,7 @@ test.describe('wired sheet segment switch', () => {
 
     await expect(page.getByRole('navigation', { name: /wired sheets/i })).toBeHidden()
     // The rail chip remains the desktop navigation affordance.
-    await expect(page.getByRole('link', { name: /Assigned Pilot: Mara Vex/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /View Mara Vex/i })).toBeVisible()
   })
 
   test('absent on unwired sheets at 390', async ({ page }) => {

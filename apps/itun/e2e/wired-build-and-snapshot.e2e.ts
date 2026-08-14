@@ -66,10 +66,10 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
   // Wiring flips the composition mode: the assigned-pilot rail chip now links
   // to the wired pilot's sheet (the mobile segment switch is asserted at 390
   // in the segment spec).
-  await expect(page.getByRole('link', { name: /Assigned Pilot: Mira Voss/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: /View Mira Voss/i })).toBeVisible()
 
-  // --- RailChip navigates (TanStack Link, client-side) to the pilot sheet ---
-  await page.getByRole('link', { name: /Assigned Pilot: Mira Voss/i }).click()
+  // --- the rail row View link navigates (TanStack Link, client-side) to the pilot sheet ---
+  await page.getByRole('link', { name: /View Mira Voss/i }).click()
   await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
 
   // There is deliberately no top-bar "edit this pilot" link any more: the edit

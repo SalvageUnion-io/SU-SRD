@@ -132,7 +132,7 @@ type PilotSheetProps = {
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
   /**
-   * The Linked Units rail content (mech + crawler RailChip/RailEmpty), built
+   * The Linked Units rail content (mech + crawler rail row/RailEmpty), built
    * by SheetPilot from `composition` — PilotSheet has no composition access
    * of its own, so this is passed straight through into the R3 section.
    */

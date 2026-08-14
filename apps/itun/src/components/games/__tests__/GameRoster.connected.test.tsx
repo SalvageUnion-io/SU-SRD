@@ -111,7 +111,7 @@ describe('what a row offers', () => {
     expect(screen.getByText('Mediator')).toBeTruthy()
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The link goes to the frozen crew sheet, addressed by the SERVER id.
-    const view = screen.getByRole('link', { name: 'View' })
+    const view = screen.getByRole('link', { name: /^View / })
     expect(view.getAttribute('href')).toBe('/games/g1/view/pilot/s-theirs')
     // But not editable — that would hand over an editor the server refuses.
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
