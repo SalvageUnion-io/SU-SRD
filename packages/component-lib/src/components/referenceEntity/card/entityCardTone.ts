@@ -73,18 +73,43 @@ export type DomainTone = {
 }
 
 /**
- * A guide's own authored hue, or `undefined` for every other entity.
+ * Which theme token each `guideTone` name resolves to.
  *
- * Validated as a 6-digit hex by `GuideSchema` (`lib/schemas/entities.ts`), which
- * also supplies the `#282019` ink default — so a guide always has one, and the
- * narrowing here is a runtime guard against malformed data rather than an
- * expected `undefined` branch. Anything that is not a non-empty string falls
- * through to the ordinary domain tone.
+ * THIS is the mapping the dataset used to inline as raw hexes — one of them
+ * byte-identical to `--color-mech`, two near-misses of `--color-pilot` and
+ * `--color-crawler`. The dataset now names a tone (`GuideToneSchema` in
+ * `salvageunion-reference`) and every colour resolves here, so a re-tone in
+ * `theme.css` moves the guide bands with it.
+ *
+ * It lives in component-lib rather than the reference package because the
+ * reference package must not know about CSS. Three names reuse the ontology
+ * hues; `salvage` and `hazard` name tones for guides that are about none of the
+ * five domains.
  */
-function entityGuideColor(entity: SURefMetaEntity): string | undefined {
-  if (entity == null || typeof entity !== 'object' || !('guideColor' in entity)) return undefined
-  const guideColor = entity.guideColor
-  return typeof guideColor === 'string' && guideColor.length > 0 ? guideColor : undefined
+const GUIDE_TONE_VAR = {
+  pilot: 'var(--color-pilot)',
+  mech: 'var(--color-mech)',
+  crawler: 'var(--color-crawler)',
+  salvage: 'var(--color-guide-salvage)',
+  hazard: 'var(--color-guide-hazard)',
+  ink: 'var(--color-ink)',
+} as const satisfies Record<string, string>
+
+/**
+ * A guide's own authored tone as a CSS colour, or `undefined` for every other
+ * entity.
+ *
+ * `GuideSchema` (`lib/schemas/entities.ts`) validates the name against a closed
+ * enum and defaults it to `ink`, so a guide always has one; the narrowing here
+ * is a runtime guard against malformed data rather than an expected `undefined`
+ * branch. An unrecognised name falls through to the ordinary domain tone rather
+ * than rendering a blank band.
+ */
+export function entityGuideToneColor(entity: SURefMetaEntity): string | undefined {
+  if (entity == null || typeof entity !== 'object' || !('guideTone' in entity)) return undefined
+  const tone = entity.guideTone
+  if (typeof tone !== 'string') return undefined
+  return GUIDE_TONE_VAR[tone as keyof typeof GUIDE_TONE_VAR]
 }
 
 /**
@@ -113,7 +138,7 @@ export function resolveDomainTone(
   // class) — the card threads `bgColor` to the header, sub-header, footer,
   // frame and nested children, and `accentSurface` applies it as an inline
   // background that wins over the class.
-  const guideColor = entityGuideColor(entity)
+  const guideColor = entityGuideToneColor(entity)
   if (guideColor) {
     return { domain, bg: undefined, bgColor: guideColor }
   }

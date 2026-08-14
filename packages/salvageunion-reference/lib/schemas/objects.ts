@@ -41,7 +41,7 @@ export {
 export { CrawlerMutationSchema } from './objects/crawlerMutations.js'
 export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects.js'
 export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js'
-export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js'
+export { GuideStepSchema, GuideToneSchema, GuideTypeSchema } from './objects/guides.js'
 export { NpcSchema } from './objects/npc.js'
 export {
   PatternDroneConfigSchema,

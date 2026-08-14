@@ -3,7 +3,7 @@
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
   "version": "2.11.0",
-  "generated": "2026-08-14T05:52:27.694Z",
+  "generated": "2026-08-14T06:02:44.516Z",
   "schemas": [
     {
       "id": "abilities",
@@ -191,7 +191,7 @@
       "dataFile": "data/guides.json",
       "schemaFile": "schemas/guides.schema.json",
       "itemCount": 15,
-      "requiredFields": ["id", "name", "source", "page", "guideType", "guideColor", "steps"],
+      "requiredFields": ["id", "name", "source", "page", "guideType", "guideTone", "steps"],
       "displayName": "guides"
     },
     {

@@ -12780,7 +12780,14 @@ export declare const GuideSchema: z.ZodObject<{
         "mech-creation": "mech-creation";
         progression: "progression";
     }>;
-    guideColor: z.ZodDefault<z.ZodString>;
+    guideTone: z.ZodDefault<z.ZodEnum<{
+        crawler: "crawler";
+        hazard: "hazard";
+        ink: "ink";
+        mech: "mech";
+        pilot: "pilot";
+        salvage: "salvage";
+    }>>;
     steps: z.ZodArray<z.ZodLazy<z.ZodObject<{
         id: z.ZodString;
         name: z.ZodString;
@@ -13299,7 +13306,7 @@ export { ContributionAmountSchema, ContributionSchema, ContributionStatSchema, C
 export { CrawlerMutationSchema } from './objects/crawlerMutations.js';
 export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects.js';
 export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js';
-export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js';
+export { GuideStepSchema, GuideToneSchema, GuideTypeSchema } from './objects/guides.js';
 export { NpcSchema } from './objects/npc.js';
 export { PatternDroneConfigSchema, PatternSchema, PatternSystemModuleSchema, } from './objects/patterns.js';
 export { ChassisStatsSchema, CombatEntitySchema, DamageSchema, DataValueSchema, MechanicalEntitySchema, StatsSchema, StructurePointsSchema, TraitSchema, } from './objects/primitives.js';
@@ -16089,6 +16096,26 @@ export declare const GuideTypeSchema: z.ZodEnum<{
     gameplay: "gameplay";
     "mech-creation": "mech-creation";
     progression: "progression";
+}>;
+/**
+ * Which theme tone paints a guide's header/footer band.
+ *
+ * A NAME, never a colour. The colour each name resolves to lives in
+ * `component-lib`'s `theme.css` and nowhere else — three of these reuse the
+ * ontology hues (`--color-pilot` / `--color-mech` / `--color-crawler`) and two
+ * name tones that exist for guides which are about none of the three
+ * (`--color-guide-salvage`, `--color-guide-hazard`). `ink` is the fallback for
+ * a guide added without a tone.
+ *
+ * This replaced a raw hex field. See `GuideSchema.guideTone` for what that cost.
+ */
+export declare const GuideToneSchema: z.ZodEnum<{
+    crawler: "crawler";
+    hazard: "hazard";
+    ink: "ink";
+    mech: "mech";
+    pilot: "pilot";
+    salvage: "salvage";
 }>;
 //# sourceMappingURL=guides.d.ts.map
 // === lib/schemas/objects/npc.d.ts ===

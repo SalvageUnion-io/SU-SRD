@@ -6,7 +6,7 @@
     "page": 12,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 8 }],
     "guideType": "gameplay",
-    "guideColor": "#5A9DB5",
+    "guideTone": "salvage",
     "content": [
       {
         "type": "paragraph",
@@ -98,7 +98,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 18,
     "guideType": "character-creation",
-    "guideColor": "#D46A30",
+    "guideTone": "pilot",
     "content": [
       {
         "type": "paragraph",
@@ -283,7 +283,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 94,
     "guideType": "mech-creation",
-    "guideColor": "#7A978A",
+    "guideTone": "mech",
     "content": [
       {
         "type": "paragraph",
@@ -477,7 +477,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 212,
     "guideType": "crawler-creation",
-    "guideColor": "#D14B8A",
+    "guideTone": "crawler",
     "content": [
       {
         "type": "paragraph",
@@ -589,7 +589,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 218,
     "guideType": "progression",
-    "guideColor": "#D14B8A",
+    "guideTone": "crawler",
     "steps": [
       {
         "id": "5de3a137-4844-4bec-b894-8be617222b23",
@@ -620,7 +620,7 @@
     "page": 227,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "PH", "page": 64 }],
     "guideType": "downtime",
-    "guideColor": "#D14B8A",
+    "guideTone": "crawler",
     "content": [
       {
         "type": "paragraph",
@@ -771,7 +771,7 @@
     "page": 233,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
     "guideType": "gameplay",
-    "guideColor": "#7A978A",
+    "guideTone": "mech",
     "content": [
       {
         "type": "paragraph",
@@ -864,7 +864,7 @@
     "page": 234,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 16 }],
     "guideType": "gameplay",
-    "guideColor": "#7A978A",
+    "guideTone": "mech",
     "content": [
       {
         "type": "paragraph",
@@ -931,7 +931,7 @@
     "page": 238,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 21 }],
     "guideType": "gameplay",
-    "guideColor": "#7A978A",
+    "guideTone": "mech",
     "content": [],
     "steps": [
       {
@@ -971,7 +971,7 @@
     "page": 239,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 22 }],
     "guideType": "gameplay",
-    "guideColor": "#7A978A",
+    "guideTone": "mech",
     "content": [
       {
         "type": "paragraph",
@@ -1065,7 +1065,7 @@
     "page": 241,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 24 }],
     "guideType": "gameplay",
-    "guideColor": "#D46A30",
+    "guideTone": "pilot",
     "content": [
       {
         "type": "paragraph",
@@ -1145,7 +1145,7 @@
     "page": 244,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 28 }],
     "guideType": "gameplay",
-    "guideColor": "#5A9DB5",
+    "guideTone": "salvage",
     "content": [
       {
         "type": "paragraph",
@@ -1200,7 +1200,7 @@
     "page": 245,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 28 }],
     "guideType": "gameplay",
-    "guideColor": "#5A9DB5",
+    "guideTone": "salvage",
     "content": [],
     "steps": [
       {
@@ -1308,7 +1308,7 @@
     "page": 254,
     "additionalSources": [{ "source": "Salvage Union Starter Set", "booklet": "CR", "page": 14 }],
     "guideType": "gameplay",
-    "guideColor": "#B84C4C",
+    "guideTone": "hazard",
     "content": [
       {
         "type": "paragraph",
@@ -1417,7 +1417,7 @@
     "page": 263,
     "additionalSources": [{ "source": "Reclamation of the Wastes", "page": 8 }],
     "guideType": "gameplay",
-    "guideColor": "#5A9DB5",
+    "guideTone": "salvage",
     "content": [
       {
         "type": "paragraph",

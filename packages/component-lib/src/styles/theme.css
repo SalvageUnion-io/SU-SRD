@@ -120,6 +120,21 @@
      colour, which was the most dangerous part of the shadow family. */
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 
+  /* Guide tones that are not one of the five ontology domains.
+
+     A guide's band colour is authored per-guide (`guideTone` in the dataset).
+     Most guides are about a pilot, a mech or a crawler and reuse those hues;
+     these two cover the guides that are about neither — the salvage/condition
+     procedures, and Tough Choices, whose band reads as a hazard stripe.
+
+     They exist as tokens because the dataset previously carried five raw hexes
+     of its own, one byte-identical to --color-mech and two near-misses of
+     --color-pilot / --color-crawler: close enough to read as the same colour,
+     different enough never to track a re-tone. The dataset now names a tone and
+     this file owns every value. */
+  --color-guide-salvage: rgb(90, 157, 181); /* #5a9db5 */
+  --color-guide-hazard: rgb(184, 76, 76); /* #b84c4c */
+
   /* Class ability-tier ramp (Core Book 2.0a, class ability-tree spreads).
      Core = brick, Advanced (incl. Hybrid) = pilot, Legendary = crawler — the
      book reuses the ontology hues for the upper two tiers, so only Core needs
