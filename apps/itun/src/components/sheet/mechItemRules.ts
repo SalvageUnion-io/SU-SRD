@@ -71,9 +71,24 @@ export function itemEconomy(entity: MechItem): MechItemEconomy {
   return { epCost, heat, maxUses }
 }
 
-/** Field-repair cost: half Salvage Value in Scrap, rounded up, min 1. */
+/**
+ * Field-repair cost: half Salvage Value in Scrap, rounded DOWN, minimum 1.
+ *
+ * The book states the cost with no rounding of its own — "an amount of Scrap
+ * equal to half its Salvage Value" (Core Book p.221, Union Crawler Mech Bay)
+ * and "half its Salvage Value to a minimum of 1" (p.248, the Repair ability).
+ * Neither says round up, so the general rule governs: "In any situation where
+ * you need to round a number, always round down unless stated otherwise"
+ * (p.233), immediately followed by "Specific beats general".
+ *
+ * This used to round UP, which made an SV-3 item cost 2 Scrap to repair while
+ * `halfSalvageScrap` (src/lib/rules/salvage.ts) — the same "half Salvage Value,
+ * min 1" phrase from the same book — yielded 1 when salvaged. The asymmetry
+ * read as deliberate (both directions disadvantage the player) and was not:
+ * neither site cited a page, and the book has one rule for both.
+ */
 export function repairScrapCost(salvageValue: number | undefined): number {
-  return Math.max(1, Math.ceil((salvageValue ?? 1) / 2))
+  return Math.max(1, Math.floor((salvageValue ?? 1) / 2))
 }
 
 /**
