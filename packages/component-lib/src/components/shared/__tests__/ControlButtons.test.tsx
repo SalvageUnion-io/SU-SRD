@@ -169,10 +169,11 @@ describe('ControlButtons', () => {
     // square), so an icon button and a worded one are interchangeable in a row.
     expect(button.className).toContain('px-1')
     expect(button.className).toContain('py-0.5')
-    // No fixed 28/32px square ON THE BOX. Checked per class TOKEN, not as a
-    // substring: the coarse-pointer hit area is a `before:h-8` pseudo-element,
-    // which sizes generated content rather than the button, and a substring
-    // check reads that as the fixed height it exists to forbid.
+    // No fixed 28/32px square. Checked per class TOKEN rather than as a
+    // substring, because a substring match also fires on any variant-prefixed
+    // or pseudo-element utility that merely CONTAINS a size (`before:h-8`,
+    // `sm:w-8`) — which sizes something other than this box, and is not what
+    // this assertion is about.
     const sized = button.className.split(/\s+/).filter((c) => /^[hw]-\d/.test(c))
     expect(sized).toEqual([])
     // The provided icon renders inside.
