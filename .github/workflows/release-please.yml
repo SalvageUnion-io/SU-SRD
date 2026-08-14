@@ -40,9 +40,14 @@ jobs:
       # self-healing: any push to main repairs a release PR that lost its
       # auto-merge (release-please force-pushes these branches on each update).
       #
-      # The PAT is required, not cosmetic: `main` requires a merge queue, and
-      # GITHUB_TOKEN cannot add a PR to one. GH_REPO is required because this
-      # job never checks out the repo, so `gh` has no remote to infer.
+      # The PAT's stated reason was "`main` requires a merge queue, and
+      # GITHUB_TOKEN cannot add a PR to one". That is FALSE — there is no
+      # merge_queue rule on `main` (checked against the live ruleset). The PAT
+      # is still required, for a different and more ordinary reason: a workflow
+      # run authenticated with GITHUB_TOKEN does not trigger further workflow
+      # runs, so an auto-merge armed with it would sit behind checks that never
+      # re-report. GH_REPO is required because this job never checks out the
+      # repo, so `gh` has no remote to infer.
       - name: Keep auto-merge armed on every open release PR
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
