@@ -117,6 +117,64 @@
   status = 200
   force = true
 
+# A build asset that does not exist must 404 — NOT fall through to the SPA.
+#
+# Verified against production before this rule existed:
+#
+#   $ curl -D- https://intheunionnow.com/assets/index-DEADBEEF.js
+#   HTTP/2 200
+#   content-type: text/html; charset=UTF-8
+#   cache-control: public,max-age=31536000,immutable
+#
+# Every hashed chunk a deploy rotates away is requested by exactly one
+# population: clients still running the previous build — which, because the
+# PWA swaps its precache out from under a live page (`skipWaiting` +
+# `clientsClaim` + `cleanupOutdatedCaches`), is the normal state for the
+# seconds after a deploy. Those clients `import()` the old URL and got back an
+# HTML document with a **200**, so the import rejected on MIME type ("Expected
+# a JavaScript module script"), and the `/assets/*` header block below then
+# pinned that HTML into the HTTP cache as `immutable` for a **year**, under the
+# chunk's URL. The share surfaces are where this showed: `/s/:id` and
+# `/p/:kind/:appId` are opened cold, once, from a link, on a device whose
+# service worker is whatever build it last saw.
+#
+# `status = 404` is the entire point of this rule; the body is irrelevant
+# (index.html is reused only to avoid shipping a second document). An honest
+# 404 makes the failed import surface as `vite:preloadError`, which
+# `src/lib/chunkRecovery.ts` recovers from with a single reload — and that reload
+# fetches a current index.html naming current hashes, so the dead URL is never
+# requested again whether or not the 404 itself got cached.
+#
+# TWO placement rules, both load-bearing:
+#   - It MUST precede the SPA fallback below. First match wins, and that rule's
+#     `/*` would otherwise swallow these.
+#   - It MUST NOT set `force = true`. Netlify consults the redirect table only
+#     after failing to find a file on disk, so as written this matches misses
+#     only. Forcing it would shadow `dist/assets/` and 404 *every* chunk in the
+#     build — i.e. take the whole site down.
+#
+# Measured on deploy-preview-759 with both rules in place:
+#   /assets/index-C9pQFcVN.js  (real)     -> 200 application/javascript
+#   /assets/index-DEADBEEF.js  (missing)  -> 404
+#   /  /s/AAAAAAAA  /p/pilot/abc          -> 200 text/html
+#
+# KNOWN RESIDUE, deliberately not fought: the 404 still carries the `immutable`
+# Cache-Control from the `/assets/*` header block below, because Netlify matches
+# header rules on the REQUEST path and cannot condition them on response status.
+# A browser may therefore cache that 404 for a year under a chunk URL. It does
+# not matter in the forward direction — hashed URLs are never reissued, so the
+# entry is simply never consulted again. It would matter on a ROLLBACK, which
+# republishes a prior deploy and brings its hashes back. What covers that is the
+# service worker: workbox precaches with `cache: 'reload'`, which bypasses the
+# HTTP cache, and the precache glob covers every emitted chunk — so a
+# rolled-back build repopulates from the network and is served out of Cache
+# Storage rather than the poisoned HTTP entries. If a rollback ever does strand
+# a client, a hard reload is the manual out.
+[[redirects]]
+  from = "/assets/*"
+  to = "/index.html"
+  status = 404
+
 # SPA fallback — serve index.html for all unmatched paths
 [[redirects]]
   from = "/*"

@@ -34,7 +34,31 @@ export default defineConfig({
     // is not an option on this plugin and would be rejected.
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt', NOT 'autoUpdate' — this is the setting that made share links
+      // need four or five refreshes.
+      //
+      // Under 'autoUpdate' the plugin FORCE-ASSIGNS `workbox.skipWaiting` and
+      // `workbox.clientsClaim` to true (dist/index.js: an assignment, not a
+      // default, so setting them in `workbox` below cannot override it). The
+      // emitted worker then activates the moment it finishes installing,
+      // claims the already-open page, and runs `cleanupOutdatedCaches()` —
+      // deleting the precache the live page is still reading from. That page
+      // goes on requesting hashed chunks from a build the server no longer
+      // has, and every one of them fails. Reloading is the only way out, which
+      // is precisely the symptom: a snapshot link that renders on the fifth
+      // try, once the ~1.2 MB precache install has finally finished.
+      //
+      // Under 'prompt' the new worker installs and then WAITS. The running
+      // page keeps the precache it booted with, so its chunks stay resolvable
+      // for as long as it is open, and the swap happens only when the user
+      // accepts (src/lib/sw/register.ts posts SKIP_WAITING and reloads) or
+      // when every tab has closed. Nothing is yanked mid-session.
+      //
+      // The cost is that a user can sit on an old build until they accept —
+      // which is why the prompt is a toast and not a silent no-op, and why
+      // chunkRecovery.ts still exists as the backstop for the tab that was
+      // already mid-flight when a deploy landed.
+      registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],

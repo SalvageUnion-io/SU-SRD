@@ -40,7 +40,15 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **ShadCN + Tailwind v4** — UI primitives in `src/components/ui/`; SU brand
   theme in `src/index.css` (`@theme` block) + `component-lib` theme.
-- **PWA** (`vite-plugin-pwa`, autoUpdate) — installable, offline-capable.
+- **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable,
+  offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
+  `skipWaiting` + `clientsClaim` (an assignment in the plugin, not a default, so
+  the `workbox` block cannot override it), which activated a new worker under a
+  live page and ran `cleanupOutdatedCaches()` — deleting the precache that page
+  was still resolving code-split chunks against. Share links wore it worst; see
+  the header comments in `vite.config.ts`, `src/lib/sw/register.ts` and
+  `src/lib/chunkRecovery.ts`, plus the `/assets/*` → 404 rule in `netlify.toml`
+  that stops a rotated-away chunk coming back as `200 text/html`.
 
 ## Persistence (read before touching data)
 
