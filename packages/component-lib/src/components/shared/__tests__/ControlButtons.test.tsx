@@ -169,7 +169,13 @@ describe('ControlButtons', () => {
     // square), so an icon button and a worded one are interchangeable in a row.
     expect(button.className).toContain('px-1')
     expect(button.className).toContain('py-0.5')
-    expect(button.className).not.toContain('h-8')
+    // No fixed 28/32px square. Checked per class TOKEN rather than as a
+    // substring, because a substring match also fires on any variant-prefixed
+    // or pseudo-element utility that merely CONTAINS a size (`before:h-8`,
+    // `sm:w-8`) — which sizes something other than this box, and is not what
+    // this assertion is about.
+    const sized = button.className.split(/\s+/).filter((c) => /^[hw]-\d/.test(c))
+    expect(sized).toEqual([])
     // The provided icon renders inside.
     expect(screen.getByTestId('remove-glyph')).toBeTruthy()
   })
@@ -195,15 +201,22 @@ describe('ControlButtons', () => {
     expect(button.className).not.toContain('bg-paper')
   })
 
-  test('icon-only control keeps the 44px coarse-pointer tap floor', () => {
+  test('icon-only control carries no width-keyed tap floor of its own', () => {
     render(
       <ControlButtons
         controls={[makeControl({ label: undefined, ariaLabel: 'Remove', icon: RemoveGlyph })]}
       />
     )
     const button = screen.getByLabelText('Remove')
-    expect(button.className).toContain('min-h-11')
-    expect(button.className).toContain('sm:min-h-0')
+    // The touch floor is `theme.css`'s `@media (pointer: coarse)` rule, which
+    // applies to every button and cannot be overridden from here anyway (it is
+    // unlayered, so it beats `@layer utilities`). A `min-h-11 sm:min-h-0` on
+    // this element was therefore redundant wherever there IS a touch pointer,
+    // and active harm wherever there is not: it grew `CardControlRail` — an
+    // absolute row centred on the card's top frame line — from 22px to 44px,
+    // pushing it down over the header's TL/SV stats at narrow desktop widths.
+    expect(button.className).not.toContain('min-h-11')
+    expect(button.className).not.toContain('min-w-11')
   })
 
   test('icon-only control fires onClick', () => {

@@ -101,8 +101,34 @@ function ControlButton({
   // remove/swap/fold cluster. It is a STAMP like every other control in the
   // rail: same padding, same height, the glyph sized to the label line it
   // replaces, so an icon button and a worded one are interchangeable in the
-  // row. `min-h-11`/`min-w-11` still holds the 44px coarse-pointer tap target
-  // without changing the desktop size.
+  // row.
+  //
+  // It carries NO tap-target floor of its own. It used to:
+  // `min-h-11 min-w-11 sm:min-h-0 sm:min-w-0`, which was a WIDTH-keyed
+  // duplicate of the POINTER-keyed floor `theme.css` already applies to every
+  // `button` under `@media (pointer: coarse)`. Two consequences, and the second
+  // is the bug:
+  //
+  //  - Where there IS a touch pointer, the utility was redundant. That rule is
+  //    unlayered, so it beats any Tailwind utility (those are in
+  //    `@layer utilities`) — the 44px box survives with or without this class,
+  //    at every viewport width.
+  //  - Where there is NOT — a narrow desktop window, a responsive-mode preview,
+  //    a small laptop — the utility applied a touch floor to a mouse. That is
+  //    the one case the pointer rule deliberately skips, and the only case this
+  //    class could actually change.
+  //
+  // So all it ever did was distort the geometry for pointers that never needed
+  // it. This button renders inside `CardControlRail`, an ABSOLUTE row centred
+  // on a card's top frame line, so a 44px box grew the rail with it: measured
+  // at 390px, rail 22px → 44px and button 24×20 → 44×44, which hung 22px down
+  // into the header band over the TL/SV stat cells the rail is z-30 above, and
+  // put a 44px square beside a 22px status badge in a row whose whole premise
+  // is that every cell is the same stamp height.
+  //
+  // Measure this with touch emulation, not just a narrow viewport — the two
+  // disagree here, and a fine-pointer run alone will tell you a coarse-pointer
+  // change worked when it did nothing.
   //
   // A `danger` icon (the ✕ remove) is a RED stamp — filled, not outlined —
   // because it is the one control in the rail that destroys something, and as
@@ -116,7 +142,6 @@ function ControlButton({
         type="button"
         className={cn(
           'inline-flex shrink-0 items-center justify-center border-2 transition-colors',
-          'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
           RUNG_INLINE_PADDING.mini,
           RUNG_TYPE.mini.label,
           isDisabled
