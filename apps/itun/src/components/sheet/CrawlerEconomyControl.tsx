@@ -37,6 +37,7 @@
 
 import { Button, FieldError, ModalShell, Select, Slab, Stat } from 'component-lib'
 import { useState } from 'react'
+import { resolvePool } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
@@ -182,7 +183,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const bays = fresh.crawlerBays ?? []
     const maxSP = crawlerMaxSP(fresh)
-    const currentSP = Math.min(fresh.currentSP ?? maxSP, maxSP)
+    const currentSP = resolvePool(fresh.currentSP, maxSP)
     const effect = performDeterioration({ currentSP, bayCount: bays.length, roll })
 
     if (effect.spLoss > 0) {

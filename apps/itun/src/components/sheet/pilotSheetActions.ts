@@ -28,7 +28,7 @@
  */
 
 import { useState } from 'react'
-import { enrichPilotSnapshot } from 'salvageunion-reference/rules'
+import { enrichPilotSnapshot, resolvePool } from 'salvageunion-reference/rules'
 import { pilotMaxAP } from '../../lib/rules/derivedStats'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import type { SoftWarning } from '../../lib/rules/types'
@@ -238,7 +238,7 @@ export function usePilotSheetActions({
 
   async function handleSpendAP(cost: number) {
     const p = freshPilot()
-    const current = p.currentAP ?? pilotMaxAP(p)
+    const current = resolvePool(p.currentAP, pilotMaxAP(p))
     const next = Math.max(0, current - cost)
     if (next === current) return
     await writeAwait({ currentAP: next })

@@ -128,6 +128,9 @@ export {
   pilotMaxHPParts,
   pilotMaxInventorySlots,
   pilotMaxInventorySlotsParts,
+  resolveGauge,
+  resolvePool,
+  resolvePoolStart,
   unifiedMechConditions,
 } from './derivedStats.js'
 export {

@@ -21,7 +21,12 @@
 import type { ActionsDeckView as ActionsDeckViewModel, DeckRow } from 'component-lib'
 import { ActionsDeck as ActionsDeckView } from 'component-lib'
 import { useState } from 'react'
-import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
+import {
+  canActivateAction,
+  resolveChassisRef,
+  resolveGauge,
+  resolvePoolStart,
+} from 'salvageunion-reference/rules'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
@@ -85,7 +90,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     if (onFoot) return { currentHeat: 0, heatCap: HUGE_HEAT_CAP }
     const fresh = s.get('mech', mech.id) ?? mech
     const chassis = resolveChassisRef(mech.chassisRef)
-    return { currentHeat: fresh.currentHeat ?? 0, heatCap: mechMaxHeat(fresh, chassis) }
+    return { currentHeat: resolveGauge(fresh.currentHeat), heatCap: mechMaxHeat(fresh, chassis) }
   })()
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
@@ -140,7 +145,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       // never clamp it here, since an unresolved ref makes the max 0.
       const patch = pilotActivationPatch({
         apCost: economy.epCost,
-        currentAP: fresh.currentAP ?? pilotMaxAP(fresh),
+        currentAP: resolvePoolStart(fresh.currentAP, pilotMaxAP(fresh)),
       })
       if (Object.keys(patch).length > 0) {
         runWrite(() => s.update('pilot', pilot.id, patch, DASHBOARD_TXN))
@@ -155,8 +160,8 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       slug: action.slug,
       economy,
       // Unrecorded EP means a mech that has never spent any — full, not empty.
-      currentEP: fresh.currentEP ?? mechMaxEP(fresh, chassis),
-      currentHeat: fresh.currentHeat ?? 0,
+      currentEP: resolvePoolStart(fresh.currentEP, mechMaxEP(fresh, chassis)),
+      currentHeat: resolveGauge(fresh.currentHeat),
       heatCap,
       prevUses: fresh.itemUses,
     })
@@ -192,11 +197,11 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
     const { patch, effect, nextHeat } = pushPatch({
-      heat: Math.min(fresh.currentHeat ?? 0, cap),
+      heat: resolveGauge(fresh.currentHeat, cap),
       heatCap: cap,
       // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
       // to SP 0 — one hit from destroyed — without it ever having taken damage.
-      currentSP: fresh.currentSP ?? mechMaxSP(fresh, chassis),
+      currentSP: resolvePoolStart(fresh.currentSP, mechMaxSP(fresh, chassis)),
       roll: defaultRoll,
     })
     runWrite(() => s.update('mech', mech.id, patch, DASHBOARD_TXN))

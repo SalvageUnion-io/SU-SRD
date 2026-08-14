@@ -12,7 +12,7 @@
 
 import type { DialItem as DialCellItem } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSPParts,
   mechMaxHeatParts,
@@ -56,7 +56,7 @@ function pilotItem(pilot: Pilot): DialItem {
     gauges: [
       {
         label: 'HP',
-        value: Math.min(pilot.currentHP ?? maxHP, maxHP),
+        value: resolvePool(pilot.currentHP, maxHP),
         max: maxHP,
         tone: 'pilot',
         provenance: linesFromBreakdown(hpParts, {
@@ -69,7 +69,7 @@ function pilotItem(pilot: Pilot): DialItem {
       },
       {
         label: 'AP',
-        value: Math.min(pilot.currentAP ?? maxAP, maxAP),
+        value: resolvePool(pilot.currentAP, maxAP),
         max: maxAP,
         tone: 'pilot',
         provenance: linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' }),
@@ -100,7 +100,7 @@ function mechItem(mech: Mech, pilot: Pilot | null): DialItem {
     gauges: [
       {
         label: 'SP',
-        value: Math.min(mech.currentSP ?? maxSP, maxSP),
+        value: resolvePool(mech.currentSP, maxSP),
         max: maxSP,
         tone: 'mech',
         provenance: linesFromBreakdown(spParts, {
@@ -112,7 +112,7 @@ function mechItem(mech: Mech, pilot: Pilot | null): DialItem {
       },
       {
         label: 'Heat',
-        value: Math.min(mech.currentHeat ?? 0, maxHeat),
+        value: resolveGauge(mech.currentHeat, maxHeat),
         max: maxHeat,
         tone: 'mech',
         danger: Math.max(0, maxHeat - 2),
@@ -139,7 +139,7 @@ function crawlerItem(crawler: Crawler): DialItem {
     gauges: [
       {
         label: 'SP',
-        value: Math.min(crawler.currentSP ?? maxSP, maxSP),
+        value: resolvePool(crawler.currentSP, maxSP),
         max: maxSP,
         tone: 'crawler',
         provenance: linesFromBreakdown(spParts, {

@@ -17,6 +17,7 @@ import { linesFromBreakdown } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { resolvePool } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAPParts, pilotMaxHPParts } from '../../lib/rules/derivedStats'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -210,8 +211,8 @@ export function usePilotSheetModel({
   const apLines = linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })
   const maxHP = Math.max(0, hpParts.total)
   const maxAP = Math.max(0, apParts.total)
-  const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
-  const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
+  const hp = resolvePool(pilot.currentHP, maxHP)
+  const ap = resolvePool(pilot.currentAP, maxAP)
   const tp = pilot.trainingPoints ?? 0
 
   return {

@@ -30,6 +30,7 @@
 
 import type { ReferenceEntityControl, StatItem } from 'component-lib'
 import { Field, MasonryColumns, ReferenceEntityCard, summarizeBreakdown } from 'component-lib'
+import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
 import { replacePartner } from '../../lib/partnerLookup'
@@ -115,9 +116,9 @@ export function PartnerCard({
     readOnly,
   })
 
-  const sp = Math.min(partner.currentSP ?? max.structurePoints, max.structurePoints)
-  const ep = Math.min(partner.currentEP ?? max.energyPoints, max.energyPoints)
-  const heat = Math.min(partner.currentHeat ?? 0, max.heatCapacity)
+  const sp = resolvePool(partner.currentSP, max.structurePoints)
+  const ep = resolvePool(partner.currentEP, max.energyPoints)
+  const heat = resolveGauge(partner.currentHeat, max.heatCapacity)
 
   /** Write through the HOST — a partner has no store row of its own. */
   const patch = (fields: Partial<PartnerInstance>): void => {

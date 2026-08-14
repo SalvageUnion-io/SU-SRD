@@ -25,7 +25,12 @@ import {
 } from 'component-lib'
 import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import {
+  resolveChassisRef,
+  resolveGauge,
+  resolvePool,
+  resolvePoolStart,
+} from 'salvageunion-reference/rules'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import {
   crawlerMaxSPParts,
@@ -198,7 +203,7 @@ function CrawlerBand({
 }) {
   const spParts = crawlerMaxSPParts(crawler)
   const maxSP = spParts.total
-  const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
+  const sp = resolvePool(crawler.currentSP, maxSP)
   const [prompt, setPrompt] = useState<EconPrompt>(null)
   const crawlerTl = crawlerTechLevelOf(crawler)
 
@@ -374,9 +379,9 @@ function MechBand({
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
   const maxCargo = mechMaxCargo(mech, chassis, piloting)
-  const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
-  const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
-  const heat = Math.min(mech.currentHeat ?? 0, maxHeat)
+  const sp = resolvePool(mech.currentSP, maxSP)
+  const ep = resolvePool(mech.currentEP, maxEP)
+  const heat = resolveGauge(mech.currentHeat, maxHeat)
   const cargo = totalLotUnits(mech.cargoLots)
 
   const [prompt, setPrompt] = useState<MechPrompt>(null)
@@ -406,9 +411,9 @@ function MechBand({
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis, piloting)
     const { patch, effect, nextHeat, meltdown } = pushPatch({
-      heat: Math.min(m.currentHeat ?? 0, cap),
+      heat: resolveGauge(m.currentHeat, cap),
       heatCap: cap,
-      currentSP: Math.min(m.currentSP ?? spMax, spMax),
+      currentSP: resolvePoolStart(m.currentSP, spMax),
       roll: defaultRoll,
     })
     runWrite(
@@ -422,8 +427,8 @@ function MechBand({
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis, piloting)
     const { patch, effect, meltdown } = heatCheckOncePatch({
-      heat: Math.min(m.currentHeat ?? 0, cap),
-      currentSP: Math.min(m.currentSP ?? spMax, spMax),
+      heat: resolveGauge(m.currentHeat, cap),
+      currentSP: resolvePoolStart(m.currentSP, spMax),
       roll: defaultRoll,
     })
     runWrite(
@@ -454,7 +459,7 @@ function MechBand({
     // Damage operates on the stored SP (authoritative); default to max only
     // when it was never set. The gauge, not this write, clamps for display.
     const { patch, effect } = mechDamagePatch({
-      currentSP: m.currentSP ?? mechMaxSP(m, chassis, piloting),
+      currentSP: resolvePoolStart(m.currentSP, mechMaxSP(m, chassis, piloting)),
       amount: dmg,
       vulnerable: m.vulnerable ?? false,
     })
@@ -723,8 +728,8 @@ function PilotBand({
 }) {
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
-  const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
-  const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
+  const hp = resolvePool(pilot.currentHP, maxHP)
+  const ap = resolvePool(pilot.currentAP, maxAP)
 
   const [prompt, setPrompt] = useState<PilotPrompt>(null)
   const [dmg, setDmg] = useState(1)
@@ -745,7 +750,7 @@ function PilotBand({
   function applyDamage() {
     const p = fresh()
     const { patch, effect } = pilotDamagePatch({
-      currentHP: p.currentHP ?? Math.max(0, pilotMaxHP(p)),
+      currentHP: resolvePoolStart(p.currentHP, Math.max(0, pilotMaxHP(p))),
       amount: dmg,
       vulnerable: false,
     })

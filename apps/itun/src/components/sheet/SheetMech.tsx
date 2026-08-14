@@ -11,7 +11,7 @@
  */
 
 import { EntityRow } from 'component-lib'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
@@ -58,9 +58,9 @@ export function SheetMech({
   const maxHeat = mechMaxHeat(mech, chassis)
   const maxCargo = mechMaxCargo(mech, chassis, piloting)
   const cargoUsed = totalLotUnits(mech.cargoLots)
-  const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
-  const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
-  const heat = Math.min(mech.currentHeat ?? 0, maxHeat)
+  const sp = resolvePool(mech.currentSP, maxSP)
+  const ep = resolvePool(mech.currentEP, maxEP)
+  const heat = resolveGauge(mech.currentHeat, maxHeat)
 
   // U-5: on phones the condensed bar leads with Heat + SP; EP/Hold fold
   // until the sm breakpoint.

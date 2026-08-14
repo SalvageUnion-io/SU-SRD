@@ -14,7 +14,12 @@
 import type { ChassisStatItem, ProvenanceLine } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
+import {
+  computeMechCapacity,
+  resolveChassisRef,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
@@ -94,9 +99,9 @@ export function useMechSheetModel({
   const maxSP = spParts.total
   const maxEP = epParts.total
   const heatCap = heatParts.total
-  const currentSP = mech.currentSP ?? maxSP
-  const currentEP = mech.currentEP ?? maxEP
-  const currentHeat = Math.min(mech.currentHeat ?? 0, heatCap)
+  const currentSP = resolvePool(mech.currentSP, maxSP)
+  const currentEP = resolvePool(mech.currentEP, maxEP)
+  const currentHeat = resolveGauge(mech.currentHeat, heatCap)
 
   // Slot budgets for the picker's loadout panel (soft — never blocks).
   const capacity = computeMechCapacity({

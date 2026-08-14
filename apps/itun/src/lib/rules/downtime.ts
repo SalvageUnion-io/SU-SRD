@@ -34,7 +34,12 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { matchesRef, resolveChassisRef, resolveInstalledRef } from 'salvageunion-reference/rules'
+import {
+  matchesRef,
+  resolveChassisRef,
+  resolveGauge,
+  resolveInstalledRef,
+} from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../crawlerLevel'
 import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler } from '../schemas/crawler'
@@ -303,7 +308,7 @@ export function downtimeMechPatch(
     const maxEP = mechMaxEP(mech)
     if (mech.currentSP !== undefined && mech.currentSP !== maxSP) patch.currentSP = maxSP
     if (mech.currentEP !== undefined && mech.currentEP !== maxEP) patch.currentEP = maxEP
-    if ((mech.currentHeat ?? 0) !== 0) patch.currentHeat = 0
+    if (resolveGauge(mech.currentHeat) !== 0) patch.currentHeat = 0
   }
 
   if (steps.repairItems && bayOperational) {
