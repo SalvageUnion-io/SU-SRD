@@ -169,7 +169,12 @@ describe('ControlButtons', () => {
     // square), so an icon button and a worded one are interchangeable in a row.
     expect(button.className).toContain('px-1')
     expect(button.className).toContain('py-0.5')
-    expect(button.className).not.toContain('h-8')
+    // No fixed 28/32px square ON THE BOX. Checked per class TOKEN, not as a
+    // substring: the coarse-pointer hit area is a `before:h-8` pseudo-element,
+    // which sizes generated content rather than the button, and a substring
+    // check reads that as the fixed height it exists to forbid.
+    const sized = button.className.split(/\s+/).filter((c) => /^[hw]-\d/.test(c))
+    expect(sized).toEqual([])
     // The provided icon renders inside.
     expect(screen.getByTestId('remove-glyph')).toBeTruthy()
   })
@@ -206,12 +211,14 @@ describe('ControlButtons', () => {
     // (the former `min-h-11 min-w-11`) doubled the height of `CardControlRail`,
     // an absolute row centred on the card's top frame line, pushing the button
     // down over the header's TL/SV stats at mobile widths.
-    expect(button.className).toContain('before:h-11')
+    expect(button.className).toContain('before:h-8')
     expect(button.className).toContain('sm:before:hidden')
     expect(button.className).toContain('relative')
     expect(button.className).not.toContain('min-h-11')
-    // Narrower than it is tall on purpose: siblings in the rail sit 4–6px away
-    // and a 44px-wide hit box would swallow taps meant for the status badge.
+    // Bounded in BOTH axes by the rail's gaps — an invisible target that reached
+    // past a neighbour would steal that neighbour's taps, and one neighbour is
+    // the destructive remove. `w-7` clears the 4px in-group gap; `h-8` stays
+    // inside the 6px gap between wrapped lines.
     expect(button.className).toContain('before:w-7')
   })
 

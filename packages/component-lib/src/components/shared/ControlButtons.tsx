@@ -116,12 +116,26 @@ function ControlButton({
   // Expanding the HIT AREA instead keeps the rail one uniform stamp row at
   // every width while still giving a finger 44px of vertical reach.
   //
-  // The pseudo-element is deliberately NOT 44px wide: siblings in this row are
-  // only 4px away (`flex gap-1`) and the rail's other groups 6px
-  // (`gap-1.5`), so a 44px-wide invisible box would swallow taps meant for the
-  // status badge beside it. `w-7` (28px on a 24px button) leaves 2px of
-  // clearance and still clears the 24×24 floor in WCAG 2.2 §2.5.8, which
-  // measures the target, not the ink.
+  // Its size is bounded by the rail's own gaps, in BOTH axes — an invisible
+  // target that reaches past a neighbour steals that neighbour's taps, and one
+  // of the neighbours here is the `danger` remove:
+  //
+  // - width: siblings in this group sit 4px away (`flex gap-1`) and the rail's
+  //   other groups 6px (`gap-1.5`), so `w-7` — 28px on a 24px button — spends
+  //   2px per side and stops 2px short of the nearest edge.
+  // - height: the rail is `flex-wrap`, and its documented crowded case (status
+  //   seal + selection seal + count seal + three controls) wraps at exactly the
+  //   widths this pseudo is live at. Wrapped lines are 6px apart, and the line
+  //   is ~22px tall around a 20px button, so anything over 34px overhangs into
+  //   the line above and below. `h-8` (32px) stops ~1px short of the gap.
+  //   The former `min-h-11` had no such ceiling only because it grew the line
+  //   itself — the very thing that broke the geometry.
+  //
+  // So the reach is 28×32, not the 44px of the repo-wide floor. That is the
+  // most this rail's geometry actually affords, and it still clears the 24×24
+  // minimum in WCAG 2.2 §2.5.8, which measures the target, not the ink. On a
+  // FOLDED card the whole surface is an expand target as well (`cardClick`), so
+  // the chevron is never the only way in.
   //
   // A `danger` icon (the ✕ remove) is a RED stamp — filled, not outlined —
   // because it is the one control in the rail that destroys something, and as
@@ -135,7 +149,7 @@ function ControlButton({
         type="button"
         className={cn(
           'relative inline-flex shrink-0 items-center justify-center border-2 transition-colors',
-          "before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-7 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] sm:before:hidden",
+          "before:absolute before:left-1/2 before:top-1/2 before:h-8 before:w-7 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] sm:before:hidden",
           RUNG_INLINE_PADDING.mini,
           RUNG_TYPE.mini.label,
           isDisabled
