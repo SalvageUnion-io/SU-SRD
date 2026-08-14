@@ -9,7 +9,7 @@
  * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].astro
  */
 
-import { getEntitySchemas, SRD_SITE_URL, srdEntityUrl } from 'salvageunion-reference'
+import { getEntitySchemas, srdEntityUrl, srdSchemaUrl } from 'salvageunion-reference'
 
 type EntityRef = {
   schemaName: string
@@ -52,5 +52,5 @@ export function deepLinkTo({ schemaName, slug }: EntityRef): string {
  * ITUN has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {
-  return `${SRD_SITE_URL}/schema/${schemaName}`
+  return srdSchemaUrl(schemaName)
 }
