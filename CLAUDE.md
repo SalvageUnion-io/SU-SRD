@@ -186,7 +186,7 @@ The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts ea
 - **Sentry** — browser + server error tracking for all three code apps (`@sentry/browser` in `srd` and `itun`, `@sentry/node` in `itun` and `discord-bot`, `@sentry/vite-plugin` for `itun` release artifacts). MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
 - **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: hosted HTTP at `https://mcp.render.com/mcp`.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: remote HTTP at `https://api.githubcopilot.com/mcp/`. **This one does not work unconfigured** — the endpoint does not support dynamic client registration, so it needs a machine-local PAT header; see the registry doc. Until then, use the `gh` CLI.
-- **Convex** — the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (17 modules — `auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, …) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md). MCP server: stdio via `bunx convex mcp start --project-dir apps/itun`, authenticating with the Convex CLI's own device credentials. It targets the **dev** deployment resolved from `CONVEX_DEPLOYMENT`, so run `bunx convex dev` once or every tool call fails; production access is gated behind flags that are deliberately **not** set.
+- **Convex** — the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (`auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, … — `tools/check-convex-codegen.ts` prints the true module count on every run, so it is not restated here) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md). MCP server: stdio via `bunx convex mcp start --project-dir apps/itun`, authenticating with the Convex CLI's own device credentials. It targets the **dev** deployment resolved from `CONVEX_DEPLOYMENT`, so run `bunx convex dev` once or every tool call fails; production access is gated behind flags that are deliberately **not** set.
 
 - **Context7** — version-pinned library documentation, remote HTTP at `https://mcp.context7.com/mcp`. Keyless on the free tier, so it adds no credential. It is here because this repo pins hard and runs ahead of model training data (TypeScript 7 + the `typescript-classic` 6 alias, Vite 8, Tailwind 4.3, Convex 1.43, TanStack Router 1.170) — "what is the API in **this** version" is the recurring failure. Two tools, the smallest context cost of any server here. Treat what it returns as advisory: the docs are condensed, not authoritative.
 
@@ -303,7 +303,7 @@ bun --filter srd gate             # build, then diff the output against the comm
 - `apps/srd/` - Static SRD reference site (in-house SSG at `apps/srd/ssg`, React 19 islands, Tailwind v4, Vite). No auth, no backend, no user data. **Not Astro** — Astro was removed; see the "srd App" section below.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Has roster, wizards, dashboard, live sheets, snapshot sharing. **Two storage modes** ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md), which supersedes ADR-001): **Solo** — not signed in, IndexedDB is the source of truth, nothing is gated, and this must keep working forever (a build with no `VITE_CONVEX_URL` is permanently Solo); **Connected / Disconnected** — signed in, Convex (`apps/itun/convex/`) is the source of truth and IndexedDB becomes a cache, with offline meaning read-only rather than a write queue. Resolve the mode through `src/lib/connection/`, never by reading `navigator.onLine` or an auth flag directly. Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) before touching data.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
-- `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
+- `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/assets.ts`, re-exported from `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
 - `packages/observability/` - Sentry wiring shared by the Node surfaces (`/node`: the two Netlify Functions + the Discord bot) plus the capture-hint helper the two browser shims share (`/browser`, imports no Sentry code).
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
@@ -329,15 +329,16 @@ Detailed cross-cutting architecture docs live in `docs/architecture/`:
 - **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (srd) and WCAG 2.1 AA compliance patterns
 - **[package-contracts.md](docs/architecture/package-contracts.md)** — Package APIs, dependency rules, cross-package change checklist
 
-### Code Conventions (from `.claude/rules/`)
+### Code Conventions
 
-- **Always use relative imports** (never `@/` path aliases)
-- **Use `type` over `interface`** for object types (unless extending)
-- **Avoid `any`** - use `unknown` if type is truly unknown
-- **Use `import type`** syntax for type-only imports
-- **Named exports** everywhere except route components (which may use default exports for TanStack Router)
-- **Bun** for all package management (not npm/yarn)
-- **Biome** for formatting/linting — the **only** formatter. Prettier has been removed entirely (it is not a dependency, and `lefthook.yml` has no Markdown/YAML step). Biome still cannot parse Markdown or YAML, so `.md`/`.yml` are formatted by **nothing** — keep them tidy by hand. Pre-commit hooks via Lefthook
+Relative imports only, `type` over `interface`, no `any`, `import type`, named
+exports outside route components — **all five are Biome rules**, so `bun run
+lint` is the authority, not this list. See [`biome.jsonc`](biome.jsonc) and
+[`.claude/rules/typescript-style.md`](.claude/rules/typescript-style.md).
+
+Not enforced, so stated here: **Bun** for package management (never npm/yarn),
+and Biome cannot parse Markdown or YAML — `.md`/`.yml` are formatted by
+**nothing**, so keep them tidy by hand.
 
 ### salvageunion-reference Package
 

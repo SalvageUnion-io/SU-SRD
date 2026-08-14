@@ -210,10 +210,39 @@ const HISTORICAL_DOCS = new Set([
   'docs/architecture/game-invites-and-membership-plan.md',
 ])
 
+/**
+ * Per-workspace instruction docs and the two files a new contributor opens
+ * first.
+ *
+ * These were outside the live set, and it showed. `README.md` twice stated the
+ * reference package "must be built before the apps can resolve its types" —
+ * there has been no such step since the package started shipping TypeScript
+ * source — and `packages/salvageunion-reference/README.md` instructed
+ * `bun run validate`, which is not a script in that manifest. Check 7 exists to
+ * stop docs naming dead commands and was running green while three did.
+ *
+ * The per-app `CLAUDE.md` files matter more than their size suggests: each is
+ * loaded into every agent session scoped to that app, so a false claim there is
+ * FOLLOWED rather than read. `apps/itun/CLAUDE.md` still named a
+ * `src/components/ui/` directory that does not exist.
+ */
 function liveInstructionDocs(root: string): string[] {
-  return ['CLAUDE.md', ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir))].filter(
-    (doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc))
-  )
+  const perWorkspace = ['apps', 'packages'].flatMap((dir) => {
+    // A test fixture root has neither directory; the filter below drops any
+    // path that does not exist, but `readdirSync` on a missing dir throws.
+    const base = join(root, dir)
+    if (!existsSync(base)) return []
+    return readdirSync(base, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .flatMap((entry) => [`${dir}/${entry.name}/CLAUDE.md`, `${dir}/${entry.name}/README.md`])
+  })
+  return [
+    'CLAUDE.md',
+    'README.md',
+    'CONTRIBUTING.md',
+    ...perWorkspace,
+    ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
+  ].filter((doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc)))
 }
 
 /**
@@ -884,21 +913,49 @@ function scriptsOf(root: string, manifest: string): Set<string> {
   return new Set(Object.keys(pkg.scripts ?? {}))
 }
 
-/** Workspace directory by package name, for `bun --filter <name> <script>`. */
-const WORKSPACE_MANIFESTS: Record<string, string> = {
-  srd: 'apps/srd/package.json',
-  itun: 'apps/itun/package.json',
-  'discord-bot': 'apps/discord-bot/package.json',
-  'su-assets': 'apps/su-assets/package.json',
-  'component-lib': 'packages/component-lib/package.json',
-  'salvageunion-reference': 'packages/salvageunion-reference/package.json',
+/**
+ * Workspace directory by package name, for `bun --filter <name> <script>`.
+ * Discovered rather than listed, so a new workspace is covered on the day it
+ * lands instead of silently escaping the check.
+ */
+function workspaceManifests(root: string): Record<string, string> {
+  return Object.fromEntries(
+    ['apps', 'packages'].flatMap((dir) => {
+      const base = join(root, dir)
+      if (!existsSync(base)) return []
+      return readdirSync(base, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .filter((entry) => existsSync(join(base, entry.name, 'package.json')))
+        .map((entry) => {
+          const manifest = `${dir}/${entry.name}/package.json`
+          const pkg = JSON.parse(readFileSync(join(root, manifest), 'utf-8')) as { name?: string }
+          return [pkg.name ?? entry.name, manifest] as const
+        })
+    })
+  )
+}
+
+/**
+ * The workspace a doc belongs to, if any — `apps/srd/CLAUDE.md` → `apps/srd`.
+ *
+ * A per-workspace doc may reference that workspace's OWN scripts without
+ * `--filter`, because that is how you run them from inside the directory:
+ * `apps/srd/CLAUDE.md` documents `bun run gate`, which is a script in
+ * `apps/srd/package.json` and deliberately not in the root's. Resolving those
+ * against the root manifest alone reported four false failures the moment these
+ * files entered scope.
+ */
+function owningManifest(doc: string): string | undefined {
+  const m = doc.match(/^((?:apps|packages)\/[^/]+)\//)
+  return m ? `${m[1]}/package.json` : undefined
 }
 
 function checkReferencedScripts(root: string): { ok: string; failures: string[] } {
   const failures: string[] = []
   const rootScripts = scriptsOf(root, 'package.json')
+  const manifests = workspaceManifests(root)
   const workspaceScripts = new Map<string, Set<string>>()
-  for (const [name, manifest] of Object.entries(WORKSPACE_MANIFESTS)) {
+  for (const [name, manifest] of Object.entries(manifests)) {
     workspaceScripts.set(name, scriptsOf(root, manifest))
   }
 
@@ -906,13 +963,19 @@ function checkReferencedScripts(root: string): { ok: string; failures: string[] 
   for (const doc of liveInstructionDocs(root)) {
     const text = readFileSync(join(root, doc), 'utf-8')
 
+    const localScripts = (() => {
+      const manifest = owningManifest(doc)
+      return manifest ? scriptsOf(root, manifest) : new Set<string>()
+    })()
+
     for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
       const script = m[1]
       if (script === undefined) continue
       checked++
-      if (!rootScripts.has(script)) {
+      if (!rootScripts.has(script) && !localScripts.has(script)) {
         failures.push(
-          `${doc} references \`bun run ${script}\`, which is not a script in the root package.json.\n` +
+          `${doc} references \`bun run ${script}\`, which is not a script in the root package.json` +
+            `${owningManifest(doc) ? ` or in ${owningManifest(doc)}` : ''}.\n` +
             `  → rename the reference to the surviving script, or drop it.`
         )
       }
@@ -928,7 +991,7 @@ function checkReferencedScripts(root: string): { ok: string; failures: string[] 
       if (!known.has(script)) {
         failures.push(
           `${doc} references \`bun --filter ${workspace} ${script}\`, which is not a script in ` +
-            `${WORKSPACE_MANIFESTS[workspace]}.\n  → rename the reference to the surviving script, or drop it.`
+            `${manifests[workspace]}.\n  → rename the reference to the surviving script, or drop it.`
         )
       }
     }

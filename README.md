@@ -14,7 +14,9 @@ bot, and two shared packages.
 # Install all workspace dependencies
 bun install
 
-# Build the reference package (required before apps can resolve types)
+# Regenerate the reference package's committed artifacts (JSON Schemas, the
+# registry codegen, the schema catalog and the API report). NOT required before
+# the apps can resolve types — the package ships TypeScript source.
 bun run build:package
 
 # Start the reference site dev server (builds package, then serves srd)
@@ -29,21 +31,26 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 ```
 .
 ├── apps/
-│   ├── srd/              # Static SRD reference site (in-house SSG in srd/ssg + React islands)
-│   ├── itun/       # Character builder & game manager (React 19, local-first)
-│   └── discord-bot/            # Discord.js bot for rolling on SU tables
+│   ├── srd/                    # Static SRD reference site (in-house SSG in srd/ssg + React islands)
+│   ├── itun/                   # Character builder & game manager (React 19)
+│   ├── discord-bot/            # Discord.js bot for rolling on SU tables
+│   └── su-assets/              # Netlify site serving entity artwork from Blobs
 ├── packages/
-│   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset (built)
-│   └── component-lib/            # Shared React component library (no build step)
+│   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset
+│   ├── component-lib/          # Shared React component library
+│   └── observability/          # Sentry wiring shared by the Node surfaces
 ├── docs/                       # Architecture docs + ADRs (see docs/README.md)
 ├── package.json                # Root workspace configuration
 ├── biome.jsonc                 # Shared Biome (lint + format) config
 └── tsconfig.json               # Shared TypeScript base config
 ```
 
-**Dependency graph:** `salvageunion-reference → component-lib → {srd,
-itun}`; `discord-bot` is standalone. The reference package must be
-built (`bun run build:package`) before the apps can resolve its types.
+**Dependency graph:** `salvageunion-reference → component-lib → {srd, itun}`;
+`discord-bot` depends on the reference package directly. **No package has a
+build step** — both ship TypeScript source, which the consuming apps' bundlers
+compile. `bun run build:package` regenerates committed artifacts (JSON Schemas,
+registry codegen, the schema catalog, the API report) and CI fails on drift; it
+is not a prerequisite for typechecking or running anything.
 
 ## Common Commands
 
