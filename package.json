@@ -97,7 +97,7 @@
     "validate:observability:live": "bun tools/check-observability.ts --live",
     "validate:convex-parity": "bun tools/check-convex-parity.ts",
     "validate:convex-parity:live": "bun tools/check-convex-parity.ts --live",
-    "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts && bun run validate:architecture && bun run validate:doc-drift && bun run validate:observability && bun run validate:convex-codegen && bun run validate:convex-parity",
+    "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts && bun run validate:architecture && bun run validate:doc-drift && bun run validate:observability && bun run validate:convex-codegen && bun run validate:convex-parity && bun run check:catalog",
     "clean": "bun --filter \"*\" clean || true",
     "reap": "tools/prune-stale-worktrees.sh",
     "knip": "knip",
@@ -109,7 +109,8 @@
     "check:fast": "concurrently -g 'bun run lint' 'bun run validate:all' 'bun run knip' && bun run typecheck",
     "check:srd-output": "bun --filter srd gate",
     "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling' 'bun run check:srd-output'",
-    "ladle": "bun --filter component-lib ladle"
+    "ladle": "bun --filter component-lib ladle",
+    "check:catalog": "bun tools/check-catalog.ts"
   },
   "patchedDependencies": {
     "@ladle/react@5.1.1": "patches/@ladle%2Freact@5.1.1.patch"
