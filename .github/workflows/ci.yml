@@ -268,7 +268,7 @@ jobs:
         run: bun run validate:all
 
       # ---------------------------------------------------------------
-      # The dependency audit, and WHY the `overrides` block is now ONE entry.
+      # The dependency audit, and WHY the `overrides` block is now TWO entries.
       #
       # CLAUDE.md points here twice ("the CI comment in .github/workflows/ci.yml")
       # for which security floors bind and via what, because package.json cannot
@@ -315,6 +315,13 @@ jobs:
       #     delete THIS entry — and only this one; `@opentelemetry/core` below is
       #     kept for an unrelated reason and must survive. Re-check with
       #     `bun why undici`: if it resolves >= 6.27.0 unaided, this entry is dead.
+      #
+      #     ALSO delete it if `discord.js` ever moves to a `@discordjs/rest`
+      #     MAJOR. A bun `overrides` entry is tree-wide and unconditional, so a
+      #     future `rest@^3` would be silently CLAMPED back to 2.6.x instead of
+      #     failing loudly — the "freeze, not floor" hazard this block warns about
+      #     below, applied across a major boundary rather than a patch one. The
+      #     `undici: ^6.28.0` this replaced had the identical property.
       #
       #     Note this pin is not a floor, but it IS security-load-bearing: it is
       #     the only thing keeping GHSA-vxpw-j846-p89q out of the tree. Do not
