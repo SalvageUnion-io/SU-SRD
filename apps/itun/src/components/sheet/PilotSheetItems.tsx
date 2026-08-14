@@ -22,12 +22,7 @@ import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import {
-  equipmentMaxUses,
-  equipmentSlotCost,
-  genericEntrySlots,
-  resolveEquipment,
-} from './pilotInventory'
+import { equipmentMaxUses, genericEntrySlots, resolveEquipment } from './pilotInventory'
 
 const HIDE_CHOICES = { choices: true } as const
 
@@ -197,12 +192,17 @@ export function PilotEquipmentItem({
     )
   }
 
-  const slotCost = equipmentSlotCost(equipment)
   const maxUses = equipmentMaxUses(equipment)
   const uses = maxUses !== null ? (usesLeft ?? maxUses) : null
 
+  // Slots deliberately absent. Unlike a mech system (whose `slotsRequired`
+  // ReferenceEntityCard renders as its own "Slots" stat), an equipment's slot
+  // cost is DERIVED — `getInventorySlots`, 1 unless a Heavy/Portable trait makes
+  // it 2 — so this was the sheet bolting an extra figure onto the card rather
+  // than duplicating one. Either way it is not part of the SRD card, and the
+  // inventory band already states slot usage against capacity, once. `Uses`
+  // stays: that is live sheet state, not a restatement of reference data.
   const footMeta: CardFootMeta[] = [
-    { label: 'Slots', value: slotCost },
     ...(maxUses !== null ? [{ label: 'Uses', value: `${uses}/${maxUses}` }] : []),
   ]
   // Use / Restock ride the controls bar (no footer actions); the per-card

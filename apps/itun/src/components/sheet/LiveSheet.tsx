@@ -27,7 +27,13 @@
  */
 
 import type { StatTone } from 'component-lib'
-import { Badge, buttonVariants, SHEET_ICONBTN_CLASS, Stat } from 'component-lib'
+import {
+  Badge,
+  buttonVariants,
+  EntityExternalLinkProvider,
+  SHEET_ICONBTN_CLASS,
+  Stat,
+} from 'component-lib'
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -324,7 +330,16 @@ export function LiveSheet({
           </span>
         </span>
         <div className="px-4 pb-[34px] pt-4 sm:px-[30px] sm:pb-[60px] sm:pt-[22px] xl:pl-[84px]">
-          {renderBody()}
+          {/* No "View in SRD →" on a sheet. The app-wide builder is provided at
+              the root (GameDataReady), and every full entity card renders it in
+              its foot band — which on a sheet is EVERY installed system, module
+              and piece of equipment. A sheet is a play surface you read down,
+              not an index you navigate out of, so the link was a per-card exit
+              hatch repeated dozens of times. Overriding the context to
+              `undefined` for the sheet BODY turns it off for the whole subtree
+              (including card detail modals, which are descendants) while the
+              roster, Dashboard and wizards keep it. */}
+          <EntityExternalLinkProvider value={undefined}>{renderBody()}</EntityExternalLinkProvider>
         </div>
       </div>
     </div>
