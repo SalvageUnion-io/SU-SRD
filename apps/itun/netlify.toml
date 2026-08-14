@@ -152,6 +152,24 @@
 #     after failing to find a file on disk, so as written this matches misses
 #     only. Forcing it would shadow `dist/assets/` and 404 *every* chunk in the
 #     build — i.e. take the whole site down.
+#
+# Measured on deploy-preview-759 with both rules in place:
+#   /assets/index-C9pQFcVN.js  (real)     -> 200 application/javascript
+#   /assets/index-DEADBEEF.js  (missing)  -> 404
+#   /  /s/AAAAAAAA  /p/pilot/abc          -> 200 text/html
+#
+# KNOWN RESIDUE, deliberately not fought: the 404 still carries the `immutable`
+# Cache-Control from the `/assets/*` header block below, because Netlify matches
+# header rules on the REQUEST path and cannot condition them on response status.
+# A browser may therefore cache that 404 for a year under a chunk URL. It does
+# not matter in the forward direction — hashed URLs are never reissued, so the
+# entry is simply never consulted again. It would matter on a ROLLBACK, which
+# republishes a prior deploy and brings its hashes back. What covers that is the
+# service worker: workbox precaches with `cache: 'reload'`, which bypasses the
+# HTTP cache, and the precache glob covers every emitted chunk — so a
+# rolled-back build repopulates from the network and is served out of Cache
+# Storage rather than the poisoned HTTP entries. If a rollback ever does strand
+# a client, a hard reload is the manual out.
 [[redirects]]
   from = "/assets/*"
   to = "/index.html"
