@@ -40,7 +40,7 @@ To change generated output:
 1. Edit Zod schemas in `lib/schemas/`, or the manifest in `lib/schemas/registry.ts`
 2. Run `bun run build:package`
 
-CI (the `build-package` job in `.github/workflows/ci.yml`, and the root `check:schemas` script) fails the build if any of these generated outputs drift from what `bun run build:package` produces.
+CI (the `static-checks` job in `.github/workflows/ci.yml`, and the root `check:schemas` script) fails the build if any of these generated outputs drift from what `bun run build:package` produces.
 
 ## All TypeScript Source is Hand-Written (except `lib/generated/`)
 
