@@ -38,6 +38,8 @@
   },
   "devDependencies": {
     "@playwright/test": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@testing-library/react": "catalog:",
     "@vitejs/plugin-react-swc": "catalog:",
     "playwright": "catalog:",
     "sharp": "catalog:",
