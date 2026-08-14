@@ -103,39 +103,32 @@ function ControlButton({
   // replaces, so an icon button and a worded one are interchangeable in the
   // row.
   //
-  // The coarse-pointer tap target is an invisible ::before, NOT a bigger box.
-  // This used to be `min-h-11 min-w-11 sm:min-h-0 sm:min-w-0` — the repo-wide
-  // 44px touch floor, which is correct everywhere it sits in normal flow
-  // (SmallButtons, the Stat steppers, Field). Here it is not: this button
-  // renders inside `CardControlRail`, an ABSOLUTE row centred on the card's top
-  // frame line, so growing the box grows the rail with it. Measured at 390px
-  // the rail went 22px → 44px tall and the button 24×20 → 44×44, which (a) hung
-  // 22px down into the header band, covering the TL/SV stat cells the rail is
-  // z-30 over, and (b) put a 44px square next to a 22px status badge in a row
-  // whose whole premise is that every cell is the same stamp height.
-  // Expanding the HIT AREA instead keeps the rail one uniform stamp row at
-  // every width while still giving a finger 44px of vertical reach.
+  // It carries NO tap-target floor of its own. It used to:
+  // `min-h-11 min-w-11 sm:min-h-0 sm:min-w-0`, which was a WIDTH-keyed
+  // duplicate of the POINTER-keyed floor `theme.css` already applies to every
+  // `button` under `@media (pointer: coarse)`. Two consequences, and the second
+  // is the bug:
   //
-  // Its size is bounded by the rail's own gaps, in BOTH axes — an invisible
-  // target that reaches past a neighbour steals that neighbour's taps, and one
-  // of the neighbours here is the `danger` remove:
+  //  - Where there IS a touch pointer, the utility was redundant. That rule is
+  //    unlayered, so it beats any Tailwind utility (those are in
+  //    `@layer utilities`) — the 44px box survives with or without this class,
+  //    at every viewport width.
+  //  - Where there is NOT — a narrow desktop window, a responsive-mode preview,
+  //    a small laptop — the utility applied a touch floor to a mouse. That is
+  //    the one case the pointer rule deliberately skips, and the only case this
+  //    class could actually change.
   //
-  // - width: siblings in this group sit 4px away (`flex gap-1`) and the rail's
-  //   other groups 6px (`gap-1.5`), so `w-7` — 28px on a 24px button — spends
-  //   2px per side and stops 2px short of the nearest edge.
-  // - height: the rail is `flex-wrap`, and its documented crowded case (status
-  //   seal + selection seal + count seal + three controls) wraps at exactly the
-  //   widths this pseudo is live at. Wrapped lines are 6px apart, and the line
-  //   is ~22px tall around a 20px button, so anything over 34px overhangs into
-  //   the line above and below. `h-8` (32px) stops ~1px short of the gap.
-  //   The former `min-h-11` had no such ceiling only because it grew the line
-  //   itself — the very thing that broke the geometry.
+  // So all it ever did was distort the geometry for pointers that never needed
+  // it. This button renders inside `CardControlRail`, an ABSOLUTE row centred
+  // on a card's top frame line, so a 44px box grew the rail with it: measured
+  // at 390px, rail 22px → 44px and button 24×20 → 44×44, which hung 22px down
+  // into the header band over the TL/SV stat cells the rail is z-30 above, and
+  // put a 44px square beside a 22px status badge in a row whose whole premise
+  // is that every cell is the same stamp height.
   //
-  // So the reach is 28×32, not the 44px of the repo-wide floor. That is the
-  // most this rail's geometry actually affords, and it still clears the 24×24
-  // minimum in WCAG 2.2 §2.5.8, which measures the target, not the ink. On a
-  // FOLDED card the whole surface is an expand target as well (`cardClick`), so
-  // the chevron is never the only way in.
+  // Measure this with touch emulation, not just a narrow viewport — the two
+  // disagree here, and a fine-pointer run alone will tell you a coarse-pointer
+  // change worked when it did nothing.
   //
   // A `danger` icon (the ✕ remove) is a RED stamp — filled, not outlined —
   // because it is the one control in the rail that destroys something, and as
@@ -148,8 +141,7 @@ function ControlButton({
       <button
         type="button"
         className={cn(
-          'relative inline-flex shrink-0 items-center justify-center border-2 transition-colors',
-          "before:absolute before:left-1/2 before:top-1/2 before:h-8 before:w-7 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] sm:before:hidden",
+          'inline-flex shrink-0 items-center justify-center border-2 transition-colors',
           RUNG_INLINE_PADDING.mini,
           RUNG_TYPE.mini.label,
           isDisabled

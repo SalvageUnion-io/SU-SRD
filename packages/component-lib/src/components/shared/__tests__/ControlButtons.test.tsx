@@ -200,26 +200,22 @@ describe('ControlButtons', () => {
     expect(button.className).not.toContain('bg-paper')
   })
 
-  test('icon-only control takes its coarse-pointer tap floor from a ::before, not its box', () => {
+  test('icon-only control carries no width-keyed tap floor of its own', () => {
     render(
       <ControlButtons
         controls={[makeControl({ label: undefined, ariaLabel: 'Remove', icon: RemoveGlyph })]}
       />
     )
     const button = screen.getByLabelText('Remove')
-    // The 44px reach is an invisible pseudo-element. Growing the BOX instead
-    // (the former `min-h-11 min-w-11`) doubled the height of `CardControlRail`,
-    // an absolute row centred on the card's top frame line, pushing the button
-    // down over the header's TL/SV stats at mobile widths.
-    expect(button.className).toContain('before:h-8')
-    expect(button.className).toContain('sm:before:hidden')
-    expect(button.className).toContain('relative')
+    // The touch floor is `theme.css`'s `@media (pointer: coarse)` rule, which
+    // applies to every button and cannot be overridden from here anyway (it is
+    // unlayered, so it beats `@layer utilities`). A `min-h-11 sm:min-h-0` on
+    // this element was therefore redundant wherever there IS a touch pointer,
+    // and active harm wherever there is not: it grew `CardControlRail` — an
+    // absolute row centred on the card's top frame line — from 22px to 44px,
+    // pushing it down over the header's TL/SV stats at narrow desktop widths.
     expect(button.className).not.toContain('min-h-11')
-    // Bounded in BOTH axes by the rail's gaps — an invisible target that reached
-    // past a neighbour would steal that neighbour's taps, and one neighbour is
-    // the destructive remove. `w-7` clears the 4px in-group gap; `h-8` stays
-    // inside the 6px gap between wrapped lines.
-    expect(button.className).toContain('before:w-7')
+    expect(button.className).not.toContain('min-w-11')
   })
 
   test('icon-only control fires onClick', () => {
