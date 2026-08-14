@@ -29,6 +29,7 @@
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { assertScanFloor } from './lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
 
@@ -67,6 +68,19 @@ const allTsFiles = [
   ...walk(join(ROOT, 'apps'), ['.tsx', '.ts']),
   ...walk(join(ROOT, 'packages'), ['.tsx', '.ts']),
 ]
+
+/**
+ * Catastrophe floors for the three file sets above. Today: 3 app CSS files, 511
+ * app source files, 1,172 repo-wide TS files. Each is set far below the real
+ * count — see tools/lib/scanFloor.ts for why these are not coverage targets.
+ *
+ * `appCssFiles` is only 3 files, so its floor is necessarily blunt; it still
+ * catches the case that matters, which is the directory list going stale and
+ * the set collapsing to zero.
+ */
+assertScanFloor('styling ownership (app CSS)', appCssFiles.length, 2)
+assertScanFloor('styling ownership (app source)', appSourceFiles.length, 350)
+assertScanFloor('styling ownership (repo TS)', allTsFiles.length, 800)
 
 /** Which app a repo-relative path belongs to (for same-app reference checks). */
 function appOf(relPath: string): string | null {

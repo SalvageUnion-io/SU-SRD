@@ -73,6 +73,7 @@ import { fileURLToPath } from 'node:url'
 // project load against an API whose own module path says `unstable`. Checked
 // against typescript@7.0.2, not assumed. Revisit when that API stabilises.
 import ts from 'typescript-classic'
+import { assertScanFloor } from './lib/scanFloor'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -179,8 +180,15 @@ async function collectFiles(): Promise<string[]> {
   return [...files]
 }
 
+/**
+ * Catastrophe floor for the five globs in `collectFiles`. 584 files today; a
+ * renamed app or package directory is what this catches. See tools/lib/scanFloor.ts.
+ */
+const SCAN_FLOOR = 400
+
 async function main() {
   const files = await collectFiles()
+  assertScanFloor('architecture', files.length, SCAN_FLOOR)
   const violations = files.flatMap(checkFile)
 
   if (violations.length > 0) {
