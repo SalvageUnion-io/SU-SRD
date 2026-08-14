@@ -4,6 +4,21 @@
   "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
+  // Exports tagged `@public` or `@knipignore` are excluded from analysis. The
+  // decision procedure for reaching for either is in `.claude/skills/knip-triage`
+  // — delete by default; these two are the only exemptions.
+  //
+  // `--treat-tag-hints-as-errors` does NOT catch a tag that has outlived its
+  // reason, despite reading like it would. Measured against knip 6.32 with this
+  // config: it exits 0 even with a deliberately redundant `@public` on an
+  // already-imported export. It was going to be added to the `knip` script
+  // until that probe ran — recorded here so the next reader does not add it
+  // believing it guards something.
+  //
+  // So a stale tag is found by a human, and its cost is misleading PROSE rather
+  // than a hidden finding: five `@public` tags were pruned in 2026-08, every one
+  // justified by a fork that had already been deleted, each telling a reader to
+  // go de-duplicate files that no longer existed.
   "tags": ["-public", "-knipignore"],
   "workspaces": {
     ".": {

@@ -17830,9 +17830,10 @@ import type { SURefEntity, SURefEnumSchemaName } from './types/index.js';
  * `ability-tree-requirements`). Narrowing on the catalog rather than the enum is
  * what makes this usable as an untrusted-input guard.
  *
- * @public — the canonical implementation. `apps/discord-bot/src/schemaName.ts`
- * and `packages/component-lib/src/catalog/schemaName.ts` each carry a
- * byte-equivalent fork of it; they exist only because it was not exported.
+ * The canonical implementation, and now the ONLY one. Two byte-equivalent
+ * forks used to exist — `apps/discord-bot/src/schemaName.ts` and
+ * `packages/component-lib/src/catalog/schemaName.ts` — created only because
+ * this was not exported. Both files are gone; every consumer imports this.
  *
  * `getSchemaCatalog()` reads the static schema index and needs no `preload()`,
  * so this is safe from any build-time or test context.
@@ -17860,29 +17861,28 @@ export type SearchResult = {
 /**
  * Extract all text from content blocks recursively.
  *
- * @public — the canonical implementation of "flatten a ContentBlock tree to
- * searchable text". `apps/srd/src/lib/searchIndexBuild.ts` carries a verbatim
- * fork (its own comment says so); it exists only because this was not exported.
+ * The canonical implementation of "flatten a ContentBlock tree to searchable
+ * text". `apps/srd/src/lib/searchIndexBuild.ts` used to carry a verbatim fork;
+ * it now imports this one.
  */
 export declare function extractContentText(content: unknown): string;
 /**
  * True when `token` is within edit distance 1 of `word` (insert, delete, or
  * substitute one character). Two-pointer scan — no DP table, O(len) time.
  *
- * @public — the canonical typo-tolerance primitive. `apps/srd`'s
- * `searchCompactIndex.ts` carries a verbatim port (its own comment says
- * "ported verbatim from search.ts"); it exists only because this was not
- * exported. Ranking parity between the ORM-backed search and the compact
- * client index depends on the two behaving identically, which is exactly the
- * thing a fork cannot guarantee.
+ * The canonical typo-tolerance primitive. `apps/srd`'s
+ * `searchCompactIndex.ts` used to carry a verbatim port and now imports this.
+ * Ranking parity between the ORM-backed search and the compact client index
+ * depends on the two behaving identically, which is exactly the thing a fork
+ * cannot guarantee — so keep it that way.
  */
 export declare function withinEditDistance1(token: string, word: string): boolean;
 /**
  * Minimum token length before typo (edit-distance-1) matching applies.
  *
- * @public — paired with {@link withinEditDistance1}; `apps/srd`'s
- * `searchCompactIndex.ts` re-declares it, and a fork that drifts changes
- * ranking silently.
+ * Paired with {@link withinEditDistance1}. `apps/srd`'s
+ * `searchCompactIndex.ts` used to re-declare it and now imports it; a fork
+ * that drifts changes ranking silently.
  */
 export declare const TYPO_MIN_TOKEN_LENGTH = 4;
 /**
