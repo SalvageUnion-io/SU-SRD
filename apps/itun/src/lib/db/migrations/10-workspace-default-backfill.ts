@@ -37,7 +37,7 @@ const DEFAULT_WORKSPACE = {
 } as const
 
 import { STORE_NAMES } from '../stores'
-import type { UpgradeTransaction } from './index'
+import type { UpgradeTransaction } from './types'
 
 /** Object stores whose records get the Default-workspace backfill. */
 const BACKFILL_STORES: readonly string[] = [

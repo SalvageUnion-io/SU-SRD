@@ -32,7 +32,7 @@
 
 import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
-import type { UpgradeTransaction } from './index'
+import type { UpgradeTransaction } from './types'
 
 /**
  * Choice names carrying a partner's identity, as they appear in

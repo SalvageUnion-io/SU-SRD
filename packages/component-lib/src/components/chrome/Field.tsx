@@ -209,54 +209,14 @@ export function Field(props: FieldProps) {
   )
 }
 
-type InputProps = ComponentPropsWithoutRef<'input'>
-
-/**
- * Text input (design-spec §2.5 `.input`): paper bg, 1.5px ink border, 3px
- * radius, rust focus ring (no outline).
- */
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, ...props },
-  ref
-) {
-  return (
-    <input
-      ref={ref}
-      className={cn(
-        'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-muted',
-        INPUT_FOCUS,
-        className
-      )}
-      {...props}
-    />
-  )
-})
-
-type TextareaProps = ComponentPropsWithoutRef<'textarea'>
-
-/**
- * Multiline text input (design-spec §2.5): the `Input` sibling — identical
- * paper / 1.5px-ink / 3px-radius / rust-ring skin, with vertical resize.
- * `Field`-wrappable exactly like `Input`. Distinct from `InlineEditField`'s
- * internal textarea (that one is a click-to-edit control, this is a plain field).
- */
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { className, rows = 3, ...props },
-  ref
-) {
-  return (
-    <textarea
-      ref={ref}
-      rows={rows}
-      className={cn(
-        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-muted',
-        INPUT_FOCUS,
-        className
-      )}
-      {...props}
-    />
-  )
-})
+// `Input` and `Textarea` now live in the leaf module `./inputs`, and are
+// re-exported here so every existing import path still resolves.
+//
+// They moved to break a two-node runtime import cycle: this file imports
+// `InlineEditField`, which imported `Input`/`Textarea` back from here. srd's SSR
+// pass evaluates this source under Bun with no bundler, where a cycle is
+// TDZ-sensitive and evaluation-order dependent.
+export { Input, Textarea } from './inputs'
 
 type SelectProps = ComponentPropsWithoutRef<'select'> & {
   /**

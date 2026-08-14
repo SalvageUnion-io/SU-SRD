@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
-import { Input, Textarea } from './Field'
 import { FieldError } from './FieldError'
+import { Input, Textarea } from './inputs'
 import { INPUT_FOCUS } from './interaction'
 
 // ---------------------------------------------------------------------------

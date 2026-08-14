@@ -17,7 +17,7 @@
  *   - Never edit a shipped migration — add a new version.
  */
 
-import type { IDBPDatabase, IDBPTransaction, StoreNames } from 'idb'
+import type { IDBPDatabase } from 'idb'
 import { migrate as migrate3CargoToCargoLots } from './3-cargo-to-cargo-lots'
 import { migrate as migrate4RemovePilotRollResults } from './4-remove-pilot-roll-results'
 import { migrate as migrate6MechRefsToSlugs } from './6-mech-refs-to-slugs'
@@ -28,13 +28,12 @@ import { migrate as migrate12CompanionMechsToPartners } from './12-companion-mec
 import { migrate as migrate13WorkspaceToGameOrShelf } from './13-workspace-to-game-or-shelf'
 import { migrate as migrate14StarterSetSeedRef } from './14-starter-set-seed-ref'
 import { migrate as migrate15PartnerEquipmentBackfill } from './15-partner-equipment-backfill'
+// Declared in the leaf `./types` so the migrations can import it without
+// importing this barrel (which imports all of them). Re-exported here so
+// existing import paths keep working.
+import type { UpgradeTransaction } from './types'
 
-/** The untyped versionchange transaction handed to the idb upgrade callback. */
-export type UpgradeTransaction = IDBPTransaction<
-  unknown,
-  ArrayLike<StoreNames<unknown>>,
-  'versionchange'
->
+export type { UpgradeTransaction } from './types'
 
 type MigrationFn = (
   tx: UpgradeTransaction,

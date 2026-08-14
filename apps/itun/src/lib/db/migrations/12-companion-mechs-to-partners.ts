@@ -50,7 +50,7 @@
 
 import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
-import type { UpgradeTransaction } from './index'
+import type { UpgradeTransaction } from './types'
 
 /**
  * The `equipment` records that carry a mech-shaped stat block, i.e. the only

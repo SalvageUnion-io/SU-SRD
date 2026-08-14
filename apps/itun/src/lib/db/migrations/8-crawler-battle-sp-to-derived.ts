@@ -35,7 +35,7 @@
 
 import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
-import type { UpgradeTransaction } from './index'
+import type { UpgradeTransaction } from './types'
 
 /** The Battle crawler type's SRD id + name at ship time (frozen snapshot). */
 const BATTLE_TYPE_REFS: readonly string[] = ['3d1d9f79-9c56-43fa-a4c9-6dfe10b9aac9', 'Battle']
