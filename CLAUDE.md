@@ -73,9 +73,9 @@ image-size@2.0.2
         └─ su-assets@workspace (requires ^10.7.11)
 ```
 
-Use it before editing an `overrides` floor too — the CI comment in
-`.github/workflows/ci.yml` documents which floors bind and via what, and that
-comment can go stale while `bun why` cannot.
+Use it before editing an `overrides` entry too — the CI comment in
+`.github/workflows/ci.yml` documents what each entry holds back and via what,
+and that comment can go stale while `bun why` cannot.
 
 **`overrides` is now two entries, and NEITHER is a security floor** — both are
 dedupe pins. `@discordjs/rest` lifts one stale `discord.js` edge onto a version
@@ -96,6 +96,12 @@ resolve silently *down*** to the newest version old enough (see "Install
 cooldown"), where a floor would have errored. So if `bun audit` ever reports
 `nanoid`, `fast-uri`, `brace-expansion`, `shell-quote` or `filelist`, the fix is
 to restore that package's floor — not to hunt for a new consumer.
+
+**That watch list is manual below `high`.** `check:audit` gates at
+`--audit-level=high`, and nothing in `check:all`, CI or the pre-push hook runs a
+bare `bun audit` — so a *moderate* advisory on any of those five (the ReDoS
+class they actually draw) fails nothing and is caught only by running
+`bun audit` by hand. The `high` gate is unaffected.
 
 ### Shared versions live in the catalog
 

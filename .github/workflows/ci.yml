@@ -383,10 +383,23 @@ jobs:
       #     newest version old enough (CLAUDE.md, "Install cooldown") — so a
       #     re-resolve while a fresh fix is still inside the 3-day window lands the
       #     older, in-advisory version with no warning at all, where resolving
-      #     below an override would have errored. `check:audit` still gates the
-      #     resolved lockfile, so this is a hardening regression, not a hole.
-      #     If any of the five above goes red, restore that package's floor rather
-      #     than hunting for a new consumer.
+      #     below an override would have errored.
+      #
+      #     AND THE WATCH LIST IS MANUAL BELOW `high` — know this before trusting
+      #     it. `check:audit` is `bun audit --audit-level=high`, so a MODERATE
+      #     advisory landing on any of those five fails nothing: not this job, not
+      #     `check:all`, not a pre-push hook. That is precisely the class these
+      #     packages draw (ReDoS), and the class the dropped `nanoid` floor was
+      #     originally added for (GHSA-2v37-7h3g-55p8). Nothing anywhere runs a
+      #     bare `bun audit`, so a silent caret step-down onto a moderate-advisory
+      #     version is caught only by someone running it by hand.
+      #
+      #     So the honest summary is: the `high` gate still holds (that severity
+      #     policy predates this change and is deliberate), and below it these
+      #     five are watched by convention rather than by CI. Restoring a floor is
+      #     the fix; a periodic bare-`bun audit` over just these five would be the
+      #     automation if it is ever wanted. If any of them goes red, restore that
+      #     package's floor rather than hunting for a new consumer.
       #   - `@vitejs/plugin-react-swc` was a DEDUPE floor, not a security floor.
       #     Removing it costs one duplicate copy (a nested @ladle/react 3.11.0)
       #     and no advisory — install weight only, in a dev-only tool.
