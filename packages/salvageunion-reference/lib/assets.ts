@@ -74,7 +74,41 @@ export const SRD_SITE_URL = 'https://salvageunion.io'
  */
 
 export function srdEntityPath(schemaName: string, slug: string): string {
-  return `/schema/${schemaName}/item/${slug}`
+  return `${srdSchemaPath(schemaName)}/item/${slug}`
+}
+
+/**
+ * The reference site's ROOT-RELATIVE path for one schema's LISTING page.
+ *
+ * The other half of the route grammar, and it exists for the same reason
+ * {@link srdEntityPath} does. Both are written WITHOUT a trailing slash; srd
+ * emits directory-style output and appends the slash itself in exactly one
+ * place (`apps/srd/src/lib/entityHref.ts`), so the slash is a rendering
+ * decision of that app rather than part of the grammar.
+ *
+ * Keep this the only place either shape is spelled. Two modules previously each
+ * claimed to be the single source of the route grammar and disagreed on the
+ * trailing slash — the package emitted `/schema/x/item/y` while srd emitted
+ * `/schema/x/item/y/`. Directory-style output meant the un-slashed form
+ * redirected rather than 404ing, so the divergence cost a hop on every bot and
+ * ITUN deep link and split the canonical URL in two, without ever failing.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @returns The root-relative listing path
+ */
+export function srdSchemaPath(schemaName: string): string {
+  return `/schema/${schemaName}`
+}
+
+/**
+ * The reference site's ABSOLUTE URL for one schema's listing page —
+ * {@link SRD_SITE_URL} + {@link srdSchemaPath}.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @returns The absolute listing URL
+ */
+export function srdSchemaUrl(schemaName: string): string {
+  return `${SRD_SITE_URL}${srdSchemaPath(schemaName)}`
 }
 
 /**
