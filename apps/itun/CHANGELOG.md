@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.7.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.1...itun-v1.7.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* **itun:** drop redundant "View in SRD" link and Slots figure from sheet card footers ([#761](https://github.com/SalvageUnion-io/SU-SRD/issues/761)) ([79c3ad1](https://github.com/SalvageUnion-io/SU-SRD/commit/79c3ad17df4bf5ecd714a66b329148c382a951c3))
+
 ## [1.7.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.0...itun-v1.7.1) (2026-08-14)
 
 
