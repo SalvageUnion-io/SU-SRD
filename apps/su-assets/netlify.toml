@@ -20,8 +20,29 @@
 
 # Long-lived immutable caching for served artwork (the asset function also sets
 # these per-response; this covers anything served statically from public/).
+#
+# The security headers below are the SAME SET apps/srd and apps/itun send, and
+# they were missing here. That gap was invisible for the obvious reason: the two
+# netlify.toml files anyone opens are the two that have them, and
+# tools/check-observability.ts parses only `connect-src`, so nothing compared
+# the rest across the three sites.
+#
+# Being a pure CDN behind `Access-Control-Allow-Origin: *` is not a reason to
+# skip them. HSTS still matters on a host that serves over TLS, and
+# X-Frame-Options still matters because an image origin is a fine thing to frame
+# for a clickjacking overlay. None of them costs anything here.
+#
+# No Content-Security-Policy: this origin serves image bytes and a JSON error
+# body, never HTML or script, so a CSP would govern nothing. That is also why
+# the Sentry `connect-src` clause the other two sites carry has no counterpart
+# here.
 [[headers]]
   for = "/*"
   [headers.values]
+    X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-DNS-Prefetch-Control = "on"
     Access-Control-Allow-Origin = "*"
