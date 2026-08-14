@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.7.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.0...itun-v1.7.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **itun:** stop share links needing five refreshes after a deploy ([#759](https://github.com/SalvageUnion-io/SU-SRD/issues/759)) ([21bd580](https://github.com/SalvageUnion-io/SU-SRD/commit/21bd5808b8a415518197bfc8a42cd3e8cab60fc6))
+
 ## [1.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.6.0...itun-v1.7.0) (2026-08-13)
 
 
