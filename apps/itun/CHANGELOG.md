@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.7.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.2...itun-v1.7.3) (2026-08-14)
+
+
+### Bug Fixes
+
+* **itun:** drop redundant EP/Heat/AP cost figures from sheet card footers ([#763](https://github.com/SalvageUnion-io/SU-SRD/issues/763)) ([a181ccb](https://github.com/SalvageUnion-io/SU-SRD/commit/a181ccbccb20df62fdc1bf29cce893ce874a8854))
+
 ## [1.7.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.1...itun-v1.7.2) (2026-08-14)
 
 
