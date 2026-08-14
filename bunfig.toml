@@ -26,12 +26,19 @@ linker = 'isolated'
 #     Most of this repo's deps are exact pins, so this is the common case.
 #
 #   - A RANGE (caret) silently resolves DOWN to the newest version old enough.
-#     No warning. That is the footgun: the `overrides` block in package.json is
-#     a set of security FLOORS, and a caret floor whose fix shipped in the last
-#     three days resolves to something below what you think you pinned. It can
-#     never resolve below the floor itself (that would error, per above), so the
-#     floors still hold — but `bun update <pkg>` to clear a FRESH advisory will
-#     appear to do nothing until the cooldown elapses.
+#     No warning. `bun update <pkg>` to clear a FRESH advisory therefore appears
+#     to do nothing until the cooldown elapses — check the publish date before
+#     concluding the fix is broken.
+#
+#     This comment used to add that "the `overrides` block in package.json is a
+#     set of security FLOORS ... so the floors still hold". THAT IS NO LONGER
+#     TRUE and it was the reassuring half. As of #787 `overrides` holds two
+#     DEDUPE pins and zero security floors, so nothing in this repo is protected
+#     from the silent step-down described above. An override would still fail
+#     loudly (resolving below one errors), which is exactly why the five
+#     packages whose floors were dropped — nanoid, fast-uri, brace-expansion,
+#     shell-quote, filelist — are on a watch list in .github/workflows/ci.yml
+#     with the instruction to restore a floor if any of them goes red.
 #
 # `bun install --frozen-lockfile` is unaffected: it installs what bun.lock
 # already resolved and does no resolution, so CI and every deploy target never

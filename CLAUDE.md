@@ -73,13 +73,38 @@ image-size@2.0.2
         └─ su-assets@workspace (requires ^10.7.11)
 ```
 
-Use it before editing an `overrides` floor too — the CI comment in
-`.github/workflows/ci.yml` documents which floors bind and via what, and that
-comment can go stale while `bun why` cannot.
+Use it before editing an `overrides` entry too — the CI comment in
+`.github/workflows/ci.yml` documents what each entry holds back and via what,
+and that comment can go stale while `bun why` cannot.
 
-The companion fix in the same change was real, not suppressed: `nanoid` is
-pinned to `^3.3.18` in `overrides` (from `3.3.16`, via `vite → postcss`),
-clearing `GHSA-2v37-7h3g-55p8`.
+**`overrides` is now two entries, and NEITHER is a security floor** — both are
+dedupe pins. **Neither is optional, though: do not drop either as install
+weight.** `@discordjs/rest` lifts one stale `discord.js` edge onto a version its
+own range already allows, so `undici` clears `GHSA-vxpw-j846-p89q` unaided —
+which makes that pin the only thing keeping a **HIGH** advisory out of the tree,
+dedupe or not;
+`@opentelemetry/core` collapses two OTel cores that would otherwise coexist in
+one subtree and silently desync `@sentry/node`'s span context. The other six
+entries were removed in #787 after measuring what each held back; `ci.yml`
+records the per-entry evidence, the watch list and the restore conditions.
+
+**Read that comment before removing an entry here**, because "the audit is still
+clean" is necessary but *not sufficient* — `@opentelemetry/core` is the worked
+example of a removal that audits clean and still degrades behaviour.
+
+`nanoid` was among the six: it is no longer pinned anywhere, and `3.3.18` holds
+only because `postcss`'s `^3.3.16` caret happens to resolve there. That is a
+caret, not a guarantee — **`bunfig.toml`'s `minimumReleaseAge` makes a caret
+resolve silently *down*** to the newest version old enough (see "Install
+cooldown"), where a floor would have errored. So if `bun audit` ever reports
+`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote` or `filelist`, the fix is
+to restore that package's floor — not to hunt for a new consumer.
+
+**That watch list is manual below `high`.** `check:audit` gates at
+`--audit-level=high`, and nothing in `check:all`, CI or the pre-push hook runs a
+bare `bun audit` — so a *moderate* advisory on any of those five (the ReDoS
+class they actually draw) fails nothing and is caught only by running
+`bun audit` by hand. The `high` gate is unaffected.
 
 ### Shared versions live in the catalog
 
@@ -98,14 +123,16 @@ Two things this interacts with, both of which have bitten:
 - **`overrides` beats the catalog.** An `overrides` entry forces a version
   tree-wide, so raising a catalogued dep past the range its override allows
   leaves the catalog stating a version that is not what resolves — the catalog
-  becomes fiction, silently. Exactly one dependency is in both places:
-  **`@vitejs/plugin-react-swc`** (catalogued, and overridden at `^4.3.3`). A
-  major bump is therefore ignored in `.catalog-updaterc.json`; minor and patch
-  updates stay automated because the caret absorbs them. To take a major, bump
-  the catalog entry **and** the override together, by hand.
-  (`sharp` is *not* an example of this — it has no override at all. Check
-  `overrides` before assuming; the comment in `ci.yml`'s audit job asserted a
-  `sharp` override that has never existed and is corrected in this change.)
+  becomes fiction, silently. **No dependency is currently in both places**, so
+  this hazard is dormant, not active — check before assuming it applies.
+  `@vitejs/plugin-react-swc` used to be the one example (catalogued *and*
+  overridden at `^4.3.3`), which is why `.catalog-updaterc.json` ignored its
+  major updates. That override is gone, so the ignore is gone with it and its
+  majors are automated like everything else. If you ever add an override for a
+  catalogued dep, restore the ignore in the same change.
+  (`sharp` is *not* an example of this — it has never had an override. Check
+  `overrides` before assuming; `ci.yml`'s audit job asserted a `sharp` override
+  that never existed.)
 - **Dependabot cannot read `catalog:`.** It will not update catalogued deps
   (dependabot-core #14320) and may strip the `catalog` field from a manifest it
   rewrites (#12522) — both still open.
@@ -116,7 +143,8 @@ Two things this interacts with, both of which have bitten:
 `.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
 takes no comments, so the reason lives here. That feature defaults to **on** at
 `moderate` severity and writes `overrides` entries automatically; this repo
-curates `overrides` by hand as documented security floors, and gates at
+curates `overrides` by hand — every entry documented in `ci.yml`, and as of
+#787 that is two dedupe pins with zero security floors — and gates at
 `--audit-level=high`. Leaving it on would open PRs editing that block for
 advisories `check:audit` deliberately ignores.
 
@@ -139,8 +167,14 @@ Two behaviours, measured on Bun 1.3.14 — know which one you are hitting:
   pins, so this is the usual case.
 - a **caret range silently resolves *down*** to the newest version old enough.
   No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
-  did nothing — check the publish date before concluding the fix is broken. The
-  `overrides` floors still hold (resolving below a floor errors instead).
+  did nothing — check the publish date before concluding the fix is broken.
+  An `overrides` floor is the loud alternative: resolving below one errors
+  instead of silently stepping down. **Both current `overrides` entries are
+  dedupe pins, not floors** (see "Audit gate"), so nothing here is protected that
+  way today. That is the accepted cost of #787, not an oversight — the five
+  packages it applies to (`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote`,
+  `filelist`) are listed there with the instruction to restore a floor if any of
+  them goes red.
 
 `bun install --frozen-lockfile` does no resolution and is **unaffected** —
 verified; CI and all four deploy targets never see this gate.

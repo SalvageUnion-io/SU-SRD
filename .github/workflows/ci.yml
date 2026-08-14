@@ -268,63 +268,183 @@ jobs:
         run: bun run validate:all
 
       # ---------------------------------------------------------------
-      # The dependency audit, and WHY the `overrides` block exists.
+      # The dependency audit, and WHY the `overrides` block is now TWO entries.
       #
-      # This block was nearly lost when six jobs merged into one: CLAUDE.md
-      # points here twice ("the CI comment in .github/workflows/ci.yml") for
-      # which security floors bind and via what, and package.json cannot
-      # carry comments. Deleting it would have left an 8-entry `overrides`
-      # block with no surviving record of its reasoning.
+      # CLAUDE.md points here twice ("the CI comment in .github/workflows/ci.yml")
+      # for which security floors bind and via what, because package.json cannot
+      # carry comments. This is that record. Keep it in step with the block.
       # ---------------------------------------------------------------
       # Dependency vulnerability scan against the resolved lockfile. Fails on
       # high/critical advisories so a vulnerable dependency blocks merge; lower
       # severities are reported by `bun audit` locally but do not gate CI.
       #
-      # HOW ADVISORIES GET CLEARED HERE. Most resolve on their own when the
-      # lockfile moves. The rest are held above the vulnerable range by the
-      # `overrides` block in the root package.json — those entries are SECURITY
-      # FLOORS, and the block is load-bearing: delete it, re-resolve, and two high
-      # advisories come straight back — `sharp` (GHSA-f88m-g3jw-g9cj; it reached
-      # the graph via workspace:srd -> astro until srd left Astro, and is now a
-      # direct srd devDependency for the OG-screenshot pass) and `undici`
-      # (GHSA-vxpw-j846-p89q, via discord.js).
-      # The other floors do not bind on a fresh resolve today; they are kept as
-      # cheap insurance against a parent range drifting back down.
+      # THE BLOCK IS NOW TWO ENTRIES — `@discordjs/rest` and
+      # `@opentelemetry/core`, and NEITHER is a security floor; both are dedupe
+      # pins. It held eight until #787: six were removed after measuring, one at a
+      # time, what each was actually holding back, one was REPLACED by a better
+      # fix a level up, and one was removed and then put back when review showed
+      # the removal was not inert. The method is the point, so that it can be
+      # redone: empty the block, `bun install`, then `bun run check:audit`.
+      # Anything that reappears earned its floor; anything that does not, did not.
+      # Note what that method does NOT catch — `@opentelemetry/core` below is the
+      # worked example, and it is why "audit is clean" is a necessary rather than
+      # a sufficient answer.
       #
-      # TWO ADVISORIES ARE NOW SUPPRESSED, and this comment used to say the
-      # opposite ("No `--ignore` is needed"). `check:audit` passes
+      #   @discordjs/rest: ^2.6.3 — a DEDUPE pin that removes the need for a
+      #     security floor, rather than a security floor itself.
+      #
+      #     The problem it solves: `discord.js@14.27.0` -> `@discordjs/ws@1.2.3`
+      #     -> `@discordjs/rest@2.6.1`, and 2.6.1 requires undici at EXACTLY
+      #     6.24.1. GHSA-vxpw-j846-p89q is HIGH over `< 6.27.0`, so that one
+      #     stale edge put a high advisory in the tree via discord.js.
+      #
+      #     This block used to answer that with `undici: ^6.28.0` — floor the
+      #     symptom. The better lever is one level up: `@discordjs/rest@2.6.3`
+      #     asks undici for `^6.27.0`, and `@discordjs/ws@1.2.3` already accepts
+      #     `^2.5.1`, so 2.6.3 is INSIDE its declared range. Pinning it there is a
+      #     dedupe, not a forced upgrade — the tree drops a duplicate
+      #     `@discordjs/rest` (2.6.1 alongside 2.6.3) and undici then floats to
+      #     6.28.0 on its own, with no undici entry at all. One fewer package
+      #     installed, and the lockfile diff is a pure deletion.
+      #
+      #     REMOVAL CONDITION: `discord.js` is ALREADY at the latest release
+      #     (14.27.0 — there is no upgrade to take, checked with `bun pm view
+      #     discord.js version`), and it requires `@discordjs/ws ^1.2.3`, so the
+      #     fixed `@discordjs/ws@2.0.4` is unreachable across that major. When a
+      #     discord.js release ships a `ws` that pulls `rest >= 2.6.3` itself,
+      #     delete THIS entry — and only this one; `@opentelemetry/core` below is
+      #     kept for an unrelated reason and must survive. Re-check with
+      #     `bun why undici`: if it resolves >= 6.27.0 unaided, this entry is dead.
+      #
+      #     ALSO delete it if `discord.js` ever moves to a `@discordjs/rest`
+      #     MAJOR. A bun `overrides` entry is tree-wide and unconditional, so a
+      #     future `rest@^3` would be silently CLAMPED back to 2.6.x instead of
+      #     failing loudly — the "freeze, not floor" hazard this block warns about
+      #     below, applied across a major boundary rather than a patch one. The
+      #     `undici: ^6.28.0` this replaced had the identical property.
+      #
+      #     Note this pin is not a floor, but it IS security-load-bearing: it is
+      #     the only thing keeping GHSA-vxpw-j846-p89q out of the tree. Do not
+      #     drop it as "just a dedupe".
+      #
+      #     Verify the advisory ranges with:
+      #       gh api graphql -f query='{securityVulnerabilities(package:"undici",
+      #         ecosystem:NPM,first:60){nodes{severity vulnerableVersionRange
+      #         advisory{ghsaId}}}}'
+      #     Verified here with `bun run build:bot` and the bot's 225 tests.
+      #
+      #   @opentelemetry/core: ^2.8.0 — KEPT, and the cautionary tale of this whole
+      #     change. It was removed with the other six on the grounds that the audit
+      #     stayed clean, which it did. That was the wrong test.
+      #
+      #     `@netlify/otel@6.0.5` pins core at EXACTLY 2.8.0 while its own
+      #     `@opentelemetry/sdk-trace-node@2.9.0` depends on core 2.9.0 — so with
+      #     no override the lockfile carries a nested
+      #     `@netlify/otel/@opentelemetry/core@2.8.0` AND a top-level 2.9.0: two
+      #     copies inside one package's subtree. OTel's context keys are
+      #     non-registered `Symbol`s, which never compare equal across copies, so
+      #     the two disagree about what is in context and what is suppressed.
+      #
+      #     That is not confined to Netlify's own tracing, which is what the first
+      #     draft of this comment claimed. `@sentry/node@10.69.0` IS an OTel SDK
+      #     (it requires `@opentelemetry/sdk-trace-base ^2.9.0`), and it shares a
+      #     process with `@netlify/blobs`: `apps/su-assets/netlify/functions/
+      #     asset.ts` imports `getStore` and `initObservability` together, as do
+      #     the ITUN snapshot functions. So the desync can mis-parent or
+      #     un-suppress SENTRY's spans — silently, with no crash and no advisory.
+      #     Keep this entry. `grep -c 'opentelemetry/core@2' bun.lock` must be 1.
+      #
+      # WHAT THE SIX REMOVALS ACTUALLY DID (from the #787 bun.lock diff — the
+      # resolved versions, not the ranges, because only the former can be audited):
+      #   shell-quote  ^1.10.0 -> resolves 1.9.0   (worst advisory is `<= 1.8.4`)
+      #   fast-uri     ^4.1.2  -> resolves 3.1.5   (`< 3.1.5`; newest of the 3.x line)
+      #   filelist     ^2.0.2  -> resolves 1.0.6, dragging minimatch@5.1.9 and
+      #                           brace-expansion@2.1.4 (`< 2.1.4`) with it
+      #   brace-expansion ^5.0.9 -> top level unchanged at 5.0.9 (minimatch@10 asks ^5.0.5)
+      #   nanoid       ^3.3.18 -> NOT ONE LOCKFILE LINE CHANGED; a pure no-op
+      #   @vitejs/plugin-react-swc ^4.3.3 -> adds a nested @ladle/react copy at 3.11.0
+      # Post-removal `bun run check:audit` is EMPTY, and full `bun audit` reports
+      # only the two suppressed image-size ids below — i.e. no new advisory at any
+      # severity. `check:all`, `bun --filter component-lib ladle:build`,
+      # `bun run build:bot` and `bun install --frozen-lockfile` were all green.
+      #
+      # KNOW WHAT THIS TRADED AWAY, because it is a real cost and not zero.
+      # FIVE of the six are downgrades onto an older line, and all five are on the
+      # watch list — do not shorten it, and do not treat a red audit on any of
+      # them as a mystery:
+      #
+      #     fast-uri 3.1.5, brace-expansion 2.1.4 (nested, via filelist),
+      #     shell-quote 1.9.0, filelist 1.0.6, nanoid 3.3.18
+      #
+      #   - The first four sit at or near the LAST patch of an older line, and
+      #     nanoid sits at exactly the fixed version with a caret above it. Today
+      #     all of that is clean. If a new advisory lands on one of those lines and
+      #     the fix ships only on a newer major, the parent caret (`ajv` asks
+      #     fast-uri ^3.0.1; `jake` asks filelist ^1.0.4; `concurrently` pins
+      #     shell-quote at exactly 1.9.0) cannot reach it and the floor must come
+      #     back. Restoring one is a one-line edit plus `bun install`.
+      #
+      #     THE SHARPER EDGE, and the reason a floor is not merely redundant here:
+      #     a floor fails LOUDLY and a caret fails SILENTLY. `bunfig.toml` sets
+      #     `minimumReleaseAge`, and a caret range under it resolves *down* to the
+      #     newest version old enough (CLAUDE.md, "Install cooldown") — so a
+      #     re-resolve while a fresh fix is still inside the 3-day window lands the
+      #     older, in-advisory version with no warning at all, where resolving
+      #     below an override would have errored.
+      #
+      #     AND THE WATCH LIST IS MANUAL BELOW `high` — know this before trusting
+      #     it. `check:audit` is `bun audit --audit-level=high`, so a MODERATE
+      #     advisory landing on any of those five fails nothing: not this job, not
+      #     `check:all`, not a pre-push hook. That is precisely the class these
+      #     packages draw (ReDoS), and the class the dropped `nanoid` floor was
+      #     originally added for (GHSA-2v37-7h3g-55p8). Nothing anywhere runs a
+      #     bare `bun audit`, so a silent caret step-down onto a moderate-advisory
+      #     version is caught only by someone running it by hand.
+      #
+      #     So the honest summary is: the `high` gate still holds (that severity
+      #     policy predates this change and is deliberate), and below it these
+      #     five are watched by convention rather than by CI. Restoring a floor is
+      #     the fix; a periodic bare-`bun audit` over just these five would be the
+      #     automation if it is ever wanted. If any of them goes red, restore that
+      #     package's floor rather than hunting for a new consumer.
+      #   - `@vitejs/plugin-react-swc` was a DEDUPE floor, not a security floor.
+      #     Removing it costs one duplicate copy (a nested @ladle/react 3.11.0)
+      #     and no advisory — install weight only, in a dev-only tool.
+      #
+      # TWO ADVISORIES ARE SUPPRESSED. `check:audit` passes
       # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both
       # `image-size <=2.0.2` via `@netlify/blobs -> @netlify/dev-utils`. There is
       # no fixed version to float a floor to — 2.0.2 IS latest — so the usual
       # `bun update` / raise-the-floor remedy below cannot apply. Full reasoning
       # and the removal condition are in CLAUDE.md, "Audit gate". The ignores are
       # scoped to those two ids, so everything else still gates.
-      # Getting there took DEDUPE floors, which are a different kind of entry from
-      # the rest of the block and should not be confused with them:
       #
-      #   (An `astro: ^7.1.4` dedupe floor used to sit here. `@vite-pwa/astro@1.2.0`
+      # TWO DEAD DEDUPE FLOORS, kept as lessons rather than as config:
+      #
+      #   (An `astro: ^7.1.4` floor used to sit here. `@vite-pwa/astro@1.2.0`
       #   peer-required `astro ^1 || … || ^5`, so bun installed a SECOND, complete
       #   astro@6.4.6 tree beside the real one — in-advisory, and it dragged in a
       #   vulnerable esbuild. Both the floor and the problem are gone: srd left
       #   Astro for the in-house SSG (ADR-031), and @vite-pwa/astro went with it.
-      #   Do not restore the override; nothing depends on astro any more.)
+      #   Do not restore it; nothing depends on astro any more.)
       #
-      #   @vitejs/plugin-react-swc: ^4.3.3
-      #     A `@ladle/react@5.1.1` dependency, pinned there at ^3.7.2 whose vite
-      #     peer stops at ^7 — so bun resolved vite@7.3.5 for it, which pulled
-      #     esbuild@0.27.7, the one genuinely vulnerable esbuild in the tree.
-      #     4.3.x widened the peer to include ^8, so it dedupes onto the vite 8
-      #     already present. Verified with `bun --filter component-lib ladle:build`.
+      #   (`@vitejs/plugin-react-swc: ^4.3.3` was the same shape. `@ladle/react`
+      #   asks ^3.7.2, whose vite peer stopped at ^7, so bun once resolved
+      #   vite@7.3.5 for it and pulled esbuild@0.27.7 — the one genuinely
+      #   vulnerable esbuild in the tree. THAT NO LONGER REPRODUCES: removing the
+      #   floor in #787 restores a nested plugin-react-swc@3.11.0 whose vite peer
+      #   is satisfied by the vite@6.4.3 Ladle already carries, so no second vite
+      #   and no vulnerable esbuild appear. Re-measure before restoring it.
       #
-      #     NOTE the road not taken: a blanket `esbuild` floor would ALSO have
-      #     cleared this, but `convex` pins esbuild to exactly 0.27.0 — which is
-      #     BELOW the advisory range and therefore not vulnerable — so a global
-      #     floor would have forced Convex's bundler off a deliberate pin to fix
-      #     a Windows-dev-server issue in Ladle's tooling. Move the offending
-      #     subtree, not every consumer of the package it happens to contain.
+      #   The road not taken is still the transferable part: a blanket `esbuild`
+      #   floor would ALSO have cleared that, but `convex` pins esbuild to exactly
+      #   0.27.0 — BELOW the advisory range, so not vulnerable — and a global floor
+      #   would have forced Convex's bundler off a deliberate pin to fix a
+      #   Windows-dev-server issue in Ladle's tooling. Move the offending subtree,
+      #   not every consumer of the package it happens to contain.)
       #
       # WHEN THIS JOB FAILS ON A TRANSITIVE DEP, the fix is `bun update <pkg>`
-      # plus the regenerated bun.lock. The floors are caret ranges so that works.
+      # plus the regenerated bun.lock. Floors are caret ranges so that works.
       # Do NOT pin a floor to an exact version: an exact override pins the package
       # *down* as well as up, so when the next advisory is fixed one patch above
       # it, the override itself becomes the thing holding the vulnerable version
@@ -333,20 +453,30 @@ jobs:
       # (#673) — each time after the exact pin had blocked every open PR.
       # Raise the floor, never freeze it.
       #
-      # CORRECTION (this comment was wrong for months): it claimed `sharp` was "the
-      # one deliberate exception", carrying an EXACT override kept in lockstep with
-      # its root and apps/srd pins. There is no `sharp` entry in `overrides` at all
-      # — verify with `bun why sharp` and by reading the block itself. `sharp` is a
-      # plain pinned devDependency, now expressed once in `workspaces.catalog`, and
-      # is bumped like any other. The claim was load-bearing in the wrong
-      # direction: it was copied into CLAUDE.md and used to justify excluding
-      # `sharp` from automated catalog updates, protecting a constraint that did
-      # not exist.
+      # CORRECTION (this comment was wrong for months, in two directions):
+      #   - It claimed `sharp` was "the one deliberate exception", carrying an EXACT
+      #     override kept in lockstep with its root and apps/srd pins. There has
+      #     never been a `sharp` entry in `overrides` — verify with `bun why sharp`.
+      #     That claim was copied into CLAUDE.md and used to justify excluding
+      #     `sharp` from automated catalog updates, protecting a constraint that did
+      #     not exist.
+      #   - It then claimed deleting the block brought back two high advisories,
+      #     `sharp` AND `undici` — while also, three paragraphs down, correcting
+      #     that `sharp` is not in the block at all. Only the undici half was ever
+      #     true. #787 measured it: six entries out and the audit is unchanged —
+      #     but ONLY because `@discordjs/rest: ^2.6.3` went in as part of the same
+      #     change. Take all eight out and add nothing, and GHSA-vxpw-j846-p89q
+      #     really does come back through the nested `@discordjs/rest@2.6.1` ->
+      #     `undici@6.24.1`. So the undici half was true; it was just being
+      #     answered at the wrong level. A floor on the vulnerable package is the
+      #     LAST resort — first look for a parent whose own range already admits a
+      #     fixed version, because that is a dedupe rather than a pin.
       #
-      # The dependency that IS in both `overrides` and the catalog is
-      # `@vitejs/plugin-react-swc` (`^4.3.3`). Raising the catalog past that caret
-      # would leave the catalog stating a version the override prevents resolving,
-      # so `.catalog-updaterc.json` ignores its MAJOR updates only.
+      # No dependency is in BOTH `overrides` and `workspaces.catalog` any more, so
+      # the catalog-becomes-fiction hazard described in CLAUDE.md is dormant.
+      # `@vitejs/plugin-react-swc` was the only one, which is why
+      # `.catalog-updaterc.json` ignored its majors; that ignore went with it.
+      # Re-add both together or neither.
       - name: Audit dependencies
         # `bun run check:audit`, NOT a bare `bun audit` — the script carries the
         # `--ignore` flags, and this ran the bare command for long enough that a
