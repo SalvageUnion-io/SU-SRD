@@ -12,14 +12,24 @@ Pilot abilities and skills
 ## Fields
 
 | Field | Type | Required | Description |
-| -------------------- | ------------ | -------- | ----------- | --- | --- |
-| `description` | string | ❌ | |
-| `tree` | `tree` | ✅ | |
-| `level` | integer | string | string | ✅ | |
-| `mechActionType` | `actionType` | ❌ | |
-| `grants` | `grants` | ❌ | |
-| `activationCurrency` | string | ❌ | |
-| `actions` | `actions` | ❌ | |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `description` | string | ❌ | Short description of the ability |
+| `tree` | string | ✅ | Ability tree this ability belongs to |
+| `level` | unknown | ✅ | Ability level (1-3, L for Legendary, G for Generic) |
+| `mechActionType` | string | ❌ | Action type when used as a mech action |
+| `grants` | Array<object> | ❌ | Entities or choices granted by this ability |
+| `activationCurrency` | string | ❌ | Currency type used for activation |
+| `actions` | Array<string> | ✅ | Action names this ability provides |
+| `contributions` | Array<object> | ❌ | Flat stat changes this ability makes (ADR-029). An ability could previously declare no mechanical change at all, so Beefcake, Bionic Arms, Bionic Legs and Modular Face Implant were inert prose. |
 
 ## Example
 
@@ -32,24 +42,15 @@ Pilot abilities and skills
   "level": 1,
   "page": 28,
   "actions": [
-    {
-      "id": "3c796591-3143-48ab-93a1-4aa6f3a8288c",
-      "activationCost": 1,
-      "actionType": "Turn",
-      "name": "Engineering Expertise",
-      "content": [
-        {
-          "value": "You are able to answer questions pertaining to mechanical and engineering topics. You may ask the Mediator two questions that cover these areas, and they must answer truthfully. You can use this Ability to ask for the full stats of any Mech Chassis, System, Module, or Pilot Equipment that you can see and interact with, as one of these questions."
-        }
-      ]
-    }
+    "Engineering Expertise"
   ],
-  "description": "Ask questions pertaining to mechanical and engineering topics."
+  "description": "Ask questions pertaining to mechanical and engineering topics.",
+  "additionalSources": [
+    {
+      "source": "Salvage Union Starter Set",
+      "booklet": "PH",
+      "page": 13
+    }
+  ]
 }
 ```
-
-## Schema Composition
-
-This schema extends the following definitions:
-
-- `shared/objects.schema.json#/definitions/baseEntity`

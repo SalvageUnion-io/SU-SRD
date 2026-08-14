@@ -11,13 +11,22 @@ Meld-infected creatures
 
 ## Fields
 
-| Field             | Type           | Required | Description                                                   |
-| ----------------- | -------------- | -------- | ------------------------------------------------------------- |
-| `actions`         | `actions`      | ✅       |                                                               |
-| `traits`          | Array<`trait`> | ❌       | Special traits and properties of items, systems, or abilities |
-| `salvageValue`    | integer        | ❌       | Salvage value of the meld creature                            |
-| `hitPoints`       | integer        | ❌       | Hit points of the meld creature                               |
-| `structurePoints` | integer        | ❌       | Structure points of the meld creature                         |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `actions` | Array<string> | ✅ | Action names this meld creature can perform |
+| `traits` | Array<object> | ❌ | Traits and special properties |
+| `salvageValue` | integer | ❌ | Scrap value when salvaged |
+| `hitPoints` | integer | ❌ | Hit points of this meld creature |
+| `structurePoints` | integer | ❌ | Structure points of this meld creature |
 
 ## Example
 
@@ -27,33 +36,17 @@ Meld-infected creatures
   "source": "Salvage Union Workshop Manual",
   "name": "Meld Drone",
   "actions": [
-    {
-      "name": "Bite",
-      "range": ["Close"],
-      "damage": {
-        "amount": 2,
-        "damageType": "HP"
-      },
-      "traits": [
-        {
-          "type": "melee"
-        },
-        {
-          "type": "meld infection"
-        }
-      ],
-      "id": "5db10ab3-6099-4c8e-82df-fc4f9b18eb18",
-      "content": [
-        {
-          "type": "paragraph",
-          "value": "The Meld Drone mindlessly attacks the target with teeth and claw."
-        }
-      ]
-    }
+    "Bite"
   ],
   "salvageValue": 1,
   "hitPoints": 3,
   "page": 289,
+  "additionalSources": [
+    {
+      "source": "Reclamation of the Wastes",
+      "page": 113
+    }
+  ],
   "content": [
     {
       "type": "paragraph",
@@ -62,9 +55,3 @@ Meld-infected creatures
   ]
 }
 ```
-
-## Schema Composition
-
-This schema extends the following definitions:
-
-- `shared/objects.schema.json#/definitions/baseEntity`

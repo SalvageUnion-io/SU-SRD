@@ -11,28 +11,26 @@ Player-facing guides and processes
 
 ## Fields
 
-| Field               | Type          | Required | Description                                                                                                                                               |
-| ------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assetExtension`    | string        | ❌       | Image file extension; the URL is derived from the entity schema + slug                                                                                    |
-| `content`           | Array<object> | ❌       | Descriptive content blocks for this entity                                                                                                                |
-| `id`                | string        | ✅       | Unique identifier for this entity                                                                                                                         |
-| `indexable`         | boolean       | ✅       | Whether this entity appears in search results                                                                                                             |
-| `blackMarket`       | boolean       | ✅       | Whether this entity is only available on the black market                                                                                                 |
-| `name`              | string        | ✅       | Display name of this entity                                                                                                                               |
-| `source`            | string        | ✅       | Primary source book this entity appears in                                                                                                                |
-| `page`              | integer       | ✅       | Page number in the primary source book                                                                                                                    |
-| `booklet`           | string        | ❌       | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
-| `additionalSources` | Array<object> | ❌       | Other source books where this entity is reprinted                                                                                                         |
-| `guideType`         | string        | ✅       | Category of this guide                                                                                                                                    |
-| `guideColor`        | string        | ✅       | Hex color for entity display header/footer                                                                                                                |
-| `steps`             | Array<object> | ✅       | Ordered sequence of steps                                                                                                                                 |
-| `repeatable`        | boolean       | ❌       | Whether this guide can be executed multiple times                                                                                                         |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `guideType` | string | ✅ | Category of this guide |
+| `guideColor` | string | ✅ | Hex color for entity display header/footer |
+| `steps` | Array<object> | ✅ | Ordered sequence of steps |
 
 ## Example
 
 ```json
 {
-  "id": "e0f1a2b3-c4d5-4e6f-7a8b-9c0d1e2f3a4b",
+  "id": "1888989e-9835-4c24-81f9-4b6867c55cae",
   "name": "Safety Protocols",
   "source": "Salvage Union Workshop Manual",
   "page": 12,
@@ -71,7 +69,6 @@ Player-facing guides and processes
     {
       "id": "f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
       "name": "Boundaries",
-      "stepType": "info",
       "content": [
         {
           "type": "paragraph",
@@ -110,7 +107,6 @@ Player-facing guides and processes
     {
       "id": "a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6e",
       "name": "Stop Sign",
-      "stepType": "info",
       "content": [
         {
           "type": "paragraph",

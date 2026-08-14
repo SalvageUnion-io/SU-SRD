@@ -2,8 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
-  "version": "2.3.5",
-  "generated": "2026-06-05T02:03:33.465Z",
+  "version": "2.11.0",
+  "generated": "2026-08-14T05:52:27.694Z",
   "schemas": [
     {
       "id": "abilities",
@@ -12,17 +12,7 @@
       "dataFile": "data/abilities.json",
       "schemaFile": "schemas/abilities.schema.json",
       "itemCount": 103,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "tree",
-        "level",
-        "actions"
-      ],
+      "requiredFields": ["id", "name", "source", "page", "tree", "level", "actions"],
       "displayName": "Abilities"
     },
     {
@@ -32,7 +22,7 @@
       "dataFile": "data/ability-tree-requirements.json",
       "schemaFile": "schemas/ability-tree-requirements.schema.json",
       "itemCount": 20,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "requirement"],
+      "requiredFields": ["id", "name", "source", "page", "requirement"],
       "displayName": "Ability Tree Requirements",
       "meta": true
     },
@@ -42,8 +32,8 @@
       "description": "Actions, abilities, and attacks that can be performed",
       "dataFile": "data/actions.json",
       "schemaFile": "schemas/actions.schema.json",
-      "itemCount": 686,
-      "requiredFields": [],
+      "itemCount": 687,
+      "requiredFields": ["id", "name"],
       "displayName": "actions",
       "meta": true
     },
@@ -54,16 +44,7 @@
       "dataFile": "data/bio-titans.json",
       "schemaFile": "schemas/bio-titans.schema.json",
       "itemCount": 12,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "structurePoints",
-        "actions"
-      ],
+      "requiredFields": ["id", "name", "source", "page", "structurePoints", "actions"],
       "displayName": "Bio-Titans"
     },
     {
@@ -86,11 +67,17 @@
       "itemCount": 51,
       "requiredFields": [
         "id",
-        "indexable",
-        "blackMarket",
         "name",
         "source",
         "page",
+        "structurePoints",
+        "energyPoints",
+        "heatCapacity",
+        "systemSlots",
+        "moduleSlots",
+        "cargoCapacity",
+        "techLevel",
+        "salvageValue",
         "chassisAbilities",
         "patterns"
       ],
@@ -112,17 +99,8 @@
       "description": "Bays and facilities on Union Crawlers",
       "dataFile": "data/crawler-bays.json",
       "schemaFile": "schemas/crawler-bays.schema.json",
-      "itemCount": 10,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "damagedEffect",
-        "npc"
-      ],
+      "itemCount": 14,
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "Crawler Bays"
     },
     {
@@ -134,8 +112,6 @@
       "itemCount": 6,
       "requiredFields": [
         "id",
-        "indexable",
-        "blackMarket",
         "name",
         "source",
         "page",
@@ -155,16 +131,7 @@
       "dataFile": "data/crawlers.json",
       "schemaFile": "schemas/crawlers.schema.json",
       "itemCount": 5,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "npc",
-        "actions"
-      ],
+      "requiredFields": ["id", "name", "source", "page", "npc", "actions"],
       "displayName": "Crawlers"
     },
     {
@@ -174,7 +141,7 @@
       "dataFile": "data/creatures.json",
       "schemaFile": "schemas/creatures.schema.json",
       "itemCount": 13,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
+      "requiredFields": ["id", "name", "source", "page", "hitPoints"],
       "displayName": "Creatures"
     },
     {
@@ -184,7 +151,7 @@
       "dataFile": "data/distances.json",
       "schemaFile": "schemas/distances.schema.json",
       "itemCount": 4,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "Distances"
     },
     {
@@ -194,7 +161,7 @@
       "dataFile": "data/drones.json",
       "schemaFile": "schemas/drones.schema.json",
       "itemCount": 14,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "Drones"
     },
     {
@@ -204,16 +171,7 @@
       "dataFile": "data/equipment.json",
       "schemaFile": "schemas/equipment.schema.json",
       "itemCount": 82,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "techLevel",
-        "actions"
-      ],
+      "requiredFields": ["id", "name", "source", "page", "techLevel", "actions"],
       "displayName": "Equipment"
     },
     {
@@ -223,17 +181,7 @@
       "dataFile": "data/factions.json",
       "schemaFile": "schemas/factions.schema.json",
       "itemCount": 10,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "goals",
-        "assets",
-        "weaknesses"
-      ],
+      "requiredFields": ["id", "name", "source", "page", "goals", "assets", "weaknesses"],
       "displayName": "factions"
     },
     {
@@ -243,17 +191,7 @@
       "dataFile": "data/guides.json",
       "schemaFile": "schemas/guides.schema.json",
       "itemCount": 15,
-      "requiredFields": [
-        "id",
-        "indexable",
-        "blackMarket",
-        "name",
-        "source",
-        "page",
-        "guideType",
-        "guideColor",
-        "steps"
-      ],
+      "requiredFields": ["id", "name", "source", "page", "guideType", "guideColor", "steps"],
       "displayName": "guides"
     },
     {
@@ -263,7 +201,7 @@
       "dataFile": "data/keywords.json",
       "schemaFile": "schemas/keywords.schema.json",
       "itemCount": 82,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "Keywords"
     },
     {
@@ -273,7 +211,7 @@
       "dataFile": "data/meld.json",
       "schemaFile": "schemas/meld.schema.json",
       "itemCount": 5,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "actions"],
+      "requiredFields": ["id", "name", "source", "page", "actions"],
       "displayName": "Meld"
     },
     {
@@ -282,11 +220,9 @@
       "description": "Mech modules",
       "dataFile": "data/modules.json",
       "schemaFile": "schemas/modules.schema.json",
-      "itemCount": 83,
+      "itemCount": 84,
       "requiredFields": [
         "id",
-        "indexable",
-        "blackMarket",
         "name",
         "source",
         "page",
@@ -304,7 +240,7 @@
       "dataFile": "data/npcs.json",
       "schemaFile": "schemas/npcs.schema.json",
       "itemCount": 19,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "hitPoints"],
+      "requiredFields": ["id", "name", "source", "page", "hitPoints"],
       "displayName": "NPCs"
     },
     {
@@ -314,7 +250,7 @@
       "dataFile": "data/roll-tables.json",
       "schemaFile": "schemas/roll-tables.schema.json",
       "itemCount": 96,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "table"],
+      "requiredFields": ["id", "name", "source", "page", "table"],
       "displayName": "Roll Tables"
     },
     {
@@ -324,7 +260,7 @@
       "dataFile": "data/sources.json",
       "schemaFile": "schemas/sources.schema.json",
       "itemCount": 10,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "sources"
     },
     {
@@ -334,7 +270,7 @@
       "dataFile": "data/squads.json",
       "schemaFile": "schemas/squads.schema.json",
       "itemCount": 23,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "actions"],
+      "requiredFields": ["id", "name", "source", "page", "actions"],
       "displayName": "Squads"
     },
     {
@@ -343,11 +279,9 @@
       "description": "Mech systems (weapons and utilities)",
       "dataFile": "data/systems.json",
       "schemaFile": "schemas/systems.schema.json",
-      "itemCount": 128,
+      "itemCount": 126,
       "requiredFields": [
         "id",
-        "indexable",
-        "blackMarket",
         "name",
         "source",
         "page",
@@ -365,7 +299,7 @@
       "dataFile": "data/tech-levels.json",
       "schemaFile": "schemas/tech-levels.schema.json",
       "itemCount": 6,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page", "techLevel"],
+      "requiredFields": ["id", "name", "source", "page", "techLevel"],
       "displayName": "tech-levels"
     },
     {
@@ -374,8 +308,8 @@
       "description": "Traits and special properties",
       "dataFile": "data/traits.json",
       "schemaFile": "schemas/traits.schema.json",
-      "itemCount": 45,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "itemCount": 48,
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "Traits"
     },
     {
@@ -385,7 +319,7 @@
       "dataFile": "data/vehicles.json",
       "schemaFile": "schemas/vehicles.schema.json",
       "itemCount": 11,
-      "requiredFields": ["id", "indexable", "blackMarket", "name", "source", "page"],
+      "requiredFields": ["id", "name", "source", "page"],
       "displayName": "Vehicles"
     }
   ]

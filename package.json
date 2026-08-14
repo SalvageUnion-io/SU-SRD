@@ -101,7 +101,7 @@
     "clean": "bun --filter \"*\" clean || true",
     "reap": "tools/prune-stale-worktrees.sh",
     "knip": "knip",
-    "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc",
+    "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/docs packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc .vscode/settings.json",
     "check:audit": "bun audit --audit-level=high --ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq",
     "check:tokens": "bun tools/check-design-tokens.ts",
     "check:styling": "bun tools/check-styling-ownership.ts",

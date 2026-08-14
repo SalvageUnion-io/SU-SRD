@@ -11,18 +11,19 @@ Source books and expansions
 
 ## Fields
 
-| Field               | Type          | Required | Description                                                                                                                                               |
-| ------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assetExtension`    | string        | ❌       | Image file extension; the URL is derived from the entity schema + slug                                                                                    |
-| `content`           | Array<object> | ❌       | Descriptive content blocks for this entity                                                                                                                |
-| `id`                | string        | ✅       | Unique identifier for this entity                                                                                                                         |
-| `indexable`         | boolean       | ✅       | Whether this entity appears in search results                                                                                                             |
-| `blackMarket`       | boolean       | ✅       | Whether this entity is only available on the black market                                                                                                 |
-| `name`              | string        | ✅       | Display name of this entity                                                                                                                               |
-| `source`            | string        | ✅       | Primary source book this entity appears in                                                                                                                |
-| `page`              | integer       | ✅       | Page number in the primary source book                                                                                                                    |
-| `booklet`           | string        | ❌       | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
-| `additionalSources` | Array<object> | ❌       | Other source books where this entity is reprinted                                                                                                         |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `purchaseLink` | string | ❌ | URL where this source can be purchased |
+| `version` | string | ❌ | Printing/edition of the source this dataset reflects (e.g. "1.5") |
 
 ## Example
 
@@ -32,6 +33,7 @@ Source books and expansions
   "name": "Salvage Union Workshop Manual",
   "source": "Salvage Union Workshop Manual",
   "page": 1,
+  "purchaseLink": "https://leyline.press/products/salvage-union-core-book?variant=43991343956158",
   "content": [
     {
       "type": "paragraph",

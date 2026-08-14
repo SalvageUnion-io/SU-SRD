@@ -1,6 +1,23 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+/**
+ * Every path below is anchored to THIS FILE, not to `process.cwd()`.
+ *
+ * It used to be cwd-relative, which made the generator's output depend on where
+ * it was invoked from. Run as `bun --filter salvageunion-reference docs` the cwd
+ * is the package, so `.vscode/settings.json` would have been written to
+ * `packages/salvageunion-reference/.vscode/` — a stray directory — while the
+ * file the repo actually tracks lives at the ROOT. The two schema outputs were
+ * correct by luck, because the package dir happens to be the right base for
+ * them. Anchoring removes the luck, and is what let this generator be wired
+ * into `build:package` (see that script) without depending on the caller's cwd.
+ *
+ * `generateSchemaDocs.ts`, its sibling, was already `__dirname`-anchored.
+ */
+const PACKAGE_DIR = path.join(import.meta.dir, '..')
+const REPO_ROOT = path.join(PACKAGE_DIR, '..', '..')
+
 interface SchemaInfo {
   id: string
   title: string
@@ -16,7 +33,7 @@ interface SchemaInfo {
 // Get version from package.json
 function getPackageVersion(): string {
   try {
-    const packageJsonPath = path.join(process.cwd(), 'package.json')
+    const packageJsonPath = path.join(PACKAGE_DIR, 'package.json')
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
     return packageJson.version || '1.0.0'
   } catch {
@@ -27,7 +44,7 @@ function getPackageVersion(): string {
 
 // Get all schema files
 function getSchemaFiles(): string[] {
-  const schemasDir = path.join(process.cwd(), 'schemas')
+  const schemasDir = path.join(PACKAGE_DIR, 'schemas')
   return fs
     .readdirSync(schemasDir)
     .filter((file) => file.endsWith('.schema.json') && file !== 'index.json')
@@ -37,7 +54,7 @@ function getSchemaFiles(): string[] {
 // Get item count from data file
 function getItemCount(dataFile: string): number {
   try {
-    const fullPath = path.join(process.cwd(), dataFile)
+    const fullPath = path.join(PACKAGE_DIR, dataFile)
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf-8'))
     return Array.isArray(data) ? data.length : 0
   } catch {
@@ -92,7 +109,7 @@ function getRequiredFields(schema: JSONSchema, schemaId: string): string[] {
 
 function parseSchemaFile(schemaFile: string): SchemaInfo | null {
   try {
-    const fullPath = path.join(process.cwd(), 'schemas', schemaFile)
+    const fullPath = path.join(PACKAGE_DIR, 'schemas', schemaFile)
     const schema = JSON.parse(fs.readFileSync(fullPath, 'utf-8'))
 
     const id = schemaFile.replace('.schema.json', '')
@@ -170,7 +187,7 @@ interface SchemaIndex {
 }
 
 function generateSchemaIndex(schemas: SchemaInfo[]): void {
-  const outputPath = path.join(process.cwd(), 'schemas', 'index.json')
+  const outputPath = path.join(PACKAGE_DIR, 'schemas', 'index.json')
 
   // Read the existing index in a single syscall — `existsSync` followed by
   // `readFileSync` is a check-then-act pair (the file can vanish in between);
@@ -257,7 +274,7 @@ function generateVSCodeSettings(schemas: SchemaInfo[]): void {
     },
   }
 
-  const outputPath = path.join(process.cwd(), '.vscode', 'settings.json')
+  const outputPath = path.join(REPO_ROOT, '.vscode', 'settings.json')
   fs.mkdirSync(path.dirname(outputPath), { recursive: true })
   fs.writeFileSync(outputPath, `${JSON.stringify(settings, null, 2)}\n`)
   console.log(`✅ Generated .vscode/settings.json (${schemas.length} mappings)`)
