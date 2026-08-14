@@ -27,15 +27,27 @@ const ROOT = join(import.meta.dir, '..')
 const SCAN_DIRS = [
   'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
+  // The DATASET, not just the code that reads it. `data/guides.json` carried
+  // five raw hexes in a `guideColor` field — one byte-identical to
+  // `--color-mech`, two near-misses of `--color-pilot`/`--color-crawler` — and
+  // `entityCardTone.ts` gave them precedence over the domain tone, so they
+  // shipped on 15 entity cards. Two blind spots hid it: this list stopped at
+  // `lib`, and SCAN_EXTENSIONS excluded `.json`. The field now names a theme
+  // tone and this directory is clean; scanning it is what keeps it that way.
+  'packages/salvageunion-reference/data',
   'apps/srd/src',
   'apps/itun/src',
+  // An entire APP the guard could not see. It restates the palette as hex ints
+  // (see the `0x` arm of raw-color) — 12 of them, tracked in the baseline and
+  // burning down.
+  'apps/discord-bot/src',
 ]
 
 // `.astro` was here until apps/srd moved off Astro. Nothing in the repo emits
 // that extension any more, and the pages it used to cover are now .tsx — which
 // is how greembeem's deliberate Wikipedia palette became visible to this check
 // for the first time (see EXEMPTIONS).
-const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css']
+const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json']
 
 type Rule = {
   /** Stable id, used by the exemption list. */
@@ -96,7 +108,7 @@ const RULES: Rule[] = [
     //    identifier ending in it (`srgb(`) is not a false positive, while `_`,
     //    `(`, space and line-start all correctly count as a boundary.
     pattern:
-      /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|(?<![a-zA-Z0-9])rgba?\([^)]*\)/g,
+      /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|(?<![a-zA-Z0-9])rgba?\([^)]*\)|(?<![a-zA-Z0-9_])0x[0-9a-fA-F]{6}\b/g,
   },
   {
     id: 'gradient',
@@ -149,7 +161,7 @@ const RULES: Rule[] = [
     id: 'arbitrary-font-size',
     rule: 'ruleset §4.2 — one type scale',
     fix: 'Use the semantic ladder: text-nano / micro / label / label-lg / badge / note / caption / lede, then the display end — readout (17) / title (22) / display (26) / display-lg (31) / hero (38).',
-    pattern: /text-\[\d*\.?\d+(?:px|rem)\]/g,
+    pattern: /text-\[(?!var\(|color:|--)[^\]]+\]/g,
   },
   {
     id: 'pure-white',
@@ -314,7 +326,8 @@ type Violation = { file: string; line: number; text: string; match: string; rule
 const violations: Violation[] = []
 
 /**
- * Catastrophe floor for SCAN_DIRS. 998 files today; see tools/lib/scanFloor.ts
+ * Catastrophe floor for SCAN_DIRS. 1,069 files today (was 998 before the
+ * dataset and discord-bot were added); see tools/lib/scanFloor.ts
  * for why this is deliberately far below the real count.
  */
 const SCAN_FLOOR = 650

@@ -31,8 +31,9 @@
   --radius-card: 3px;
   --radius-panel: 6px;
 
-  /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder; never
-     text-[Npx] for these steps). Shared by every surface (was ITUN-local):
+  /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder; never an
+     arbitrary bracket size for these steps). Shared by every surface (was
+     ITUN-local):
        nano     8px    smallest markers — TL glyphs, unit suffixes
        micro    9px    dense caps meta labels (NPC insets, encounter cards)
        label    10px   standard uppercase font-cond field/section label

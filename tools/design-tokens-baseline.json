@@ -1,9 +1,10 @@
 {
   "shadow-tokens": 0,
-  "raw-color": 0,
+  "raw-color": 22,
   "gradient": 0,
   "arbitrary-tracking": 0,
   "arbitrary-border-width": 0,
-  "arbitrary-font-size": 0,
+  "arbitrary-radius": 0,
+  "arbitrary-font-size": 2,
   "pure-white": 0
 }
