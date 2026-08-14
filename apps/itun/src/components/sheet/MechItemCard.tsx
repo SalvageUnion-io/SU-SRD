@@ -3,7 +3,7 @@
  * (design §4.3, plan 4.5; redesign phase 2: compact listing cards, max 2-up).
  *
  * Every affordance rides the card's controls overlay (no footer actions);
- * `footMeta` still carries the read-only EP/Heat/Slots figures:
+ * `footMeta` still carries the read-only EP/Heat figures:
  *   - Use: spends the primary action's EP cost / adds its Hot heat /
  *     decrements the uses counter. DISABLED while Damaged/Destroyed —
  *     "wire the disabled state, not just the pill" (§4.3).
@@ -124,10 +124,15 @@ export function MechItemCard({
   // wired — the Dashboard passes one; the Free-Edit Live Sheet does not (ADR-021).
   const showUse = onUse !== undefined && (epCost > 0 || heat > 0 || maxUses > 0)
 
+  // Slots deliberately absent: ReferenceEntityCard ALREADY renders
+  // `slotsRequired` as a "Slots" stat in its own header cluster, so this footer
+  // pair was the same number printed twice on the same card. A sheet card is the
+  // SRD card plus interaction affordances — not the SRD card plus a second copy
+  // of its stats. (The sheet also states slot usage against capacity, once, in
+  // the System/Module gauges.)
   const footMeta: CardFootMeta[] = [
     ...(epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : []),
     ...(heat > 0 ? [{ label: 'Heat', value: `+${heat}` }] : []),
-    { label: 'Slots', value: entity.slotsRequired },
   ]
 
   const deductDisabledReason =
