@@ -65,8 +65,14 @@ export function PilotAbilityItem({
   const apCost = resolveAbilityApCost(ability)
   const canSpend = apCost !== null && currentAP >= apCost
 
-  const footMeta: CardFootMeta[] = [{ label: 'AP Cost', value: apCost ?? '—' }]
-
+  // No `footMeta` here. ReferenceEntityCard already renders the ability's
+  // activation cost from its own action — "1 AP" for a fixed cost, "X AP" for a
+  // variable one — so an "AP Cost" pair restated it. On the variable abilities
+  // it was worse than redundant: `apCost` is null there, so the footer printed
+  // "AP Cost —" beside a card plainly saying "X AP", replacing the one useful
+  // fact (the cost scales with what you spend) with an em-dash. The cost still
+  // reaches the player as an affordance — the Spend AP control names it.
+  //
   // All interactivity rides the controls bar (no footer actions). Read-only
   // shows a static Used stamp; editable shows Spend AP + the used toggle, with
   // the per-card remove (✕) last, in the card HEADER (G4).
@@ -102,7 +108,6 @@ export function PilotAbilityItem({
       size="medium"
       collapsible
       hide={HIDE_CHOICES}
-      footMeta={footMeta}
       controls={controls.length > 0 ? controls : undefined}
     />
   )

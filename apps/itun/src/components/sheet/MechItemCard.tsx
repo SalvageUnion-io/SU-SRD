@@ -2,8 +2,15 @@
  * MechItemCard — ONE installed system/module as an EntityGridRow'd COMPACT entity card
  * (design §4.3, plan 4.5; redesign phase 2: compact listing cards, max 2-up).
  *
- * Every affordance rides the card's controls overlay (no footer actions);
- * `footMeta` still carries the read-only EP/Heat figures:
+ * Every affordance rides the card's controls overlay (no footer actions), and
+ * the card carries NO `footMeta`: a sheet card is the SRD reference card plus
+ * this sheet's interactions, never plus a second copy of the card's own data.
+ * ReferenceEntityCard already renders `slotsRequired` as a "Slots" stat, each
+ * action's activation cost as its own `2 EP` box, and Hot as a `Hot (2)` trait
+ * badge — so the EP/Heat/Slots footer figures restated all three. The EP one
+ * also flattened a multi-action item to its PRIMARY action's cost, printing
+ * "EP Cost 2" beside a card openly listing 2 EP / 2 EP / 4 EP.
+ *
  *   - Use: spends the primary action's EP cost / adds its Hot heat /
  *     decrements the uses counter. DISABLED while Damaged/Destroyed —
  *     "wire the disabled state, not just the pill" (§4.3).
@@ -23,7 +30,7 @@
  * readOnly suppresses every affordance: no foot actions, no status cycle.
  */
 
-import type { CardFootMeta, ReferenceEntityControl } from 'component-lib'
+import type { ReferenceEntityControl } from 'component-lib'
 import {
   Button,
   CardRemoveButton,
@@ -123,17 +130,6 @@ export function MechItemCard({
   // "Use" (the EP/heat-spending activation) is offered only when a handler is
   // wired — the Dashboard passes one; the Free-Edit Live Sheet does not (ADR-021).
   const showUse = onUse !== undefined && (epCost > 0 || heat > 0 || maxUses > 0)
-
-  // Slots deliberately absent: ReferenceEntityCard ALREADY renders
-  // `slotsRequired` as a "Slots" stat in its own header cluster, so this footer
-  // pair was the same number printed twice on the same card. A sheet card is the
-  // SRD card plus interaction affordances — not the SRD card plus a second copy
-  // of its stats. (The sheet also states slot usage against capacity, once, in
-  // the System/Module gauges.)
-  const footMeta: CardFootMeta[] = [
-    ...(epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : []),
-    ...(heat > 0 ? [{ label: 'Heat', value: `+${heat}` }] : []),
-  ]
 
   const deductDisabledReason =
     deductTl !== null
@@ -247,7 +243,6 @@ export function MechItemCard({
         hide={HIDE_CHOICES}
         status={condition}
         onStatusClick={readOnly ? undefined : onStatusCycle}
-        footMeta={footMeta}
         controls={controls.length ? controls : undefined}
       />
       {repairModal}

@@ -66,15 +66,16 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 }
 
 describe('PilotSheet — ability AP cost (Slice D)', () => {
-  test('displays the ability AP cost in the card foot', () => {
+  test('displays the ability AP cost on the card', () => {
     render(<PilotSheet pilot={makePilot()} store={makeStubStore(makePilot())} />)
     expandCards()
-    // footMeta renders the label and value as adjacent spans in the card foot.
-    // The intrinsic Generic tree puts its own "AP Cost" feet on the page, so
-    // this asserts over ALL of them rather than assuming a single match.
-    const labels = screen.getAllByText('AP Cost')
-    expect(labels.length).toBeGreaterThan(0)
-    expect(labels.some((l) => l.parentElement?.textContent?.includes('3'))).toBe(true)
+    // The cost comes from the CARD's own activation-cost box ("3 AP"), not from
+    // a sheet-added "AP Cost" footMeta pair — that footer restated what the card
+    // already rendered, and printed a bare em-dash for variable-cost abilities
+    // where the card says "X AP". Asserting on the card's rendering keeps this
+    // test pointed at what the player reads.
+    expect(screen.getAllByText('3 AP').length).toBeGreaterThan(0)
+    expect(screen.queryByText('AP Cost')).toBeNull()
   })
 })
 
@@ -177,8 +178,9 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expect(screen.queryByRole('button', { name: /spend/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /mark .* used/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /recharge/i })).toBeNull()
-    // AP cost still shown read-only, plus a static Used stamp
-    expect(screen.getAllByText('AP Cost').length).toBeGreaterThan(0)
+    // AP cost still shown read-only (from the card's own cost box), plus a
+    // static Used stamp.
+    expect(screen.getAllByText('3 AP').length).toBeGreaterThan(0)
     expect(screen.getByText('Used')).toBeTruthy()
   })
 })
