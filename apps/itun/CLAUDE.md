@@ -38,7 +38,7 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - **TanStack Query** — only for async/derived/server-touching data (snapshots).
   **Not** the persistence cache — see below.
 - **Zustand** stores for persistent client state (`src/stores/`).
-- **ShadCN + Tailwind v4** — UI primitives in `src/components/ui/`; SU brand
+- **Base UI + Tailwind v4** — UI primitives come from `component-lib` (`ui/`, `chrome/`, `base/`), NOT from an app-local `src/components/ui/`; there is no such directory. SU brand
   theme in `src/index.css` (`@theme` block) + `component-lib` theme.
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable,
   offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets

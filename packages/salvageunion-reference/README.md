@@ -171,7 +171,7 @@ const heavyEquipment: SURefEquipment[] = Equipment.findAll((e) => (e.techLevel ?
 
 ```bash
 # Validate all data against JSON schemas
-bun run validate
+bun run validate:all
 
 # Validate all IDs are unique UUIDs (including nested objects)
 bun run validate:ids
@@ -202,7 +202,7 @@ Contributions are welcome! Please:
 
 1. Ensure all data includes page references
 2. Ensure all items have unique UUIDs (run `bun run validate:ids`)
-3. Validate changes with `bun run validate`
+3. Validate changes with `bun run validate:all`
 4. Run type checking with `bun run typecheck`
 5. Follow existing data structure patterns
 
