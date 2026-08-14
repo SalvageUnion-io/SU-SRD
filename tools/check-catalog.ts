@@ -26,10 +26,12 @@
  *      and an entry nothing shares is a claim that has stopped being true.
  *
  * Deliberately NOT checked here: `overrides` (a separate mechanism that BEATS
- * the catalog — see CLAUDE.md on `@vitejs/plugin-react-swc`, the one package in
- * both), and runtime version pins like `.bun-version`, which
- * `tools/check-bun-version.ts` already reconciles across CI and every deploy
- * target.
+ * the catalog, so a package in both can leave the catalog stating a version that
+ * never resolves). No package is in both today — `@vitejs/plugin-react-swc` was
+ * the last one and its override was removed in #787 — so that hazard is dormant
+ * rather than absent. Also not checked: runtime version pins like
+ * `.bun-version`, which `tools/check-bun-version.ts` already reconciles across
+ * CI and every deploy target.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
