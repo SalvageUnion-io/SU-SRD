@@ -312,8 +312,13 @@ jobs:
       #     discord.js version`), and it requires `@discordjs/ws ^1.2.3`, so the
       #     fixed `@discordjs/ws@2.0.4` is unreachable across that major. When a
       #     discord.js release ships a `ws` that pulls `rest >= 2.6.3` itself,
-      #     delete this entry and the block goes to ZERO. Re-check with
-      #     `bun why undici` — if it resolves >= 6.27.0 unaided, the entry is dead.
+      #     delete THIS entry — and only this one; `@opentelemetry/core` below is
+      #     kept for an unrelated reason and must survive. Re-check with
+      #     `bun why undici`: if it resolves >= 6.27.0 unaided, this entry is dead.
+      #
+      #     Note this pin is not a floor, but it IS security-load-bearing: it is
+      #     the only thing keeping GHSA-vxpw-j846-p89q out of the tree. Do not
+      #     drop it as "just a dedupe".
       #
       #     Verify the advisory ranges with:
       #       gh api graphql -f query='{securityVulnerabilities(package:"undici",
@@ -438,11 +443,14 @@ jobs:
       #   - It then claimed deleting the block brought back two high advisories,
       #     `sharp` AND `undici` — while also, three paragraphs down, correcting
       #     that `sharp` is not in the block at all. Only the undici half was ever
-      #     true, and #787 measured it: seven entries out, audit unchanged. The
-      #     undici half was true but was being answered at the wrong level — see
-      #     the `@discordjs/rest` entry above. A floor on the vulnerable package
-      #     is the LAST resort; first look for a parent whose own range already
-      #     admits a fixed version, because that is a dedupe rather than a pin.
+      #     true. #787 measured it: six entries out and the audit is unchanged —
+      #     but ONLY because `@discordjs/rest: ^2.6.3` went in as part of the same
+      #     change. Take all eight out and add nothing, and GHSA-vxpw-j846-p89q
+      #     really does come back through the nested `@discordjs/rest@2.6.1` ->
+      #     `undici@6.24.1`. So the undici half was true; it was just being
+      #     answered at the wrong level. A floor on the vulnerable package is the
+      #     LAST resort — first look for a parent whose own range already admits a
+      #     fixed version, because that is a dedupe rather than a pin.
       #
       # No dependency is in BOTH `overrides` and `workspaces.catalog` any more, so
       # the catalog-becomes-fiction hazard described in CLAUDE.md is dormant.
