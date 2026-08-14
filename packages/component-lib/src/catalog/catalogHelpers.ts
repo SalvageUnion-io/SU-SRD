@@ -2,8 +2,10 @@ import type {
   EnhancedSchemaMetadata,
   SURefEntity,
   SURefEnumSchemaName,
+  SURefMetaEntity,
 } from 'salvageunion-reference'
 import { isSchemaName } from 'salvageunion-reference'
+import { entityGuideToneColor } from '../components/referenceEntity/card/entityCardTone'
 
 export type CatalogCategory = {
   id: string
@@ -100,7 +102,12 @@ export function buildCatalogCategories({
           const display = getReferenceEntityData(item as SURefEntity)
           const rawName = item.name
           const labelText = catalogNameOverrides[rawName] ?? rawName
-          const guideColor = typeof item.guideColor === 'string' ? item.guideColor : undefined
+          // A guide names a TONE; the colour it resolves to is owned by
+          // `theme.css` via `entityGuideToneColor`. The tile and the card the
+          // tile opens therefore paint from one place — which is the point:
+          // this used to read a raw hex out of the dataset, so the dataset was
+          // a second palette.
+          const guideColor = entityGuideToneColor(item as SURefMetaEntity)
           return {
             id: item.id,
             href: `/schema/${schemaName}/item/${display.slug}/`,

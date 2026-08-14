@@ -142,10 +142,14 @@ describe('SalvageUnionReference.Guides', () => {
     }
   })
 
-  it('should have valid guideColor hex format on all guides', () => {
+  it('should have a known guideTone on all guides', () => {
+    // A NAME, not a colour: the hex this used to assert made the dataset a
+    // second palette. `theme.css` owns every value; component-lib maps the
+    // name to a token (see `entityGuideToneColor`).
+    const tones = new Set(['pilot', 'mech', 'crawler', 'salvage', 'hazard', 'ink'])
     const guides = SalvageUnionReference.Guides.all()
     for (const guide of guides) {
-      expect(guide.guideColor).toMatch(/^#[0-9a-fA-F]{6}$/)
+      expect(tones.has(guide.guideTone)).toBe(true)
     }
   })
 

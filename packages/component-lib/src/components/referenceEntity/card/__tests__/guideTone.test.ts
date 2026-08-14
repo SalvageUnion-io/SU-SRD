@@ -22,20 +22,29 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveDomainTone } from '../entityCardTone'
+import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
 
 const guides = SalvageUnionReference.Guides.all()
 
 describe('guide tone — the card matches the index tile', () => {
-  test('the dataset actually exercises this (guides exist, and carry hues)', () => {
+  test('the dataset actually exercises this (guides exist, and name a tone)', () => {
     expect(guides.length).toBeGreaterThan(0)
-    expect(guides.every((guide) => typeof guide.guideColor === 'string')).toBe(true)
+    expect(guides.every((guide) => typeof guide.guideTone === 'string')).toBe(true)
   })
 
-  test('every shipped guide resolves to its own stored hue', () => {
+  test('every shipped guide resolves to the token its tone names', () => {
     for (const guide of guides) {
       const tone = resolveDomainTone('guides', guide as unknown as SURefMetaEntity)
-      expect(tone.bgColor).toBe(guide.guideColor)
+      expect(tone.bgColor).toBe(entityGuideToneColor(guide as unknown as SURefMetaEntity))
+    }
+  })
+
+  test('every resolved tone is a theme token, never a raw colour', () => {
+    // The whole point of the rename: a hex here means the dataset has grown a
+    // second palette again.
+    for (const guide of guides) {
+      const tone = resolveDomainTone('guides', guide as unknown as SURefMetaEntity)
+      expect(tone.bgColor).toMatch(/^var\(--color-[a-z-]+\)$/)
     }
   })
 
@@ -69,11 +78,13 @@ describe('guide tone — the card matches the index tile', () => {
 })
 
 describe('guide tone — no other domain is disturbed', () => {
-  test('a malformed guideColor falls back to the domain tone', () => {
-    // The schema defaults `guideColor` and validates it as a 6-digit hex, so
-    // this is a runtime guard, not an expected branch. An empty string must not
-    // produce a transparent header band.
-    const tone = resolveDomainTone('guides', { guideColor: '' } as unknown as SURefMetaEntity)
+  test('an unknown guideTone falls back to the domain tone', () => {
+    // The schema validates the name against a closed enum, so this is a runtime
+    // guard, not an expected branch. An unrecognised name must not produce a
+    // transparent header band.
+    const tone = resolveDomainTone('guides', {
+      guideTone: 'nonsense',
+    } as unknown as SURefMetaEntity)
     expect(tone.bgColor).toBeUndefined()
     expect(tone.bg).toBe('bg-ink-2')
   })

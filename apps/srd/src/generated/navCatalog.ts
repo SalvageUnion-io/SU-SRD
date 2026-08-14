@@ -257,7 +257,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Safety Protocols",
         "label": "Safety Protocols",
-        "catalogBg": "#5A9DB5"
+        "catalogBg": "var(--color-guide-salvage)"
       },
       {
         "id": "27bddcdb-edba-41b6-81ad-482026cae261",
@@ -266,7 +266,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Create a Pilot",
         "label": "Create a Pilot",
-        "catalogBg": "#D46A30"
+        "catalogBg": "var(--color-pilot)"
       },
       {
         "id": "9eb49f05-da37-453c-9a2a-d8f2c25e6b74",
@@ -275,7 +275,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Create a Mech",
         "label": "Create a Mech",
-        "catalogBg": "#7A978A"
+        "catalogBg": "var(--color-mech)"
       },
       {
         "id": "1c4aa920-919e-454b-806c-bddd760b35c2",
@@ -284,7 +284,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Create a Crawler",
         "label": "Create a Crawler",
-        "catalogBg": "#D14B8A"
+        "catalogBg": "var(--color-crawler)"
       },
       {
         "id": "13c29610-f20e-4b69-921c-f806d274d713",
@@ -293,7 +293,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Upgrading your Union Crawler",
         "label": "Upgrading your Union Crawler",
-        "catalogBg": "#D14B8A"
+        "catalogBg": "var(--color-crawler)"
       },
       {
         "id": "5b57c66c-ad03-4184-b081-366c98c44fbe",
@@ -302,7 +302,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Crawler Downtime",
         "label": "Crawler Downtime",
-        "catalogBg": "#D14B8A"
+        "catalogBg": "var(--color-crawler)"
       },
       {
         "id": "e20e13d5-7fdc-40e7-a301-68f5e2f03c0e",
@@ -311,7 +311,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Pushing a Mech",
         "label": "Pushing a Mech",
-        "catalogBg": "#7A978A"
+        "catalogBg": "var(--color-mech)"
       },
       {
         "id": "a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d",
@@ -320,7 +320,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Heat",
         "label": "Heat",
-        "catalogBg": "#7A978A"
+        "catalogBg": "var(--color-mech)"
       },
       {
         "id": "bb3d3510-529b-4abd-89cb-105a18057168",
@@ -329,7 +329,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Activating and Shutting Down a Mech",
         "label": "Operating a Mech",
-        "catalogBg": "#7A978A"
+        "catalogBg": "var(--color-mech)"
       },
       {
         "id": "4da07865-196c-4897-a1cc-91bb89fd190a",
@@ -338,7 +338,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Mech Damage",
         "label": "Mech Damage",
-        "catalogBg": "#7A978A"
+        "catalogBg": "var(--color-mech)"
       },
       {
         "id": "4bded796-5062-41bb-b97d-1f324bfb5255",
@@ -347,7 +347,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Pilot Damage",
         "label": "Pilot Damage",
-        "catalogBg": "#D46A30"
+        "catalogBg": "var(--color-pilot)"
       },
       {
         "id": "a40d0f33-d50f-4625-b3de-5499c0110779",
@@ -356,7 +356,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Salvage Condition",
         "label": "Salvage Condition",
-        "catalogBg": "#5A9DB5"
+        "catalogBg": "var(--color-guide-salvage)"
       },
       {
         "id": "8a018b6f-a0ad-4765-ac66-25a98ac8fef9",
@@ -365,7 +365,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Salvaging",
         "label": "Salvaging",
-        "catalogBg": "#5A9DB5"
+        "catalogBg": "var(--color-guide-salvage)"
       },
       {
         "id": "f3a1b2c4-d5e6-4f78-9a0b-1c2d3e4f5a6b",
@@ -374,7 +374,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Tough Choices",
         "label": "Tough Choices",
-        "catalogBg": "#B84C4C"
+        "catalogBg": "var(--color-guide-hazard)"
       },
       {
         "id": "ba7855c8-29f3-427f-9d8d-597e5b95bb51",
@@ -383,7 +383,7 @@ export const NAV_CATALOG: readonly CatalogSection[] = [
         "schemaName": "guides",
         "displayName": "Map Movement",
         "label": "Map Movement",
-        "catalogBg": "#5A9DB5"
+        "catalogBg": "var(--color-guide-salvage)"
       }
     ]
   }

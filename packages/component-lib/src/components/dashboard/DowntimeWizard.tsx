@@ -23,12 +23,13 @@ import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { Content } from '../referenceEntity/Content'
+import { entityGuideToneColor } from '../referenceEntity/card/entityCardTone'
 import { RollTable } from '../shared/RollTable'
 
 /** The guideType that identifies the Union Crawler Downtime procedure. */
 const DOWNTIME_GUIDE_TYPE = 'downtime'
 
-/** Fallback tone when the guide carries no `guideColor` (crawler ontology). */
+/** Fallback tone when the guide carries no `guideTone` (crawler ontology). */
 const CRAWLER_TONE = 'var(--color-sheet-crawler-deep)'
 
 /**
@@ -80,7 +81,7 @@ export function DowntimeWizard({
   }
 
   const done = doneMap[idx] ?? false
-  const headerBg = guide?.guideColor ?? CRAWLER_TONE
+  const headerBg = (guide ? entityGuideToneColor(guide) : undefined) ?? CRAWLER_TONE
   const tableName = STEP_ROLL_TABLE[step.name]
   const table = tableName
     ? (SalvageUnionReference.RollTables.getByName(tableName) as SURefObjectTable | undefined)

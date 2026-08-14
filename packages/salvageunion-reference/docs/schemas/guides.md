@@ -23,7 +23,7 @@ Player-facing guides and processes
 | `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
 | `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
 | `guideType` | string | ✅ | Category of this guide |
-| `guideColor` | string | ✅ | Hex color for entity display header/footer |
+| `guideTone` | string | ✅ | Which theme tone paints this guide’s header/footer band |
 | `steps` | Array<object> | ✅ | Ordered sequence of steps |
 
 ## Example
@@ -42,7 +42,7 @@ Player-facing guides and processes
     }
   ],
   "guideType": "gameplay",
-  "guideColor": "#5A9DB5",
+  "guideTone": "salvage",
   "content": [
     {
       "type": "paragraph",
