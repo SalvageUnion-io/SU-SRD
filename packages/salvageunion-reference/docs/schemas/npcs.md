@@ -7,13 +7,26 @@ Non-player characters and people
 - **Schema ID**: `npcs`
 - **Schema File**: `schemas/npcs.schema.json`
 - **Data File**: `data/npcs.json`
-- **Total Items**: 6
+- **Total Items**: 19
 
 ## Fields
 
-| Field       | Type        | Required | Description |
-| ----------- | ----------- | -------- | ----------- |
-| `hitPoints` | `hitPoints` | ✅       |             |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `actions` | Array<string> | ❌ | Action names this entity can perform |
+| `traits` | Array<object> | ❌ | Traits and special properties |
+| `hitPoints` | integer | ✅ | Hit points (HP) or structure points (SP) of this NPC; see damageType to disambiguate. |
+| `damageType` | string | ❌ | Whether this NPC tracks HP (organic) or SP (mechanical/cybernetic). Defaults to HP when omitted. |
+| `bioSalvageValue` | integer | ❌ | Bio-salvage value for Chimerium mutants |
 
 ## Example
 
@@ -22,29 +35,19 @@ Non-player characters and people
   "id": "c6bfc845-b1dc-43e9-8f79-fd4854842949",
   "source": "Salvage Union Workshop Manual",
   "name": "Wastelander",
-  "assetExtension": "jpg",
+  "hasArtwork": true,
   "actions": [
-    {
-      "name": "Improvised Melee Weapon",
-      "range": ["Close"],
-      "damage": {
-        "amount": 2,
-        "damageType": "HP"
-      },
-      "traits": [
-        {
-          "type": "melee"
-        }
-      ],
-      "id": "481f14da-1d3a-49c1-a973-68051980c042"
-    },
-    {
-      "name": "Salvaging Tools",
-      "id": "28704d5b-7842-4bdd-b1ce-5373822dfaaf"
-    }
+    "Improvised Melee Weapon (Wastelander)",
+    "Salvaging Tools (NPC)"
   ],
   "hitPoints": 2,
-  "page": 53,
+  "page": 298,
+  "additionalSources": [
+    {
+      "source": "Reclamation of the Wastes",
+      "page": 104
+    }
+  ],
   "content": [
     {
       "type": "paragraph",
@@ -53,10 +56,3 @@ Non-player characters and people
   ]
 }
 ```
-
-## Schema Composition
-
-This schema extends the following definitions:
-
-- `shared/objects.schema.json#/definitions/baseEntity`
-- `shared/objects.schema.json#/definitions/combatEntity`

@@ -1,6 +1,6 @@
 # distances
 
-Distances are abstracted into the following Range categories. Both Pilots and Mechs use these Range categories for their movement as well as the effective distances for their weapons and other Abilities. The Mediator can factor in any other difference between the speed and distance of Pilots and Mechs based on the narrative and the situation.
+Distance bands and ranges
 
 ## Metadata
 
@@ -11,16 +11,31 @@ Distances are abstracted into the following Range categories. Both Pilots and Me
 
 ## Fields
 
-| Field     | Type      | Required | Description |
-| --------- | --------- | -------- | ----------- |
-| `content` | `content` | ❌       |             |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content for this distance band |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
 
 ## Example
 
 ```json
 {
-  "id": "d1a2b3c4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "id": "844461f9-db56-4ce3-9a8b-aa7600f6cc06",
   "source": "Salvage Union Workshop Manual",
+  "additionalSources": [
+    {
+      "source": "Salvage Union Starter Set",
+      "booklet": "CR",
+      "page": 20
+    }
+  ],
   "name": "Close",
   "page": 237,
   "content": [
@@ -35,9 +50,3 @@ Distances are abstracted into the following Range categories. Both Pilots and Me
   ]
 }
 ```
-
-## Schema Composition
-
-This schema extends the following definitions:
-
-- `shared/objects.schema.json#/definitions/baseEntity`

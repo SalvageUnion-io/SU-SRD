@@ -7,16 +7,25 @@ NPC squads and groups
 - **Schema ID**: `squads`
 - **Schema File**: `schemas/squads.schema.json`
 - **Data File**: `data/squads.json`
-- **Total Items**: 9
+- **Total Items**: 23
 
 ## Fields
 
-| Field        | Type           | Required | Description                                                   |
-| ------------ | -------------- | -------- | ------------------------------------------------------------- |
-| `hitPoints`  | `hitPoints`    | ❌       |                                                               |
-| `actions`    | `actions`      | ✅       |                                                               |
-| `traits`     | Array<`trait`> | ❌       | Special traits and properties of items, systems, or abilities |
-| `damageType` | `damageType`   | ❌       |                                                               |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `hitPoints` | integer | ❌ | Hit points of this squad |
+| `actions` | Array<string> | ✅ | Action names this squad can perform |
+| `traits` | Array<object> | ❌ | Traits and special properties |
+| `damageType` | string | ❌ | Type of damage this squad deals |
 
 ## Example
 
@@ -26,32 +35,23 @@ NPC squads and groups
   "source": "Salvage Union Workshop Manual",
   "name": "Waster Mob",
   "actions": [
-    {
-      "name": "Improvised Weapons",
-      "range": ["Close"],
-      "damage": {
-        "amount": 4,
-        "damageType": "HP"
-      },
-      "traits": [
-        {
-          "type": "melee"
-        },
-        {
-          "type": "multi-attack",
-          "amount": 2
-        }
-      ],
-      "id": "63859850-7ffd-4449-b840-312fbbc05d61"
-    },
-    {
-      "name": "Salvaging Tools",
-      "id": "97acc3d5-6250-485c-8188-84523edc9365"
-    }
+    "Improvised Weapons",
+    "Salvaging Tools (NPC)"
   ],
   "hitPoints": 4,
   "damageType": "HP",
   "page": 300,
+  "additionalSources": [
+    {
+      "source": "Salvage Union Starter Set",
+      "booklet": "AP",
+      "page": 2
+    },
+    {
+      "source": "Reclamation of the Wastes",
+      "page": 104
+    }
+  ],
   "content": [
     {
       "type": "paragraph",
@@ -60,9 +60,3 @@ NPC squads and groups
   ]
 }
 ```
-
-## Schema Composition
-
-This schema extends the following definitions:
-
-- `shared/objects.schema.json#/definitions/baseEntity`

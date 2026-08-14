@@ -109,10 +109,20 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding a New Entity **Type** (schema)
 
-Adding a whole new schema (not just rows in an existing file) needs three
-hand-authored pieces — the Zod schema itself, the SURefEntity/SURefMetaEntity
-type-union edits, and the `schemas/index.json` catalog entry — plus **one**
-manifest entry in `lib/schemas/registry.ts`. Everything else (ModelFactory's
+Adding a whole new schema (not just rows in an existing file) needs two
+hand-authored pieces — the Zod schema itself and the SURefEntity/SURefMetaEntity
+type-union edits — plus **one** manifest entry in `lib/schemas/registry.ts`.
+
+The `schemas/index.json` catalog entry used to be a third hand-authored piece.
+It is now **generated**: `tools/generateDocs.ts` derives `itemCount`,
+`requiredFields`, `title` and `displayName` from the data file and the JSON
+Schema, and `build:package` runs it. Write the prose in the Zod schema's
+`.describe()` — it flows Zod → `schemas/<id>.schema.json` → `schemas/index.json`.
+Only the `meta` flag is carried over from the existing entry. (Hand-maintaining
+it had left 5 of 27 `itemCount`s and 25 of 27 `requiredFields` lists wrong, and
+`apps/srd`'s public API page renders those counts.)
+
+Everything else (ModelFactory's
 `dataLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
 `index.ts`'s `LazyModel` instances / `lazyModelMap` / `SchemaToEntityMap` /
 `SCHEMA_REGISTRY`, and the `SalvageUnionReference` static accessors) is

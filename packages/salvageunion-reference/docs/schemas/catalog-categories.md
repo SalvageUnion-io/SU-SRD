@@ -11,12 +11,12 @@ Catalog categories for organizing schemas in the UI
 
 ## Fields
 
-| Field     | Type          | Required | Description                                  |
-| --------- | ------------- | -------- | -------------------------------------------- |
-| `id`      | string        | ✅       | Unique identifier for this catalog category  |
-| `name`    | string        | ✅       | Display name of this catalog category        |
-| `schemas` | Array<string> | ✅       | Schema collections included in this category |
-| `flat`    | boolean       | ✅       | Whether to display schemas in a flat list    |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | ✅ | Unique identifier for this catalog category |
+| `name` | string | ✅ | Display name of this catalog category |
+| `schemas` | Array<string> | ✅ | Schema collections included in this category |
+| `flat` | boolean | ✅ | Whether to display schemas in a flat list |
 
 ## Example
 
@@ -24,6 +24,10 @@ Catalog categories for organizing schemas in the UI
 {
   "id": "pilot",
   "name": "Pilot",
-  "schemas": ["classes", "abilities", "equipment"]
+  "schemas": [
+    "classes",
+    "abilities",
+    "equipment"
+  ]
 }
 ```

@@ -11,28 +11,27 @@ Faction groups and organizations
 
 ## Fields
 
-| Field               | Type          | Required | Description                                                                                                                                               |
-| ------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assetExtension`    | string        | ❌       | Image file extension; the URL is derived from the entity schema + slug                                                                                    |
-| `content`           | Array<object> | ❌       | Descriptive content for this faction                                                                                                                      |
-| `id`                | string        | ✅       | Unique identifier for this entity                                                                                                                         |
-| `indexable`         | boolean       | ✅       | Whether this entity appears in search results                                                                                                             |
-| `blackMarket`       | boolean       | ✅       | Whether this entity is only available on the black market                                                                                                 |
-| `name`              | string        | ✅       | Display name of this entity                                                                                                                               |
-| `source`            | string        | ✅       | Primary source book this entity appears in                                                                                                                |
-| `page`              | integer       | ✅       | Page number in the primary source book                                                                                                                    |
-| `booklet`           | string        | ❌       | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
-| `additionalSources` | Array<object> | ❌       | Other source books where this entity is reprinted                                                                                                         |
-| `goals`             | string        | ✅       | The goals and motivations of this faction                                                                                                                 |
-| `assets`            | string        | ✅       | The assets and resources controlled by this faction                                                                                                       |
-| `weaknesses`        | string        | ✅       | The weaknesses and vulnerabilities of this faction                                                                                                        |
-| `formation`         | Array<object> | ❌       | The mechs that make up this faction formation                                                                                                             |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content for this faction |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `goals` | string | ✅ | The goals and motivations of this faction |
+| `assets` | string | ✅ | The assets and resources controlled by this faction |
+| `weaknesses` | string | ✅ | The weaknesses and vulnerabilities of this faction |
+| `formation` | Array<object> | ❌ | The mechs that make up this faction formation |
 
 ## Example
 
 ```json
 {
-  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "id": "3be2a189-a01e-49ed-a097-da438d2e228b",
   "name": "BOLZA Logistics Corps",
   "source": "We Were Here First!",
   "page": 14,

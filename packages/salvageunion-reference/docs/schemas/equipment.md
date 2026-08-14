@@ -7,15 +7,33 @@ Pilot equipment and gear
 - **Schema ID**: `equipment`
 - **Schema File**: `schemas/equipment.schema.json`
 - **Data File**: `data/equipment.json`
-- **Total Items**: 47
+- **Total Items**: 82
 
 ## Fields
 
-| Field               | Type                | Required | Description |
-| ------------------- | ------------------- | -------- | ----------- |
-| `bonusPerTechLevel` | `bonusPerTechLevel` | ❌       |             |
-| `choices`           | `choices`           | ❌       |             |
-| `actions`           | `actions`           | ✅       |             |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `hasArtwork` | boolean | ❌ | Whether this entity has artwork; the .webp URL is derived from schema + slug |
+| `content` | Array<object> | ❌ | Descriptive content blocks for this entity |
+| `id` | string | ✅ | Unique identifier for this entity |
+| `blackMarket` | boolean | ❌ | Whether this entity is only available on the black market |
+| `name` | string | ✅ | Display name of this entity |
+| `source` | string | ✅ | Primary source book this entity appears in |
+| `page` | integer | ✅ | Page number in the primary source book |
+| `booklet` | string | ❌ | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
+| `additionalSources` | Array<object> | ❌ | Other source books where this entity is reprinted |
+| `structurePoints` | integer | ❌ | Structure points (mech health) |
+| `energyPoints` | integer | ❌ | Energy points for powering systems |
+| `heatCapacity` | integer | ❌ | Maximum heat before overheating |
+| `systemSlots` | integer | ❌ | Number of system slots available |
+| `moduleSlots` | integer | ❌ | Number of module slots available |
+| `cargoCapacity` | integer | ❌ | Cargo carrying capacity |
+| `techLevel` | unknown | ✅ | Technology level of the item or entity (integer 1-6, 'B' for Bio, or 'N' for Nanite) |
+| `salvageValue` | integer | ❌ | Scrap value when salvaged |
+| `actions` | Array<string> | ✅ | Action names this equipment provides |
+| `traits` | Array<object> | ❌ | Traits and special properties |
+| `bonusPerTechLevel` | object | ❌ | Stat bonuses gained per tech level |
+| `choices` | Array<object> | ❌ | Configuration choices for this equipment |
 
 ## Example
 
@@ -25,40 +43,16 @@ Pilot equipment and gear
   "source": "Salvage Union Workshop Manual",
   "name": "First Aid Kit",
   "techLevel": 1,
-  "page": 78,
+  "page": 80,
   "actions": [
+    "First Aid Kit"
+  ],
+  "additionalSources": [
     {
-      "id": "907d2ca2-f355-458f-9852-8923f19ab1af",
-      "traits": [
-        {
-          "type": "uses",
-          "amount": 3
-        }
-      ],
-      "range": ["Close"],
-      "name": "First Aid Kit",
-      "content": [
-        {
-          "type": "paragraph",
-          "value": "This set of bandages, plasters, gauze, painkillers, and antiseptics allows you to patch up wounds in the field."
-        },
-        {
-          "type": "paragraph",
-          "value": "A target creature of your choice in Range regains 3 Hit Points. If they were on 0 Hit Points this restores them to consciousness with 3 HP."
-        },
-        {
-          "type": "paragraph",
-          "value": "*Union Safety Guideline 305.15 recommends each Union Crawler salvage crew equip a First Aid Kit for all active field work.*"
-        }
-      ]
+      "source": "Salvage Union Starter Set",
+      "booklet": "PH",
+      "page": 38
     }
   ]
 }
 ```
-
-## Schema Composition
-
-This schema extends the following definitions:
-
-- `shared/objects.schema.json#/definitions/baseEntity`
-- `shared/objects.schema.json#/definitions/equipmentStats`
