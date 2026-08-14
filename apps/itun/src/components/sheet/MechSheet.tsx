@@ -250,16 +250,15 @@ export function MechSheet({
                     {model.chassisAbilities.map((ability, i) => {
                       // Activating an ability (spending its EP) is a Guided-Play
                       // transaction — it lives on the Dashboard, not the
-                      // Free-Edit Live Sheet (ADR-021). The sheet shows the
-                      // ability + its EP cost; EP is spent by hand-editing the
-                      // EP gauge (free state).
-                      const epCost =
-                        typeof ability.activationCost === 'number' ? ability.activationCost : 0
+                      // Free-Edit Live Sheet (ADR-021). EP is spent here by
+                      // hand-editing the EP gauge (free state).
+                      //
+                      // No `footMeta`: the ability's EP cost is the CARD's to
+                      // render and it already does, as its own "2 EP" box, so an
+                      // "EP Cost 2" pair in the footer was the same number twice
+                      // on one card.
                       return (
-                        <EntityGridRow
-                          key={ability.id}
-                          footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
-                        >
+                        <EntityGridRow key={ability.id}>
                           <ReferenceEntityCard
                             data={ability}
                             size="large"
