@@ -101,6 +101,23 @@ export const begin = mutation({
   },
 })
 
+/**
+ * How many steps the Crawler Downtime procedure has.
+ *
+ * The book is the source: Core Book p.227-228 walks ten named steps, "Tally
+ * Salvage" through "Prepare for the next Salvage Run", and says explicitly that
+ * you "may go back to any of these steps". The dataset carries them as the
+ * Crawler Downtime guide, which is what `DowntimeWizard` renders and what the
+ * SRD publishes.
+ *
+ * Convex deliberately has no access to `salvageunion-reference` (ADR-006 — the
+ * dataset and its rules math live in the package, and Convex "does not have and
+ * should not grow" them), so this is a MIRROR, and a mirror needs a gate:
+ * `apps/itun/test/convex/downtimeSteps.test.ts` asserts this constant equals
+ * the guide's real step count, so the two cannot drift silently.
+ */
+const DOWNTIME_STEP_COUNT = 10
+
 /** Move the whole table to the next step. */
 export const advance = mutation({
   args: { gameId: v.id('games') },
@@ -111,8 +128,15 @@ export const advance = mutation({
       throw new NotAuthorized('Downtime is not running')
     }
 
+    // Clamp at the last step rather than running past the end. `stepIndex` was
+    // unbounded, so `advance` could be called indefinitely and the Mediator's
+    // panel would render "Step 14 / 10" while the solo wizard — which clamps
+    // client-side — showed step 10. Same procedure, two surfaces, two answers.
+    const next = Math.min(row.stepIndex + 1, DOWNTIME_STEP_COUNT - 1)
+    if (next === row.stepIndex) return
+
     await ctx.db.patch(row._id, {
-      stepIndex: row.stepIndex + 1,
+      stepIndex: next,
       // Per step, not cumulative — see the module header.
       completedBy: [],
     })
