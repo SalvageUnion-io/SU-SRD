@@ -16,6 +16,7 @@
 import type { EconLozItem } from 'component-lib'
 import { CrawlerEconFrame, EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
+import { resolvePool } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { crawlerMaxSPParts } from '../../lib/rules/derivedStats'
@@ -61,7 +62,7 @@ export function SheetCrawler({
     baseDetail: 'base',
     installed: 'Crawler type bonus',
   })
-  const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
+  const sp = resolvePool(crawler.currentSP, maxSP)
   // Cap override (ADR-022, Free Edit): pin Max SP via a signed maxSpModifier
   // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
   const overrideCrawlerMax = (fields: Partial<Crawler>) => {

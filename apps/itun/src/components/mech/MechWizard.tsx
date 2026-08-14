@@ -18,6 +18,7 @@ import {
   matchesRef,
   resolveChassisRef,
   resolveModuleRef,
+  resolvePool,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import { useMech } from '../../hooks/queries'
@@ -365,7 +366,7 @@ export function MechWizard({
     },
     chassis
   )
-  const energyValue = Math.min(existingMech?.currentEP ?? energyMax, energyMax)
+  const energyValue = resolvePool(existingMech?.currentEP, energyMax)
   const loadoutName = form.name.trim() || chassis?.name || form.chassisName || 'Mech'
 
   const editWarnings = useMemo<SoftWarning[]>(() => {

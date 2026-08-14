@@ -1,6 +1,13 @@
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
-import { mechMaxHeat, mechMaxSP, pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
+import {
+  mechMaxHeat,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { EMBED_LIMIT, ROLL_COLORS, truncate } from './format.js'
 import type {
   ChannelResult,
@@ -161,13 +168,13 @@ function pilotStats(body: EntityBody): {
   const maxAp = pilotMaxAP(input)
   return {
     // Canonical spellings come from apps/itun/src/lib/schemas/{pilot,mech}.ts.
-    // ABSENT MEANS FULL, not zero — the field is only written once something
-    // has changed it, and all 35 call sites in the app read it as `?? max`.
+    // The absent-means-FULL rule is `resolvePool` in the reference package —
+    // this used to spell it out here, as ~40 sites in the app also did.
     // Defaulting to 0 instead would render a fresh, undamaged crew as wiped
     // out, which is precisely backwards on the one surface built to show it.
-    hp: num(body, 'currentHP', 'currentHp') ?? maxHp,
+    hp: resolvePool(num(body, 'currentHP', 'currentHp') ?? undefined, maxHp),
     maxHp,
-    ap: num(body, 'currentAP', 'currentAp') ?? maxAp,
+    ap: resolvePool(num(body, 'currentAP', 'currentAp') ?? undefined, maxAp),
     maxAp,
   }
 }
@@ -191,12 +198,14 @@ function mechStats(body: EntityBody): {
   const maxSp = mechMaxSP(input)
   return {
     // Absent SP means full, as above.
-    sp: num(body, 'currentSP', 'currentSp') ?? maxSp,
+    sp: resolvePool(num(body, 'currentSP', 'currentSp') ?? undefined, maxSp),
     maxSp,
     // Heat is the exception and reads the other way: absent means COLD, which
     // is 0. A mech starts at no heat and gains it, where SP starts full and is
     // lost — so the same "field not written yet" state means opposite numbers.
-    heat: num(body, 'currentHeat') ?? 0,
+    // That inversion is `resolveGauge`, named beside `resolvePool` so the two
+    // cannot be confused for each other.
+    heat: resolveGauge(num(body, 'currentHeat') ?? undefined, mechMaxHeat(input)),
     maxHeat: mechMaxHeat(input),
   }
 }

@@ -9,6 +9,7 @@
  */
 
 import { EntityRow, Stat } from 'component-lib'
+import { resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
 import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
@@ -52,8 +53,8 @@ export function SheetPilot({
     editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
-  const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
-  const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
+  const hp = resolvePool(pilot.currentHP, maxHP)
+  const ap = resolvePool(pilot.currentAP, maxAP)
 
   const strip: LiveSheetStripItem[] = [
     { key: 'hp', label: 'HP', stat: 'hp', value: hp, max: maxHP },

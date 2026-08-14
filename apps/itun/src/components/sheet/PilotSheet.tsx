@@ -64,6 +64,7 @@ import {
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
+import { resolvePool } from 'salvageunion-reference/rules'
 import { pilotMaxAP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
@@ -162,7 +163,7 @@ export function PilotSheet({
     return (
       <PilotAbilityItem
         ability={ability}
-        currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
+        currentAP={resolvePool(pilot.currentAP, pilotMaxAP(pilot))}
         used={pilot.usedAbilities?.includes(slug) ?? false}
         onSpend={(cost) => {
           void actions.handleSpendAP(cost)

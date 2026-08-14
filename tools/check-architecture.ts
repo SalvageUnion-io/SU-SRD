@@ -99,7 +99,30 @@ const EXCLUDE_PATTERNS: RegExp[] = [
 // anti-pattern this check guards against.
 const LIFECYCLE_EXEMPT = new Set(['preload', 'isLoaded'])
 
-type Violation = { file: string; line: number; snippet: string }
+type Violation = { file: string; line: number; snippet: string; rule: RuleId }
+
+type RuleId = 'module-scope-orm' | 'inline-pool-default'
+
+/**
+ * "An unset pool means FULL" — the rule `resolvePool` / `resolveGauge` own
+ * (salvageunion-reference/lib/rules/derivedStats.ts).
+ *
+ * It was written out at ~36 sites in ITUN and once more in the Discord bot,
+ * with no shared definition anywhere: `Math.min(pilot.currentHP ?? maxHP, maxHP)`
+ * for a pool, `?? 0` for Heat, which inverts. One missed `?? max` renders a
+ * healthy pilot at 0 HP; one wrong default puts a cold mech at its Heat
+ * Capacity. Nothing failed when they disagreed.
+ *
+ * The tell is `?? ` applied directly to a `current*` property: the resolvers
+ * take the raw value, so a correct call site has no `??` at all. Detected on
+ * the AST rather than by regex so a line break or a comment cannot hide it.
+ *
+ * Biome would be the natural home, but `noRestrictedSyntax` does not exist in
+ * the pinned version (2.5.x) — checked, not assumed: it rejects the key
+ * outright and `biome explain` reports "Unrecognized option". This tool already
+ * walks every file's AST, so the rule lives here instead.
+ */
+const POOL_FIELD = /^current[A-Z]/
 
 function isFunctionLike(node: ts.Node): boolean {
   return (
@@ -155,8 +178,31 @@ function checkFile(filePath: string): Violation[] {
           file: relative(root, filePath),
           line: line + 1,
           snippet: node.getText(sourceFile).replace(/\s+/g, ' ').slice(0, 100),
+          rule: 'module-scope-orm',
         })
       }
+    }
+
+    // `<something>.currentX ?? <fallback>` — the inlined pool rule.
+    if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken &&
+      ts.isPropertyAccessExpression(node.left) &&
+      POOL_FIELD.test(node.left.name.text) &&
+      // A STRING fallback is a display decision, not the pool rule: `?? '—'`
+      // deliberately renders "unknown" rather than resolving to a number, which
+      // is a legitimate thing for a projection-fed readout to do. Only a
+      // numeric/computed fallback is the rule being inlined.
+      !ts.isStringLiteral(node.right) &&
+      !ts.isNoSubstitutionTemplateLiteral(node.right)
+    ) {
+      const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
+      violations.push({
+        file: relative(root, filePath),
+        line: line + 1,
+        snippet: node.getText(sourceFile).replace(/\s+/g, ' ').slice(0, 100),
+        rule: 'inline-pool-default',
+      })
     }
 
     const nextInsideFunction = insideFunction || isFunctionLike(node)
@@ -186,28 +232,48 @@ async function collectFiles(): Promise<string[]> {
  */
 const SCAN_FLOOR = 400
 
+const RULE_EXPLANATION: Record<RuleId, string> = {
+  'module-scope-orm':
+    'These execute at import time, before preload() has run, and will throw\n' +
+    '  "Schema not loaded" the instant the module is imported.\n' +
+    "  Move the call inside a function, hook, or effect that runs after the app's\n" +
+    '  preload bootstrap — see docs/architecture/package-contracts.md, "Module-Scope ORM Call Risk".',
+  'inline-pool-default':
+    'This inlines the "an unset pool means FULL" rule instead of using it.\n' +
+    "  Use resolvePool(entity.currentX, maxX) from 'salvageunion-reference/rules' —\n" +
+    '  or resolveGauge for Heat, which defaults to EMPTY, not full. Both take the raw\n' +
+    '  `current*` value, so a correct call site has no `??` at all.\n\n' +
+    '  Written out per-site, this is one keystroke from rendering an undamaged pilot\n' +
+    '  at 0 HP, or a cold mech at its Heat Capacity — and nothing fails when two\n' +
+    '  surfaces disagree about which.',
+}
+
+const RULE_HEADLINE: Record<RuleId, string> = {
+  'module-scope-orm': 'module-scope SalvageUnionReference call(s)',
+  'inline-pool-default': 'inlined pool/gauge default(s)',
+}
+
 async function main() {
   const files = await collectFiles()
   assertScanFloor('architecture', files.length, SCAN_FLOOR)
   const violations = files.flatMap(checkFile)
 
   if (violations.length > 0) {
-    console.error(`✗ Found ${violations.length} module-scope SalvageUnionReference call(s):\n`)
-    for (const v of violations) {
-      console.error(`  ${v.file}:${v.line}`)
-      console.error(`    ${v.snippet}`)
+    for (const rule of Object.keys(RULE_HEADLINE) as RuleId[]) {
+      const hits = violations.filter((v) => v.rule === rule)
+      if (hits.length === 0) continue
+      console.error(`✗ Found ${hits.length} ${RULE_HEADLINE[rule]}:\n`)
+      for (const v of hits) {
+        console.error(`  ${v.file}:${v.line}`)
+        console.error(`    ${v.snippet}`)
+      }
+      console.error(`\n  ${RULE_EXPLANATION[rule]}\n`)
     }
-    console.error(
-      '\n  These execute at import time, before preload() has run, and will throw ' +
-        '"Schema not loaded" the instant the module is imported.\n' +
-        "  Move the call inside a function, hook, or effect that runs after the app's " +
-        'preload bootstrap — see docs/architecture/package-contracts.md, "Module-Scope ORM Call Risk".'
-    )
     process.exit(1)
   }
 
   console.log(
-    `✓ No module-scope SalvageUnionReference accessor calls (${files.length} files checked).`
+    `✓ No module-scope ORM calls, no inlined pool defaults (${files.length} files checked).`
   )
 }
 

@@ -7,6 +7,7 @@
  */
 
 import type { BadgeTone, StatState } from 'component-lib'
+import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSP,
   mechMaxEP,
@@ -68,9 +69,9 @@ export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
   const maxEP = mechMaxEP(mech, undefined, piloting)
   const maxHeat = mechMaxHeat(mech, undefined, piloting)
   return [
-    { label: 'SP', value: mech.currentSP ?? maxSP, max: maxSP },
-    { label: 'EP', value: mech.currentEP ?? maxEP, max: maxEP },
-    { label: 'Heat', value: Math.min(mech.currentHeat ?? 0, maxHeat), max: maxHeat },
+    { label: 'SP', value: resolvePool(mech.currentSP, maxSP), max: maxSP },
+    { label: 'EP', value: resolvePool(mech.currentEP, maxEP), max: maxEP },
+    { label: 'Heat', value: resolveGauge(mech.currentHeat, maxHeat), max: maxHeat },
   ]
 }
 
@@ -79,8 +80,8 @@ export function pilotRailItems(pilot: Pilot): RailStat[] {
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
   return [
-    { label: 'HP', value: pilot.currentHP ?? maxHP, max: maxHP },
-    { label: 'AP', value: pilot.currentAP ?? maxAP, max: maxAP },
+    { label: 'HP', value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
+    { label: 'AP', value: resolvePool(pilot.currentAP, maxAP), max: maxAP },
   ]
 }
 
@@ -90,7 +91,7 @@ export function crawlerRailItems(crawler: Crawler): RailStat[] {
   const states = bayStates(crawler)
   const intact = states.filter((s) => s === 'intact').length
   return [
-    { label: 'SP', value: crawler.currentSP ?? maxSP, max: maxSP },
+    { label: 'SP', value: resolvePool(crawler.currentSP, maxSP), max: maxSP },
     // Bays only appear once the crawler HAS bays — an empty "Bays 0/0" line was
     // never rendered before and must not start now.
     ...(states.length > 0

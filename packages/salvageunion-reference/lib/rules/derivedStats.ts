@@ -38,6 +38,82 @@ export const PILOT_BASE_HP = 10
 export const PILOT_BASE_AP = 5
 export const PILOT_BASE_INVENTORY_SLOTS = 6
 
+/**
+ * Resolve a stored POOL value — HP, SP, AP, EP — to what should be displayed
+ * or acted on.
+ *
+ * The rule, stated once: **an unset pool means FULL**, and a stored value is
+ * clamped to the current maximum. A fresh pilot has no `currentHP` because
+ * nothing has damaged them yet, not because they are at zero; and a max that
+ * has since dropped (an injury, a lost system) must not leave a stored value
+ * above it.
+ *
+ * This existed as `Math.min(x.currentHP ?? maxHP, maxHP)` written out at ~40
+ * call sites across the app and once more in the Discord bot, with no shared
+ * definition anywhere. It is one keystroke wide: drop the `?? maxHP` and a
+ * healthy pilot renders at 0 HP; the bot's own comment records the same worry
+ * ("would render a fresh, undamaged crew as wiped out").
+ *
+ * It is NOT `clampPilotCurrentStats` / `clampMechCurrentStats`, which are
+ * write-time clamps that lower an over-max stored value and deliberately leave
+ * `undefined` alone. This is the read-time resolution.
+ *
+ * @param current - The stored value, or `undefined` if never set
+ * @param max - The current derived maximum
+ * @returns The value to show, in `[0, max]`
+ */
+export function resolvePool(current: number | undefined, max: number): number {
+  return Math.min(current ?? max, max)
+}
+
+/**
+ * The same "unset means FULL" default, WITHOUT the clamp — for the starting
+ * value of a WRITE.
+ *
+ * Reach for this when the number is about to be spent from or damaged, rather
+ * than shown. {@link resolvePool} clamps to `max`, which is right for display
+ * and wrong here for one specific reason: `max` is derived, and a derivation
+ * can legitimately come back 0 when its inputs do not resolve — an unresolvable
+ * `chassisRef` makes `mechMaxEP` 0, and `MechSheet-unresolved-chassis` exists
+ * because that state is real. Clamping at that moment would write the player's
+ * EP or SP to zero as a side effect of a lookup failure.
+ *
+ * Displaying a stale over-max number is recoverable. Writing one away is not.
+ *
+ * @param current - The stored value, or `undefined` if never set
+ * @param max - The current derived maximum, used only as the default
+ * @returns The stored value, or `max` if it was never set
+ */
+export function resolvePoolStart(current: number | undefined, max: number): number {
+  return current ?? max
+}
+
+/**
+ * Resolve a stored GAUGE value — Heat — to what should be displayed or acted on.
+ *
+ * The mirror of {@link resolvePool}, and the reason both exist: Heat inverts
+ * the default. **An unset gauge means EMPTY**, because a mech that has done
+ * nothing is cold, not overheating. Getting this backwards puts a fresh mech at
+ * its Heat Capacity, one roll from a Reactor Overload.
+ *
+ * That inversion was also hand-carried at every call site (`?? 0` rather than
+ * `?? max`), which is exactly why it is worth naming: the two rules look alike
+ * and mean opposite things.
+ *
+ * `max` is optional because a gauge is often read as the STARTING POINT for
+ * arithmetic ("current heat, plus what this action costs") rather than for
+ * display, and clamping before the addition would be wrong. Omit it to get the
+ * default without a ceiling; pass it wherever the value is shown.
+ *
+ * @param current - The stored value, or `undefined` if never set
+ * @param max - The current derived capacity, if the value is being displayed
+ * @returns The value, in `[0, max]` when a max is given
+ */
+export function resolveGauge(current: number | undefined, max?: number): number {
+  const value = current ?? 0
+  return max === undefined ? value : Math.min(value, max)
+}
+
 /** A single pilot injury (rules A11): minor −1 max HP, major −2. */
 type Injury = { severity: 'minor' | 'major'; note: string }
 

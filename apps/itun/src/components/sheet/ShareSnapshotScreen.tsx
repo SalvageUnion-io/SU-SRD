@@ -40,7 +40,12 @@ import {
   VitalGauge,
 } from 'component-lib'
 import { useEffect, useState } from 'react'
-import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
+import {
+  computeMechCapacity,
+  resolveChassisRef,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { useEntity } from '../../hooks/queries'
 import { resolveClassName } from '../../lib/classRef'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -525,7 +530,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
             <VitalGauge
               label="HP"
               max={maxHP}
-              value={Math.min(pilot.currentHP ?? maxHP, maxHP)}
+              value={resolvePool(pilot.currentHP, maxHP)}
               provenance={linesFromBreakdown(hpParts, {
                 base: 'Pilot',
                 baseDetail: 'base',
@@ -537,7 +542,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
             <VitalGauge
               label="AP"
               max={maxAP}
-              value={Math.min(pilot.currentAP ?? maxAP, maxAP)}
+              value={resolvePool(pilot.currentAP, maxAP)}
               provenance={linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })}
               readOnly
             />
@@ -605,7 +610,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               label="SP"
               subLabel="Structure"
               max={maxSP}
-              value={Math.min(mech.currentSP ?? maxSP, maxSP)}
+              value={resolvePool(mech.currentSP, maxSP)}
               provenance={linesFromBreakdown(spParts, mechLabels)}
               readOnly
             />
@@ -613,14 +618,14 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               label="EP"
               subLabel="Energy"
               max={maxEP}
-              value={Math.min(mech.currentEP ?? maxEP, maxEP)}
+              value={resolvePool(mech.currentEP, maxEP)}
               provenance={linesFromBreakdown(epParts, mechLabels)}
               readOnly
             />
             <VitalGauge
               label="Heat"
               max={maxHeat}
-              value={Math.min(mech.currentHeat ?? 0, maxHeat)}
+              value={resolveGauge(mech.currentHeat, maxHeat)}
               danger={maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined}
               provenance={linesFromBreakdown(heatParts, mechLabels)}
               readOnly
@@ -656,7 +661,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
           <VitalGauge
             label="SP"
             max={maxSP}
-            value={Math.min(crawler.currentSP ?? maxSP, maxSP)}
+            value={resolvePool(crawler.currentSP, maxSP)}
             caption={['Structure', 'Max']}
             provenance={linesFromBreakdown(spParts, {
               base: `Tech ${crawler.techLevel?.replace(/\D/g, '') || '?'} Crawler`,
