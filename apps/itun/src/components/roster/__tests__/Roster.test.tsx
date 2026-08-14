@@ -287,7 +287,9 @@ describe('Roster — entity listing', () => {
 
     await renderRoster()
 
-    const sheetLinks = screen.getAllByRole('link', { name: 'View' })
+    // The link's accessible name now carries the entity (`View <name>`) so a rail
+    // of rows is distinguishable to a screen reader; the visible text is still 'View'.
+    const sheetLinks = screen.getAllByRole('link', { name: /^View / })
     expect(sheetLinks.length).toBe(1)
     expect((sheetLinks[0] as HTMLAnchorElement).href).toContain(`/sheet/pilot/${pilot.id}`)
   })

@@ -114,7 +114,7 @@ type CrawlerSheetProps = {
    */
   economy?: ReactNode
   /**
-   * The Linked Units rail content (docked mech + lead pilot RailChip/
+   * The Linked Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by SheetCrawler from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
    * into the content column's bottom section.
