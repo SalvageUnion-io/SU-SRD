@@ -222,6 +222,26 @@
               {
                 "group": ["@/*"],
                 "message": "Use relative imports instead of @/ path aliases."
+              },
+              // A workspace package's PUBLIC SURFACE is its entry point, and
+              // nothing enforced that. knip's `includeEntryExports` gate only
+              // sees the barrel, so a deep import both bypasses the one gate
+              // that would notice an export rotting and couples the importer to
+              // the package's internal file layout. There are ZERO deep imports
+              // in the tree today — this keeps it that way rather than cleaning
+              // it up later.
+              //
+              // `salvageunion-reference/data/*` and `/schemas/*` are NOT listed:
+              // both are declared subpath exports in that package's manifest, as
+              // are `/rules`, `/zod` and `/schema-definitions`. Only `lib/**` is
+              // internal.
+              {
+                "group": ["salvageunion-reference/lib/**"],
+                "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', '/schema-definitions', '/data/*', '/schemas/*') — never a path inside the package."
+              },
+              {
+                "group": ["component-lib/src/**"],
+                "message": "Import from 'component-lib'. Its barrel (src/index.ts) is the public API and the only surface knip's includeEntryExports gate covers."
               }
             ]
           }
@@ -364,6 +384,81 @@
                 "allow": ["warn", "error"]
               }
             }
+          },
+          "style": {
+            // The two apps must never import each other. They share through
+            // `component-lib` and `salvageunion-reference`; a direct edge would
+            // make one app's build depend on the other's internals and give the
+            // shared layer a way to be bypassed.
+            //
+            // There is no such edge today (verified: zero srd↔itun imports in
+            // either direction). This is the guard, not a cleanup.
+            //
+            // The root rule's paths/patterns are RESTATED here because Biome
+            // overrides REPLACE a rule's options for matched files rather than
+            // merging — see the note at the root declaration.
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["component-lib/src/**"],
+                    "message": "Import from 'component-lib'. Its barrel is the public API."
+                  },
+                  {
+                    "group": ["**/apps/itun/**", "**/itun/**", "itun/**"],
+                    "message": "apps/srd must never import from apps/itun. The two apps share only through component-lib and salvageunion-reference."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/itun/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            // The mirror of the rule on apps/srd — see that block for why.
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["component-lib/src/**"],
+                    "message": "Import from 'component-lib'. Its barrel is the public API."
+                  },
+                  {
+                    "group": ["**/apps/srd/**", "**/srd/**", "srd/**"],
+                    "message": "apps/itun must never import from apps/srd. The two apps share only through component-lib and salvageunion-reference."
+                  }
+                ]
+              }
+            }
           }
         }
       }
@@ -464,6 +559,19 @@
                   {
                     "group": ["@/*"],
                     "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  // The fourth boundary edge. `salvageunion-reference` already
+                  // banned this for itself; component-lib sits at the same
+                  // level in the graph and had no equivalent guard, so the
+                  // shared library could have taken a dependency on one of its
+                  // own consumers. Zero such imports today.
+                  {
+                    "group": ["**/apps/**", "itun/**", "srd/**"],
+                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/architecture/package-contracts.md)."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   }
                 ]
               }
