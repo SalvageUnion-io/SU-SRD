@@ -218,6 +218,20 @@ jobs:
       - name: Styling ownership check
         run: bun run check:styling
 
+      # Proves `quality-checks` below still `needs:` every job in this file. A
+      # job missing from that list runs, can go red, and cannot block a merge —
+      # the gate does not break, it silently stops gating, and every PR keeps
+      # showing green.
+      #
+      # Unconditional, deliberately. `.github/workflows/**` is in the `shared`
+      # filter today, so a code gate would in fact fire on a ci.yml edit — but
+      # the whole point of this guard is that the gate must not depend on a
+      # hand-maintained list staying correct, and a path filter is another such
+      # list. It is a sub-0.1 s parse of one file, so running it always costs
+      # nothing.
+      - name: CI aggregator gate check
+        run: bun run check:ci-aggregator
+
       # The package ships TypeScript source (no dist) — this step guards the
       # committed generated artifacts: the JSON schemas, the schema catalog, the
       # generated docs, the registry codegen (lib/generated/*.generated.ts) and
