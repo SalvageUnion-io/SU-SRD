@@ -101,10 +101,11 @@
     "check:audit": "bun audit --audit-level=high --ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq",
     "check:tokens": "bun tools/check-design-tokens.ts",
     "check:styling": "bun tools/check-styling-ownership.ts",
+    "check:ci-aggregator": "bun tools/check-ci-aggregator.ts",
     "check:printed-names": "bun tools/check-printed-names.ts",
     "check:fast": "concurrently -g 'bun run lint' 'bun run validate:all' 'bun run knip' && bun run typecheck",
     "check:srd-output": "bun --filter srd gate",
-    "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling' 'bun run check:srd-output'",
+    "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling' 'bun run check:ci-aggregator' 'bun run check:srd-output'",
     "ladle": "bun --filter component-lib ladle",
     "check:catalog": "bun tools/check-catalog.ts"
   },
