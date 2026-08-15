@@ -16,14 +16,22 @@
  * in this directory would be an unclaimed endpoint on the artwork host.
  */
 
+import * as Sentry from '@sentry/node'
 import { createObservability } from 'observability/node'
 
-const observability = createObservability(() => ({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV ?? 'production',
-  // See the itun module for the COMMIT_REF-at-runtime caveat and its fallback.
-  release: process.env.COMMIT_REF,
-}))
+// Imported HERE rather than in the shared package so Netlify's bundler resolves
+// it from this app — see packages/observability/src/node.ts. itun is where that
+// broke in production; this site had the identical wiring and had simply not
+// redeployed yet.
+const observability = createObservability(
+  () => ({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV ?? 'production',
+    // See the itun module for the COMMIT_REF-at-runtime caveat and its fallback.
+    release: process.env.COMMIT_REF,
+  }),
+  Sentry
+)
 
 /** Initializes Sentry once per cold start, if SENTRY_DSN is configured. */
 export function initObservability(): void {

@@ -10,17 +10,21 @@
  * ever committed — it is supplied via the Render worker's environment.
  */
 
+import * as Sentry from '@sentry/node'
 import { createObservability } from 'observability/node'
 import { config } from './config.js'
 
-const observability = createObservability(() => ({
-  dsn: config.sentryDsn,
-  environment: config.nodeEnv ?? 'production',
-  // Tags events with the deployed commit SHA (Render's RENDER_GIT_COMMIT) so a
-  // Sentry error maps back to the exact deploy that produced it. Undefined when
-  // unset (e.g. local dev) — Sentry simply omits the tag.
-  release: config.releaseSha,
-}))
+const observability = createObservability(
+  () => ({
+    dsn: config.sentryDsn,
+    environment: config.nodeEnv ?? 'production',
+    // Tags events with the deployed commit SHA (Render's RENDER_GIT_COMMIT) so a
+    // Sentry error maps back to the exact deploy that produced it. Undefined when
+    // unset (e.g. local dev) — Sentry simply omits the tag.
+    release: config.releaseSha,
+  }),
+  Sentry
+)
 
 /**
  * Initializes Sentry if SENTRY_DSN is configured. Idempotent and safe to call

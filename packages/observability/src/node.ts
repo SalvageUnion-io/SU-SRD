@@ -36,9 +36,46 @@
  * the SDK to every visitor. The part of them that genuinely duplicated — the
  * capture-hint construction — is shared from `./browser`, which imports no
  * Sentry code at all.
+ *
+ * And THE SDK ITSELF is not here — it is a parameter. This file imports
+ * `@sentry/node` for its types only (`import type`, erased at build), so the
+ * package contributes no runtime import of it.
+ *
+ * That is not style; it is what keeps the Netlify Functions bootable. Netlify's
+ * bundler (zip-it-and-ship-it) cannot inline `@sentry/node` — the OpenTelemetry
+ * layer under it uses dynamic requires — so it externalises the package and
+ * copies it into the zip *next to the file the import was resolved from*. When
+ * the import lived here, that was `packages/observability/node_modules/`, while
+ * the bundled function is emitted at `apps/itun/netlify/functions/*.mjs`. Node
+ * resolves from the emitted file upward and never reaches `packages/`, so every
+ * snapshot Function died at module load with
+ *
+ *     Cannot find package '@sentry/node' imported from
+ *     /var/task/apps/itun/netlify/functions/snapshot-publish.mjs
+ *
+ * — a 502 on publish, retrieve AND delete, i.e. sharing entirely down, for a
+ * package.json edit that nothing in typecheck, tests, lint or knip could see.
+ *
+ * With the SDK injected, each consumer's own `import * as Sentry from
+ * '@sentry/node'` is what the bundler resolves, so the copy lands under that
+ * consumer's `node_modules` and the emitted file can reach it. Consequently
+ * **every consumer must declare `@sentry/node` in its own package.json**;
+ * `tools/check-observability.ts` asserts that, because production is otherwise
+ * the first place you find out.
  */
 
-import * as Sentry from '@sentry/node'
+import type * as SentryNode from '@sentry/node'
+
+/**
+ * The slice of the `@sentry/node` API this wiring uses.
+ *
+ * Derived from the real module type rather than hand-written, so a breaking SDK
+ * change fails typecheck here instead of at runtime in a Function.
+ */
+export type SentrySdk = Pick<
+  typeof SentryNode,
+  'init' | 'captureException' | 'captureMessage' | 'flush'
+>
 
 export type ObservabilityConfig = {
   /** The Sentry DSN. When absent, every method is a no-op and no SDK call is made. */
@@ -82,7 +119,10 @@ export type Observability = {
  * because every test then saw whatever the DSN was when the module first
  * loaded.
  */
-export function createObservability(resolve: () => ObservabilityConfig): Observability {
+export function createObservability(
+  resolve: () => ObservabilityConfig,
+  Sentry: SentrySdk
+): Observability {
   let initialized = false
   let enabled = false
 
