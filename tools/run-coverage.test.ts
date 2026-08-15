@@ -69,3 +69,34 @@ describe('coverage tooling workspace lists', () => {
     }
   })
 })
+
+/**
+ * The retry budget and the readability check, asserted against the source text
+ * for the same reason as everything above: `run-coverage.ts` does its work at
+ * module scope, so importing it would run the whole coverage suite.
+ *
+ * Both of these are the fix for #818 and both are quiet to regress — a budget
+ * trimmed back to 2 looks like tidying, and swapping `wroteCoverage` for a bare
+ * `existsSync` looks like simplification. Each would silently restore a failure
+ * that costs a re-run on every PR.
+ */
+describe('run-coverage retry budget (#818)', () => {
+  const runner = read('run-coverage.ts')
+
+  it('allows at least 3 attempts before calling a workspace deterministically broken', () => {
+    const match = runner.match(/const ATTEMPTS = (\d+)/)
+    expect(match, 'ATTEMPTS was renamed or removed').toBeTruthy()
+    // 2 was the original budget, and it was exhausted by the intermittent flake
+    // on two different workspaces (#816 apps/srd, #820 apps/itun) in one
+    // afternoon — which is the whole reason this floor exists.
+    expect(Number(match?.[1])).toBeGreaterThanOrEqual(3)
+  })
+
+  it('treats an empty lcov.info as no coverage, not as 0% coverage', () => {
+    // The truncation shape. `existsSync` alone passes on a zero-byte file, and
+    // the ratchet would then score it 0% and fail the build for a coverage
+    // collapse that never happened — a worse failure than the one it came from.
+    expect(runner).toContain('function wroteCoverage')
+    expect(runner).toMatch(/statSync\([^)]*\)\.size > 0/)
+  })
+})
