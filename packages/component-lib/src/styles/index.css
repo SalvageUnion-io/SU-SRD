@@ -472,6 +472,101 @@ body {
     0 0 0 6px var(--su-color-ink);
 }
 
+/* ══ The condensed-caps label ═══════════════════════════════════════════════
+ *
+ * The `capsLabel` recipe (`components/chrome/capsLabel.ts`), as classes.
+ *
+ * WHY CLASSES AND NOT A STYLE OBJECT, given every property here is static and
+ * the split rule would otherwise send all of it inline: `capsLabel` is composed
+ * INTO `buttonVariants`, which is a public class-string export that both apps
+ * put on `<a>` elements. A recipe feeding a class string has to be a class
+ * string itself. That is the "anything built on them inherits the same
+ * constraint" clause of the class-string exemption in this package's CLAUDE.md,
+ * and it is the whole reason this is a CSS block rather than a `CSSProperties`
+ * object. Worth revisiting once Button migrates.
+ *
+ * The two invariants live on the base; the three genuinely-varying decisions
+ * are modifiers, exactly as the cva had them. `inherit` on weight or tracking
+ * emits NO class, which is load-bearing: a label with no weight class inherits
+ * its container's, and pinning it to 400 would silently un-bold every such
+ * label sitting inside a bold stamp or heading.
+ */
+.su-caps {
+  font-family: var(--su-font-cond);
+  text-transform: uppercase;
+}
+
+/* Semantic type-ladder rungs only. A site on an inherited Tailwind rung
+   (`text-sm`, `text-lg`, …) is deliberately NOT expressible here — moving
+   `text-sm` (14px) to `text-caption` (13px) is a per-site design call, not a
+   rename, so those keep their own size until someone rules on each one. */
+.su-caps--nano {
+  font-size: var(--su-text-nano);
+}
+.su-caps--micro {
+  font-size: var(--su-text-micro);
+}
+.su-caps--label {
+  font-size: var(--su-text-label);
+}
+.su-caps--label-lg {
+  font-size: var(--su-text-label-lg);
+}
+.su-caps--badge {
+  font-size: var(--su-text-badge);
+}
+.su-caps--note {
+  font-size: var(--su-text-note);
+}
+.su-caps--caption {
+  font-size: var(--su-text-caption);
+}
+.su-caps--lede {
+  font-size: var(--su-text-lede);
+}
+.su-caps--readout {
+  font-size: var(--su-text-readout);
+}
+.su-caps--title {
+  font-size: var(--su-text-title);
+}
+.su-caps--display {
+  font-size: var(--su-text-display);
+}
+
+/* Caps labels run bold by default; `semibold` is the chip weight. */
+.su-caps--w-normal {
+  font-weight: var(--su-weight-normal);
+}
+.su-caps--w-semibold {
+  font-weight: var(--su-weight-semibold);
+}
+.su-caps--w-bold {
+  font-weight: var(--su-weight-bold);
+}
+
+/* The ratified multi-rung caps ladder (ruleset §4.2) — `tight` is the default,
+   and the wider rungs exist because they are in deliberate use. `none` is for
+   the caps labels that deliberately do not letterspace (the Button mini chip). */
+.su-caps--t-none {
+  letter-spacing: normal;
+}
+.su-caps--t-tight {
+  letter-spacing: var(--su-tracking-caps-tight);
+}
+.su-caps--t-snug {
+  letter-spacing: var(--su-tracking-caps-snug);
+}
+.su-caps--t-caps {
+  letter-spacing: var(--su-tracking-caps);
+}
+.su-caps--t-wide {
+  letter-spacing: var(--su-tracking-caps-wide);
+}
+.su-caps--t-eyebrow {
+  letter-spacing: var(--su-tracking-eyebrow);
+}
+
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════ */
 @media (pointer: coarse) {
   button,
