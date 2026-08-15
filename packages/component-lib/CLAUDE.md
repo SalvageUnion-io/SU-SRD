@@ -92,6 +92,42 @@ Nothing consumes the two objects yet, so they are left in place rather than
 churned — but **they are not the pattern to copy.** A button's colours belong in
 a `.su-btn--*` class, resting value included.
 
+### The one exemption: class-string exports are stylesheet-only
+
+The split rule governs **components** — things this library renders. A handful of
+exports are not components but **class strings**, and for those there is no
+element for a style object to attach to, so *all* of their styling lives in
+`src/styles/index.css`. Geometry and type included, not just the stateful half.
+
+The members, and anything built on them:
+
+| export | shape |
+| --- | --- |
+| `buttonVariants` | `(opts) => string` — the `.btn` recipe |
+| `capsLabel` | `(opts) => string` — the condensed-caps label recipe |
+| `FOCUS_RING`, `FOCUS_RING_ON_TONE`, `FOCUS_WITHIN`, `INPUT_FOCUS` | the focus vocabulary |
+| `DISABLED` | the disabled treatment |
+| `SELECTION_RING`, `SELECTION_RING_INK_DOUBLE` | the selection rings |
+
+This is the rule's **boundary, not an escape from it.** These exports exist
+precisely so a consuming app can style an element the library never renders —
+`buttonVariants`' own doc comment puts it as *"a design system the consuming apps
+cannot import is one they will re-invent"*, and both apps use it on `<a>`
+elements. A function that returns a string cannot return a style object without
+changing its signature, and its signature is public API. So they were always
+going to be stylesheet-only the moment Tailwind left: a class name is the only
+thing they can carry.
+
+Two consequences to hold onto:
+
+- **The `.su-*` names are public API.** Apps compose them with `cn()`, so they
+  end up in app-side code and cannot be churned cheaply. Name a new one
+  deliberately the first time.
+- **Do not let the exemption leak.** A component this library *renders* still
+  follows the per-property split, even when it is convenient to move everything
+  into a class. The exemption is for exports whose contract is literally a class
+  string — nothing else.
+
 (The pattern is ported from `binfinite-app`, whose component library has zero
 `:hover` and zero `@media` because it is React-Native-first and RN has neither —
 so its style objects were never asked to carry interaction or viewport state.
