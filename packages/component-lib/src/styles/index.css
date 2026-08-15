@@ -175,14 +175,18 @@
      `border-ink/10`, which had no rung to land on; see the note in tokens.ts. */
   --su-color-ink-85: rgb(40 32 25 / 0.85);
   --su-color-ink-75: rgb(40 32 25 / 0.75);
+  --su-color-ink-60: rgb(40 32 25 / 0.6);
+  --su-color-ink-55: rgb(40 32 25 / 0.55);
   --su-color-ink-50: rgb(40 32 25 / 0.5);
   --su-color-ink-40: rgb(40 32 25 / 0.4);
+  --su-color-ink-35: rgb(40 32 25 / 0.35);
   --su-color-ink-30: rgb(40 32 25 / 0.3);
   --su-color-ink-20: rgb(40 32 25 / 0.2);
   --su-color-ink-15: rgb(40 32 25 / 0.15);
   --su-color-ink-12: rgb(40 32 25 / 0.12);
   --su-color-ink-10: rgb(40 32 25 / 0.1);
   --su-color-ink-8: rgb(40 32 25 / 0.08);
+  --su-color-ink-5: rgb(40 32 25 / 0.05);
 
   /* The ONE light surface (ruleset §4.1). Paper as a background is always flat. */
   --su-color-paper: rgb(251, 250, 247);
@@ -191,6 +195,9 @@
   /* The de-emphasised rung ON a tone — `wk-muted`'s inverse counterpart. */
   --su-color-paper-70: rgb(251 250 247 / 0.7);
   --su-color-paper-30: rgb(251 250 247 / 0.3);
+  --su-color-paper-85: rgb(251 250 247 / 0.85);
+  --su-color-paper-80: rgb(251 250 247 / 0.8);
+  --su-color-paper-15: rgb(251 250 247 / 0.15);
 
   /* THE single action colour. */
   --su-color-rust: rgb(168, 82, 34);
@@ -212,6 +219,7 @@
 
   /* ── Attention fills ── */
   --su-color-caution: rgb(215, 195, 125);
+  --su-color-caution-25: rgb(215 195 125 / 0.25);
   --su-color-inert: rgb(192, 192, 192);
 
   /* ── Cargo (storage) accent triplet ── */

@@ -265,14 +265,22 @@ const base = {
    *  should actually own is a design call and not a port. */
   ink85: 'rgb(40 32 25 / 0.85)',
   ink75: 'rgb(40 32 25 / 0.75)',
+  /** ModalShell's scrim edge. */
+  ink60: 'rgb(40 32 25 / 0.6)',
+  /** The CrawlerEcon meta label inside `Inset`. */
+  ink55: 'rgb(40 32 25 / 0.55)',
   ink50: 'rgb(40 32 25 / 0.5)',
   ink40: 'rgb(40 32 25 / 0.4)',
+  /** SheetSectionSlab's rule. */
+  ink35: 'rgb(40 32 25 / 0.35)',
   ink30: 'rgb(40 32 25 / 0.3)',
   ink20: 'rgb(40 32 25 / 0.2)',
   ink15: 'rgb(40 32 25 / 0.15)',
   ink12: 'rgb(40 32 25 / 0.12)',
   ink10: 'rgb(40 32 25 / 0.1)',
   ink8: 'rgb(40 32 25 / 0.08)',
+  /** The faintest rung on the ramp — RosterSkeleton's resting shimmer. */
+  ink5: 'rgb(40 32 25 / 0.05)',
 
   /** The ONE light surface (ruleset §4.1) — a near-white warm paper. Pure
    *  white is retired from the UI; the only survivor is the print sheet. */
@@ -285,6 +293,12 @@ const base = {
    *  Atoms layer of #799 for `Stat`'s `inverse` skin (`text-paper/70`). */
   paper70: 'rgb(251 250 247 / 0.7)',
   paper30: 'rgb(251 250 247 / 0.3)',
+  /** FilterRow's sticky backing — near-opaque paper over scrolling content. */
+  paper85: 'rgb(251 250 247 / 0.85)',
+  /** ModalShell's panel over the scrim. */
+  paper80: 'rgb(251 250 247 / 0.8)',
+  /** MobileSearchDialog's hairline on a tone. */
+  paper15: 'rgb(251 250 247 / 0.15)',
 
   /** THE single action colour. */
   rust: 'rgb(168, 82, 34)',
@@ -314,6 +328,8 @@ const base = {
 
   // — Attention fills that are neither an ontology hue nor a status overlay —
   caution: 'rgb(215, 195, 125)',
+  /** Banner's caution wash — the advisory fill behind its caution border. */
+  caution25: 'rgb(215 195 125 / 0.25)',
   inert: 'rgb(192, 192, 192)',
 
   // — Cargo (storage) accent triplet —
