@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { ConditionChip, Conditions } from '../Conditions'
+import { capsLabel } from '../capsLabel'
 import { EmptyState } from '../EmptyState'
 import { Field, Input, Select, Textarea } from '../Field'
 import { Glyph } from '../glyphs'
@@ -221,7 +222,12 @@ describe('StepButton / Button xs', () => {
 
   test('Button size="mini" renders the compact uppercase action (former MiniBtn)', () => {
     render(<Button size="mini">⇄ Swap</Button>)
-    expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain('uppercase')
+    // The condensed-caps treatment is the `capsLabel` recipe, which emits
+    // `.su-*` names since #799. Asked of the recipe rather than spelled, so a
+    // rename moves this for free.
+    expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain(
+      capsLabel({ weight: 'inherit', tracking: 'inherit' })
+    )
   })
 })
 
@@ -231,8 +237,13 @@ describe('Stamp', () => {
     const stamp = screen.getByText('Mule')
     expect(stamp.className).toContain('bg-ink')
     expect(stamp.className).toContain('text-paper')
-    expect(stamp.className).toContain('uppercase')
-    expect(stamp.className).toContain('tracking-caps-tight')
+    // One assertion, on the recipe's own output for the rungs a stamp uses,
+    // where there were two on Tailwind spellings (`uppercase`, then
+    // `tracking-caps-tight`). Both were describing the same fact — that a stamp
+    // is the condensed-caps label at its default tracking — and the recipe is
+    // the thing that decides it, so asking the recipe is both shorter and
+    // rename-proof.
+    expect(stamp.className).toContain(capsLabel({ size: undefined }))
   })
 
   test('inverse surface flips to paper-on-ink; seam rides the border', () => {
