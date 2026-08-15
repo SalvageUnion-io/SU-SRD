@@ -6,6 +6,7 @@ import { ConditionChip, Conditions } from '../Conditions'
 import { EmptyState } from '../EmptyState'
 import { Field, Input, Select, Textarea } from '../Field'
 import { Glyph } from '../glyphs'
+import { INPUT_FOCUS } from '../interaction'
 import { KvRow } from '../KvRow'
 import { ModeDoor } from '../ModeDoor'
 import { Panel, Row } from '../Panel'
@@ -33,7 +34,7 @@ describe('Field / Input', () => {
 
   test('input carries the rust focus ring classes', () => {
     render(<Input aria-label="callsign" />)
-    expect(screen.getByLabelText('callsign').className).toContain('focus:ring-')
+    expect(screen.getByLabelText('callsign').className).toContain(INPUT_FOCUS)
   })
 
   test('Textarea and Select share the Input skin (paper/ink border, rust ring)', () => {
@@ -42,7 +43,7 @@ describe('Field / Input', () => {
     for (const label of ['motto', 'class']) {
       const el = screen.getByLabelText(label)
       expect(el.className).toContain('border-ink')
-      expect(el.className).toContain('focus:ring-')
+      expect(el.className).toContain(INPUT_FOCUS)
     }
   })
 })
