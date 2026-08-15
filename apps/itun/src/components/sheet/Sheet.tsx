@@ -29,7 +29,6 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
-import { AppLink } from '../shared/AppLink'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
@@ -37,6 +36,7 @@ import { ChangeLogDrawer } from './ChangeLogDrawer'
 import type { EntityLookup } from './composition'
 import { resolveSheetComposition } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
+import { ShareStatusDialog } from './ShareStatusDialog'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
@@ -130,6 +130,7 @@ export function Sheet({
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   const { canWrite, settling } = useConnection()
 
   // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
@@ -218,18 +219,25 @@ export function Sheet({
   // export, not less. Only Share goes — publishing a snapshot posts to a server
   // this session cannot reach — and the lozenge takes its place so the gap says
   // what happened.
+  //
+  // Share opens a dialog OVER this sheet rather than navigating to a share
+  // screen. That screen's whole left half was a preview of the sheet you were
+  // one click away from; standing on the real thing is a better preview than any
+  // component could be, and it cannot disagree with what the recipient sees.
+  // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
     <div className="flex items-center gap-2.5">
       {writesBlocked ? (
         <WritesBlockedNotice />
       ) : (
-        <AppLink
-          href={`/sheet/${kind}/${id}/share`}
-          aria-label={`Share this ${kind} as a snapshot`}
-          className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 no-underline sm:min-h-9')}
+        <button
+          type="button"
+          aria-label={`Share this ${kind}`}
+          onClick={() => setShareOpen(true)}
+          className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 cursor-pointer sm:min-h-9')}
         >
           Share
-        </AppLink>
+        </button>
       )}
       <SheetActionsMenu>
         {printButton}
@@ -310,13 +318,29 @@ export function Sheet({
     <>
       {sheetView}
       {!readOnlyProp && (
-        <ChangeLogDrawer
-          entityType={kind}
-          entityId={id}
-          entityName={entity.name}
-          open={changeLogOpen}
-          onOpenChange={setChangeLogOpen}
-        />
+        <>
+          <ChangeLogDrawer
+            entityType={kind}
+            entityId={id}
+            entityName={entity.name}
+            open={changeLogOpen}
+            onOpenChange={setChangeLogOpen}
+          />
+          {/*
+            Mounted here, beside the Change Log, for the same reason: the dialog
+            must outlive the control that opens it. Its network probe is gated on
+            `open` rather than on mount — see its header — so an always-mounted
+            dialog costs nothing on a sheet nobody shares.
+          */}
+          <ShareStatusDialog
+            kind={kind}
+            id={id}
+            entity={entity}
+            pilotAbilities={kind === 'mech' ? composition.pilot?.abilities : undefined}
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+          />
+        </>
       )}
     </>
   )

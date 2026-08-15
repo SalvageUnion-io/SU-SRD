@@ -94,24 +94,31 @@ test('publish a snapshot and open the share URL read-only', async ({ page }) => 
   await buildPilot(page, 'Mira Voss', 'Sparks')
   await openSheetFor(page, 'Mira Voss')
 
-  // No soft-skip past this line. `ShareSnapshotScreen` hides Publish when
+  // Sharing is a dialog on the sheet, not a screen you navigate to.
+  await page.getByRole('button', { name: /share this pilot/i }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+
+  // No soft-skip past this line. `ShareStatusDialog` hides Publish when
   // `probeSnapshotService` cannot reach the service — against a deploy that is
   // supposed to serve it, that is a broken backend, and this test's job is to
-  // say so rather than return green.
-  const shareButton = page.getByRole('button', { name: /publish snapshot/i })
+  // say so rather than return green. It is the check that would have caught the
+  // Functions 502ing on a missing `@sentry/node` (#788).
+  const publishButton = page.getByRole('button', { name: /publish snapshot/i })
   await expect(
-    shareButton,
+    publishButton,
     'Publish is feature-gated on probeSnapshotService reaching the snapshot Functions; E2E_BASE_URL is set, so it should have.'
   ).toBeVisible()
 
-  await shareButton.click()
+  await publishButton.click()
 
+  // `inputValue`, not `innerText`: the share URL lives in a read-only <input>,
+  // which has no text content to read.
+  const urlField = page.locator('[aria-label="Share URL"]').first()
   await expect(
-    page.getByRole('dialog'),
-    'Publishing opens the share dialog only when the Function accepted the snapshot.'
+    urlField,
+    'The URL field appears only once the Function accepted the snapshot.'
   ).toBeVisible()
-
-  const urlText = (await page.locator('[aria-label="Share URL"]').first().innerText()).trim()
+  const urlText = (await urlField.inputValue()).trim()
   expect(urlText).toMatch(/^https?:\/\//)
 
   // --- Open the share URL and verify the read-only snapshot shell ---

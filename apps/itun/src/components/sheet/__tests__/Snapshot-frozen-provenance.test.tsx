@@ -16,10 +16,8 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
 import { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import type { EntityLookup } from '../composition'
-import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
+import { ShareStatusDialog } from '../ShareStatusDialog'
 import { Sheet } from '../Sheet'
 
 const basePilotInput = {
@@ -50,10 +48,6 @@ const overriddenMech: Mech = {
   maxSpModifier: 4,
   createdAt: FIXTURE_NOW,
   updatedAt: FIXTURE_NOW,
-}
-
-function makeEntityStore(entities: Mech[]): EntityLookup {
-  return makeEntityLookupMock(entities)
 }
 
 function resetEntityStore(): void {
@@ -87,10 +81,12 @@ describe('Frozen surface — Change Log stays out of the snapshot (P5.1)', () =>
     )
 
     render(
-      <ShareSnapshotScreen
+      <ShareStatusDialog
         kind="mech"
         id={overriddenMech.id}
-        entityStore={makeEntityStore([overriddenMech])}
+        entity={overriddenMech}
+        open
+        onOpenChange={() => {}}
         probeFn={() => Promise.resolve(true)}
         publishFn={publishFn}
       />

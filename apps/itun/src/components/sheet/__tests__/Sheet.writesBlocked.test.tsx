@@ -77,7 +77,7 @@ const CONNECTING: ConnectionState = {
 describe('Sheet — writes blocked by connectivity', () => {
   test('Connected renders Share, and no refusal lozenge', () => {
     renderSheetIn(CONNECTED)
-    expect(screen.getByLabelText(/Share this pilot as a snapshot/i)).toBeTruthy()
+    expect(screen.getByLabelText(/Share this pilot/i)).toBeTruthy()
     expect(screen.queryByText(/Read-only — not connected/i)).toBeNull()
   })
 
@@ -85,7 +85,7 @@ describe('Sheet — writes blocked by connectivity', () => {
     // The gap is the point: withdrawing the control silently reads as a broken
     // app, so the lozenge takes its place rather than leaving a hole.
     renderSheetIn(DISCONNECTED)
-    expect(screen.queryByLabelText(/Share this pilot as a snapshot/i)).toBeNull()
+    expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
     expect(screen.getByText(/Read-only — not connected/i)).toBeTruthy()
   })
 
@@ -95,7 +95,7 @@ describe('Sheet — writes blocked by connectivity', () => {
     // still refused at the store; it is just refused with a toast, not by
     // pre-emptively dismantling the sheet.
     renderSheetIn(CONNECTING)
-    expect(screen.getByLabelText(/Share this pilot as a snapshot/i)).toBeTruthy()
+    expect(screen.getByLabelText(/Share this pilot/i)).toBeTruthy()
     expect(screen.queryByText(/Read-only — not connected/i)).toBeNull()
   })
 })

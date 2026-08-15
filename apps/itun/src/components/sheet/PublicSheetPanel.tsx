@@ -2,7 +2,7 @@
  * PublicSheetPanel — turn one sheet into a public, always-current page
  * ([ADR-032](../../../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
  *
- * Sits beside the snapshot panel on the Share screen because the two answer
+ * Sits below the snapshot section in `ShareStatusDialog` because the two answer
  * different questions and a player choosing between them should see both:
  * a snapshot is a **frozen** copy of this build, and this is a **live** view
  * that follows the sheet as it changes.
@@ -11,7 +11,7 @@
  * not a style choice: this component calls `useQuery`/`useMutation`, which
  * cannot be called conditionally (Rules of Hooks) and throw outright without a
  * Convex provider — which is exactly the situation in Solo, and in every test
- * that renders the Share screen. Returning null from inside would therefore
+ * that renders the share dialog. Returning null from inside would therefore
  * still have run the hooks and still have thrown. The parent not mounting it is
  * the only correct shape.
  *
@@ -25,12 +25,11 @@
  * person deciding should be told that rather than left to infer it.
  */
 
-import { Button, FieldError, Panel } from 'component-lib'
+import { Button, FieldError } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
-import { cn } from '../../lib/utils'
 
 type PublicSheetPanelProps = {
   kind: 'pilot' | 'mech' | 'crawler'
@@ -38,17 +37,9 @@ type PublicSheetPanelProps = {
   appId: string
   entityName: string
   headingClass?: string
-  /** Grid placement from the parent — see its use in ShareSnapshotScreen. */
-  className?: string
 }
 
-export function PublicSheetPanel({
-  kind,
-  appId,
-  entityName,
-  headingClass,
-  className,
-}: PublicSheetPanelProps) {
+export function PublicSheetPanel({ kind, appId, entityName, headingClass }: PublicSheetPanelProps) {
   const setPublic = useMutation(api.publicSheet.setPublic)
   const published = useQuery(api.publicSheet.get, { kind, appId })
   const [busy, setBusy] = useState(false)
@@ -84,7 +75,11 @@ export function PublicSheetPanel({
   }
 
   return (
-    <Panel className={cn('p-4 sm:p-5', className)}>
+    // A plain section, not a Panel. Its one consumer is ShareStatusDialog,
+    // which is already inside ModalShell's Card — a Panel here would be a
+    // border inside a border. It kept the Panel while it sat on the share
+    // screen's bare grid, where the frame was the only thing separating it.
+    <section>
       <h2 className={headingClass}>Public sheet</h2>
 
       <p className="text-wk-muted mb-3 font-body text-caption leading-relaxed">
@@ -123,6 +118,6 @@ export function PublicSheetPanel({
       </Button>
 
       {error !== null && <FieldError className="mt-2">{error}</FieldError>}
-    </Panel>
+    </section>
   )
 }
