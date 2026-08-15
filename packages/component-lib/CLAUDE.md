@@ -47,12 +47,50 @@ so its style objects were never asked to carry interaction or viewport state.
 Here they would be, and they cannot. That is the one thing that must not be lost
 in translation, and it is why the stylesheet is not optional.)
 
+### Migration status (#799, epic #802)
+
+Migrating by Ladle group, one PR per group: **Foundations ✅ → Atoms → Containers
+→ Compositions.** A group is done when no file in it carries a Tailwind class.
+
 ### While both systems are live
 
 `src/styles/theme.css` is still the source of record and Tailwind still works
 untouched: the token scale is a re-shaping of the values already in that file,
 not a re-design. The `--su-*` namespace exists so the two can coexist in one
 build until Tailwind is dropped.
+
+**`src/styles/ladle.css` must import `index.css` into `layer(su-base)`, and this
+is load-bearing.** `index.css` is written to be loaded alone once Tailwind
+leaves, so its base block is unlayered — and unlayered CSS beats layered CSS
+whatever the source order, while Tailwind v4 puts its utilities in
+`@layer utilities`. A plain `@import` therefore inverts the cascade for every
+rule the two share: measured on the real build, `h1,…,h6 { font-size: inherit }`
+landed past the end of the utilities layer and outranked every `text-*` utility,
+collapsing the type on every heading in the catalog. Ladle is the only surface
+with this problem, because it is the only one that renders both systems at once;
+an app imports `index.css` directly, unlayered, as designed.
+
+**Two rungs the token scale was missing, and ~17 more it still is.** `ink15` /
+`ink10` were added because `border-ink/15` and `border-ink/10` are in live use
+and had nowhere exact to land. That is not a one-off: Tailwind's `/NN` opacity
+modifier is an OPEN mechanism and `tokens.ts` is a CLOSED set. **34 alpha usages
+across 17 non-story files still have no matching rung**, in 17 distinct
+spellings — `ink/5`, `ink/35`, `ink/55`, `ink/60`, `ink/70`, `paper/10`,
+`paper/15`, `paper/40`, `paper/55`, `paper/70`, `paper/80`, `paper/85`,
+`paper/95`, `rust/25`, `caution/25`, `status-bad/25`, `wk-faint/80`. Rounding one
+to a neighbouring rung is a re-tone, and a raw `rgb(… / .NN)` at the call site is
+a `check:tokens` `raw-color` violation, so adding rungs is the only legal move —
+but which rungs the system should own enlarges the closed colour set and is a
+design call, not a port. Tracked on #799.
+
+**The Atoms layer is blocked on five of them**: `paper/70` (Stat), `ink/55` +
+`ink/70` (VitalGauge), `rust/25` (Toggle), `status-bad/25` (InlineEditField).
+Containers needs seven more, Compositions the rest.
+
+**A catalog-only rule goes in `src/stories/_stories.css`, not `index.css`.** The
+split rule sends anything stateful or responsive to a stylesheet class, but
+`index.css` is the one stylesheet a *consumer* loads — story-page layout ships in
+no app. The underscore is the same story-scaffolding marker as `_harness.tsx`.
 
 The scale therefore exists twice — once as TypeScript, once as custom properties
 — because neither form can serve the other's job. `src/design/tokens.parity.test.ts`

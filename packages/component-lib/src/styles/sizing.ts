@@ -29,6 +29,8 @@
  * `compact` and `mini` is correct and complete.
  */
 
+import { fontSize, space } from '../design/tokens'
+
 export type SizeRung = 'full' | 'compact' | 'mini'
 
 /**
@@ -63,4 +65,32 @@ export const RUNG_INLINE_PADDING: Record<SizeRung, string> = {
   full: 'px-2 py-1',
   compact: 'px-1.5 py-0.5',
   mini: 'px-1 py-0.5',
+}
+
+/**
+ * The two maps above as token VALUES rather than utility classes — the form a
+ * migrated call site can put in a style object (#799, epic #802).
+ *
+ * They are a deliberate, temporary PAIR with the Tailwind maps, on exactly the
+ * terms `tokens.ts` and the `--su-*` block of `index.css` are a pair: these are
+ * read by everything already off Tailwind, `RUNG_TYPE` / `RUNG_INLINE_PADDING`
+ * by everything still on it (Badge and Button, which migrate with the Atoms
+ * layer), and the older maps are deleted in the same change as their last
+ * consumer. Nothing here re-decides a rung.
+ *
+ * `RUNG_TYPE` ports 1:1 — `text-sm` is `fontSize.sm`, `text-lede` is
+ * `fontSize.lede`. `RUNG_INLINE_PADDING` ports through Tailwind's quarter-rem
+ * step: `px-2 py-1` is 8px/4px, `px-1.5 py-0.5` is 6px/2px, `px-1 py-0.5` is
+ * 4px/2px. All six numbers are already rungs on `space`, so nothing rounds.
+ */
+export const RUNG_FONT_SIZE: Record<SizeRung, { label: string; body: string }> = {
+  full: { label: fontSize.sm, body: fontSize.lede },
+  compact: { label: fontSize.xs, body: fontSize.caption },
+  mini: { label: fontSize.badge, body: fontSize.note },
+}
+
+export const RUNG_INLINE_PAD: Record<SizeRung, string> = {
+  full: `${space[4]} ${space[8]}`,
+  compact: `${space[2]} ${space[6]}`,
+  mini: `${space[2]} ${space[4]}`,
 }

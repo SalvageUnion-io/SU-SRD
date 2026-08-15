@@ -253,14 +253,25 @@ const base = {
 
   /** Ink at opacity — hairlines, placeholders, ghosts, disabled fills and
    *  shadows. Warm ink at opacity reads as the same material at distance,
-   *  which a true-neutral grey does not against warm paper. */
+   *  which a true-neutral grey does not against warm paper.
+   *
+   *  `ink15` and `ink10` were added by #799, not invented by it: both are in
+   *  live use (`border-ink/15`, `border-ink/10`) and neither had a rung, so a
+   *  migrating call site had to round to `ink12` — the one thing the note at
+   *  the top of `space` promises never happens. They are the first two of a
+   *  LONGER list the migration turned up; the rest are recorded on #799 rather
+   *  than added speculatively here, because Tailwind's `/NN` modifier is an
+   *  open mechanism and this scale is a closed set, so which rungs the system
+   *  should actually own is a design call and not a port. */
   ink85: 'rgb(40 32 25 / 0.85)',
   ink75: 'rgb(40 32 25 / 0.75)',
   ink50: 'rgb(40 32 25 / 0.5)',
   ink40: 'rgb(40 32 25 / 0.4)',
   ink30: 'rgb(40 32 25 / 0.3)',
   ink20: 'rgb(40 32 25 / 0.2)',
+  ink15: 'rgb(40 32 25 / 0.15)',
   ink12: 'rgb(40 32 25 / 0.12)',
+  ink10: 'rgb(40 32 25 / 0.1)',
   ink8: 'rgb(40 32 25 / 0.08)',
 
   /** The ONE light surface (ruleset §4.1) — a near-white warm paper. Pure

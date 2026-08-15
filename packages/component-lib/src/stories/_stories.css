@@ -1,0 +1,32 @@
+/*
+ * Catalog-only stylesheet — the stateful/responsive half of the split rule for
+ * the Foundations specimen pages.
+ *
+ * WHY THIS IS NOT `src/styles/index.css`. That file is the ONE stylesheet a web
+ * consumer loads; these rules lay out a Ladle page and ship in no app, so
+ * putting them there would export catalog scaffolding to every consumer. The
+ * leading underscore is the same marker `_harness.tsx` and `_dashboardStage.tsx`
+ * already use for story scaffolding (component-lib/CLAUDE.md), and co-located
+ * CSS is an existing shape in this package — `DashboardCanvas.css`,
+ * `instruments.css`.
+ *
+ * It is still the SECOND half of the split rule, not a third mechanism: a media
+ * query is precisely what an inline `style={}` cannot express, so it lands in a
+ * stylesheet class. Only the class's ADDRESS differs, because its audience does.
+ */
+
+/*
+ * The two-column specimen split on Foundations/Sizing. Ported verbatim from
+ * `sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]` — Tailwind's `sm` breakpoint is
+ * 40rem, and below it the grid stays the single column a bare `grid` gives.
+ */
+.su-story-split {
+  display: grid;
+  gap: var(--su-space-16);
+}
+
+@media (min-width: 40rem) {
+  .su-story-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

@@ -4,9 +4,16 @@
  * and frames children on the warm-paper cockpit ground — so a single instrument
  * renders exactly as it does inside the live Dashboard, without the full
  * scale-to-fit canvas.
+ *
+ * `pc-root` STAYS a class, and is not a Tailwind holdover: it is the instrument
+ * token scope those three stylesheets key off, so the stage must keep applying
+ * it. Only the frame's own `var(--color-*)` reads move onto `design/tokens.ts`
+ * here (#799) — the ones inside `.pc-root` belong to the dashboard's own
+ * stylesheets and migrate with the Compositions layer.
  */
 
 import type { ReactNode } from 'react'
+import { color, radius, space } from '../design/tokens'
 import '../components/dashboard/DashboardCanvas.css'
 import '../components/dashboard/DashboardGrid.css'
 import '../components/dashboard/instruments.css'
@@ -25,9 +32,9 @@ export function InstrumentStage({
       className="pc-root"
       data-mount={mount}
       style={{
-        background: 'var(--color-paper)',
-        padding: 16,
-        borderRadius: 'var(--radius-panel)',
+        background: color.paper,
+        padding: space[16],
+        borderRadius: radius.panel,
         maxWidth: width,
       }}
     >
