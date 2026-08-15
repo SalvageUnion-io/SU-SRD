@@ -134,6 +134,29 @@ so its style objects were never asked to carry interaction or viewport state.
 Here they would be, and they cannot. That is the one thing that must not be lost
 in translation, and it is why the stylesheet is not optional.)
 
+### Checking a focus style: `.focus()` will lie to you
+
+**`:focus-visible` does not match programmatic focus.** Calling `el.focus()` — or
+`.focus()` from a devtools console, or `userEvent`/`fireEvent.focus` in a test —
+moves focus without satisfying the browser's keyboard heuristic, so
+`:focus-visible` stays unmatched and `getComputedStyle(el).boxShadow` reports
+`none`. Every focus ring in this package is on `:focus-visible` (that is the
+point — a button shows its ring to the keyboard, not to the mouse), so **a
+working ring reads as a missing one** under that check.
+
+That is the dangerous direction: it makes a correct feature look broken, which
+invites someone to "fix" it until it really is. Verified on the real thing —
+`el.focus()` gave `boxShadow: none` on a Button whose ring was fine, while a real
+**Tab** press gave `matchesFocusVisible: true` and
+`rgba(168, 82, 34, 0.25) 0 0 0 3px`.
+
+So to check a focus style: send a real key press (a browser driver's Tab key), or
+assert `el.matches(':focus-visible')` alongside the computed value so a false
+negative is distinguishable from a real one. `:focus` rungs — `.su-input-focus`,
+`.su-focus-within` — are exempt from this and do respond to `.focus()`, which is
+its own trap, since it makes the two rungs behave differently under the same
+check for reasons that have nothing to do with either being correct.
+
 ### Migration status (#799, epic #802)
 
 Migrating by Ladle group, one PR per group: **Foundations ✅ → Atoms → Containers
