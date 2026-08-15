@@ -472,6 +472,170 @@ body {
     0 0 0 6px var(--su-color-ink);
 }
 
+/* ══ Button ═════════════════════════════════════════════════════════════════
+ *
+ * The `.btn` recipe (design-spec §2.4), ported from the `buttonVariants` cva.
+ *
+ * ALL of it is here, geometry and type included — not just the stateful half.
+ * `buttonVariants` is a public class-string export that both apps put on `<a>`
+ * elements the library never renders, so there is no element for a style object
+ * to attach to. That is the class-string exemption in this package's CLAUDE.md,
+ * and it is why this block is larger than the split rule alone would predict.
+ *
+ * ORDER MATTERS TWICE in here, and both are single-class specificity, so source
+ * position is the tiebreak:
+ *   · size modifiers come after the base, so `--mini` can override the base gap
+ *     and radius;
+ *   · the whole block sits BEFORE `.su-caps`, so the caps recipe wins
+ *     `font-family` on the two rungs that compose it (`--mini`, `--instrument`).
+ */
+.su-btn {
+  align-items: center;
+  border-radius: var(--su-radius-card);
+  border-style: solid;
+  border-width: var(--su-bw-chrome);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--su-font-body);
+  font-weight: var(--su-weight-medium);
+  gap: var(--su-space-8);
+  justify-content: center;
+  letter-spacing: normal;
+  transition:
+    color 120ms,
+    background-color 120ms,
+    border-color 120ms;
+  white-space: nowrap;
+}
+
+/* ── Variants. Colour only, and every one of the three colour properties is
+      overridden on :hover or :disabled, so all three keep their RESTING value
+      here rather than inline — see the per-property note at the top of the
+      stateful section. ── */
+.su-btn--default {
+  background-color: var(--su-color-paper);
+  border-color: var(--su-color-ink);
+  color: var(--su-color-ink);
+}
+
+.su-btn--default:hover:not(:disabled) {
+  background-color: var(--su-color-ink-8);
+}
+
+.su-btn--ghost {
+  background-color: transparent;
+  border-color: var(--su-color-ink);
+  color: var(--su-color-ink);
+}
+
+.su-btn--ghost:hover:not(:disabled) {
+  background-color: var(--su-color-ink-8);
+}
+
+.su-btn--primary {
+  background-color: var(--su-color-rust);
+  border-color: var(--su-color-rust);
+  color: var(--su-color-paper);
+}
+
+.su-btn--primary:hover:not(:disabled) {
+  background-color: var(--su-color-rust-hi);
+  border-color: var(--su-color-rust-hi);
+}
+
+.su-btn--danger {
+  background-color: var(--su-color-status-bad);
+  border-color: var(--su-color-status-bad);
+  color: var(--su-color-paper);
+}
+
+.su-btn--danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/*
+ * The DRAINED disabled treatment, for the FILLED variants only.
+ *
+ * The shared 40% fade (`.su-disabled`) is right for an outline button and wrong
+ * for a solid fill: rust at 40% is a pastel salmon and red at 40% is pink, and
+ * both read as an enabled variant nobody recognises rather than as an off
+ * control. A disabled control should look DRAINED, not tinted, so the fill is
+ * emptied to a flat ink wash. `opacity: 1` cancels the shared fade, exactly as
+ * `disabled:opacity-100` did.
+ */
+.su-btn--primary:disabled,
+.su-btn--danger:disabled {
+  background-color: var(--su-color-ink-8);
+  border-color: var(--su-color-ink-30);
+  color: var(--su-color-ink-50);
+  opacity: 1;
+}
+
+/*
+ * INSTRUMENT × ghost — an ink hairline on the cream instrument chassis, going to
+ * a paper fill on hover. The one variant the dashboard HUD uses.
+ *
+ * This was a cva `compoundVariant`, and a compound SELECTOR is the natural CSS
+ * shape for it — which also gives it the 2-class specificity it needs to beat
+ * plain `.su-btn--ghost` above without depending on source order.
+ */
+.su-btn--instrument.su-btn--ghost {
+  background-color: transparent;
+  border-color: var(--su-color-ink-30);
+  color: var(--su-color-ink);
+}
+
+.su-btn--instrument.su-btn--ghost:hover:not(:disabled) {
+  background-color: var(--su-color-paper);
+  border-color: var(--su-color-ink-50);
+}
+
+/* ── The size ladder (styles/sizing.ts). The odd numbers are the arbitrary
+      Tailwind values carried verbatim — `px-[22px]`, `py-[6px]`, `py-[3px]` —
+      because rounding them onto the space scale would resize every button. ── */
+.su-btn--full {
+  font-size: var(--su-text-lede);
+  padding: var(--su-space-12) 22px;
+}
+
+.su-btn--compact {
+  font-size: var(--su-text-xs);
+  padding: var(--su-space-6) 11px;
+}
+
+/* The compact uppercase action chip ('⇄ Swap', '✕ Remove'): badge radius,
+   tighter gap, and deliberately NO letterspacing. Its condensed caps come from
+   the `capsLabel` classes the recipe composes in, not from here. */
+.su-btn--mini {
+  border-radius: var(--su-radius-badge);
+  gap: var(--su-space-4);
+  padding: 3px var(--su-space-8);
+}
+
+/*
+ * The SQUARE icon-only rung — a glyph with no label (a close ✕, a collapse
+ * chevron, a search magnifier).
+ *
+ * A size rung rather than its own component because an icon button differs from
+ * a worded one only in geometry: same frame, variants, focus ring and disabled
+ * treatment. Before it there were five hand-rolled squares in the package —
+ * 28/32/36/44px, three radii, four border treatments — and the one with no
+ * visible focus ring was the only one a keyboard user could not see.
+ *
+ * 36px is the resting geometry, comfortably past the WCAG 2.5.8 24px minimum. A
+ * call site that must line up with a neighbouring control overrides width and
+ * height at the call site, as it previously overrode `size-*`.
+ */
+.su-btn--icon-only {
+  flex-shrink: 0;
+  font-size: var(--su-text-base);
+  gap: 0;
+  height: 36px;
+  line-height: 1;
+  padding: 0;
+  width: 36px;
+}
+
 /* ══ The condensed-caps label ═══════════════════════════════════════════════
  *
  * The `capsLabel` recipe (`components/chrome/capsLabel.ts`), as classes.
