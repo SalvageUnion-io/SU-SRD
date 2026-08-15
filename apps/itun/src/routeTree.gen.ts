@@ -28,6 +28,7 @@ import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as PKindAppIdRouteImport } from './routes/p.$kind.$appId'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
+import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.share'
 import { Route as GamesGameIdViewKindEntityIdRouteImport } from './routes/games_.$gameId_.view.$kind.$entityId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -125,6 +126,11 @@ const SheetKindIdRoute = SheetKindIdRouteImport.update({
   path: '/sheet/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SheetKindIdShareRoute = SheetKindIdShareRouteImport.update({
+  id: '/sheet/$kind/$id_/share',
+  path: '/sheet/$kind/$id/share',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesGameIdViewKindEntityIdRoute =
   GamesGameIdViewKindEntityIdRouteImport.update({
     id: '/games_/$gameId_/view/$kind/$entityId',
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
+  '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
   '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRoutesByTo {
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
+  '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
   '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRoutesById {
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
+  '/sheet/$kind/$id_/share': typeof SheetKindIdShareRoute
   '/games_/$gameId_/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRouteTypes {
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
+    | '/sheet/$kind/$id/share'
     | '/games/$gameId/view/$kind/$entityId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/mechs/patterns'
+    | '/sheet/$kind/$id/share'
     | '/games/$gameId/view/$kind/$entityId'
   id:
     | '__root__'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
+    | '/sheet/$kind/$id_/share'
     | '/games_/$gameId_/view/$kind/$entityId'
   fileRoutesById: FileRoutesById
 }
@@ -288,6 +300,7 @@ export interface RootRouteChildren {
   PKindAppIdRoute: typeof PKindAppIdRoute
   SheetKindIdRoute: typeof SheetKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
+  SheetKindIdShareRoute: typeof SheetKindIdShareRoute
   GamesGameIdViewKindEntityIdRoute: typeof GamesGameIdViewKindEntityIdRoute
 }
 
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SheetKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sheet/$kind/$id_/share': {
+      id: '/sheet/$kind/$id_/share'
+      path: '/sheet/$kind/$id/share'
+      fullPath: '/sheet/$kind/$id/share'
+      preLoaderRoute: typeof SheetKindIdShareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games_/$gameId_/view/$kind/$entityId': {
       id: '/games_/$gameId_/view/$kind/$entityId'
       path: '/games/$gameId/view/$kind/$entityId'
@@ -456,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   PKindAppIdRoute: PKindAppIdRoute,
   SheetKindIdRoute: SheetKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
+  SheetKindIdShareRoute: SheetKindIdShareRoute,
   GamesGameIdViewKindEntityIdRoute: GamesGameIdViewKindEntityIdRoute,
 }
 export const routeTree = rootRouteImport

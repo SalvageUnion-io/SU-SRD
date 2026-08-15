@@ -175,6 +175,33 @@
   to = "/index.html"
   status = 404
 
+# ---------------------------------------------------------------------------
+# Retired URLs
+# ---------------------------------------------------------------------------
+
+# /sheet/:kind/:id/share → the sheet itself.
+#
+# The Share Snapshot screen was removed in #793 — sharing is now a dialog over
+# the live sheet — so this is where a bookmark or a pasted builder link would
+# otherwise dead-end on the SPA's not-found page.
+#
+# MUST precede the SPA fallback below: first match wins, and that rule has no
+# method or path condition, so it would swallow this and answer 200 index.html.
+#
+# This rule is NOT sufficient on its own, and the app carries a matching
+# client-side redirect route. The service worker registers a `NavigationRoute`
+# bound to a precached `index.html`, so for anyone with the app installed or
+# cached a navigation is answered from Cache Storage and never reaches Netlify.
+# This covers first-time loads, crawlers and non-SW clients; the route covers
+# everyone else. See apps/itun/src/routes/sheet/$kind/$id_.share.tsx.
+#
+# 301 rather than 302: the screen is not coming back.
+[[redirects]]
+  from = "/sheet/:kind/:id/share"
+  to = "/sheet/:kind/:id"
+  status = 301
+  force = true
+
 # SPA fallback — serve index.html for all unmatched paths
 [[redirects]]
   from = "/*"
