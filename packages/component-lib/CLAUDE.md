@@ -7,7 +7,56 @@ Shared React component library consumed by both `srd` and `itun`.
 - **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/adrs/ADR-011-component-lib-source-no-build.md))
 - **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md))
 - Vite in consuming apps handles `.ts/.tsx` compilation
-- Uses Tailwind + `cn()` utility for styling
+- Uses Tailwind + `cn()` utility for styling — **being removed** in favour of tokens + style objects + one stylesheet (see [Styling](#styling) below, and epic #802)
+
+## Styling
+
+Tailwind is on its way out of this repo (#802). The pattern replacing it is three
+files, and every component migrated from here on lands on them:
+
+| File | Role |
+| --- | --- |
+| [`src/design/tokens.ts`](src/design/tokens.ts) | The typed token scale — colour, space, font size, weight, tracking, radius, border width. Plain `as const` objects, no dependency. |
+| [`src/design/styles.ts`](src/design/styles.ts) | Exported `React.CSSProperties` objects for **static** styling, each `satisfies` the type. |
+| [`src/styles/index.css`](src/styles/index.css) | The **one** stylesheet a web consumer loads. Emits the scale as `--su-*` custom properties, binds the page ground and body face, and carries every rule a style object cannot express. |
+
+Both halves of the pattern are load-bearing. The token scale and the style objects
+are the visible half; the stylesheet is the half that is easy to miss, and
+dropping it would be a functional regression rather than a styling change.
+
+### The split rule
+
+- **Style object** — static values that never vary by interaction or viewport:
+  colour, padding, font, border, layout.
+- **Stylesheet class** — anything stateful or conditional: `:hover`,
+  `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling/child
+  selectors.
+- A component may use both. The object goes on `style=`, the class on
+  `className=`.
+
+This is a capability boundary, not a preference: an inline `style={}` object has
+no way to express a single item on the second list. That matters here more than
+it looks. Measured across the three UI workspaces, the codebase depends on ~403
+Tailwind variant usages — 215 responsive (`sm:`/`md:`/`lg:`/`xl:`), 120 `hover:`,
+15 `focus-visible:`, 12 `disabled:`, 9 `focus:`, 5 structural. A migration to
+style objects alone would silently drop every one of them.
+
+(The pattern is ported from `binfinite-app`, whose component library has zero
+`:hover` and zero `@media` because it is React-Native-first and RN has neither —
+so its style objects were never asked to carry interaction or viewport state.
+Here they would be, and they cannot. That is the one thing that must not be lost
+in translation, and it is why the stylesheet is not optional.)
+
+### While both systems are live
+
+`src/styles/theme.css` is still the source of record and Tailwind still works
+untouched: the token scale is a re-shaping of the values already in that file,
+not a re-design. The `--su-*` namespace exists so the two can coexist in one
+build until Tailwind is dropped.
+
+The scale therefore exists twice — once as TypeScript, once as custom properties
+— because neither form can serve the other's job. `src/design/tokens.parity.test.ts`
+fails if they disagree, so **edit both or neither**.
 
 ## Contents
 
@@ -67,6 +116,6 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
 ## Conventions
 
 - Named exports only (via `src/index.ts` barrel)
-- Use `cn()` for conditional Tailwind class merging
+- Use `cn()` for conditional Tailwind class merging — on surfaces still on Tailwind. New and migrated styling follows the [split rule](#the-split-rule) instead.
 - Keep components data-source agnostic
 - Use `type` over `interface` for props

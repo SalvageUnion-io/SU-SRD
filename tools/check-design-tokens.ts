@@ -189,6 +189,18 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
       'The token definitions themselves — this file is where colour is allowed to be a literal. arbitrary-border-width and arbitrary-radius are exempt for a different reason: the file authors no borders and no radii at all, it DEFINES the --bw-* and --radius-* ladders. Their only matches are the prose in each ladder doc-comment ("never `border-[1.5px]`", "never rounded-[Npx]") — the rule text quoting the form it forbids. Rewording those comments to dodge the regex would make the canon harder to read to satisfy a lint.',
   },
   {
+    file: 'packages/component-lib/src/design/tokens.ts',
+    rules: ['raw-color'],
+    reason:
+      'The same standing as theme.css above, in the language the design system is moving TO (#798, epic #802): this is a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/tokens.parity.test.ts` fails if these literals and the `--su-*` custom properties in styles/index.css ever disagree. The exemption is scoped to `raw-color` alone: an arbitrary radius, tracking or border width written here would still be a violation, because those ladders are token NAMES rather than literals even inside the file that defines them.',
+  },
+  {
+    file: 'packages/component-lib/src/styles/index.css',
+    rules: ['raw-color'],
+    reason:
+      'The CSS half of the same definition — the package stylesheet emits the token scale as `--su-*` custom properties, so its literals are the identical set tokens.ts holds, kept honest by the same parity test. Note what is NOT exempt: this file is also where every `:hover` / `@media` / `:focus-visible` rule migrated off a Tailwind variant will land, and a colour written into one of THOSE rules is ordinary drift that this rule should catch. It cannot distinguish the two blocks, which is the accepted cost of a file-level exemption — recorded here rather than silently absorbed. Every stateful rule in the file today references a `var(--su-color-*)`, and the next one should too.',
+  },
+  {
     file: 'packages/component-lib/src/components/chrome/Slab.tsx',
     rules: ['gradient'],
     reason:

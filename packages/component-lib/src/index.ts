@@ -230,6 +230,20 @@ export type { RollTableDeps } from './components/wizard/rollTableHelpers'
 // Wizard roll-table + class-option helpers (moved with their components).
 export { rollForPilotField } from './components/wizard/rollTableHelpers'
 export { SystemsList } from './components/wizard/SystemsList'
+/**
+ * The styling foundation (#798, epic #802) — the target pattern Tailwind is
+ * being removed in favour of. Namespaced rather than spread flat into this
+ * barrel, because the token names are deliberately generic (`color`, `space`,
+ * `radius`) and read correctly only when qualified: `tokens.color.rust`,
+ * `style={styles.card}`.
+ *
+ * `styles` is the STATIC half. The stateful half — `:hover`, `:focus-visible`,
+ * `:disabled`, `@media` — cannot live in a style object at all and ships as
+ * the stylesheet `component-lib/styles/index.css`. The split rule between them
+ * is in this package's CLAUDE.md; read it before migrating a component.
+ */
+export * as styles from './design/styles'
+export * as tokens from './design/tokens'
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge
 // with the default config, which drops them as unknown "colors").

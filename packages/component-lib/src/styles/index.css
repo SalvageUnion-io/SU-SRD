@@ -1,0 +1,417 @@
+/*
+ * The package stylesheet — the ONE stylesheet a web consumer loads.
+ *
+ * Layer 1 of the Tailwind removal (#798, epic #802). This is the other half of
+ * the pattern whose TypeScript half is `src/design/tokens.ts` +
+ * `src/design/styles.ts`, and it is the half that is easy to miss.
+ *
+ * WHY IT IS NOT OPTIONAL
+ *
+ * An inline `style={}` object cannot express `:hover`, `@media`,
+ * `:focus-visible`, `:disabled`, or a pseudo-element. Measured across the three
+ * UI workspaces, this codebase depends on all of them — ~403 Tailwind variant
+ * usages: 215 responsive, 120 hover, 15 focus-visible, 12 disabled, 9 focus, 5
+ * structural. A migration to style objects ALONE would drop every one of them,
+ * which is a straight functional regression, not a styling change. Everything
+ * in that list lands here.
+ *
+ * (The pattern is ported from `binfinite-app`, whose component library has zero
+ * `:hover` and zero `@media` because it is React-Native-first and RN has
+ * neither. Its style objects were therefore never asked to carry interaction or
+ * viewport state. Here they would be, and they cannot, so both halves are
+ * ported deliberately rather than just the visible one.)
+ *
+ * THE SPLIT RULE
+ *
+ *   Style object     static values that never vary by interaction or viewport:
+ *                    colour, padding, font, border, layout.
+ *   Stylesheet class anything stateful or conditional: `:hover`,
+ *                    `:focus-visible`, `:disabled`, `@media`,
+ *                    pseudo-elements, sibling/child selectors.
+ *
+ * A component may use both — the object on `style=`, the class on `className=`.
+ * The full statement lives in this package's CLAUDE.md.
+ *
+ * RELATIONSHIP TO theme.css, WHILE BOTH EXIST
+ *
+ * `theme.css` is still the live source: Tailwind is in the build and every
+ * component still renders through it, untouched by this layer. This file is a
+ * re-shaping of the same values into a form that does not need Tailwind, so the
+ * two overlap on purpose until #801 deletes the Tailwind side. Nothing imports
+ * this file yet — it has no runtime effect until the migration layers wire it
+ * up, which is what makes a foundation layer safe to land.
+ *
+ * The custom-property values below are the same numbers as `src/design/
+ * tokens.ts`, and `src/design/tokens.parity.test.ts` fails if the two ever
+ * disagree. Do not edit one without the other.
+ */
+
+/* ══ The token scale, as custom properties ══════════════════════════════════
+ *
+ * Namespaced `--su-*` so this scale can coexist with Tailwind's `@theme`
+ * output (`--color-*`, `--text-*`, …) for as long as both are in the build.
+ * The names are `--su-<group>-<token>`, where the token is the kebab-case
+ * spelling of its `tokens.ts` key: `color.inkDeep` is `--su-color-ink-deep`.
+ */
+:root {
+  /* ── Type faces ── */
+  --su-font-body: 'Barlow', system-ui, -apple-system, sans-serif;
+  --su-font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
+
+  /* ── Spacing rhythm, keyed by its own pixel value ── */
+  --su-space-0: 0px;
+  --su-space-2: 2px;
+  --su-space-4: 4px;
+  --su-space-6: 6px;
+  --su-space-8: 8px;
+  --su-space-10: 10px;
+  --su-space-12: 12px;
+  --su-space-14: 14px;
+  --su-space-16: 16px;
+  --su-space-20: 20px;
+  --su-space-24: 24px;
+  --su-space-28: 28px;
+  --su-space-32: 32px;
+  --su-space-40: 40px;
+  --su-space-48: 48px;
+  --su-space-64: 64px;
+  --su-space-96: 96px;
+
+  /* ── Type ladder: the semantic rungs (ruleset §4.2) ── */
+  --su-text-nano: 8px;
+  --su-text-micro: 9px;
+  --su-text-label: 10px;
+  --su-text-label-lg: 10.5px;
+  --su-text-badge: 11px;
+  --su-text-note: 11.5px;
+  --su-text-caption: 13px;
+  --su-text-lede: 15px;
+  --su-text-readout: 17px;
+  --su-text-title: 22px;
+  --su-text-display: 26px;
+  --su-text-display-lg: 31px;
+  --su-text-hero: 38px;
+  /* ── …and the inherited rungs. These are Tailwind's built-ins, carried
+     because ~340 call sites use them and they vanish with Tailwind. They
+     overlap the ladder above, which is real debt; see the note in tokens.ts.
+     Prefer a semantic rung. ── */
+  --su-text-xs: 12px;
+  --su-text-sm: 14px;
+  --su-text-base: 16px;
+  --su-text-lg: 18px;
+  --su-text-xl: 20px;
+  --su-text-xl-2: 24px;
+  --su-text-xl-3: 30px;
+
+  /* ── Weights ── */
+  --su-weight-normal: 400;
+  --su-weight-medium: 500;
+  --su-weight-semibold: 600;
+  --su-weight-bold: 700;
+  --su-weight-extrabold: 800;
+
+  /* ── Caps tracking ladder ── */
+  --su-tracking-caps-tight: 0.04em;
+  --su-tracking-caps-snug: 0.06em;
+  --su-tracking-caps: 0.08em;
+  --su-tracking-caps-wide: 0.12em;
+  --su-tracking-eyebrow: 0.22em;
+
+  /* ── The ONE radius vocabulary (ruleset §4.4) — pick by role ── */
+  --su-radius-pip: 1px;
+  --su-radius-badge: 2px;
+  --su-radius-card: 3px;
+  --su-radius-panel: 6px;
+  --su-radius-none: 0px;
+  --su-radius-full: 9999px;
+
+  /* ── Border weights, one meaning each (design-spec §1.3) ── */
+  --su-bw-hairline: 1px;
+  --su-bw-chrome: 1.5px;
+  --su-bw-pill: 2px;
+  --su-bw-rail: 2.5px;
+  --su-bw-entity: 3px;
+
+  /* ── Tech Level blues ── */
+  --su-color-tl-1: rgb(115, 201, 230);
+  --su-color-tl-2: rgb(87, 169, 200);
+  --su-color-tl-3: rgb(68, 135, 162);
+  --su-color-tl-4: rgb(48, 107, 128);
+  --su-color-tl-5: rgb(30, 83, 100);
+  --su-color-tl-6: rgb(6, 52, 65);
+  --su-color-tl-b: rgb(86, 156, 104);
+  --su-color-tl-n: rgb(146, 109, 184);
+
+  /* ── Entity colours: hue encodes ontology (ruleset §3/§4.1) ── */
+  --su-color-pilot: rgb(239, 137, 79);
+  --su-color-pilot-light: rgb(245, 193, 163);
+  --su-color-mech: rgb(122, 151, 138);
+  --su-color-mech-dark: rgb(92, 121, 108);
+  --su-color-crawler: rgb(206, 88, 152);
+  --su-color-adversary: rgb(140, 75, 56);
+
+  /* ── Guide tones that are not one of the five ontology domains ── */
+  --su-color-guide-salvage: rgb(90, 157, 181);
+  --su-color-guide-hazard: rgb(184, 76, 76);
+
+  /* ── Class ability-tier ramp ── */
+  --su-color-tier-core: rgb(168, 89, 71);
+  --su-color-tier-core-pale: rgb(210, 160, 140);
+
+  /* ── Roll result tiers — the canonical warm state ramp ── */
+  --su-color-roll-cascade: rgb(176, 67, 43);
+  --su-color-roll-failure: rgb(192, 122, 47);
+  --su-color-roll-tough: rgb(193, 154, 62);
+  --su-color-roll-success: rgb(111, 138, 74);
+  --su-color-roll-nailed: rgb(75, 134, 160);
+
+  /* ── Ink / paper / action ── */
+  --su-color-ink: rgb(40, 32, 25);
+  --su-color-ink-2: rgb(70, 61, 49);
+  --su-color-ink-deep: rgb(27, 23, 18);
+
+  /* Ink at opacity — hairlines, placeholders, ghosts, disabled fills, shadows. */
+  --su-color-ink-85: rgb(40 32 25 / 0.85);
+  --su-color-ink-75: rgb(40 32 25 / 0.75);
+  --su-color-ink-50: rgb(40 32 25 / 0.5);
+  --su-color-ink-40: rgb(40 32 25 / 0.4);
+  --su-color-ink-30: rgb(40 32 25 / 0.3);
+  --su-color-ink-20: rgb(40 32 25 / 0.2);
+  --su-color-ink-12: rgb(40 32 25 / 0.12);
+  --su-color-ink-8: rgb(40 32 25 / 0.08);
+
+  /* The ONE light surface (ruleset §4.1). Paper as a background is always flat. */
+  --su-color-paper: rgb(251, 250, 247);
+  /* Paper as a FOREGROUND — printed onto a tone or a dark ground. */
+  --su-color-paper-60: rgb(251 250 247 / 0.6);
+  --su-color-paper-30: rgb(251 250 247 / 0.3);
+
+  /* THE single action colour. */
+  --su-color-rust: rgb(168, 82, 34);
+  --su-color-rust-hi: rgb(138, 64, 25);
+  /* The one sanctioned cream — RollTable banding, and nowhere else. */
+  --su-color-band-cream: rgb(243, 237, 226);
+
+  /* ── Workshop (light) ground ── */
+  --su-color-wk-bg: rgb(230, 240, 245);
+  --su-color-wk-bg-2: rgb(215, 230, 238);
+  --su-color-wk-muted: rgb(90, 100, 109);
+  /* NON-TEXT ONLY — 2.03:1 on paper. A hairline/divider tone. */
+  --su-color-wk-faint: rgb(167, 180, 189);
+  --su-color-wk-line: rgb(143, 195, 216);
+  --su-color-wk-accent: rgb(125, 206, 235);
+
+  /* ── Attention fills ── */
+  --su-color-caution: rgb(215, 195, 125);
+  --su-color-inert: rgb(192, 192, 192);
+
+  /* ── Cargo (storage) accent triplet ── */
+  --su-color-cargo: rgb(156, 122, 62);
+  --su-color-cargo-deep: rgb(111, 85, 39);
+  --su-color-cargo-pale: rgb(239, 230, 212);
+
+  /* ── Sheet "deep" tones that are literals rather than aliases ── */
+  --su-color-sheet-mech-deep: rgb(47, 67, 56);
+  --su-color-sheet-crawler-deep: rgb(126, 42, 91);
+  /* A LITERAL, not `var(--su-color-tl-5)`, which holds the same value but means
+     TECH LEVEL — aliasing it would tie the Game ontology to tech-level semantics. */
+  --su-color-sheet-game-deep: rgb(30, 83, 100);
+
+  /* ── Aliases. These stay aliases so a retone propagates. ── */
+  --su-color-status-ok: var(--su-color-roll-success);
+  --su-color-status-warn: var(--su-color-roll-failure);
+  --su-color-status-bad: var(--su-color-roll-cascade);
+  --su-color-sheet-pilot: var(--su-color-pilot);
+  --su-color-sheet-pilot-deep: var(--su-color-rust);
+  --su-color-sheet-mech: var(--su-color-mech);
+  --su-color-sheet-crawler: var(--su-color-crawler);
+  --su-color-sheet-game: var(--su-color-wk-accent);
+}
+
+/* ══ Base ═══════════════════════════════════════════════════════════════════
+ *
+ * Tailwind's preflight supplies these today and takes them away when it leaves,
+ * so the package stylesheet has to carry them or every migrated component's box
+ * maths changes underneath it. Deliberately minimal: only the rules the app
+ * visibly depends on, not a general-purpose reset.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Headings inherit until a style object or class says otherwise, so a semantic
+   <h2> is a landmark rather than a size. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Form controls do not inherit type by default; every design system wants them to. */
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* ══ The page ground and body face ══════════════════════════════════════════ */
+body {
+  background-color: var(--su-color-paper);
+  color: var(--su-color-ink);
+  font-family: var(--su-font-body);
+  font-size: var(--su-text-sm);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══ The stateful half ══════════════════════════════════════════════════════
+ *
+ * Everything below is here because a style object could not hold it. Each class
+ * is the interactive complement of an object in `src/design/styles.ts`: the
+ * object paints the resting state, the class paints every other state.
+ */
+
+/**
+ * The canonical rust focus ring (design-spec §2.4), on `:focus-visible` — a
+ * button shows it to the keyboard, not to the mouse.
+ */
+.su-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+}
+
+/**
+ * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
+ * whose own background is a caller-supplied ENTITY TONE. The soft ring above
+ * simply disappears against the dark end of the tech-level ramp, and a ring
+ * that vanishes on a legal background is not an accessibility affordance.
+ */
+.su-focus-ring-on-tone:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--su-color-paper),
+    0 0 0 4px var(--su-color-ink);
+}
+
+/** The interactive complement of `styles.buttonBase`. */
+.su-button:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.su-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+}
+
+.su-button:disabled {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/**
+ * The interactive complement of `styles.inputBase`. Plain `:focus`, not
+ * `:focus-visible`: an editable control shows the ring on every focus.
+ */
+.su-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+}
+
+.su-input:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.su-input::placeholder {
+  color: var(--su-color-wk-muted);
+}
+
+/**
+ * The search-shell rung: the bordered shell is the thing that should look
+ * focused, but the <input> inside is what actually takes focus. Ring-only —
+ * there is no outline on the shell to suppress, and pretending otherwise would
+ * imply the shell is focusable when it is not.
+ */
+.su-focus-within:focus-within {
+  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+}
+
+/* ══ Mobile-first touch targets ═════════════════════════════════════════════ */
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ══ Reduced-motion backstop ════════════════════════════════════════════════
+ *
+ * The single place the "no loops for a prefers-reduced-motion user" guarantee is
+ * made true. A per-call-site convention that nothing enforces will drift; this
+ * is the floor under it, and it holds for a call site nobody remembered to mark.
+ *
+ * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
+ * the animation — it runs it once, instantly, so the element lands on the
+ * keyframes' END state rather than being left mid-transform. Simply disabling
+ * the animation would strand an exit animation mounted forever.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every inline style and class it covers, whatever their specificity or layer */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — a loop must not survive because one call site set iteration-count inline */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion */
+    scroll-behavior: auto !important;
+  }
+}
