@@ -82,11 +82,6 @@ describe('with no DSN configured', () => {
     expect(calls('captureException')).toHaveLength(0)
   })
 
-  test('captureMessage is a no-op too', () => {
-    obs.captureMessage('ready')
-    expect(calls('captureMessage')).toHaveLength(0)
-  })
-
   test('flush resolves immediately instead of waiting on a transport', async () => {
     // A 2s flush timeout on every exit of a bot that never had a DSN would be
     // two wasted seconds on every restart.
@@ -152,13 +147,6 @@ describe('once a DSN is configured before the first init', () => {
   test('no context sends undefined rather than an empty extra bag', () => {
     fresh.captureException(new Error('bare'))
     expect(calls('captureException')[1]?.args[1]).toBeUndefined()
-  })
-
-  test('messages are reported — the worker has no port to health-probe', () => {
-    fresh.captureMessage('logged in', { shard: 0 })
-    const c = calls('captureMessage')[0]
-    expect(c?.args[0]).toBe('logged in')
-    expect(c?.args[1]).toEqual({ extra: { shard: 0 } })
   })
 
   test('flush is awaited before exit, with the timeout passed through', async () => {

@@ -309,6 +309,51 @@ describe('startHeartbeat — the liveness monitor', () => {
     expect(timer.unrefs()).toBe(1)
   })
 
+  test('stops checking in when the surface stops being alive, and resumes when it recovers', () => {
+    const timer = fakeTimer()
+    let alive = true
+    const o = enabled()
+    o.startHeartbeat({
+      monitorSlug: 'discord-bot-heartbeat',
+      intervalMs: 300_000,
+      monitorConfig,
+      isAlive: () => alive,
+      setIntervalFn: timer.setIntervalFn,
+      clearIntervalFn: timer.clearIntervalFn,
+    })
+    expect(of('captureCheckIn')).toHaveLength(1)
+
+    // The case the monitor exists for: the process is fine and still scheduling
+    // callbacks, but the surface has lost its connection. A bare timer would
+    // keep reporting `ok` and hold the monitor green through exactly the outage
+    // it was added to catch.
+    alive = false
+    timer.fire()
+    timer.fire()
+    expect(of('captureCheckIn')).toHaveLength(1)
+
+    // Skipping rather than sending `error` means recovery needs no extra signal:
+    // the schedule simply starts being met again.
+    alive = true
+    timer.fire()
+    expect(of('captureCheckIn')).toHaveLength(2)
+  })
+
+  test('a dead-on-arrival surface never checks in at all', () => {
+    const timer = fakeTimer()
+    enabled().startHeartbeat({
+      monitorSlug: 'discord-bot-heartbeat',
+      intervalMs: 300_000,
+      monitorConfig,
+      isAlive: () => false,
+      setIntervalFn: timer.setIntervalFn,
+      clearIntervalFn: timer.clearIntervalFn,
+    })
+    // Including the eager one — otherwise a worker that never connects would
+    // still register one healthy check-in and look briefly fine.
+    expect(of('captureCheckIn')).toHaveLength(0)
+  })
+
   test('a failing check-in does not take the worker down with it', () => {
     const timer = fakeTimer()
     checkInShouldThrow = true

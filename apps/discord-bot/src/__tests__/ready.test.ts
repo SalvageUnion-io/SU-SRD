@@ -23,15 +23,14 @@ process.env.DISCORD_CLIENT_ID ??= 'test-client-id'
  * the time `afterAll` runs.
  */
 const observabilityCalls: string[] = []
+let heartbeatIsAlive: (() => boolean) | null = null
 const realObservability = { ...(await import('../observability.js')) }
 
 mock.module('../observability.js', () => ({
   ...realObservability,
-  startLivenessHeartbeat: () => {
+  startLivenessHeartbeat: (isAlive: () => boolean) => {
     observabilityCalls.push('startLivenessHeartbeat')
-  },
-  captureMessage: (message: string) => {
-    observabilityCalls.push(`captureMessage:${message}`)
+    heartbeatIsAlive = isAlive
   },
 }))
 
@@ -59,6 +58,7 @@ type PresenceArg = {
 /** Minimal ReadyClient stand-in recording the presence set on login. */
 function mockClient() {
   const presences: PresenceArg[] = []
+  let ready = true
   const client: ReadyClient = {
     user: {
       tag: 'SalvageUnion#0001',
@@ -67,8 +67,15 @@ function mockClient() {
       },
     },
     guilds: { cache: { size: 3 } },
+    isReady: () => ready,
   }
-  return { client, presences }
+  return {
+    client,
+    presences,
+    disconnect: () => {
+      ready = false
+    },
+  }
 }
 
 describe('handleReady', () => {
@@ -94,5 +101,19 @@ describe('handleReady', () => {
     // permanent error-category issue that had to be archived (SU-DISCORD-1).
     expect(observabilityCalls).toEqual(['startLivenessHeartbeat'])
     expect(observabilityCalls.some((c) => c.startsWith('captureMessage'))).toBe(false)
+  })
+
+  test('the heartbeat asks the LIVE client, not a value captured at login', () => {
+    const { client, disconnect } = mockClient()
+    handleReady(client)
+
+    expect(heartbeatIsAlive?.()).toBe(true)
+
+    // Reaching handleReady proves the bot connected once. If the predicate had
+    // closed over that moment, a worker that stays up after losing its gateway
+    // session would report `ok` forever and hold the monitor green through the
+    // exact outage it exists to catch.
+    disconnect()
+    expect(heartbeatIsAlive?.()).toBe(false)
   })
 })

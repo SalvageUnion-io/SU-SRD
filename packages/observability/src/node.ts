@@ -155,24 +155,27 @@ export type HeartbeatOptions = {
    * change fails typecheck here rather than at runtime in a worker.
    */
   monitorConfig: NonNullable<Parameters<typeof SentryNode.captureCheckIn>[1]>
+  /**
+   * Asked on every tick: is the surface still doing its job?
+   *
+   * **Without this the monitor reports the wrong thing.** A bare timer proves
+   * only that the process is scheduling callbacks, so a worker that stays up but
+   * loses its connection — revoked token, permanent disconnect, a hung shard —
+   * keeps checking in `ok` forever. That is precisely the "went dark" case the
+   * monitor exists to catch, and it would be the case it hides.
+   *
+   * Returning false skips the check-in rather than sending `error`: a missed
+   * check-in is what the monitor's schedule already understands, and it recovers
+   * on its own the moment the predicate goes true again. Defaults to always-alive
+   * for a surface with nothing meaningful to ask.
+   */
+  isAlive?: () => boolean
   /** Injected in tests; defaults to the global timer. */
   setIntervalFn?: typeof setInterval
   /** Injected in tests; defaults to the global timer. */
   clearIntervalFn?: typeof clearInterval
 }
 
-/**
- * `resolve` is a THUNK, not a value, and that is load-bearing: it is called at
- * `init()`, never at import.
- *
- * Every consumer's configuration comes from somewhere that must not be read at
- * module scope — `process.env` in a Netlify Function (a cold start may set it
- * after the module graph loads) and a mockable `config` module in the bot,
- * whose tests swap the DSN per case. The first draft of this took a plain
- * object and captured the DSN at import; the bot's suite caught it immediately,
- * because every test then saw whatever the DSN was when the module first
- * loaded.
- */
 /**
  * Says so, on stderr, when a server surface comes up with no DSN.
  *
@@ -202,6 +205,18 @@ function warnUnconfigured(config: ObservabilityConfig): void {
   )
 }
 
+/**
+ * `resolve` is a THUNK, not a value, and that is load-bearing: it is called at
+ * `init()`, never at import.
+ *
+ * Every consumer's configuration comes from somewhere that must not be read at
+ * module scope — `process.env` in a Netlify Function (a cold start may set it
+ * after the module graph loads) and a mockable `config` module in the bot,
+ * whose tests swap the DSN per case. The first draft of this took a plain
+ * object and captured the DSN at import; the bot's suite caught it immediately,
+ * because every test then saw whatever the DSN was when the module first
+ * loaded.
+ */
 export function createObservability(
   resolve: () => ObservabilityConfig,
   Sentry: SentrySdk
@@ -274,6 +289,10 @@ export function createObservability(
         // a bare timer, so a throw here is an unhandled rejection in the bot's
         // own crash handler, i.e. the monitor killing the thing it monitors.
         try {
+          // Asked EVERY tick, not once at start. A process that is running is
+          // not the same as a surface that is working, and only the second is
+          // worth reporting — see `isAlive`.
+          if (options.isAlive && !options.isAlive()) return
           Sentry.captureCheckIn(
             { monitorSlug: options.monitorSlug, status: 'ok' },
             options.monitorConfig

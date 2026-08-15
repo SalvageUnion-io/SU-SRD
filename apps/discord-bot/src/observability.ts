@@ -67,16 +67,15 @@ export function captureException(error: unknown, context?: Record<string, unknow
   observability.captureException(error, context)
 }
 
-/**
- * Reports an informational message to Sentry when enabled; otherwise a no-op.
+/*
+ * There is deliberately no `captureMessage` export here.
  *
- * NOT the liveness path — see `startLivenessHeartbeat`. An info event proves
- * only that the process was alive at the moment it was sent, which is never the
- * moment you care about.
+ * It existed for exactly one caller — the `discord-bot ready` liveness event —
+ * and that is now a cron monitor. An info event proves only that the process was
+ * alive at the moment it was sent, which is never the moment you care about, so
+ * re-adding this to signal health would be re-adding the bug. Errors go through
+ * `captureException`; liveness goes through `startLivenessHeartbeat`.
  */
-export function captureMessage(message: string, context?: Record<string, unknown>): void {
-  observability.captureMessage(message, context)
-}
 
 /** Sentry cron monitor slug. Changing it starts a new monitor and orphans the old one. */
 const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
@@ -105,11 +104,16 @@ const HEARTBEAT_INTERVAL_MINUTES = 5
  */
 let stopHeartbeat: (() => void) | null = null
 
-export function startLivenessHeartbeat(): void {
+export function startLivenessHeartbeat(isAlive: () => boolean): void {
   if (stopHeartbeat) return
   stopHeartbeat = observability.startHeartbeat({
     monitorSlug: HEARTBEAT_MONITOR_SLUG,
     intervalMs: HEARTBEAT_INTERVAL_MINUTES * 60_000,
+    // Re-asked every tick. Reaching `handleReady` proves the bot was connected
+    // once; only this proves it still is. Without it a worker that stays up
+    // after losing its gateway session reports `ok` forever — the exact silence
+    // this monitor exists to break.
+    isAlive,
     monitorConfig: {
       schedule: { type: 'interval', value: HEARTBEAT_INTERVAL_MINUTES, unit: 'minute' },
       checkinMargin: 2,
@@ -121,7 +125,13 @@ export function startLivenessHeartbeat(): void {
   })
 }
 
-/** Stops the heartbeat. Exists for tests and for an orderly shutdown. */
+/**
+ * Stops the heartbeat.
+ *
+ * Called from the `uncaughtException` path in `index.ts`, before the flush: a
+ * process on its way out must not report itself alive on the way, and a tick
+ * landing mid-flush would add an event to the buffer being drained.
+ */
 export function stopLivenessHeartbeat(): void {
   stopHeartbeat?.()
   stopHeartbeat = null

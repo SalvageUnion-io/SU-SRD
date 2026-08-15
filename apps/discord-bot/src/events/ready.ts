@@ -10,6 +10,12 @@ import { startLivenessHeartbeat } from '../observability.js'
 export type ReadyClient = {
   user: { tag: string; setPresence(presence: PresenceData): void }
   guilds: { cache: { size: number } }
+  /**
+   * Discord.js's own connection state, read on every heartbeat tick rather than
+   * once here — see `startLivenessHeartbeat`. `Client` satisfies this
+   * structurally, so nothing at the call site changes.
+   */
+  isReady(): boolean
 }
 
 export function handleReady(client: ReadyClient): void {
@@ -29,5 +35,9 @@ export function handleReady(client: ReadyClient): void {
   // an alert path but could not be one — Sentry alerts on events arriving, not
   // on their absence, so a worker going dark raised nothing. It is now a cron
   // monitor, where a MISSED check-in is the alert. See `startLivenessHeartbeat`.
-  startLivenessHeartbeat()
+  //
+  // The predicate is what makes that true beyond the first tick: reaching this
+  // handler proves the bot connected once, and `isReady()` is what proves it is
+  // still connected each time it checks in.
+  startLivenessHeartbeat(() => client.isReady())
 }
