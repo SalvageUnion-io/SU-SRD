@@ -24,7 +24,38 @@
  */
 
 import * as Sentry from '@sentry/node'
-import { createObservability } from 'observability/node'
+/*
+ * The import below is a RELATIVE path into `packages/observability`, not the
+ * `observability` package name, and that is load-bearing rather than stylistic.
+ *
+ * Resolved through node_modules (i.e. by package name), the shared module
+ * becomes a chunk that esbuild emits once per entry point that uses it — and
+ * with three snapshot Functions sharing it, zip-it-and-ship-it wrote that chunk
+ * into each zip under the FUNCTION'S OWN filename. The zips shipped two files
+ * at one path:
+ *
+ *   apps/itun/netlify/functions/snapshot-retrieve.mjs   3662 bytes  (the function)
+ *   apps/itun/netlify/functions/snapshot-retrieve.mjs   1369 bytes  (observability)
+ *
+ * Last entry wins on extraction, so the Lambda loaded the observability module
+ * — which exports `initObservability` and `captureException`, and no handler:
+ *
+ *   TypeError: D.handler is not a function
+ *       at file:///var/task/___netlify-bootstrap.mjs
+ *
+ * Every snapshot endpoint 502'd. It is invisible in every local signal —
+ * typecheck, tests, lint, knip and `bun --filter itun build` all pass, because
+ * none of them run the Functions bundler.
+ *
+ * Importing the source directly makes esbuild inline it into each entry, so
+ * there is no shared chunk and no collision. `packages/observability` stays the
+ * one implementation (#781's point); only the resolution path changes. The
+ * Discord bot still imports it by package name — it bundles with `bun build`,
+ * which is not affected.
+ *
+ * `tools/check-observability.ts` asserts this shape.
+ */
+import { createObservability } from '../../../../packages/observability/src/node'
 
 // Imported HERE rather than in the shared package so Netlify's bundler resolves
 // it from this app — see packages/observability/src/node.ts. itun is where that

@@ -493,6 +493,13 @@ type ServerSurface = {
   modulePath: string
   /** The manifest that must declare `@sentry/node`. */
   manifestPath: string
+  /**
+   * True when Netlify's Functions bundler (zip-it-and-ship-it) builds this
+   * surface, which constrains HOW it may import the shared package. See
+   * `checkServerSurface`. The Discord bot is bundled by `bun build` and is
+   * unaffected.
+   */
+  netlifyBundled: boolean
 }
 
 const SERVER_SURFACES: ServerSurface[] = [
@@ -500,16 +507,19 @@ const SERVER_SURFACES: ServerSurface[] = [
     name: 'itun-functions',
     modulePath: 'apps/itun/netlify/lib/observability.ts',
     manifestPath: 'apps/itun/package.json',
+    netlifyBundled: true,
   },
   {
     name: 'su-assets-functions',
     modulePath: 'apps/su-assets/netlify/lib/observability.ts',
     manifestPath: 'apps/su-assets/package.json',
+    netlifyBundled: true,
   },
   {
     name: 'discord-bot',
     modulePath: 'apps/discord-bot/src/observability.ts',
     manifestPath: 'apps/discord-bot/package.json',
+    netlifyBundled: false,
   },
 ]
 
@@ -560,6 +570,30 @@ function checkFunctionDirs(): void {
   }
 }
 
+/**
+ * How a Netlify-bundled surface must reach the shared wiring: by RELATIVE PATH
+ * into `packages/observability`, never by the `observability` package name.
+ *
+ * By package name it resolves through node_modules, which makes it a shared
+ * chunk — and esbuild emits that chunk once per entry point that uses it. With
+ * three snapshot Functions importing it, zip-it-and-ship-it wrote the chunk into
+ * each zip under the FUNCTION'S OWN filename, so every zip held two files at one
+ * path and the last one won:
+ *
+ *   apps/itun/netlify/functions/snapshot-retrieve.mjs   3662 bytes  (the function)
+ *   apps/itun/netlify/functions/snapshot-retrieve.mjs   1369 bytes  (observability)
+ *
+ * The Lambda loaded the observability module, which exports no handler, and
+ * every snapshot endpoint answered `TypeError: D.handler is not a function`.
+ *
+ * Nothing local could see it. Typecheck, tests, lint, knip and the app build all
+ * passed throughout, because none of them run the Functions bundler — the only
+ * way to observe it is to bundle with zip-it-and-ship-it and count entries, or
+ * to deploy. Hence a check on the import shape, which is cheap and hermetic.
+ */
+const SHARED_WIRING_BY_PATH = /from '(\.\.\/)+packages\/observability\/src\/node'/
+const SHARED_WIRING_BY_NAME = /from 'observability\/node'/
+
 /** A VALUE import of the SDK — `import type` is erased and would not resolve. */
 const SDK_VALUE_IMPORT = /^\s*import \* as Sentry from '@sentry\/node'$/m
 
@@ -585,6 +619,24 @@ function checkServerSurface(surface: ServerSurface): void {
   if (manifest === null) {
     fail(surface.name, `no manifest at ${surface.manifestPath}`)
     return
+  }
+
+  if (surface.netlifyBundled && SHARED_WIRING_BY_NAME.test(module)) {
+    fail(
+      surface.name,
+      `${surface.modulePath} imports the shared wiring by package name.\n` +
+        "      Netlify's Functions bundler then emits it as a shared chunk that COLLIDES\n" +
+        "      with the function's own output filename, and the zip ships two files at\n" +
+        '      one path — the handler loses, and every endpoint 502s with\n' +
+        '      "D.handler is not a function". Import the source by relative path:\n' +
+        "      import { createObservability } from '../../../../packages/observability/src/node'"
+    )
+  } else if (surface.netlifyBundled && !SHARED_WIRING_BY_PATH.test(module)) {
+    fail(
+      surface.name,
+      `${surface.modulePath} does not import the shared wiring from\n` +
+        '      packages/observability/src/node by relative path. See the header there.'
+    )
   }
 
   const { dependencies } = JSON.parse(manifest) as { dependencies?: Record<string, string> }
