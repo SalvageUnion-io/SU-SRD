@@ -16,11 +16,11 @@ import { useHydrateOnMount } from '../useHydrateEntities'
 class Boundary extends Component<{ children: ReactNode }, { caught: boolean; error: unknown }> {
   // Track "caught" separately from the value: a thrown `null`/`undefined` must
   // still show the fallback (mirrors why the hook uses a symbol sentinel).
-  state: { caught: boolean; error: unknown } = { caught: false, error: null }
+  override state: { caught: boolean; error: unknown } = { caught: false, error: null }
   static getDerivedStateFromError(error: unknown) {
     return { caught: true, error }
   }
-  render() {
+  override render() {
     if (this.state.caught) {
       const message = this.state.error instanceof Error ? this.state.error.message : 'non-error'
       return <div role="alert">caught: {message}</div>

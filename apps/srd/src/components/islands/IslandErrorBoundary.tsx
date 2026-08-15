@@ -19,7 +19,7 @@ type State = { error: Error | null }
  * page reload.
  */
 export class IslandErrorBoundary extends Component<Props, State> {
-  state: State = { error: null }
+  override state: State = { error: null }
 
   static getDerivedStateFromError(error: Error): State {
     return { error }
@@ -32,11 +32,11 @@ export class IslandErrorBoundary extends Component<Props, State> {
    * an island crash blanked a surface, showed the recovery panel, and produced
    * no production signal at all.
    */
-  componentDidCatch(error: Error, info: ErrorInfo): void {
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
     captureException(error, { componentStack: info.componentStack })
   }
 
-  render() {
+  override render() {
     if (this.state.error) {
       return (
         <div className="mx-auto flex w-full max-w-6xl justify-center p-4">
