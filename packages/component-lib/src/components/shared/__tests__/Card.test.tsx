@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { FOCUS_RING_ON_TONE } from '../../chrome/interaction'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 import { Card } from '../Card'
 
@@ -372,12 +373,17 @@ describe('Card', () => {
     // Wrapper should be keyboard-focusable when clickable
     expect(wrapper.getAttribute('tabIndex')).toBe('0')
     expect(wrapper.getAttribute('role')).toBe('button')
-    // Ring-based focus indicator with a contrasting offset color so the outline
-    // remains visible on both light and dark tech-level backgrounds.
-    expect(wrapper.className).toContain('focus-visible:ring-2')
-    expect(wrapper.className).toContain('focus-visible:ring-ink')
-    expect(wrapper.className).toContain('focus-visible:ring-offset-2')
-    expect(wrapper.className).toContain('focus-visible:ring-offset-paper')
+    // Ring-based focus indicator with a contrasting offset colour so the ring
+    // stays visible on both the light and the dark end of the tech-level ramp.
+    //
+    // One assertion, on the exported constant, where there were four on the
+    // pieces of its Tailwind spelling (`ring-ink`, `ring-offset-2`,
+    // `ring-offset-paper`). The vocabulary moved to `.su-*` names in #799, and
+    // the ring's composition is the STYLESHEET's business now — what this test
+    // is actually about is that a clickable Card reaches for the on-tone rung
+    // rather than the soft one. Re-spelling the four would just re-pin the test
+    // to an implementation detail a rename can move.
+    expect(wrapper.className).toContain(FOCUS_RING_ON_TONE)
   })
 
   test('non-button (non-clickable) card does not render focus ring classes', () => {

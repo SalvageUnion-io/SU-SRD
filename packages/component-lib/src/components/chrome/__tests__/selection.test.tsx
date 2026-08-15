@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { SELECTION_RING } from '../interaction'
 import { Sel } from '../Sel'
 
 describe('Sel', () => {
@@ -9,13 +10,13 @@ describe('Sel', () => {
         <div>card</div>
       </Sel>
     )
-    expect(container.firstElementChild?.className).not.toContain('shadow-[0_0_0_3px')
+    expect(container.firstElementChild?.className).not.toContain(SELECTION_RING)
     rerender(
       <Sel selected>
         <div>card</div>
       </Sel>
     )
-    expect(container.firstElementChild?.className).toContain('shadow-[0_0_0_3px')
+    expect(container.firstElementChild?.className).toContain(SELECTION_RING)
   })
 
   test('onToggle makes the wrapper keyboard-operable', () => {

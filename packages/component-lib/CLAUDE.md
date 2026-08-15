@@ -134,6 +134,64 @@ so its style objects were never asked to carry interaction or viewport state.
 Here they would be, and they cannot. That is the one thing that must not be lost
 in translation, and it is why the stylesheet is not optional.)
 
+### Checking a focus style: `.focus()` will lie to you
+
+**`:focus-visible` does not match programmatic focus.** Calling `el.focus()` — or
+`.focus()` from a devtools console, or `userEvent`/`fireEvent.focus` in a test —
+moves focus without satisfying the browser's keyboard heuristic, so
+`:focus-visible` stays unmatched and `getComputedStyle(el).boxShadow` reports
+`none`. Every focus ring in this package is on `:focus-visible` (that is the
+point — a button shows its ring to the keyboard, not to the mouse), so **a
+working ring reads as a missing one** under that check.
+
+That is the dangerous direction: it makes a correct feature look broken, which
+invites someone to "fix" it until it really is. Verified on the real thing —
+`el.focus()` gave `boxShadow: none` on a Button whose ring was fine, while a real
+**Tab** press gave `matchesFocusVisible: true` and
+`rgba(168, 82, 34, 0.25) 0 0 0 3px`.
+
+So to check a focus style: send a real key press (a browser driver's Tab key), or
+assert `el.matches(':focus-visible')` alongside the computed value so a false
+negative is distinguishable from a real one. `:focus` rungs — `.su-input-focus`,
+`.su-focus-within` — are exempt from this and do respond to `.focus()`, which is
+its own trap, since it makes the two rungs behave differently under the same
+check for reasons that have nothing to do with either being correct.
+
+### Checking cascade layers: assert on the DECLARATION, never on block position
+
+**Layer order is set by the first `@layer` declaration, not by where the blocks
+land in the file.** So checking a cascade by finding the `@layer name { … }`
+blocks and comparing their byte offsets measures the wrong thing — and it does
+not fail honestly, because it is right in one environment and wrong in another.
+
+Measured both ways on this repo's own wiring, which imports the package
+stylesheet into `su-base` (see `apps/*/src/**.css`):
+
+| | block order | actual cascade |
+| --- | --- | --- |
+| production build | `base` → `su-base` → `utilities` | correct |
+| Vite dev | `base` → `utilities` → … → `su-base` | **also correct** |
+
+Dev emits `su-base`'s block ~86 KB after the utilities block, so an
+offset-comparing script reports the cascade inverted. It is not: both outputs
+carry `@layer theme, base, su-base, components, utilities;` ahead of Tailwind's
+own declaration, and that line decides. Confirmed by injecting an
+`<h2 class="text-2xl">` into the running dev app and reading **24px** rather than
+the inherited 14px — Tailwind's utility still outranks the `su-base` heading
+reset, exactly as in the build.
+
+So verify a layer question one of two ways, and never by block position:
+
+- **the declaration** — find the bare `@layer a, b, c;` and read the order off
+  it. This is what `check:styling`'s `package-stylesheet-import` rule asserts.
+- **a computed value** — render the real thing and read
+  `getComputedStyle(el)`, which cannot be fooled by emission order at all.
+
+The reason this one is worth writing down: the offset method was *decisive* on
+the production bundle and *false* in dev, which makes it far harder to distrust
+than a method that is simply wrong. A scratch tool that agrees with you once
+earns credibility it has not got.
+
 ### Migration status (#799, epic #802)
 
 Migrating by Ladle group, one PR per group: **Foundations ✅ → Atoms → Containers

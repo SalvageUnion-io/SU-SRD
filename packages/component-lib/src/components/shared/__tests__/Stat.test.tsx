@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import { FOCUS_RING } from '../../chrome/interaction'
 import { Stat } from '../Stat'
 
 describe('Stat', () => {
@@ -29,6 +30,6 @@ describe('Stat', () => {
   test('interactive stat has focus-visible outline for keyboard users', () => {
     const { getByRole } = render(<Stat label="HP" value={10} onClick={() => {}} />)
     const button = getByRole('button')
-    expect(button.className).toContain('focus-visible:outline')
+    expect(button.className).toContain(FOCUS_RING)
   })
 })

@@ -425,6 +425,53 @@ body {
   box-shadow: 0 0 0 3px var(--su-color-rust-25);
 }
 
+/*
+ * The INPUT focus rung, as a standalone class.
+ *
+ * Distinct from `.su-input` above, which also paints an input's resting shell.
+ * This one is ring-only, so a control that already owns its frame takes the
+ * canonical ring without inheriting a second border. Plain `:focus`, not
+ * `:focus-visible` — an editable control shows the ring on every focus.
+ */
+.su-input-focus:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--su-color-rust-25);
+}
+
+/** The canonical disabled treatment. */
+.su-disabled:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/*
+ * The SELECTION rings — a box-shadow rather than a border, so a selected card
+ * does not nudge its neighbours (design-spec §2.8).
+ *
+ * Unlike the focus rings these are NOT stateful: selection is application
+ * state, not a CSS pseudo-class, so the class is applied conditionally from
+ * TypeScript and the rule itself is unconditional. They live here because they
+ * are class-string exports (see the class-string exemption in this package's
+ * CLAUDE.md), not because a style object could not hold them.
+ */
+.su-selection-ring {
+  box-shadow: 0 0 0 3px var(--su-color-rust);
+}
+
+/*
+ * The double-ink "halo" — a ground-coloured gap, then a 3px ink ring. The
+ * emphasis the onboarding doors use instead of the rust ring.
+ *
+ * `--ground` is supplied by the CALLER, which is the whole point: the gap has
+ * to match whatever surface the door is sitting on, so it is a bare custom
+ * property rather than a token.
+ */
+.su-selection-ring-ink-double {
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 6px var(--su-color-ink);
+}
+
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════ */
 @media (pointer: coarse) {
   button,

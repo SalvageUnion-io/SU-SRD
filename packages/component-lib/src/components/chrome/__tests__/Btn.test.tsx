@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Button } from '../Button'
+import { DISABLED } from '../interaction'
 
 describe('Button', () => {
   test('defaults to a paper/ink md button of type="button"', () => {
@@ -47,7 +48,10 @@ describe('Button', () => {
     )
     const btn = screen.getByRole('button')
     expect(btn.hasAttribute('disabled')).toBe(true)
-    expect(btn.className).toContain('disabled:opacity-40')
+    // Asserted against the exported constant rather than its spelling: the
+    // vocabulary moved from Tailwind classes to `.su-*` names in #799, and a
+    // test pinned to the spelling breaks on a rename that changes nothing.
+    expect(btn.className).toContain(DISABLED)
     fireEvent.click(btn)
     expect(onClick).not.toHaveBeenCalled()
   })
