@@ -18,15 +18,27 @@
  * over the live sheet, and one less route, one less screen and one less
  * duplicate of the derived-stat math.
  *
- * ## The two share models are deliberately both here
+ * ## The two share models are deliberately both here, and named on the right axis
  *
  * They answer different questions and a player choosing between them should see
  * both (ADR-004, ADR-032):
  *
- *   Snapshot      frozen at publish time; the id IS the capability, including
- *                 for revocation; no account.
- *   Public sheet  live, follows the sheet as it changes; opt-in per entity;
- *                 revoked by switching it off, everywhere at once.
+ *   Live public sheet  follows the sheet as it changes; opt-in per entity;
+ *                      revoked by switching it off, everywhere at once.
+ *   Frozen snapshot    fixed at publish time; the id IS the capability,
+ *                      including for revocation; no account.
+ *
+ * They used to be headed "Public sheet" and "Snapshot link", which named the
+ * wrong axis. **Read-only is the constant** — every shared surface in the app
+ * renders through `frozenSheet.ts` + `<Sheet readOnly />`, the public one
+ * included — so "public" opposite "snapshot" reads as public-versus-private and
+ * invites the guess that the public page is somehow writable by whoever holds
+ * the link. Live-versus-frozen is the only thing actually being chosen, so it is
+ * what the headings say, and one line above them frames it.
+ *
+ * The live one goes FIRST when it is present: for a signed-in player a link that
+ * stays current is what "share my sheet" usually means, and a frozen copy is the
+ * deliberate exception.
  *
  * ## Two gates that are not the same gate
  *
@@ -146,6 +158,16 @@ export function ShareStatusDialog({
 
   const shareUrl = publishState.status === 'published' ? publishState.shareUrl : null
 
+  /**
+   * Whether the live half is on offer at all — which decides both the framing
+   * line's wording and whether `PublicSheetPanel` MOUNTS.
+   *
+   * The mount half is not a style choice: that component calls Convex hooks,
+   * which cannot be called conditionally and throw outright with no provider —
+   * precisely the Solo case. Gating on render is what keeps Solo working.
+   */
+  const showLive = isConvexConfigured && connectionMode === 'connected'
+
   async function handlePublish(): Promise<void> {
     setPublishState({ status: 'publishing' })
     setCopied(false)
@@ -233,22 +255,69 @@ export function ShareStatusDialog({
       */}
       {/* The padding was the Panel's; ModalShell's Card body supplies none. */}
       <div className="flex flex-col gap-5 divide-y-2 divide-ink/10 p-4 sm:p-5 [&>*+*]:pt-5">
+        {/*
+          The one sentence that makes the two sections legible as a pair.
+
+          Both were named for the wrong axis: "Public sheet" versus "Snapshot"
+          reads as public-versus-private, and invites the guess that the public
+          one is somehow editable by whoever holds the link. It is not — every
+          shared surface renders through `frozenSheet.ts` + `<Sheet readOnly />`.
+          Read-only is the CONSTANT. Live-versus-frozen is the only thing a
+          player is actually choosing between, so that is what the headings say
+          and what this line frames.
+        */}
+        <p className="text-wk-muted mb-0 mt-0 font-body text-caption leading-relaxed">
+          {showLive ? (
+            <>
+              Both give whoever has the link a read-only view of {entity.name}. The choice is
+              whether it keeps up with you.
+            </>
+          ) : (
+            /* Solo has one option, so "both" would be a lie — but the read-only
+               promise is the half that must survive either way. */
+            <>Whoever has the link gets a read-only view of {entity.name}.</>
+          )}
+        </p>
+
+        {/*
+          First when present, because for a signed-in player it is the better
+          default: a link that stays current is what "share my sheet" usually
+          means, and the frozen one is the deliberate exception below it.
+        */}
+        {showLive && (
+          <PublicSheetPanel
+            kind={kind}
+            appId={id}
+            entityName={entity.name}
+            headingClass={PANEL_HEADING_CLASS}
+          />
+        )}
+
         <section>
-          <h2 className={PANEL_HEADING_CLASS}>Snapshot link</h2>
+          <h2 className={PANEL_HEADING_CLASS}>Frozen snapshot</h2>
 
           {/*
             The status line, and the reason this dialog is called "Share status"
             rather than "Share": the first thing a player wants is not a control,
             it is an answer to "is this already out there?".
           */}
+          {/*
+            "Active", not "live". `links.length` counts snapshots that have not
+            been revoked — but one section up, "live" now means the sheet that
+            keeps current, which is the exact opposite of what a snapshot does.
+            One word, two meanings, three inches apart.
+          */}
           <p className="text-wk-muted mb-3 mt-0 font-body text-caption leading-relaxed">
             {links.length === 0 ? (
-              <>Not shared. Publishing mints a frozen copy of this build at a link.</>
+              <>
+                Not shared. Publishing mints a copy of {entity.name} as it is right now, at a link
+                that never changes again.
+              </>
             ) : (
               <>
-                Shared — {links.length} live {links.length === 1 ? 'link' : 'links'}. Each is frozen
-                at the moment it was published, so later edits to {entity.name} won&rsquo;t change
-                what it shows.
+                Shared — {links.length} active {links.length === 1 ? 'link' : 'links'}. Each shows{' '}
+                {entity.name} as it was the moment that link was published; later edits never reach
+                it.
               </>
             )}
           </p>
@@ -342,21 +411,6 @@ export function ShareStatusDialog({
             No account needed. The snapshot stores no personal data — just the build.
           </p>
         </section>
-
-        {/*
-          Mounted only when connected, and the check belongs HERE rather than
-          inside the panel: it calls Convex hooks, which cannot be called
-          conditionally and throw with no provider — precisely the Solo case.
-          Gating on render is what keeps Solo working.
-        */}
-        {isConvexConfigured && connectionMode === 'connected' && (
-          <PublicSheetPanel
-            kind={kind}
-            appId={id}
-            entityName={entity.name}
-            headingClass={PANEL_HEADING_CLASS}
-          />
-        )}
       </div>
     </ModalShell>
   )

@@ -98,6 +98,28 @@ describe('ShareStatusDialog — status', () => {
     expect(screen.getByText(/not shared/i)).toBeTruthy()
   })
 
+  /**
+   * The naming axis, locked.
+   *
+   * Read-only is the CONSTANT — both shared surfaces render through
+   * `frozenSheet.ts` + `<Sheet readOnly />` — so heading these "Public sheet"
+   * and "Snapshot link" named public-versus-private, an axis on which they do
+   * not differ, and invited the guess that the public page was writable by
+   * whoever held the link. Live-versus-frozen is the real choice.
+   *
+   * Only the frozen half is assertable here: the live half calls Convex hooks
+   * and cannot mount without a provider (which is the Solo case, and this).
+   */
+  test('names the section for what it is — frozen, not "a snapshot link"', async () => {
+    await act(async () => {
+      renderDialog()
+    })
+    expect(screen.getByRole('heading', { name: /frozen snapshot/i })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: /snapshot link/i })).toBeNull()
+    // And the line that frames the pair: read-only is a given, not a choice.
+    expect(screen.getByText(/read-only view of Mara Vex/i)).toBeTruthy()
+  })
+
   test('counts existing links for this entity, and offers to revoke each', async () => {
     recordPublishedSnapshot({
       id: 'PRIOR001',
@@ -109,7 +131,10 @@ describe('ShareStatusDialog — status', () => {
     await act(async () => {
       renderDialog()
     })
-    expect(screen.getByText(/shared — 1 live link/i)).toBeTruthy()
+    // "active", not "live" — the section above is the LIVE public sheet, and
+    // one word meaning both "not revoked" and "keeps current" is the confusion
+    // this naming pass exists to remove.
+    expect(screen.getByText(/shared — 1 active link/i)).toBeTruthy()
     expect(screen.getByRole('button', { name: /remove shared link PRIOR001/i })).toBeTruthy()
   })
 })
