@@ -13,7 +13,7 @@
 import { isValidSnapshotId } from '../../src/lib/snapshot/id'
 import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
 import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
-import { captureException, initObservability } from './_observability'
+import { captureException, initObservability } from '../lib/observability'
 
 // ---------------------------------------------------------------------------
 // Handler factory — accepts injected storage for testability

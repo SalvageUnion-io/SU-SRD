@@ -40,7 +40,7 @@
  *   bun tools/check-observability.ts --live    # production probe (nightly)
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /**
@@ -498,12 +498,12 @@ type ServerSurface = {
 const SERVER_SURFACES: ServerSurface[] = [
   {
     name: 'itun-functions',
-    modulePath: 'apps/itun/netlify/functions/_observability.ts',
+    modulePath: 'apps/itun/netlify/lib/observability.ts',
     manifestPath: 'apps/itun/package.json',
   },
   {
     name: 'su-assets-functions',
-    modulePath: 'apps/su-assets/netlify/functions/_observability.ts',
+    modulePath: 'apps/su-assets/netlify/lib/observability.ts',
     manifestPath: 'apps/su-assets/package.json',
   },
   {
@@ -512,6 +512,53 @@ const SERVER_SURFACES: ServerSurface[] = [
     manifestPath: 'apps/discord-bot/package.json',
   },
 ]
+
+/**
+ * Every Netlify functions directory in the repo.
+ *
+ * A file sitting here IS an endpoint. That is positional and absolute: the
+ * `functions = …` key in netlify.toml is what makes a file a function, and no
+ * naming convention overrides it. `_observability.ts` lived in both of these on
+ * the belief that a leading underscore excluded it; Netlify deployed it anyway,
+ * on both sites, where it answered
+ *
+ *     Runtime.HandlerNotFound: _observability.handler is undefined or not exported
+ *
+ * — a public 502 printing an internal path, for a module that was never a
+ * handler. Nothing was watching, because the belief was in a comment.
+ */
+const FUNCTION_DIRS = ['apps/itun/netlify/functions', 'apps/su-assets/netlify/functions']
+
+/** What the Netlify runtime looks for: v2 `export default`, or v1 `handler`. */
+const EXPORTS_A_HANDLER =
+  /^\s*export\s+(default\b|(async\s+)?function\s+handler\b|const\s+handler\b)/m
+
+/**
+ * Nothing may sit in a functions directory unless it is a function.
+ *
+ * Subdirectories are skipped — zisi only treats top-level files as entries, so
+ * `__tests__/` is not an endpoint.
+ */
+function checkFunctionDirs(): void {
+  for (const dir of FUNCTION_DIRS) {
+    const full = join(process.cwd(), dir)
+    if (!existsSync(full)) {
+      failures.push(`  [functions] missing directory ${dir}`)
+      continue
+    }
+    for (const entry of readdirSync(full, { withFileTypes: true })) {
+      if (!entry.isFile() || !/\.(ts|js|mjs)$/.test(entry.name)) continue
+      const source = read(join(dir, entry.name))
+      if (source !== null && EXPORTS_A_HANDLER.test(source)) continue
+      failures.push(
+        `  [functions] ${dir}/${entry.name} exports no handler, but everything in a\n` +
+          '      functions directory is deployed as a public endpoint — this one would\n' +
+          '      answer Runtime.HandlerNotFound. A leading underscore does NOT exclude it.\n' +
+          '      Shared modules belong in ../lib/, which the bundler still inlines.'
+      )
+    }
+  }
+}
 
 /** A VALUE import of the SDK — `import type` is erased and would not resolve. */
 const SDK_VALUE_IMPORT = /^\s*import \* as Sentry from '@sentry\/node'$/m
@@ -587,6 +634,7 @@ for (const app of BROWSER_APPS) {
 
 // Static-only: this is repo layout, and the live probe reads deployed bytes.
 if (!live) {
+  checkFunctionDirs()
   checkSharedPackage()
   for (const surface of SERVER_SURFACES) checkServerSurface(surface)
 }

@@ -1,17 +1,38 @@
 /**
- * _observability — optional Sentry error tracking for the snapshot Netlify
+ * observability — optional Sentry error tracking for the snapshot Netlify
  * Functions.
  *
  * The wiring lives in `observability/node`; this file is the ITUN site's
- * configuration of it. It used to be a byte-identical copy of
- * `apps/su-assets/netlify/functions/_observability.ts`, whose own comment said
- * "there is no reason for the two to drift" — and they had, this one carrying a
- * COMMIT_REF caveat the other lacked.
+ * configuration of it. It used to be a byte-identical copy of su-assets',
+ * whose own comment said "there is no reason for the two to drift" — and they
+ * had, this one carrying a COMMIT_REF caveat the other lacked.
  *
  * Env-gated: with `SENTRY_DSN` unset, every export is a no-op and no Sentry
  * network call is made. No DSN is committed — it comes from the Netlify site
- * environment. The leading underscore keeps this out of the deployed function
- * routes (Netlify ignores `_`-prefixed files as endpoints).
+ * environment.
+ *
+ * ## It lives in `lib/`, not `functions/`, and that is not tidying
+ *
+ * It sat beside the handlers as `functions/_observability.ts` on the belief —
+ * written into this header — that "the leading underscore keeps this out of the
+ * deployed function routes (Netlify ignores `_`-prefixed files as endpoints)".
+ *
+ * Netlify does not ignore them. The deploy manifest listed `_observability`
+ * among the site's deployed functions, and hitting it confirmed what that meant:
+ *
+ *     $ curl https://intheunionnow.com/.netlify/functions/_observability
+ *     {"errorType":"Runtime.HandlerNotFound",
+ *      "errorMessage":"_observability.handler is undefined or not exported"}
+ *
+ * A public endpoint that 502s and prints an internal path, for a file that is
+ * not a handler and never claimed to be. `functions = "apps/itun/netlify/
+ * functions"` in netlify.toml is what makes a file a function — a naming
+ * convention is not, and cannot be.
+ *
+ * So the rule is positional: only handlers go in `functions/`. What they import
+ * lives here, where esbuild still inlines it into each bundle and the platform
+ * never sees it as an endpoint. `tools/check-observability.ts` asserts the
+ * location.
  */
 
 import * as Sentry from '@sentry/node'
