@@ -118,7 +118,7 @@ const impl = await agent(
     '3. Implement the SMALLEST change that addresses the feedback. Reuse existing shared components',
     '   (EntityDisplay, DisplayCard, component-lib primitives) — do NOT add unrequested features, schema,',
     '   or UI. ITUN is local-first (IndexedDB, no auth/backend); do not introduce a backend.',
-    '4. Validate: run "bun run typecheck", "bun test", and "bun run lint" (or "bun run check:all").',
+    '4. Validate: run "bun run typecheck", "bun test", and "bun run lint" (or "bun run check").',
     '   If you touched the salvageunion-reference package, "bun run build:package" first.',
     '   Run "bun run format" before committing (the PostToolUse prettier hook uses defaults, not the',
     '   repo .prettierrc, so format explicitly).',

@@ -97,7 +97,7 @@ async function fetchWithTimeout(
  * What a retry does buy is the genuinely transient half — a cold start that
  * missed its window — at a bounded cost. Treat a run of 502s in Sentry as an
  * outage to diagnose, not as noise this smooths over; and note that every local
- * signal stayed green through both of those, because nothing in `check:all`
+ * signal stayed green through both of those, because nothing in `bun run check`
  * runs the Functions bundler.
  *
  * A network-level failure is likewise not retried: this wrapper only inspects

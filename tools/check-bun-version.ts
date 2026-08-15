@@ -7,7 +7,7 @@
  * three Netlify sites pin BUN_VERSION independently and root devDeps pin
  * bun-types — these HAD drifted (CI tested 1.3.10 while ITUN production
  * built on 1.3.14), which breaks "test what you ship". This script fails
- * check:all whenever any surface disagrees with .bun-version.
+ * `bun run check` whenever any surface disagrees with .bun-version.
  *
  * su-assets was the third site and had no BUN_VERSION at all, so it silently
  * built on whatever Netlify's default Bun happened to be — invisible to this

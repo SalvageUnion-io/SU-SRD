@@ -19,7 +19,7 @@
  * YAML and a perfectly valid workflow. The omission is only visible to someone
  * diffing two lists by eye, which is exactly the review step that gets skipped
  * when a job is added under time pressure. So: diff the two lists mechanically,
- * on every `bun run check:all` and in CI.
+ * on every `bun run check` and in CI.
  *
  * PRESENCE, NOT REACHABILITY. Most jobs here are path-filtered
  * (`if: needs.changes.outputs.code == 'true'`), and a filtered-out job is
