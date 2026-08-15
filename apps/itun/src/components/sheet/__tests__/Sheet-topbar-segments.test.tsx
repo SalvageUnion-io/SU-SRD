@@ -15,6 +15,7 @@
 
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
+import { buttonVariants } from 'component-lib'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -219,10 +220,20 @@ describe('Sheet — mobile segment switch', () => {
     // mobile-only row, stitched into the sticky bar
     expect(nav.className).toContain('sm:hidden')
 
-    // Active segment = the viewed kind: rust fill, aria-current, not a link.
+    // Active segment = the viewed kind: primary (rust) fill, aria-current, not
+    // a link.
+    //
+    // Asserted via `buttonVariants` rather than the `bg-rust` spelling it used
+    // to emit. component-lib moved that recipe onto `.su-*` class names in
+    // #799, and the spelling was never this test's subject — "the active
+    // segment is the PRIMARY variant" is. Asking the recipe keeps that true
+    // through the rename and any future one.
+    const primaryClass = buttonVariants({ variant: 'primary' })
+      .split(' ')
+      .find((c) => c.startsWith('su-btn--')) as string
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Pilot')
-    expect(active?.className).toContain('bg-rust')
+    expect(active?.className).toContain(primaryClass)
     expect(active?.tagName).not.toBe('A')
 
     // The other segments navigate to the wired counterparts' sheets.
