@@ -39,7 +39,9 @@ mock.module('@sentry/browser', () => ({
   },
 }))
 
-const { captureException, initBrowserObservability } = await import('../observability')
+const { captureException, initBrowserObservability, isNetlifyRumFailure } = await import(
+  '../observability'
+)
 
 afterAll(() => {
   mock.module('@sentry/browser', () => realSentry)
@@ -50,6 +52,33 @@ afterAll(() => {
 beforeEach(() => {
   sentryCalls.length = 0
 })
+
+/**
+ * The frames of a real SRD-4 event, trimmed to what the filter reads.
+ *
+ * The ordering is the point: Netlify's RUM script is at the BOTTOM of the
+ * stack and this site's own bundle is on top, because Sentry's `fetch`
+ * instrumentation wraps the call. That is why `denyUrls` — which tests the last
+ * usable frame — cannot catch these, and why the filter scans every frame.
+ */
+const rumEvent = {
+  exception: {
+    values: [
+      {
+        stacktrace: {
+          frames: [{ filename: '/.netlify/scripts/rum' }, { filename: '/assets/prod-oZptZeYY.js' }],
+        },
+      },
+    ],
+  },
+}
+
+/** A first-party fetch failure — same error class, must still be reported. */
+const firstPartyEvent = {
+  exception: {
+    values: [{ stacktrace: { frames: [{ filename: '/assets/prod-oZptZeYY.js' }] } }],
+  },
+}
 
 describe('observability', () => {
   // Order matters: these walk one module's state machine, unconfigured first.
@@ -82,15 +111,30 @@ describe('observability', () => {
     // `tools/check-observability.ts` asserts against both netlify.tomls.
     expect(options.tracesSampleRate).toBe(0)
 
-    // Cross-document view transitions reject their `finished` promise with an
-    // AbortError whenever a navigation supersedes an in-flight one. It is not
-    // ours to catch (the promise is the browser's) and it means nothing went
-    // wrong, so it must never reach Sentry. Asserted on the substring Sentry
-    // actually matches against `${type}: ${value}`, so the real event shape
-    // "AbortError: Transition was skipped" is covered.
+    // Cross-document view transitions reject a promise the browser owns
+    // whenever it abandons a transition — superseded by a second navigation, or
+    // made ineligible by the document being hidden. It is not ours to catch and
+    // it means nothing went wrong, so it must never reach Sentry.
+    //
+    // Asserted by matching each entry the way Sentry does, as a substring of
+    // `${type}: ${value}`, against the real titles of the three issues these
+    // were added for. Asserting `toContain(entry)` alone would pass on a
+    // typo'd entry that matches nothing.
     const ignored = options.ignoreErrors as string[]
-    expect(ignored).toContain('Transition was skipped')
-    expect('AbortError: Transition was skipped').toContain(ignored[0] as string)
+    const realEventTitles = [
+      'AbortError: Transition was skipped', // SRD-A
+      'AbortError: Skipping view transition because skipTransition() was called.', // SRD-B
+      'InvalidStateError: Transition was aborted because of invalid state', // SRD-D
+    ]
+    for (const title of realEventTitles) {
+      expect(ignored.some((pattern) => title.includes(pattern))).toBe(true)
+    }
+
+    // The RUM filter has to be wired in, not merely exported — a correct
+    // predicate that `init` never installs drops nothing.
+    const beforeSend = options.beforeSend as (event: unknown) => unknown
+    expect(beforeSend(rumEvent)).toBeNull()
+    expect(beforeSend(firstPartyEvent)).toBe(firstPartyEvent)
 
     const boom = new Error('boom')
     captureException(boom, { where: 'island' })
@@ -104,6 +148,16 @@ describe('observability', () => {
     await initBrowserObservability()
 
     expect(sentryCalls.filter((c) => c.fn === 'init')).toHaveLength(0)
+  })
+
+  test('isNetlifyRumFailure keys on the RUM frame, not on the error message', () => {
+    expect(isNetlifyRumFailure(rumEvent)).toBe(true)
+    // `TypeError: Failed to fetch` is far too common a message to filter on, so
+    // an identically-shaped first-party failure must survive.
+    expect(isNetlifyRumFailure(firstPartyEvent)).toBe(false)
+    // Events with no exception at all (a `captureMessage`) must not throw.
+    expect(isNetlifyRumFailure({})).toBe(false)
+    expect(isNetlifyRumFailure({ exception: { values: [{}] } })).toBe(false)
   })
 
   test('captureException still forwards after init, with no context', () => {
