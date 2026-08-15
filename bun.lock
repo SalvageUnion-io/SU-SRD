@@ -110,7 +110,6 @@
       "dependencies": {
         "@netlify/blobs": "catalog:",
         "@sentry/node": "catalog:",
-        "observability": "workspace:*",
       },
     },
     "packages/component-lib": {

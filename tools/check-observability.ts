@@ -40,7 +40,7 @@
  *   bun tools/check-observability.ts --live    # production probe (nightly)
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /**
@@ -493,25 +493,106 @@ type ServerSurface = {
   modulePath: string
   /** The manifest that must declare `@sentry/node`. */
   manifestPath: string
+  /**
+   * True when Netlify's Functions bundler (zip-it-and-ship-it) builds this
+   * surface, which constrains HOW it may import the shared package. See
+   * `checkServerSurface`. The Discord bot is bundled by `bun build` and is
+   * unaffected.
+   */
+  netlifyBundled: boolean
 }
 
 const SERVER_SURFACES: ServerSurface[] = [
   {
     name: 'itun-functions',
-    modulePath: 'apps/itun/netlify/functions/_observability.ts',
+    modulePath: 'apps/itun/netlify/lib/observability.ts',
     manifestPath: 'apps/itun/package.json',
+    netlifyBundled: true,
   },
   {
     name: 'su-assets-functions',
-    modulePath: 'apps/su-assets/netlify/functions/_observability.ts',
+    modulePath: 'apps/su-assets/netlify/lib/observability.ts',
     manifestPath: 'apps/su-assets/package.json',
+    netlifyBundled: true,
   },
   {
     name: 'discord-bot',
     modulePath: 'apps/discord-bot/src/observability.ts',
     manifestPath: 'apps/discord-bot/package.json',
+    netlifyBundled: false,
   },
 ]
+
+/**
+ * Every Netlify functions directory in the repo.
+ *
+ * A file sitting here IS an endpoint. That is positional and absolute: the
+ * `functions = …` key in netlify.toml is what makes a file a function, and no
+ * naming convention overrides it. `_observability.ts` lived in both of these on
+ * the belief that a leading underscore excluded it; Netlify deployed it anyway,
+ * on both sites, where it answered
+ *
+ *     Runtime.HandlerNotFound: _observability.handler is undefined or not exported
+ *
+ * — a public 502 printing an internal path, for a module that was never a
+ * handler. Nothing was watching, because the belief was in a comment.
+ */
+const FUNCTION_DIRS = ['apps/itun/netlify/functions', 'apps/su-assets/netlify/functions']
+
+/** What the Netlify runtime looks for: v2 `export default`, or v1 `handler`. */
+const EXPORTS_A_HANDLER =
+  /^\s*export\s+(default\b|(async\s+)?function\s+handler\b|const\s+handler\b)/m
+
+/**
+ * Nothing may sit in a functions directory unless it is a function.
+ *
+ * Subdirectories are skipped — zisi only treats top-level files as entries, so
+ * `__tests__/` is not an endpoint.
+ */
+function checkFunctionDirs(): void {
+  for (const dir of FUNCTION_DIRS) {
+    const full = join(process.cwd(), dir)
+    if (!existsSync(full)) {
+      failures.push(`  [functions] missing directory ${dir}`)
+      continue
+    }
+    for (const entry of readdirSync(full, { withFileTypes: true })) {
+      if (!entry.isFile() || !/\.(ts|js|mjs)$/.test(entry.name)) continue
+      const source = read(join(dir, entry.name))
+      if (source !== null && EXPORTS_A_HANDLER.test(source)) continue
+      failures.push(
+        `  [functions] ${dir}/${entry.name} exports no handler, but everything in a\n` +
+          '      functions directory is deployed as a public endpoint — this one would\n' +
+          '      answer Runtime.HandlerNotFound. A leading underscore does NOT exclude it.\n' +
+          '      Shared modules belong in ../lib/, which the bundler still inlines.'
+      )
+    }
+  }
+}
+
+/**
+ * How a Netlify-bundled surface must reach the shared wiring: by RELATIVE PATH
+ * into `packages/observability`, never by the `observability` package name.
+ *
+ * By package name it resolves through node_modules, which makes it a shared
+ * chunk — and esbuild emits that chunk once per entry point that uses it. With
+ * three snapshot Functions importing it, zip-it-and-ship-it wrote the chunk into
+ * each zip under the FUNCTION'S OWN filename, so every zip held two files at one
+ * path and the last one won:
+ *
+ *   apps/itun/netlify/functions/snapshot-retrieve.mjs   3662 bytes  (the function)
+ *   apps/itun/netlify/functions/snapshot-retrieve.mjs   1369 bytes  (observability)
+ *
+ * The Lambda loaded the observability module, which exports no handler, and
+ * every snapshot endpoint answered `TypeError: D.handler is not a function`.
+ *
+ * Nothing local could see it. Typecheck, tests, lint, knip and the app build all
+ * passed throughout, because none of them run the Functions bundler — the only
+ * way to observe it is to bundle with zip-it-and-ship-it and count entries, or
+ * to deploy. Hence a check on the import shape, which is cheap and hermetic.
+ */
+const SHARED_WIRING_BY_PATH = /from '(\.\.\/)+packages\/observability\/src\/node'/
+const SHARED_WIRING_BY_NAME = /from 'observability\/node'/
 
 /** A VALUE import of the SDK — `import type` is erased and would not resolve. */
 const SDK_VALUE_IMPORT = /^\s*import \* as Sentry from '@sentry\/node'$/m
@@ -538,6 +619,24 @@ function checkServerSurface(surface: ServerSurface): void {
   if (manifest === null) {
     fail(surface.name, `no manifest at ${surface.manifestPath}`)
     return
+  }
+
+  if (surface.netlifyBundled && SHARED_WIRING_BY_NAME.test(module)) {
+    fail(
+      surface.name,
+      `${surface.modulePath} imports the shared wiring by package name.\n` +
+        "      Netlify's Functions bundler then emits it as a shared chunk that COLLIDES\n" +
+        "      with the function's own output filename, and the zip ships two files at\n" +
+        '      one path — the handler loses, and every endpoint 502s with\n' +
+        '      "D.handler is not a function". Import the source by relative path:\n' +
+        "      import { createObservability } from '../../../../packages/observability/src/node'"
+    )
+  } else if (surface.netlifyBundled && !SHARED_WIRING_BY_PATH.test(module)) {
+    fail(
+      surface.name,
+      `${surface.modulePath} does not import the shared wiring from\n` +
+        '      packages/observability/src/node by relative path. See the header there.'
+    )
   }
 
   const { dependencies } = JSON.parse(manifest) as { dependencies?: Record<string, string> }
@@ -587,6 +686,7 @@ for (const app of BROWSER_APPS) {
 
 // Static-only: this is repo layout, and the live probe reads deployed bytes.
 if (!live) {
+  checkFunctionDirs()
   checkSharedPackage()
   for (const surface of SERVER_SURFACES) checkServerSurface(surface)
 }

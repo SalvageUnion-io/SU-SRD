@@ -20,7 +20,7 @@ import { isValidSnapshotId } from '../../src/lib/snapshot/id'
 import { getClientIp, RateLimiter } from '../../src/lib/snapshot/rateLimit'
 import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
 import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
-import { captureException, initObservability } from './_observability'
+import { captureException, initObservability } from '../lib/observability'
 
 // ---------------------------------------------------------------------------
 // Module-level rate limiter — persists across invocations within one instance
