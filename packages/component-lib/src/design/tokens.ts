@@ -280,11 +280,21 @@ const base = {
   /** Paper as a FOREGROUND — text and hairlines printed onto a tone or a dark
    *  ground. Paper as a background is always the flat `paper`. */
   paper60: 'rgb(251 250 247 / 0.6)',
+  /** The de-emphasised rung ON a tone or dark ground — the inverse counterpart
+   *  of `wkMuted`, which only clears AA on the light grounds. Added by the
+   *  Atoms layer of #799 for `Stat`'s `inverse` skin (`text-paper/70`). */
+  paper70: 'rgb(251 250 247 / 0.7)',
   paper30: 'rgb(251 250 247 / 0.3)',
 
   /** THE single action colour. */
   rust: 'rgb(168, 82, 34)',
   rustHi: 'rgb(138, 64, 25)',
+  /** The focus-ring wash. Added by the Atoms layer of #799: this is the tone
+   *  of the canonical rust focus ring (`ring-rust/25`, design-spec §2.4), so
+   *  it is shared infrastructure rather than one component's colour — Button,
+   *  StepButton, Sel, Toggle and all three input rungs in
+   *  `components/chrome/interaction.ts` resolve to it. */
+  rust25: 'rgb(168 82 34 / 0.25)',
   /** The one sanctioned cream — RollTable banding, and nowhere else. */
   bandCream: 'rgb(243, 237, 226)',
 
@@ -332,6 +342,21 @@ export const color = {
   statusOk: base.rollSuccess,
   statusWarn: base.rollFailure,
   statusBad: base.rollCascade,
+  /**
+   * The error focus-ring wash — `statusBad` at 25%, the destructive
+   * counterpart of `rust25`, used by `InlineEditField`'s error skin
+   * (`focus:ring-status-bad/25`). Added by the Atoms layer of #799.
+   *
+   * A LITERAL rather than an alias, and unavoidably so: the three rungs above
+   * stay aliases because a retone of `rollCascade` should follow, but CSS has
+   * no way to spell "that custom property, at 25%" that the parity test can
+   * resolve — `color-mix()` produces a computed value, not the literal the
+   * test compares against. So this one must be re-toned BY HAND alongside
+   * `rollCascade`, which is exactly the drift the aliases exist to prevent.
+   * Recorded here rather than hidden, because it is the first place the
+   * aliasing discipline could not be honoured.
+   */
+  statusBad25: 'rgb(176 67 43 / 0.25)',
 
   // — Sheet tones (Header C live sheets): base + deep pairs —
   sheetPilot: base.pilot,

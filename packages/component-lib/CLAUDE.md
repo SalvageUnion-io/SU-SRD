@@ -17,7 +17,7 @@ files, and every component migrated from here on lands on them:
 | File | Role |
 | --- | --- |
 | [`src/design/tokens.ts`](src/design/tokens.ts) | The typed token scale — colour, space, font size, weight, tracking, radius, border width. Plain `as const` objects, no dependency. |
-| [`src/design/styles.ts`](src/design/styles.ts) | Exported `React.CSSProperties` objects for **static** styling, each `satisfies` the type. |
+| [`src/design/styles.ts`](src/design/styles.ts) | Exported `React.CSSProperties` objects for **static** styling, each `satisfies` the type. **`buttonPrimary` / `buttonSecondary` are a known defect — see below; do not copy them.** |
 | [`src/styles/index.css`](src/styles/index.css) | The **one** stylesheet a web consumer loads. Emits the scale as `--su-*` custom properties, binds the page ground and body face, and carries every rule a style object cannot express. |
 
 Both halves of the pattern are load-bearing. The token scale and the style objects
@@ -26,20 +26,107 @@ dropping it would be a functional regression rather than a styling change.
 
 ### The split rule
 
-- **Style object** — static values that never vary by interaction or viewport:
-  colour, padding, font, border, layout.
-- **Stylesheet class** — anything stateful or conditional: `:hover`,
-  `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling/child
-  selectors.
-- A component may use both. The object goes on `style=`, the class on
-  `className=`.
+**The split is per-PROPERTY, not per-component.** Decide it one CSS property at
+a time, never one component at a time:
 
-This is a capability boundary, not a preference: an inline `style={}` object has
-no way to express a single item on the second list. That matters here more than
-it looks. Measured across the three UI workspaces, the codebase depends on ~403
-Tailwind variant usages — 215 responsive (`sm:`/`md:`/`lg:`/`xl:`), 120 `hover:`,
-15 `focus-visible:`, 12 `disabled:`, 9 `focus:`, 5 structural. A migration to
-style objects alone would silently drop every one of them.
+- **Style object** — a property with **no** stateful or responsive variant
+  anywhere on that element: padding, border-radius, font, most layout.
+- **Stylesheet class** — a property that has **any** stateful or conditional
+  variant (`:hover`, `:focus`, `:focus-visible`, `:disabled`, `@media`,
+  pseudo-elements, sibling/child selectors) — **including its resting value.**
+- A component routinely uses both, splitting down the middle of its own style:
+  a Button's `padding` is an object, its `background-color` a class, because
+  only the second one changes on hover.
+
+#### Why the resting value has to come along
+
+Not a preference — a cascade fact, and the reason is what stops someone
+"simplifying" this back. **An inline `style=` declaration outranks any author
+stylesheet rule regardless of selector specificity or state**, because it sits
+higher in the cascade origin order. `:hover` cannot beat it and no amount of
+selector weight fixes that. So splitting one property across the two mechanisms
+is not merely inelegant, it is **silently broken**: the resting value wins
+forever, the stateful one never fires, nothing errors, and the only symptom is a
+hover that does nothing.
+
+Measured on a real page rather than argued from specificity — two identical
+elements, one hovered at a time:
+
+| resting `background-color` | computed value while hovered |
+| --- | --- |
+| inline `style=` | `rgb(0, 128, 0)` — the hover **did not apply** |
+| in the class | `rgb(255, 0, 0)` — the hover applied |
+
+Specificity intuition is exactly where this goes wrong, which is why the check is
+a measurement and not an argument.
+
+#### The capability half
+
+The other half of the rule is a plain capability boundary: an inline `style={}`
+object has no way to express a single item on the stateful list. Measured across
+the three UI workspaces, the codebase depends on ~403 Tailwind variant usages —
+215 responsive (`sm:`/`md:`/`lg:`/`xl:`), 120 `hover:`, 15 `focus-visible:`, 12
+`disabled:`, 9 `focus:`, 5 structural. A migration to style objects alone would
+silently drop every one of them.
+
+#### Consequence: the stylesheet is bigger than it looks
+
+Because a stateful property brings its resting value with it, `src/styles/index.css`
+carries considerably more than "the bits an object cannot express". Within
+component-lib alone there are ~127 stateful usages (81 `hover:`, 14 `disabled:`,
+12 `focus:`, 11 `active:`, 9 `focus-visible:`), and each one drags its resting
+`background-color` / `border-color` / `color` into the stylesheet with it. That
+growth is the rule working, not scope creep.
+
+#### `styles.buttonPrimary` / `buttonSecondary` are a known defect (#813)
+
+They put `backgroundColor` inline, and `index.css` pairs them with
+`.su-button:hover { filter: brightness(0.94) }`. That renders — but only because
+`filter` is a **different property** from `background-color`, so it sidesteps the
+collision above instead of resolving it. It does not generalise: the real
+`Button` swaps to a NAMED colour per variant (`hover:bg-ink-8`,
+`hover:bg-rust-hi`, `hover:border-rust-hi`), and approximating those with a
+brightness filter would be a re-tone, not a port.
+
+Nothing consumes the two objects yet, so they are left in place rather than
+churned — but **they are not the pattern to copy.** A button's colours belong in
+a `.su-btn--*` class, resting value included.
+
+### The one exemption: class-string exports are stylesheet-only
+
+The split rule governs **components** — things this library renders. A handful of
+exports are not components but **class strings**, and for those there is no
+element for a style object to attach to, so *all* of their styling lives in
+`src/styles/index.css`. Geometry and type included, not just the stateful half.
+
+The members, and anything built on them:
+
+| export | shape |
+| --- | --- |
+| `buttonVariants` | `(opts) => string` — the `.btn` recipe |
+| `capsLabel` | `(opts) => string` — the condensed-caps label recipe |
+| `FOCUS_RING`, `FOCUS_RING_ON_TONE`, `FOCUS_WITHIN`, `INPUT_FOCUS` | the focus vocabulary |
+| `DISABLED` | the disabled treatment |
+| `SELECTION_RING`, `SELECTION_RING_INK_DOUBLE` | the selection rings |
+
+This is the rule's **boundary, not an escape from it.** These exports exist
+precisely so a consuming app can style an element the library never renders —
+`buttonVariants`' own doc comment puts it as *"a design system the consuming apps
+cannot import is one they will re-invent"*, and both apps use it on `<a>`
+elements. A function that returns a string cannot return a style object without
+changing its signature, and its signature is public API. So they were always
+going to be stylesheet-only the moment Tailwind left: a class name is the only
+thing they can carry.
+
+Two consequences to hold onto:
+
+- **The `.su-*` names are public API.** Apps compose them with `cn()`, so they
+  end up in app-side code and cannot be churned cheaply. Name a new one
+  deliberately the first time.
+- **Do not let the exemption leak.** A component this library *renders* still
+  follows the per-property split, even when it is convenient to move everything
+  into a class. The exemption is for exports whose contract is literally a class
+  string — nothing else.
 
 (The pattern is ported from `binfinite-app`, whose component library has zero
 `:hover` and zero `@media` because it is React-Native-first and RN has neither —
