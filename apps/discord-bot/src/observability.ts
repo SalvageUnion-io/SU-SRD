@@ -83,6 +83,9 @@ const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
 /** How often the worker checks in. Kept in step with the schedule below by construction. */
 const HEARTBEAT_INTERVAL_MINUTES = 5
 
+/** Set while a heartbeat is running; also the idempotence guard below. */
+let stopHeartbeat: (() => void) | null = null
+
 /**
  * Begin reporting "this worker is alive" to Sentry as a cron monitor.
  *
@@ -99,11 +102,13 @@ const HEARTBEAT_INTERVAL_MINUTES = 5
  * `failureIssueThreshold: 2` means one blip is not an incident, while a genuinely
  * dead worker opens one after ~12 minutes.
  *
+ * `isAlive` is re-asked on every tick — pass the client's live connection state,
+ * not a value captured at login, or the monitor reports a running process rather
+ * than a working bot.
+ *
  * Idempotent: calling it twice does not start a second timer, so a reconnect
  * cannot stack heartbeats.
  */
-let stopHeartbeat: (() => void) | null = null
-
 export function startLivenessHeartbeat(isAlive: () => boolean): void {
   if (stopHeartbeat) return
   stopHeartbeat = observability.startHeartbeat({

@@ -99,8 +99,11 @@ describe('handleReady', () => {
     // ready')`, which could not alert on a dead worker at all — Sentry fires on
     // events arriving, never on their absence — and instead accrued into a
     // permanent error-category issue that had to be archived (SU-DISCORD-1).
+    // Exhaustive by construction: `toEqual` on the whole list is what rules out
+    // an info event, and it can do so because the module no longer exports a
+    // `captureMessage` to send one. A separate "no captureMessage" assertion
+    // would be vacuous — nothing could ever record such a call.
     expect(observabilityCalls).toEqual(['startLivenessHeartbeat'])
-    expect(observabilityCalls.some((c) => c.startsWith('captureMessage'))).toBe(false)
   })
 
   test('the heartbeat asks the LIVE client, not a value captured at login', () => {
