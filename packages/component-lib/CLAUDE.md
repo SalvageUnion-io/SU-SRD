@@ -151,11 +151,35 @@ invites someone to "fix" it until it really is. Verified on the real thing —
 `rgba(168, 82, 34, 0.25) 0 0 0 3px`.
 
 So to check a focus style: send a real key press (a browser driver's Tab key), or
-assert `el.matches(':focus-visible')` alongside the computed value so a false
-negative is distinguishable from a real one. `:focus` rungs — `.su-input-focus`,
-`.su-focus-within` — are exempt from this and do respond to `.focus()`, which is
-its own trap, since it makes the two rungs behave differently under the same
-check for reasons that have nothing to do with either being correct.
+assert `el.matches(':focus-visible')` alongside the computed value, so a false
+negative is distinguishable from a real one.
+
+#### The worse half: the two rungs disagree under the same check
+
+**Only the `:focus-visible` rungs are affected. The `:focus` rungs respond to
+`.focus()` perfectly well.**
+
+| rung | selector | responds to `el.focus()`? |
+| --- | --- | --- |
+| `.su-focus-ring` | `:focus-visible` | **no** |
+| `.su-focus-ring-on-tone` | `:focus-visible` | **no** |
+| `.su-button` | `:focus-visible` | **no** |
+| `.su-input-focus` | `:focus` | yes |
+| `.su-input` | `:focus` | yes |
+| `.su-focus-within` | `:focus-within` | yes |
+
+That split is worse than the original trap, and it is the reason this is a
+section rather than a footnote. Spot-check a handful of components with
+`.focus()` and the results are *internally inconsistent*: inputs light up,
+buttons do not. The natural reading is "the focus treatment is applied
+unevenly — some components got it, some were missed", and someone then goes
+looking for the components that were "missed". Every one of them is correct;
+the check is the variable.
+
+The failure mode is not "I could not verify this". It is **"I verified it and
+concluded something false"**, which is the one that produces work. If two focus
+rungs ever appear to disagree, confirm the selector each one uses before
+concluding anything about the components.
 
 ### Checking cascade layers: assert on the DECLARATION, never on block position
 
