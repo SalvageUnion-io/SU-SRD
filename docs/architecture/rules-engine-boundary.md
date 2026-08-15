@@ -35,7 +35,7 @@ the table can patch reality.
 | **Guided Creation** | Wizard (`/*/new`)                                    | A "how-to guide" for _making_ a legal entity. Enforces creation rules.                          |
 | **Free Edit**       | Live Sheet (`/sheet/:kind/:id`)                      | The manual-override console. Edits _state_, never runs _transactions_.                          |
 | **Guided Play**     | **Dashboard** (Pilot + Mech + Crawler, live)         | Every asset in-hand + enforced play. Interactive rules-layers that _teach as they enforce_.     |
-| **Frozen**          | Share / View (`/share`, `/s/:id`)                    | Read-only published snapshot.                                                                   |
+| **Frozen**          | View (`/s/:id`, `/p/:kind/:appId`)                   | Read-only published sheet — frozen snapshot or live public page.                                |
 | **Adjudicate**      | Encounter (`/encounter`) → future **Mediator** layer | GM tray — Mediator tables + NPCs. Surfaces rules as tooling; enforces nothing on player sheets. |
 
 `Guided Creation`, `Free Edit`, and `Guided Play` are our terms, not Salvage

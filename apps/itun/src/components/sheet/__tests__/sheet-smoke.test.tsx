@@ -13,9 +13,9 @@
  *   4.  Wired composition: mech-to-pilot link → both PilotSheet + MechSheet
  *   5.  Empty-rail case: mech with no link → pilot RailEmpty visible
  *   6.  Stat-edit round-trip via the Sheet hero trackers (StatBlock steppers)
- *   7.  Top-bar Share entry: PublishButton links to /sheet/:kind/:id/share
+ *   7.  Top-bar Share entry: the Share button opens ShareStatusDialog in place
  *   8.  SnapshotPageInner 404 path: notFound=true → "Snapshot not found" heading
- *   9.  Read-only mode: Sheet readOnly=true → Share link NOT rendered
+ *   9.  Read-only mode: Sheet readOnly=true → Share control NOT rendered
  *
  * Conventions:
  *   - toBeTruthy() not toBeInTheDocument() (happy-dom workaround)
@@ -351,14 +351,14 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
 // ---------------------------------------------------------------------------
 // Scenario 7 — top-bar Share entry point
 //
-// Publishing moved to the Share Snapshot screen (plan 5.2): the top bar just
-// links into /sheet/:kind/:id/share. The publish flow itself is covered in
-// ShareSnapshotScreen.test.tsx. Asserted through Sheet — the PublishButton
-// wrapper it used to go through was a single-call-site alias for this link.
+// Share is a BUTTON that opens ShareStatusDialog over this sheet, not a link to
+// a share screen. That screen was deleted: its left half previewed the very
+// sheet you were standing on, and previewed it wrong. The publish flow itself
+// is covered in ShareStatusDialog.test.tsx; this asserts only the entry point.
 // ---------------------------------------------------------------------------
 
-describe('Smoke — the top-bar Share link points at the share screen', () => {
-  test('Share links to /sheet/pilot/:id/share', () => {
+describe('Smoke — the top-bar Share control opens the share dialog', () => {
+  test('Share is a button, and pressing it reveals the share status', async () => {
     render(
       <Sheet
         kind="pilot"
@@ -368,8 +368,14 @@ describe('Smoke — the top-bar Share link points at the share screen', () => {
       />
     )
 
-    const link = screen.getByRole('link', { name: /share this pilot/i })
-    expect(link.getAttribute('href')).toBe('/sheet/pilot/pilot-smoke-1/share')
+    // It must not navigate — the sheet behind the dialog is the preview.
+    expect(screen.queryByRole('link', { name: /share this pilot/i })).toBeNull()
+    const share = screen.getByRole('button', { name: /share this pilot/i })
+
+    await act(async () => {
+      fireEvent.click(share)
+    })
+    expect(await screen.findByText(/not shared/i)).toBeTruthy()
   })
 })
 
@@ -390,11 +396,11 @@ describe('Smoke — SnapshotPageInner 404', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Scenario 9 — Read-only mode: Sheet readOnly=true → no PublishButton
+// Scenario 9 — Read-only mode: Sheet readOnly=true → no Share control
 // ---------------------------------------------------------------------------
 
 describe('Smoke — readOnly mode', () => {
-  test('Sheet with readOnly=true does NOT render the Share link', () => {
+  test('Sheet with readOnly=true does NOT render the Share control', () => {
     render(
       <Sheet
         kind="pilot"
@@ -404,10 +410,10 @@ describe('Smoke — readOnly mode', () => {
         readOnly={true}
       />
     )
-    expect(screen.queryByRole('link', { name: /share this pilot/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /share this pilot/i })).toBeNull()
   })
 
-  test('Sheet with readOnly=false (default) renders the Share link', () => {
+  test('Sheet with readOnly=false (default) renders the Share control', () => {
     render(
       <Sheet
         kind="pilot"
@@ -416,6 +422,6 @@ describe('Smoke — readOnly mode', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByRole('link', { name: /share this pilot/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /share this pilot/i })).toBeTruthy()
   })
 })

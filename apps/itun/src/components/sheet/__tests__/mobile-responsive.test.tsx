@@ -2,7 +2,7 @@
  * Mobile-responsive regression tests for sheet components.
  *
  * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
- * AC-5: the top-bar Share link and InlineEditField display state have ≥44px touch targets
+ * AC-5: the top-bar Share control and InlineEditField display state have ≥44px touch targets
  *       (verified via class attribute containing min-h-11).
  *
  * Design choices:
@@ -220,7 +220,7 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     expect((span as HTMLElement).className).toContain('min-h-11')
   })
 
-  test('the top-bar Share link carries min-h-11 (AC-5 touch target)', () => {
+  test('the top-bar Share control carries min-h-11 (AC-5 touch target)', () => {
     render(
       <Sheet
         kind="pilot"
@@ -229,8 +229,9 @@ describe('Mobile responsive — touch targets min-h-11', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    const link = screen.getByRole('link', { name: /share this pilot/i })
-    expect((link as HTMLElement).className).toContain('min-h-11')
+    // A button since the share screen was deleted — same target, same rule.
+    const share = screen.getByRole('button', { name: /share this pilot/i })
+    expect((share as HTMLElement).className).toContain('min-h-11')
   })
 })
 
