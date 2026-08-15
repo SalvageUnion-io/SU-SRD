@@ -1,5 +1,5 @@
 /**
- * _observability — optional Sentry error tracking for the artwork function.
+ * observability — optional Sentry error tracking for the artwork function.
  *
  * The wiring lives in `observability/node`; this file is the su-assets site's
  * configuration of it. It used to be a byte-identical copy of ITUN's, kept in
@@ -10,10 +10,17 @@
  * export is a no-op and no Sentry network call is made. No DSN is ever
  * committed — it comes from the `su-assets` Netlify site environment.
  *
- * The leading underscore keeps this out of the deployed function routes
- * (Netlify ignores `_`-prefixed files as endpoints), which matters more here
- * than on itun: `asset.ts` claims `path: '/*'`, so a second routable function
- * in this directory would be an unclaimed endpoint on the artwork host.
+ * ## It lives in `lib/`, not `functions/` — see ITUN's copy for the receipts
+ *
+ * The old header claimed the leading underscore kept it out of the deployed
+ * function routes. It did not: Netlify deployed `_observability` as a function
+ * on both sites, where it answered `Runtime.HandlerNotFound`.
+ *
+ * That claim mattered more here than on ITUN, and the reason it gave was sound
+ * even though its premise was false: `asset.ts` claims `path: '/*'`, so a second
+ * routable function on the artwork host is an unclaimed endpoint sitting beside
+ * a catch-all. Moving the file out is what actually delivers what the comment
+ * promised.
  */
 
 import * as Sentry from '@sentry/node'

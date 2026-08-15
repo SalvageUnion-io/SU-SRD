@@ -14,7 +14,7 @@
  * mutated in place (a new image gets a new name).
  */
 import { getStore } from '@netlify/blobs'
-import { captureException, initObservability } from './_observability'
+import { captureException, initObservability } from '../lib/observability'
 
 const CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',

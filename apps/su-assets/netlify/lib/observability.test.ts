@@ -26,10 +26,10 @@ mock.module('@sentry/node', () => ({
   captureException: (...args: unknown[]) => sentryCalls.push({ fn: 'captureException', args }),
 }))
 
-let obs: typeof import('../_observability')
+let obs: typeof import('./observability')
 
 beforeAll(async () => {
-  obs = await import('../_observability')
+  obs = await import('./observability')
 })
 
 afterAll(() => {
@@ -79,15 +79,15 @@ describe('with no DSN configured', () => {
  * declaration for a cache-busted one; a non-literal specifier is untyped, so
  * the cast restores the real shape.
  */
-const FRESH_SPECIFIER = '../_observability?fresh'
+const FRESH_SPECIFIER = './observability?fresh'
 
 describe('once a DSN is configured before the first init', () => {
-  let fresh: typeof import('../_observability')
+  let fresh: typeof import('./observability')
 
   beforeAll(async () => {
     process.env.SENTRY_DSN = 'https://key@example.ingest.sentry.io/1'
     process.env.COMMIT_REF = 'abc123'
-    fresh = (await import(FRESH_SPECIFIER)) as typeof import('../_observability')
+    fresh = (await import(FRESH_SPECIFIER)) as typeof import('./observability')
   })
 
   test('init passes the DSN, environment and release through', () => {
