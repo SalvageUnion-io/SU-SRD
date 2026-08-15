@@ -73,11 +73,59 @@ more reviewable layers; below that the ceremony is not worth it.
 - `gh stack sync` after **every** merge beneath you. Do not hand-rebase inside a
   gh-managed stack; that is how the tool's state and the branches diverge.
 
-**Stack state lives in `.git/gh-stack`, which is per-clone and untracked.** A
-fresh agent worktree therefore does not inherit it: the branch is stacked on
-GitHub and looks unstacked locally, with nothing on disk explaining why.
+### Where the state actually lives — per WORKTREE, not per clone
+
+**In a linked worktree the state is `.git/worktrees/<name>/gh-stack`, not
+`.git/gh-stack`.** Verified by reading it, after this file first said otherwise.
+
+That is narrower than "per clone", and the difference matters here because
+almost all agent work happens in linked worktrees: two worktrees of the same
+repo share **no** stack state at all. A branch that is stacked on GitHub looks
+unstacked from any other worktree, with nothing on disk explaining why.
 `gh stack checkout <pr#|branch>` re-attaches. Run `gh stack view` before
 concluding anything about a stack's shape.
+
+### `gh stack init` anchors the trunk to your LOCAL `main`
+
+Not `origin/main`. In this repo nobody checks out `main` — every branch is cut
+from `origin/main` in a worktree — so the local ref sits wherever it was last
+left, and on the run that produced this file it was **~40 commits stale**:
+
+```
+stack trunk recorded: 1a99ef7b   ← local main, months old
+origin/main:          af60dbd3
+branch's actual base: af60dbd3   ← correct
+```
+
+The PR was unaffected: GitHub compares against the real base, and `gh stack sync`
+reported the true trunk (`Stacked on origin/main (9be883f)`) regardless. But the
+persisted `trunk.head` stayed stale even after a sync, so **do not read that
+field as truth** — it is not what the tool acts on. `git fetch origin && git
+checkout main && git pull` before `gh stack init` avoids the confusion entirely.
+
+### What `sync` does when a layer merges beneath you
+
+Measured, since this was the open question the whole experiment existed to
+answer. After the bottom PR squash-merged:
+
+```
+✓ Skipping feat/tw-atoms-capslabel (PR #820 merged)
+Skipping 1 merged branch
+Merged: #820
+✓ Branches synced
+  Stacked on origin/main (9be883f)
+```
+
+Exit 0, no conflict, no `--onto` needed, and `gh stack view` then files the
+branch under a `merged` heading. **The tool handles the squash artefact that
+section 1 describes** — which is the reason to prefer it once a change has three
+or more layers.
+
+An ordinary `gh pr merge --squash` on the bottom layer is what produced that, and
+sync reconciled it cleanly, so a merging reviewer does not have to learn a new
+verb for a one-layer stack. `gh stack merge` remains the path for landing several
+layers at once: it is all-or-nothing up to a chosen PR, and it cannot bypass
+merge requirements.
 
 ## 4. A read is only true at the instant it is taken
 
