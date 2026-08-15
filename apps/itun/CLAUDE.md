@@ -130,7 +130,9 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   local-first analogue of durability.
 - **Do not add a Sentry SDK to `convex/`.** The browser bundle
   (`src/lib/observability.ts`) and the Netlify Functions
-  (`netlify/functions/_observability.ts`) each own one; Convex instead uses its
+  (`netlify/lib/observability.ts` — in `lib/`, not `functions/`, because
+  everything top-level in a functions directory is deployed as a public
+  endpoint) each own one; Convex instead uses its
   first-party Exception Reporting integration, enabled in the Convex dashboard
   with no application code. **Delivering since 2026-08-12**, verified end to end
   rather than assumed: a forced error appeared in `convex logs` and then in
