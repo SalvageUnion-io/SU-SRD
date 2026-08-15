@@ -21,7 +21,7 @@
     "format:check": "biome format .",
     "test": "bun test"
   },
-  "dependencies": {
+  "devDependencies": {
     "@sentry/node": "catalog:"
   }
 }

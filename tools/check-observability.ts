@@ -459,17 +459,136 @@ async function checkLive(app: BrowserApp): Promise<void> {
   console.log(`  [${app.name}] served CSP permits ${dsnHost}`)
 }
 
+/**
+ * The SERVER surfaces, which fail a different way than the browser ones.
+ *
+ * Each of these owns a shim that configures `observability/node`, and each must
+ * import `@sentry/node` ITSELF and pass it in — the shared package takes the SDK
+ * as a parameter and imports it for types only. That is not a style rule, it is
+ * a deploy constraint, so it gets a check rather than a comment.
+ *
+ * Netlify's bundler cannot inline `@sentry/node` (dynamic requires under its
+ * OpenTelemetry layer), so it externalises the package and copies it beside the
+ * file the import RESOLVED FROM. With the import in `packages/observability`,
+ * the copy landed in `packages/observability/node_modules/` while the bundled
+ * function was emitted at `apps/itun/netlify/functions/*.mjs` — and Node
+ * resolves from the emitted file upward, never reaching `packages/`. Every
+ * snapshot Function then died at module load:
+ *
+ *     Cannot find package '@sentry/node' imported from
+ *     /var/task/apps/itun/netlify/functions/snapshot-publish.mjs
+ *
+ * Publish, retrieve and delete all 502'd — sharing entirely down — from a
+ * one-line package.json edit. Typecheck, tests, lint and knip were all green,
+ * because every one of them resolves modules the way the REPO is laid out, not
+ * the way the deployed artifact is. Nothing but a deploy could see it.
+ *
+ * So: the import must live in the app, and the app must declare the dependency.
+ * A missing declaration is the same outage by a different route — it is what
+ * removes the `node_modules` entry the bundler copies from.
+ */
+type ServerSurface = {
+  name: string
+  /** The shim that calls `createObservability`, relative to repo root. */
+  modulePath: string
+  /** The manifest that must declare `@sentry/node`. */
+  manifestPath: string
+}
+
+const SERVER_SURFACES: ServerSurface[] = [
+  {
+    name: 'itun-functions',
+    modulePath: 'apps/itun/netlify/functions/_observability.ts',
+    manifestPath: 'apps/itun/package.json',
+  },
+  {
+    name: 'su-assets-functions',
+    modulePath: 'apps/su-assets/netlify/functions/_observability.ts',
+    manifestPath: 'apps/su-assets/package.json',
+  },
+  {
+    name: 'discord-bot',
+    modulePath: 'apps/discord-bot/src/observability.ts',
+    manifestPath: 'apps/discord-bot/package.json',
+  },
+]
+
+/** A VALUE import of the SDK — `import type` is erased and would not resolve. */
+const SDK_VALUE_IMPORT = /^\s*import \* as Sentry from '@sentry\/node'$/m
+
+function checkServerSurface(surface: ServerSurface): void {
+  const module = read(surface.modulePath)
+  if (module === null) {
+    fail(surface.name, `no observability module at ${surface.modulePath}`)
+    return
+  }
+
+  if (!SDK_VALUE_IMPORT.test(module)) {
+    fail(
+      surface.name,
+      `${surface.modulePath} does not value-import the SDK.\n` +
+        `      Expected: import * as Sentry from '@sentry/node'\n` +
+        '      The shared package takes it as a parameter on purpose; importing it there\n' +
+        '      instead makes the deployed Netlify Function unable to resolve it (502 at\n' +
+        '      module load). See the header of packages/observability/src/node.ts.'
+    )
+  }
+
+  const manifest = read(surface.manifestPath)
+  if (manifest === null) {
+    fail(surface.name, `no manifest at ${surface.manifestPath}`)
+    return
+  }
+
+  const { dependencies } = JSON.parse(manifest) as { dependencies?: Record<string, string> }
+  if (!dependencies?.['@sentry/node']) {
+    fail(
+      surface.name,
+      `${surface.manifestPath} does not list @sentry/node in "dependencies".\n` +
+        "      It is what puts the package under this app's node_modules, which is where\n" +
+        '      the bundler copies it from. devDependencies is not enough: the Netlify\n' +
+        '      build sets NODE_ENV=production, so it must not depend on dev installs.'
+    )
+  }
+}
+
+/**
+ * The shared package must NOT value-import the SDK — that is the exact edit
+ * that took production down, so it is asserted from both ends.
+ */
+function checkSharedPackage(): void {
+  const shared = read('packages/observability/src/node.ts')
+  if (shared === null) {
+    failures.push('  [observability] packages/observability/src/node.ts is missing')
+    return
+  }
+  if (SDK_VALUE_IMPORT.test(shared)) {
+    failures.push(
+      '  [observability] packages/observability/src/node.ts value-imports @sentry/node.\n' +
+        '      It must import it for TYPES only (`import type * as SentryNode`) and take\n' +
+        '      the SDK as a parameter — otherwise the bundler resolves it here and the\n' +
+        '      deployed Netlify Functions 502 at module load.'
+    )
+  }
+}
+
 const live = process.argv.includes('--live')
 
 console.log(
   live
     ? 'Probing production for the Sentry SDK…'
-    : 'Checking observability wiring (module → entry → CSP)…'
+    : 'Checking observability wiring (module → entry → CSP, and the server surfaces)…'
 )
 
 for (const app of BROWSER_APPS) {
   if (live) await checkLive(app)
   else checkStatic(app)
+}
+
+// Static-only: this is repo layout, and the live probe reads deployed bytes.
+if (!live) {
+  checkSharedPackage()
+  for (const surface of SERVER_SURFACES) checkServerSurface(surface)
 }
 
 if (failures.length > 0) {

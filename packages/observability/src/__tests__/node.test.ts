@@ -1,4 +1,5 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
+import type { SentrySdk } from '../node'
 import { createObservability } from '../node'
 
 type Call = { fn: string; args: unknown[] }
@@ -6,27 +7,35 @@ let calls: Call[] = []
 let flushShouldThrow = false
 
 /**
- * `mock.module` is process-global — it rewrites the registry for every file
- * that runs after this one, so the real namespace is captured FIRST (spread at
- * capture time, since a module namespace is a live view) and restored in
- * `afterAll`. See `.claude/rules/testing-patterns.md`.
+ * The SDK is a constructor parameter, so the double is passed in rather than
+ * swapped into the module registry.
+ *
+ * This file used to `mock.module('@sentry/node', …)`, which is process-global —
+ * it rewrote the registry for every test file that ran after it, and needed a
+ * capture-and-restore dance in `afterAll` to stay honest (see
+ * `.claude/rules/testing-patterns.md`). Injection deletes that whole hazard.
+ * The return values are the real ones' shapes, so this stays assignable to
+ * `SentrySdk` with no cast — if the SDK's API moves, this fails typecheck.
  */
-const realSentry = { ...(await import('@sentry/node')) }
-
-mock.module('@sentry/node', () => ({
-  init: (...args: unknown[]) => calls.push({ fn: 'init', args }),
-  captureException: (...args: unknown[]) => calls.push({ fn: 'captureException', args }),
-  captureMessage: (...args: unknown[]) => calls.push({ fn: 'captureMessage', args }),
+const sentry: SentrySdk = {
+  init: (...args: unknown[]) => {
+    calls.push({ fn: 'init', args })
+    return undefined
+  },
+  captureException: (...args: unknown[]) => {
+    calls.push({ fn: 'captureException', args })
+    return 'event-id'
+  },
+  captureMessage: (...args: unknown[]) => {
+    calls.push({ fn: 'captureMessage', args })
+    return 'event-id'
+  },
   flush: async (...args: unknown[]) => {
     calls.push({ fn: 'flush', args })
     if (flushShouldThrow) throw new Error('transport down')
     return true
   },
-}))
-
-afterAll(() => {
-  mock.module('@sentry/node', () => realSentry)
-})
+}
 
 beforeEach(() => {
   calls = []
@@ -37,7 +46,7 @@ const of = (fn: string) => calls.filter((c) => c.fn === fn)
 
 describe('with no DSN', () => {
   test('init does nothing and everything stays a no-op', async () => {
-    const o = createObservability(() => ({ dsn: undefined }))
+    const o = createObservability(() => ({ dsn: undefined }), sentry)
     expect(o.init()).toBe(false)
     expect(o.enabled).toBe(false)
     o.captureException(new Error('boom'))
@@ -50,11 +59,14 @@ describe('with no DSN', () => {
 
 describe('with a DSN', () => {
   test('init passes dsn, environment and release through', () => {
-    const o = createObservability(() => ({
-      dsn: 'https://key@example.ingest.de.sentry.io/1',
-      environment: 'staging',
-      release: 'abc123',
-    }))
+    const o = createObservability(
+      () => ({
+        dsn: 'https://key@example.ingest.de.sentry.io/1',
+        environment: 'staging',
+        release: 'abc123',
+      }),
+      sentry
+    )
     expect(o.init()).toBe(true)
     expect(o.enabled).toBe(true)
     expect(of('init')[0]?.args[0]).toEqual({
@@ -65,21 +77,21 @@ describe('with a DSN', () => {
   })
 
   test('environment defaults to production', () => {
-    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }))
+    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }), sentry)
     o.init()
     const options = of('init')[0]?.args[0] as { environment?: string } | undefined
     expect(options?.environment).toBe('production')
   })
 
   test('a second init is a no-op, so startup can call it freely', () => {
-    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }))
+    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }), sentry)
     o.init()
     o.init()
     expect(of('init')).toHaveLength(1)
   })
 
   test('context rides as `extra`, and is omitted when absent', () => {
-    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }))
+    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }), sentry)
     o.init()
     const err = new Error('boom')
     o.captureException(err, { entityId: 'e1' })
@@ -89,7 +101,7 @@ describe('with a DSN', () => {
   })
 
   test('flush passes the timeout and swallows a transport failure', async () => {
-    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }))
+    const o = createObservability(() => ({ dsn: 'https://k@e.io/1' }), sentry)
     o.init()
     flushShouldThrow = true
     // Never rejects: the caller is on its way to process.exit().
@@ -107,7 +119,7 @@ describe('the config thunk', () => {
    */
   test('is read at init, not at construction', () => {
     let dsn: string | undefined
-    const o = createObservability(() => ({ dsn }))
+    const o = createObservability(() => ({ dsn }), sentry)
 
     dsn = 'https://k@e.io/1' // set AFTER the instance exists
     expect(o.init()).toBe(true)
@@ -119,7 +131,7 @@ describe('the config thunk', () => {
     createObservability(() => {
       resolved += 1
       return { dsn: undefined }
-    })
+    }, sentry)
     expect(resolved).toBe(0)
   })
 })

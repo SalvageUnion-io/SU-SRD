@@ -14,21 +14,29 @@
  * routes (Netlify ignores `_`-prefixed files as endpoints).
  */
 
+import * as Sentry from '@sentry/node'
 import { createObservability } from 'observability/node'
 
-const observability = createObservability(() => ({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV ?? 'production',
-  // Tags events with the deployed commit so an error maps back to a specific
-  // deploy. COMMIT_REF is a Netlify-provided deploy-metadata var — confirmed
-  // present in the *build* shell (netlify.toml's ignore scripts read it
-  // directly); whether it also reaches the Function's *runtime* environment is
-  // unconfirmed. If release tags don't show up on function errors in Sentry,
-  // that's the reason — the fallback is to bake the commit SHA into the bundle
-  // at build time (e.g. via an esbuild define) rather than reading it from
-  // process.env at runtime.
-  release: process.env.COMMIT_REF,
-}))
+// The SDK is imported HERE, not in `observability/node`, so Netlify's bundler
+// resolves it from this app and copies it beside the emitted function. See the
+// header of packages/observability/src/node.ts — with the import in the shared
+// package instead, all three snapshot Functions 502'd at module load.
+const observability = createObservability(
+  () => ({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV ?? 'production',
+    // Tags events with the deployed commit so an error maps back to a specific
+    // deploy. COMMIT_REF is a Netlify-provided deploy-metadata var — confirmed
+    // present in the *build* shell (netlify.toml's ignore scripts read it
+    // directly); whether it also reaches the Function's *runtime* environment is
+    // unconfirmed. If release tags don't show up on function errors in Sentry,
+    // that's the reason — the fallback is to bake the commit SHA into the bundle
+    // at build time (e.g. via an esbuild define) rather than reading it from
+    // process.env at runtime.
+    release: process.env.COMMIT_REF,
+  }),
+  Sentry
+)
 
 /** Initializes Sentry once per cold start, if SENTRY_DSN is configured. */
 export function initObservability(): void {

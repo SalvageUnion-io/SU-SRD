@@ -49,6 +49,7 @@
         "@netlify/blobs": "catalog:",
         "@randsum/roller": "catalog:",
         "@sentry/browser": "catalog:",
+        "@sentry/node": "catalog:",
         "@tanstack/react-query": "^5.101.4",
         "@tanstack/react-router": "^1.170.23",
         "@tanstack/router-plugin": "^1.168.27",
@@ -108,10 +109,8 @@
       "version": "0.0.0",
       "dependencies": {
         "@netlify/blobs": "catalog:",
-        "observability": "workspace:*",
-      },
-      "devDependencies": {
         "@sentry/node": "catalog:",
+        "observability": "workspace:*",
       },
     },
     "packages/component-lib": {
@@ -154,7 +153,7 @@
     "packages/observability": {
       "name": "observability",
       "version": "0.0.0",
-      "dependencies": {
+      "devDependencies": {
         "@sentry/node": "catalog:",
       },
     },
