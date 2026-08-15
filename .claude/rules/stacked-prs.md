@@ -127,6 +127,32 @@ verb for a one-layer stack. `gh stack merge` remains the path for landing severa
 layers at once: it is all-or-nothing up to a chosen PR, and it cannot bypass
 merge requirements.
 
+### `sync` cannot update local `main` here, and says so — this is benign
+
+On a second run it emitted a warning the first run did not:
+
+```
+⚠ Could not update local main: failed to run git: fatal: cannot force update
+  the branch 'main' used by worktree at '/Users/jarvis/Code/SU-SRD'
+
+  Rebasing the stack onto origin/main instead; local main is unchanged.
+```
+
+**Nothing is wrong.** `sync` tries to fast-forward the local `main` ref as a
+convenience, and git refuses because `main` is checked out in the primary
+worktree — which it always is here, since that checkout is never moved off it.
+The tool degrades to `origin/main`, which is the ref that was wanted anyway, and
+exits 0.
+
+This is also the *mechanism* behind the stale trunk noted above: `sync` cannot
+advance local `main`, and `gh stack init` anchored the trunk to local `main`, so
+the recorded trunk can never catch up on its own. Two symptoms, one cause.
+
+Worth recognising rather than debugging: it is a scary-looking `fatal:` inside a
+warning on an otherwise successful command, and the natural reaction — deleting
+the worktree, or forcing the local ref — would trade a cosmetic message for a
+real problem.
+
 ## 4. A read is only true at the instant it is taken
 
 Two agents working one stack — one merging, one pushing — will routinely send
