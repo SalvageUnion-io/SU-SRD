@@ -1,5 +1,32 @@
-@layer reset;
+/*
+ * The Ladle-only stylesheet. Loads Tailwind (still live) AND the package
+ * stylesheet, so a migrated story and an un-migrated one render side by side in
+ * the same catalog.
+ *
+ * THE `layer(su-base)` IS LOAD-BEARING — do not simplify it to a bare @import.
+ *
+ * `index.css` is written to be loaded on its own once Tailwind leaves, so its
+ * base block is UNLAYERED. Tailwind v4 puts its utilities in `@layer utilities`,
+ * and unlayered CSS beats layered CSS whatever the source order — so a plain
+ * `@import './index.css'` inverts the cascade for every rule the two share.
+ * Measured on the real build: index.css landed at byte 85032, past the end of
+ * the utilities layer (80759), which put `h1,…,h6 { font-size: inherit }` above
+ * every `text-*` utility and collapsed the type on every heading in the catalog.
+ *
+ * Importing it into `su-base` — declared below, between `base` and
+ * `components` — restores the intended order: Tailwind preflight, then the
+ * package base, then Tailwind utilities on top. The `--su-*` custom properties
+ * and the `.su-*` classes have no Tailwind counterpart, so they are unaffected
+ * either way; it is only the shared element-level base rules that need this.
+ *
+ * The apps get no equivalent and never need one: an app imports
+ * `component-lib/styles/index.css` directly, which is the unlayered form the
+ * file is designed for. The coexistence problem is Ladle's alone, because Ladle
+ * is the one surface that renders both systems at once.
+ */
+@layer reset, theme, base, su-base, components, utilities;
 @import 'tailwindcss';
 @import './theme.css';
+@import './index.css' layer(su-base);
 
 @source '..';

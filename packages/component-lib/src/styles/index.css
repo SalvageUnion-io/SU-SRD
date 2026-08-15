@@ -170,14 +170,18 @@
   --su-color-ink-2: rgb(70, 61, 49);
   --su-color-ink-deep: rgb(27, 23, 18);
 
-  /* Ink at opacity — hairlines, placeholders, ghosts, disabled fills, shadows. */
+  /* Ink at opacity — hairlines, placeholders, ghosts, disabled fills, shadows.
+     `ink-15` / `ink-10` are #799 additions covering `border-ink/15` and
+     `border-ink/10`, which had no rung to land on; see the note in tokens.ts. */
   --su-color-ink-85: rgb(40 32 25 / 0.85);
   --su-color-ink-75: rgb(40 32 25 / 0.75);
   --su-color-ink-50: rgb(40 32 25 / 0.5);
   --su-color-ink-40: rgb(40 32 25 / 0.4);
   --su-color-ink-30: rgb(40 32 25 / 0.3);
   --su-color-ink-20: rgb(40 32 25 / 0.2);
+  --su-color-ink-15: rgb(40 32 25 / 0.15);
   --su-color-ink-12: rgb(40 32 25 / 0.12);
+  --su-color-ink-10: rgb(40 32 25 / 0.1);
   --su-color-ink-8: rgb(40 32 25 / 0.08);
 
   /* The ONE light surface (ruleset §4.1). Paper as a background is always flat. */

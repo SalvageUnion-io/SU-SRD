@@ -47,12 +47,43 @@ so its style objects were never asked to carry interaction or viewport state.
 Here they would be, and they cannot. That is the one thing that must not be lost
 in translation, and it is why the stylesheet is not optional.)
 
+### Migration status (#799, epic #802)
+
+Migrating by Ladle group, one PR per group: **Foundations ✅ → Atoms → Containers
+→ Compositions.** A group is done when no file in it carries a Tailwind class.
+
 ### While both systems are live
 
 `src/styles/theme.css` is still the source of record and Tailwind still works
 untouched: the token scale is a re-shaping of the values already in that file,
 not a re-design. The `--su-*` namespace exists so the two can coexist in one
 build until Tailwind is dropped.
+
+**`src/styles/ladle.css` must import `index.css` into `layer(su-base)`, and this
+is load-bearing.** `index.css` is written to be loaded alone once Tailwind
+leaves, so its base block is unlayered — and unlayered CSS beats layered CSS
+whatever the source order, while Tailwind v4 puts its utilities in
+`@layer utilities`. A plain `@import` therefore inverts the cascade for every
+rule the two share: measured on the real build, `h1,…,h6 { font-size: inherit }`
+landed past the end of the utilities layer and outranked every `text-*` utility,
+collapsing the type on every heading in the catalog. Ladle is the only surface
+with this problem, because it is the only one that renders both systems at once;
+an app imports `index.css` directly, unlayered, as designed.
+
+**Two rungs the token scale was missing.** `ink15` / `ink10` were added because
+`border-ink/15` and `border-ink/10` are in live use and had nowhere exact to
+land. That is not a one-off: Tailwind's `/NN` opacity modifier is an OPEN
+mechanism and `tokens.ts` is a CLOSED set, and roughly 59 of the ~74 alpha call
+sites in this package still have no matching rung (`ink/70`, `paper/70`,
+`rust/25`, …). Rounding one to a neighbouring rung is a re-tone, and a raw
+`rgb(… / .NN)` at the call site is a `check:tokens` violation — so which rungs
+the system should own is a design decision owed before the Atoms layer, and it
+is tracked on #799 rather than settled by whoever migrates the next file.
+
+**A catalog-only rule goes in `src/stories/_stories.css`, not `index.css`.** The
+split rule sends anything stateful or responsive to a stylesheet class, but
+`index.css` is the one stylesheet a *consumer* loads — story-page layout ships in
+no app. The underscore is the same story-scaffolding marker as `_harness.tsx`.
 
 The scale therefore exists twice — once as TypeScript, once as custom properties
 — because neither form can serve the other's job. `src/design/tokens.parity.test.ts`

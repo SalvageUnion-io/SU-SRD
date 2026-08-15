@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Badge } from '../components/chrome/Badge'
 import { RollTable } from '../components/shared/RollTable'
@@ -8,10 +8,29 @@ import { Stat } from '../components/shared/Stat'
 import { BayStatus } from '../components/stat/BayStatus'
 import { ConditionSwatch } from '../components/stat/ConditionSwatch'
 import { VitalGauge } from '../components/stat/VitalGauge'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../design/tokens'
 
 export default {
   title: 'Foundations/Rendering Matrix',
 }
+
+// Migrated off Tailwind in #799 (epic #802). The table chrome is static — no
+// hover, no breakpoint, no pseudo-element — so all of it lands in style
+// objects and this page needs no stylesheet class of its own.
+
+const cellStyle = { padding: space[8] } satisfies CSSProperties
+
+/** `size-4` — 16px square. */
+const swatchSize = { height: space[16], width: space[16] } satisfies CSSProperties
 
 const noop = () => {}
 
@@ -72,7 +91,7 @@ const rows: MatrixRow[] = [
     use: 'VitalGauge',
     rule: 'Segmented current/max; skin sheet|instrument.',
     example: (
-      <div className="w-52">
+      <div style={{ width: '208px' }}>
         <VitalGauge label="Cargo" value={Math.ceil(cargo * 0.6)} max={cargo} onChange={noop} />
       </div>
     ),
@@ -101,10 +120,13 @@ const rows: MatrixRow[] = [
     use: 'ConditionSwatch',
     rule: 'Tri-state; fill-shape primary, no gradient.',
     example: (
-      <div className="flex gap-2">
-        <ConditionSwatch state="intact" className="size-4" />
-        <ConditionSwatch state="damaged" className="size-4" />
-        <ConditionSwatch state="destroyed" className="size-4" />
+      // `size-4` is 16px. ConditionSwatch keeps its `className` sizing override
+      // (that is its API, and it migrates with the Atoms layer); the call site
+      // reaches the same size through `style`, which it already accepts.
+      <div style={{ display: 'flex', gap: space[8] }}>
+        <ConditionSwatch state="intact" style={swatchSize} />
+        <ConditionSwatch state="damaged" style={swatchSize} />
+        <ConditionSwatch state="destroyed" style={swatchSize} />
       </div>
     ),
   },
@@ -128,7 +150,7 @@ const rows: MatrixRow[] = [
     use: 'RollTable',
     rule: 'Banded d20 map; uniform peach/paper.',
     example: rollTable ? (
-      <div className="w-80">
+      <div style={{ width: '320px' }}>
         <RollTable
           table={rollTable}
           tableName={rollTableEntity?.name}
@@ -142,21 +164,53 @@ const rows: MatrixRow[] = [
 ]
 
 export const Default: Story = () => (
-  <div className="bg-paper p-6 font-body text-ink">
+  <div
+    style={{
+      backgroundColor: color.paper,
+      color: color.ink,
+      fontFamily: font.body,
+      padding: space[24],
+    }}
+  >
     <Badge shape="stamp" size="full" as="span">
       Rendering Matrix
     </Badge>
-    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-wk-muted">
-      <span className="font-bold text-ink">What to use, when.</span> Every UI <em>role</em> — the
-      job a piece of data does on screen — maps to exactly one primitive, with a live render of
-      each; the rule tailors it to context. Instances collapse into their role (ruleset §2).
+    <p
+      style={{
+        color: color.wkMuted,
+        fontSize: fontSize.sm,
+        lineHeight: 1.625,
+        marginTop: space[12],
+        maxWidth: '42rem',
+      }}
+    >
+      <span style={{ color: color.ink, fontWeight: weight.bold }}>What to use, when.</span> Every UI{' '}
+      <em>role</em> — the job a piece of data does on screen — maps to exactly one primitive, with a
+      live render of each; the rule tailors it to context. Instances collapse into their role
+      (ruleset §2).
     </p>
-    <div className="mt-5 overflow-x-auto">
-      <table className="w-full min-w-[52rem] border-collapse text-sm">
+    <div style={{ marginTop: space[20], overflowX: 'auto' }}>
+      <table
+        style={{
+          borderCollapse: 'collapse',
+          fontSize: fontSize.sm,
+          minWidth: '52rem',
+          width: '100%',
+        }}
+      >
         <thead>
-          <tr className="border-b-2 border-ink text-left">
+          <tr style={{ borderBottom: `${borderWidth.pill} solid ${color.ink}`, textAlign: 'left' }}>
             {['Role', 'When', 'Use', 'Rule', 'Example'].map((h) => (
-              <th key={h} className="p-2 text-xs font-bold uppercase tracking-caps-tight">
+              <th
+                key={h}
+                style={{
+                  ...cellStyle,
+                  fontSize: fontSize.xs,
+                  fontWeight: weight.bold,
+                  letterSpacing: tracking.capsTight,
+                  textTransform: 'uppercase',
+                }}
+              >
                 {h}
               </th>
             ))}
@@ -164,14 +218,29 @@ export const Default: Story = () => (
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={`${row.role}-${row.when}`} className="border-b border-ink/12 align-top">
-              <td className="p-2 font-bold">{row.role}</td>
-              <td className="p-2 text-wk-muted">{row.when}</td>
-              <td className="p-2">
-                <code className="rounded-badge bg-ink/8 px-1 py-0.5 text-[12px]">{row.use}</code>
+            <tr
+              key={`${row.role}-${row.when}`}
+              style={{
+                borderBottom: `${borderWidth.hairline} solid ${color.ink12}`,
+                verticalAlign: 'top',
+              }}
+            >
+              <td style={{ ...cellStyle, fontWeight: weight.bold }}>{row.role}</td>
+              <td style={{ ...cellStyle, color: color.wkMuted }}>{row.when}</td>
+              <td style={cellStyle}>
+                <code
+                  style={{
+                    backgroundColor: color.ink8,
+                    borderRadius: radius.badge,
+                    fontSize: fontSize.xs,
+                    padding: `${space[2]} ${space[4]}`,
+                  }}
+                >
+                  {row.use}
+                </code>
               </td>
-              <td className="max-w-[14rem] p-2 text-wk-muted">{row.rule}</td>
-              <td className="p-2">{row.example}</td>
+              <td style={{ ...cellStyle, color: color.wkMuted, maxWidth: '14rem' }}>{row.rule}</td>
+              <td style={cellStyle}>{row.example}</td>
             </tr>
           ))}
         </tbody>
