@@ -1,6 +1,6 @@
 import type { PresenceData } from 'discord.js'
 import { ActivityType } from 'discord.js'
-import { captureMessage } from '../observability.js'
+import { startLivenessHeartbeat } from '../observability.js'
 
 /**
  * The NARROW client surface handleReady actually reads — interface
@@ -21,12 +21,13 @@ export function handleReady(client: ReadyClient): void {
     status: 'online',
     activities: [{ name: 'Salvage Union', type: ActivityType.Playing }],
   })
-  // Liveness signal (no-op unless SENTRY_DSN is set): a Render worker has no
-  // HTTP port to health-probe, so a Sentry info event on every successful
-  // login/reconnect is the basic "process is alive" alert path — an unusual
-  // gap between these (e.g. Sentry's own alerting on event absence) signals
-  // the worker went dark.
-  captureMessage('discord-bot ready', {
-    guildCount: client.guilds.cache.size,
-  })
+  // Liveness (no-op unless SENTRY_DSN is set). Started here rather than at
+  // process start because "alive" for this worker means logged in and serving
+  // guilds, which is exactly what reaching this handler proves.
+  //
+  // This replaced a `captureMessage('discord-bot ready')` that was described as
+  // an alert path but could not be one — Sentry alerts on events arriving, not
+  // on their absence, so a worker going dark raised nothing. It is now a cron
+  // monitor, where a MISSED check-in is the alert. See `startLivenessHeartbeat`.
+  startLivenessHeartbeat()
 }

@@ -65,9 +65,10 @@ function calls(fn: string): Array<{ fn: string; args: unknown[] }> {
 }
 
 /**
- * These run in order against one module instance, because `enabled` is
- * module-level state and the transition from off to on is exactly what is
- * being tested.
+ * One module instance, and it is the UNCONFIGURED one — these assert that a bot
+ * with no DSN reaches Sentry not at all. The configured half needs a second
+ * instance rather than a later `init()`, because the gate latches; see the note
+ * above that describe.
  */
 describe('with no DSN configured', () => {
   test('init reports nothing and does not enable Sentry', () => {
@@ -94,10 +95,34 @@ describe('with no DSN configured', () => {
   })
 })
 
-describe('once a DSN is configured', () => {
-  test('init passes the DSN, environment and release through', () => {
+/**
+ * A FRESH module instance, because the gate above has latched.
+ *
+ * `createObservability` latches on the first init *attempt*, not the first
+ * success — a surface that came up without a DSN stays off for that process,
+ * which `apps/su-assets/netlify/lib/observability.test.ts` asserts and explains:
+ * allowing a later init to succeed would let a test file mask a real "we never
+ * read the DSN" bug. This file used to walk off→on against one instance, which
+ * only worked because the bot kept its own DSN check *in front of* the factory;
+ * that check now lives in the factory (so both Netlify surfaces get the
+ * missing-DSN warning too), and this follows the pattern su-assets already set.
+ *
+ * `import()` dedupes by specifier, so a query string is the way to get a second
+ * evaluation. Held in a variable because TypeScript resolves *literal*
+ * specifiers only; the cast restores the real shape.
+ */
+const FRESH_SPECIFIER = '../observability.js?fresh'
+
+describe('once a DSN is configured before the first init', () => {
+  let fresh: typeof import('../observability.js')
+
+  beforeAll(async () => {
     dsn = 'https://key@example.ingest.sentry.io/1'
-    obs.initObservability()
+    fresh = (await import(FRESH_SPECIFIER)) as typeof import('../observability.js')
+  })
+
+  test('init passes the DSN, environment and release through', () => {
+    fresh.initObservability()
 
     const init = calls('init')[0]
     expect(init).toBeDefined()
@@ -111,13 +136,13 @@ describe('once a DSN is configured', () => {
   })
 
   test('a second call is a no-op, so startup can call it freely', () => {
-    obs.initObservability()
+    fresh.initObservability()
     expect(calls('init')).toHaveLength(1)
   })
 
   test('exceptions are reported, with context as extra when given', () => {
     const error = new Error('boom')
-    obs.captureException(error, { guildId: 'g1' })
+    fresh.captureException(error, { guildId: 'g1' })
 
     const c = calls('captureException')[0]
     expect(c?.args[0]).toBe(error)
@@ -125,12 +150,12 @@ describe('once a DSN is configured', () => {
   })
 
   test('no context sends undefined rather than an empty extra bag', () => {
-    obs.captureException(new Error('bare'))
+    fresh.captureException(new Error('bare'))
     expect(calls('captureException')[1]?.args[1]).toBeUndefined()
   })
 
   test('messages are reported — the worker has no port to health-probe', () => {
-    obs.captureMessage('logged in', { shard: 0 })
+    fresh.captureMessage('logged in', { shard: 0 })
     const c = calls('captureMessage')[0]
     expect(c?.args[0]).toBe('logged in')
     expect(c?.args[1]).toEqual({ extra: { shard: 0 } })
@@ -139,13 +164,13 @@ describe('once a DSN is configured', () => {
   test('flush is awaited before exit, with the timeout passed through', async () => {
     // The transport is async; a synchronous exit right after captureException
     // drops the one event the restart happened for.
-    await obs.flushObservability(500)
+    await fresh.flushObservability(500)
     expect(calls('flush')[0]?.args[0]).toBe(500)
   })
 
   test('a failing flush never rejects — the process is exiting anyway', async () => {
     flushShouldThrow = true
-    expect(await obs.flushObservability(10).then(() => 'resolved')).toBe('resolved')
+    expect(await fresh.flushObservability(10).then(() => 'resolved')).toBe('resolved')
     flushShouldThrow = false
   })
 })

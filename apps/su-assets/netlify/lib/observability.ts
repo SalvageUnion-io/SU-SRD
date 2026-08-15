@@ -67,6 +67,8 @@ const observability = createObservability(
     environment: process.env.NODE_ENV ?? 'production',
     // See the itun module for the COMMIT_REF-at-runtime caveat and its fallback.
     release: process.env.COMMIT_REF,
+    surface: 'the su-assets artwork Function',
+    remediation: "the Netlify site's env vars, with the Functions scope enabled",
   }),
   Sentry
 )
