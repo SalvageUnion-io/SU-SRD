@@ -188,11 +188,16 @@
   --su-color-paper: rgb(251, 250, 247);
   /* Paper as a FOREGROUND — printed onto a tone or a dark ground. */
   --su-color-paper-60: rgb(251 250 247 / 0.6);
+  /* The de-emphasised rung ON a tone — `wk-muted`'s inverse counterpart. */
+  --su-color-paper-70: rgb(251 250 247 / 0.7);
   --su-color-paper-30: rgb(251 250 247 / 0.3);
 
   /* THE single action colour. */
   --su-color-rust: rgb(168, 82, 34);
   --su-color-rust-hi: rgb(138, 64, 25);
+  /* The canonical focus-ring wash (design-spec §2.4) — shared infrastructure,
+     not one component's colour. See the note in tokens.ts. */
+  --su-color-rust-25: rgb(168 82 34 / 0.25);
   /* The one sanctioned cream — RollTable banding, and nowhere else. */
   --su-color-band-cream: rgb(243, 237, 226);
 
@@ -225,6 +230,10 @@
   --su-color-status-ok: var(--su-color-roll-success);
   --su-color-status-warn: var(--su-color-roll-failure);
   --su-color-status-bad: var(--su-color-roll-cascade);
+  /* NOT an alias, and unavoidably so: CSS has no spelling of "that property at
+     25%" the parity test can resolve back to a literal. Re-tone this BY HAND
+     whenever --su-color-roll-cascade moves. See the note in tokens.ts. */
+  --su-color-status-bad-25: rgb(176 67 43 / 0.25);
   --su-color-sheet-pilot: var(--su-color-pilot);
   --su-color-sheet-pilot-deep: var(--su-color-rust);
   --su-color-sheet-mech: var(--su-color-mech);
@@ -311,18 +320,41 @@ body {
 
 /* ══ The stateful half ══════════════════════════════════════════════════════
  *
- * Everything below is here because a style object could not hold it. Each class
- * is the interactive complement of an object in `src/design/styles.ts`: the
- * object paints the resting state, the class paints every other state.
+ * Everything below is here because a style object could not hold it.
+ *
+ * THE SPLIT IS PER-PROPERTY, NOT PER-COMPONENT — and this is the part that is
+ * easy to get wrong. An earlier framing of this section said the object paints
+ * the resting state and the class paints every other state. That does not work,
+ * and it fails SILENTLY: an inline declaration outranks an author rule whatever
+ * its selector, so a resting `background-color` on `style=` beats the same
+ * property in a `:hover` rule and the hover never renders at all. Measured on a
+ * real page — resting colour inline, hovered computed value unchanged; resting
+ * colour in the class, hover applied.
+ *
+ * So a property that VARIES by state is not static, and its resting value
+ * belongs here too, beside the state that overrides it. A component splits down
+ * the middle of its own style: `padding`, `border-radius` and `font` on the
+ * object; `background-color`, `border-color` and `color` in the class whenever
+ * a `:hover` / `:focus` / `:disabled` rule touches them.
+ *
+ * (`.su-button` below is the shape that hid this — `filter: brightness()`
+ * dodges the collision by being a different property from the one the object
+ * sets. That is a workaround, not the rule; see the note on it.)
  */
 
 /**
  * The canonical rust focus ring (design-spec §2.4), on `:focus-visible` — a
  * button shows it to the keyboard, not to the mouse.
+ *
+ * The wash is `rust/25`. These four ring rules shipped against
+ * `--su-color-ink-20` in #798 while their own comments named the rust ring; the
+ * live value every one of them mirrors is `ring-[3px] ring-rust/25`
+ * (`components/chrome/interaction.ts`), so #799 corrected the value rather than
+ * the comment. The on-tone rung below was already right.
  */
 .su-focus-ring:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+  box-shadow: 0 0 0 3px var(--su-color-rust-25);
 }
 
 /**
@@ -338,14 +370,25 @@ body {
     0 0 0 4px var(--su-color-ink);
 }
 
-/** The interactive complement of `styles.buttonBase`. */
+/**
+ * The interactive complement of `styles.buttonBase`.
+ *
+ * NOT the pattern to copy. `filter: brightness()` is a generic darkening that
+ * happens to survive `styles.buttonPrimary` setting `background-color` inline,
+ * because the two are different properties — which is why this rule works and
+ * masks the precedence trap described at the top of this section. The real
+ * `Button` (`components/chrome/buttonVariants.ts`) does not darken generically:
+ * it swaps to a NAMED colour per variant (`hover:bg-ink-8`, `hover:bg-rust-hi`,
+ * `hover:border-rust-hi`), and no brightness filter reproduces those without
+ * re-toning them. Those live in `.su-btn--*` below, resting colour included.
+ */
 .su-button:hover:not(:disabled) {
   filter: brightness(0.94);
 }
 
 .su-button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+  box-shadow: 0 0 0 3px var(--su-color-rust-25);
 }
 
 .su-button:disabled {
@@ -360,7 +403,7 @@ body {
  */
 .su-input:focus {
   outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+  box-shadow: 0 0 0 3px var(--su-color-rust-25);
 }
 
 .su-input:disabled {
@@ -379,7 +422,7 @@ body {
  * imply the shell is focusable when it is not.
  */
 .su-focus-within:focus-within {
-  box-shadow: 0 0 0 3px var(--su-color-ink-20);
+  box-shadow: 0 0 0 3px var(--su-color-rust-25);
 }
 
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════ */
