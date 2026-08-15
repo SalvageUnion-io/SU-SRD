@@ -2,10 +2,16 @@
  * PublicSheetPanel — turn one sheet into a public, always-current page
  * ([ADR-032](../../../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
  *
- * Sits below the snapshot section in `ShareStatusDialog` because the two answer
- * different questions and a player choosing between them should see both:
- * a snapshot is a **frozen** copy of this build, and this is a **live** view
- * that follows the sheet as it changes.
+ * Sits ABOVE the snapshot section in `ShareStatusDialog`, because for a
+ * signed-in player it is the better default: a link that stays current is what
+ * "share my sheet" usually means, and a frozen copy is the deliberate exception.
+ *
+ * It is headed **"Live public sheet"**, and the first word is the load-bearing
+ * one. Read-only is not what distinguishes these two — BOTH shared surfaces
+ * render through `frozenSheet.ts` + `<Sheet readOnly />`, so read-only is the
+ * constant. Heading this "Public sheet" beside "Snapshot" named the wrong axis
+ * and invited the guess that the public one was somehow writable by whoever
+ * held the link. Live-versus-frozen is the only choice actually on offer.
  *
  * Connected-only, and the gate lives in the PARENT rather than here. That is
  * not a style choice: this component calls `useQuery`/`useMutation`, which
@@ -80,19 +86,19 @@ export function PublicSheetPanel({ kind, appId, entityName, headingClass }: Publ
     // border inside a border. It kept the Panel while it sat on the share
     // screen's bare grid, where the frame was the only thing separating it.
     <section>
-      <h2 className={headingClass}>Public sheet</h2>
+      <h2 className={headingClass}>Live public sheet</h2>
 
       <p className="text-wk-muted mb-3 font-body text-caption leading-relaxed">
         {isPublic === true ? (
           <>
-            Anyone with this link can read {entityName}, with no account. It stays current as you
-            play. Turning it off takes effect immediately, everywhere.
+            On. Anyone with this link reads {entityName} as it stands right now, and it follows
+            every edit you make. Switching it off revokes the link immediately, everywhere.
           </>
         ) : (
           <>
-            Publish {entityName} to a page anyone can read without an account. Unlike a snapshot it
-            stays current as you play — and everything on the sheet, including bio and appearance
-            text, becomes readable by anyone with the link.
+            Off. Publishing gives {entityName} one page that follows the sheet as you play — no
+            account needed to read it, and no new link to send when something changes. Everything on
+            the sheet goes with it, including bio and appearance text.
           </>
         )}
       </p>
@@ -114,7 +120,13 @@ export function PublicSheetPanel({ kind, appId, entityName, headingClass }: Publ
         disabled={busy || isPublic === null}
         onClick={() => void toggle(isPublic !== true)}
       >
-        {isPublic === null ? 'Checking…' : isPublic ? 'Stop sharing' : 'Publish public sheet'}
+        {/*
+          "Stop sharing" was the off-label while this was the only thing on the
+          screen called sharing. It is now one of two, and the snapshot links
+          below survive this switch untouched — so it has to name what it turns
+          off rather than claim to end sharing outright.
+        */}
+        {isPublic === null ? 'Checking…' : isPublic ? 'Turn off' : 'Publish live sheet'}
       </Button>
 
       {error !== null && <FieldError className="mt-2">{error}</FieldError>}
