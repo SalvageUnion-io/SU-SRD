@@ -1,5 +1,24 @@
+/*
+ * The `@layer` order below and the `layer(su-base)` on the package stylesheet
+ * are LOAD-BEARING — do not simplify either to a bare `@import` (#799, #802).
+ *
+ * `component-lib/styles/index.css` carries the `--su-*` token scale and every
+ * rule a style object cannot express, so a component migrated off Tailwind
+ * renders unstyled without it. It is written to be loaded ALONE once Tailwind
+ * leaves, so its base block is unlayered — and unlayered CSS beats layered CSS
+ * whatever the source order, while Tailwind v4 puts its utilities in
+ * `@layer utilities`. Imported plainly it inverts the cascade for every rule the
+ * two share: measured on the real build, `h1,…,h6 { font-size: inherit }` landed
+ * past the end of the utilities layer and outranked every `text-*` utility,
+ * flattening the type on every heading. Declaring the order up front and
+ * importing into `su-base` puts the package base between Tailwind's preflight
+ * and Tailwind's utilities, which is where it belongs while both are live.
+ * When Tailwind goes this collapses back to a plain import.
+ */
+@layer theme, base, su-base, components, utilities;
 @import 'tailwindcss';
 @import 'component-lib/styles/theme.css';
+@import 'component-lib/styles/index.css' layer(su-base);
 
 @source '../../../../packages/component-lib/src';
 

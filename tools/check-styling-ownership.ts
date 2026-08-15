@@ -383,6 +383,92 @@ function scanUnboundComponents(): Violation[] {
 
 // ── rule table ────────────────────────────────────────────────────────────────
 
+/**
+ * The app entry stylesheets — the two files that compose the whole cascade for
+ * a shipped app. Named explicitly rather than discovered, because the property
+ * being checked is about these files SPECIFICALLY: a partial like `print.css`
+ * neither should nor could carry the import.
+ */
+const APP_ENTRY_CSS = ['apps/itun/src/index.css', 'apps/srd/src/styles/global.css'] as const
+
+/**
+ * Both halves of the package-stylesheet wiring, in the two files that own it.
+ *
+ * WHY A GUARD. This is the highest-consequence silent failure in the Tailwind
+ * migration, and it fails in two different directions:
+ *
+ *   MISSING IMPORT — every component already migrated off Tailwind renders
+ *   unstyled in production. The library still compiles, every test still
+ *   passes, and Ladle looks perfect because Ladle loads the stylesheet through
+ *   its own `ladle.css`. Nothing but a human eye on the real app would notice.
+ *
+ *   UNLAYERED IMPORT — worse, because it looks like the tidier spelling.
+ *   `index.css` is written to be loaded ALONE once Tailwind leaves, so its base
+ *   block is unlayered; unlayered CSS beats layered CSS whatever the source
+ *   order, and Tailwind v4 puts utilities in `@layer utilities`. Measured on the
+ *   real build, a bare `@import` landed `h1,…,h6 { font-size: inherit }` past
+ *   the end of the utilities layer, outranking every `text-*` utility and
+ *   flattening the type on every heading in the app.
+ *
+ * Both are invisible to typecheck, lint and the test suite, which is exactly the
+ * standard the sibling rules in this file are held to. The layer NAME is not
+ * asserted — only that the import carries some `layer(...)` and that the
+ * declared order puts it before `utilities` — so renaming `su-base` stays cheap
+ * while removing the layering does not.
+ */
+function scanPackageStylesheetImport(): Violation[] {
+  const out: Violation[] = []
+  for (const rel of APP_ENTRY_CSS) {
+    const css = stripCssComments(read(join(ROOT, rel)))
+    const lines = css.split('\n')
+
+    const importLine = lines.findIndex((l) =>
+      /@import\s+['"]component-lib\/styles\/index\.css['"]/.test(l)
+    )
+    if (importLine === -1) {
+      out.push({
+        file: rel,
+        line: 1,
+        detail:
+          "does not import 'component-lib/styles/index.css' — every component migrated off Tailwind renders unstyled in this app",
+      })
+      continue
+    }
+
+    const line = lines[importLine] ?? ''
+    const layerMatch = line.match(/layer\(([a-z0-9-]+)\)/i)
+    if (!layerMatch) {
+      out.push({
+        file: rel,
+        line: importLine + 1,
+        detail:
+          'imports the package stylesheet WITHOUT a cascade layer — unlayered CSS outranks Tailwind utilities, which flattens every heading',
+      })
+      continue
+    }
+
+    const layerName = layerMatch[1] as string
+    const orderDecl = css.match(/@layer\s+([a-z0-9,\s-]+);/i)
+    const order = orderDecl?.[1]?.split(',').map((n) => n.trim()) ?? []
+    if (!order.includes(layerName)) {
+      out.push({
+        file: rel,
+        line: importLine + 1,
+        detail: `imports into layer(${layerName}) but no @layer declaration names it — layer order then depends on emission order`,
+      })
+      continue
+    }
+    if (order.includes('utilities') && order.indexOf(layerName) > order.indexOf('utilities')) {
+      out.push({
+        file: rel,
+        line: importLine + 1,
+        detail: `layer(${layerName}) is declared AFTER 'utilities' — the package base then outranks every Tailwind utility`,
+      })
+    }
+  }
+  return out
+}
+
 const RULES: Rule[] = [
   {
     id: 'app-theme',
@@ -401,6 +487,12 @@ const RULES: Rule[] = [
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
     fix: 'used-but-undefined: define the class in dashboard/{DashboardCanvas,DashboardGrid,instruments}.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — pc-crawler-focus and pc-crawler-focus-note are different classes.',
     scan: scanPcContract,
+  },
+  {
+    id: 'package-stylesheet-import',
+    rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, and it must not outrank Tailwind while both are live (#799, epic #802)',
+    fix: "Each app entry stylesheet must (a) import 'component-lib/styles/index.css' and (b) import it into a cascade layer declared BEFORE Tailwind's `utilities` — the shape is `@layer theme, base, su-base, components, utilities;` at the top and `@import 'component-lib/styles/index.css' layer(su-base);` beside the theme.css import.",
+    scan: scanPackageStylesheetImport,
   },
 ]
 
