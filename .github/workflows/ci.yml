@@ -6,7 +6,7 @@ on:
   # NO `branches:` filter here, deliberately. That filter matches the PR's BASE
   # branch, so `branches: ['main']` silently gave ZERO checks to any PR based on
   # something other than main — i.e. every layer of a stacked PR above the
-  # bottom one. Since `quality-checks` is a required status on main, those PRs
+  # bottom one. Since `CI Success` is a required status on main, those PRs
   # were not merely unchecked, they were unmergeable, with nothing on the PR
   # saying why: `gh pr checks` reports "no checks reported" and the required
   # check simply never arrives.
@@ -707,11 +707,17 @@ jobs:
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
-  # this one check (`quality-checks`) so the per-area gating above never leaves
+  # this one check (`CI Success`) so the per-area gating above never leaves
   # a required check stuck pending.
+  #
+  # The job KEY stays `quality-checks` — it is what `needs:` and the comments
+  # throughout this file refer to. The `name:` is what branch protection
+  # matches on, and it is `CI Success` across all four monorepos so one
+  # ruleset checklist applies everywhere.
   # ---------------------------------------------------------------------------
 
   quality-checks:
+    name: CI Success
     if: always()
     needs:
       - changes
@@ -736,7 +742,7 @@ jobs:
       # .github/workflows/codeql.yml. CodeQL is therefore required as its OWN
       # status context rather than through this aggregate — the branch ruleset
       # for `main` lists `Analyze (javascript-typescript)` alongside
-      # `quality-checks`, so a SAST finding blocks a merge.
+      # `CI Success`, so a SAST finding blocks a merge.
       #
       # That requires codeql.yml to carry a `merge_group:` trigger, and the
       # ORDER is load-bearing: the queue's temporary `gh-readonly-queue/**`

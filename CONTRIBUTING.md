@@ -42,7 +42,7 @@ bun run check:all
 
 This runs, in order: schema-drift check (`build:package` + `git diff`), lint,
 format check, typecheck, tests, data validation, knip, and `bun audit`. If
-`check:all` is green, CI's `quality-checks` gate should be too. The app builds
+`check:all` is green, CI's `CI Success` gate should be too. The app builds
 (`build:web`, `build:itun`, `build:bot`) run only in CI/deploy; run them locally
 if you touched build config.
 
