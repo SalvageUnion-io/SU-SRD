@@ -30,18 +30,6 @@ interface SchemaInfo {
   displayName: string
 }
 
-// Get version from package.json
-function getPackageVersion(): string {
-  try {
-    const packageJsonPath = path.join(PACKAGE_DIR, 'package.json')
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
-    return packageJson.version || '1.0.0'
-  } catch {
-    console.warn('⚠️  Could not read package.json version, using default')
-    return '1.0.0'
-  }
-}
-
 // Get all schema files
 function getSchemaFiles(): string[] {
   const schemasDir = path.join(PACKAGE_DIR, 'schemas')
@@ -166,11 +154,32 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
   }
 }
 
+/**
+ * NOTE: there is deliberately no `version` field here, and re-adding one will
+ * break every release.
+ *
+ * This catalog used to embed `package.json`'s version. Nothing ever read it —
+ * the package is `private: true` (never published to npm), no endpoint serves
+ * the catalog, and no caller touches `getSchemaCatalog().version`. What it did
+ * do was couple a GENERATED artifact to a version release-please bumps in
+ * `package.json` alone: every release PR therefore arrived with a stale
+ * `version` here, `check:schemas` regenerated it, saw the mismatch, and failed.
+ * Release PRs were unmergeable by construction (#786).
+ *
+ * release-please's `extra-files` is the usual fix for a file that carries a
+ * version, but it does not work here: its JSON updater re-serializes through
+ * `JSON.stringify(parsed, replacer, indent)`, which expands every
+ * `requiredFields` array onto multiple lines, and `format:check` then rejects
+ * the file Biome wants collapsed. That trades a `static-checks` failure for a
+ * `quality-checks` one.
+ *
+ * So the coupling is gone instead of maintained. Two files tracking one version
+ * stay in sync only by convention, and this one had no reader to justify it.
+ */
 interface SchemaIndex {
   $schema: string
   title: string
   description: string
-  version: string
   generated: string
   schemas: Array<{
     id: string
@@ -203,7 +212,6 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: 'Salvage Union Data Schema Catalog',
     description: 'Catalog of all available schemas in the salvageunion-data repository',
-    version: getPackageVersion(),
     generated: new Date().toISOString(),
     schemas: schemas.map((s) => {
       // Find existing entry to preserve meta property
