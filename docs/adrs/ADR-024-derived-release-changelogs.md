@@ -20,7 +20,7 @@ The two user-facing sites announce changes very differently today:
 
 The repo already squash-merges with **conventional-commit PR titles**
 (`feat:`, `fix:`, …) and gates every PR behind a single aggregate
-`quality-checks` status check. That is exactly the structured input release
+`CI Success` status check. That is exactly the structured input release
 tooling consumes.
 
 The stated goal is **formal releases + on-site release history at the least
@@ -86,7 +86,7 @@ config.
 
 - **CI / merge interplay.** release-please runs as a workflow on push to `main`.
   It must authenticate with a **PAT**, not the default `GITHUB_TOKEN`, so its
-  release PRs trigger `ci.yml` and the required `quality-checks` check reports
+  release PRs trigger `ci.yml` and the required `CI Success` check reports
   (a `GITHUB_TOKEN`-opened PR triggers no workflows and would be unmergeable).
   This is a one-time repo-secret setup step, documented at rollout. Release PRs
   touch only `CHANGELOG.md` / `package.json` version / the manifest, so they
@@ -124,7 +124,7 @@ config.
   two — and `main`'s `CHANGELOG.md` fell behind by exactly that much. The
   release-please workflow now re-arms auto-merge on every open
   `release-please--*` PR on each run, so a release lands as soon as
-  `quality-checks` is green with no human step. It is re-asserted every run
+  `CI Success` is green with no human step. It is re-asserted every run
   rather than only on creation, because a PR ejected from the merge queue (both
   release PRs edit `.release-please-manifest.json`, so one always rebases) loses
   auto-merge silently; a daily `schedule:` covers the case where no push follows.

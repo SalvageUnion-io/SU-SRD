@@ -72,7 +72,7 @@ jobs:
           # NOT trigger ci.yml — GitHub suppresses workflow runs for events
           # raised by GITHUB_TOKEN, to prevent recursion.
           #
-          # That fails CLOSED here rather than open: `quality-checks` is a
+          # That fails CLOSED here rather than open: `CI Success` is a
           # required status on main, so a catalog PR with no CI run simply
           # cannot be merged. To get checks running, either close and reopen the
           # PR, or give the action a GitHub App token (see the action's README)
