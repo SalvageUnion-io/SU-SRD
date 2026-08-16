@@ -2,6 +2,30 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.3...itun-v1.8.0) (2026-08-16)
+
+
+### Features
+
+* **apps:** load the package stylesheet, layered below Tailwind's utilities ([#816](https://github.com/SalvageUnion-io/SU-SRD/issues/816)) ([2eb54ba](https://github.com/SalvageUnion-io/SU-SRD/commit/2eb54ba0ddb00c7e66509a7b1f8e2ca1baffddc1))
+* **component-lib:** move Button and buttonVariants onto .su-btn class names ([#823](https://github.com/SalvageUnion-io/SU-SRD/issues/823)) ([855cc3c](https://github.com/SalvageUnion-io/SU-SRD/commit/855cc3c68a79c63c719cbcce5642e16e60ebb7b3))
+
+
+### Bug Fixes
+
+* break two import cycles and ratchet the card's size ([#784](https://github.com/SalvageUnion-io/SU-SRD/issues/784)) ([3a0192f](https://github.com/SalvageUnion-io/SU-SRD/commit/3a0192f170d8e96b7f9102e6a99f074e9b6095a5))
+* define "an unset pool means full" once, and enforce it ([#780](https://github.com/SalvageUnion-io/SU-SRD/issues/780)) ([5269c60](https://github.com/SalvageUnion-io/SU-SRD/commit/5269c607294a008ce18b9696c222fa7b679753a1))
+* **deps:** declare three packages the workspaces import but never listed ([#777](https://github.com/SalvageUnion-io/SU-SRD/issues/777)) ([250af17](https://github.com/SalvageUnion-io/SU-SRD/commit/250af1788ef35a863ef65ae9d848be96c038df98))
+* give the SRD route grammar one owner ([#768](https://github.com/SalvageUnion-io/SU-SRD/issues/768)) ([19902db](https://github.com/SalvageUnion-io/SU-SRD/commit/19902dbfdde30543ca7b77b3d41291267b59f880))
+* **itun:** bound the Downtime step index, per the book ([#785](https://github.com/SalvageUnion-io/SU-SRD/issues/785)) ([c9cca8d](https://github.com/SalvageUnion-io/SU-SRD/commit/c9cca8dd18deb05f482c94b76a6f552e8f42a3a6))
+* **itun:** redirect the retired /sheet/:kind/:id/share URL to the live sheet ([#797](https://github.com/SalvageUnion-io/SU-SRD/issues/797)) ([a4e9beb](https://github.com/SalvageUnion-io/SU-SRD/commit/a4e9bebb88457f2f72502af625450ad99870cc47))
+* **itun:** repair the nightly E2E locator and name the rail's View links ([#771](https://github.com/SalvageUnion-io/SU-SRD/issues/771)) ([1ce5759](https://github.com/SalvageUnion-io/SU-SRD/commit/1ce575977d775d6944a4b8b0ca333204612f8ebb))
+* **itun:** retry a transient 502 on the idempotent snapshot calls ([#791](https://github.com/SalvageUnion-io/SU-SRD/issues/791)) ([f124464](https://github.com/SalvageUnion-io/SU-SRD/commit/f124464d05130d309d2cfa8ea1b9895ba002fc71))
+* **itun:** round field-repair cost down, per the book ([#779](https://github.com/SalvageUnion-io/SU-SRD/issues/779)) ([fa5c47b](https://github.com/SalvageUnion-io/SU-SRD/commit/fa5c47be5951b41538512462680f3409c29ae159))
+* **itun:** unbreak every snapshot Function — sharing has been 502ing since [#781](https://github.com/SalvageUnion-io/SU-SRD/issues/781) ([#788](https://github.com/SalvageUnion-io/SU-SRD/issues/788)) ([1476ded](https://github.com/SalvageUnion-io/SU-SRD/commit/1476ded401efc2fc5102c0053eb47440adbe3909))
+* **itun:** unbreak sharing — a duplicate zip entry was replacing the handler ([#795](https://github.com/SalvageUnion-io/SU-SRD/issues/795)) ([6dc5859](https://github.com/SalvageUnion-io/SU-SRD/commit/6dc58593d396c7ca96077abd0bc074e336c7a116))
+* **tools:** check the docs a contributor actually reads first ([#782](https://github.com/SalvageUnion-io/SU-SRD/issues/782)) ([d0a4d22](https://github.com/SalvageUnion-io/SU-SRD/commit/d0a4d22d1325758ab6cde1a410236ed28b26a7aa))
+
 ## [1.7.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.2...itun-v1.7.3) (2026-08-14)
 
 
