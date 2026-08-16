@@ -216,12 +216,15 @@ export type EnhancedSchemaMetadata = {
 /**
  * Get schema catalog with enhanced metadata
  * Exposed for client use
+ *
+ * No `version` — see the note on `SchemaIndex` in tools/generateDocs.ts for why
+ * embedding the package version in this generated catalog broke every release
+ * PR, and why re-adding it would break them again.
  */
 export function getSchemaCatalog(): {
   $schema: string
   title: string
   description: string
-  version: string
   generated: string
   schemas: EnhancedSchemaMetadata[]
 } {

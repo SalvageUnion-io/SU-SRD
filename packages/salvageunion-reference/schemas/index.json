@@ -2,8 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Salvage Union Data Schema Catalog",
   "description": "Catalog of all available schemas in the salvageunion-data repository",
-  "version": "2.11.0",
-  "generated": "2026-08-14T06:02:44.516Z",
+  "generated": "2026-08-16T00:32:54.595Z",
   "schemas": [
     {
       "id": "abilities",
