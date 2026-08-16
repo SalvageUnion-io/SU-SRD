@@ -2,6 +2,21 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.4.0...srd-v2.5.0) (2026-08-16)
+
+
+### Features
+
+* **apps:** load the package stylesheet, layered below Tailwind's utilities ([#816](https://github.com/SalvageUnion-io/SU-SRD/issues/816)) ([2eb54ba](https://github.com/SalvageUnion-io/SU-SRD/commit/2eb54ba0ddb00c7e66509a7b1f8e2ca1baffddc1))
+
+
+### Bug Fixes
+
+* **deps:** declare three packages the workspaces import but never listed ([#777](https://github.com/SalvageUnion-io/SU-SRD/issues/777)) ([250af17](https://github.com/SalvageUnion-io/SU-SRD/commit/250af1788ef35a863ef65ae9d848be96c038df98))
+* give the SRD route grammar one owner ([#768](https://github.com/SalvageUnion-io/SU-SRD/issues/768)) ([19902db](https://github.com/SalvageUnion-io/SU-SRD/commit/19902dbfdde30543ca7b77b3d41291267b59f880))
+* name a guide's tone instead of storing a second palette ([#769](https://github.com/SalvageUnion-io/SU-SRD/issues/769)) ([18974c3](https://github.com/SalvageUnion-io/SU-SRD/commit/18974c3f4e0823eaa8a06cfbcb52c54feeacd954))
+* **srd:** stop four unactionable browser errors filling Sentry ([#790](https://github.com/SalvageUnion-io/SU-SRD/issues/790)) ([786df13](https://github.com/SalvageUnion-io/SU-SRD/commit/786df13525c000b9debca7c45c65af01f4b97e62))
+
 ## [2.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.3.1...srd-v2.4.0) (2026-08-11)
 
 

@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.0...salvageunion-reference-v2.11.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* define "an unset pool means full" once, and enforce it ([#780](https://github.com/SalvageUnion-io/SU-SRD/issues/780)) ([5269c60](https://github.com/SalvageUnion-io/SU-SRD/commit/5269c607294a008ce18b9696c222fa7b679753a1))
+* give the SRD route grammar one owner ([#768](https://github.com/SalvageUnion-io/SU-SRD/issues/768)) ([19902db](https://github.com/SalvageUnion-io/SU-SRD/commit/19902dbfdde30543ca7b77b3d41291267b59f880))
+* name a guide's tone instead of storing a second palette ([#769](https://github.com/SalvageUnion-io/SU-SRD/issues/769)) ([18974c3](https://github.com/SalvageUnion-io/SU-SRD/commit/18974c3f4e0823eaa8a06cfbcb52c54feeacd954))
+* **reference:** delete the corrupt .tool-versions that breaks mise ([#766](https://github.com/SalvageUnion-io/SU-SRD/issues/766)) ([ae0931e](https://github.com/SalvageUnion-io/SU-SRD/commit/ae0931ef88e706c2571b8dc3c2ed1b5447294a70))
+* **reference:** stop the schema catalog embedding the package version ([#825](https://github.com/SalvageUnion-io/SU-SRD/issues/825)) ([b46ec67](https://github.com/SalvageUnion-io/SU-SRD/commit/b46ec67432948897df27e11759e33c590cb16c96))
+* **tools:** check the docs a contributor actually reads first ([#782](https://github.com/SalvageUnion-io/SU-SRD/issues/782)) ([d0a4d22](https://github.com/SalvageUnion-io/SU-SRD/commit/d0a4d22d1325758ab6cde1a410236ed28b26a7aa))
+
 ## [2.11.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.10.0...salvageunion-reference-v2.11.0) (2026-08-08)
 
 
