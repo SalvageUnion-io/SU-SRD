@@ -19,7 +19,7 @@
   "dependencies": {
     "@auth/core": "0.41.3",
     "@base-ui/react": "catalog:",
-    "@convex-dev/auth": "0.0.94",
+    "@convex-dev/auth": "0.0.95",
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
     "@netlify/blobs": "catalog:",
@@ -27,12 +27,12 @@
     "@sentry/browser": "catalog:",
     "@sentry/node": "catalog:",
     "@tanstack/react-query": "^5.101.4",
-    "@tanstack/react-router": "^1.170.23",
-    "@tanstack/router-plugin": "^1.168.27",
+    "@tanstack/react-router": "^1.170.28",
+    "@tanstack/router-plugin": "^1.168.31",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "component-lib": "workspace:*",
-    "convex": "1.43.0",
+    "convex": "1.44.0",
     "idb": "8.0.3",
     "lucide-react": "catalog:",
     "observability": "workspace:*",
@@ -40,7 +40,7 @@
     "react-dom": "catalog:",
     "salvageunion-reference": "workspace:*",
     "tailwind-merge": "catalog:",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@playwright/test": "catalog:",
