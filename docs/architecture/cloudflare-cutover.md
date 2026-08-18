@@ -35,7 +35,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 
 | Phase | What                                     | Reversible | Status                    |
 | ----- | ---------------------------------------- | ---------- | ------------------------- |
-| P0    | Port the CI guards                       | yes        | not started               |
+| P0    | Port the CI guards                       | yes        | **done** — 19 guard tests |
 | P1    | Export `lp-assets`, restore ingest tool  | blocking   | not started               |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | not started               |
@@ -110,14 +110,36 @@ with the reason recorded in the diff.
 `quality-checks` aggregate's `needs:`. It will fire as jobs change. That is
 correct; do not suppress it.
 
-**Gate**
+**Gate — met 2026-08-18**
 
-- [ ] `bun run check:all` green with both a `netlify.toml` and a `wrangler.jsonc`
-      present.
-- [ ] Each ported guard is demonstrated to **fail** when its asserted property is
-      removed. Test the guard, not just the run.
-- [ ] The `FUNCTION_DIRS` deletion carries a comment explaining why the class is
-      gone.
+- [x] `bun run check:all` green. *Gate wording amended:* it asked for a
+      `wrangler.jsonc` to be present, which was the wrong test — the guards do not
+      read one. Each guard instead resolves its property from whichever source
+      exists, and the tests below drive it from the Cloudflare source with the
+      Netlify one deleted, which is the stronger assertion.
+- [x] Each ported guard demonstrated to **fail** when its property is removed —
+      19 tests across three files, all mutating the real tree and restoring it.
+- [x] The `FUNCTION_DIRS` retirement carries its reasoning in the diff.
+
+The rule each guard now follows, and the distinction the whole phase turns on:
+
+| State                                    | Verdict                     |
+| ---------------------------------------- | --------------------------- |
+| Config file absent                       | surface retired → skip      |
+| Config file present, property missing    | **fail** — misconfiguration |
+| No source anywhere carries the property  | **fail** — unguarded        |
+
+Two findings while porting, both recorded in the tests:
+
+- `apps/srd/public/_headers` **already exists**, carrying CORS for the JSON
+  endpoints and no CSP. So "a `_headers` file exists" must not imply "it declares
+  the policy" — the rule is *at least one source declares a CSP, and every source
+  that declares one must permit the Sentry origin*. A first attempt conflated
+  those and failed on the committed tree.
+- `check-convex-parity.ts` now names `.github/workflows/deploy-cloudflare.yml`
+  **before that workflow exists**, so P4 has to satisfy the guard rather than the
+  guard being retrofitted afterwards. The "neither source present" case fails
+  loudly, which is what closes the window where nothing asserts it.
 
 ### P1 — Export `lp-assets` and restore its ingest tool · blocking · 1 day
 

@@ -75,8 +75,16 @@ type BrowserApp = {
   modulePath: string
   /** Entry that must CALL the init. */
   entryPath: string
-  /** netlify.toml carrying the CSP. */
-  netlifyTomlPath: string
+  /**
+   * Candidate files that may carry the CSP, in preference order.
+   *
+   * Two entries, because ADR-033 moves the header from `netlify.toml` to a
+   * `_headers` file served by Workers Static Assets, and the CSP must never be
+   * unasserted in between. The rule is *at least one must exist and carry a
+   * `connect-src`* — every file that DOES exist is checked, so a stale copy
+   * cannot go wrong quietly while a good one carries the pass.
+   */
+  cspSources: string[]
   /** Production origin, for --live. */
   productionUrl: string
 }
@@ -90,7 +98,7 @@ const BROWSER_APPS: BrowserApp[] = [
     // inline module script. With Astro gone there is a single client entry, so
     // the init lives there — one place instead of one per layout.
     entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    netlifyTomlPath: 'apps/srd/netlify.toml',
+    cspSources: ['apps/srd/netlify.toml', 'apps/srd/public/_headers'],
     productionUrl: 'https://salvageunion.io',
   },
   {
@@ -98,7 +106,7 @@ const BROWSER_APPS: BrowserApp[] = [
     dsnEnvVar: 'VITE_SENTRY_DSN',
     modulePath: 'apps/itun/src/lib/observability.ts',
     entryPath: 'apps/itun/src/main.tsx',
-    netlifyTomlPath: 'apps/itun/netlify.toml',
+    cspSources: ['apps/itun/netlify.toml', 'apps/itun/public/_headers'],
     productionUrl: 'https://intheunionnow.com',
   },
 ]
@@ -124,8 +132,20 @@ function connectSrcOfPolicy(policy: string): string | null {
   return directive ? directive.trim() : null
 }
 
-function connectSrcOf(toml: string): string | null {
-  const policy = toml.match(/Content-Security-Policy\s*=\s*"([^"]*)"/)?.[1]
+/**
+ * Extract `connect-src` from either config dialect.
+ *
+ * `netlify.toml` writes the header as TOML — `Content-Security-Policy = "…"` —
+ * while a Cloudflare/Netlify `_headers` file writes it as an actual header line,
+ * `Content-Security-Policy: …`, indented under a path pattern. Same directive,
+ * two spellings, and during the cutover both files exist at once.
+ *
+ * Matching on `=` or `:` in one expression rather than sniffing the filename
+ * keeps this honest about what it read: a `_headers` file that someone pasted
+ * TOML into still parses, and a rename cannot silently change the answer.
+ */
+function connectSrcOf(contents: string): string | null {
+  const policy = contents.match(/Content-Security-Policy\s*[=:]\s*"?([^"\n]*)"?/)?.[1]
   return policy === undefined ? null : connectSrcOfPolicy(policy)
 }
 
@@ -165,20 +185,47 @@ function checkStatic(app: BrowserApp): void {
 
   // The CSP half — the one that would have made a provisioned DSN look
   // healthy while silently dropping every event.
-  const toml = read(app.netlifyTomlPath)
-  if (!toml) {
-    fail(app.name, `netlify.toml missing at ${app.netlifyTomlPath}`)
-    return
-  }
-  const connectSrc = connectSrcOf(toml)
-  if (connectSrc === null) {
-    fail(app.name, `${app.netlifyTomlPath} declares no Content-Security-Policy connect-src`)
-  } else if (!connectSrc.includes(SENTRY_INGEST_HOST)) {
+  const present = app.cspSources.filter((path) => read(path) !== null)
+
+  if (present.length === 0) {
     fail(
       app.name,
-      `CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry events ` +
-        `would be blocked in the browser.\n      got: ${connectSrc}`
+      `no CSP source found — looked for ${app.cspSources.join(' and ')}. One of ` +
+        `them must carry the Content-Security-Policy, or the beacon is unguarded.`
     )
+    return
+  }
+
+  // Two separate rules, and conflating them was wrong: a `_headers` file may
+  // exist for reasons that have nothing to do with the CSP (srd's carries CORS
+  // for the JSON endpoints and nothing else), so "present" does not mean "must
+  // declare a policy".
+  //
+  //   - AT LEAST ONE source must declare a CSP `connect-src`.
+  //   - EVERY source that declares one must permit the Sentry origin — so a
+  //     correct file cannot paper over a stale sibling whose CSP has drifted,
+  //     whichever one the live site actually serves.
+  const declaring = present
+    .map((path) => ({ path, connectSrc: connectSrcOf(read(path) ?? '') }))
+    .filter((s): s is { path: string; connectSrc: string } => s.connectSrc !== null)
+
+  if (declaring.length === 0) {
+    fail(
+      app.name,
+      `none of ${present.join(', ')} declares a Content-Security-Policy ` +
+        `connect-src — the Sentry beacon is unguarded`
+    )
+    return
+  }
+
+  for (const { path, connectSrc } of declaring) {
+    if (!connectSrc.includes(SENTRY_INGEST_HOST)) {
+      fail(
+        app.name,
+        `${path}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
+          `events would be blocked in the browser.\n      got: ${connectSrc}`
+      )
+    }
   }
 }
 
@@ -552,10 +599,14 @@ const EXPORTS_A_HANDLER =
 function checkFunctionDirs(): void {
   for (const dir of FUNCTION_DIRS) {
     const full = join(process.cwd(), dir)
-    if (!existsSync(full)) {
-      failures.push(`  [functions] missing directory ${dir}`)
-      continue
-    }
+    // A directory that is GONE means that surface became a Worker (ADR-033).
+    // The whole failure class this check exists for — "every top-level file is
+    // implicitly a public endpoint" — is a property of Netlify's positional
+    // functions directory, and a Worker declares exactly one entry point in its
+    // wrangler config instead. So there is nothing left here to guard, and the
+    // check retires per-surface rather than being switched off wholesale: any
+    // directory that still EXISTS keeps the strict rule below, unchanged.
+    if (!existsSync(full)) continue
     for (const entry of readdirSync(full, { withFileTypes: true })) {
       if (!entry.isFile() || !/\.(ts|js|mjs)$/.test(entry.name)) continue
       const source = read(join(dir, entry.name))

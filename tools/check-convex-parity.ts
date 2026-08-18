@@ -59,6 +59,15 @@ const CONVEX_DIR = join(REPO_ROOT, 'apps/itun/convex')
 const NETLIFY_TOML = join(REPO_ROOT, 'apps/itun/netlify.toml')
 
 /**
+ * Where the same guard lives once the build moves into GitHub Actions
+ * (ADR-033 §4). Named here BEFORE that workflow exists, deliberately: the
+ * property this tool protects must not have a window in which nothing asserts
+ * it, so the path is fixed in advance and the workflow has to satisfy it rather
+ * than this check being retrofitted afterwards.
+ */
+const CF_DEPLOY_WORKFLOW = join(REPO_ROOT, '.github/workflows/deploy-cloudflare.yml')
+
+/**
  * The deployment whose staleness costs something. Overridable because this is
  * the only environment-specific string in the tool, and pinning it in a repo
  * that documents its deployments elsewhere would be a second place to update.
@@ -85,11 +94,59 @@ function fail(message: string): void {
  * it is in, and an absent key in production is fatal.
  */
 function checkStatic(): void {
-  if (!existsSync(NETLIFY_TOML)) {
-    fail(`apps/itun/netlify.toml is missing — the production deploy guard lives there`)
+  const hasNetlify = existsSync(NETLIFY_TOML)
+  const hasWorkflow = existsSync(CF_DEPLOY_WORKFLOW)
+
+  // Neither source present is the one state that must never pass. During the
+  // cutover BOTH may be present, and each is checked on its own terms; after
+  // it, only the workflow remains. "Nothing asserts the guard" is the hole.
+  if (!hasNetlify && !hasWorkflow) {
+    fail(
+      `no build definition carries the Convex deploy guard — expected either\n` +
+        `      apps/itun/netlify.toml or .github/workflows/deploy-cloudflare.yml.\n` +
+        `      Without one, a production deploy can ship a client against a backend\n` +
+        `      nobody pushed, exactly as it did from 2026-08-06 to 2026-08-10.`
+    )
     return
   }
 
+  if (hasNetlify) checkNetlifyBuildGuard()
+  if (hasWorkflow) checkWorkflowBuildGuard()
+}
+
+/**
+ * The GitHub Actions form of the same three properties.
+ *
+ * Asserted on properties rather than an exact step, for the reason the Netlify
+ * version documents at length: a workflow will be edited again, and a brittle
+ * equality trains people to update the expectation without reading it.
+ */
+function checkWorkflowBuildGuard(): void {
+  const yaml = readFileSync(CF_DEPLOY_WORKFLOW, 'utf8')
+
+  if (!yaml.includes('convex deploy')) {
+    fail(
+      `.github/workflows/deploy-cloudflare.yml no longer runs \`convex deploy\`, so\n` +
+        `      the backend would never be pushed by a deploy at all`
+    )
+  }
+
+  const namesTheKey = yaml.includes('CONVEX_DEPLOY_KEY')
+  const canFail = yaml.includes('exit 1')
+
+  if (!namesTheKey || !canFail) {
+    fail(
+      `.github/workflows/deploy-cloudflare.yml no longer fails a production deploy\n` +
+        `      that has no CONVEX_DEPLOY_KEY. Without that guard an absent key ships a\n` +
+        `      current client against a stale backend and nothing goes red.`
+    )
+    return
+  }
+
+  console.log('  [deploy-cloudflare.yml] production deploy fails when CONVEX_DEPLOY_KEY is absent')
+}
+
+function checkNetlifyBuildGuard(): void {
   const toml = readFileSync(NETLIFY_TOML, 'utf8')
   const commandLine = toml.split('\n').find((line) => line.trimStart().startsWith('command ='))
 
