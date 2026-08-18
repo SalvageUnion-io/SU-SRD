@@ -104,16 +104,24 @@ Two constraints follow and are binding on this migration: **snapshots go to R2
 and not into Convex**, and the Worker↔Convex boundary stays plain HTTP with a
 bearer token. Both keep the option open at no cost today.
 
-**6. Salvage Union gets a dedicated Cloudflare account.** Cloudflare's isolation
-boundary is the account; members and roles scope who may act, not which resources
-belong to which project, so there is no in-account "team" that separates this
-work from unrelated personal projects. A dedicated account isolates the
-per-account Workers Free quota, yields a project-appropriate `workers.dev`
-subdomain, and — most usefully — lets the CI token be scoped so it cannot reach
-anything else.
+**6. Everything runs on the existing `alxjrvs@gmail.com` account.** A dedicated
+account was considered and declined.
 
-This binds before the zones are created, not after, because moving a zone
-between accounts later is a real migration.
+Cloudflare's isolation boundary is the account — members and roles scope who may
+act, not which resources belong to which project, so there is no in-account
+"team". A separate account would therefore have been the only way to isolate the
+Workers Free quota and to scope the CI token so it could not reach anything else.
+Cloudflare also cannot create a second account on the same email, so it would
+have meant a second address and an invitation back.
+
+The cost of not doing it is small **today** and should be re-examined if that
+changes. The account currently holds no Workers, no KV namespaces, no D1
+databases and no `workers.dev` subdomain, so the per-account Free quota
+(100k requests/day, 10 ms CPU) is shared with nothing. The real residue is
+credential blast radius, recorded under Consequences.
+
+**R2 is not yet enabled on the account** and must be activated in the dashboard
+before P1, P3 or P6 can run. KV and D1 are already available.
 
 **7. A failed gate halts the phase.** No gate is worked around, relaxed, or
 retried with different parameters to obtain a pass, and no later phase begins
@@ -159,6 +167,19 @@ that must not be reverted as an optimisation.
 both reachable only via `@netlify/blobs → @netlify/dev-utils → image-size`. Once
 that dependency is gone, both `--ignore` flags come out and the CLAUDE.md section
 documenting them is deleted.
+
+**The CI token's blast radius is the whole personal account** (§6). Cloudflare
+API tokens scope by permission group and account, so *Workers Scripts: Edit* on
+this account authorises editing **any** Worker on it, present or future. R2
+permissions can still be narrowed to named buckets, and that narrowing should be
+applied. The residue is accepted, not solved, and it compounds with an agent PAT
+carrying `workflow` scope, no required human review, and pre-authorized
+`gh pr merge` — the path from "merge a PR" to "deploy production" closes with no
+human in it. Revisit if anything unrelated is ever added to this account.
+
+**The `workers.dev` subdomain is account-scoped and effectively permanent.** It
+must be registered before P4 names anything, and the name it gets is the name it
+keeps.
 
 **Netlify deploy previews disappear** when the sites do. The Workers preview-URL
 equivalent must be working beforehand.
