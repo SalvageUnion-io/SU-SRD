@@ -12,7 +12,8 @@
  * Keeping it dependency-free of the command modules avoids an import cycle.
  */
 
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder } from '@discordjs/builders'
+import { ButtonStyle } from 'discord-api-types/v10'
 
 /** Namespace prefix for every one of this bot's component ids. */
 export const CUSTOM_ID_NS = 'su'

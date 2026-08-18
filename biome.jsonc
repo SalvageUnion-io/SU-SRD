@@ -348,11 +348,17 @@
     {
       // The other legitimate default-export contracts, each read by a framework
       // rather than imported by us: TanStack Router route modules, Netlify
-      // Functions handlers, the Convex http router and schema, and build/test
-      // config files. Listed here so the rule stays `error` everywhere else.
+      // Functions handlers, Cloudflare Worker entrypoints, the Convex http
+      // router and schema, and build/test config files. Listed here so the rule
+      // stays `error` everywhere else.
       "includes": [
         "apps/itun/src/routes/**",
         "apps/*/netlify/functions/**",
+        // workerd reads `export default { fetch }` — the module IS the contract,
+        // exactly as a Netlify handler is. Scoped to `http/worker.ts` rather than
+        // all of `src/`, so an ordinary module in the same app cannot quietly
+        // acquire a default export under this exemption.
+        "apps/*/src/http/worker.ts",
         "apps/itun/convex/http.ts",
         "apps/itun/convex/schema.ts",
         "**/*.config.ts",

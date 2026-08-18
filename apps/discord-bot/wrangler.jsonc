@@ -1,0 +1,34 @@
+{
+  // Discord bot as a Cloudflare Worker serving HTTP interactions (ADR-033 §1).
+  //
+  // This does NOT replace the gateway bot until the Interactions Endpoint URL
+  // is set on the Discord application — the two transports are mutually
+  // exclusive and the setting is application-wide, so the flip is atomic across
+  // every server. Until then this Worker can be deployed and exercised with the
+  // signed replay harness while Render keeps serving production.
+  //
+  // No `compatibility_flags: ["nodejs_compat"]` on purpose: the portable
+  // Discord packages (@discordjs/builders, /collection, /rest and
+  // discord-api-types) run on workerd unaided, and adding the Node shim would
+  // both grow the bundle and make it easy to reintroduce a Node-only import
+  // without noticing. If something genuinely needs it, add it deliberately and
+  // say what.
+  "name": "su-discord-bot",
+  "main": "src/http/worker.ts",
+
+  // Pinned to what this repo's wrangler (4.108) bundles as workerd, so
+  // `wrangler dev` runs locally. A newer date fails with "requires
+  // compatibility date X, but the newest date supported by this server binary
+  // is Y" — which reads like a config error and is really a version skew.
+  "compatibility_date": "2026-07-13",
+
+  // Secrets, set with `wrangler secret put` — never in this file:
+  //   DISCORD_PUBLIC_KEY      Ed25519 key; the ONLY authentication on a public
+  //                           endpoint (see src/http/verify.ts)
+  //   DISCORD_TOKEN           bot token, for follow-up webhook calls
+  //   DISCORD_APPLICATION_ID  application id, for webhook routes
+  //   DISCORD_BOT_AVATAR      optional avatar hash, for embed branding
+  "observability": {
+    "enabled": true
+  }
+}

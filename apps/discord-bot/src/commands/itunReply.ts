@@ -1,4 +1,5 @@
-import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { EmbedBuilder } from '@discordjs/builders'
+import { MessageFlags } from 'discord-api-types/v10'
 import { config } from '../config.js'
 import { BRAND_NAME, enforceEmbedLimits } from '../format.js'
 import type { EmbedData } from '../gameEmbed.js'

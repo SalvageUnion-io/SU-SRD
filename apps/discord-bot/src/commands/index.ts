@@ -1,9 +1,9 @@
+import { Collection } from '@discordjs/collection'
 import type {
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js'
-import { Collection } from 'discord.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { suCommand } from './su.js'
 

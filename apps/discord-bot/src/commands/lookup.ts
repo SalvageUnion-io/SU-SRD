@@ -1,5 +1,6 @@
+import { EmbedBuilder } from '@discordjs/builders'
 import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
-import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { MessageFlags } from 'discord-api-types/v10'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   findEntityBySlug,

@@ -88,6 +88,15 @@
       "includeEntryExports": false
     },
     "apps/discord-bot": {
+      // `src/http/worker.ts` is a framework entry in the same sense the Netlify
+      // handlers are: workerd loads the module and calls its default export, so
+      // nothing in this repo imports it. Without it listed, knip reports the
+      // whole HTTP-interactions transport — and `@discordjs/rest`, which only
+      // that transport uses — as dead code.
+      //
+      // `src/index.ts` and `src/deploy-commands.ts` are matched by knip's own
+      // bin/script detection from package.json and are deliberately not listed.
+      "entry": ["src/http/worker.ts"],
       "project": ["src/**/*.ts"]
     }
   }

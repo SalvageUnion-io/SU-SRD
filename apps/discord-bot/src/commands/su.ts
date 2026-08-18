@@ -13,7 +13,7 @@
  * subcommand, so their logic and tests are untouched.
  */
 
-import { SlashCommandBuilder } from 'discord.js'
+import { SlashCommandBuilder } from '@discordjs/builders'
 import { gamesCommand, meCommand, shelfCommand } from './account.js'
 import { checkCommand } from './check.js'
 import { crewCommand, sheetCommand } from './crew.js'

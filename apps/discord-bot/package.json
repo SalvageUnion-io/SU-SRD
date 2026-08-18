@@ -21,8 +21,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@discordjs/builders": "1.14.1",
+    "@discordjs/collection": "2.1.1",
+    "@discordjs/rest": "2.6.3",
     "@randsum/roller": "catalog:",
     "@sentry/node": "catalog:",
+    "discord-api-types": "0.38.50",
     "discord.js": "^14.27.0",
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
