@@ -45,9 +45,19 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P7    | Cutover                                  | **no**     | not started               |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
 
-**Blocked on a human decision:** the dedicated Cloudflare account (D5 below)
-blocks P4, because the `workers.dev` subdomain is account-scoped and effectively
-permanent.
+**Account:** everything runs on the existing `alxjrvs@gmail.com` account
+(ADR-033 §6). A dedicated account was considered and declined; the residue is a
+CI token whose blast radius is that whole account.
+
+**One human prerequisite remains, and it blocks P1, P3 and P6:**
+**R2 is not enabled** on the account and must be activated in the Cloudflare
+dashboard. KV and D1 are already available. Nothing else exists on the account —
+no Workers, no KV namespaces, no D1 databases, no `workers.dev` subdomain — so
+the per-account Free quota is shared with nothing today.
+
+The `workers.dev` subdomain still has to be registered before P4 names anything.
+It is account-scoped and effectively permanent, so choose the name deliberately;
+it is no longer a blocker, just a one-way door.
 
 ---
 
@@ -113,6 +123,9 @@ correct; do not suppress it.
 
 Do this whether or not the migration proceeds. It depends on no other decision.
 
+> The **export** half needs nothing from Cloudflare and can start immediately.
+> Seeding R2 happens in P6 and needs R2 enabled on the account first.
+
 Once Netlify is gone, R2 becomes the only copy of licensed artwork that cannot
 enter this repository. An export gives a second.
 
@@ -155,6 +168,10 @@ against a deployed Worker carrying the real command handlers.
 
 ### P3 — R2 `SnapshotStorage` · reversible · ½ day
 
+> **Prerequisite: R2 must be enabled** on the Cloudflare account
+> (`wrangler r2 bucket list` currently returns *"Please enable R2 through the
+> Cloudflare Dashboard"*, code 10042). KV and D1 are already available.
+
 `SnapshotStorage` is three methods with two existing implementations, so this is
 a drop-in third. Run the **existing**
 `apps/itun/netlify/functions/__tests__/snapshot.test.ts` against it by swapping
@@ -181,11 +198,12 @@ would look like a control without being one.
 
 ### P4 — Three web surfaces on `workers.dev` · reversible · 2 days
 
-**Blocked on D5** (the dedicated Cloudflare account) — the `workers.dev`
-subdomain is account-scoped and effectively permanent.
-
 Everything except DNS runs in parallel with production, at zero customer
 exposure. This is the acceptance gate for the whole migration.
+
+Register the `workers.dev` subdomain on the account first. It is account-scoped
+and effectively permanent — a one-way door rather than a blocker, so choose the
+name deliberately.
 
 Two enabling changes first, each worth landing on its own:
 
@@ -345,9 +363,12 @@ review, and pre-authorized `gh pr merge`.
 
 Minimum bar before P4 ships to any real hostname:
 
-- A Cloudflare API token scoped to *Workers Scripts: Edit* and the specific R2
-  buckets **in the dedicated account** — never an account-global token, and never
-  a token on the personal account.
+- A Cloudflare API token scoped to *Workers Scripts: Edit* and, for R2,
+  **narrowed to the named buckets** rather than account-wide. Cloudflare supports
+  per-bucket R2 scoping and does not support per-Worker scoping, so the Workers
+  half authorises editing any Worker on the account. With D5 closed in favour of
+  the personal account (ADR-033 §6) that is the accepted residue — narrow the
+  half that can be narrowed, and do not pretend the other half is contained.
 - Stored as an Actions secret. Never in `wrangler.jsonc`, never in a `.env` git
   can see.
 - Deploy steps gated on the `quality-checks` aggregate, so a red gate cannot
@@ -365,22 +386,30 @@ Minimum bar before P4 ships to any real hostname:
 | D2  | Snapshot write freeze, or accept losing links published during propagation?       | P6        | freeze — it costs minutes      |
 | D3  | Do production deploys require environment approval, or does a green gate suffice? | P4        | green gate suffices            |
 | D4  | Announce the bot's permanent-offline display before the flip, or after?           | P5 gate   | before                         |
-| D5  | Dedicated Cloudflare account — name and owning email                              | **P4**    | none; must be answered         |
+| ~~D5~~ | ~~Dedicated Cloudflare account~~                                                | —         | **Closed** — see below         |
 
 **Closed by audit.** `lp-assets` has no backup and its ingest tool was deleted, so
 P1 grows rather than shrinks. The snapshot rate limit is decorative. The bot is
 independent of the web surfaces and P2 settled it on measured evidence.
 
-**On D5:** Cloudflare cannot create a second account on the same email from the
-dashboard. A dedicated account is registered under a different address, then
-`alxjrvs@gmail.com` is invited as Super Administrator and it appears in the
-normal account switcher.
+**D5 — closed 2026-08-18: everything runs on `alxjrvs@gmail.com`.** A dedicated
+account was considered and declined (ADR-033 §6). It would have been the only way
+to isolate the Workers Free quota and to scope the CI token, since Cloudflare's
+isolation boundary is the account and there is no in-account "team" — but nothing
+else lives on the account, so the quota is shared with nothing today. The accepted
+residue is credential blast radius: *Workers Scripts: Edit* on this account
+authorises editing any Worker on it. **Narrow the R2 half to named buckets, which
+Cloudflare does support.** Revisit if anything unrelated is added to the account.
 
 ---
 
 ## Accepted risks
 
 - **No rollback**, chosen deliberately. Every gate is load-bearing.
+- **The CI token can reach the whole `alxjrvs@gmail.com` account** (D5). Cloudflare
+  scopes tokens by permission group and account, and supports per-bucket R2
+  scoping but not per-Worker scoping. Nothing unrelated lives on the account
+  today, which is what makes this acceptable; adding something would change that.
 - **The bot displays permanently offline** in every server.
 - **Netlify deploy previews disappear** when the sites do.
 - **Sentry liveness telemetry changes shape** — `client.guilds.cache.size` does
@@ -479,4 +508,4 @@ bunx wrangler delete --name su-p2-throwaway-probe --force
 `wrangler deploy` is the authoritative startup measurement: Cloudflare enforces
 the startup budget at deploy time and reports the figure on success. Do not
 register a `workers.dev` subdomain to route a probe — that name is account-scoped
-and effectively permanent (see D5).
+and effectively permanent, so it should be chosen deliberately in P4.
