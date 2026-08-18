@@ -57,12 +57,15 @@ export function itun(): ItunClient | null {
 /**
  * Swap the client, returning a function that puts the old one back.
  *
- * A deliberate, named test seam. `config.ts` reads `process.env` at module
- * scope and the client is resolved from it once at import, so by the time any
- * test runs, this module is already in the registry and setting an environment
- * variable would do nothing. `mock.module` is worse still — it is process-
- * global in Bun, so faking configuration for one file would silently hand that
- * fake to every file that ran afterwards.
+ * A deliberate, named test seam. Setting an environment variable cannot work:
+ * settings are installed once by whichever entrypoint booted, and a test has no
+ * entrypoint. `mock.module` is worse still — it is process-global in Bun, so
+ * faking configuration for one file would silently hand that fake to every file
+ * that ran afterwards.
+ *
+ * Assigning `client` directly also suppresses the lazy resolution above, which
+ * is the behaviour a test wants: it pins the client rather than racing whatever
+ * settings happen to be installed.
  *
  * Returning a restore function rather than exposing a setter is the point:
  * a test cannot forget what the previous value was, and `afterEach(restore)`
