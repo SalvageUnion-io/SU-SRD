@@ -117,6 +117,8 @@ with the test that enforces them.
 
 ## Monorepo Conventions
 
+Built on **[the Butter Stack](https://alxjrvs.github.io/butter/)** — Bun · Unified workspace · TypeScript · TanStack · Edge-deployed · React.
+
 - **Bun** for all package management (not npm/yarn); single `bun.lock` at root.
 - Workspace packages reference each other via the `workspace:*` protocol.
 - Relative imports only (no `@/` path aliases); `type` over `interface`; named
