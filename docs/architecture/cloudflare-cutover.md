@@ -36,7 +36,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | Phase | What                                     | Reversible | Status                    |
 | ----- | ---------------------------------------- | ---------- | ------------------------- |
 | P0    | Port the CI guards                       | yes        | **done** — 19 guard tests |
-| P1    | Export `lp-assets`, restore ingest tool  | blocking   | not started               |
+| P1    | Export `lp-assets`, restore ingest tool  | blocking   | **done** — 57/57 verified |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | not started               |
 | P4    | Three web surfaces on `workers.dev`      | yes        | not started               |
@@ -49,15 +49,30 @@ Update this table as part of each phase's PR. It is the only place that answers
 (ADR-033 §6). A dedicated account was considered and declined; the residue is a
 CI token whose blast radius is that whole account.
 
-**One human prerequisite remains, and it blocks P1, P3 and P6:**
-**R2 is not enabled** on the account and must be activated in the Cloudflare
-dashboard. KV and D1 are already available. Nothing else exists on the account —
-no Workers, no KV namespaces, no D1 databases, no `workers.dev` subdomain — so
-the per-account Free quota is shared with nothing today.
+**One human prerequisite remains, and it blocks P3 and P6: R2 is not enabled.**
+Activation is a checkout flow requiring a billing address and two consent
+checkboxes ("I agree to the Terms of Service", "I authorize Cloudflare to charge
+this card… until cancellation"). Total due today is $0.00 and a payment method is
+already on file, but entering personal or payment details and accepting terms are
+operator actions — an agent cannot do them. Page:
+`dash.cloudflare.com/<account>/r2/checkout/payment`.
 
-The `workers.dev` subdomain still has to be registered before P4 names anything.
-It is account-scoped and effectively permanent, so choose the name deliberately;
-it is no longer a blocker, just a one-way door.
+**What is actually on the account** (checked in the dashboard 2026-08-18, after
+an earlier claim of "nothing" turned out to be an inference rather than a
+measurement — see ADR-033 §6):
+
+| Resource            | State                                                     |
+| ------------------- | --------------------------------------------------------- |
+| Workers             | **two** — `randsum-rdn`, `randsum-site` (RANDSUM is live here) |
+| `workers.dev`       | **already registered — `alxjrvs.workers.dev`**             |
+| KV namespaces       | none                                                       |
+| D1 databases        | none                                                       |
+| R2                  | **not enabled**                                            |
+
+Two consequences. The Free quota is **shared with a live project**, though both
+sides are far from the ceilings. And preview URLs come from the existing
+subdomain (`<worker>.alxjrvs.workers.dev`) — there is one per account, and
+renaming it would move RANDSUM's Workers.
 
 ---
 
@@ -157,14 +172,28 @@ enter this repository. An export gives a second.
   `netlify blobs:list lp-assets --json` → keys → `blobs:get`.
 - Store the export encrypted, off Netlify, outside this repository.
 
-**Gate**
+**Gate — met 2026-08-18, one item deferred**
 
-- [ ] Export object count equals the `blobs:list` manifest count.
-- [ ] Every key's SHA-256 matches a fresh re-download. Not a spot check.
-- [ ] A restore has been rehearsed into a throwaway store and verified by the
-      same hash comparison.
-- [ ] The export lives somewhere durable and access-controlled that is neither
-      Netlify nor this repository.
+- [x] Export object count equals the `blobs:list` manifest count — **57/57**,
+      30,858,850 bytes, 57 distinct SHA-256 digests (no accidental duplicates).
+- [x] Every key's SHA-256 matches a fresh re-download. The tool re-downloads
+      **every** object and compares; it is not a spot check, because the failure
+      being guarded against is a silently truncated stream, which yields a file
+      that exists and has a plausible size and is not the artwork.
+- [ ] **Deferred: restore rehearsal.** Restoring into a throwaway Blobs store
+      would need a second Netlify site, and Netlify is being retired. The
+      equivalent rehearsal is seeding R2 from this export in P6, whose gate
+      already reconciles per-key hashes against `manifest.json`. Recorded rather
+      than silently dropped — until P6 runs, the restore path is *written and
+      unexercised*.
+- [x] The export lives outside Netlify and outside this repository. Operator
+      holds the archive; `manifest.json` travels with it so a restore verifies
+      against the list captured at export time rather than a fresh `blobs:list`
+      taken after something has already gone wrong.
+
+`tools/upload-lp-assets.ts` is restored from `8b678bbd` unchanged — it *is* the
+restore path, and #725 deleted it as dead code while it was the store's only
+ingest mechanism.
 
 ### P2 — Measure the bot on real workerd · throwaway · **passed**
 
