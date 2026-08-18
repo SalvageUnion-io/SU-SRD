@@ -6,12 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Start here for navigation:** [`docs/README.md`](docs/README.md) maps user intent → relevant doc (architecture, ADRs, per-package CLAUDE.md).
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **32 of them** (ADR-001 through ADR-032). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028). The three that govern:
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **33 of them** (ADR-001 through ADR-033). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028). The three that govern:
   - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record for identity/ownership/sharing. **Supersedes ADR-001** (local-first, no backend, no auth) and amends ADR-022. Decision accepted; delivery is phased — see [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md) for what has actually landed.
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**. ADR-030 adds an ownership axis to it without changing its enforcement modes.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
 
   ADR-015–020 cover the Dashboard play surface, built at `apps/itun/src/components/dashboard/`.
+
+- **Hosting is migrating to Cloudflare** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)) — Netlify and Render are being retired in a **hard cutover with no rollback**. Everything below still describes the *current* Netlify/Render reality and stays accurate until the phase that changes it lands. Before touching hosting, deploy config, the snapshot backend or the Discord bot's transport, read the ADR and then [`docs/architecture/cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md), which carries the phase order, the per-phase gates and a progress table. Two things bind immediately: **a failed gate halts the phase and is never worked around**, and **snapshots go to R2 rather than into Convex**, which keeps a future Convex→D1 move open. Do not execute from issue #830 — the ADR supersedes it.
 
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - **Rules text** — there is no curated digest. To answer "what does the book actually say", run `bun run rules:extract` (local only; the copyright-bearing PDFs in `rules/` are gitignored and absent in CI) and grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers so you can cite exact pages.
