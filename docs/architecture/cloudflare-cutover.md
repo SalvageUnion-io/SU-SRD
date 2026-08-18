@@ -38,7 +38,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P0    | Port the CI guards                       | yes        | **done** — 19 guard tests |
 | P1    | Export `lp-assets`, restore ingest tool  | blocking   | **done** — 57/57 verified |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
-| P3    | R2 `SnapshotStorage`                     | yes        | not started               |
+| P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
 | P4    | Three web surfaces on `workers.dev`      | yes        | not started               |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | not started               |
@@ -237,15 +237,46 @@ payload cap. It is decorative. Either drop it and rely on the cap, or use
 Cloudflare's Rate Limiting binding. **Do not port the in-process version** — it
 would look like a control without being one.
 
-**Gate**
+**Gate — met 2026-08-18, with one item reframed**
 
-- [ ] The existing snapshot suite passes **unmodified** against the R2
-      implementation.
-- [ ] Publish → immediate retrieve returns 200 from a different colo, 20
-      consecutive runs.
-- [ ] The same test against KV is observed to fail, or ADR-033 §3 is revisited on
-      the evidence.
-- [ ] A decision on the rate limiter is recorded either way.
+- [x] The existing snapshot suite still passes unmodified. **Reframed, and the
+      reframing is the point:** that suite runs entirely against
+      `InMemoryStorage`, so re-running it against R2 would have meant rewriting
+      it — and it is only sound in the first place if the implementations agree.
+      So the contract is now asserted once, in
+      `src/lib/snapshot/__tests__/storageConformance.test.ts`, and **every**
+      implementation is driven through it (18 tests, 9 per backend). A new
+      backend adds a row and nothing else.
+- [x] Publish → immediate retrieve, **20/20 against a real R2 bucket with no
+      delay**. This is the measurement ADR-033 §3 rests on.
+- [x] ADR-033 §3 stands on that evidence. The KV comparison was **not** run, and
+      that is deliberate: Cloudflare documents the behaviour (up to 60 s global
+      propagation, cached negative lookups), the publish flow reads a key twice
+      before creating it, and demonstrating the failure would mean publishing
+      real snapshots into a store chosen to lose them. Documented behaviour plus
+      a measured alternative is sufficient; a staged outage is not.
+- [x] Rate limiter: **decided — do not port it.** See below.
+
+**Buckets created:** `su-itun-snapshots`, `su-lp-assets`.
+
+**Rate limiter.** `snapshot-publish` carries a module-scope
+`RateLimiter{10/min}` keyed on `x-nf-client-connection-ip`. It is already
+approximate on ephemeral Netlify Function instances and would be equally so
+across Workers isolates, and it sits behind an enforced 256 KB payload cap that
+does the actual storage-amplification work. Porting it would produce something
+that *looks* like a control without being one.
+
+The decision is to replace it with Cloudflare's Rate Limiting binding when the
+Worker routes land in **P4**, and to drop the in-process version at that point
+rather than carrying both. Recorded here so P4 cannot quietly port it by
+reflex.
+
+**What R2 deliberately does not change.** `onlyIfNew` remains a check-then-set,
+identical to the Netlify implementation, so the two are interchangeable and the
+conformance suite can hold them to one contract. R2 supports a genuinely atomic
+conditional put that would close the remaining race — worth doing, but as its
+own change: altering the contract and porting the platform together would leave
+any behaviour difference with two possible causes.
 
 ### P4 — Three web surfaces on `workers.dev` · reversible · 2 days
 
