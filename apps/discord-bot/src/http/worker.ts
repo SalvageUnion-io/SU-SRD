@@ -38,6 +38,7 @@ import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
 import { commands } from '../commands/index.js'
+import { normaliseWebUrl, setItunSettings } from '../itunSettings.js'
 import { setReporter } from '../report.js'
 import {
   makeAutocompleteInteraction,
@@ -79,6 +80,16 @@ export type Env = {
   DISCORD_TOKEN: string
   /** Optional: the bot's avatar hash, for branding embeds. */
   DISCORD_BOT_AVATAR?: string
+  /**
+   * ITUN (ADR-030 Phase 6). BOTH optional and BOTH required together: with
+   * either missing the bot runs in Solo mode, which is the deliberate default —
+   * reference commands work exactly as they always have and Game commands say
+   * they are not connected. A deploy with no credentials degrades rather than
+   * crashing.
+   */
+  ITUN_CONVEX_SITE_URL?: string
+  ITUN_BOT_SECRET?: string
+  ITUN_WEB_URL?: string
 }
 
 type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
@@ -180,6 +191,16 @@ export default {
       // fails validation.
       return new Response('invalid request signature', { status: 401 })
     }
+
+    // Configuration arrives as `env`, not `process.env`, so it can only be
+    // installed once a request exists. Idempotent and cheap; the ITUN client
+    // resolves lazily on first use, which is why installing here rather than at
+    // module scope still reaches it.
+    setItunSettings({
+      siteUrl: env.ITUN_CONVEX_SITE_URL,
+      botSecret: env.ITUN_BOT_SECRET,
+      webUrl: normaliseWebUrl(env.ITUN_WEB_URL),
+    })
 
     let interaction: APIInteraction
     try {

@@ -111,12 +111,32 @@ function resolveOptionPath(options: APIApplicationCommandInteractionDataOption[]
   return { group, subcommand, values: current as APIApplicationCommandInteractionDataBasicOption[] }
 }
 
+/**
+ * Read a string option, matching discord.js's behaviour on the required case.
+ *
+ * The overload in `commands/interactions.ts` types `getString(name, true)` as
+ * `string`, not `string | null` — so returning null there is a type lie that
+ * becomes a `TypeError` deep inside a handler which was told it had a string.
+ * discord.js throws instead, and so must this: the dispatcher catches it and
+ * replies with the generic error, which is a far better outcome than
+ * `null is not an object` at some unrelated line.
+ *
+ * Found by driving `/su lookup` through the replay harness with the wrong
+ * option name — the adapter handed the handler a null and the failure surfaced
+ * five frames away in `findByChoiceValue`.
+ */
 function stringOption(
   values: APIApplicationCommandInteractionDataBasicOption[],
-  name: string
+  name: string,
+  required?: boolean
 ): string | null {
   const found = values.find((o) => o.name === name)
-  if (!found || found.type !== ApplicationCommandOptionType.String) return null
+  if (!found || found.type !== ApplicationCommandOptionType.String) {
+    if (required === true) {
+      throw new Error(`Required string option "${name}" was not present on the interaction`)
+    }
+    return null
+  }
   return found.value
 }
 
@@ -219,8 +239,10 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
       getSubcommandGroup: () => group,
       // Overloaded in the source type (required: true narrows to string). One
       // implementation satisfies both; the cast is at the boundary only.
-      getString: ((name: string) =>
-        stringOption(values, name)) as CommandExecuteInteraction['options']['getString'],
+      // `required` must be forwarded — dropping it is what let a null reach a
+      // handler typed to receive a string.
+      getString: ((name: string, required?: boolean) =>
+        stringOption(values, name, required)) as CommandExecuteInteraction['options']['getString'],
     },
     // `user` is top-level in DMs and nested under `member` in a guild. Reading
     // only one of them is how a command works everywhere except where it is

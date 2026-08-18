@@ -1,7 +1,7 @@
 import type { SlashCommandSubcommandGroupBuilder } from 'discord.js'
 import { MessageFlags } from 'discord-api-types/v10'
-import { config } from '../config.js'
 import { buildChannelEmbed, denialMessage } from '../gameEmbed.js'
+import { itunSettings } from '../itunSettings.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { itun, respondWithItun, SOLO_NOTICE } from './itunReply.js'
 
@@ -123,7 +123,7 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
 
   if (result.kind === 'denied') {
     await interaction.editReply({
-      content: denialMessage(result.reason, config.itunWebUrl, result.message),
+      content: denialMessage(result.reason, itunSettings().webUrl, result.message),
     })
     return
   }
@@ -152,7 +152,7 @@ async function unbind(interaction: CommandExecuteInteraction): Promise<void> {
   const result = await client.unbind(interaction.user.id, channelId)
   if (result.kind === 'denied') {
     await interaction.editReply({
-      content: denialMessage(result.reason, config.itunWebUrl, result.message),
+      content: denialMessage(result.reason, itunSettings().webUrl, result.message),
     })
     return
   }
@@ -170,6 +170,6 @@ async function info(interaction: CommandExecuteInteraction): Promise<void> {
   await respondWithItun(interaction, {
     visibility: 'public',
     call: (client) => client.channel(interaction.user.id, channelId),
-    render: (value) => buildChannelEmbed(value, config.itunWebUrl),
+    render: (value) => buildChannelEmbed(value, itunSettings().webUrl),
   })
 }
