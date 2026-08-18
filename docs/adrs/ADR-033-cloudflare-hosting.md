@@ -114,11 +114,29 @@ Workers Free quota and to scope the CI token so it could not reach anything else
 Cloudflare also cannot create a second account on the same email, so it would
 have meant a second address and an invitation back.
 
-The cost of not doing it is small **today** and should be re-examined if that
-changes. The account currently holds no Workers, no KV namespaces, no D1
-databases and no `workers.dev` subdomain, so the per-account Free quota
-(100k requests/day, 10 ms CPU) is shared with nothing. The real residue is
-credential blast radius, recorded under Consequences.
+**Correction, 2026-08-18.** This section first claimed the account "holds no
+Workers, no KV namespaces, no D1 databases and no `workers.dev` subdomain, so
+the per-account Free quota is shared with nothing". **Two-thirds of that was
+wrong**, and the error is worth recording because of how it was made: KV and D1
+were verified directly (`wrangler kv namespace list`, `wrangler d1 list`, both
+empty), the attempt to list Workers was blocked, and "empty" was *inferred* from
+the other two rather than checked. An inference was written down in the voice of
+a measurement.
+
+What is actually on the account:
+
+- **Two Workers**, `randsum-rdn` (`notation.randsum.dev`) and `randsum-site`
+  (`randsum.dev` + one more route) — so `RANDSUM/randsum` is already hosted here.
+- **A `workers.dev` subdomain already registered: `alxjrvs.workers.dev`.** There
+  is one per account, so this project takes preview URLs under it rather than
+  choosing its own name. Renaming it would move RANDSUM's Workers.
+- KV and D1 remain empty, as verified.
+
+So the Free quota (100k requests/day, 10 ms CPU) **is** shared, with a project
+that is already live. That does not reverse the decision — the traffic on both
+sides is far from those ceilings — but it does mean the credential blast radius
+under Consequences is a live concern rather than a theoretical one, and it
+removes the argument that a dedicated account would isolate nothing.
 
 **R2 is not yet enabled on the account** and must be activated in the dashboard
 before P1, P3 or P6 can run. KV and D1 are already available.
@@ -168,18 +186,24 @@ both reachable only via `@netlify/blobs → @netlify/dev-utils → image-size`. 
 that dependency is gone, both `--ignore` flags come out and the CLAUDE.md section
 documenting them is deleted.
 
-**The CI token's blast radius is the whole personal account** (§6). Cloudflare
-API tokens scope by permission group and account, so *Workers Scripts: Edit* on
-this account authorises editing **any** Worker on it, present or future. R2
-permissions can still be narrowed to named buckets, and that narrowing should be
-applied. The residue is accepted, not solved, and it compounds with an agent PAT
-carrying `workflow` scope, no required human review, and pre-authorized
-`gh pr merge` — the path from "merge a PR" to "deploy production" closes with no
-human in it. Revisit if anything unrelated is ever added to this account.
+**The CI token's blast radius is the whole personal account** (§6), and that now
+includes **two live RANDSUM Workers**. Cloudflare API tokens scope by permission
+group and account, so *Workers Scripts: Edit* on this account authorises editing
+`randsum-rdn` and `randsum-site` as well as anything this project deploys.
+Cloudflare supports per-bucket R2 scoping but not per-Worker scoping, so that
+half cannot be narrowed; narrow the R2 half, and do not describe the other half
+as contained.
 
-**The `workers.dev` subdomain is account-scoped and effectively permanent.** It
-must be registered before P4 names anything, and the name it gets is the name it
-keeps.
+This compounds with an agent PAT carrying `workflow` scope, no required human
+review, and pre-authorized `gh pr merge` — the path from "merge a PR" to "deploy
+production" closes with no human in it, and the production it can reach is not
+only this project's. **Accepted, not solved.** Revisit if RANDSUM's deployments
+ever become something this repository must not be able to touch.
+
+**The `workers.dev` subdomain is `alxjrvs.workers.dev`, already registered.**
+One per account, so this project takes preview URLs beneath it
+(`<worker>.alxjrvs.workers.dev`) rather than choosing its own. Renaming it would
+move RANDSUM's Workers and is out of scope.
 
 **Netlify deploy previews disappear** when the sites do. The Workers preview-URL
 equivalent must be working beforehand.
