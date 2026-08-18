@@ -1,6 +1,6 @@
-import type { EmbedBuilder } from 'discord.js'
+import type { EmbedBuilder } from '@discordjs/builders'
 import { ROLL_EMBED_FOOTER } from '../format.js'
-import { captureException } from '../observability.js'
+import { report } from '../report.js'
 import { itun } from './itunReply.js'
 
 /**
@@ -62,6 +62,6 @@ export async function attributeRoll(
     embed.setFooter({ text: `${ROLL_EMBED_FOOTER} · recorded to ${recorded.value.game}` })
     await interaction.editReply({ embeds })
   } catch (error) {
-    captureException(error, { source: 'roll-attribution' })
+    report(error, { source: 'roll-attribution' })
   }
 }

@@ -1,8 +1,8 @@
 import type { SlashCommandSubcommandBuilder } from 'discord.js'
-import { MessageFlags } from 'discord.js'
-import { config } from '../config.js'
+import { MessageFlags } from 'discord-api-types/v10'
 import { buildCrewEmbed, buildSheetEmbed } from '../gameEmbed.js'
 import type { EntityBody } from '../itun/types.js'
+import { itunSettings } from '../itunSettings.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { itun, respondWithItun } from './itunReply.js'
 
@@ -37,7 +37,7 @@ export const crewCommand = {
     await respondWithItun(interaction, {
       visibility: 'public',
       call: (client) => client.crew(interaction.user.id, channelId),
-      render: (value) => buildCrewEmbed(value, config.itunWebUrl),
+      render: (value) => buildCrewEmbed(value, itunSettings().webUrl),
     })
   },
 }
@@ -158,7 +158,7 @@ export const sheetCommand = {
     // future change that would break it silently.
     await respondWithItun(interaction, {
       call: (client) => client.sheet(interaction.user.id, channelId, table, entityId),
-      render: (value) => buildSheetEmbed(value, config.itunWebUrl),
+      render: (value) => buildSheetEmbed(value, itunSettings().webUrl),
     })
   },
 }

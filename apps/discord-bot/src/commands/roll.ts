@@ -1,6 +1,7 @@
+import { EmbedBuilder } from '@discordjs/builders'
 import { roll as rollDie } from '@randsum/roller'
 import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
-import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { MessageFlags } from 'discord-api-types/v10'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { rollResultRow } from '../customId.js'
 import { BRAND_NAME, buildRollEmbedData, ROLL_EMBED_FOOTER } from '../format.js'

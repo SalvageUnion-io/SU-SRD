@@ -1,11 +1,12 @@
-import { EmbedBuilder, MessageFlags } from 'discord.js'
-import { config } from '../config.js'
+import { EmbedBuilder } from '@discordjs/builders'
+import { MessageFlags } from 'discord-api-types/v10'
 import { BRAND_NAME, enforceEmbedLimits } from '../format.js'
 import type { EmbedData } from '../gameEmbed.js'
 import { denialMessage } from '../gameEmbed.js'
 import type { ItunClient } from '../itun/client.js'
 import { createItunClient } from '../itun/client.js'
 import type { ItunResult } from '../itun/types.js'
+import { itunSettings } from '../itunSettings.js'
 import type { CommandExecuteInteraction } from './interactions.js'
 
 /**
@@ -29,29 +30,42 @@ import type { CommandExecuteInteraction } from './interactions.js'
 /**
  * The bot's ITUN client, or null in Solo mode.
  *
- * Resolved once at module load from `config`, matching how the rest of the bot
- * reads configuration. Null is not an error state — it is the default, and the
- * reference commands never touch this module at all.
+ * Resolved LAZILY, on first use, rather than at module load — and the
+ * difference is load-bearing on Workers. Configuration is installed by whichever
+ * entrypoint booted (`setItunSettings`), and module bodies evaluate before an
+ * entrypoint runs, so resolving here at import time would capture the
+ * uninstalled default and pin the bot to Solo mode forever. Under Node that
+ * happened to work because `config.ts` read `process.env` at module scope; on
+ * Cloudflare the environment does not exist until `fetch` is called with it.
+ *
+ * `undefined` means "not resolved yet"; `null` means "resolved, and Solo".
+ * Conflating the two is what would make Solo mode sticky.
  */
-let client: ItunClient | null = createItunClient({
-  siteUrl: config.itunSiteUrl,
-  botSecret: config.itunBotSecret,
-})
+let client: ItunClient | null | undefined
 
 /** The current client, or null in Solo mode. */
 export function itun(): ItunClient | null {
+  if (client === undefined) {
+    client = createItunClient({
+      siteUrl: itunSettings().siteUrl,
+      botSecret: itunSettings().botSecret,
+    })
+  }
   return client
 }
 
 /**
  * Swap the client, returning a function that puts the old one back.
  *
- * A deliberate, named test seam. `config.ts` reads `process.env` at module
- * scope and the client is resolved from it once at import, so by the time any
- * test runs, this module is already in the registry and setting an environment
- * variable would do nothing. `mock.module` is worse still — it is process-
- * global in Bun, so faking configuration for one file would silently hand that
- * fake to every file that ran afterwards.
+ * A deliberate, named test seam. Setting an environment variable cannot work:
+ * settings are installed once by whichever entrypoint booted, and a test has no
+ * entrypoint. `mock.module` is worse still — it is process-global in Bun, so
+ * faking configuration for one file would silently hand that fake to every file
+ * that ran afterwards.
+ *
+ * Assigning `client` directly also suppresses the lazy resolution above, which
+ * is the behaviour a test wants: it pins the client rather than racing whatever
+ * settings happen to be installed.
  *
  * Returning a restore function rather than exposing a setter is the point:
  * a test cannot forget what the previous value was, and `afterEach(restore)`
@@ -153,7 +167,7 @@ export async function respondWithItun<T>(
     }
     case 'denied':
       await interaction.editReply({
-        content: denialMessage(result.reason, config.itunWebUrl, result.message),
+        content: denialMessage(result.reason, itunSettings().webUrl, result.message),
       })
       return
     case 'unavailable':

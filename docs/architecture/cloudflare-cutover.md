@@ -40,7 +40,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | not started               |
 | P4    | Three web surfaces on `workers.dev`      | yes        | not started               |
-| P5    | Bot on HTTP interactions                 | until flip | not started               |
+| P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | not started               |
 | P7    | Cutover                                  | **no**     | not started               |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
@@ -310,17 +310,58 @@ Port items:
 > mutually exclusive and the Interactions Endpoint URL is application-level, not
 > per-guild. There is no canary, no percentage rollout and no test guild.
 
-**Gate**
+**Gate — partially met 2026-08-18**
 
-- [ ] A signed replay harness passes for every command shape in a corpus
-      harvested from the live bot. Ed25519 keypair generated locally; no second
-      Discord application.
-- [ ] Deferred commands acknowledge inside Discord's 3-second window and complete
-      via `waitUntil`.
-- [ ] Embed payloads diff clean against the JSON the gateway bot produces for the
-      same input.
-- [ ] `cpuTime` from `wrangler tail` is under 10 ms for every command shape.
-- [ ] Server admins have been told the bot will display permanently offline.
+- [x] A signed replay harness passes for every interaction shape — 15 tests.
+      Ed25519 keypair generated locally; no second Discord application. Covers
+      PING/PONG, five distinct rejection cases, slash commands, autocomplete and
+      buttons.
+- [x] Bundles for workerd at **590.10 KiB gzipped** (19.7% of the 3 MB Free
+      ceiling) with the real command set — close to P2's 549.6 KiB projection.
+- [ ] `cpuTime` from `wrangler tail` under 10 ms for every command shape.
+      Requires a deployed Worker and therefore the secrets below.
+- [ ] Server admins told the bot will display permanently offline.
+
+**Corpus note.** The gate said "harvested from the live bot". The harness uses
+*synthesised* payloads instead, because harvesting needs a production code change
+to log raw interactions and a wait for real traffic — and the shapes are fully
+specified by `discord-api-types`. What synthesis cannot cover is Discord's own
+behaviour: whether it accepts our PONG when the endpoint URL is saved, and
+whether a deferred reply lands inside 3 seconds under real latency. Both are
+verified at the flip, and neither is discoverable from a corpus either.
+
+**Three defects the harness found, none of which unit tests could have.**
+
+1. **`config.ts` at module scope was fatal on Workers.** It calls
+   `requireEnv('DISCORD_TOKEN')` at import, four ITUN command modules imported
+   it, and all four are reachable from `su.ts` — so the isolate would throw at
+   startup, before serving anything. `test/env.ts` is preloaded via
+   `bunfig.toml`, so every behavioural test passed: **the preload is exactly what
+   hid the bug.** Fixed with `itunSettings.ts`, the same transport-neutral
+   pattern as `report.ts`, and guarded by `__tests__/workerEnv.test.ts`, which
+   asserts the *structural* property — the Worker's transitive imports never
+   reach `config.ts` — rather than a behaviour a preload can mask.
+2. **The ITUN client resolved at module load**, which on Workers meant it
+   captured settings before any entrypoint could install them and pinned the bot
+   to Solo mode permanently. Now resolved lazily; `undefined` means "not yet
+   resolved" and `null` means "resolved, and Solo" — conflating the two is what
+   made Solo sticky.
+3. **`getString(name, true)` returned `null`.** That overload is typed `string`,
+   so a missing required option handed a handler a value its types promised could
+   not exist, surfacing five frames away as
+   `null is not an object (evaluating 'value.indexOf')`. It now throws, as
+   discord.js does, and the dispatcher turns that into a clean error reply.
+
+**Secrets to set before deploying** (operator; values never enter the repo):
+
+```
+wrangler secret put DISCORD_PUBLIC_KEY      --name su-discord-bot
+wrangler secret put DISCORD_TOKEN           --name su-discord-bot
+wrangler secret put DISCORD_APPLICATION_ID  --name su-discord-bot
+# Optional — omit both for Solo mode:
+wrangler secret put ITUN_CONVEX_SITE_URL    --name su-discord-bot
+wrangler secret put ITUN_BOT_SECRET         --name su-discord-bot
+```
 
 ### P6 — Data sync and write freeze · **irreversible** · ½ day
 

@@ -9,7 +9,7 @@
  * roll in the channel history, matching how a dice bot is expected to behave.
  */
 
-import { MessageFlags } from 'discord.js'
+import { MessageFlags } from 'discord-api-types/v10'
 import { buildCheckMessage } from './commands/check.js'
 import type { CommandButtonInteraction } from './commands/interactions.js'
 import { buildTableLookupMessage } from './commands/lookup.js'

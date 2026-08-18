@@ -10,10 +10,11 @@
  * rather than crashing.
  */
 
+import { EmbedBuilder } from '@discordjs/builders'
 import type { DiceNotation, RollerRollResult } from '@randsum/roller'
 import { roll } from '@randsum/roller'
 import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
-import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { MessageFlags } from 'discord-api-types/v10'
 import { rollAgainRow } from '../customId.js'
 import { BRAND_NAME, buildCheckEmbedData, ROLL_EMBED_FOOTER } from '../format.js'
 import type { CommandExecuteInteraction } from './interactions.js'
