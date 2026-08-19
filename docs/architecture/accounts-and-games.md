@@ -528,3 +528,72 @@ bunx convex env get AUTH_DISCORD_SECRET | tr -d '[:space:]' | wc -c
 
 Exit code is **not** a presence check: `convex env get` exits 0 for a variable
 that does not exist.
+
+**`convex env list` prints EVERY value in the clear.** Not the names — the
+values. It will dump `JWT_PRIVATE_KEY` and `AUTH_DISCORD_SECRET` in full, and
+this has already happened once: run unredirected while checking whether the bot
+credential was set, it put both into a transcript and forced a rotation of both.
+The names alone are worth having, so ask for only those:
+
+```bash
+bunx convex env list --deployment-name <name> | cut -d= -f1
+```
+
+Read the **dashboard** instead when you want to confirm a variable exists — it
+masks values by default.
+
+### Rotating `JWT_PRIVATE_KEY` / `JWKS`
+
+Rotating the signing keypair **signs every user out**. That is inherent, not a
+bug — old sessions were signed by the key you just replaced.
+
+The two must be generated as a pair and written together, in the format
+`@convex-dev/auth` expects, or sign-in breaks in the quiet way this document
+already warns about:
+
+| Variable          | Format                                            |
+| ----------------- | ------------------------------------------------- |
+| `JWT_PRIVATE_KEY` | PKCS8 PEM, newlines replaced by **spaces**, trimmed |
+| `JWKS`            | `{"keys":[{"use":"sig", …public JWK}]}`            |
+
+**Pipe the value in on stdin; never pass it as an argument.** Two separate
+failures make this non-negotiable, both observed:
+
+- the PEM begins `-----BEGIN`, which the CLI parses as **flags** — the command
+  simply fails;
+- Node's `execFileSync` embeds the whole command line in its **error** message,
+  so a failure prints the private key even when stdout and stderr are
+  suppressed. Suppressing output is not enough; keep the secret out of `argv`.
+
+```bash
+printf '%s' "$PEM" | bunx convex env set JWT_PRIVATE_KEY --deployment-name <name>
+```
+
+**Verify against the public endpoint, which needs no secret.** Convex serves the
+public half, so the modulus must visibly change:
+
+```bash
+curl -s https://<deployment>.convex.site/.well-known/jwks.json
+```
+
+Compare `n` before and after. Unchanged means the write did not land and the old
+key is still live — which looks identical to success from the CLI's side.
+
+### Rotating `AUTH_DISCORD_SECRET`
+
+Resetting it in the Discord portal invalidates the old value **immediately**, so
+Discord sign-in is broken from that moment until Convex is updated. Have the
+update command ready first, then reset, copy, and run it back to back.
+
+Clipboard → stdin keeps it out of `argv`, shell history and transcripts:
+
+```bash
+pbpaste | tr -d '\n' | bunx convex env set AUTH_DISCORD_SECRET --deployment-name <name>
+```
+
+Guard on **length 32** before writing. A Discord client secret is 32 characters;
+if the copy silently failed, refusing beats writing garbage into production auth
+and rediscovering it later as an unexplained login failure.
+
+Only a real sign-in proves it. Nothing server-side can compare the stored secret
+against the one Discord now holds.
