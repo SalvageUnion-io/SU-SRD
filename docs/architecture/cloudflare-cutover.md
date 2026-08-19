@@ -633,12 +633,38 @@ Cloudflare directly is not a path.
 From the **Danger zone → Transfer domain** panel on the Netlify DNS page. The
 support link there is pre-filled with the right subject and body.
 
-1. Create a **Name.com** account, and verify the ICANN contact details under
-   Account Contacts. (This is required before Netlify will hand the domain over,
-   and it is why an account has to exist even though nobody chose Name.com.)
-2. Open a **Netlify support ticket** with the Name.com Account Code. Netlify
-   moves the registration into that account. This is the long pole — it is a
-   human ticket, not an API call.
+1. ~~Create a **Name.com** account and verify the ICANN contact details.~~
+   **Done 2026-08-19.** An account already existed; account code
+   `776035-066df82`. Contact details verified by email code —
+   *"Contact(s) successfully updated."*
+
+   **The registrant Organization was "X" and has been cleared**, which is the
+   part worth keeping. Name.com's own warning states the rule: *"ICANN policy
+   links the 'Organization' field in your domain's contact details to its legal
+   ownership. If this field contains information, the listed organization is
+   considered the legal 'Registered Name Holder' (domain owner)."* Left alone,
+   a placeholder from an old signup would have become the **legal owner** of
+   `salvageunion.io` the moment it transferred in. Defaults apply on *"new
+   registrations or registrar transfers"*, so this had to be fixed **before** the
+   transfer, not after — correcting it afterwards is an ICANN Change of
+   Registrant, which can impose a **60-day transfer lock** and would have blocked
+   the move to Cloudflare.
+
+2. ~~Open a **Netlify support ticket** with the Name.com Account Code.~~
+   **Submitted 2026-08-19 — ticket `#1093312`.** Netlify's support form has a
+   dedicated *"Transfer a domain away from Netlify"* topic that asks for exactly
+   these three fields and validates the domain (*"This domain is served by
+   Netlify"*).
+
+   Their auto-triage reply framed it as *"we'll need to help you get the
+   authorization code"*, which is the **wrong shape** for this case and was
+   corrected in the reply: an auth code alone is useless here, because Cloudflare
+   will not accept a transfer until the zone is Active, and the zone cannot go
+   Active without a nameserver change that only a registrar account can make.
+   What is needed is the domain **in the Name.com account**.
+
+   This is the long pole — a human ticket, not an API call.
+
 3. At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
    `rajeev.ns.cloudflare.com`. **This is the actual cutover moment for `srd` and
    `assets`** — the zone goes Active and both surfaces move.
