@@ -11,6 +11,12 @@
   // robots is served from the Worker rather than smuggled in as a second
   // mechanism — one place decides what this origin returns.
   "name": "su-assets",
+
+  // One hostname, and it moves with srd rather than separately: `ASSET_BASE_URL`
+  // in salvageunion-reference is compile-time, so every artwork URL baked into
+  // both apps already points at this name. Flipping salvageunion.io moves the
+  // reference site and its artwork host together — they cannot be staged apart.
+  "routes": [{ "pattern": "assets.salvageunion.io", "custom_domain": true }],
   "main": "src/worker.ts",
 
   // Pinned to what this repo's wrangler (4.108) bundles as workerd, so

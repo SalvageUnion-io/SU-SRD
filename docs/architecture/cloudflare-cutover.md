@@ -627,14 +627,55 @@ inside the zone does not touch the delegation, and the synthesized A answers
 already carry a 120 s TTL, which is *below* the 300 s that step aimed for. It
 would have bought nothing and cost two days.
 
+#### `www` must redirect, and `_redirects` cannot do it
+
+Both `www` hostnames **301 to their apex today** — Netlify's primary-domain
+behaviour, measured, not assumed:
+
+```
+https://www.salvageunion.io/    301 -> https://salvageunion.io/
+https://www.intheunionnow.com/  301 -> https://intheunionnow.com/
+```
+
+Workers Static Assets does not do this for you. Attaching `www` and stopping
+there would serve a full duplicate of each site — worst on `srd`, whose entire
+purpose is being indexed.
+
+`_redirects` is not the fix, and this was checked rather than attempted:
+Cloudflare's documentation lists **domain-level redirects as unsupported**, the
+`source` field is a file path only, and *"malformed definitions are ignored"* —
+so a `www` rule there would silently do nothing and look fine in review. (The
+file itself does work on Workers Static Assets; the existing
+`/sitemap.xml → /sitemap-index.xml` rule was verified live on the deployed
+Worker. It is host matching specifically that is missing.)
+
+The mechanism is a zone-level **Redirect Rule**, one per zone, created in the
+dashboard. Redirect Rules execute in the Rules phase, *ahead of* Workers and
+asset serving, so the rule wins and the Worker never sees a `www` request.
+
+| Zone                | When incoming host equals | Then                                     |
+| ------------------- | ------------------------- | ---------------------------------------- |
+| `salvageunion.io`   | `www.salvageunion.io`     | 301 → `https://salvageunion.io` + path + query |
+| `intheunionnow.com` | `www.intheunionnow.com`   | 301 → `https://intheunionnow.com` + path + query |
+
+`www` is still attached as a Worker custom domain in both `wrangler.jsonc`
+files, for two reasons: a hostname must be proxied through Cloudflare before a
+Redirect Rule can act on it at all, and it makes the failure mode safe — if a
+rule is ever missing or deleted, `www` serves the site with its correct per-page
+canonical tags rather than erroring.
+
+**This is the only piece of cutover configuration that does not live in the
+repo**, which is why it is written down here.
+
 #### Runbook
 
 | When  | Step                                                                                                                                                                         |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | −1 h  | Execute P6 (write freeze, then the delta sync that must reconcile to **zero**).                                                                                                |
-| −30 m | Attach Worker custom domains for all five hostnames. Cloudflare creates the proxied records itself. Verify each against the assigned NS with `dig @davina.ns.cloudflare.com`.   |
+| −30 m | Attach Worker custom domains for all five hostnames (declared in the three `wrangler.jsonc` files; wrangler creates the proxied records on deploy). Verify each against the assigned NS with `dig @davina.ns.cloudflare.com`. |
+| −20 m | Create the two `www` → apex Redirect Rules. These cannot be verified before the flip — no certificate is issued while a zone is still pending — so verifying them is a **post-flip** step, never a pre-flip gate. |
 | 0     | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` **together**, because `ASSET_BASE_URL` is compile-time.                                    |
-| +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404.                                                          |
+| +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404. **Confirm `www.salvageunion.io` 301s to the apex** — if it serves a 200, the Redirect Rule did not take. |
 | +30 m | Flip nameservers on `intheunionnow.com`. Re-run the itun Playwright suite against production.                                                                                   |
 | +1 h  | Lift the snapshot write freeze once both origins resolve to Cloudflare.                                                                                                        |
 | +2 h  | Set the Discord Interactions Endpoint URL. Verify PING/PONG, then one command of each shape in a real server.                                                                   |

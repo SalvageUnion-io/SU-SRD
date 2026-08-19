@@ -13,6 +13,32 @@
   "name": "su-srd",
   "compatibility_date": "2026-07-13",
 
+  // Custom domains. Wrangler creates the proxied DNS record for each on deploy,
+  // which is why nothing in this repo writes A records by hand — and why the
+  // addresses Cloudflare's onboarding scan captured were left as inert
+  // DNS-only placeholders rather than transcribed (they are load-balancer
+  // replies synthesized per query, not configuration; see ADR-033 P7).
+  //
+  // `www` is attached even though it must REDIRECT rather than serve, because
+  // a hostname has to be proxied through Cloudflare before a Redirect Rule can
+  // act on it. The rule runs in the Rules phase, ahead of Workers and ahead of
+  // asset serving, so the redirect wins and this Worker never sees the request.
+  //
+  // The redirect itself is NOT in this repo and cannot be: `_redirects` does
+  // not support domain-level rules — Cloudflare's own docs list them as
+  // unsupported and say malformed definitions are ignored, so a www rule there
+  // would silently do nothing. It is a zone-level Redirect Rule instead,
+  // recorded in docs/architecture/cloudflare-cutover.md §P7 so it is not
+  // invisible config.
+  //
+  // Attaching www is deliberately the fail-safe half of that split: if the
+  // Redirect Rule is ever missing, www serves the site with its correct
+  // per-page canonicals rather than erroring.
+  "routes": [
+    { "pattern": "salvageunion.io", "custom_domain": true },
+    { "pattern": "www.salvageunion.io", "custom_domain": true }
+  ],
+
   "assets": {
     "directory": "./dist",
 
