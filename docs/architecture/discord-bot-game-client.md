@@ -11,6 +11,41 @@ surface/mode taxonomy that decides what the bot is allowed to do.
 
 ## 1. What actually exists today
 
+> **Wired in production on 2026-08-19.** Until then the Connected surface had
+> never been switched on: `ITUN_BOT_SECRET` was absent from the Convex
+> production deployment *and* from the bot, so every Game command reported "not
+> connected" and the bot ran permanently in Solo mode. It was written, tested,
+> and unreachable.
+>
+> Both halves are now set, and the credential exists in exactly two places:
+>
+> | Side                     | Variable                                   |
+> | ------------------------ | ------------------------------------------ |
+> | Convex prod deployment   | `ITUN_BOT_SECRET`                          |
+> | `su-discord-bot` Worker  | `ITUN_BOT_SECRET` + `ITUN_CONVEX_SITE_URL` |
+>
+> `ITUN_CONVEX_SITE_URL` is `https://exuberant-porpoise-183.convex.site` — the
+> **`.convex.site`** HTTP-actions origin, not the `.convex.cloud` client URL.
+> Getting that wrong is the quiet failure: the bot reports itself unreachable
+> rather than misconfigured.
+>
+> **Generate and write both sides in one pass.** A mismatch fails as
+> `unauthorized` with nothing to say which side is wrong, and neither side can
+> show you its value afterwards to compare. One `openssl rand`, piped to
+> `convex env set` and `wrangler secret put` in the same script, removes the
+> failure mode entirely — and never prints the secret.
+>
+> **Verify without knowing the secret**, using the route's own two-failure
+> design: `POST /bot/<op>` with no credential answers **404** when
+> `ITUN_BOT_SECRET` is unset (the surface is meant to be indistinguishable from
+> absent) and **401** once it is set. So `404 → 401` *is* the proof the Convex
+> half took. On the bot half, `GET /health` flips `configured.itun` to `true`
+> and `mode` to `connected`.
+>
+> Note what that does **not** prove: `/health` checks the variables are present,
+> not that the two values match. Only a real Game command exercises the
+> credential end to end.
+
 Phase 6 is ticked ✅ in `accounts-and-games.md`. That tick is **half right, and
 the wrong half is load-bearing** — so start here rather than from the checklist.
 
