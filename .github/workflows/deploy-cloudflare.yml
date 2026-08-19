@@ -138,25 +138,50 @@ jobs:
       # srd — static, but the OG pass needs a browser.
       # ---------------------------------------------------------------------
       #
-      # `og:generate` chains the SSG build and the screenshot pass. It never
-      # fails the build: a missing browser or a wedged render logs and leaves
-      # those pages on the default og:image, capped by OG_SCREENSHOTS_BUDGET_MS.
-      # The worst case is "some previews are generic", never a failed deploy.
+      # The OG screenshot pass never fails the build: a missing browser or a
+      # wedged render logs and leaves those pages on the default og:image,
+      # capped by OG_SCREENSHOTS_BUDGET_MS. The worst case is "some previews are
+      # generic", never a failed deploy. `og:generate` (build + screenshots in
+      # one script) is deliberately NOT used here — see the steps below.
       - name: Install Chromium for the srd OG pass
         run: bun --filter srd og:install-browser
 
+      # Build and OG pass are SEPARATE steps with the gate between them, and the
+      # order is load-bearing. `og:generate` chains both, and running it before
+      # the gate emitted 2,011 `.og.png` files into `dist` that the committed
+      # snapshot has never contained — the snapshot asserts the emitted file set
+      # in both directions, so the gate failed with 2,011 "NEW, not in the
+      # snapshot" paths on a build whose HTML was byte-identical.
+      #
+      # Blessing them in would be the wrong repair: `apps/srd/CLAUDE.md` excludes
+      # binary assets from the snapshot deliberately, because their names are
+      # content-addressed and digesting them would make the gate churn until
+      # somebody switched it off.
+      #
+      # Splitting also puts each half where it belongs. The gate now verifies the
+      # deterministic build — the thing it was blessed against — and the OG pass,
+      # which is explicitly allowed to degrade to the default banner and "never
+      # fails the build", can no longer fail this gate either.
       - name: Build srd
         env:
           PUBLIC_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
-          OG_SCREENSHOTS_BUDGET_MS: '300000'
-        run: bun --filter srd og:generate
+        run: bun --filter srd build
 
       # The output gate, against the artifact about to ship rather than against
       # a build made earlier for a different purpose.
       - name: Verify srd output against the committed snapshot
         working-directory: apps/srd
         run: bun ssg/snapshot.ts
+
+      # Additive, post-gate, and non-fatal by design: a missing browser or a
+      # wedged render leaves those pages on the default og:image.
+      - name: Render srd OG images
+        working-directory: apps/srd
+        env:
+          OG_SCREENSHOTS: '1'
+          OG_SCREENSHOTS_BUDGET_MS: '300000'
+        run: bun scripts/og-screenshots.ts
 
       - name: Deploy srd
         working-directory: apps/srd
