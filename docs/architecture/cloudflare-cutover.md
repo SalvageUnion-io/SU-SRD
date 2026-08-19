@@ -102,6 +102,7 @@ passed. The probe that produced them is in the Appendix.
 | Startup, reported by Cloudflare      | **141 ms**              | 1,000 ms   | 14%    |
 | Startup, local workerd               | 28–32 ms (4 cold starts)| —          | —      |
 | Warm request CPU                     | below timer resolution  | 10 ms      | —      |
+| Bot CPU, real `/su roll` in Discord  | **951 µs** (19 invocations, 0 errors) | 10 ms | **10%** |
 | `preload('all')` under Bun           | 81.6 ms                 | —          | —      |
 | All 27 data JSON files, gzipped      | 268 KB                  | —          | —      |
 | Workers Free requests / subrequests  | —                       | 100k/day · 50 | —   |
@@ -506,7 +507,32 @@ Endpoint URL returns delivery to the gateway. **So leave the Render service
 running until a real command has been exercised in Discord**; it is the fallback,
 and deleting it is what makes this irreversible. That is a P8 step, not this one.
 
-**Still unverified by a human:** an actual slash command in a real server. Discord
+**Verified by a real command in a real server, 2026-08-19.** `/su roll` was run
+in Discord and rendered correctly. The server side agrees, and the subrequest
+line is the part that proves the *whole* path rather than just receipt:
+
+| Metric (24 h window, 19 invocations) | Value                           |
+| ------------------------------------ | ------------------------------- |
+| Errors                               | **0**                           |
+| CPU time                             | **951 µs** — vs a 10 ms ceiling |
+| Wall time                            | 80 ms                           |
+| Subrequests → `discord.com`          | 13, **all 2xx**, 97.9 ms        |
+
+Those 2xx subrequests are the Worker calling Discord's API to post its reply and
+Discord accepting it — so signature verification, dispatch, the roll itself and
+the follow-up all held. (Some of the 13 are this document's own `/health`
+probes, which call `/users/@me`; zero errors across all 19 covers both.)
+
+**P2's prediction held with an order of magnitude to spare.** It measured 141 ms
+startup and argued the per-request budget was not a risk; a real interaction
+costs under 10% of the free-tier CPU limit.
+
+The same page showed CI redeploying the bot unprompted ("deployed 6 seconds
+ago"), which is the `deploy-cloudflare.yml` step added for exactly this reason —
+the bot now tracks `main` instead of waiting for someone to remember `wrangler
+deploy`.
+
+~~Still unverified by a human:~~ an actual slash command in a real server. Discord
 proved the transport; only a person can prove a command renders.
 
 ### P5 — original plan · reversible until flip · 3 days
