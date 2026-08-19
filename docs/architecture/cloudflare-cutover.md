@@ -581,42 +581,110 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 - [ ] The final delta sync reconciles to **zero** objects, verified after the
       freeze rather than before.
 
-### P7 — Cutover · **irreversible** · ~1 hour
+### P7 — Cutover · **irreversible**
 
-> **BLOCKED ON ONE OPERATOR ACTION: the nameserver change at each registrar.**
+> **The two domains are in different places, and only one of them can be flipped.
+> This corrects an earlier version of this section that named Name.com and
+> Tucows as two registrar logins, as though they were symmetrical. They are not.**
 >
-> Everything else in this phase is done. Both registrars require an interactive
-> login, and an agent cannot authenticate — so the flip is where the automation
-> genuinely ends, not where it was told to stop.
+> | Domain              | Registrar (registry record) | You manage it at                 | Flip possible?              |
+> | ------------------- | --------------------------- | -------------------------------- | --------------------------- |
+> | `intheunionnow.com` | Tucows Domains Inc.         | **Hover** — it is in the account | **Yes**                     |
+> | `salvageunion.io`   | Name.com, Inc.              | **Netlify**                      | **No — see the deadlock**   |
 >
-> | Domain              | Log in to                     | Replace `dns{1..4}.pNN.nsone.net` with       |
-> | ------------------- | ----------------------------- | -------------------------------------------- |
-> | `salvageunion.io`   | **Name.com**                  | `davina.ns.cloudflare.com`, `rajeev.ns.cloudflare.com` |
-> | `intheunionnow.com` | **Tucows** (via its reseller) | the same two                                  |
+> `salvageunion.io` was **registered through Netlify** on 2025-11-17. Netlify
+> resells through Name.com, which is why the registry names a registrar nobody
+> here has an account with. It auto-renews **2026-10-14 at $61.99/yr**.
 >
-> **Do `salvageunion.io` first, alone.** It carries `srd` and `assets`, both of
-> which are read-only, so it needs no write freeze and is the safe rehearsal for
-> the second. Verify it before touching `intheunionnow.com`.
+> That took four independent confirmations, because "who is the registrar" had a
+> misleading answer and acting on it would have sent someone to create an account
+> at a company they had never used:
 >
-> **The snapshot write freeze is deliberately still OFF.** It only protects the
-> `itun` flip, and freezing it while the flip cannot proceed would pause sharing
-> for real users in exchange for nothing. Turn it on immediately *before* the
-> second flip, not now:
+> | Source                | Says                                                |
+> | --------------------- | --------------------------------------------------- |
+> | Registry `whois`      | Registrar: Name.com, Inc. (IANA 625)                |
+> | Netlify API DNS zone  | `uses_netlify_registrar: true`                      |
+> | Netlify dashboard     | "Registered through Netlify on Nov 17, 2025"        |
+> | Purchase receipt      | Netlify invoice `TGKTGM-00001`, $46.99, same day    |
 >
-> ```sh
-> netlify env:set SNAPSHOT_WRITES_FROZEN 1 --site 801d6f8d-1ad4-42c1-a29d-126b2d69ee69
-> # redeploy so the Functions pick it up, then CONFIRM it took:
-> curl -o /dev/null -w '%{http_code}\n' -X HEAD https://intheunionnow.com/api/snapshots
-> #   503 = frozen (proceed)      405 = NOT frozen (stop; the flag did not take)
-> NETLIFY_SITE_ID=801d6f8d-1ad4-42c1-a29d-126b2d69ee69 bun tools/sync-snapshots-to-r2.ts
-> #   must report "reconciled to zero" — anything else means a write landed after the freeze
-> ```
->
-> **Leave the freeze on until decommission** — this corrects the "+1 h lift the
-> freeze" row below. Lifting it would let a stale resolver still pointing at
-> Netlify write a snapshot into Blobs that R2 never receives, which is the exact
-> loss the freeze exists to prevent. Nothing reaches Netlify once propagation
-> finishes, so there is nothing to gain by unfreezing and one way to lose.
+> The `whois` answer alone is the trap: it is technically correct and practically
+> useless, because the account that controls the domain is the **Netlify** one.
+
+#### The deadlock on `salvageunion.io`
+
+Three facts that individually look fine and together do not compose:
+
+1. Netlify's domain page for a **Netlify-registered** domain shows its
+   nameservers **read-only**, with no field to change them. (Compare the page for
+   `intheunionnow.com`, registered externally, which instead says *"go to your
+   domain registrar and change your domain's name servers"* — Netlify expects
+   you to have a registrar you can reach. For this domain, Netlify **is** it.)
+2. Cloudflare Registrar will not accept a transfer until the domain is
+   **Active** on Cloudflare — which means its nameservers already point at
+   Cloudflare.
+3. Nameservers can only be changed at the registrar.
+
+So the domain cannot be pointed at Cloudflare while Netlify holds it, and
+Cloudflare will not take it until it has been pointed at Cloudflare. Netlify →
+Cloudflare directly is not a path.
+
+#### Breaking it — Netlify's own documented exit
+
+From the **Danger zone → Transfer domain** panel on the Netlify DNS page. The
+support link there is pre-filled with the right subject and body.
+
+1. Create a **Name.com** account, and verify the ICANN contact details under
+   Account Contacts. (This is required before Netlify will hand the domain over,
+   and it is why an account has to exist even though nobody chose Name.com.)
+2. Open a **Netlify support ticket** with the Name.com Account Code. Netlify
+   moves the registration into that account. This is the long pole — it is a
+   human ticket, not an API call.
+3. At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
+   `rajeev.ns.cloudflare.com`. **This is the actual cutover moment for `srd` and
+   `assets`** — the zone goes Active and both surfaces move.
+4. *Optional, later.* Unlock at Name.com, take the auth code, and transfer the
+   registration to Cloudflare Registrar. `.io` is supported; transfers are
+   at-cost, add a year to the expiry, and take up to 10 days. This is
+   consolidation, not cutover — step 3 already finished the migration.
+
+**Step 3 is the milestone. Step 4 is tidying.** Do not let the 10-day transfer
+window read as 10 days of blocked cutover.
+
+#### `intheunionnow.com` can go independently, and nothing couples them
+
+Flipping itun while `salvageunion.io` is still on Netlify is safe. The one
+apparent coupling is `ASSET_BASE_URL`, which is compile-time and points every
+artwork URL in both apps at `assets.salvageunion.io` — but that hostname keeps
+resolving to Netlify and keeps serving, so an itun on Cloudflare simply loads
+artwork from the old origin until the second domain follows. Netlify stays up
+until P8 regardless.
+
+The cost of going first is only that itun — the domain **with live user data and
+a write freeze** — becomes the rehearsal, instead of the read-only one. That is
+a real trade and the reason the original order put `salvageunion.io` first.
+
+#### The itun flip, when it runs
+
+**The snapshot write freeze is deliberately still OFF.** It protects only the
+itun flip, and freezing it while the flip is not imminent would pause sharing for
+real users in exchange for nothing. Turn it on immediately *before* the flip:
+
+```sh
+netlify env:set SNAPSHOT_WRITES_FROZEN 1 --site 801d6f8d-1ad4-42c1-a29d-126b2d69ee69
+# redeploy so the Functions pick it up, then CONFIRM it took:
+curl -o /dev/null -w '%{http_code}\n' -X HEAD https://intheunionnow.com/api/snapshots
+#   503 = frozen (proceed)      405 = NOT frozen (stop; the flag did not take)
+NETLIFY_SITE_ID=801d6f8d-1ad4-42c1-a29d-126b2d69ee69 bun tools/sync-snapshots-to-r2.ts
+#   must report "reconciled to zero" — anything else means a write landed after the freeze
+```
+
+Then change the nameservers at **Hover** to the two Cloudflare ones.
+
+**Leave the freeze on until decommission** — this corrects the "+1 h lift the
+freeze" row below. Lifting it would let a stale resolver still pointing at
+Netlify write a snapshot into Blobs that R2 never receives, which is the exact
+loss the freeze exists to prevent. Nothing reaches Netlify once propagation
+finishes, so there is nothing to gain by unfreezing and one way to lose.
 
 Both zones are **staged and answering** on their assigned nameservers while the
 live delegation still points at Netlify, so everything below has already been
@@ -818,6 +886,23 @@ and the DNS-only placeholders it replaces are never in the serving path.
 ### P8 — Decommission and tooling cleanup · **irreversible**
 
 Only after P7 has been stable for 24 h.
+
+> **DO NOT DELETE THE NETLIFY TEAM. It is the registrar of record for
+> `salvageunion.io`.**
+>
+> This is the sharpest hazard in the whole cutover, and the plan did not have it
+> until the registration was traced (P7). Netlify does not merely host that
+> domain — it **sold** it and holds it. Closing the account, or letting it lapse,
+> puts the domain itself at risk, not just its DNS.
+>
+> Deleting the three *sites* is fine and is what this phase means. Deleting the
+> **team/account** is not, and must wait until the registration has been
+> transferred out per P7 and `whois` shows a registrar you control.
+>
+> A related deadline that is not about deletion at all: **auto-renew runs
+> 2026-10-14 at $61.99.** If the transfer has not completed by then, Netlify
+> charges another year. That is a cost, not a failure — do not let it rush the
+> transfer into being done badly.
 
 - Delete the three Netlify sites and the Render service.
 - `.mcp.json`: remove `netlify` and `render`; add
