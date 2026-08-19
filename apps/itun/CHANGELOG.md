@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.8.0...itun-v1.9.0) (2026-08-18)
+
+
+### Features
+
+* **itun:** R2 SnapshotStorage and one contract for all three backends (P3) ([#846](https://github.com/SalvageUnion-io/SU-SRD/issues/846)) ([833f6d3](https://github.com/SalvageUnion-io/SU-SRD/commit/833f6d3d4babddbe1217711e4c009f257d7db19e))
+
 ## [1.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.7.3...itun-v1.8.0) (2026-08-16)
 
 
