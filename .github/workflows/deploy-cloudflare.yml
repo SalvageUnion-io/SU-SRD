@@ -146,35 +146,48 @@ jobs:
       - name: Install Chromium for the srd OG pass
         run: bun --filter srd og:install-browser
 
-      # Build and OG pass are SEPARATE steps with the gate between them, and the
-      # order is load-bearing. `og:generate` chains both, and running it before
-      # the gate emitted 2,011 `.og.png` files into `dist` that the committed
-      # snapshot has never contained — the snapshot asserts the emitted file set
-      # in both directions, so the gate failed with 2,011 "NEW, not in the
-      # snapshot" paths on a build whose HTML was byte-identical.
-      #
-      # Blessing them in would be the wrong repair: `apps/srd/CLAUDE.md` excludes
-      # binary assets from the snapshot deliberately, because their names are
-      # content-addressed and digesting them would make the gate churn until
-      # somebody switched it off.
-      #
-      # Splitting also puts each half where it belongs. The gate now verifies the
-      # deterministic build — the thing it was blessed against — and the OG pass,
-      # which is explicitly allowed to degrade to the default banner and "never
-      # fails the build", can no longer fail this gate either.
+      # Build and OG pass are separate steps rather than one `og:generate`, so
+      # each carries only its own environment: the build takes the commit ref and
+      # the Sentry DSN, the screenshot pass takes its budget. It also keeps the
+      # best-effort half independently skippable from the half that must succeed.
       - name: Build srd
         env:
           PUBLIC_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
         run: bun --filter srd build
 
-      # The output gate, against the artifact about to ship rather than against
-      # a build made earlier for a different purpose.
-      - name: Verify srd output against the committed snapshot
-        working-directory: apps/srd
-        run: bun ssg/snapshot.ts
+      # The srd output snapshot is deliberately NOT re-run here, and the reason
+      # is that it cannot pass in this job — not that it is inconvenient.
+      #
+      # The snapshot is blessed against a build with NO Sentry DSN, which is what
+      # `bun run gate` produces locally and what CI's `build-srd` job runs on
+      # every PR. This job builds WITH `PUBLIC_SENTRY_DSN`, because production
+      # must ship Sentry. Measured — the DSN changes the emitted chunk set:
+      #
+      #   with a DSN:     assets/prod-[hash].js, assets/rolldown-runtime-[hash].js
+      #   without a DSN:  assets/preload-helper-[hash].js
+      #
+      # and the snapshot asserts the emitted file set in both directions, so it
+      # failed on exactly those three paths with the page content identical.
+      #
+      # Neither repair works. Blessing the DSN build breaks `build-srd` and every
+      # contributor's local `bun run gate`, since nobody outside Actions has the
+      # DSN. Dropping the DSN here reintroduces the silent Sentry-less production
+      # build this workflow was fixed to prevent.
+      #
+      # So the gate stays where its precondition holds — CI, on every PR — and
+      # this job verifies the DEPLOYED artifact instead, via the smoke step at
+      # the end. That is the honest division: a content gate on the reproducible
+      # build, a behaviour check on the thing actually serving.
+      #
+      # If you are tempted to re-add it, there is a second trap waiting: it must
+      # also run BEFORE the OG pass, which emits 2,011 `.og.png` files the
+      # snapshot has never contained. That one is not fixable by blessing either
+      # — `apps/srd/CLAUDE.md` excludes binary assets on purpose, because their
+      # names are content-addressed and digesting them would make the gate churn
+      # on every dependency bump until somebody switched it off.
 
-      # Additive, post-gate, and non-fatal by design: a missing browser or a
+      # Additive and non-fatal by design: a missing browser or a
       # wedged render leaves those pages on the default og:image.
       - name: Render srd OG images
         working-directory: apps/srd
