@@ -57,13 +57,18 @@ irreversible act is the nameserver flip, and it has not happened.
 (ADR-033 §6). A dedicated account was considered and declined; the residue is a
 CI token whose blast radius is that whole account.
 
-**One human prerequisite remains, and it blocks P3 and P6: R2 is not enabled.**
-Activation is a checkout flow requiring a billing address and two consent
-checkboxes ("I agree to the Terms of Service", "I authorize Cloudflare to charge
-this card… until cancellation"). Total due today is $0.00 and a payment method is
-already on file, but entering personal or payment details and accepting terms are
-operator actions — an agent cannot do them. Page:
-`dash.cloudflare.com/<account>/r2/checkout/payment`.
+**R2 is enabled — this section previously said it was not, and blocked P3/P6 on
+it.** The operator completed the checkout (it needed a billing address and two
+consent checkboxes, which is why an agent could not do it). Both buckets exist
+and are in use:
+
+| Bucket              | Holds                          | Verified                          |
+| ------------------- | ------------------------------ | --------------------------------- |
+| `su-lp-assets`      | licensed entity artwork        | 57/57 objects; Worker serves 200   |
+| `su-itun-snapshots` | shared character snapshots     | 45/45 copied, compared by content   |
+
+There is a third bucket on the account, `optfall-card-faces`, belonging to an
+unrelated project — same shared-account consequence as the Workers below.
 
 **What is actually on the account** (checked in the dashboard 2026-08-18, after
 an earlier claim of "nothing" turned out to be an inference rather than a
@@ -71,11 +76,12 @@ measurement — see ADR-033 §6):
 
 | Resource            | State                                                     |
 | ------------------- | --------------------------------------------------------- |
-| Workers             | **two** — `randsum-rdn`, `randsum-site` (RANDSUM is live here) |
+| Workers             | RANDSUM's two (`randsum-rdn`, `randsum-site`) **plus our four** — `su-srd`, `su-itun`, `su-assets`, `su-discord-bot` |
 | `workers.dev`       | **already registered — `alxjrvs.workers.dev`**             |
 | KV namespaces       | none                                                       |
-| D1 databases        | none                                                       |
-| R2                  | **not enabled**                                            |
+| D1 databases        | none (see §10 — the Convex→D1 move is a follow-up)         |
+| R2                  | **enabled** — 3 buckets, 2 of them ours                    |
+| Zones               | 4 — `optfall.com`, `randsum.dev`, **`salvageunion.io`**, **`intheunionnow.com`** (the last two pending nameservers) |
 
 Two consequences. The Free quota is **shared with a live project**, though both
 sides are far from the ceilings. And preview URLs come from the existing
@@ -642,6 +648,26 @@ Deleting the six records and redeploying attached the domain immediately, so the
 pending zone accepts custom domains perfectly well. Both zones now hold zero
 records; wrangler writes the real ones.
 
+#### The certificate window is the one unavoidable exposure
+
+Cloudflare has **already ordered** the Universal SSL certificates for both
+pending zones — for `salvageunion.io` they cover the apex, `www` and `assets`
+— and every one of them sits at **Pending Validation (TXT)**.
+
+That status is the good case, and it decides the shape of the flip. TXT
+validation is something Cloudflare performs against the zone *it is authoritative
+for*, so it cannot complete while the nameservers still point at Netlify, and it
+completes on its own within minutes of the flip. Nothing needs to be done to
+make it happen and nothing can make it happen sooner: DCV delegation and
+pre-validation are Advanced Certificate Manager features, and these zones are on
+Free.
+
+So there is a short window after each flip where a resolver that has already
+picked up Cloudflare gets a TLS error rather than a page. It is minutes, it is
+unavoidable on this plan, and it is the reason the flips are sequenced apart
+rather than done together — `salvageunion.io` first, verified, then
+`intheunionnow.com`.
+
 #### Propagation is ~1 hour, not 24–48
 
 The binding constraint is the **NS delegation TTL at the parent registry**,
@@ -729,7 +755,7 @@ the hostname rather than the hostname waiting for the rule.
 | When  | Step                                                                                                                                                                         |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | −1 h  | Execute P6 (write freeze, then the delta sync that must reconcile to **zero**).                                                                                                |
-| −30 m | Attach Worker custom domains for all five hostnames (declared in the three `wrangler.jsonc` files; wrangler creates the proxied records on deploy). Verify each against the assigned NS with `dig @davina.ns.cloudflare.com`. |
+| −30 m | ~~Attach Worker custom domains for all five hostnames.~~ **Done 2026-08-19** — all five attached by the deploy workflow and each answering `100::` against the assigned NS. |
 | −20 m | ~~Create the two `www` → apex Redirect Rules.~~ **Done 2026-08-19** — both active. They cannot be verified before the flip (no certificate is issued while a zone is pending), so verifying them is a **post-flip** step, never a pre-flip gate. |
 | 0     | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` **together**, because `ASSET_BASE_URL` is compile-time.                                    |
 | +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404. **Confirm `www.salvageunion.io` 301s to the apex** — if it serves a 200, the Redirect Rule did not take. |
