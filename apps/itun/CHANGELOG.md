@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.11.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.11.0...itun-v1.11.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* three cutover-blocking defects found by running the deploy ([#856](https://github.com/SalvageUnion-io/SU-SRD/issues/856)) ([69862e8](https://github.com/SalvageUnion-io/SU-SRD/commit/69862e803234846f0ca06b8fcb2ac24a663f153f))
+
 ## [1.11.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.10.0...itun-v1.11.0) (2026-08-19)
 
 

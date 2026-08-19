@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.7.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.7.0...srd-v2.7.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* three cutover-blocking defects found by running the deploy ([#856](https://github.com/SalvageUnion-io/SU-SRD/issues/856)) ([69862e8](https://github.com/SalvageUnion-io/SU-SRD/commit/69862e803234846f0ca06b8fcb2ac24a663f153f))
+
 ## [2.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.6.0...srd-v2.7.0) (2026-08-19)
 
 
