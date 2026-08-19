@@ -567,31 +567,93 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 - [ ] The final delta sync reconciles to **zero** objects, verified after the
       freeze rather than before.
 
-### P7 — Cutover · **irreversible** · 1 hour + propagation
+### P7 — Cutover · **irreversible** · ~1 hour
 
-DNS propagation is not a rollback window, it is a physics window. Both origins
-answer for the length of the TTL, so the Netlify sites must keep serving until
-propagation completes — deleting them at the moment of the flip is strictly
-worse, because resolvers holding old records get errors rather than a
-stale-but-working site.
+Both zones are **staged and answering** on their assigned nameservers while the
+live delegation still points at Netlify, so everything below has already been
+rehearsed against the real Cloudflare zones at zero customer risk.
 
-| When   | Step                                                                                                                       |
-| ------ | -------------------------------------------------------------------------------------------------------------------------- |
-| −48 h  | Reduce TTLs on both zones to 300 s. Confirm the reduction has propagated.                                                   |
-| −2 h   | Transcribe every record in both zones into Cloudflare, grey-cloud. Diff against `dig` by hand — the auto-scan misses CNAMEs. |
-| −1 h   | Execute P6.                                                                                                                 |
-| 0      | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` together, because `ASSET_BASE_URL` is compile-time. |
-| +15 m  | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the missing-chunk 404.       |
-| +30 m  | Flip nameservers on `intheunionnow.com`. Re-run the itun Playwright suite against production.                               |
-| +1 h   | Lift the snapshot write freeze once both origins resolve to Cloudflare.                                                     |
-| +2 h   | Set the Discord Interactions Endpoint URL. Verify PING/PONG, then one command of each shape in a real server.               |
-| +24 h  | Proxy (orange-cloud) once verified. Raise TTLs back.                                                                        |
+| Zone                | Cloudflare NS                                            | Live NS today             | Flip it at |
+| ------------------- | -------------------------------------------------------- | ------------------------- | ---------- |
+| `salvageunion.io`   | `davina.ns.cloudflare.com` / `rajeev.ns.cloudflare.com`   | `dns{1..4}.p08.nsone.net` | Name.com   |
+| `intheunionnow.com` | `davina.ns.cloudflare.com` / `rajeev.ns.cloudflare.com`   | `dns{1..4}.p02.nsone.net` | Tucows     |
+
+Both zones drew the **same** nameserver pair, so the two flips are the same edit
+made in two different control panels.
+
+**The current nameservers are Netlify's own** (`nsone.net` is NS1, which Netlify
+DNS runs on). Netlify is therefore not just the origin here, it is the DNS
+provider — which fixes the order of P7 and P8 rather than leaving it to
+preference: **the flip must precede decommissioning**, because deleting the
+Netlify sites while they still answer for the domain would take DNS down along
+with the origin.
+
+#### The record set, measured — not scanned
+
+Enumerated from Netlify's own API (`getDnsZones`), which is authoritative
+because Netlify DNS *is* the current provider. **Five hostnames, and nothing
+else** — no MX, TXT, CAA, DMARC, or other subdomain in either zone:
+
+| Hostname                 | Type      | Target                         |
+| ------------------------ | --------- | ------------------------------ |
+| `salvageunion.io`        | `NETLIFY` | `suindex.netlify.app`          |
+| `www.salvageunion.io`    | `NETLIFY` | `suindex.netlify.app`          |
+| `assets.salvageunion.io` | `NETLIFY` | `su-assets.netlify.app`        |
+| `intheunionnow.com`      | `NETLIFY` | `in-the-union-now.netlify.app` |
+| `www.intheunionnow.com`  | `NETLIFY` | `in-the-union-now.netlify.app` |
+
+**There are no A records to transcribe, and this corrects two steps that were
+previously in this runbook.** Every record is Netlify's `NETLIFY` ALIAS type,
+resolved to a load-balancer address *at query time*. The A records Cloudflare's
+onboarding scan captured are therefore a snapshot of a synthesized answer, not
+configuration — demonstrated twice while staging the zones:
+
+- the `salvageunion.io` scan returned `13.52.188.95` / `52.52.192.191` (us-west)
+  while production resolved `98.84.224.111` / `18.208.88.157` (us-east);
+- the `intheunionnow.com` scan returned **us-east for the apex and us-west for
+  `www`** — two hostnames with identical configuration, different answers, one
+  scan.
+
+Copying either pair would pin production to one region for no benefit. The
+scanned records are left in place, **DNS-only**, purely as inert placeholders;
+the Worker custom domains replace them.
+
+#### Propagation is ~1 hour, not 24–48
+
+The binding constraint is the **NS delegation TTL at the parent registry**,
+measured at **3600 s** via `dig +trace` — not the zone's own record TTLs. That
+is why the old "−48 h: reduce TTLs to 300 s" step is gone: lowering a record TTL
+inside the zone does not touch the delegation, and the synthesized A answers
+already carry a 120 s TTL, which is *below* the 300 s that step aimed for. It
+would have bought nothing and cost two days.
+
+#### Runbook
+
+| When  | Step                                                                                                                                                                         |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| −1 h  | Execute P6 (write freeze, then the delta sync that must reconcile to **zero**).                                                                                                |
+| −30 m | Attach Worker custom domains for all five hostnames. Cloudflare creates the proxied records itself. Verify each against the assigned NS with `dig @davina.ns.cloudflare.com`.   |
+| 0     | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` **together**, because `ASSET_BASE_URL` is compile-time.                                    |
+| +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404.                                                          |
+| +30 m | Flip nameservers on `intheunionnow.com`. Re-run the itun Playwright suite against production.                                                                                   |
+| +1 h  | Lift the snapshot write freeze once both origins resolve to Cloudflare.                                                                                                        |
+| +2 h  | Set the Discord Interactions Endpoint URL. Verify PING/PONG, then one command of each shape in a real server.                                                                   |
+
+**Leave the Netlify sites serving until propagation completes.** DNS propagation
+is not a rollback window, it is a physics window: both origins answer for the
+length of the TTL, and deleting the old one at the moment of the flip is
+strictly worse than leaving it — resolvers still holding the old delegation get
+errors rather than a stale-but-working site. Decommissioning is P8, 24 h later.
+
+There is **no grey-cloud → orange-cloud step.** A Worker custom domain is
+proxied by definition; the record Cloudflare writes for it is already orange,
+and the DNS-only placeholders it replaces are never in the serving path.
 
 **Gate**
 
 - [ ] Every gate P0–P6 green, recorded and dated in the Progress table.
-- [ ] TTLs reduced at least 48 h prior and observed in effect.
-- [ ] Every record in both zones transcribed by hand and diffed against `dig`.
+- [ ] All five Worker custom domains attached and each verified against the
+      assigned nameservers *before* either flip.
 - [ ] All open decisions below are closed.
 
 ### P8 — Decommission and tooling cleanup · **irreversible**

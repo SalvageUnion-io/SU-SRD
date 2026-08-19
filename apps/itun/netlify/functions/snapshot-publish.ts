@@ -15,11 +15,19 @@ import { makePublishHandler } from '../../src/lib/snapshot/handlers'
 import { setSnapshotReporter } from '../../src/lib/snapshot/report'
 import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storageNetlify'
 import { captureException, initObservability } from '../lib/observability'
+import { writeFreezeResponse } from '../lib/writeFreeze'
 
 export { makePublishHandler }
 
 /** @public Netlify Functions handler — invoked by the platform, not imported. */
 export default async function (req: Request): Promise<Response> {
+  // Checked before anything else, including Sentry init and storage: during the
+  // ADR-033 P6 freeze this function must not touch the Blobs store at all, and
+  // it must answer every method — `probeSnapshotService` reads HEAD, and a 503
+  // there is what hides the share affordance instead of letting it fail on use.
+  const frozen = writeFreezeResponse()
+  if (frozen) return frozen
+
   initObservability()
   // The shared handlers report through a transport-neutral seam so they can
   // also run on workerd, where @sentry/node does not bundle. Netlify installs
