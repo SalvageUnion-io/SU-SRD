@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.6.0...srd-v2.7.0) (2026-08-19)
+
+
+### Features
+
+* snapshot write freeze, the five custom domains, and a P7 runbook built on measured DNS ([#854](https://github.com/SalvageUnion-io/SU-SRD/issues/854)) ([f4f6326](https://github.com/SalvageUnion-io/SU-SRD/commit/f4f6326f45db872f86be8af39d09c957eff303fb))
+
 ## [2.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.5.0...srd-v2.6.0) (2026-08-19)
 
 
