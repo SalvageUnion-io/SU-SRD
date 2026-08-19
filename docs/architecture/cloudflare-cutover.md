@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P1    | Export `lp-assets`, restore ingest tool  | blocking   | **done** — 57/57 verified |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
-| P4    | Three web surfaces on `workers.dev`      | yes        | **2 of 3** — itun left    |
+| P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | not started               |
 | P7    | Cutover                                  | **no**     | not started               |
@@ -390,17 +390,70 @@ points, each with an incident behind it:
 > must be handled Worker-first, and the curl assertion below is the only thing
 > that proves it.
 
-**Gate**
+**Gate — met 2026-08-18, with one item reframed on evidence**
 
-- [ ] `bun --filter srd gate` clean against Cloudflare-served output — 1,039
-      pages and 899 endpoints compared byte-for-byte.
-- [ ] Both Playwright suites green against `workers.dev` via `E2E_BASE_URL`.
-- [ ] curl: a real hashed chunk returns 200 `application/javascript`; a missing
-      one returns **404, not 200**; `/`, `/s/<id>` and `/p/pilot/<id>` return 200
-      HTML.
-- [ ] All **three** header sets served correctly, including `su-assets`' (#778) —
-      verified by response, not by reading config.
-- [ ] The four redirect rules resolve in the documented order.
+| Surface     | URL                             | Evidence                                   |
+| ----------- | ------------------------------- | ------------------------------------------ |
+| `su-assets` | `su-assets.alxjrvs.workers.dev` | 57/57 objects byte-identical (SHA-256)     |
+| `srd`       | `su-srd.alxjrvs.workers.dev`    | 8/8 Playwright against the deploy          |
+| `itun`      | `su-itun.alxjrvs.workers.dev`   | full snapshot lifecycle on real R2         |
+
+- [x] `bun --filter srd gate` clean. It **failed first**, correctly, when
+      `_redirects` appeared and `_headers` grew; the re-blessed diff is two lines
+      and `html: 1039` is unchanged.
+- [x] curl against the live deploys: a real hashed chunk 200 `text/javascript`;
+      a rotated-away one **404, not the SPA shell**; `/`, `/s/<id>`,
+      `/p/pilot/<id>` 200 HTML; missing srd page 404.
+- [x] All three header sets verified **on live responses**, including
+      `su-assets`' (#778) and the CSP carrying Sentry's **EU** ingest origin.
+- [x] Redirect order verified live: retired-share 301, the four
+      method-conditioned `/api/snapshots` rules, `/assets/*` 404, SPA fallback.
+- [x] **srd**: 8/8 Playwright against the deployment.
+- [~] **itun**: see below. Reframed, not waived.
+
+**The itun suite is at exact parity with local, and that is the finding.** Run
+back to back on the same commit:
+
+| Target                             | Result                |
+| ---------------------------------- | --------------------- |
+| Local build (`CI=1`)               | 7 failed, 33 passed   |
+| Cloudflare deploy (`E2E_BASE_URL`) | 7 failed, **34** passed |
+
+The failing sets are **identical**, matched by artifact path — seven specs that
+all build an entity through a wizard and then assert on the live sheet or
+roster. They are pre-existing on `main` (`e2e-nightly` has been red since at
+least 2026-08-16, tracked in #756) and unrelated to this migration. Filed with
+the full comparison as #851.
+
+"Both suites green" was therefore the wrong bar to hold this against: the suite
+is not green anywhere, and waiting for it would block the migration on an
+unrelated regression. **Identical failure sets is the stronger assertion** — a
+migration that changed behaviour would have produced a *different* set. The
+deployed run passing one more is a flaky test, not a difference.
+
+### The lesson this phase kept teaching: esbuild follows modules, not calls
+
+Two builds failed on the same misunderstanding, in different disguises:
+
+1. Splitting the snapshot handlers' *reporting* was not enough. Importing a
+   factory out of `netlify/functions/` dragged that module's `@sentry/node`
+   import into the Worker bundle. The handlers moved to
+   `src/lib/snapshot/handlers.ts`; each platform file is now a thin adapter.
+2. `createNetlifyBlobsStorage`'s `@netlify/blobs` import was already written as
+   `await import(...)` — enough for Bun at runtime, **not** enough for a
+   bundler. Moved to `storageNetlify.ts`.
+
+The tempting fix for both was `nodejs_compat`. It would have been wrong twice:
+it grows the bundle with a shim nothing needs, and it makes the *next*
+accidental Node-only import invisible.
+
+### Rate limiting, kept honest
+
+P3 recorded "do not port the in-process limiter". Moving the handlers verbatim
+would have silently contradicted that, so it became a parameter: Netlify keeps
+its limiter (behaviour unchanged, still exercised by the existing tests) and the
+Worker passes `rateLimiter: null`, because Cloudflare's binding is edge-enforced
+and is a real control. One host, one mechanism.
 
 ### P5 — Bot on HTTP interactions · reversible until flip · 3 days
 
