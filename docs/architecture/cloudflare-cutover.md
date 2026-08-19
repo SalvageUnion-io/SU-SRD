@@ -40,7 +40,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
-| P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
+| P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
 | P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312 |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
@@ -469,7 +469,47 @@ its limiter (behaviour unchanged, still exercised by the existing tests) and the
 Worker passes `rateLimiter: null`, because Cloudflare's binding is edge-enforced
 and is a real control. One host, one mechanism.
 
-### P5 — Bot on HTTP interactions · reversible until flip · 3 days
+### P5 — Bot on HTTP interactions · **DONE 2026-08-19** · reversible
+
+The Interactions Endpoint URL is set to
+`https://su-discord-bot.alxjrvs.workers.dev/` and Discord accepted it. Saving
+that field **is** the cutover: from that moment Discord delivers interactions
+over HTTP to the Worker and stops delivering them over the gateway, across all
+3 servers at once.
+
+**It depends on neither domain.** The bot runs on `workers.dev`, so this was
+able to go ahead while `salvageunion.io` is still stuck behind a support ticket.
+
+**Discord's own validation is the strongest gate here, and it passed.** Saving
+the URL makes Discord send a correctly-signed PING expecting a PONG *and* a
+deliberately malformed one expecting 401 — it refuses to save unless both hold.
+Verified independently first, so a rejection would not have been a mystery:
+
+```
+POST, no signature      401
+POST, bogus signature   401
+GET  /                  405
+GET  /health            200   {"ok":true,"discordStatus":200,"botUser":"SalvageUnion.io"}
+```
+
+The app's Public Key in the portal matches `wrangler.jsonc` byte for byte, which
+is what makes the signature check able to succeed at all.
+
+**No Game-command regression, because there is none to lose.** The Worker reports
+`mode: solo`, and so was Render: `render.yaml` declares `ITUN_CONVEX_SITE_URL`
+and `ITUN_BOT_SECRET` as `sync: false`, and neither was ever set — on Render or
+in Convex. Reference commands (`/su roll`, `/su check`, `/su lookup`) behave
+identically; Game commands said "not connected" before and still do.
+
+**This one is reversible, unlike the DNS flip** — clearing the Interactions
+Endpoint URL returns delivery to the gateway. **So leave the Render service
+running until a real command has been exercised in Discord**; it is the fallback,
+and deleting it is what makes this irreversible. That is a P8 step, not this one.
+
+**Still unverified by a human:** an actual slash command in a real server. Discord
+proved the transport; only a person can prove a command renders.
+
+### P5 — original plan · reversible until flip · 3 days
 
 Write one adapter satisfying the three types in `commands/interactions.ts` over
 `@discordjs/builders` + `@discordjs/rest`. The gateway half of `discord.js` does
