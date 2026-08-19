@@ -648,6 +648,26 @@ Deleting the six records and redeploying attached the domain immediately, so the
 pending zone accepts custom domains perfectly well. Both zones now hold zero
 records; wrangler writes the real ones.
 
+#### The certificate window is the one unavoidable exposure
+
+Cloudflare has **already ordered** the Universal SSL certificates for both
+pending zones — for `salvageunion.io` they cover the apex, `www` and `assets`
+— and every one of them sits at **Pending Validation (TXT)**.
+
+That status is the good case, and it decides the shape of the flip. TXT
+validation is something Cloudflare performs against the zone *it is authoritative
+for*, so it cannot complete while the nameservers still point at Netlify, and it
+completes on its own within minutes of the flip. Nothing needs to be done to
+make it happen and nothing can make it happen sooner: DCV delegation and
+pre-validation are Advanced Certificate Manager features, and these zones are on
+Free.
+
+So there is a short window after each flip where a resolver that has already
+picked up Cloudflare gets a TLS error rather than a page. It is minutes, it is
+unavoidable on this plan, and it is the reason the flips are sequenced apart
+rather than done together — `salvageunion.io` first, verified, then
+`intheunionnow.com`.
+
 #### Propagation is ~1 hour, not 24–48
 
 The binding constraint is the **NS delegation TTL at the parent registry**,
@@ -735,7 +755,7 @@ the hostname rather than the hostname waiting for the rule.
 | When  | Step                                                                                                                                                                         |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | −1 h  | Execute P6 (write freeze, then the delta sync that must reconcile to **zero**).                                                                                                |
-| −30 m | Attach Worker custom domains for all five hostnames (declared in the three `wrangler.jsonc` files; wrangler creates the proxied records on deploy). Verify each against the assigned NS with `dig @davina.ns.cloudflare.com`. |
+| −30 m | ~~Attach Worker custom domains for all five hostnames.~~ **Done 2026-08-19** — all five attached by the deploy workflow and each answering `100::` against the assigned NS. |
 | −20 m | ~~Create the two `www` → apex Redirect Rules.~~ **Done 2026-08-19** — both active. They cannot be verified before the flip (no certificate is issued while a zone is pending), so verifying them is a **post-flip** step, never a pre-flip gate. |
 | 0     | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` **together**, because `ASSET_BASE_URL` is compile-time.                                    |
 | +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404. **Confirm `www.salvageunion.io` 301s to the apex** — if it serves a 200, the Redirect Rule did not take. |
