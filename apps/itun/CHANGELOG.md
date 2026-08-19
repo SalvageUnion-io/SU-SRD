@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.10.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.9.0...itun-v1.10.0) (2026-08-19)
+
+
+### Features
+
+* all three web surfaces on Cloudflare Workers (P4) ([#852](https://github.com/SalvageUnion-io/SU-SRD/issues/852)) ([1e66485](https://github.com/SalvageUnion-io/SU-SRD/commit/1e66485a74d63d381815aff777682ae2af2234ca))
+
 ## [1.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.8.0...itun-v1.9.0) (2026-08-18)
 
 
