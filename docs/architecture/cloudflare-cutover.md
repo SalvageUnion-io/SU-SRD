@@ -57,13 +57,18 @@ irreversible act is the nameserver flip, and it has not happened.
 (ADR-033 §6). A dedicated account was considered and declined; the residue is a
 CI token whose blast radius is that whole account.
 
-**One human prerequisite remains, and it blocks P3 and P6: R2 is not enabled.**
-Activation is a checkout flow requiring a billing address and two consent
-checkboxes ("I agree to the Terms of Service", "I authorize Cloudflare to charge
-this card… until cancellation"). Total due today is $0.00 and a payment method is
-already on file, but entering personal or payment details and accepting terms are
-operator actions — an agent cannot do them. Page:
-`dash.cloudflare.com/<account>/r2/checkout/payment`.
+**R2 is enabled — this section previously said it was not, and blocked P3/P6 on
+it.** The operator completed the checkout (it needed a billing address and two
+consent checkboxes, which is why an agent could not do it). Both buckets exist
+and are in use:
+
+| Bucket              | Holds                          | Verified                          |
+| ------------------- | ------------------------------ | --------------------------------- |
+| `su-lp-assets`      | licensed entity artwork        | 57/57 objects; Worker serves 200   |
+| `su-itun-snapshots` | shared character snapshots     | 45/45 copied, compared by content   |
+
+There is a third bucket on the account, `optfall-card-faces`, belonging to an
+unrelated project — same shared-account consequence as the Workers below.
 
 **What is actually on the account** (checked in the dashboard 2026-08-18, after
 an earlier claim of "nothing" turned out to be an inference rather than a
@@ -71,11 +76,12 @@ measurement — see ADR-033 §6):
 
 | Resource            | State                                                     |
 | ------------------- | --------------------------------------------------------- |
-| Workers             | **two** — `randsum-rdn`, `randsum-site` (RANDSUM is live here) |
+| Workers             | RANDSUM's two (`randsum-rdn`, `randsum-site`) **plus our four** — `su-srd`, `su-itun`, `su-assets`, `su-discord-bot` |
 | `workers.dev`       | **already registered — `alxjrvs.workers.dev`**             |
 | KV namespaces       | none                                                       |
-| D1 databases        | none                                                       |
-| R2                  | **not enabled**                                            |
+| D1 databases        | none (see §10 — the Convex→D1 move is a follow-up)         |
+| R2                  | **enabled** — 3 buckets, 2 of them ours                    |
+| Zones               | 4 — `optfall.com`, `randsum.dev`, **`salvageunion.io`**, **`intheunionnow.com`** (the last two pending nameservers) |
 
 Two consequences. The Free quota is **shared with a live project**, though both
 sides are far from the ceilings. And preview URLs come from the existing
