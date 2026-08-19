@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.5.0...srd-v2.6.0) (2026-08-19)
+
+
+### Features
+
+* all three web surfaces on Cloudflare Workers (P4) ([#852](https://github.com/SalvageUnion-io/SU-SRD/issues/852)) ([1e66485](https://github.com/SalvageUnion-io/SU-SRD/commit/1e66485a74d63d381815aff777682ae2af2234ca))
+
 ## [2.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.4.0...srd-v2.5.0) (2026-08-16)
 
 
