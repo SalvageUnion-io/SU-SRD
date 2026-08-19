@@ -42,7 +42,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
-| P7    | Cutover                                  | **no**     | **staged** — both zones created and answering; custom domains declared; nameservers NOT flipped |
+| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312 |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
@@ -689,7 +689,48 @@ The cost of going first is only that itun — the domain **with live user data a
 a write freeze** — becomes the rehearsal, instead of the read-only one. That is
 a real trade and the reason the original order put `salvageunion.io` first.
 
-#### The itun flip, when it runs
+#### The itun flip — DONE, 2026-08-19
+
+`intheunionnow.com` is live on Cloudflare. Every gate passed in order:
+
+| Gate                         | Result                                                        |
+| ---------------------------- | ------------------------------------------------------------- |
+| Freeze took                  | `HEAD /api/snapshots` → **503** (405 would have halted it)     |
+| Reads unaffected by freeze   | `GET /api/snapshots/:id` → 200                                 |
+| Delta sync                   | **reconciled to zero** — 45 present, 0 copied, 0 failed        |
+| Zone activation              | ~45 s after "Check nameservers now"                            |
+| Universal SSL                | issued ~45 s after activation                                  |
+| Post-flip smoke              | apex 200 · rotated-chunk 404 · snapshot read 200 · missing 404 |
+| `www` → apex                 | **301** — the Redirect Rule fires, first time it could be tested |
+| Publish → read → revoke      | 201 → 200 → 204 → 404, all against R2                          |
+
+**There was a real outage of roughly 3–4 minutes**, and the runbook did not
+predict it. Two sequential waits, neither avoidable:
+
+1. **Zone activation.** Between the nameserver change and Cloudflare marking the
+   zone Active, public resolvers returned the proxied placeholder `100::` —
+   RFC 6666 discard space, not routable. The site was unreachable, not slow.
+2. **Certificate issuance.** Once Active, TLS failed with a handshake alert
+   until Universal SSL issued.
+
+**Reverting during that window would have made it permanent**, which is the part
+worth internalising: the zone can only activate *while* the nameservers point at
+Cloudflare, so backing out guarantees it never activates. Once the flip is made,
+forward is the only direction — hold and watch, do not panic-revert.
+
+Both waits collapse if the dashboard's **"Check nameservers now"** is pressed
+immediately after the flip rather than waiting for the periodic check (whose UI
+copy says "1–2 hours… may take up to 24 hours").
+
+**A pre-existing bug turned up and the migration fixes it.** On Netlify,
+`DELETE /api/snapshots/:id` answers **405** — the method-conditioned redirect in
+`netlify.toml` never matched, so share revocation has been broken in production.
+Proven not to be a freeze artefact: the function itself answered 503 when called
+directly at `/.netlify/functions/snapshot-delete/:id`, so it was deployed and
+frozen; the redirect simply never routed to it. The Worker returns **204**,
+because P4's routing table puts DELETE ahead of GET.
+
+#### The itun flip, as it was run
 
 **The snapshot write freeze is deliberately still OFF.** It protects only the
 itun flip, and freezing it while the flip is not imminent would pause sharing for
