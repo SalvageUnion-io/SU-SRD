@@ -229,6 +229,31 @@ jobs:
         run: bunx wrangler deploy
 
       # ---------------------------------------------------------------------
+      # discord-bot — the Worker, not the Render gateway process.
+      # ---------------------------------------------------------------------
+      #
+      # Deploying this does NOT move the bot. Discord routes to a Worker only
+      # once the Interactions Endpoint URL is set on the application, which is a
+      # P7 step done by hand — so this is safe to run on every merge, and has to
+      # be, because Render is being retired and this is the only path left.
+      #
+      # It was deployed by hand during P5, which was fine for a measurement and
+      # is not fine as a steady state: a bot whose only deploy path is somebody
+      # remembering to run wrangler is a bot that silently stops tracking main.
+      #
+      # No build step — wrangler bundles `src/http/worker.ts` directly. The
+      # `build` script in this workspace targets the Node/gateway entry that
+      # Render runs, and that is what goes away, not this.
+      #
+      # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
+      # and are NOT touched by a deploy, so this cannot clobber them.
+      - name: Deploy discord-bot
+        working-directory: apps/discord-bot
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bunx wrangler deploy
+
+      # ---------------------------------------------------------------------
       # Post-deploy smoke. Cheap, and it is the only thing that knows whether
       # what shipped actually answers.
       # ---------------------------------------------------------------------
@@ -257,4 +282,11 @@ jobs:
           check https://su-itun.alxjrvs.workers.dev/ 200 "itun shell"
           check https://su-itun.alxjrvs.workers.dev/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
           check https://su-assets.alxjrvs.workers.dev/chassis/mule.webp 200 "artwork"
+          # /health answers 200 only when Discord itself accepted the bot token
+          # (it calls /users/@me rather than checking a variable is non-empty),
+          # 503 when the token is rejected or absent, 502 when Discord is
+          # unreachable. A bad token is otherwise invisible until the first real
+          # interaction — which, given the bot cutover is atomic across every
+          # server, is the worst possible moment to find out.
+          check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted by Discord"
           exit "$fail"
