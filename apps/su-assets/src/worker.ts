@@ -110,7 +110,9 @@ export function makeAssetHandler(
       return plain('Asset storage unavailable', 503)
     }
 
-    if (!object || !object.body) {
+    // Both halves matter: R2 returns null for an absent key, and an object that
+    // exists can still carry a null body. Either way there is nothing to stream.
+    if (!object?.body) {
       return plain('Not found', 404)
     }
 
