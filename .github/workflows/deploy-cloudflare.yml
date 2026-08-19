@@ -92,6 +92,39 @@ jobs:
             exit 1
           fi
 
+      # Sentry is env-gated at BUILD time: with no DSN the guard folds to false,
+      # Vite tree-shakes the SDK out entirely, and the app looks *identical* to a
+      # working one while reporting zero errors. `check-observability.ts` exists
+      # because both apps once sat in production that way.
+      #
+      # Moving the build from Netlify to Actions is exactly when that can happen
+      # again, and it nearly did: the DSNs lived as Netlify SITE env vars and are
+      # not in this repo, so the first Cloudflare builds shipped with the SDK
+      # tree-shaken out. Measured, not guessed — production's bundle carried the
+      # DSN and the Workers build carried no Sentry reference at all.
+      #
+      # They are repository VARIABLES rather than secrets on purpose: a DSN is
+      # public by construction, sitting in a bundle anyone can download. Storing
+      # a public value as a secret hides which values genuinely need protecting.
+      - name: Refuse to build a browser app with no Sentry DSN
+        env:
+          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+        run: |
+          missing=0
+          if [ -z "$PUBLIC_SENTRY_DSN" ]; then
+            echo "FATAL: PUBLIC_SENTRY_DSN is not set — srd would ship with error tracking silently off." >&2
+            missing=1
+          fi
+          if [ -z "$VITE_SENTRY_DSN" ]; then
+            echo "FATAL: VITE_SENTRY_DSN is not set — itun would ship with error tracking silently off." >&2
+            missing=1
+          fi
+          if [ "$missing" = "1" ]; then
+            echo "Set them in Settings > Secrets and variables > Actions > Variables." >&2
+            exit 1
+          fi
+
       # ---------------------------------------------------------------------
       # su-assets — no build step; the Worker is its own source.
       # ---------------------------------------------------------------------
@@ -115,7 +148,7 @@ jobs:
       - name: Build srd
         env:
           PUBLIC_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
-          PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
           OG_SCREENSHOTS_BUDGET_MS: '300000'
         run: bun --filter srd og:generate
 
@@ -145,7 +178,7 @@ jobs:
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
           VITE_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
-          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
