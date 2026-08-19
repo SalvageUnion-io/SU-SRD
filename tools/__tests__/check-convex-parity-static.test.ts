@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /**
@@ -25,27 +25,6 @@ const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-convex-parity.ts')
 const WORKFLOW = '.github/workflows/deploy-cloudflare.yml'
 
-/** A workflow carrying all three properties the guard asks for. */
-const GOOD_WORKFLOW = `name: Deploy (Cloudflare)
-on:
-  push:
-    branches: [main]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Refuse to ship without a Convex deploy key
-        env:
-          CONVEX_DEPLOY_KEY: \${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: |
-          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
-            echo "FATAL: production deploy with no CONVEX_DEPLOY_KEY." >&2
-            exit 1
-          fi
-      - name: Push the backend and build the client
-        run: bunx convex deploy --cmd "bun run build"
-`
-
 async function runCheck() {
   const proc = Bun.spawn(['bun', TOOL], { cwd: ROOT, stdout: 'pipe', stderr: 'pipe' })
   const [stdout, stderr, exitCode] = await Promise.all([
@@ -68,17 +47,6 @@ async function withFileContents(
     await fn()
   } finally {
     writeFileSync(abs, original)
-  }
-}
-
-async function withNewFile(relPath: string, contents: string, fn: () => Promise<void>) {
-  const abs = join(ROOT, relPath)
-  if (existsSync(abs)) throw new Error(`${relPath} already exists — test would clobber it`)
-  try {
-    writeFileSync(abs, contents)
-    await fn()
-  } finally {
-    rmSync(abs, { force: true })
   }
 }
 
@@ -113,44 +81,68 @@ describe('check-convex-parity static guard', () => {
   })
 
   test('fails when NEITHER a netlify.toml nor a deploy workflow carries the guard', async () => {
+    // Both must be absent. An earlier version of this test removed only
+    // `netlify.toml` and passed because `deploy-cloudflare.yml` did not exist
+    // yet — so it was asserting a fact about the tree's current shape rather
+    // than the rule, and it failed the moment P4 added the workflow. Failing
+    // there was correct; relying on a file's absence was not.
     await withFileAbsent('apps/itun/netlify.toml', async () => {
-      const { exitCode, stderr } = await runCheck()
-      expect(exitCode).toBe(1)
-      expect(stderr).toContain('no build definition carries the Convex deploy guard')
-    })
-  })
-
-  test('accepts the Actions workflow as the guard once netlify.toml is gone', async () => {
-    await withFileAbsent('apps/itun/netlify.toml', async () => {
-      await withNewFile(WORKFLOW, GOOD_WORKFLOW, async () => {
-        const { exitCode, stdout } = await runCheck()
-        expect(exitCode).toBe(0)
-        expect(stdout).toContain('[deploy-cloudflare.yml]')
+      await withFileAbsent(WORKFLOW, async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('no build definition carries the Convex deploy guard')
       })
     })
   })
 
-  test('a workflow that never runs `convex deploy` still fails', async () => {
+  test('the real deploy workflow satisfies the guard on its own', async () => {
+    // The committed `.github/workflows/deploy-cloudflare.yml`, not a fixture:
+    // the point of naming that path in the tool before the file existed was
+    // that the file would have to satisfy it.
     await withFileAbsent('apps/itun/netlify.toml', async () => {
-      await withNewFile(
-        WORKFLOW,
-        GOOD_WORKFLOW.replace('bunx convex deploy', 'bun run build'),
-        async () => {
-          const { exitCode, stderr } = await runCheck()
-          expect(exitCode).toBe(1)
-          expect(stderr).toContain('no longer runs `convex deploy`')
-        }
-      )
+      const { exitCode, stdout } = await runCheck()
+      expect(exitCode).toBe(0)
+      expect(stdout).toContain('[deploy-cloudflare.yml]')
     })
   })
 
-  test('a workflow that cannot fail on an absent key still fails', async () => {
-    await withFileAbsent('apps/itun/netlify.toml', async () => {
-      await withNewFile(WORKFLOW, GOOD_WORKFLOW.replace('            exit 1\n', ''), async () => {
+  test('a workflow that stops running `convex deploy` fails', async () => {
+    // Mutates the REAL workflow rather than a fixture. A fixture would only
+    // prove the tool can read some YAML; this proves it is pointed at the file
+    // that actually deploys, which is the whole reason the path was named in
+    // the tool before the file existed.
+    await withFileContents(
+      WORKFLOW,
+      (s) => s.replace('bunx convex deploy', 'bun run build'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('no longer runs `convex deploy`')
+      }
+    )
+  })
+
+  test('a workflow that can no longer fail on an absent key fails', async () => {
+    await withFileContents(
+      WORKFLOW,
+      (s) => s.replaceAll('exit 1', 'true'),
+      async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain('no longer fails a production deploy')
-      })
-    })
+      }
+    )
+  })
+
+  test('a workflow that stops naming CONVEX_DEPLOY_KEY fails', async () => {
+    await withFileContents(
+      WORKFLOW,
+      (s) => s.replaceAll('CONVEX_DEPLOY_KEY', 'SOME_OTHER_KEY'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('no longer fails a production deploy')
+      }
+    )
   })
 })

@@ -1,0 +1,189 @@
+name: Deploy (Cloudflare)
+
+# Builds and deploys the three web surfaces to Cloudflare Workers (ADR-033).
+#
+# WHY THE BUILD RUNS HERE AND NOT IN WORKERS BUILDS (ADR-033 §4). srd's build
+# provisions a headless Chromium to render ~850 per-entity OG images, which is a
+# poor fit for Cloudflare's build environment. Rather than split the build across
+# two systems — one surface here, two there — all three build in Actions and
+# deploy with `wrangler`. One build path, one place path-filtering lives, and the
+# existing CI gates sit in front of every deploy.
+#
+# THE GATE IS NOT DECORATIVE. `workflow_run` fires on the CI workflow's
+# COMPLETION, not its success, so `conclusion == 'success'` is checked
+# explicitly. Without it a red CI run would deploy — which is the opposite of
+# what putting CI in front is for.
+#
+# `tools/check-convex-parity.ts` asserts this file still refuses a production
+# deploy with no CONVEX_DEPLOY_KEY. It named this path before the file existed,
+# deliberately, so there was never a window in which nothing asserted the
+# property. Do not rename this file without updating that tool.
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+  # Manual re-deploy, for when a deploy fails on something unrelated to the code
+  # (a Cloudflare incident, a rotated token) and the commit is already green.
+  workflow_dispatch:
+
+# One deploy at a time, and never cancel one in flight: a half-uploaded asset
+# manifest is worse than a queued deploy.
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # `workflow_run` gives us the triggering run's conclusion; a manual dispatch
+    # has no triggering run, so it is allowed through on its own.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # workflow_run checks out the DEFAULT branch by default, not the commit
+          # that was tested. Deploying a different commit than the one CI passed
+          # would make the gate meaningless.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # ---------------------------------------------------------------------
+      # The guard. FIRST, before anything is built.
+      # ---------------------------------------------------------------------
+      #
+      # An absent CONVEX_DEPLOY_KEY must be fatal, loudly, before any artifact
+      # exists. This is the Actions form of the guard `apps/itun/netlify.toml`
+      # carried, and it exists for a measured reason: production ran a four-day
+      # stale backend from 2026-08-06 to 2026-08-10 because an absent key
+      # silently took a Solo-build branch. The site served the current commit,
+      # the backend was four days behind, every soft-link write failed, and
+      # nothing was red.
+      #
+      # A deploy that cannot push the backend must not ship the client that
+      # expects it.
+      - name: Refuse to deploy without a Convex deploy key
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: |
+          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
+            echo "FATAL: production deploy with no CONVEX_DEPLOY_KEY." >&2
+            echo "Refusing to ship a Solo client against an un-pushed Convex backend." >&2
+            echo "Set it in Settings > Secrets and variables > Actions." >&2
+            exit 1
+          fi
+
+      - name: Refuse to deploy without a Cloudflare token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "FATAL: no CLOUDFLARE_API_TOKEN." >&2
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------------
+      # su-assets — no build step; the Worker is its own source.
+      # ---------------------------------------------------------------------
+      - name: Deploy su-assets
+        working-directory: apps/su-assets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bunx wrangler deploy
+
+      # ---------------------------------------------------------------------
+      # srd — static, but the OG pass needs a browser.
+      # ---------------------------------------------------------------------
+      #
+      # `og:generate` chains the SSG build and the screenshot pass. It never
+      # fails the build: a missing browser or a wedged render logs and leaves
+      # those pages on the default og:image, capped by OG_SCREENSHOTS_BUDGET_MS.
+      # The worst case is "some previews are generic", never a failed deploy.
+      - name: Install Chromium for the srd OG pass
+        run: bun --filter srd og:install-browser
+
+      - name: Build srd
+        env:
+          PUBLIC_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
+          PUBLIC_SENTRY_DSN: ${{ secrets.PUBLIC_SENTRY_DSN }}
+          OG_SCREENSHOTS_BUDGET_MS: '300000'
+        run: bun --filter srd og:generate
+
+      # The output gate, against the artifact about to ship rather than against
+      # a build made earlier for a different purpose.
+      - name: Verify srd output against the committed snapshot
+        working-directory: apps/srd
+        run: bun ssg/snapshot.ts
+
+      - name: Deploy srd
+        working-directory: apps/srd
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bunx wrangler deploy
+
+      # ---------------------------------------------------------------------
+      # itun — pushes the Convex backend FIRST, then builds against it.
+      # ---------------------------------------------------------------------
+      #
+      # Order is the whole point. `convex deploy --cmd` pushes schema and
+      # functions, then runs the build with VITE_CONVEX_URL set to the
+      # deployment it just pushed to. A client compiled against a URL whose
+      # schema had not been deployed yet would fail at runtime rather than at
+      # build time — which is exactly how the 2026-08 incident presented.
+      - name: Push Convex and build itun
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          VITE_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
+
+      - name: Deploy itun
+        working-directory: apps/itun
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bunx wrangler deploy
+
+      # ---------------------------------------------------------------------
+      # Post-deploy smoke. Cheap, and it is the only thing that knows whether
+      # what shipped actually answers.
+      # ---------------------------------------------------------------------
+      #
+      # Deliberately includes the rotated-chunk 404: `not_found_handling` is one
+      # line of config away from silently reintroducing #759, where a missing
+      # hashed chunk answered `200 text/html` and the `immutable` header pinned
+      # that HTML into the HTTP cache for a year.
+      - name: Smoke the deployed surfaces
+        run: |
+          set -euo pipefail
+          fail=0
+          check() {
+            local url="$1" want="$2" label="$3"
+            local got
+            got=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url" || echo 000)
+            if [ "$got" = "$want" ]; then
+              echo "  ok   $label ($got)"
+            else
+              echo "  FAIL $label — wanted $want, got $got" >&2
+              fail=1
+            fi
+          }
+          check https://su-srd.alxjrvs.workers.dev/ 200 "srd home"
+          check https://su-srd.alxjrvs.workers.dev/nope-does-not-exist/ 404 "srd 404"
+          check https://su-itun.alxjrvs.workers.dev/ 200 "itun shell"
+          check https://su-itun.alxjrvs.workers.dev/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
+          check https://su-assets.alxjrvs.workers.dev/chassis/mule.webp 200 "artwork"
+          exit "$fail"
