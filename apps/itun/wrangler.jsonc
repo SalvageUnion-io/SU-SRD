@@ -14,6 +14,11 @@
     { "pattern": "intheunionnow.com", "custom_domain": true },
     { "pattern": "www.intheunionnow.com", "custom_domain": true }
   ],
+
+  // See srd/wrangler.jsonc: declaring `routes` disables workers.dev unless it is
+  // asked for explicitly, and workers.dev is both the only pre-flip way to reach
+  // this Worker and what every smoke test in deploy-cloudflare.yml curls.
+  "workers_dev": true,
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-07-13",
 
