@@ -705,13 +705,32 @@ canonical tags rather than erroring.
 **This is the only piece of cutover configuration that does not live in the
 repo**, which is why it is written down here.
 
+**Both rules are created and active** (2026-08-19), built from Cloudflare's own
+"Redirect from WWW to root" template. Two things about that template are worth
+knowing, because both are easy to get wrong and neither announces itself:
+
+- **"Preserve query string" is UNCHECKED by default.** Netlify's redirect
+  preserves it today, and srd has `/search?q=…`, so leaving the box alone would
+  have silently dropped every query string on a `www` URL. The path is preserved
+  regardless, by the `https://www.*` → `https://${1}` wildcard; the query string
+  is a separate switch.
+- **On deploy it warns that `www` is not a proxied record and offers to create
+  one. Do not accept.** That is exactly the record that returns 409 Conflict to
+  wrangler's custom-domain attach (see above). Choose *"Ignore and deploy rule
+  anyway"* — wrangler creates the proxied record itself when the Worker deploys,
+  and the rule starts matching the moment it exists.
+
+The rules are live now but cannot fire yet, because no `www` record exists and
+the zones are not authoritative. That is the intended order: the rule waits for
+the hostname rather than the hostname waiting for the rule.
+
 #### Runbook
 
 | When  | Step                                                                                                                                                                         |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | −1 h  | Execute P6 (write freeze, then the delta sync that must reconcile to **zero**).                                                                                                |
 | −30 m | Attach Worker custom domains for all five hostnames (declared in the three `wrangler.jsonc` files; wrangler creates the proxied records on deploy). Verify each against the assigned NS with `dig @davina.ns.cloudflare.com`. |
-| −20 m | Create the two `www` → apex Redirect Rules. These cannot be verified before the flip — no certificate is issued while a zone is still pending — so verifying them is a **post-flip** step, never a pre-flip gate. |
+| −20 m | ~~Create the two `www` → apex Redirect Rules.~~ **Done 2026-08-19** — both active. They cannot be verified before the flip (no certificate is issued while a zone is pending), so verifying them is a **post-flip** step, never a pre-flip gate. |
 | 0     | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` **together**, because `ASSET_BASE_URL` is compile-time.                                    |
 | +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404. **Confirm `www.salvageunion.io` 301s to the apex** — if it serves a 200, the Redirect Rule did not take. |
 | +30 m | Flip nameservers on `intheunionnow.com`. Re-run the itun Playwright suite against production.                                                                                   |
