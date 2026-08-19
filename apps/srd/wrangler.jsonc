@@ -1,0 +1,32 @@
+{
+  // salvageunion.io — the static SRD reference site, on Workers Static Assets
+  // (ADR-033).
+  //
+  // No `main`: there is no Worker script at all. srd is fully static (ADR-031 —
+  // an in-house SSG, no SSR, no functions), so Cloudflare serves `dist/`
+  // directly and every request is an asset lookup. Adding a Worker entry here
+  // would put a script in front of 1,039 pages for no reason.
+  //
+  // The build runs in GitHub Actions, not Workers Builds: `og:generate`
+  // provisions a headless Chromium to render per-entity OG images, which is a
+  // poor fit for Cloudflare's build environment. See ADR-033 §4.
+  "name": "su-srd",
+  "compatibility_date": "2026-07-13",
+
+  "assets": {
+    "directory": "./dist",
+
+    // `404-page` serves dist/404.html with a 404 status for any unmatched path.
+    //
+    // This is the direct equivalent of netlify.toml's `from = "/*" to = "/404"
+    // status = 404` rule, and NOT `single-page-application`: srd is
+    // pre-rendered, so a miss is genuinely a miss. Choosing SPA mode here would
+    // answer 200 with HTML for every typo'd URL — telling crawlers that 1,039
+    // real pages and infinitely many wrong ones are equally valid.
+    "not_found_handling": "404-page"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

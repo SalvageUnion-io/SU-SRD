@@ -1,71 +1,24 @@
 /**
- * snapshot-retrieve — GET /api/snapshots/:id
+ * snapshot-retrieve — GET /api/snapshots/:id (Netlify adapter)
  *
- * Returns the stored JSON snapshot payload for the given ID.
- * 404 for unknown IDs. PATCH / PUT / DELETE / POST return 405.
+ * The handler lives in `src/lib/snapshot/handlers.ts`; this file supplies Blobs
+ * storage and Sentry. See the note in `snapshot-publish.ts` for why the split
+ * exists (ADR-033: a second host, and esbuild follows modules not calls).
  *
- * The :id segment is extracted from the URL path (Netlify Functions receive
- * the full request URL; routing is configured in netlify.toml).
- *
- * See ADR-004-snapshot-netlify-functions.md for full rationale.
+ * See ADR-004 for the endpoint's contract, which is unchanged.
  */
 
-import { isValidSnapshotId } from '../../src/lib/snapshot/id'
-import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
-import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
+import { makeRetrieveHandler } from '../../src/lib/snapshot/handlers'
+import { setSnapshotReporter } from '../../src/lib/snapshot/report'
+import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storageNetlify'
 import { captureException, initObservability } from '../lib/observability'
 
-// ---------------------------------------------------------------------------
-// Handler factory — accepts injected storage for testability
-// ---------------------------------------------------------------------------
-
-export function makeRetrieveHandler(storage: SnapshotStorage) {
-  return async function handler(req: Request): Promise<Response> {
-    if (req.method !== 'GET') {
-      return new Response('Method not allowed', { status: 405 })
-    }
-
-    // Extract the ID from the URL path.
-    // Expected path shape: /api/snapshots/<id>
-    const url = new URL(req.url)
-    const segments = url.pathname.split('/').filter(Boolean)
-    const id = segments.at(-1)
-
-    if (!id) {
-      return new Response('Missing snapshot ID', { status: 400 })
-    }
-
-    // Reject malformed IDs before touching the blob store. A valid snapshot ID
-    // is always 8 Crockford-base32 chars; anything else cannot exist and skips
-    // a pointless store lookup (input validation, CWE-20).
-    if (!isValidSnapshotId(id)) {
-      return new Response('Invalid snapshot ID', { status: 400 })
-    }
-
-    // A Blobs outage must surface as a controlled 503, not an unhandled 500.
-    let payload: unknown
-    try {
-      payload = await storage.get(id)
-    } catch (error) {
-      captureException(error, { fn: 'snapshot-retrieve', op: 'storage.get', id })
-      return new Response('Snapshot storage unavailable', { status: 503 })
-    }
-
-    if (payload === null) {
-      return new Response('Not found', { status: 404 })
-    }
-
-    return Response.json(payload)
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Default Netlify Function export — uses the production Blobs storage
-// ---------------------------------------------------------------------------
+export { makeRetrieveHandler }
 
 /** @public Netlify Functions handler — invoked by the platform, not imported. */
 export default async function (req: Request): Promise<Response> {
   initObservability()
+  setSnapshotReporter(captureException)
   try {
     const storage = await createNetlifyBlobsStorage()
     return await makeRetrieveHandler(storage)(req)

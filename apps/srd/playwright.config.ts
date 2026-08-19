@@ -15,7 +15,22 @@ import { defineConfig, devices } from '@playwright/test'
  *   over ~1,500 pages) that the smoke suite does not need.
  * - Local: reuse the already-running dev server on 4321 (the dev experience
  *   expectation; see the "restart in place on 4321" convention).
+ * - `E2E_BASE_URL`: run the same suite against an already-deployed origin and
+ *   boot nothing. Added for the Cloudflare cutover (ADR-033 P4), whose gate is
+ *   "the existing suites pass against the Workers deployment" — an assertion
+ *   that is only meaningful if it is the *same* suite rather than a copy.
  */
+
+/**
+ * An external target to test instead of a local build.
+ *
+ * When set, `webServer` is omitted entirely — there is nothing to boot, and
+ * leaving it in place would start a server the suite never visits and then wait
+ * on its readiness URL. `apps/itun` resolves this identically; the two configs
+ * are deliberately parallel so one command shape works for both surfaces.
+ */
+const externalBaseURL = process.env.E2E_BASE_URL
+
 export default defineConfig({
   testDir: './e2e',
   // Spec files use the `.e2e.ts` extension (instead of the default
@@ -28,13 +43,15 @@ export default defineConfig({
   // headroom without masking real hangs.
   timeout: 60_000,
   expect: { timeout: 15_000 },
+  // NOTE: `externalBaseURL` is declared above the config object; see its comment
+  // for why an external target skips the webServer entirely.
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:4321',
+    baseURL: externalBaseURL ?? 'http://localhost:4321',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -52,22 +69,28 @@ export default defineConfig({
   ],
   // webServer.cwd defaults to this config file's directory (apps/srd), so the
   // ssg/ scripts and dist/ resolve without a `cd`.
-  webServer: {
-    // REUSE an existing `dist` under CI, build only if there isn't one.
-    //
-    // This used to build unconditionally. The PR-blocking specs now run inside
-    // `build-srd`, which has already produced `dist` — so an unconditional
-    // build meant the app was built TWICE per PR, and the "folding e2e into the
-    // build job reuses the build" rationale was simply false. The nightly
-    // workflow runs `playwright test` with no build step of its own, so the
-    // fallback is load-bearing: keep both halves.
-    command: process.env.CI
-      ? '[ -d dist ] || bun ssg/build.ts; bun ssg/preview.ts --port 4321'
-      : 'bun run dev',
-    url: 'http://localhost:4321',
-    reuseExistingServer: !process.env.CI,
-    timeout: 240_000,
-    stdout: process.env.CI ? 'pipe' : 'ignore',
-    stderr: 'pipe',
-  },
+  //
+  // Skipped entirely when targeting an external deployed URL — there is nothing
+  // to boot, and leaving it would start a server the suite never visits and
+  // then block on its readiness URL. Mirrors `apps/itun`'s config exactly.
+  webServer: externalBaseURL
+    ? undefined
+    : {
+        // REUSE an existing `dist` under CI, build only if there isn't one.
+        //
+        // This used to build unconditionally. The PR-blocking specs now run
+        // inside `build-srd`, which has already produced `dist` — so an
+        // unconditional build meant the app was built TWICE per PR, and the
+        // "folding e2e into the build job reuses the build" rationale was simply
+        // false. The nightly workflow runs `playwright test` with no build step
+        // of its own, so the fallback is load-bearing: keep both halves.
+        command: process.env.CI
+          ? '[ -d dist ] || bun ssg/build.ts; bun ssg/preview.ts --port 4321'
+          : 'bun run dev',
+        url: 'http://localhost:4321',
+        reuseExistingServer: !process.env.CI,
+        timeout: 240_000,
+        stdout: process.env.CI ? 'pipe' : 'ignore',
+        stderr: 'pipe',
+      },
 })

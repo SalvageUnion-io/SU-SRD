@@ -122,7 +122,24 @@ function checkStatic(): void {
  * equality trains people to update the expectation without reading it.
  */
 function checkWorkflowBuildGuard(): void {
+  // Comments are stripped BEFORE any of these checks, and that is not tidiness.
+  // The first version of this function matched the raw file, so the workflow's
+  // own explanatory comment — "`convex deploy --cmd` pushes schema and
+  // functions…" — satisfied the `convex deploy` assertion all by itself.
+  // Deleting the actual command still passed.
+  //
+  // A guard that can be satisfied by prose about the guard is not a guard. This
+  // was caught by the test that deletes the command from the real workflow;
+  // without that test the weakness would have shipped looking green.
+  //
+  // Line-level stripping rather than a YAML parse: the checks below are all
+  // "does this token appear in something executable", and a full parse would be
+  // a second dependency for a tool that has to stay cheap enough to run on
+  // every PR.
   const yaml = readFileSync(CF_DEPLOY_WORKFLOW, 'utf8')
+    .split('\n')
+    .filter((line) => !/^\s*#/.test(line))
+    .join('\n')
 
   if (!yaml.includes('convex deploy')) {
     fail(

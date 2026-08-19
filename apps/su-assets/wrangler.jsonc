@@ -1,0 +1,32 @@
+{
+  // assets.salvageunion.io — entity artwork, served from R2 (ADR-033).
+  //
+  // Replaces the Netlify Function over a Blobs store. The URL grammar is
+  // unchanged, so `salvageunion-reference`'s ASSET_BASE_URL keeps pointing at
+  // the same hostname and neither app needs a code change: at cutover the
+  // hostname moves to this Worker and every derived artwork URL keeps resolving.
+  //
+  // No static assets directory. The Netlify site published `public/` (a
+  // robots.txt) alongside the function; here the Worker answers every path, and
+  // robots is served from the Worker rather than smuggled in as a second
+  // mechanism — one place decides what this origin returns.
+  "name": "su-assets",
+  "main": "src/worker.ts",
+
+  // Pinned to what this repo's wrangler (4.108) bundles as workerd, so
+  // `wrangler dev` runs locally. A newer date fails with "requires compatibility
+  // date X, but the newest date supported by this server binary is Y", which
+  // reads like a config error and is really version skew.
+  "compatibility_date": "2026-07-13",
+
+  "r2_buckets": [
+    {
+      "binding": "LP_ASSETS",
+      "bucket_name": "su-lp-assets"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

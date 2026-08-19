@@ -167,9 +167,89 @@ async function dispatch(
   return Promise.race([sink.first, finished])
 }
 
+/**
+ * Deploy verification: is this Worker actually able to act as the bot?
+ *
+ * Answers the question a deploy cannot answer by itself. The Worker can be
+ * deployed, bundle correctly, verify signatures and still be useless, because
+ * the one thing it needs at runtime — a working bot token — is set out of band
+ * and is invisible until Discord sends the first interaction. Waiting for that
+ * means discovering a bad token *at the flip*, which is the worst possible time
+ * given the cutover is atomic across every server.
+ *
+ * So this asks Discord directly: `GET /users/@me` with the token. A 200 means
+ * the token is live and names the bot it belongs to.
+ *
+ * Deliberately says nothing sensitive. On failure it reports Discord's status
+ * code and nothing else — never the token, never a fragment of it, never the
+ * response body, which can echo request details. The bot's username is public
+ * (it is visible in every server it is in), so returning it costs nothing and
+ * is what makes the check meaningful rather than a bare boolean.
+ *
+ * Unauthenticated on purpose: it reveals only public facts, and requiring a
+ * credential to check a credential is a loop that helps nobody at 3am.
+ */
+async function health(env: Env): Promise<Response> {
+  const configured = {
+    applicationId: Boolean(env.DISCORD_APPLICATION_ID),
+    publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
+    token: Boolean(env.DISCORD_TOKEN),
+    // Both or neither — either alone leaves the bot reporting itself
+    // unreachable rather than cleanly Solo.
+    itun: Boolean(env.ITUN_CONVEX_SITE_URL) && Boolean(env.ITUN_BOT_SECRET),
+  }
+
+  if (!configured.token) {
+    return Response.json(
+      { ok: false, reason: 'DISCORD_TOKEN is not set', configured },
+      { status: 503 }
+    )
+  }
+
+  let tokenValid = false
+  let botUser: string | null = null
+  let discordStatus: number | null = null
+
+  try {
+    const res = await fetch('https://discord.com/api/v10/users/@me', {
+      headers: { authorization: `Bot ${env.DISCORD_TOKEN}` },
+    })
+    discordStatus = res.status
+    if (res.ok) {
+      const body = (await res.json()) as { username?: string; id?: string }
+      tokenValid = true
+      botUser = body.username ?? null
+    }
+  } catch {
+    // Network failure reaching Discord is not a bad token; say so rather than
+    // implying the credential is wrong.
+    return Response.json(
+      { ok: false, reason: 'could not reach Discord', configured },
+      { status: 502 }
+    )
+  }
+
+  return Response.json(
+    {
+      ok: tokenValid,
+      // 401 here means the token is wrong or was reset. Anything else is
+      // Discord having a bad day.
+      discordStatus,
+      botUser,
+      configured,
+      mode: configured.itun ? 'connected' : 'solo',
+    },
+    { status: tokenValid ? 200 : 503 }
+  )
+}
+
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
+    if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
+      return health(env)
+    }
+
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 })
     }

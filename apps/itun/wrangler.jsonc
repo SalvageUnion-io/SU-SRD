@@ -1,0 +1,52 @@
+{
+  // intheunionnow.com — the ITUN SPA plus its snapshot API (ADR-033).
+  //
+  // Unlike srd, this one HAS a Worker: the snapshot API is method-conditioned
+  // routing, which Cloudflare cannot express declaratively, and `/assets/*`
+  // needs a decision that no static-asset mode makes correctly (see below).
+  "name": "su-itun",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-07-13",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+
+    // Every request reaches the Worker first. The alternative — letting static
+    // assets answer and running the Worker only on a miss — cannot express
+    // "/assets/* must 404 while /s/:id must serve the shell", because both are
+    // misses as far as the asset server is concerned.
+    "run_worker_first": true,
+
+    // "none", NOT "single-page-application".
+    //
+    // SPA mode answers 200 with index.html for EVERY miss, including a rotated
+    // hashed chunk. That is precisely the bug #759 fixed: the failed import
+    // rejected on MIME type and the `immutable` header pinned that HTML into the
+    // HTTP cache for a year under the chunk's URL. The Worker decides the
+    // fallback itself so `/assets/*` can 404 honestly while client-side routes
+    // still get the shell.
+    "not_found_handling": "none"
+  },
+
+  "r2_buckets": [
+    {
+      "binding": "SNAPSHOTS",
+      "bucket_name": "su-itun-snapshots"
+    }
+  ],
+
+  // Build-time env for the client bundle (VITE_CONVEX_URL, VITE_SENTRY_DSN,
+  // VITE_COMMIT_REF) is supplied by the GitHub Actions workflow, not here —
+  // ADR-033 §4 keeps builds in Actions because srd's build provisions Chromium.
+  //
+  // The snapshot rate limiter is deliberately NOT a module-scope counter (P3).
+  // Add Cloudflare's Rate Limiting binding here as RATE_LIMITER when it is
+  // provisioned; the Worker treats it as optional, so its absence means no
+  // limiting rather than a crash — the same protection the enforced 256 KB
+  // payload cap already provides.
+
+  "observability": {
+    "enabled": true
+  }
+}

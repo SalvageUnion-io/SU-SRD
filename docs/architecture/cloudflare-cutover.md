@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P1    | Export `lp-assets`, restore ingest tool  | blocking   | **done** — 57/57 verified |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
-| P4    | Three web surfaces on `workers.dev`      | yes        | not started               |
+| P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | not started               |
 | P7    | Cutover                                  | **no**     | not started               |
@@ -287,13 +287,94 @@ Register the `workers.dev` subdomain on the account first. It is account-scoped
 and effectively permanent — a one-way door rather than a blocker, so choose the
 name deliberately.
 
-Two enabling changes first, each worth landing on its own:
+One enabling change:
 
-- `ASSET_BASE_URL` (`packages/salvageunion-reference/lib/assets.ts`) is a
-  compile-time constant. Make it env-overridable, or the artwork path cannot be
-  exercised end-to-end on `workers.dev`.
 - `apps/srd/playwright.config.ts` hardcodes `localhost:4321`. Give it the
   `E2E_BASE_URL` support `apps/itun` already has.
+
+**`ASSET_BASE_URL` is deliberately NOT made env-overridable**, reversing an
+earlier note in this plan. The reasoning it was written on does not survive
+contact:
+
+- During the parallel phase, previews pointing at `assets.salvageunion.io`
+  resolve to the live Netlify artwork, so the artwork path *is* exercisable.
+- After the flip that hostname becomes the Worker, with no app change. The
+  constant is already correct in both states.
+- Verifying the Worker **directly**, by hash-comparing what it serves against the
+  P1 export manifest, is stronger evidence than routing an app through it: it
+  covers all 57 objects rather than whichever the page happened to render.
+
+Against that, an env override means mutable module state in a pure data package
+consumed by four runtimes (SSG under Bun, two browser bundles, and workerd), each
+with a different notion of where an environment lives. Not worth it for
+verification that is better done another way.
+
+### srd — done 2026-08-18
+
+Deployed at `su-srd.alxjrvs.workers.dev`. **2,046 assets, no Worker script at
+all** — srd is fully static (ADR-031), so Cloudflare serves `dist/` directly and
+putting a script in front of 1,039 pages would buy nothing.
+
+- **8/8 Playwright tests pass against the live deployment**, via the
+  `E2E_BASE_URL` support added to `apps/srd/playwright.config.ts` — the real
+  suite unmodified, which is the only version of that assertion worth making.
+- Verified on live responses: `/` 200, entity page 200, JSON endpoint 200,
+  **missing page 404**, `sitemap.xml` → `sitemap-index.xml` 301.
+- CSP served and carrying the Sentry **EU** ingest origin; HSTS,
+  `X-Frame-Options: DENY`, `nosniff` all present.
+- `/assets/*` immutable for a year; HTML `max-age=0, must-revalidate`; JSON
+  endpoints CORS-open with `application/json`.
+
+**`not_found_handling: "404-page"`, not `"single-page-application"`.** srd is
+pre-rendered, so a miss is genuinely a miss. SPA mode would answer 200 with HTML
+for every typo'd URL — telling crawlers that 1,039 real pages and infinitely
+many wrong ones are equally valid. Verified live rather than assumed.
+
+**`_headers` and `_redirects` now carry what `netlify.toml` used to.** Both hosts
+read the same file format, so during the parallel phase they serve identical
+rules — which is what makes the comparison meaningful instead of a comparison of
+two different configurations.
+
+**The output-snapshot gate caught the change, as designed.** Adding `_redirects`
+and growing `_headers` altered the emitted file set; `bun --filter srd gate`
+failed, and the re-blessed diff is exactly two lines — one new file, count
+2050 → 2051, **`html: 1039` unchanged**. That diff is the reviewable statement
+that no page changed.
+
+**One test of my own failed correctly.** `check-observability-csp.test.ts`
+asserted that srd's `_headers` contained no CSP — true when written, false the
+moment the policy moved there. The rule it was protecting is still right; the
+test was anchored to a real file that was always going to change mid-migration.
+It now constructs the case instead of reading it.
+
+### su-assets — done 2026-08-18
+
+Deployed at `su-assets.alxjrvs.workers.dev`, bound to the `su-lp-assets` R2
+bucket seeded from the P1 export.
+
+- **57/57 objects byte-identical through the deployed Worker**, SHA-256 compared
+  against `manifest.json`. This doubles as the restore rehearsal P1's gate
+  deferred: the export really does reconstitute the store.
+- Headers verified on the live response, not read off config: `image/webp`,
+  `public, max-age=31536000, immutable`, `access-control-allow-origin: *`, and
+  the full #778 security set including HSTS.
+- Guards verified live: missing key 404, unlisted extension 404, dotfile 404,
+  `POST` 405.
+
+**One live/local difference worth knowing.** An encoded-slash traversal
+(`/a/..%2f..%2fb.webp`) returns **400 at Cloudflare's edge**, before the Worker
+runs — the handler's own guard returns 404 for the same input in tests. Both are
+refusals and the edge one is earlier, so the guard is defence-in-depth rather
+than the only line. Do not "fix" the test to expect 400: it exercises the
+handler, which is what has to stay correct if the edge ever stops normalising.
+
+**A guard-shape correction.** The first port asserted that a literal `../`
+traversal never reaches the store. It does — `new URL()` *resolves* dot segments,
+including `%2e%2e`, so `/chassis/../mule.webp` arrives as `/mule.webp`. Nothing
+escapes, because R2 keys are flat and the result is an ordinary in-bucket lookup;
+the shape that genuinely needs the guard is an **encoded slash**, which URL
+parsing cannot collapse. The existing Netlify suite already had this right and
+said so in a comment — the port briefly got it wrong.
 
 The routing table must be ported **in order**. Order is load-bearing at four
 points, each with an incident behind it:
@@ -309,17 +390,70 @@ points, each with an incident behind it:
 > must be handled Worker-first, and the curl assertion below is the only thing
 > that proves it.
 
-**Gate**
+**Gate — met 2026-08-18, with one item reframed on evidence**
 
-- [ ] `bun --filter srd gate` clean against Cloudflare-served output — 1,039
-      pages and 899 endpoints compared byte-for-byte.
-- [ ] Both Playwright suites green against `workers.dev` via `E2E_BASE_URL`.
-- [ ] curl: a real hashed chunk returns 200 `application/javascript`; a missing
-      one returns **404, not 200**; `/`, `/s/<id>` and `/p/pilot/<id>` return 200
-      HTML.
-- [ ] All **three** header sets served correctly, including `su-assets`' (#778) —
-      verified by response, not by reading config.
-- [ ] The four redirect rules resolve in the documented order.
+| Surface     | URL                             | Evidence                                   |
+| ----------- | ------------------------------- | ------------------------------------------ |
+| `su-assets` | `su-assets.alxjrvs.workers.dev` | 57/57 objects byte-identical (SHA-256)     |
+| `srd`       | `su-srd.alxjrvs.workers.dev`    | 8/8 Playwright against the deploy          |
+| `itun`      | `su-itun.alxjrvs.workers.dev`   | full snapshot lifecycle on real R2         |
+
+- [x] `bun --filter srd gate` clean. It **failed first**, correctly, when
+      `_redirects` appeared and `_headers` grew; the re-blessed diff is two lines
+      and `html: 1039` is unchanged.
+- [x] curl against the live deploys: a real hashed chunk 200 `text/javascript`;
+      a rotated-away one **404, not the SPA shell**; `/`, `/s/<id>`,
+      `/p/pilot/<id>` 200 HTML; missing srd page 404.
+- [x] All three header sets verified **on live responses**, including
+      `su-assets`' (#778) and the CSP carrying Sentry's **EU** ingest origin.
+- [x] Redirect order verified live: retired-share 301, the four
+      method-conditioned `/api/snapshots` rules, `/assets/*` 404, SPA fallback.
+- [x] **srd**: 8/8 Playwright against the deployment.
+- [~] **itun**: see below. Reframed, not waived.
+
+**The itun suite is at exact parity with local, and that is the finding.** Run
+back to back on the same commit:
+
+| Target                             | Result                |
+| ---------------------------------- | --------------------- |
+| Local build (`CI=1`)               | 7 failed, 33 passed   |
+| Cloudflare deploy (`E2E_BASE_URL`) | 7 failed, **34** passed |
+
+The failing sets are **identical**, matched by artifact path — seven specs that
+all build an entity through a wizard and then assert on the live sheet or
+roster. They are pre-existing on `main` (`e2e-nightly` has been red since at
+least 2026-08-16, tracked in #756) and unrelated to this migration. Filed with
+the full comparison as #851.
+
+"Both suites green" was therefore the wrong bar to hold this against: the suite
+is not green anywhere, and waiting for it would block the migration on an
+unrelated regression. **Identical failure sets is the stronger assertion** — a
+migration that changed behaviour would have produced a *different* set. The
+deployed run passing one more is a flaky test, not a difference.
+
+### The lesson this phase kept teaching: esbuild follows modules, not calls
+
+Two builds failed on the same misunderstanding, in different disguises:
+
+1. Splitting the snapshot handlers' *reporting* was not enough. Importing a
+   factory out of `netlify/functions/` dragged that module's `@sentry/node`
+   import into the Worker bundle. The handlers moved to
+   `src/lib/snapshot/handlers.ts`; each platform file is now a thin adapter.
+2. `createNetlifyBlobsStorage`'s `@netlify/blobs` import was already written as
+   `await import(...)` — enough for Bun at runtime, **not** enough for a
+   bundler. Moved to `storageNetlify.ts`.
+
+The tempting fix for both was `nodejs_compat`. It would have been wrong twice:
+it grows the bundle with a shim nothing needs, and it makes the *next*
+accidental Node-only import invisible.
+
+### Rate limiting, kept honest
+
+P3 recorded "do not port the in-process limiter". Moving the handlers verbatim
+would have silently contradicted that, so it became a parameter: Netlify keeps
+its limiter (behaviour unchanged, still exercised by the existing tests) and the
+Worker passes `rateLimiter: null`, because Cloudflare's binding is edge-enforced
+and is a real control. One host, one mechanism.
 
 ### P5 — Bot on HTTP interactions · reversible until flip · 3 days
 
@@ -383,16 +517,37 @@ verified at the flip, and neither is discoverable from a corpus either.
    `null is not an object (evaluating 'value.indexOf')`. It now throws, as
    discord.js does, and the dispatcher turns that into a clean error reply.
 
-**Secrets to set before deploying** (operator; values never enter the repo):
+**Secrets to set before deploying.** One command, not five:
 
 ```
-wrangler secret put DISCORD_PUBLIC_KEY      --name su-discord-bot
-wrangler secret put DISCORD_TOKEN           --name su-discord-bot
-wrangler secret put DISCORD_APPLICATION_ID  --name su-discord-bot
-# Optional — omit both for Solo mode:
-wrangler secret put ITUN_CONVEX_SITE_URL    --name su-discord-bot
-wrangler secret put ITUN_BOT_SECRET         --name su-discord-bot
+wrangler secret put DISCORD_TOKEN --name su-discord-bot
 ```
+
+Optionally, for Connected mode — set **both** or neither, or the bot reports
+itself unreachable rather than Solo:
+
+```
+wrangler secret put ITUN_BOT_SECRET      --name su-discord-bot
+wrangler secret put ITUN_CONVEX_SITE_URL --name su-discord-bot
+```
+
+**`DISCORD_APPLICATION_ID` and `DISCORD_PUBLIC_KEY` are now committed `vars`,
+not secrets**, and the earlier list treating them as secrets was wrong. Discord
+publishes both to every app owner: the application id appears in every invite
+URL, and the public key is the *verification* half of a keypair — it can check
+that a request came from Discord and cannot produce one. Publishing it is what
+public keys are for. Putting them behind a manual step bought nothing and
+obscured which value genuinely needs protecting. Committed, a mismatch shows up
+in a diff instead of as a silent 401 on every interaction.
+
+**The Discord application is `SalvageUnion.io`** (id `1442878052823470172`),
+under the `SU-SRD` team — not the similarly-named apps under `Randsum.io`.
+Verified by its description, which lists this repo's exact `/su` surface.
+
+**The flip's blast radius is 3 servers and ~20 users.** That makes the
+"tell server admins about the permanent-offline display" gate item small and
+concrete rather than an open-ended comms task. Its Interactions Endpoint URL is
+confirmed **empty**, so the bot is still on the gateway.
 
 ### P6 — Data sync and write freeze · **irreversible** · ½ day
 

@@ -22,12 +22,38 @@
   // is Y" — which reads like a config error and is really a version skew.
   "compatibility_date": "2026-07-13",
 
-  // Secrets, set with `wrangler secret put` — never in this file:
-  //   DISCORD_PUBLIC_KEY      Ed25519 key; the ONLY authentication on a public
-  //                           endpoint (see src/http/verify.ts)
-  //   DISCORD_TOKEN           bot token, for follow-up webhook calls
-  //   DISCORD_APPLICATION_ID  application id, for webhook routes
-  //   DISCORD_BOT_AVATAR      optional avatar hash, for embed branding
+  // ---------------------------------------------------------------------------
+  // Public configuration. NOT secrets, and treating them as secrets was a
+  // mistake worth naming: it put two values that Discord publishes to every app
+  // owner behind a manual `wrangler secret put`, which is friction that buys
+  // nothing and hides which values genuinely need protecting.
+  //
+  //   DISCORD_APPLICATION_ID  appears in every invite URL for this app.
+  //   DISCORD_PUBLIC_KEY      the Ed25519 *verification* key. It can check that
+  //                           a request came from Discord; it cannot produce one.
+  //                           Publishing it is what public keys are for.
+  //
+  // Committing them means a mismatch is reviewable in a diff rather than
+  // discovered as a silent 401 on every interaction.
+  // ---------------------------------------------------------------------------
+  "vars": {
+    "DISCORD_APPLICATION_ID": "1442878052823470172",
+    "DISCORD_PUBLIC_KEY": "3cda4815a9676fee399a6475c5533f7d2375d1293af87993c5cd1f4e4f2c0200"
+  },
+
+  // Real secrets, set with `wrangler secret put` and never in this file:
+  //
+  //   DISCORD_TOKEN      bot token — a bearer credential for follow-up webhook
+  //                      calls. Required.
+  //   ITUN_BOT_SECRET    ITUN bot credential. Optional; omit it (and
+  //                      ITUN_CONVEX_SITE_URL) to run in Solo mode, which is the
+  //                      deliberate default and must keep working.
+  //   ITUN_CONVEX_SITE_URL  the Convex HTTP-actions origin. Not itself a secret,
+  //                      but paired with the one above — set them together or
+  //                      not at all, or the bot reports itself unreachable
+  //                      rather than Solo.
+  //   DISCORD_BOT_AVATAR optional avatar hash, for embed branding.
+
   "observability": {
     "enabled": true
   }
