@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P1    | Export `lp-assets`, restore ingest tool  | blocking   | **done** — 57/57 verified |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
-| P4    | Three web surfaces on `workers.dev`      | yes        | not started               |
+| P4    | Three web surfaces on `workers.dev`      | yes        | **1 of 3** — su-assets up |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | not started               |
 | P7    | Cutover                                  | **no**     | not started               |
@@ -287,13 +287,56 @@ Register the `workers.dev` subdomain on the account first. It is account-scoped
 and effectively permanent — a one-way door rather than a blocker, so choose the
 name deliberately.
 
-Two enabling changes first, each worth landing on its own:
+One enabling change:
 
-- `ASSET_BASE_URL` (`packages/salvageunion-reference/lib/assets.ts`) is a
-  compile-time constant. Make it env-overridable, or the artwork path cannot be
-  exercised end-to-end on `workers.dev`.
 - `apps/srd/playwright.config.ts` hardcodes `localhost:4321`. Give it the
   `E2E_BASE_URL` support `apps/itun` already has.
+
+**`ASSET_BASE_URL` is deliberately NOT made env-overridable**, reversing an
+earlier note in this plan. The reasoning it was written on does not survive
+contact:
+
+- During the parallel phase, previews pointing at `assets.salvageunion.io`
+  resolve to the live Netlify artwork, so the artwork path *is* exercisable.
+- After the flip that hostname becomes the Worker, with no app change. The
+  constant is already correct in both states.
+- Verifying the Worker **directly**, by hash-comparing what it serves against the
+  P1 export manifest, is stronger evidence than routing an app through it: it
+  covers all 57 objects rather than whichever the page happened to render.
+
+Against that, an env override means mutable module state in a pure data package
+consumed by four runtimes (SSG under Bun, two browser bundles, and workerd), each
+with a different notion of where an environment lives. Not worth it for
+verification that is better done another way.
+
+### su-assets — done 2026-08-18
+
+Deployed at `su-assets.alxjrvs.workers.dev`, bound to the `su-lp-assets` R2
+bucket seeded from the P1 export.
+
+- **57/57 objects byte-identical through the deployed Worker**, SHA-256 compared
+  against `manifest.json`. This doubles as the restore rehearsal P1's gate
+  deferred: the export really does reconstitute the store.
+- Headers verified on the live response, not read off config: `image/webp`,
+  `public, max-age=31536000, immutable`, `access-control-allow-origin: *`, and
+  the full #778 security set including HSTS.
+- Guards verified live: missing key 404, unlisted extension 404, dotfile 404,
+  `POST` 405.
+
+**One live/local difference worth knowing.** An encoded-slash traversal
+(`/a/..%2f..%2fb.webp`) returns **400 at Cloudflare's edge**, before the Worker
+runs — the handler's own guard returns 404 for the same input in tests. Both are
+refusals and the edge one is earlier, so the guard is defence-in-depth rather
+than the only line. Do not "fix" the test to expect 400: it exercises the
+handler, which is what has to stay correct if the edge ever stops normalising.
+
+**A guard-shape correction.** The first port asserted that a literal `../`
+traversal never reaches the store. It does — `new URL()` *resolves* dot segments,
+including `%2e%2e`, so `/chassis/../mule.webp` arrives as `/mule.webp`. Nothing
+escapes, because R2 keys are flat and the result is an ordinary in-bucket lookup;
+the shape that genuinely needs the guard is an **encoded slash**, which URL
+parsing cannot collapse. The existing Netlify suite already had this right and
+said so in a comment — the port briefly got it wrong.
 
 The routing table must be ported **in order**. Order is load-bearing at four
 points, each with an incident behind it:

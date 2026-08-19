@@ -1,0 +1,154 @@
+/**
+ * Serves Salvage Union entity artwork from R2 (ADR-033).
+ *
+ * The Cloudflare port of `netlify/functions/asset.ts`. Same URL grammar, same
+ * content-type inference, same reporting policy — only the store changes:
+ *
+ *   https://assets.salvageunion.io/<category>/<file>  ->  R2 key <category>/<file>
+ *
+ * The bytes are licensed from Leyline Press ("used with special permission …
+ * do not redistribute") and live only in object storage, never in git.
+ *
+ * ## Why the handler is a factory
+ *
+ * Identical reasoning to the Netlify version it replaces: injecting the bucket
+ * lets the tests drive every branch without a live R2 binding, and injecting the
+ * reporter lets them assert *which* outcomes are reported and which deliberately
+ * are not. Both are the dependency-injection seam this repo uses instead of
+ * `mock.module()`, which is process-global in Bun.
+ *
+ * ## What is reported, and what is not
+ *
+ * A 404 is not an error. This Worker answers every path on a public,
+ * crawler-visible host, so alerting on unknown keys, traversal attempts and
+ * unsupported extensions would turn the Sentry project into a scanner log. What
+ * IS reported is the store failing to answer at all — the failure mode that
+ * silently breaks entity artwork in both srd and itun at once.
+ */
+
+/** The slice of an R2 bucket binding this Worker uses. */
+export type AssetBucket = {
+  get(key: string): Promise<{ body: ReadableStream | null } | null>
+}
+
+export type AssetFailureReporter = (error: unknown, context?: Record<string, unknown>) => void
+
+const CONTENT_TYPES: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  avif: 'image/avif',
+  svg: 'image/svg+xml',
+}
+
+/**
+ * Headers every response carries.
+ *
+ * `Access-Control-Allow-Origin: *` is required, not decorative: this host is
+ * addressed cross-origin from both salvageunion.io and intheunionnow.com.
+ *
+ * The security headers match what the other two sites send (#778) — deliberately
+ * including HSTS and X-Frame-Options. Being a pure CDN is not a reason to skip
+ * them: HSTS still matters on a host served over TLS, and an image origin is a
+ * fine thing to frame for a clickjacking overlay.
+ *
+ * No Content-Security-Policy: this origin serves image bytes and short error
+ * strings, never HTML or script, so a CSP would govern nothing. That is also why
+ * the Sentry `connect-src` clause the other two sites carry has no counterpart
+ * here.
+ */
+const COMMON_HEADERS: Record<string, string> = {
+  'access-control-allow-origin': '*',
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'geolocation=(), microphone=(), camera=()',
+  'strict-transport-security': 'max-age=63072000; includeSubDomains; preload',
+  'x-dns-prefetch-control': 'on',
+}
+
+function plain(body: string, status: number): Response {
+  return new Response(body, { status, headers: COMMON_HEADERS })
+}
+
+export function makeAssetHandler(
+  openBucket: () => AssetBucket,
+  report: AssetFailureReporter = () => {}
+) {
+  return async (req: Request): Promise<Response> => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      return plain('Method not allowed', 405)
+    }
+
+    const { pathname } = new URL(req.url)
+    const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
+
+    // Reject empty keys, path traversal, and dotfiles. R2 keys are flat strings
+    // so `..` has no traversal meaning to the store itself — but the check stays
+    // because the URL grammar is shared with the Netlify version and a request
+    // shaped like an escape attempt should never look like a hit.
+    if (!key || key.includes('..') || key.startsWith('.')) {
+      return plain('Not found', 404)
+    }
+
+    const ext = key.split('.').pop()?.toLowerCase() ?? ''
+    const contentType = CONTENT_TYPES[ext]
+    if (!contentType) {
+      return plain('Unsupported asset type', 404)
+    }
+
+    let object: { body: ReadableStream | null } | null
+    try {
+      object = await openBucket().get(key)
+    } catch (error) {
+      // A bucket that cannot answer breaks artwork for every visitor at once, so
+      // it surfaces as a controlled 503 with an event rather than an unhandled
+      // 500 nobody sees.
+      report(error, { fn: 'asset', op: 'r2.get', key })
+      return plain('Asset storage unavailable', 503)
+    }
+
+    if (!object || !object.body) {
+      return plain('Not found', 404)
+    }
+
+    return new Response(object.body, {
+      status: 200,
+      headers: {
+        ...COMMON_HEADERS,
+        'content-type': contentType,
+        // Artwork is addressed by name and never mutated in place — a new image
+        // gets a new name — so an immutable year is safe and keeps this Worker
+        // off the request path for repeat views.
+        'cache-control': 'public, max-age=31536000, immutable',
+      },
+    })
+  }
+}
+
+export type Env = {
+  LP_ASSETS: AssetBucket
+}
+
+/** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const handler = makeAssetHandler(
+      () => env.LP_ASSETS,
+      (error, context) => {
+        console.error('[su-assets]', error, context ?? {})
+      }
+    )
+    try {
+      return await handler(request)
+    } catch (error) {
+      // Nothing above should reach here — the store call has its own catch — so
+      // anything that does is a bug in this Worker rather than a storage
+      // outage, and is worth logging precisely because it was never anticipated.
+      console.error('[su-assets] unhandled', error)
+      return plain('Internal Server Error', 500)
+    }
+  },
+}

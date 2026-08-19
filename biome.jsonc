@@ -355,9 +355,10 @@
         "apps/itun/src/routes/**",
         "apps/*/netlify/functions/**",
         // workerd reads `export default { fetch }` — the module IS the contract,
-        // exactly as a Netlify handler is. Scoped to `http/worker.ts` rather than
-        // all of `src/`, so an ordinary module in the same app cannot quietly
-        // acquire a default export under this exemption.
+        // exactly as a Netlify handler is. Both entry locations are named
+        // explicitly rather than globbing `src/**`, so an ordinary module in the
+        // same app cannot quietly acquire a default export under this exemption.
+        "apps/*/src/worker.ts",
         "apps/*/src/http/worker.ts",
         "apps/itun/convex/http.ts",
         "apps/itun/convex/schema.ts",
