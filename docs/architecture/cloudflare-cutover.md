@@ -41,9 +41,17 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
-| P6    | Data sync and write freeze               | **no**     | not started               |
-| P7    | Cutover                                  | **no**     | not started               |
+| P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
+| P7    | Cutover                                  | **no**     | **staged** — both zones created and answering; custom domains declared; nameservers NOT flipped |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
+
+**"Built" is not "activated", and for P6 the difference is the whole point.**
+The write freeze ships as code that is **off** (`SNAPSHOT_WRITES_FROZEN` unset),
+because turning it on stops sharing for real users. Activating it is a P7 step at
+−1 h, not something a merge should ever do. The same applies to P7's staging: the
+zones exist and answer on their assigned nameservers, but the live delegation
+still points at Netlify, so **nothing customer-facing has moved.** The single
+irreversible act is the nameserver flip, and it has not happened.
 
 **Account:** everything runs on the existing `alxjrvs@gmail.com` account
 (ADR-033 §6). A dedicated account was considered and declined; the residue is a
