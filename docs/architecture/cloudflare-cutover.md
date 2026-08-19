@@ -426,16 +426,37 @@ verified at the flip, and neither is discoverable from a corpus either.
    `null is not an object (evaluating 'value.indexOf')`. It now throws, as
    discord.js does, and the dispatcher turns that into a clean error reply.
 
-**Secrets to set before deploying** (operator; values never enter the repo):
+**Secrets to set before deploying.** One command, not five:
 
 ```
-wrangler secret put DISCORD_PUBLIC_KEY      --name su-discord-bot
-wrangler secret put DISCORD_TOKEN           --name su-discord-bot
-wrangler secret put DISCORD_APPLICATION_ID  --name su-discord-bot
-# Optional — omit both for Solo mode:
-wrangler secret put ITUN_CONVEX_SITE_URL    --name su-discord-bot
-wrangler secret put ITUN_BOT_SECRET         --name su-discord-bot
+wrangler secret put DISCORD_TOKEN --name su-discord-bot
 ```
+
+Optionally, for Connected mode — set **both** or neither, or the bot reports
+itself unreachable rather than Solo:
+
+```
+wrangler secret put ITUN_BOT_SECRET      --name su-discord-bot
+wrangler secret put ITUN_CONVEX_SITE_URL --name su-discord-bot
+```
+
+**`DISCORD_APPLICATION_ID` and `DISCORD_PUBLIC_KEY` are now committed `vars`,
+not secrets**, and the earlier list treating them as secrets was wrong. Discord
+publishes both to every app owner: the application id appears in every invite
+URL, and the public key is the *verification* half of a keypair — it can check
+that a request came from Discord and cannot produce one. Publishing it is what
+public keys are for. Putting them behind a manual step bought nothing and
+obscured which value genuinely needs protecting. Committed, a mismatch shows up
+in a diff instead of as a silent 401 on every interaction.
+
+**The Discord application is `SalvageUnion.io`** (id `1442878052823470172`),
+under the `SU-SRD` team — not the similarly-named apps under `Randsum.io`.
+Verified by its description, which lists this repo's exact `/su` surface.
+
+**The flip's blast radius is 3 servers and ~20 users.** That makes the
+"tell server admins about the permanent-offline display" gate item small and
+concrete rather than an open-ended comms task. Its Interactions Endpoint URL is
+confirmed **empty**, so the bot is still on the gateway.
 
 ### P6 — Data sync and write freeze · **irreversible** · ½ day
 
