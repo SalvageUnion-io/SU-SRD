@@ -355,10 +355,13 @@
         "apps/itun/src/routes/**",
         "apps/*/netlify/functions/**",
         // workerd reads `export default { fetch }` — the module IS the contract,
-        // exactly as a Netlify handler is. Both entry locations are named
+        // exactly as a Netlify handler is. Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
         // same app cannot quietly acquire a default export under this exemption.
+        // These three are the `main` of the three wrangler configs; a fourth
+        // Worker adds a fourth line here, deliberately.
         "apps/*/src/worker.ts",
+        "apps/*/src/worker/index.ts",
         "apps/*/src/http/worker.ts",
         "apps/itun/convex/http.ts",
         "apps/itun/convex/schema.ts",

@@ -59,6 +59,12 @@
       "entry": [
         "src/routes/**/*.tsx",
         "netlify/functions/**/*.ts",
+        // The Cloudflare Worker entry (ADR-033). workerd loads the module and
+        // calls its default export, so nothing in this repo imports it. Listed
+        // for the same reason the Netlify handlers are: without it, the file
+        // stays alive only because a test imports it, and deleting that test
+        // would make the deployed Worker look like dead code.
+        "src/worker/index.ts",
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
