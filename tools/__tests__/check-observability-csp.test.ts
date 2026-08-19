@@ -132,12 +132,26 @@ describe('check-observability CSP source resolution', () => {
     })
   })
 
-  test('a present _headers file with no CSP is not itself a failure', async () => {
-    // srd ships exactly this today: CORS for the JSON endpoints, no policy.
-    const headers = readFileSync(join(ROOT, 'apps/srd/public/_headers'), 'utf-8')
-    expect(headers).not.toContain('Content-Security-Policy')
-    const { exitCode } = await runCheck()
-    expect(exitCode).toBe(0)
+  test('a present source with no CSP is not itself a failure', async () => {
+    // The rule is "at least one source declares a policy", not "every source
+    // does" — a `_headers` file may legitimately exist for other reasons (srd's
+    // carried only CORS for the JSON endpoints before the Cloudflare cutover
+    // moved the CSP into it).
+    //
+    // Constructed rather than read off the real file. The original version of
+    // this test asserted that srd's `_headers` contained no CSP, which was true
+    // when written and became false the moment ADR-033 moved the policy there —
+    // so it was testing a passing fact about a file in flight, not the rule. It
+    // failed for the right reason and is now written so it cannot.
+    await withFileContents(
+      'apps/srd/public/_headers',
+      (s) => s.replace(/^\s*Content-Security-Policy:.*$/m, '  X-Retired-Policy: none'),
+      async () => {
+        const { exitCode } = await runCheck()
+        // srd's netlify.toml still declares one, so the app is covered.
+        expect(exitCode).toBe(0)
+      }
+    )
   })
 })
 

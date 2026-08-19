@@ -1,3 +1,63 @@
+# Response headers for salvageunion.io.
+#
+# Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
+# Assets (ADR-033). Netlify reads the same file format, so during the cutover
+# BOTH hosts serve these — which is what makes the parallel phase meaningful
+# rather than a comparison of two different configurations.
+#
+# The CSP moved here from `netlify.toml`. `tools/check-observability.ts` reads
+# whichever source exists and holds every one that declares a policy to the same
+# rule, so this file and the toml cannot drift apart silently while both are
+# live.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-DNS-Prefetch-Control: on
+  # connect-src MUST list Sentry's ingest origin or the browser blocks every
+  # event before it leaves the page — a DSN alone is not enough, and that
+  # failure is silent AND looks healthy (zero errors reported).
+  #
+  # `de`, not `us`: this org is in Sentry's EU data region. A DSN issued in one
+  # region under a CSP written for the other is blocked in the browser and the
+  # project reports nothing — indistinguishable, from outside, from "no errors".
+  #
+  # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
+  # which fails CI if this drifts. Wildcarded subdomain because the host encodes
+  # the Sentry org id.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io;
+
+# Content-hashed bundle output. `/assets/*`, not the old `/_astro/*`: the
+# in-house SSG emits through Vite's default assetsDir. If ssg/vite.config.ts
+# ever sets a different build.assetsDir, change this with it.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Artwork and icons are content-addressed by name and never mutated in place.
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML is the one thing that must never be cached: a deploy rotates the hashed
+# chunk names, and a stale document names chunks that no longer exist.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The JSON endpoints are a public, CORS-readable API surface (899 of them).
 /schema/*.json
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET

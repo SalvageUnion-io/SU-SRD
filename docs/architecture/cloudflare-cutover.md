@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P1    | Export `lp-assets`, restore ingest tool  | blocking   | **done** — 57/57 verified |
 | P2    | Measure the bot on real workerd          | throwaway  | **passed** — see Appendix |
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
-| P4    | Three web surfaces on `workers.dev`      | yes        | **1 of 3** — su-assets up |
+| P4    | Three web surfaces on `workers.dev`      | yes        | **2 of 3** — itun left    |
 | P5    | Bot on HTTP interactions                 | until flip | **built** — harness green |
 | P6    | Data sync and write freeze               | **no**     | not started               |
 | P7    | Cutover                                  | **no**     | not started               |
@@ -308,6 +308,44 @@ Against that, an env override means mutable module state in a pure data package
 consumed by four runtimes (SSG under Bun, two browser bundles, and workerd), each
 with a different notion of where an environment lives. Not worth it for
 verification that is better done another way.
+
+### srd — done 2026-08-18
+
+Deployed at `su-srd.alxjrvs.workers.dev`. **2,046 assets, no Worker script at
+all** — srd is fully static (ADR-031), so Cloudflare serves `dist/` directly and
+putting a script in front of 1,039 pages would buy nothing.
+
+- **8/8 Playwright tests pass against the live deployment**, via the
+  `E2E_BASE_URL` support added to `apps/srd/playwright.config.ts` — the real
+  suite unmodified, which is the only version of that assertion worth making.
+- Verified on live responses: `/` 200, entity page 200, JSON endpoint 200,
+  **missing page 404**, `sitemap.xml` → `sitemap-index.xml` 301.
+- CSP served and carrying the Sentry **EU** ingest origin; HSTS,
+  `X-Frame-Options: DENY`, `nosniff` all present.
+- `/assets/*` immutable for a year; HTML `max-age=0, must-revalidate`; JSON
+  endpoints CORS-open with `application/json`.
+
+**`not_found_handling: "404-page"`, not `"single-page-application"`.** srd is
+pre-rendered, so a miss is genuinely a miss. SPA mode would answer 200 with HTML
+for every typo'd URL — telling crawlers that 1,039 real pages and infinitely
+many wrong ones are equally valid. Verified live rather than assumed.
+
+**`_headers` and `_redirects` now carry what `netlify.toml` used to.** Both hosts
+read the same file format, so during the parallel phase they serve identical
+rules — which is what makes the comparison meaningful instead of a comparison of
+two different configurations.
+
+**The output-snapshot gate caught the change, as designed.** Adding `_redirects`
+and growing `_headers` altered the emitted file set; `bun --filter srd gate`
+failed, and the re-blessed diff is exactly two lines — one new file, count
+2050 → 2051, **`html: 1039` unchanged**. That diff is the reviewable statement
+that no page changed.
+
+**One test of my own failed correctly.** `check-observability-csp.test.ts`
+asserted that srd's `_headers` contained no CSP — true when written, false the
+moment the policy moved there. The rule it was protecting is still right; the
+test was anchored to a real file that was always going to change mid-migration.
+It now constructs the case instead of reading it.
 
 ### su-assets — done 2026-08-18
 

@@ -1,0 +1,10 @@
+# Redirects for salvageunion.io.
+#
+# Copied into `dist/` by Vite's publicDir and read by Workers Static Assets
+# (ADR-033). Netlify reads the same format, so both hosts serve these during the
+# parallel phase.
+#
+# One rule, and it is not cosmetic: the build emits `sitemap-index.xml`, while
+# every crawler and every human types `sitemap.xml`. A 301 is correct here —
+# the canonical name really is the index, and the redirect is permanent.
+/sitemap.xml  /sitemap-index.xml  301
