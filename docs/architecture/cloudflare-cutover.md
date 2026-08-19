@@ -986,6 +986,53 @@ The rules are live now but cannot fire yet, because no `www` record exists and
 the zones are not authoritative. That is the intended order: the rule waits for
 the hostname rather than the hostname waiting for the rule.
 
+#### Pre-flight for the remaining flip — both surfaces compared against live
+
+Done 2026-08-19, while `salvageunion.io` was blocked on the registrar transfer.
+Neither check needed the domain, and both are the sort of thing that is much
+cheaper to learn now than during a flip.
+
+**`assets` — every object, byte for byte.** The migration verified that 57/57
+objects were *copied* into R2; that is not the same claim as the Worker
+*serving* them. Fetching all 57 from the live Netlify site and from the Worker
+and comparing SHA-256:
+
+```
+identical: 57   differ: 0   missing: 0   of 57
+```
+
+**`srd` — a route sample, compared on shape rather than bytes.** Byte-equality
+would be the wrong test: the two builds are different commits with different
+`PUBLIC_COMMIT_REF` values, so identical HTML would be a coincidence, not a
+pass. Status code and `<title>` matched on every sampled route, including the
+404 path and `llms.txt`.
+
+**One real difference, and it is being accepted deliberately: trailing-slash
+redirects are `301` on Netlify and `307` on the Worker.** Both send `/about` →
+`/about/` and both end at 200, so nothing breaks — but 301 is *permanent* and
+307 is *temporary*, and for a site whose entire purpose is being indexed that
+distinction is not cosmetic: a 301 consolidates ranking signals onto the
+canonical URL, a 307 asks crawlers to keep the old one.
+
+It is **not configurable**. `html_handling` decides *whether* to redirect
+(`auto-trailing-slash`, `force-trailing-slash`, `drop-trailing-slash`, `none`);
+the status code is the platform's.
+
+Accepted rather than worked around, because the exposure is nearly nil and the
+workaround is worse than the problem:
+
+- the **sitemap** lists slashed URLs — the primary discovery path;
+- every **canonical** tag declares the slashed URL, identically on both origins
+  (and correctly names `salvageunion.io`, not the `workers.dev` host, because the
+  production origin is baked at build time);
+- every **internal link** on the site already uses the slashed form.
+
+So the 307 fires only for an externally-typed or externally-linked unslashed
+URL. The alternative — a zone Redirect Rule emitting 301 — would duplicate the
+Worker's own trailing-slash logic and has to be written carefully enough not to
+loop or to catch files with extensions. **Do not add one to chase a status
+code.** If it ever matters, measure it in Search Console first.
+
 #### Runbook
 
 | When  | Step                                                                                                                                                                         |
