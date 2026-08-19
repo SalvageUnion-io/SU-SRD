@@ -614,9 +614,25 @@ configuration — demonstrated twice while staging the zones:
   `www`** — two hostnames with identical configuration, different answers, one
   scan.
 
-Copying either pair would pin production to one region for no benefit. The
-scanned records are left in place, **DNS-only**, purely as inert placeholders;
-the Worker custom domains replace them.
+Copying either pair would pin production to one region for no benefit.
+
+**The scanned records must be DELETED, not left as placeholders — and this
+corrects an earlier instruction here that said the opposite.** Leaving them
+looked harmless, since a non-authoritative zone serves nothing. It is not: a
+Worker custom domain creates its own DNS record, and Cloudflare will not write
+one over an existing record for the same name. The first deploy carrying a
+route failed with
+
+```
+PUT .../workers/scripts/su-assets/domains/records
+-- CF API RESPONSE: Conflict 409
+```
+
+which wrangler surfaces only as *"A request to the Cloudflare API … failed"*.
+Deleting the six records and redeploying attached the domain immediately, so the
+409 was the conflicting placeholder and **not** the zone being pending — a
+pending zone accepts custom domains perfectly well. Both zones now hold zero
+records; wrangler writes the real ones.
 
 #### Propagation is ~1 hour, not 24–48
 
@@ -626,6 +642,20 @@ is why the old "−48 h: reduce TTLs to 300 s" step is gone: lowering a record T
 inside the zone does not touch the delegation, and the synthesized A answers
 already carry a 120 s TTL, which is *below* the 300 s that step aimed for. It
 would have bought nothing and cost two days.
+
+#### `routes` silently disables `workers.dev` — the gate's own blind spot
+
+Declaring `routes` makes wrangler turn off the workers.dev subdomain unless
+`"workers_dev": true` is set explicitly. Measured on `su-assets`: the first
+deploy carrying a route reported **"No targets deployed"**, and
+`su-assets.alxjrvs.workers.dev` began answering Cloudflare's own 404 instead of
+the Worker.
+
+That would have been quiet and expensive. Every one of the five post-deploy
+smoke tests in `deploy-cloudflare.yml` curls a workers.dev URL, and before the
+flip there is **no other way to reach these Workers at all** — so the change
+that removes the verification surface is the same change that needs verifying.
+All three web configs now set `workers_dev: true`.
 
 #### `www` must redirect, and `_redirects` cannot do it
 

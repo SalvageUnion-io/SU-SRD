@@ -39,6 +39,17 @@
     { "pattern": "www.salvageunion.io", "custom_domain": true }
   ],
 
+  // Load-bearing, and NOT a default: declaring `routes` makes wrangler disable
+  // workers.dev unless it is asked for explicitly. Measured on su-assets — the
+  // first deploy carrying a route reported "No targets deployed" and its
+  // workers.dev URL began answering Cloudflare's own 404 instead of the Worker.
+  //
+  // That URL is the only way to reach these Workers before the nameserver flip,
+  // and all five smoke tests in deploy-cloudflare.yml curl one. Losing it
+  // silently would have made the post-deploy gate pass by absence at exactly
+  // the moment it matters most.
+  "workers_dev": true,
+
   "assets": {
     "directory": "./dist",
 

@@ -17,6 +17,18 @@
   // both apps already points at this name. Flipping salvageunion.io moves the
   // reference site and its artwork host together — they cannot be staged apart.
   "routes": [{ "pattern": "assets.salvageunion.io", "custom_domain": true }],
+
+  // Load-bearing, and NOT a default. Declaring `routes` makes wrangler disable
+  // workers.dev unless it is asked for explicitly — measured: the first deploy
+  // with a route reported "No targets deployed" and
+  // su-assets.alxjrvs.workers.dev started answering Cloudflare's own 404
+  // instead of this Worker.
+  //
+  // That URL is the only way to reach any of these Workers before the
+  // nameserver flip, and every smoke test in deploy-cloudflare.yml curls one.
+  // Losing it silently would have turned the whole post-deploy gate green-by-
+  // absence at exactly the moment it matters most.
+  "workers_dev": true,
   "main": "src/worker.ts",
 
   // Pinned to what this repo's wrangler (4.108) bundles as workerd, so
