@@ -583,6 +583,41 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 
 ### P7 — Cutover · **irreversible** · ~1 hour
 
+> **BLOCKED ON ONE OPERATOR ACTION: the nameserver change at each registrar.**
+>
+> Everything else in this phase is done. Both registrars require an interactive
+> login, and an agent cannot authenticate — so the flip is where the automation
+> genuinely ends, not where it was told to stop.
+>
+> | Domain              | Log in to                     | Replace `dns{1..4}.pNN.nsone.net` with       |
+> | ------------------- | ----------------------------- | -------------------------------------------- |
+> | `salvageunion.io`   | **Name.com**                  | `davina.ns.cloudflare.com`, `rajeev.ns.cloudflare.com` |
+> | `intheunionnow.com` | **Tucows** (via its reseller) | the same two                                  |
+>
+> **Do `salvageunion.io` first, alone.** It carries `srd` and `assets`, both of
+> which are read-only, so it needs no write freeze and is the safe rehearsal for
+> the second. Verify it before touching `intheunionnow.com`.
+>
+> **The snapshot write freeze is deliberately still OFF.** It only protects the
+> `itun` flip, and freezing it while the flip cannot proceed would pause sharing
+> for real users in exchange for nothing. Turn it on immediately *before* the
+> second flip, not now:
+>
+> ```sh
+> netlify env:set SNAPSHOT_WRITES_FROZEN 1 --site 801d6f8d-1ad4-42c1-a29d-126b2d69ee69
+> # redeploy so the Functions pick it up, then CONFIRM it took:
+> curl -o /dev/null -w '%{http_code}\n' -X HEAD https://intheunionnow.com/api/snapshots
+> #   503 = frozen (proceed)      405 = NOT frozen (stop; the flag did not take)
+> NETLIFY_SITE_ID=801d6f8d-1ad4-42c1-a29d-126b2d69ee69 bun tools/sync-snapshots-to-r2.ts
+> #   must report "reconciled to zero" — anything else means a write landed after the freeze
+> ```
+>
+> **Leave the freeze on until decommission** — this corrects the "+1 h lift the
+> freeze" row below. Lifting it would let a stale resolver still pointing at
+> Netlify write a snapshot into Blobs that R2 never receives, which is the exact
+> loss the freeze exists to prevent. Nothing reaches Netlify once propagation
+> finishes, so there is nothing to gain by unfreezing and one way to lose.
+
 Both zones are **staged and answering** on their assigned nameservers while the
 live delegation still points at Netlify, so everything below has already been
 rehearsed against the real Cloudflare zones at zero customer risk.
@@ -760,7 +795,7 @@ the hostname rather than the hostname waiting for the rule.
 | 0     | Flip nameservers on `salvageunion.io`. This moves `srd` and `assets.salvageunion.io` **together**, because `ASSET_BASE_URL` is compile-time.                                    |
 | +15 m | Verify from multiple resolvers. Re-run the P4 curl assertions against real hostnames, including the rotated-chunk 404. **Confirm `www.salvageunion.io` 301s to the apex** — if it serves a 200, the Redirect Rule did not take. |
 | +30 m | Flip nameservers on `intheunionnow.com`. Re-run the itun Playwright suite against production.                                                                                   |
-| +1 h  | Lift the snapshot write freeze once both origins resolve to Cloudflare.                                                                                                        |
+| +1 h  | ~~Lift the snapshot write freeze.~~ **Do not** — leave it on until decommission. Unfreezing lets a stale resolver still pointing at Netlify write a snapshot into Blobs that R2 never receives, which is the loss the freeze exists to prevent. Once propagation finishes nothing reaches Netlify anyway, so there is nothing to gain and one way to lose. |
 | +2 h  | Set the Discord Interactions Endpoint URL. Verify PING/PONG, then one command of each shape in a real server.                                                                   |
 
 **Leave the Netlify sites serving until propagation completes.** DNS propagation
