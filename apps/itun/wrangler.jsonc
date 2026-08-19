@@ -5,6 +5,15 @@
   // routing, which Cloudflare cannot express declaratively, and `/assets/*`
   // needs a decision that no static-asset mode makes correctly (see below).
   "name": "su-itun",
+
+  // Custom domains. `www` is attached for the same reason as srd's: a hostname
+  // must be proxied before a zone-level Redirect Rule can act on it, and the
+  // rule runs ahead of Workers so this script never sees a www request. See
+  // srd/wrangler.jsonc for why the redirect cannot live in `_redirects`.
+  "routes": [
+    { "pattern": "intheunionnow.com", "custom_domain": true },
+    { "pattern": "www.intheunionnow.com", "custom_domain": true }
+  ],
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-07-13",
 

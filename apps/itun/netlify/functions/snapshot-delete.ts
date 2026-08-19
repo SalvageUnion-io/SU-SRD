@@ -12,11 +12,18 @@ import { makeDeleteHandler } from '../../src/lib/snapshot/handlers'
 import { setSnapshotReporter } from '../../src/lib/snapshot/report'
 import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storageNetlify'
 import { captureException, initObservability } from '../lib/observability'
+import { writeFreezeResponse } from '../lib/writeFreeze'
 
 export { makeDeleteHandler }
 
 /** @public Netlify Functions handler — invoked by the platform, not imported. */
 export default async function (req: Request): Promise<Response> {
+  // Frozen for the same reason as publish, and with more at stake: a revoke
+  // that lands here after the final delta sync deletes the Blobs copy while
+  // leaving the R2 copy readable, resurrecting a snapshot its owner revoked.
+  const frozen = writeFreezeResponse()
+  if (frozen) return frozen
+
   initObservability()
   setSnapshotReporter(captureException)
   try {
