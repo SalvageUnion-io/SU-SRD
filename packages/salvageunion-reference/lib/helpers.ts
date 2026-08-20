@@ -249,7 +249,7 @@ export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number
  * The canonical "Tech Level, then name" comparator.
  *
  * This exists because the expression it replaces was written out by hand at
- * four call sites and two of them got it wrong — using `Number(a.techLevel)`
+ * three call sites and one of them got it wrong — using `Number(a.techLevel)`
  * instead of {@link techLevelRank}. The failure is quieter than it first looks:
  * `Number('B') - 1` is `NaN`, and `NaN` is FALSY, so the `||` falls straight
  * through to the name tiebreak. A Bio or Nanite item is therefore not randomly
@@ -263,6 +263,15 @@ export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number
  * A comparator is exactly the kind of thing that should not be re-derived per
  * widget: the ordering is a property of the game's taxonomy, the bug is silent,
  * and the wrong version looks right.
+ *
+ * **One hand-rolled comparator is deliberately NOT folded in.**
+ * `component-lib/src/components/shared/EntitySearcher.tsx` composes
+ * `techLevelRank` correctly — no NaN — but short-circuits to the name tiebreak
+ * whenever EITHER side's Tech Level is `undefined`, where this ranks `undefined`
+ * last. That is a real behavioural difference on TL-less entities, not a
+ * cosmetic one, so switching it is a decision about search ordering rather than
+ * a de-duplication. Left alone on purpose; noted here so "all the call sites use
+ * the shared one" is not read as a claim about that file.
  *
  * @param a - Entity-shaped value carrying a Tech Level and a name
  * @param b - The value to compare against
