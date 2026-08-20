@@ -4,6 +4,7 @@ import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { AppHeader, EntityHrefProvider, RecoveryPanel, Toaster } from 'component-lib'
 import { useState } from 'react'
 import { AccountStrip } from '../components/account/AccountStrip'
+import { AnonymousWorkPromoter, UnsavedWorkBanner } from '../components/account/UnsavedWorkBanner'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
@@ -83,6 +84,14 @@ function RootComponent() {
             data, so it paints immediately instead of sitting behind the full
             preload. */}
           <NotConnectedBanner />
+          {/* The account gate (ADR-034 decision 1). Both live here, above the
+              game-data gate, because they are facts about the SESSION rather
+              than about any route: work that will not survive the tab is worth
+              saying on every screen, and the promoter has to outlive the banner
+              — signing in unmounts the banner at exactly the moment the
+              promotion needs to run. */}
+          <UnsavedWorkBanner />
+          <AnonymousWorkPromoter />
           <AppHeader
             onSearchClick={() => setSearchOpen(true)}
             LinkComponent={AppLink}

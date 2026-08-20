@@ -14,8 +14,11 @@
 
 import { create } from 'zustand'
 import * as db from '../lib/db/index'
+import { makeMemoryStore } from '../lib/db/memoryStore'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { MechPattern } from '../lib/schemas/pattern'
+import { MechPatternSchema } from '../lib/schemas/pattern'
+import { selectBackend } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice, wireCrossTabInvalidation } from './makeHydratedCollection'
 
@@ -25,10 +28,21 @@ export type MechPatternCreateInput = Omit<MechPattern, 'id' | 'createdAt' | 'upd
 type PatternState = HydratedCollectionSlice<'mechPatterns', MechPattern> &
   HydratedCollectionActions<MechPattern, MechPatternCreateInput>
 
+/**
+ * The anonymous backing for saved patterns (ADR-034 decision 1).
+ *
+ * Built at module scope so it HOLDS the rows: a store created per call would
+ * hand every read an empty Map. Mirrors `entityStore`'s `MEMORY_STORES`.
+ */
+const memoryPatterns = makeMemoryStore(MechPatternSchema, STORE_NAMES.mechPatterns, {
+  hasUpdatedAt: true,
+})
+
 const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatternCreateInput>({
   key: 'mechPatterns',
-  db: db.mechPatterns,
+  db: () => (selectBackend() === 'memory' ? memoryPatterns : db.mechPatterns),
   storeName: STORE_NAMES.mechPatterns,
+  shouldBroadcast: () => selectBackend() !== 'memory',
 })
 
 export const usePatternStore = create<PatternState>((set, get) => ({

@@ -41,7 +41,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P0    | Make every container model expressible (schema only)       | yes        | **done**    |
 | P1    | Test and e2e path that does not depend on Solo             | yes        | **provider done** — fixture with P3 |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
-| P3    | Gate persistence on an account                             | **no**     | not started |
+| P3    | Gate persistence on an account (mechanism; flip deferred)  | yes        | **done**    |
 | P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | not started |
 | P6    | ITUN install-triggered offline                             | yes        | not started |
@@ -309,7 +309,23 @@ first. Asserting them now would mean shipping the gate with no way to explain it
 
 ## P3 — Gate persistence on an account
 
-**One-way door.** This is the phase that withdraws ADR-030 §1's guarantee.
+**Deliberately NOT the one-way door any more — the plan was wrong about this.**
+
+As written, P3 both built the gate and flipped the switch. Trying to execute it
+surfaced the problem: flipping the switch routes anonymous users to the memory
+backend, and **an existing Solo user's IndexedDB roster then stops being read**.
+That breaks this plan's own rule that no phase may leave data reachable from
+fewer places than before it ran — and it breaks it *before* P5, which is the
+phase that gives those users a claim path.
+
+So P3 is split. This phase builds the whole mechanism — gate, promotion, and the
+stores that still wrote durably while signed out — and leaves
+`VITE_REQUIRE_ACCOUNT` **off**. The flip becomes its own small, deliberate layer
+**after P5**, when there is a claim path for every existing roster to take.
+
+That is strictly safer and costs nothing: a mechanism nobody is routed to yet
+cannot strand anyone, and the flip is then one line whose blast radius is
+obvious.
 
 **Work.** Save requires a session. The ask arrives at the save, naming what is
 being kept — not on load, and not in front of the wizard. Anonymous work

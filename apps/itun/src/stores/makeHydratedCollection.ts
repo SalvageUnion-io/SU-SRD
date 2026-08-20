@@ -57,9 +57,32 @@ export type HydratedCollectionActions<T, CreateInput> = {
 type SliceConfig<K extends string, T, CreateInput> = {
   /** State key holding the array — preserved per store for selector compat. */
   key: K
-  db: DbCollection<T, CreateInput>
+  /**
+   * Where this collection persists, resolved **per call** rather than captured.
+   *
+   * A function rather than a value because the answer changes with auth state:
+   * an anonymous visitor writes to a Map that never touches disk (ADR-034
+   * decision 1), and a signed-in one writes to IndexedDB. Capturing the
+   * collection once at module scope would pin whichever backend happened to be
+   * current when the store file was first imported — for a page loaded signed
+   * out, that is the memory store *for the rest of the session*, including
+   * after signing in.
+   *
+   * This mirrors `entityStore`'s `dbStoreFor` for the same reason and should
+   * stay in step with it.
+   */
+  db: () => DbCollection<T, CreateInput>
   /** Broadcast channel name; also drives the cross-tab subscription. */
   storeName: StoreName
+  /**
+   * Whether a write should be announced to other tabs.
+   *
+   * Anonymous sessions do not broadcast: two tabs hold two unrelated Maps, so
+   * telling tab B to re-read would blank the work it is holding. Optional so
+   * a store with no anonymous mode keeps its current behaviour by saying
+   * nothing.
+   */
+  shouldBroadcast?: () => boolean
 }
 
 type SetLike = (partial: object | ((state: never) => object)) => void
@@ -74,10 +97,10 @@ export function makeHydratedCollectionSlice<
   T extends { id: string },
   CreateInput,
 >(config: SliceConfig<K, T, CreateInput>) {
-  const { key, db, storeName } = config
+  const { key, db, storeName, shouldBroadcast } = config
 
   function afterWrite(): void {
-    publishStoreChange(storeName)
+    if (shouldBroadcast === undefined || shouldBroadcast()) publishStoreChange(storeName)
     recordDataWrite()
   }
 
@@ -100,7 +123,7 @@ export function makeHydratedCollectionSlice<
       },
 
       async rehydrate() {
-        const loaded = await db.list()
+        const loaded = await db().list()
         set({ [key]: loaded, hydrated: true })
       },
 
@@ -119,21 +142,21 @@ export function makeHydratedCollectionSlice<
       },
 
       async create(input) {
-        const record = await db.create(input)
+        const record = await db().create(input)
         set({ [key]: [record, ...records()] })
         afterWrite()
         return record
       },
 
       async update(id, patch) {
-        const updated = await db.update(id, patch)
+        const updated = await db().update(id, patch)
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
         afterWrite()
         return updated
       },
 
       async delete(id) {
-        await db.delete(id)
+        await db().delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
         afterWrite()
       },
