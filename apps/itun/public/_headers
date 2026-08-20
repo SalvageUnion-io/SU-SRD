@@ -13,11 +13,17 @@
 # every policy below still lived in a `netlify.toml` for a host that had stopped
 # answering.
 #
+# This is a port of `apps/itun/netlify.toml`'s header block, with two stated
+# exceptions: the `/*.html` rule below is an ADDITION (the toml has no
+# counterpart), and srd's `immutable` image rules are deliberately NOT copied
+# here. Everything in the toml's `/*` and `/assets/*` blocks is present
+# unchanged, CSP included.
+#
 # `tools/check-observability.ts` reads whichever sources exist and holds every
 # one that declares a policy to the same rule. Note what that did NOT catch: an
 # *absent* source is not a declaring source, so itun passed on the strength of
 # the toml alone. The checker now also requires this file to exist whenever the
-# app's `wrangler.jsonc` declares `assets` — see the `assetSurfaces` rule there.
+# app's `wrangler.jsonc` declares `assets` — see `declaresStaticAssets` there.
 
 /*
   X-Frame-Options: DENY
@@ -57,18 +63,17 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Icons and artwork are content-addressed by name and never mutated in place.
-/*.png
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.webp
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.svg
-  Cache-Control: public, max-age=31536000, immutable
-
+# NOT immutable, and this is the one place this file deliberately differs from
+# srd's. srd's icons and artwork really are content-addressed, so it marks
+# `/*.png` etc. immutable for a year. itun's `public/` holds `favicon.svg`,
+# `icon-192.png`, `icon-512.png` and `logos/` — FIXED names that are mutated in
+# place on redesign. A year of `immutable` on those means a changed icon that no
+# amount of reloading can dislodge, so no such rule is written here.
+#
 # HTML must never be cached: a deploy rotates the hashed chunk names, and a
-# stale document names chunks that no longer exist. This is the SPA shell, so
-# a stale copy breaks every route rather than one page.
+# stale document names chunks that no longer exist. This is the SPA shell, so a
+# stale copy breaks every route rather than one page. It is the one rule in this
+# file with no `netlify.toml` counterpart — an addition rather than a port, kept
+# because Cloudflare's asset serving would otherwise be free to cache the shell.
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
