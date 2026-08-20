@@ -82,6 +82,47 @@ function workflowFiles(root: string): string[] {
 }
 
 /**
+ * Pull every `bunx <tool>` invocation out of one file.
+ *
+ * A bare `bunx wrangler` resolves whatever npm published most recently, at the
+ * moment it runs. `deploy-cloudflare.yml` did that four times in the job
+ * holding CLOUDFLARE_API_TOKEN, CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN, while
+ * three `wrangler.jsonc` files asserted "this repo's wrangler (4.108)" — a
+ * claim nothing made true.
+ *
+ * `bunx convex deploy` in the same file is CORRECT and must keep passing: it
+ * resolves the pinned `convex` from `apps/itun/package.json` because the step
+ * sets a `working-directory` inside that workspace. So the rule is not "every
+ * bunx must carry an @version" — it is that a tool with no local manifest entry
+ * must. `LOCALLY_RESOLVED` records which those are.
+ */
+const LOCALLY_RESOLVED = new Set(['convex', 'lefthook', 'playwright', 'biome'])
+
+function bunxCalls(contents: string): { line: number; tool: string }[] {
+  const found: { line: number; tool: string }[] = []
+  contents.split('\n').forEach((raw, i) => {
+    const line = raw.trim()
+    if (line.startsWith('#')) return
+    for (const m of line.matchAll(/\bbunx\s+(?:--[\w-]+\s+)*([@\w./-]+)/g)) {
+      const tool = m[1]
+      if (tool !== undefined) found.push({ line: i + 1, tool })
+    }
+  })
+  return found
+}
+
+/** `wrangler@4.108.0` is pinned; `wrangler` is not. A scoped name keeps its leading @. */
+function bunxIsPinned(tool: string): boolean {
+  const at = tool.lastIndexOf('@')
+  return at > 0
+}
+
+function bunxBaseName(tool: string): string {
+  const at = tool.lastIndexOf('@')
+  return at > 0 ? tool.slice(0, at) : tool
+}
+
+/**
  * Pull every `uses:` reference out of one file.
  *
  * Comment lines are stripped first. These workflows explain themselves at
@@ -118,7 +159,9 @@ function refPin(ref: string): string {
 function main(): void {
   const root = process.cwd()
   const unpinned: Unpinned[] = []
+  const unpinnedTools: Unpinned[] = []
   let thirdPartyCount = 0
+  let bunxCount = 0
   let scanned = 0
 
   for (const file of workflowFiles(root)) {
@@ -128,6 +171,11 @@ function main(): void {
       if (!isThirdParty(ref)) continue
       thirdPartyCount += 1
       if (!SHA_PIN.test(refPin(ref))) unpinned.push({ file, line, ref })
+    }
+    for (const { line, tool } of bunxCalls(contents)) {
+      if (LOCALLY_RESOLVED.has(bunxBaseName(tool))) continue
+      bunxCount += 1
+      if (!bunxIsPinned(tool)) unpinnedTools.push({ file, line, ref: `bunx ${tool}` })
     }
   }
 
@@ -140,6 +188,19 @@ function main(): void {
     console.error(
       `✗ action pinning: only ${scanned} workflow file(s) scanned — expected at least 5. ` +
         `The scan is not reaching .github/; a pass here would mean nothing.`
+    )
+    process.exit(1)
+  }
+
+  if (unpinnedTools.length > 0) {
+    console.error('\n✗ a `bunx` tool with no local manifest entry must carry an exact version:\n')
+    for (const { file, line, ref } of unpinnedTools) {
+      console.error(`  ${file}:${line}  ${ref}`)
+    }
+    console.error(
+      `\n  Unpinned, this resolves whatever npm published most recently — in a job\n` +
+        `  that holds this repo's deploy credentials. Write it as \`bunx tool@X.Y.Z\`,\n` +
+        `  or add the tool to the manifest so bunx resolves it from the lockfile.\n`
     )
     process.exit(1)
   }
@@ -160,8 +221,8 @@ function main(): void {
   }
 
   console.log(
-    `✓ action pinning: ${thirdPartyCount} third-party action reference(s) SHA-pinned ` +
-      `across ${scanned} workflow file(s).`
+    `✓ supply-chain pinning: ${thirdPartyCount} third-party action reference(s) SHA-pinned ` +
+      `and ${bunxCount} bunx tool invocation(s) version-pinned across ${scanned} workflow file(s).`
   )
 }
 

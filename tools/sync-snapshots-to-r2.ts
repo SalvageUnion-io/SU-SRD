@@ -40,8 +40,19 @@ function netlify(args: string[]): string {
   return execFileSync('netlify', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
 }
 
+/**
+ * The exact wrangler this repo runs.
+ *
+ * `bunx wrangler` with no version resolves the latest published release every
+ * time it runs. `apps/<app>/wrangler.jsonc` already assert "this repo's wrangler
+ * (4.108)" — this is what makes that claim true rather than aspirational, and
+ * `tools/check-action-pinning.ts` fails the build if any `bunx wrangler` in a
+ * workflow loses its pin.
+ */
+const WRANGLER = 'wrangler@4.108.0'
+
 function wrangler(args: string[]): string {
-  return execFileSync('bunx', ['wrangler', ...args], {
+  return execFileSync('bunx', [WRANGLER, ...args], {
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
   })
@@ -93,7 +104,7 @@ function readR2(key: string): string | null {
     // caller reports it with the key attached.
     return execFileSync(
       'bunx',
-      ['wrangler', 'r2', 'object', 'get', `${R2_BUCKET}/${key}`, '--pipe', '--remote'],
+      [WRANGLER, 'r2', 'object', 'get', `${R2_BUCKET}/${key}`, '--pipe', '--remote'],
       {
         encoding: 'utf8',
         maxBuffer: 64 * 1024 * 1024,

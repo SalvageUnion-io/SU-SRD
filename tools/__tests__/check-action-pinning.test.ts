@@ -126,3 +126,57 @@ describe('check-action-pinning', () => {
     )
   })
 })
+
+/**
+ * The `bunx` half.
+ *
+ * Adding wrangler as a devDependency was the first attempt at this, and CI
+ * rejected it for a good reason: wrangler depends on miniflare, which pins
+ * `sharp@0.34.5` and `undici@7.28.0` — two HIGH advisories — so the tree gained
+ * vulnerabilities to fix a supply-chain hole. Overriding them was worse: both
+ * are EXACT pins by miniflare, and `sharp` is catalogued, which this repo
+ * documents as a hazard to leave dormant.
+ *
+ * Pinning at the call site instead removes the property that actually mattered
+ * — "resolves whatever npm published most recently, in a job holding deploy
+ * credentials" — with no tree impact. The honest residual is that it pins a
+ * version rather than a tarball hash; a lockfile entry would be stronger, and
+ * is unavailable here without the advisories.
+ */
+describe('check-action-pinning — bunx tools', () => {
+  test('fails when a bunx tool loses its version pin', async () => {
+    await withFileContents(
+      '.github/workflows/deploy-cloudflare.yml',
+      (s) => s.replace('bunx wrangler@4.108.0 deploy', 'bunx wrangler deploy'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx wrangler')
+      }
+    )
+  })
+
+  /**
+   * Control, and the one that keeps this rule honest. `bunx convex deploy` is
+   * CORRECT unpinned: the step sets a `working-directory` inside apps/itun, so
+   * bunx resolves the `convex` pinned in that manifest. A rule of "every bunx
+   * needs an @version" would flag it and be wrong.
+   */
+  test('a locally-resolved tool is exempt', async () => {
+    const { exitCode, stdout } = await runCheck()
+    expect(exitCode).toBe(0)
+    // `bunx convex deploy` is in the committed workflow and unpinned.
+    expect(stdout).toContain('version-pinned')
+  })
+
+  test('a commented-out bunx line is ignored', async () => {
+    await withFileContents(
+      '.github/workflows/deploy-cloudflare.yml',
+      (s) => `${s}\n# bunx some-unpinned-tool build\n`,
+      async () => {
+        const { exitCode } = await runCheck()
+        expect(exitCode).toBe(0)
+      }
+    )
+  })
+})

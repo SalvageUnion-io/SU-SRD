@@ -57,8 +57,7 @@
     "sharp": "catalog:",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "typescript-classic": "npm:typescript@6.0.3",
-    "wrangler": "4.108.0"
+    "typescript-classic": "npm:typescript@6.0.3"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
