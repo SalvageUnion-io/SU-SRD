@@ -44,6 +44,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P3    | Gate persistence on an account (mechanism; flip deferred)  | yes        | **done**    |
 | P4    | Demote IndexedDB to a cache (**read path done**; prune + mirror removal await the flip) | **no** | part done |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
+| —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
 | P6    | ITUN install-triggered offline                             | yes        | not started |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
 
