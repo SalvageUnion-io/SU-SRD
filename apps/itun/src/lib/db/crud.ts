@@ -20,6 +20,17 @@ type EntityStore<T extends EntityBase> = {
    */
   create: (input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>) => Promise<T>
   /**
+   * create() minus the write: mint the id, stamp the timestamps and
+   * strict-parse, returning the record that create() *would* have written.
+   *
+   * The counterpart to `prepareUpdate`, and it exists for the same reason one
+   * phase later: once Convex is the source of truth, a record has to be built
+   * and accepted by the server BEFORE anything local is touched, so that a
+   * refused write leaves no trace on the device. Without this split the id and
+   * timestamps only came into existence as a side effect of persisting.
+   */
+  prepareCreate: (input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>) => Promise<T>
+  /**
    * update() minus the write: merge + stamp + strict-parse, returning the
    * validated record. Feed the result to an atomicWrite() transaction.
    */
@@ -124,8 +135,14 @@ export function makeStore<T extends EntityBase>(
     return salvageRead(raw, `id="${id}"`)
   }
 
-  async function create(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
-    const db = await getDb()
+  /**
+   * Everything `create` does except the write.
+   *
+   * Split out so a caller can obtain the finished record — id minted,
+   * timestamps stamped, strict-parsed — and decide separately whether to
+   * persist it. `create` is now this plus one `put`, so the two cannot drift.
+   */
+  async function prepareCreate(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
     const now = new Date().toISOString()
     const candidate: Record<string, unknown> = {
       ...input,
@@ -136,7 +153,12 @@ export function makeStore<T extends EntityBase>(
       candidate.updatedAt = now
     }
     // parse() throws ZodError on bad input — let it bubble to caller
-    const record = schema.parse(candidate)
+    return schema.parse(candidate)
+  }
+
+  async function create(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
+    const db = await getDb()
+    const record = await prepareCreate(input)
     await db.put(storeName, record)
     return record
   }
@@ -212,5 +234,5 @@ export function makeStore<T extends EntityBase>(
     await db.delete(storeName, id)
   }
 
-  return { list, get, create, update, prepareUpdate, put, delete: del }
+  return { list, get, create, prepareCreate, update, prepareUpdate, put, delete: del }
 }

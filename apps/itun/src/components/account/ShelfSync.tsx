@@ -20,20 +20,38 @@
  * a cache is not a user write, and a Disconnected reader must still be able to
  * open what they already pulled down.
  *
- * ## What it does NOT do
+ * ## Pruning, and the two conditions that make it safe
  *
- * It does not delete local rows the server does not return. That would be the
- * honest completion of "the cache is a reflection", and it is deliberately left
- * for the phase that turns the account gate on: until then a Solo user's
- * IndexedDB is still their source of truth, and pruning it against a server that
- * has never heard of those rows would delete their roster. The plan records this
- * as the remaining half of the demotion.
+ * It also deletes local **shelf** rows the server did not return, which is what
+ * finally makes "the cache is a reflection" literally true rather than
+ * aspirational. It is the most destructive operation in the codebase, so both
+ * guards below are load-bearing and neither is obvious.
+ *
+ * **1. Only shelf rows.** A local row absent from `listMine` is ambiguous, and
+ * the ambiguity differs by container. `listMine` returns what the caller *owns*,
+ * wherever it lives — but a Game's **unclaimed** pre-gens and its communal
+ * crawler have no owner at all, and `GameRoster` legitimately caches them. So
+ * anything with a `gameId` is a cached view of somebody else's container and is
+ * never pruned. A shelf row is different: `gameId: null` with no owner is the
+ * one combination ADR-030 calls invalid, so every shelf row must be owned, and
+ * every owned row is in `listMine`. Absence therefore means deleted.
+ *
+ * **2. Only in a browser that never held a legacy roster.** This is the guard
+ * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
+ * in but not yet claimed, their entire roster is local shelf rows the server has
+ * never heard of — and rule 1 would read every one of them as "deleted
+ * elsewhere" and destroy the lot. `legacyLocalDataState() === 'absent'` is the
+ * only state in which a local row can be trusted to have come from a
+ * server-accepted write or from this component, which is what makes absence
+ * mean deletion rather than not-yet-uploaded.
  */
 
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
+import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
 import { captureException } from '../../lib/observability'
 import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
@@ -67,11 +85,13 @@ function ConnectedShelfSync() {
 
     void (async () => {
       const store = useEntityStore.getState()
-      for (const [kind, rows] of [
+      const kinds = [
         ['pilot', mine.pilots],
         ['mech', mine.mechs],
         ['crawler', mine.crawlers],
-      ] as const) {
+      ] as const
+
+      for (const [kind, rows] of kinds) {
         for (const row of rows as Row[]) {
           try {
             await store.adopt(kind, row.body as never)
@@ -82,6 +102,30 @@ function ConnectedShelfSync() {
             // fine and the player should see them.
             captureException(err)
           }
+        }
+      }
+
+      // Prune only where absence is unambiguous — see the header. Both guards
+      // matter; dropping either turns this into a roster-deleter.
+      if (!mayPrune(legacyLocalDataState())) return
+
+      for (const [kind, rows] of kinds) {
+        const served = new Set(
+          (rows as Row[])
+            .map((r) => (r.body as { id?: unknown } | null)?.id)
+            .filter((id): id is string => typeof id === 'string')
+        )
+        for (const local of store.list(kind)) {
+          // `containerOf` rather than a bare `gameId === null`, so a
+          // pre-ADR-030 record that still resolves through `workspaceId` is
+          // classified the same way every other reader classifies it.
+          if (!rowMayBePruned(local)) continue
+          if (served.has(local.id)) continue
+          // `forget`, not `delete`: this removes the local COPY and must never
+          // become a server delete. The row is already gone there — that is why
+          // it is being pruned — and issuing a delete would turn a sync into a
+          // destructive write against whatever the server does hold.
+          await store.forget(kind, local.id)
         }
       }
     })()
