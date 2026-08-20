@@ -103,9 +103,13 @@ export function usePilotSheetModel({
   const crawlerLink = outgoing.find((link) => link.type === 'pilot-to-crawler')
   const linkedCrawler = crawlerLink ? storeState.get('crawler', crawlerLink.to.id) : null
   const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
-  // Memoized so the {techLevel} object's identity is stable across renders —
-  // a fresh literal each render would defeat the React.memo on the (heavy)
-  // ReferenceEntityCard subtree it is threaded into.
+  // Memoized so the {techLevel} object's identity is stable across renders.
+  //
+  // The original comment here justified this by "the React.memo on the (heavy)
+  // ReferenceEntityCard subtree" — there is no such memo; the card is a plain
+  // function. The memo is still worth keeping for the reason the false premise
+  // was reaching for: a stable identity is the precondition for adding one, and
+  // this call site is already correct for it.
   const scalingParent = useMemo(
     () => (effectiveCrawlerLevel !== undefined ? { techLevel: effectiveCrawlerLevel } : undefined),
     // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the memoized ReferenceEntityCard subtree
