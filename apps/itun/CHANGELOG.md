@@ -2,6 +2,20 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.13.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.12.0...itun-v1.13.0) (2026-08-20)
+
+
+### Features
+
+* **itun:** P1 — a test-only sign-in door, gated so production has one ([#874](https://github.com/SalvageUnion-io/SU-SRD/issues/874)) ([42c8fa5](https://github.com/SalvageUnion-io/SU-SRD/commit/42c8fa5fe151f40947478509e796335ed5f803cf))
+* **itun:** P1b — give the test-only provider a consumer ([#883](https://github.com/SalvageUnion-io/SU-SRD/issues/883)) ([575be26](https://github.com/SalvageUnion-io/SU-SRD/commit/575be2643fb020c442b0ae50f699a90ead4620ec))
+* **itun:** P3 — the account gate and the promotion behind it ([#875](https://github.com/SalvageUnion-io/SU-SRD/issues/875)) ([2dd3f35](https://github.com/SalvageUnion-io/SU-SRD/commit/2dd3f352bdb8ab5f6578951f78cfcb0e4ea0393e))
+* **itun:** P4 — fill the cache from the server; the read path was missing ([#877](https://github.com/SalvageUnion-io/SU-SRD/issues/877)) ([c130086](https://github.com/SalvageUnion-io/SU-SRD/commit/c130086e371de901ba90bec9c7ea513fd735130f))
+* **itun:** P4b — write to the server first; delete the mirror bridge ([#881](https://github.com/SalvageUnion-io/SU-SRD/issues/881)) ([97dd2b2](https://github.com/SalvageUnion-io/SU-SRD/commit/97dd2b2fbe3b09781a347d23d56b3c4d596d8eb1))
+* **itun:** P5 — claim the whole roster, and make declining survivable ([#878](https://github.com/SalvageUnion-io/SU-SRD/issues/878)) ([18df64b](https://github.com/SalvageUnion-io/SU-SRD/commit/18df64b39f69a724d3464afaa591314392013420))
+* **itun:** P6 — prove ITUN works offline, rather than asserting it ([#880](https://github.com/SalvageUnion-io/SU-SRD/issues/880)) ([5b3606a](https://github.com/SalvageUnion-io/SU-SRD/commit/5b3606af74915a74566d7d33b05ddb3b361b7d0b))
+* **itun:** the flip — account required in production, guarded for people already here ([#879](https://github.com/SalvageUnion-io/SU-SRD/issues/879)) ([01888be](https://github.com/SalvageUnion-io/SU-SRD/commit/01888be5d4503e3a1aa1c0073e18d67c15bc761a))
+
 ## [1.12.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.11.1...itun-v1.12.0) (2026-08-20)
 
 
