@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | Phase | What                                                      | Reversible | Status      |
 | ----- | --------------------------------------------------------- | ---------- | ----------- |
 | P0    | Make every container model expressible (schema only)       | yes        | **done**    |
-| P1    | Test and e2e path that does not depend on Solo             | yes        | route chosen — not started |
+| P1    | Test and e2e path that does not depend on Solo             | yes        | **provider done** — fixture with P3 |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account                             | **no**     | not started |
 | P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
@@ -233,6 +233,11 @@ The alternatives, kept because the reasoning matters if this is ever revisited:
 
 Option 3 is the status quo made explicit and is defensible; option 1 is the one
 that actually covers P3's risk, and is what was chosen.
+
+**Status.** The provider and its production gate are built (#874). The Playwright
+fixture that *uses* it lands with P3, because until the account gate exists there
+is no sign-in flow for a fixture to drive — a fixture that signed in and did
+nothing would assert nothing.
 
 **Gate.** Depends on which option above is chosen. Under 1 or 2:
 
