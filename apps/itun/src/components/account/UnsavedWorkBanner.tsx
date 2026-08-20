@@ -169,8 +169,30 @@ function ConnectedPromoter() {
     setPromotionState('pending')
 
     void promoteAnonymousWork(claimLocal, work)
-      .then(() => {
+      .then((result) => {
         armed.current = false
+
+        // A resolved promise does NOT mean everything reached the server.
+        // `claimLocal` reports per-row failure in its RETURN VALUE, not by
+        // throwing: a body that fails Zod is counted as `skipped`, and an
+        // `appId` already present in any account is counted as `alreadyPresent`
+        // (which a shared/imported build really can be, since import keeps ids).
+        // Both leave the row present locally and absent from the server —
+        // exactly the state `rowMayBePruned` reads as "deleted elsewhere".
+        //
+        // Keying the guard on the rejection alone therefore left the original
+        // bug intact for the partial case: no error, state `idle`, and
+        // `ShelfSync` then forgets the rows that did not make it.
+        const stranded = result.skipped + result.alreadyPresent
+        if (stranded > 0) {
+          setPromotionState('failed')
+          setError(
+            `${stranded} ${stranded === 1 ? 'build' : 'builds'} could not be saved to your ` +
+              `account. Your work is still here — export it before clearing this browser.`
+          )
+          return
+        }
+
         setError(null)
         setPromotionState('idle')
       })
@@ -214,7 +236,15 @@ function ConnectedPromoter() {
       <Button
         variant="default"
         size="compact"
+        // `backend === 'remote'` here for the same reason the effect checks it:
+        // a Disconnected reader cannot write, and starting a promotion there
+        // pins `running.current` against a mutation that may never settle —
+        // which leaves `promotionState` at `pending` and pruning disabled for
+        // the rest of the session. The effect had this guard; the button did
+        // not, and the button is the one a frustrated user presses repeatedly.
+        disabled={backend !== 'remote'}
         onClick={() => {
+          if (backend !== 'remote') return
           setError(null)
           runPromotion()
         }}

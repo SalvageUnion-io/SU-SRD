@@ -36,29 +36,24 @@ export type PromotionState =
 
 let state: PromotionState = 'idle'
 
-/** Listeners so a consumer can re-evaluate when the state changes. */
-const listeners = new Set<() => void>()
-
 export function promotionState(): PromotionState {
   return state
 }
 
 export function setPromotionState(next: PromotionState): void {
-  if (state === next) return
   state = next
-  for (const listener of listeners) listener()
 }
 
-/** Subscribe to changes; returns an unsubscribe. */
-export function onPromotionStateChange(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-/** Test-only reset, so one file's failure does not leak into the next. */
+/**
+ * Test-only reset.
+ *
+ * This module is process-global, so a test that leaves it `'failed'` disables
+ * pruning for every file that runs after it in the same Bun process — and the
+ * symptom is a pruning test passing for the wrong reason, which is the silent
+ * direction. Nothing renders the two consumers in a test today, so nothing
+ * leaks yet; call this in `afterEach` the moment one does. Same hazard, and the
+ * same remedy, as `mock.module` in `.claude/rules/testing-patterns.md`.
+ */
 export function resetPromotionStateForTesting(): void {
   state = 'idle'
-  listeners.clear()
 }

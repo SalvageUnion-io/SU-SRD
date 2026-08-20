@@ -20,12 +20,12 @@
  * a cache is not a user write, and a Disconnected reader must still be able to
  * open what they already pulled down.
  *
- * ## Pruning, and the two conditions that make it safe
+ * ## Pruning, and the three conditions that make it safe
  *
  * It also deletes local **shelf** rows the server did not return, which is what
  * finally makes "the cache is a reflection" literally true rather than
- * aspirational. It is the most destructive operation in the codebase, so both
- * guards below are load-bearing and neither is obvious.
+ * aspirational. It is the most destructive operation in the codebase, so every
+ * guard below is load-bearing and none is obvious.
  *
  * **1. Only shelf rows.** A local row absent from `listMine` is ambiguous, and
  * the ambiguity differs by container. `listMine` returns what the caller *owns*,
@@ -35,6 +35,14 @@
  * never pruned. A shelf row is different: `gameId: null` with no owner is the
  * one combination ADR-030 calls invalid, so every shelf row must be owned, and
  * every owned row is in `listMine`. Absence therefore means deleted.
+ *
+ * **3. Only when no anonymous work is waiting to reach the server.** A brand
+ * new visitor who built anonymously and signed in has no legacy roster, so
+ * guard 2 waves them through — but their builds are exactly as un-uploaded, and
+ * if promotion is still running or has FAILED then absence from `listMine`
+ * means "never arrived", not "deleted elsewhere". `promotionState()` carries
+ * that, and it is read AFTER the adoption loop awaits so a promotion that
+ * failed in the meantime is seen.
  *
  * **2. Only in a browser that never held a legacy roster.** This is the guard
  * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
