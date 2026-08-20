@@ -47,7 +47,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
 | P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
 | P4b   | Remove the mirrors; prune the cache                        | **no**     | **done**    |
-| P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
+| P7    | `srd` install-triggered offline                            | yes        | **done**    |
 
 P0–P2 are all reversible and all buy information. P3 and P4 are the one-way
 doors and they are deliberately late.
@@ -569,30 +569,70 @@ still reading from), not a defect to fix here.
 
 ## P7 — `srd` install-triggered offline
 
-**Blocked on [ADR-033](../adrs/ADR-033-cloudflare-hosting.md) P7.**
-`salvageunion.io` is still on Netlify pending support ticket #1093312. Changing
-service-worker behaviour mid-host-move makes any failure ambiguous between two
-causes, and a bad service worker outlives the deploy that caused it.
+**Shipped before the host move, deliberately — the block was reconsidered and
+did not survive contact with the facts.**
 
-**Work.** `srd` is already installable (`site.webmanifest`, 192/512 icons,
-`ssg/pwa.ts` workbox worker). The gap is that `navigateFallback: null` and a
+Two of the three reasons for it turned out to be about ITUN rather than `srd`:
+
+- *"A bad service worker outlives the deploy that caused it."* True under ITUN's
+  `registerType: 'prompt'`, where a worker waits and a user can sit on an old
+  build indefinitely. `srd` sets `skipWaiting: true` and `clientsClaim: true`
+  (`ssg/pwa.ts`), so a replacement takes over on the very next visit. A bad
+  worker here self-heals.
+- *"Two changes in flight make a failure ambiguous."* That is an argument about
+  **simultaneity**, not about order. Shipping this now, well before the host
+  move, is the same soak logic run the other way round — it settles on its own,
+  so the move's failures stay attributable to the move.
+
+The third reason is answered by the design rather than argued away: **this
+changes no service-worker configuration at all.** See below.
+
+**Work.** `srd` was already installable (`site.webmanifest`, 192/512 icons,
+`ssg/pwa.ts` workbox worker). The gap was that `navigateFallback: null` and a
 `globPatterns` of js/css/woff2/svg mean an unvisited page 404s offline — correct
 for a browser visitor, wrong for an installed app.
 
-Add an install-triggered fetch of the reference set. Prefer the **899 JSON
-endpoints** over 1,039 HTML pages if measurement supports it: the endpoints
-already exist, they are what the search index reads, and they are far smaller
-than rendered HTML.
+`src/runtime/offlineWarm.client.ts` fills the gap, and the shape of it matters:
+it **touches no service-worker configuration**. The worker's precache list, its
+`navigateFallback` and its runtime rules are byte-identical; the warmer writes
+into the same `pages` cache the existing `StaleWhileRevalidate` rule already
+reads from (`ssg/pwa.ts` names it verbatim, confirmed in the built `sw.js`). The
+riskiest artefact in a static site is left alone.
+
+It writes through the Cache API rather than merely fetching, because the `pages`
+rule matches `request.mode === 'navigate'` — warming by fetch alone would
+populate nothing and look like it worked.
+
+**The measurement, and it inverted this plan's own suggestion.** Per-file gzip,
+which is what HTTP actually transfers:
+
+| | count | gzipped |
+| --- | --- | --- |
+| HTML pages | 1,039 | **3.73 MB** |
+| JSON endpoints | 899 | 0.70 MB |
+| shell (already precached) | 72 | 2.0 MB |
+
+So an installed app costs about **5.7 MB**. The JSON is five times smaller and
+was this document's first suggestion — and it is rejected, because `srd` serves
+pre-rendered HTML and 82% of entity pages ship no JavaScript on purpose. JSON
+cannot render an unvisited page without adding a client-side renderer, which
+would spend the site's whole design to save 3 MB on an explicit install.
+
+**Cost to a browser visitor: 590 bytes gzipped**, the warmer's own chunk, which
+returns on its first line unless `display-mode` says the app is installed.
 
 **Gate.**
 
-- Measure first. The install-time payload is written into this document before
-  the code ships, with a stated ceiling. **An unmeasured "download everything"
-  does not pass**; a worse-than-404 experience is a real possible outcome.
-- Installed, then offline: an unvisited entity page renders.
-- Browser tab, online: byte-for-byte the same network profile as today.
-  `ssg/snapshot.ts` must be green, and any change to the emitted file set is
-  re-blessed deliberately with the diff read.
+- Measured first, above, before any code shipped.
+- A browser tab makes **no requests at all** — not even for the sitemap.
+  Asserted, because a warm that fires for everybody still looks like it works;
+  it just costs every casual reader 3.73 MB.
+- An installed app caches every same-origin page; a foreign origin named in the
+  sitemap is ignored; a non-200 is never cached (serving a confident 404 offline
+  is worse than serving nothing); an already-cached page is not refetched, which
+  is what makes it idempotent without a build-version marker.
+- `ssg/snapshot.ts` green, and the diff read: **one new file, nothing else** —
+  no page content, title, description or endpoint changed.
 
 ---
 
