@@ -74,12 +74,21 @@ function ConnectedShelfSync() {
   useEffect(() => {
     if (mine === undefined) return
 
-    const stamp = JSON.stringify([
-      mine.pilots.length,
-      mine.mechs.length,
-      mine.crawlers.length,
-      mine.mechPatterns.length,
-    ])
+    // Keyed on the ids the server returned, not on how many there are.
+    //
+    // Counts are not enough, and the gap is not theoretical now that this
+    // prunes: one row created and another deleted in the same emission leaves
+    // every count identical, so the effect would skip — no adoption, and more
+    // seriously no prune, leaving a row that was deleted on another device
+    // cached here forever and looking like it still exists.
+    const stamp = JSON.stringify(
+      [mine.pilots, mine.mechs, mine.crawlers, mine.mechPatterns].map((rows) =>
+        (rows as Row[])
+          .map((r) => (r.body as { id?: unknown } | null)?.id)
+          .filter((id): id is string => typeof id === 'string')
+          .sort()
+      )
+    )
     if (lastAdopted.current === stamp) return
     lastAdopted.current = stamp
 
