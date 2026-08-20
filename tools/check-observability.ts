@@ -85,6 +85,26 @@ type BrowserApp = {
    * cannot go wrong quietly while a good one carries the pass.
    */
   cspSources: string[]
+  /**
+   * The app's Workers config, and the `_headers` its Cloudflare deploy serves.
+   *
+   * These exist because `cspSources` alone could not catch a real outage. The
+   * rule above is "at least one PRESENT source declares a policy", and a source
+   * that does not exist on disk is filtered out before it is judged — so when
+   * itun went live on Cloudflare with no `public/_headers` at all, this checker
+   * stayed green on the strength of a `netlify.toml` describing a host that had
+   * stopped answering. An absent policy was indistinguishable from a policy
+   * carried elsewhere.
+   *
+   * So the file-level rule is not enough on its own: it validates files, while
+   * the thing that can break is a *host*. When `wrangler.jsonc` declares
+   * `assets`, Cloudflare is serving this app from static assets and `_headers`
+   * is the ONLY way it gets a policy — nothing else in the Worker path adds
+   * one. That makes the file mandatory rather than merely one candidate.
+   */
+  wranglerPath: string
+  /** The `_headers` a Workers Static Assets deploy reads. Must be in `cspSources`. */
+  workersHeadersPath: string
   /** Production origin, for --live. */
   productionUrl: string
 }
@@ -99,6 +119,8 @@ const BROWSER_APPS: BrowserApp[] = [
     // the init lives there — one place instead of one per layout.
     entryPath: 'apps/srd/src/runtime/islands.client.ts',
     cspSources: ['apps/srd/netlify.toml', 'apps/srd/public/_headers'],
+    wranglerPath: 'apps/srd/wrangler.jsonc',
+    workersHeadersPath: 'apps/srd/public/_headers',
     productionUrl: 'https://salvageunion.io',
   },
   {
@@ -107,6 +129,8 @@ const BROWSER_APPS: BrowserApp[] = [
     modulePath: 'apps/itun/src/lib/observability.ts',
     entryPath: 'apps/itun/src/main.tsx',
     cspSources: ['apps/itun/netlify.toml', 'apps/itun/public/_headers'],
+    wranglerPath: 'apps/itun/wrangler.jsonc',
+    workersHeadersPath: 'apps/itun/public/_headers',
     productionUrl: 'https://intheunionnow.com',
   },
 ]
@@ -127,6 +151,25 @@ function read(path: string): string | null {
  * Returns null when the file declares no CSP at all (which is itself a finding
  * for an app that ships one).
  */
+/**
+ * Does this `wrangler.jsonc` declare a static-assets binding?
+ *
+ * Comment lines are stripped FIRST, and that is the whole difficulty. These
+ * files are heavily commented and the word `assets` appears throughout the
+ * prose — `apps/itun/wrangler.jsonc` alone mentions `/assets/*` five times in
+ * explanation before it ever declares the binding. A naive `includes('assets')`
+ * would be satisfied by the commentary and would keep passing after someone
+ * deleted the real declaration, which is precisely the failure this rule exists
+ * to prevent. `check-convex-parity.ts` learned the same lesson the same way.
+ */
+function declaresStaticAssets(wranglerJsonc: string): boolean {
+  const withoutComments = wranglerJsonc
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('//'))
+    .join('\n')
+  return /"assets"\s*:/.test(withoutComments)
+}
+
 function connectSrcOfPolicy(policy: string): string | null {
   const directive = policy.split(';').find((d) => d.trim().startsWith('connect-src'))
   return directive ? directive.trim() : null
@@ -181,6 +224,29 @@ function checkStatic(app: BrowserApp): void {
     fail(app.name, `entry missing at ${app.entryPath}`)
   } else if (!entry.includes('initBrowserObservability')) {
     fail(app.name, `${app.entryPath} never calls initBrowserObservability()`)
+  }
+
+  // Before the file-level rule: if Cloudflare serves this app from static
+  // assets, `_headers` is the only thing that can carry a policy there, so it
+  // is mandatory rather than one candidate among several.
+  //
+  // This is deliberately a "config present, property missing → fail" rule, the
+  // same shape the other ADR-033 guards already use. It is what the `present`
+  // filter below structurally cannot express: that filter drops a non-existent
+  // source before judging it, so "no file" reads as "not my business" instead
+  // of as the outage it was.
+  const wrangler = read(app.wranglerPath)
+  if (wrangler !== null && declaresStaticAssets(wrangler)) {
+    if (read(app.workersHeadersPath) === null) {
+      fail(
+        app.name,
+        `${app.wranglerPath} declares "assets", so Cloudflare serves this app from ` +
+          `static assets — but ${app.workersHeadersPath} does not exist. The Worker ` +
+          `adds no headers of its own, so the deployed site would ship no CSP, no ` +
+          `HSTS and no X-Frame-Options, however complete netlify.toml looks.`
+      )
+      return
+    }
   }
 
   // The CSP half — the one that would have made a provisioned DSN look
