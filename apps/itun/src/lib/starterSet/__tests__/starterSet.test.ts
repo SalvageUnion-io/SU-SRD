@@ -38,7 +38,7 @@ import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
-import { ensureStarterSetSeeded, isStarterSetSeeded } from '../seedStarterSet'
+import { copyStarterSetToRoster, isStarterSetSeeded } from '../seedStarterSet'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
 
 /** True when some reference entity of `all` slugifies to `slug`. */
@@ -230,9 +230,9 @@ describe('Starter Set seed — on-demand seeding', () => {
     await _clearAllStores()
   })
 
-  test('ensureStarterSetSeeded spawns the full roster on first call, and it parses', async () => {
+  test('copyStarterSetToRoster copies the full roster on first call, and it parses', async () => {
     expect(isStarterSetSeeded()).toBe(false)
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
 
     const storedPilots = await pilots.list()
     const storedMechs = await mechs.list()
@@ -249,8 +249,8 @@ describe('Starter Set seed — on-demand seeding', () => {
   })
 
   test('is idempotent — a second call never duplicates', async () => {
-    await ensureStarterSetSeeded()
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
+    await copyStarterSetToRoster()
     expect(await pilots.list()).toHaveLength(STARTER_PILOTS.length)
     expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
   })
@@ -266,7 +266,7 @@ describe('Starter Set seed — on-demand seeding', () => {
    * as edits to somebody else's entity.
    */
   test('seeded rows get fresh UUIDs, not the template ids', async () => {
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
 
     const templateIds = new Set([
       ...STARTER_PILOTS.map((r) => r.id),
@@ -286,7 +286,7 @@ describe('Starter Set seed — on-demand seeding', () => {
   })
 
   test('two devices seeding the same roster produce disjoint ids', async () => {
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
     const first = (await pilots.list()).map((p) => p.id).sort()
 
     // A second browser is a fresh database with the same template.
@@ -298,7 +298,7 @@ describe('Starter Set seed — on-demand seeding', () => {
       softLinks: [],
       hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
     })
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
     const second = (await pilots.list()).map((p) => p.id).sort()
 
     expect(second).toHaveLength(first.length)
@@ -307,7 +307,7 @@ describe('Starter Set seed — on-demand seeding', () => {
   })
 
   test('soft links point at the freshly minted ids, not the template ones', async () => {
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
 
     const ids = new Set([
       ...(await pilots.list()).map((p) => p.id),
@@ -326,7 +326,7 @@ describe('Starter Set seed — on-demand seeding', () => {
   })
 
   test('a partially deleted roster re-seeds only what is missing', async () => {
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
     const before = await pilots.list()
     const survivor = before.find((p) => p.seedRef !== before[0]?.seedRef)
     await pilots.delete(before[0]?.id as string)
@@ -335,7 +335,7 @@ describe('Starter Set seed — on-demand seeding', () => {
     await useEntityStore.getState().rehydrate('pilot')
 
     expect(isStarterSetSeeded()).toBe(false)
-    await ensureStarterSetSeeded()
+    await copyStarterSetToRoster()
 
     const after = await pilots.list()
     expect(after).toHaveLength(STARTER_PILOTS.length)

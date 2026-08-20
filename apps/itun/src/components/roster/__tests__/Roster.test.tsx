@@ -231,7 +231,7 @@ describe('Roster — first-run welcome', () => {
 describe('Roster — Starter Set (spawned on demand)', () => {
   // The Starter Set is NOT pre-seeded. With Workspaces retired it is no longer
   // an entry in a switcher; it has its own button, which spawns it onto the
-  // Shelf via ensureStarterSetSeeded and then disappears.
+  // Shelf via copyStarterSetToRoster and then disappears.
 
   test('a fresh user sees the welcome screen and a Load Starter Set button, nothing seeded yet', async () => {
     await renderRoster()
@@ -255,7 +255,17 @@ describe('Roster — Starter Set (spawned on demand)', () => {
     // it. The badge used to read '↳ Bonesaw', which no exact-text query
     // matched; it now reads 'Bonesaw' exactly, so a singular query throws on
     // multiple matches instead of returning the row.
-    await settle(() => screen.queryAllByText('Bonesaw').length > 0)
+    // Settle on the CRAWLER, which is created last.
+    //
+    // The copy is now incremental — every row goes through `entityStore.create`
+    // and commits to the server of record on its own, rather than landing as
+    // one bulk `atomicWrite` followed by a rehydrate. So pilots appear before
+    // mechs, and waiting on a pilot then asserting a mech is a race the old
+    // all-at-once write happened to hide.
+    //
+    // Incremental is the intended behaviour, not a regression: a row that saves
+    // is saved, where the bulk write lost everything if any part of it failed.
+    await settle(() => screen.queryAllByText("Crawler #430 'Tenacity'").length > 0)
 
     expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
     expect(screen.getAllByText('Bonesaw').length).toBeGreaterThan(0)
