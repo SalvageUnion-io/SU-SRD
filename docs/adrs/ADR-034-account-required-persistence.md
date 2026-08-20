@@ -90,6 +90,26 @@ than in front of a product they have not tried.
 Reading is unaffected. A public sheet (ADR-032) and the whole of `srd` remain
 open to anyone with no account at all.
 
+**Discord remains the only door.** ADR-030 §D3 chose it deliberately — the
+audience already lives there, the project ships a Discord bot, and one identity
+is what makes that bot usable — and gating persistence does not change any of
+that reasoning. The consequence must be stated rather than discovered: **a person
+with no Discord account cannot save anything, ever.** That is accepted, and it is
+accepted *because* of the escape hatch below. Without the hatch this decision
+would be indefensible.
+
+**Export to file is the escape hatch, and it is now load-bearing.** An anonymous
+user can download their in-memory work as a JSON bundle and import it after
+signing in. This is not a new mechanism — `ExportAllButton`, `buildExportBundle`
+and `mergeImport` already exist and already do it — but its *status* changes.
+Export stops being a backup convenience and becomes **the guarantee that hitting
+the account gate is never a data-loss event**. A file is not a source of truth
+and never syncs, so it is fully compatible with decision 2; what it is, is a way
+out.
+
+Treat any incompleteness in the export bundle as a defect against this ADR, not
+as a missing nice-to-have. See *The Change Log is not in the bundle* below.
+
 ### 2. Every record is DB-backed; the local store is a cache
 
 **Convex is the source of truth for every persisted record, without exception.**
@@ -105,6 +125,24 @@ not acceptable, the schema is wrong and the schema moves.
 This closes the three gaps named in Context. `mechPatterns`, `encounterNpcs` and
 the Change Log all become mirrored like pilots, mechs, crawlers and soft links
 already are.
+
+**`encounterNpcs` is one table with two containers, not two concepts.** An NPC
+lives either in a Game — the Mediator's prepared opposition, `gameId` set — or on
+somebody's shelf, their own tray to prep in before a Game exists. That is the
+ownership table from ADR-030 §2 applied unchanged, and it is the *same move*
+#871 made for the crawler: `encounterNpcs.gameId` is `v.id('games')` with no
+`ownerId` today, which is precisely the shape `crawlers` had before it. Give it a
+nullable `gameId`, an `ownerId`, a `by_owner` index and an `appId` to address
+mirrored writes, and the collision resolves into the model everything else
+already uses.
+
+Rejected: renaming the local one to a "scratch tray". It would stop the collision
+without removing the second concept, leaving a contributor two NPC ideas to keep
+straight forever in exchange for a smaller diff now.
+
+`mechPatterns` needs less: it already carries `ownerId` and a nullable `gameId`.
+What it lacks is an `appId` — which is why `claimLocal` has to match patterns by
+reading an id out of the opaque body — and a mirror.
 
 ### 3. Both apps are ordinary, installable PWAs — and install is what buys offline
 
@@ -187,6 +225,28 @@ belongs in Convex, not a reason to widen the exemption.
 - **Every feature is designed once.** The "what does this do in Solo?" question
   disappears from every future change, which is the compounding benefit and the
   main reason this is worth the cost above.
+
+- **Export becomes a tested guarantee rather than a convenience**, because two
+  separate decisions now rest on it: the anonymous escape hatch, and what happens
+  when somebody declines the claim. A silently incomplete bundle is a data-loss
+  bug from the day this ships. It needs a gate asserting it covers every kind,
+  and that gate has to be extended whenever a kind is added.
+
+- **The Change Log is not in the bundle, and that needs a ruling.**
+  `buildExportBundle` covers pilots, mechs, crawlers, soft links, patterns and
+  encounter NPCs — **not `changeLog`**. That was harmless while export was a
+  backup; it is not harmless now that export is the way out. The provenance log
+  is arguably not the user's *build* and losing it may be acceptable, but that is
+  a decision to make out loud rather than a gap to leave. Named as the one open
+  question in the plan.
+
+- **Declining the claim is a terminal choice, by design.** A user who declines is
+  pushed to export and then not asked again. This is the least-nagging option and
+  it has a real edge: somebody who declines, does not export, and later clears
+  their browser storage has genuinely lost that roster. The mitigation is that
+  the export must be *taken* rather than merely offered — see the plan's P5 gate,
+  which does not let the app stop asking until a bundle has actually been
+  produced or the user has explicitly refused that too.
 
 - **Storage and bandwidth on install become a real budget.** Deciding that an
   installed app works fully offline means someone must own what "fully" costs —

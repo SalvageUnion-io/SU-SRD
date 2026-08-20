@@ -97,10 +97,23 @@ moves — the record does not fall back to local-only.
 who may persist. Doing this first means P3 does not have to reason about
 partially-backed data.
 
-**Work.** Mirror `mechPatterns` from `patternStore`, on the `mirrorWrite`
-pattern. Decide what `encounterNpcs` *is* — one set or two — and write that down
-before wiring anything. Mirror client Change Log appends, and correct ADR-030's
-"now synchronized" claim in the same change.
+**Work.** Three jobs, and they are not the same size.
+
+- **`mechPatterns` — mirror only.** The table already carries `ownerId` and a
+  nullable `gameId`, so the container model is right. It lacks an `appId`, which
+  is why `claimLocal` matches a pattern by reading an id out of the opaque body.
+  Add `appId` + `by_app_id`, then mirror on the `mirrorWrite` pattern.
+- **`encounterNpcs` — the #871 move, verbatim.** The model is settled (ADR-034
+  decision 2): one table, two containers. Today it is
+  `gameId: v.id('games')` with no `ownerId` — *exactly* the shape `crawlers` had
+  before #871. Give it a nullable `gameId`, an `ownerId`, `by_owner`, and an
+  `appId`; a Game-scoped NPC keeps `ownerId: null` the way a communal crawler
+  does, and a shelf NPC takes an owner. Then fold the client's local tray onto
+  it. Read #871's diff before starting — this is the same change twice.
+- **`changeLog` — mirror the client appends**, and correct ADR-030's "now
+  synchronized" claim in the same PR. Cross-device ordering is the hard part
+  here; the log is append-only and keyed by an autoincrement `seq` locally, which
+  does not survive being merged with another device's sequence.
 
 **Gate.**
 
@@ -178,6 +191,13 @@ survives the sign-in round trip and is written after it: a user who builds, is
 asked to sign in, and signs in must not come back to an empty screen. That
 hand-off is the whole risk of this phase.
 
+**The account gate must offer the export escape hatch at the same moment.**
+Sign-in is Discord-only and stays that way (ADR-034 decision 1), so this dialog
+is a hard wall for anybody without a Discord account. Export is what makes that
+acceptable, which means it belongs *in the gate itself* — "sign in to save, or
+download it" — not buried on another screen a blocked user has no reason to
+visit.
+
 **Gate.**
 
 - Build anonymously → save → sign in → the build is in Convex, complete, once.
@@ -185,6 +205,13 @@ hand-off is the whole risk of this phase.
   and unsaved.
 - The same flow with the network dropped mid-sign-in loses nothing.
 - No path writes an entity to IndexedDB while signed out.
+- **Export is reachable from the account gate**, and the bundle it produces
+  imports back cleanly after signing in. Verified round-trip, not just that the
+  button exists.
+- **The bundle is complete.** A test asserts `buildExportBundle` covers every
+  entity kind, and fails when a kind is added without being exported. Today it
+  covers pilots, mechs, crawlers, soft links, patterns and encounter NPCs;
+  `changeLog` is the open question below.
 
 ---
 
@@ -222,17 +249,29 @@ cover **everything** P0 made mirrorable, including patterns and the log. And
 **declining must be survivable**: today declining leaves a full local roster
 beside an empty account, which after P4 is a roster the app no longer reads.
 
-The decline path needs an explicit answer before this phase ships. The minimum
-honest one: keep the data readable and keep offering the claim, and never let a
-decline silently orphan it.
+**The decline path is settled: offer the export hard, then stop asking.** A user
+who declines the claim is pushed to download a bundle, and after that the app
+does not raise it again. This is the least-nagging option and it was chosen
+knowing its edge — somebody who declines, does not export, and later clears
+their browser storage has genuinely lost that roster.
+
+That edge is what the gate below closes. **"Offered" is not enough; the app may
+only stop asking once an export has actually been produced, or the user has
+explicitly refused the export too.** A decline dialog that quietly counts as
+"asked" and moves on is the failure mode this phase exists to prevent.
 
 **Gate.**
 
 - A pre-ADR-030 IndexedDB fixture claims completely: pilots, mechs, crawlers,
-  soft links, patterns, log entries, with counts asserted per kind.
+  soft links, patterns, encounter NPCs, log entries, with counts asserted per
+  kind.
 - Claiming twice produces no duplicates (already covered by an existing test —
   extend it to the new kinds rather than writing a second one).
-- Declining, then reloading, then accepting, still claims everything.
+- Declining, then reloading, then accepting, still claims everything — declining
+  must not be sticky against a later change of mind, only against being nagged.
+- **Declining without exporting does not silence the prompt.** The app keeps
+  asking until a bundle is produced or the export is explicitly refused.
+- The data is never deleted by any path in this phase.
 
 ---
 
@@ -288,18 +327,29 @@ than rendered HTML.
 
 ---
 
-## Open questions
+## Resolved (2026-08-19)
 
-These are not blockers for P0–P2, and each must be answered before the phase
-that needs it.
+The four questions this plan opened with are answered. Recorded here with the
+phase each one unblocks, so a reader does not have to reconstruct them from the
+ADR.
 
-1. **What does declining the claim mean, permanently?** Needed before P5.
-2. **Does an anonymous user get any escape hatch besides an account?** Export to
-   file is the obvious candidate and it is not a source of truth, so it is
-   compatible with ADR-034 — but it is a product decision, not a technical one.
-   Needed before P3.
-3. **What is the `encounterNpcs` model?** One set or two. Needed before P0
-   completes.
-4. **Which auth providers are acceptable as the only door to persistence?**
-   Gating saves on an account makes the sign-in options a product surface rather
-   than a convenience. Needed before P3.
+1. **Declining the claim → offer the export hard, then stop asking.** Unblocks
+   P5, and is why that phase's gate insists the export be *taken* rather than
+   merely offered.
+2. **Anonymous users get export to file.** Unblocks P3, and it is what makes a
+   Discord-only gate defensible rather than a wall.
+3. **`encounterNpcs` is one table with two containers** — the #871 crawler move
+   applied again. Unblocks P0.
+4. **Discord stays the only sign-in provider.** Unblocks P3. The exclusion is
+   real and accepted: no Discord account means no saving, mitigated only by (2).
+
+## Still open
+
+One, and it is new — it follows from (1) and (2) both resting on export.
+
+1. **Does the export bundle need to carry the Change Log?** `buildExportBundle`
+   covers pilots, mechs, crawlers, soft links, patterns and encounter NPCs, and
+   **not `changeLog`**. Harmless while export was a backup; not obviously
+   harmless now that it is the way out. The log is provenance rather than the
+   build itself, so dropping it may well be right — but it should be decided out
+   loud. **Needed before P3**, since that is where export becomes a promise.
