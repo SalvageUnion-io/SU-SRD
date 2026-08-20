@@ -241,7 +241,8 @@ describe('readEntity', () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const npcId = await t.run(
-      async (ctx) => await ctx.db.insert('encounterNpcs', { gameId, body: { name: 'Ambush' } })
+      async (ctx) =>
+        await ctx.db.insert('encounterNpcs', { gameId, ownerId: null, body: { name: 'Ambush' } })
     )
 
     // ADR-030 §5: the Mediator's prepared opposition is the ONE thing a member

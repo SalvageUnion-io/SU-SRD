@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import {
+  backendForMode,
   requireWritableBackend,
   selectBackend,
   setEntityBackendAuthState,
@@ -93,5 +94,37 @@ describe('WritesBlockedOffline', () => {
     expect(settling.reason).toBe('settling')
     expect(settling.message).toMatch(/still signing in/i)
     expect(new WritesBlockedOffline().reason).toBe('offline')
+  })
+})
+
+/**
+ * The anonymous backend (ADR-034 decision 1, plan phase P2).
+ *
+ * Driven through `backendForMode` rather than `selectBackend`, because the
+ * account-required switch is a build-time `import.meta.env` read that a test
+ * cannot vary — the same reason `resolveConnectionMode` is a pure function
+ * beside `useConnection`.
+ */
+describe('a build that requires an account gives an anonymous visitor nothing durable', () => {
+  test('solo becomes memory when the flag is on', () => {
+    expect(backendForMode('solo', true)).toBe('memory')
+  })
+
+  test("solo stays local when the flag is off — today's behaviour, unchanged", () => {
+    // The flag ships OFF (P2 is reversible; flipping it is P3). If this ever
+    // reads 'memory', the one-way door has been opened by accident.
+    expect(backendForMode('solo', false)).toBe('local')
+    expect(selectBackend()).toBe('local')
+  })
+
+  test('the flag changes nothing for a signed-in user', () => {
+    // Requiring an account has no opinion about somebody who has one. If these
+    // diverged, turning the gate on would change where signed-in writes go —
+    // which is P4's job and must not ride along with P3.
+    for (const flag of [true, false]) {
+      expect(backendForMode('connected', flag)).toBe('remote')
+      expect(backendForMode('disconnected', flag)).toBe('blocked')
+      expect(backendForMode('connecting', flag)).toBe('blocked')
+    }
   })
 })

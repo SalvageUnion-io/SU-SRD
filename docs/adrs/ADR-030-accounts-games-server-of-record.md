@@ -3,6 +3,20 @@
 ## Status
 
 **Accepted — governing ADR for identity, ownership, and sharing.**
+
+**This ADR still governs.**
+[ADR-034](ADR-034-account-required-persistence.md) **partially supersedes it**,
+and the partial is the important word: §1 promises Solo mode — not signed in,
+IndexedDB as the source of truth — "must keep working forever", and **that one
+guarantee is withdrawn**. Persistence will require an account and IndexedDB
+becomes a cache of Convex. Everything else here — Games, memberships, roles,
+ownership, the two containers, Convex as server of record — is untouched, so
+citing this ADR remains correct for all of it.
+
+**Nothing is built yet**, so §1 still describes the app as it runs today. The
+phases and the one-way doors are in
+[architecture/persistence-and-pwa.md](../architecture/persistence-and-pwa.md).
+
 **Supersedes [ADR-001](ADR-001-local-first-no-backend.md)** (local-first, no
 backend, no auth). **Amends [ADR-022](ADR-022-provenance-log-and-overrides.md)**
 (the Change Log is no longer local-only). Extends
