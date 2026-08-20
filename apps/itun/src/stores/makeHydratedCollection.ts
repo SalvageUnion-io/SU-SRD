@@ -171,7 +171,15 @@ export function makeHydratedCollectionSlice<
               : [cached, ...list]
           })(),
         })
-        afterWrite()
+        // `publish`, NOT `afterWrite()`. This is the one place the two differ,
+        // and the difference matters: `afterWrite` also calls
+        // `recordDataWrite()`, which drives the backup nudge. A cache fill is
+        // not a user write — `entityStore.adopt` and `forget` both publish
+        // alone for exactly this reason. Routing adoption through `afterWrite`
+        // meant a signed-in player with 25+ saved patterns was told to back up
+        // their data after a sync in which they had written nothing, and it
+        // accrued again on every sync (the counter is localStorage-persistent).
+        if (shouldBroadcast === undefined || shouldBroadcast()) publishStoreChange(storeName)
         return cached
       },
 
