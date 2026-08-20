@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | Phase | What                                                      | Reversible | Status      |
 | ----- | --------------------------------------------------------- | ---------- | ----------- |
 | P0    | Make every container model expressible (schema only)       | yes        | **done**    |
-| P1    | Test and e2e path that does not depend on Solo             | yes        | not started |
+| P1    | Test and e2e path that does not depend on Solo             | yes        | **blocked — needs a decision** |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account                             | **no**     | not started |
 | P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
@@ -190,18 +190,59 @@ Solo**, and 15 of the 16 specs build an entity and expect it to persist
 without this phase does not fail a test — it fails nearly all of them at once, in
 a way that looks like the feature is broken rather than the harness.
 
-**Work.** Two paths, because the suite asks two different questions. Tests that
-only need a working app run against the in-memory mode from P2. Tests that
-assert *durability* need a signed-in session against a disposable Convex
-deployment, with a per-run teardown.
+**Work.** Two paths, because the suite asks two different questions — and they
+turn out to be in very different states.
 
-**Gate.**
+**Server-side durability is already solved and needs nothing.** The
+`test/convex/*` suite runs on `convex-test` with `t.withIdentity({ subject })`,
+so a signed-in user's mutations are exercised today with no deployment, no
+credentials and no network. Anything of the form "does this write reach Convex
+and come back" can be asserted there, and that is most of what P3 and P4 change.
+
+**Browser-level e2e with an account is blocked**, and it is blocked by a
+decision rather than by effort. Sign-in is **Discord OAuth and nothing else**
+(ADR-034 decision 1), so there is no scriptable credential a Playwright fixture
+could use — and confirmed by reading the suite, **no e2e file authenticates at
+all today**. Nothing in the repo has ever needed to, because everything ran Solo.
+
+### The decision P1 needs
+
+Pick one before P3, because P3 and P4 are the one-way doors and the halt rule
+above forbids opening them on an untested path:
+
+1. **A test-only auth provider.** Add Convex Auth's Password provider, enabled
+   only when a test flag is set. Cheapest to write and the most conventional.
+   The risk is obvious and must be gated hard: a second door into every account
+   if it is ever live in production.
+2. **A test-only session mint.** An internal mutation that issues a session for
+   a seeded user, reachable only from a test build. Narrower than a whole
+   provider, but it is still an auth bypass and wants the same care.
+3. **Accept the split.** Browser e2e covers the anonymous path only; durability
+   is asserted in `convex-test` and never in a browser. Costs nothing and adds
+   no bypass — the honest cost is that the sign-in-then-save hand-off, which is
+   exactly what P3 risks getting wrong, would have no end-to-end test.
+
+Option 3 is the status quo made explicit and is defensible; option 1 is the one
+that actually covers P3's risk. **This is a security-shaped choice, so it is not
+being made unilaterally.**
+
+**Gate.** Depends on which option above is chosen. Under 1 or 2:
 
 - The full e2e suite passes with `VITE_CONVEX_URL` set and a signed-in fixture.
 - The full e2e suite passes with it unset, exercising in-memory mode.
 - At least one e2e asserts durability across a reload — the assertion P3 is
   actually about.
 - Teardown verified: a second consecutive run is not polluted by the first.
+- **The bypass cannot reach production.** Asserted by a test, not by a comment:
+  a production-shaped build must not expose the provider or the mutation.
+
+Under option 3, the gate is smaller and honest about what it does not cover:
+
+- The full e2e suite passes with `VITE_CONVEX_URL` unset, exercising in-memory
+  mode.
+- Durability is asserted in `test/convex/*` for every store P4 rewires.
+- The sign-in-then-save hand-off is covered by unit and component tests, and the
+  plan records that it has no end-to-end coverage.
 
 ---
 
