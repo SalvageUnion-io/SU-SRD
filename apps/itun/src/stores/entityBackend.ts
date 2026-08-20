@@ -277,6 +277,46 @@ export async function commitEntityWrite(
  * wire.
  */
 /**
+ * Mirror a batch of Change Log rows.
+ *
+ * The log is ADR-030's "spine of this feature", and it was two disconnected
+ * spines: the client appended only to IndexedDB while the server table was
+ * written only by `ownership`, `proposals` and `botClient`. Each drawer showed
+ * half the history, and clearing site data destroyed the client half because
+ * Convex held no copy of it.
+ *
+ * Deliberately NOT awaited by its caller, unlike every other commit in this
+ * file. The log is provenance ABOUT a write that has already happened and been
+ * committed; failing the user's edit because its audit row did not land would
+ * trade a real write for a record of one. It reports and moves on — which is
+ * the fire-and-forget shape ADR-034 removed everywhere else, kept here only
+ * because the thing at risk is the annotation rather than the data.
+ */
+export async function commitChangeLog(
+  entries: readonly {
+    gameId: string | null
+    entityType: 'pilot' | 'mech' | 'crawler' | 'softLink' | 'game'
+    entityId: string
+    ts: number
+    kind: 'transaction' | 'override' | 'manual'
+    field: string
+    before: unknown
+    after: unknown
+    source: string
+  }[]
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (entries.length === 0) return
+
+  await convexClient.mutation(api.entities.appendChangeLog, {
+    entries: entries.map((e) => ({
+      ...e,
+      gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
+    })),
+  })
+}
+
+/**
  * Mirror one saved-pattern write.
  *
  * Addressed by the id inside the body rather than by an `appId` column, because
