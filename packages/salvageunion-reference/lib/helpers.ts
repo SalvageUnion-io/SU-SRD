@@ -9,13 +9,7 @@ import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
 import type { EnhancedSchemaMetadata } from './ModelFactory.js'
 import { getSchemaCatalog } from './ModelFactory.js'
 import { getEntitySlug } from './slug.js'
-import type {
-  SURefCrawler,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefObjectAdvancedClass,
-  SURefObjectCrawlerMutation,
-} from './types/index.js'
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js'
 import {
   getActionType,
   getAssetUrl,
@@ -137,55 +131,6 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
 // ============================================================================
 // CRAWLER HELPERS
 // ============================================================================
-
-/**
- * Find a crawler by ID
- * @param crawlerId - The ID of the crawler to find
- * @returns The crawler or undefined if not found
- */
-
-export function findCrawlerById(
-  crawlerId: string
-): (SURefCrawler & { schemaName: string }) | undefined {
-  return SalvageUnionReference.get('crawlers', crawlerId)
-}
-
-/**
- * Get all mutations for a crawler type by ID
- * @param crawlerId - The crawler type ID
- * @returns Array of mutations, or empty array if none
- */
-
-export function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutation[] {
-  const crawler = findCrawlerById(crawlerId)
-  return crawler?.mutations ?? []
-}
-
-/**
- * Get the total weapon slot count for a crawler type.
- * Base is 1 (from the Armament Bay) plus any weapon_slots mutations.
- * @param crawlerId - The crawler type ID
- * @returns Total weapon slots available
- */
-
-export function getWeaponSlotCount(crawlerId: string): number {
-  const mutations = getCrawlerMutations(crawlerId)
-  const bonus = mutations
-    .filter((m) => m.type === 'weapon_slots')
-    .reduce((sum, m) => sum + m.value, 0)
-  return 1 + bonus
-}
-
-/**
- * Get the max SP bonus from a crawler type's mutations.
- * @param crawlerId - The crawler type ID
- * @returns Sum of max_sp_bonus mutation values
- */
-
-export function getMaxSpBonus(crawlerId: string): number {
-  const mutations = getCrawlerMutations(crawlerId)
-  return mutations.filter((m) => m.type === 'max_sp_bonus').reduce((sum, m) => sum + m.value, 0)
-}
 
 // ============================================================================
 // GAME RULE CONSTANTS

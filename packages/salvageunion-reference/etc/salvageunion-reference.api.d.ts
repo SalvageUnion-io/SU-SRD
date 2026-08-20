@@ -895,7 +895,7 @@ export declare const SCHEMA_REGISTRY: {
  */
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EnhancedSchemaMetadata } from './ModelFactory.js';
-import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js';
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
@@ -929,33 +929,6 @@ export declare function resolveGrantedEntities(entity: SURefEntity): SURefEntity
 export declare function getHybridClasses(): (SURefObjectAdvancedClass & {
     schemaName: string;
 })[];
-/**
- * Find a crawler by ID
- * @param crawlerId - The ID of the crawler to find
- * @returns The crawler or undefined if not found
- */
-export declare function findCrawlerById(crawlerId: string): (SURefCrawler & {
-    schemaName: string;
-}) | undefined;
-/**
- * Get all mutations for a crawler type by ID
- * @param crawlerId - The crawler type ID
- * @returns Array of mutations, or empty array if none
- */
-export declare function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutation[];
-/**
- * Get the total weapon slot count for a crawler type.
- * Base is 1 (from the Armament Bay) plus any weapon_slots mutations.
- * @param crawlerId - The crawler type ID
- * @returns Total weapon slots available
- */
-export declare function getWeaponSlotCount(crawlerId: string): number;
-/**
- * Get the max SP bonus from a crawler type's mutations.
- * @param crawlerId - The crawler type ID
- * @returns Sum of max_sp_bonus mutation values
- */
-export declare function getMaxSpBonus(crawlerId: string): number;
 /**
  * Resolve the activation currency for a given schema/entity category.
  * Mech-level sources (chassis, systems, modules) cost EP; variable-cost abilities
@@ -13323,7 +13296,7 @@ export * from './enums.js';
 export * from './objects.js';
 import type { AbilitySchema, AbilityTreeRequirementSchema, BioTitanSchema, CatalogCategorySchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerSchema, CrawlerTechLevelSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, GuideSchema, KeywordSchema, MeldSchema, MetaActionSchema, ModuleSchema, NPCSchema, RollTableSchema, SourceEntitySchema, SquadSchema, SystemSchema, TechLevelEntitySchema, TraitEntitySchema, VehicleSchema } from './entities.js';
 import type { SchemaNameSchema } from './enums.js';
-import type { AdvancedClassSchema, ChoiceSchema, ContentBlockSchema, ContentSchema, CrawlerMutationSchema, DamageSchema, DataValueSchema, FormationMechSchema, GrantSchema, GuideStepSchema, PatternSchema, PatternSystemModuleSchema, StatsSchema, SystemModuleSchema, TableContentSchema, TableSchema, TraitSchema } from './objects.js';
+import type { AdvancedClassSchema, ChoiceSchema, ContentBlockSchema, ContentSchema, DamageSchema, DataValueSchema, FormationMechSchema, GrantSchema, GuideStepSchema, PatternSchema, PatternSystemModuleSchema, StatsSchema, SystemModuleSchema, TableContentSchema, TableSchema, TraitSchema } from './objects.js';
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>;
 export type SURefObjectTrait = z.infer<typeof TraitSchema>;
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>;
@@ -13340,7 +13313,6 @@ export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>;
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>;
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>;
 export type SURefObjectGrant = z.infer<typeof GrantSchema>;
-export type SURefObjectCrawlerMutation = z.infer<typeof CrawlerMutationSchema>;
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>;
 export type SURefObjectActionOptions = Array<{
     label: string;
