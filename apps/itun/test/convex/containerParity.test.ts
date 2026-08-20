@@ -26,8 +26,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { api } from '../../convex/_generated/api'
 import schema from '../../convex/schema'
 import { STORE_NAMES } from '../../src/lib/db/stores'
+import { testConvex } from './harness'
 
 /**
  * The little of a Convex column validator this test reads.
@@ -75,6 +77,68 @@ describe('container parity — every local store can reach the server', () => {
     // A negative control. If `workspaces` ever gains a server table the
     // exemption is obsolete and should be deleted, not carried forward.
     expect(convexTables().has('workspaces')).toBe(false)
+  })
+
+  /**
+   * The assertion that protects a deploy against a live database.
+   *
+   * Convex validates **every existing document** against the schema when it is
+   * pushed. `crawlers` and `encounterNpcs` gained an `ownerId` long after both
+   * tables had production rows, so a *required* column there would have made
+   * the deploy fail on rows that are otherwise perfectly valid — and the failure
+   * would arrive at deploy time, against real data, which is the worst place to
+   * discover it.
+   *
+   * `publicRead` two columns above already records this rule ("the correct
+   * default for every row that already exists"); these tests are that rule made
+   * executable, so the next person to add a column to a populated table finds
+   * out here instead of in production.
+   */
+  test('a row written before ownerId existed still validates', async () => {
+    const t = testConvex()
+
+    await t.run(async (ctx) => {
+      const gameId = await ctx.db.insert('games', { name: 'Legacy table' })
+
+      // Exactly the shape a pre-#871 crawler has on disk: no `ownerId` key at
+      // all, not `ownerId: null`. If this throws, the schema is not deployable
+      // against the existing database.
+      await ctx.db.insert('crawlers', {
+        gameId,
+        body: { name: '#430' },
+        updatedAt: 1,
+      } as never)
+
+      await ctx.db.insert('encounterNpcs', {
+        gameId,
+        body: { name: 'Ambush' },
+      } as never)
+    })
+
+    const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
+    const npcs = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(crawlers).toHaveLength(1)
+    expect(npcs).toHaveLength(1)
+  })
+
+  test('absent ownerId is treated as unowned, never as a match', async () => {
+    const t = testConvex()
+    const userId = await t.run(async (ctx) => await ctx.db.insert('users', { name: 'Me' }))
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('crawlers', {
+        gameId: null,
+        body: { name: 'Orphan' },
+        updatedAt: 1,
+      } as never)
+    })
+
+    // `listMine` reads `by_owner`, and a row with no `ownerId` must not come
+    // back for anybody. Every comparison against `ownerId` in the codebase is
+    // an equality test, so absent fails closed — which is the direction that
+    // cannot leak somebody else's build into a roster.
+    const mine = await t.withIdentity({ subject: userId }).query(api.entities.listMine, {})
+    expect(mine.crawlers).toEqual([])
   })
 
   /**

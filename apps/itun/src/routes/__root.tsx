@@ -5,6 +5,7 @@ import { AppHeader, EntityHrefProvider, RecoveryPanel, Toaster } from 'component
 import { useState } from 'react'
 import { AccountStrip } from '../components/account/AccountStrip'
 import { ShelfSync } from '../components/account/ShelfSync'
+import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AnonymousWorkPromoter, UnsavedWorkBanner } from '../components/account/UnsavedWorkBanner'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
@@ -97,6 +98,8 @@ function RootComponent() {
               mounted here because a roster is needed on every route, not only
               the one that happens to list it. */}
           <ShelfSync />
+          {/* A test seam, compiled out of production builds — see its header. */}
+          <TestAuthBridge />
           <AppHeader
             onSearchClick={() => setSearchOpen(true)}
             LinkComponent={AppLink}
