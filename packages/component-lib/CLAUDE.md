@@ -17,11 +17,10 @@ files, and every component migrated from here on lands on them:
 | File | Role |
 | --- | --- |
 | [`src/design/tokens.ts`](src/design/tokens.ts) | The typed token scale — colour, space, font size, weight, tracking, radius, border width. Plain `as const` objects, no dependency. |
-| [`src/design/styles.ts`](src/design/styles.ts) | Exported `React.CSSProperties` objects for **static** styling, each `satisfies` the type. **`buttonPrimary` / `buttonSecondary` are a known defect — see below; do not copy them.** |
 | [`src/styles/index.css`](src/styles/index.css) | The **one** stylesheet a web consumer loads. Emits the scale as `--su-*` custom properties, binds the page ground and body face, and carries every rule a style object cannot express. |
 
-Both halves of the pattern are load-bearing. The token scale and the style objects
-are the visible half; the stylesheet is the half that is easy to miss, and
+Both halves of the pattern are load-bearing. The token scale is the visible half;
+the stylesheet is the half that is easy to miss, and
 dropping it would be a functional regression rather than a styling change.
 
 ### The split rule
@@ -78,19 +77,31 @@ component-lib alone there are ~127 stateful usages (81 `hover:`, 14 `disabled:`,
 `background-color` / `border-color` / `color` into the stylesheet with it. That
 growth is the rule working, not scope creep.
 
-#### `styles.buttonPrimary` / `buttonSecondary` are a known defect (#813)
+#### `src/design/styles.ts` was removed, and #813 is why it is worth knowing
 
-They put `backgroundColor` inline, and `index.css` pairs them with
-`.su-button:hover { filter: brightness(0.94) }`. That renders — but only because
-`filter` is a **different property** from `background-color`, so it sidesteps the
-collision above instead of resolving it. It does not generalise: the real
-`Button` swaps to a NAMED colour per variant (`hover:bg-ink-8`,
-`hover:bg-rust-hi`, `hover:border-rust-hi`), and approximating those with a
-brightness filter would be a re-tone, not a port.
+L1 (#798) shipped a `styles.ts` of 21 `CSSProperties` objects ahead of any
+consumer. It never acquired one: measured before deletion, 20 had no consumer
+anywhere and the 21st (`buttonBase`) was reached only by two of the other twenty.
+It has been deleted rather than carried into L2 (#799).
 
-Nothing consumes the two objects yet, so they are left in place rather than
-churned — but **they are not the pattern to copy.** A button's colours belong in
-a `.su-btn--*` class, resting value included.
+This section previously read "nothing consumes the two objects yet, so they are
+left in place rather than churned", and that sentence was cited as the governing
+decision — so it is replaced rather than dropped, to avoid a reader finding the
+old wording and reinstating the file.
+
+The defect it recorded is the reason deleting beat keeping. `buttonPrimary` /
+`buttonSecondary` put `backgroundColor` inline, and `index.css` paired them with
+`.su-button:hover { filter: brightness(0.94) }`. That renders only because
+`filter` is a **different property** from `background-color`, so it sidesteps
+the collision above instead of resolving it, and it does not generalise: the
+real `Button` swaps to a NAMED colour per variant (`hover:bg-ink-8`,
+`hover:bg-rust-hi`, `hover:border-rust-hi`), which a brightness filter re-tones
+rather than ports.
+
+**The rule that outlives the file:** a button's colours belong in a
+`.su-btn--*` class, resting value included. When L2 migrates a component,
+introduce the style object it needs alongside that component — do not restore a
+speculative set designed before its call sites were understood.
 
 ### The one exemption: class-string exports are stylesheet-only
 

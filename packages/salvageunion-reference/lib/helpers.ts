@@ -9,13 +9,7 @@ import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
 import type { EnhancedSchemaMetadata } from './ModelFactory.js'
 import { getSchemaCatalog } from './ModelFactory.js'
 import { getEntitySlug } from './slug.js'
-import type {
-  SURefCrawler,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefObjectAdvancedClass,
-  SURefObjectCrawlerMutation,
-} from './types/index.js'
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js'
 import {
   getActionType,
   getAssetUrl,
@@ -138,55 +132,6 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
 // CRAWLER HELPERS
 // ============================================================================
 
-/**
- * Find a crawler by ID
- * @param crawlerId - The ID of the crawler to find
- * @returns The crawler or undefined if not found
- */
-
-export function findCrawlerById(
-  crawlerId: string
-): (SURefCrawler & { schemaName: string }) | undefined {
-  return SalvageUnionReference.get('crawlers', crawlerId)
-}
-
-/**
- * Get all mutations for a crawler type by ID
- * @param crawlerId - The crawler type ID
- * @returns Array of mutations, or empty array if none
- */
-
-export function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutation[] {
-  const crawler = findCrawlerById(crawlerId)
-  return crawler?.mutations ?? []
-}
-
-/**
- * Get the total weapon slot count for a crawler type.
- * Base is 1 (from the Armament Bay) plus any weapon_slots mutations.
- * @param crawlerId - The crawler type ID
- * @returns Total weapon slots available
- */
-
-export function getWeaponSlotCount(crawlerId: string): number {
-  const mutations = getCrawlerMutations(crawlerId)
-  const bonus = mutations
-    .filter((m) => m.type === 'weapon_slots')
-    .reduce((sum, m) => sum + m.value, 0)
-  return 1 + bonus
-}
-
-/**
- * Get the max SP bonus from a crawler type's mutations.
- * @param crawlerId - The crawler type ID
- * @returns Sum of max_sp_bonus mutation values
- */
-
-export function getMaxSpBonus(crawlerId: string): number {
-  const mutations = getCrawlerMutations(crawlerId)
-  return mutations.filter((m) => m.type === 'max_sp_bonus').reduce((sum, m) => sum + m.value, 0)
-}
-
 // ============================================================================
 // GAME RULE CONSTANTS
 // ============================================================================
@@ -243,6 +188,45 @@ export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number
   if (techLevel === 'B') return 7
   if (techLevel === 'N') return 8
   return typeof techLevel === 'number' ? techLevel : Number.POSITIVE_INFINITY
+}
+
+/**
+ * The canonical "Tech Level, then name" comparator.
+ *
+ * This exists because the expression it replaces was written out by hand at
+ * three call sites and one of them got it wrong — using `Number(a.techLevel)`
+ * instead of {@link techLevelRank}. The failure is quieter than it first looks:
+ * `Number('B') - 1` is `NaN`, and `NaN` is FALSY, so the `||` falls straight
+ * through to the name tiebreak. A Bio or Nanite item is therefore not randomly
+ * ordered — it is ordered purely by NAME, interleaved among the numeric tiers
+ * instead of sorted after them. Plausible-looking output is exactly why it
+ * survived at two call sites. It was dormant only by luck of the data:
+ * `equipment.json` happens to carry no Bio or Nanite entries, while
+ * `systems.json` has 7 B + 3 N and `modules.json` 3 B + 3 N — so the same
+ * expression copied one file over ships a scrambled list.
+ *
+ * A comparator is exactly the kind of thing that should not be re-derived per
+ * widget: the ordering is a property of the game's taxonomy, the bug is silent,
+ * and the wrong version looks right.
+ *
+ * **One hand-rolled comparator is deliberately NOT folded in.**
+ * `component-lib/src/components/shared/EntitySearcher.tsx` composes
+ * `techLevelRank` correctly — no NaN — but short-circuits to the name tiebreak
+ * whenever EITHER side's Tech Level is `undefined`, where this ranks `undefined`
+ * last. That is a real behavioural difference on TL-less entities, not a
+ * cosmetic one, so switching it is a decision about search ordering rather than
+ * a de-duplication. Left alone on purpose; noted here so "all the call sites use
+ * the shared one" is not read as a claim about that file.
+ *
+ * @param a - Entity-shaped value carrying a Tech Level and a name
+ * @param b - The value to compare against
+ * @returns Negative, zero or positive, per Array#sort
+ */
+export function byTechLevelThenName(
+  a: { techLevel?: number | 'B' | 'N'; name: string },
+  b: { techLevel?: number | 'B' | 'N'; name: string }
+): number {
+  return techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
 }
 
 /**

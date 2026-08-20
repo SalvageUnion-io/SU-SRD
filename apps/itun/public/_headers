@@ -1,0 +1,79 @@
+# Response headers for intheunionnow.com.
+#
+# Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
+# Assets (ADR-033). Netlify reads the same file format, so during the cutover
+# BOTH hosts serve these — which is what makes the parallel phase meaningful
+# rather than a comparison of two different configurations.
+#
+# This file exists because it did not. srd got a `_headers` when its CSP moved
+# out of `netlify.toml`; itun did not, and `apps/itun/wrangler.jsonc` binds
+# intheunionnow.com as a custom domain. So between the Cloudflare flip and this
+# commit the production SPA served no CSP, no HSTS, no X-Frame-Options and no
+# nosniff at all: `src/worker/index.ts` forwards asset responses untouched, and
+# every policy below still lived in a `netlify.toml` for a host that had stopped
+# answering.
+#
+# This is a port of `apps/itun/netlify.toml`'s header block, with two stated
+# exceptions: the `/*.html` rule below is an ADDITION (the toml has no
+# counterpart), and srd's `immutable` image rules are deliberately NOT copied
+# here. Everything in the toml's `/*` and `/assets/*` blocks is present
+# unchanged, CSP included.
+#
+# `tools/check-observability.ts` reads whichever sources exist and holds every
+# one that declares a policy to the same rule. Note what that did NOT catch: an
+# *absent* source is not a declaring source, so itun passed on the strength of
+# the toml alone. The checker now also requires this file to exist whenever the
+# app's `wrangler.jsonc` declares `assets` — see `declaresStaticAssets` there.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-DNS-Prefetch-Control: on
+  # connect-src MUST list Sentry's ingest origin or the browser blocks every
+  # event before it leaves the page — a DSN alone is not enough, and that
+  # failure is silent AND looks healthy (zero errors reported).
+  #
+  # `de`, not `us`: this org is in Sentry's EU data region. A DSN issued in one
+  # region under a CSP written for the other is blocked in the browser and the
+  # project reports nothing — indistinguishable, from outside, from "no errors".
+  #
+  # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
+  # which fails CI if this drifts. Wildcarded subdomain because the host encodes
+  # the Sentry org id.
+  #
+  # The Convex entries are load-bearing for the same reason and fail the same
+  # silent way. The accounts client (ADR-030) opens a WebSocket to the
+  # deployment for its reactive queries and POSTs mutations over HTTPS, and
+  # `@convex-dev/auth` exchanges tokens against the deployment's `.site` origin.
+  # Omit these and every one of those is blocked before it leaves the page:
+  # VITE_CONVEX_URL is set, the client constructs happily, the app reports
+  # itself Connected — and nothing ever reaches the server. Sign-in simply
+  # never completes, with no error surface.
+  #
+  # Wildcarded per deployment name, like the Sentry host, because the deployment
+  # differs by context: production is `exuberant-porpoise-183`, while a branch
+  # deploy or a local `convex dev` points elsewhere. Both schemes are required —
+  # `wss:` does NOT inherit from `https:`.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+
+# Content-hashed bundle output from Vite's default assetsDir.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# NOT immutable, and this is the one place this file deliberately differs from
+# srd's. srd's icons and artwork really are content-addressed, so it marks
+# `/*.png` etc. immutable for a year. itun's `public/` holds `favicon.svg`,
+# `icon-192.png`, `icon-512.png` and `logos/` — FIXED names that are mutated in
+# place on redesign. A year of `immutable` on those means a changed icon that no
+# amount of reloading can dislodge, so no such rule is written here.
+#
+# HTML must never be cached: a deploy rotates the hashed chunk names, and a
+# stale document names chunks that no longer exist. This is the SPA shell, so a
+# stale copy breaks every route rather than one page. It is the one rule in this
+# file with no `netlify.toml` counterpart — an addition rather than a port, kept
+# because Cloudflare's asset serving would otherwise be free to cache the shell.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

@@ -10,7 +10,11 @@
  * tree-shaken out of the client bundle entirely.
  *
  * No DSN is ever committed; it is supplied via the host's build environment
- * (Netlify) as a `PUBLIC_`-prefixed variable so Astro exposes it to the client.
+ * (Netlify) as a `PUBLIC_`-prefixed variable. The prefix is Astro-era naming
+ * kept deliberately: Astro is long gone, and it works only because
+ * `ssg/vite.config.ts` sets `envPrefix: 'PUBLIC_'` for exactly this reason.
+ * Renaming it to `VITE_` is a coordinated live-site env change, not a
+ * drive-by — see the same variable in `netlify.toml` and `deploy-cloudflare.yml`.
  *
  * CSP note: the browser SDK POSTs events to the ingest host encoded in the
  * DSN. srd ships a strict CSP (see apps/srd/netlify.toml); when a

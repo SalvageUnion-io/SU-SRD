@@ -1,6 +1,6 @@
 import { Badge, EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
+import { byTechLevelThenName, SalvageUnionReference } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
 import type { TechLevel } from '../../lib/rules/types'
 
@@ -31,10 +31,7 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
     const accessor =
       kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
     const items = accessor.all()
-    return [...items].sort(
-      (a, b) =>
-        techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
-    )
+    return [...items].sort((a, b) => byTechLevelThenName(a, b))
   }, [kind])
 
   const visible =

@@ -414,21 +414,14 @@ for (const v of violations) {
  * The rule stands: a stricter rule may rebaseline upward ONCE, in the same
  * commit that tightens it, with the reason written down. Drift may not.
  *
- * STATUS: the backlog is GONE. Every rule now sits at 0, so this file has
- * stopped being a burn-down chart and is purely a regression guard — the next
- * violation of any rule fails CI outright rather than joining a queue.
+ * STATUS: 24 known violations remain, and this file is still a burn-down chart.
  *
- * Worth recording WHY it emptied, because "we tidied up" is the wrong lesson.
- * Almost none of it was carelessness; in every cluster the vocabulary was
- * missing a word and the call sites had improvised the same one independently:
- *   - 26 shadow colours -> the ink alpha ladder was missing its -20/-40/-85
- *     rungs (and the guard could not see the values at all, so nothing ever
- *     pushed back).
- *   - 28 font sizes -> the type ladder stopped at 15px and jumped to 26px, so
- *     ten sizes in between were re-derived by eye, component by component.
- *   - 2 border widths -> `border-l-entity` did not exist, only `border-b-`.
- * The lesson that generalises: when a rule shows a CLUSTER rather than a
- * scatter, suspect the ladder before the authors.
+ * A previous version of this comment read "the backlog is GONE. Every rule now
+ * sits at 0" while `design-tokens-baseline.json` recorded `raw-color: 22` and
+ * `arbitrary-font-size: 2`, and the gate printed "24 known, burning down" on
+ * every run. The 22 are the Discord bot restating the palette as hex integers
+ * (`format.ts`, `gameEmbed.ts`, `lookupEmbed.ts` — `0xb7410e` is `--color-rust`,
+ * three times over); the 2 are `WizShell.tsx` and `LiveSheet.tsx`.
  */
 const BASELINE_PATH = join(import.meta.dir, 'design-tokens-baseline.json')
 

@@ -42,12 +42,41 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P1    | Test and e2e path that does not depend on Solo             | yes        | **done**    |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account (mechanism; flip deferred)  | yes        | **done**    |
-| P4    | Demote IndexedDB to a cache (read path; rest in P4b)       | **no**     | **done**    |
+| P4    | Demote IndexedDB to a cache (read path; rest in P4b)       | **no**     | **partial** |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
 | —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
 | P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
-| P4b   | Remove the mirrors; prune the cache                        | **no**     | **done**    |
+| P4b   | Remove the mirrors; prune the cache                        | **no**     | **partial** |
 | P7    | `srd` install-triggered offline                            | yes        | **done**    |
+
+> **P4 and P4b read `partial`, not `done`, and the correction matters more than
+> the rows.** They were marked `done` while P4's own section below is still
+> headed **"Work still outstanding"** — and the code agrees with the prose, not
+> the markers. `src/stores/makeHydratedCollection.ts` contains no
+> `commitWrite`, no `commitEntityWrite` and no `requireWritableBackend`, so the
+> two stores built on it never reach the server on write.
+>
+> CI did not catch it because `test/convex/containerParity.test.ts` asserts that
+> every local store has a Convex **table** — never that it has a **writer**. A
+> gate one word narrower than its purpose.
+>
+> Still outstanding, precisely:
+>
+> - **`mechPatterns` writes do not mirror.** The READ path now works (`ShelfSync`
+>   adopts them, #889) but a save still lands only on the device.
+> - **`encounterNpcs` are write-only.** `claimLocal` and `games.destroy` write
+>   `ownerId`, and nothing reads it back: `mediator.npcs` requires a `gameId`
+>   and `entities.listMine` omits the table entirely.
+> - **Client Change Log appends never leave the device.** `entityStore.ts`
+>   terminates at `db.changeLog.append`, and no client code calls any `changeLog`
+>   mutation. The server table is written only by `ownership`, `proposals` and
+>   `botClient`, so the two logs are disjoint — each drawer shows half.
+> - **Shelf soft-link deletes do not reconcile.** `entityStore.delete` prunes
+>   them locally; `listMine` returns no `softLinks`, so the server rows persist.
+>
+> A false `done` is the most expensive line in a plan, because every later
+> reader takes it on trust. Move these to `done` when a store's WRITE reaches
+> Convex, not when its table exists.
 
 P0–P2 are all reversible and all buy information. P3 and P4 are the one-way
 doors and they are deliberately late.

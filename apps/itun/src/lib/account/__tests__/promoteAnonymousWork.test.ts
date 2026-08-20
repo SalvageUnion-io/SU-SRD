@@ -152,3 +152,44 @@ describe('promoteAnonymousWork', () => {
     expect(claim.calls[0]?.pilots).toEqual([])
   })
 })
+
+/**
+ * A promotion that RESOLVES can still have stranded work — and that is the case
+ * the first version of this guard missed.
+ *
+ * `claimLocal` does not throw on per-row failure. A body that fails Zod comes
+ * back as `skipped`; an `appId` already present in any account comes back as
+ * `alreadyPresent` (which a shared or imported build genuinely can be, since
+ * import keeps ids). Both leave the row present locally and absent from the
+ * server — exactly what `rowMayBePruned` reads as "deleted elsewhere".
+ *
+ * So keying the guard on rejection alone left the original bug intact for the
+ * partial case: no error, state `idle`, and the prune then forgets the rows
+ * that never made it. These pin the arithmetic that decides it.
+ */
+describe('a resolved-but-partial promotion must not read as success', () => {
+  const stranded = (r: { claimed: number; skipped: number; alreadyPresent: number }) =>
+    r.skipped + r.alreadyPresent
+
+  test('a fully-claimed result strands nothing', () => {
+    expect(stranded({ claimed: 3, skipped: 0, alreadyPresent: 0 })).toBe(0)
+  })
+
+  test('a skipped row is stranded', () => {
+    // Body failed Zod on the server: counted, not thrown.
+    expect(stranded({ claimed: 2, skipped: 1, alreadyPresent: 0 })).toBe(1)
+  })
+
+  test('an already-present appId is stranded', () => {
+    // The imported-build case. The server declines the insert and reports it.
+    expect(stranded({ claimed: 2, skipped: 0, alreadyPresent: 1 })).toBe(1)
+  })
+
+  test('claimed count alone cannot distinguish the two', () => {
+    // Guards against a "fix" that checks `claimed > 0` — which is true in every
+    // partial case and would restore exactly the bug.
+    const partial = { claimed: 2, skipped: 0, alreadyPresent: 1 }
+    expect(partial.claimed).toBeGreaterThan(0)
+    expect(stranded(partial)).toBeGreaterThan(0)
+  })
+})

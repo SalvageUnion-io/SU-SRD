@@ -29,15 +29,16 @@
  * or when there is no work, which are the two states in which it is untrue.
  */
 
-import { Text } from 'component-lib'
+import { Button, Text } from 'component-lib'
 import { useMutation } from 'convex/react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import {
   captureAnonymousWork,
   countAnonymousWork,
   promoteAnonymousWork,
 } from '../../lib/account/promoteAnonymousWork'
+import { setPromotionState } from '../../lib/account/promotionState'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
 import { captureException } from '../../lib/observability'
@@ -134,12 +135,84 @@ function ConnectedPromoter() {
   const armed = useRef(false)
   /** Stops a re-render mid-promotion starting a second one. */
   const running = useRef(false)
-
   const backend = selectBackend()
   const pilots = useEntityStore((s) => s.list('pilot'))
   const mechs = useEntityStore((s) => s.list('mech'))
   const crawlers = useEntityStore((s) => s.list('crawler'))
   const hasWork = pilots.length + mechs.length + crawlers.length > 0
+
+  /**
+   * The promotion itself, extracted so the retry control can invoke it.
+   *
+   * It used to live inline in the effect below, and there was then no retry at
+   * all: `armed` stays true after a failure so that "a later attempt can pick
+   * it up", but the effect's deps — `backend`, `hasWork`, `claimLocal` — are
+   * all stable by that point, so it never re-ran and no later attempt existed.
+   * The error text said "Try again" while offering nothing that could.
+   */
+  const runPromotion = useCallback(() => {
+    if (running.current) return
+
+    running.current = true
+    const work = captureAnonymousWork()
+    if (countAnonymousWork(work) === 0) {
+      armed.current = false
+      running.current = false
+      setPromotionState('idle')
+      return
+    }
+
+    // Announce BEFORE the await. `ShelfSync` prunes local rows the server did
+    // not return, and until this promotion lands these rows are exactly that —
+    // present locally, absent from `listMine`. Publishing the state only on
+    // failure would leave the in-flight window unguarded.
+    setPromotionState('pending')
+
+    void promoteAnonymousWork(claimLocal, work)
+      .then((result) => {
+        armed.current = false
+
+        // A resolved promise does NOT mean everything reached the server.
+        // `claimLocal` reports per-row failure in its RETURN VALUE, not by
+        // throwing: a body that fails Zod is counted as `skipped`, and an
+        // `appId` already present in any account is counted as `alreadyPresent`
+        // (which a shared/imported build really can be, since import keeps ids).
+        // Both leave the row present locally and absent from the server —
+        // exactly the state `rowMayBePruned` reads as "deleted elsewhere".
+        //
+        // Keying the guard on the rejection alone therefore left the original
+        // bug intact for the partial case: no error, state `idle`, and
+        // `ShelfSync` then forgets the rows that did not make it.
+        const stranded = result.skipped + result.alreadyPresent
+        if (stranded > 0) {
+          setPromotionState('failed')
+          setError(
+            `${stranded} ${stranded === 1 ? 'build' : 'builds'} could not be saved to your ` +
+              `account. Your work is still here — export it before clearing this browser.`
+          )
+          return
+        }
+
+        setError(null)
+        setPromotionState('idle')
+      })
+      .catch((err: unknown) => {
+        // The caches still hold the work, and `ShelfSync` must be told so it
+        // does not read that as "deleted elsewhere" and forget it. Before this
+        // signal existed the comment here said "nothing is lost when this
+        // fails" — which was true of this function and false of the app, since
+        // the prune then deleted precisely the rows it was reporting on.
+        setPromotionState('failed')
+        if (isServerRefusal(err)) setError(serverMessage(err))
+        else {
+          captureException(err)
+          setError('That could not be saved to your account.')
+        }
+      })
+      .finally(() => {
+        running.current = false
+      })
+  }, [claimLocal])
 
   useEffect(() => {
     if (backend === 'memory' && hasWork) {
@@ -149,41 +222,35 @@ function ConnectedPromoter() {
 
     // `remote` rather than "not memory" so a Disconnected reader, who cannot
     // write at all, never starts a promotion that would fail halfway through.
-    if (backend !== 'remote' || !armed.current || running.current) return
+    if (backend !== 'remote' || !armed.current) return
 
-    running.current = true
-    const work = captureAnonymousWork()
-    if (countAnonymousWork(work) === 0) {
-      armed.current = false
-      running.current = false
-      return
-    }
-
-    void promoteAnonymousWork(claimLocal, work)
-      .then(() => {
-        armed.current = false
-      })
-      .catch((err: unknown) => {
-        // Nothing is lost when this fails — the caches still hold the work — so
-        // it reports and stops rather than retrying into a loop against a server
-        // that is refusing. `armed` stays true so a later attempt can pick it up.
-        if (isServerRefusal(err)) setError(serverMessage(err))
-        else {
-          captureException(err)
-          setError('That could not be saved to your account. Try again.')
-        }
-      })
-      .finally(() => {
-        running.current = false
-      })
-  }, [backend, hasWork, claimLocal])
+    runPromotion()
+  }, [backend, hasWork, runPromotion])
 
   if (error === null) return null
   return (
-    <div className="border-b-2 border-ink bg-paper px-4 py-3">
+    <div className="flex items-center justify-between gap-3 border-b-2 border-ink bg-paper px-4 py-3">
       <Text variant="hint" className="text-left text-[var(--color-roll-cascade)]">
         {error}
       </Text>
+      <Button
+        variant="default"
+        size="compact"
+        // `backend === 'remote'` here for the same reason the effect checks it:
+        // a Disconnected reader cannot write, and starting a promotion there
+        // pins `running.current` against a mutation that may never settle —
+        // which leaves `promotionState` at `pending` and pruning disabled for
+        // the rest of the session. The effect had this guard; the button did
+        // not, and the button is the one a frustrated user presses repeatedly.
+        disabled={backend !== 'remote'}
+        onClick={() => {
+          if (backend !== 'remote') return
+          setError(null)
+          runPromotion()
+        }}
+      >
+        Try again
+      </Button>
     </div>
   )
 }

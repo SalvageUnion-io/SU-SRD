@@ -20,12 +20,12 @@
  * a cache is not a user write, and a Disconnected reader must still be able to
  * open what they already pulled down.
  *
- * ## Pruning, and the two conditions that make it safe
+ * ## Pruning, and the three conditions that make it safe
  *
  * It also deletes local **shelf** rows the server did not return, which is what
  * finally makes "the cache is a reflection" literally true rather than
- * aspirational. It is the most destructive operation in the codebase, so both
- * guards below are load-bearing and neither is obvious.
+ * aspirational. It is the most destructive operation in the codebase, so every
+ * guard below is load-bearing and none is obvious.
  *
  * **1. Only shelf rows.** A local row absent from `listMine` is ambiguous, and
  * the ambiguity differs by container. `listMine` returns what the caller *owns*,
@@ -35,6 +35,14 @@
  * never pruned. A shelf row is different: `gameId: null` with no owner is the
  * one combination ADR-030 calls invalid, so every shelf row must be owned, and
  * every owned row is in `listMine`. Absence therefore means deleted.
+ *
+ * **3. Only when no anonymous work is waiting to reach the server.** A brand
+ * new visitor who built anonymously and signed in has no legacy roster, so
+ * guard 2 waves them through — but their builds are exactly as un-uploaded, and
+ * if promotion is still running or has FAILED then absence from `listMine`
+ * means "never arrived", not "deleted elsewhere". `promotionState()` carries
+ * that, and it is read AFTER the adoption loop awaits so a promotion that
+ * failed in the meantime is seen.
  *
  * **2. Only in a browser that never held a legacy roster.** This is the guard
  * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
@@ -49,12 +57,15 @@
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { promotionState } from '../../lib/account/promotionState'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
 import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
 import { captureException } from '../../lib/observability'
+import type { MechPattern } from '../../lib/schemas/pattern'
 import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
+import { usePatternStore } from '../../stores/patternStore'
 
 type Row = { appId?: string | null; body: unknown }
 
@@ -114,9 +125,42 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Prune only where absence is unambiguous — see the header. Both guards
-      // matter; dropping either turns this into a roster-deleter.
-      if (!mayPrune(legacyLocalDataState())) return
+      // Patterns live in their own store, and until now were fetched and then
+      // thrown away: `entities.listMine` returns `mechPatterns`, the stamp
+      // above already keys on them — so this effect re-runs when they change —
+      // and the `kinds` table above simply had no entry for them. A signed-in
+      // player on a second device got their pilots, mechs and crawlers and an
+      // empty pattern library, which is the exact gap ADR-034 P4b exists to
+      // close. The fetch half had landed; the adopt half had not.
+      //
+      // Pattern rows carry only `{ body }` — no `appId` — because a pattern is
+      // addressed by the id inside its body, which is likely why they were
+      // skipped when the `{ appId, body }` kinds were written.
+      const patterns = usePatternStore.getState()
+      for (const row of mine.mechPatterns as { body: unknown }[]) {
+        try {
+          await patterns.adopt(row.body as MechPattern)
+        } catch (err) {
+          // Same rule as the roster loop above: one unreadable pattern must not
+          // stop the rest of the library arriving.
+          captureException(err)
+        }
+      }
+
+      // Patterns are deliberately NOT pruned below. The prune answers "the
+      // server did not return this, so it was deleted elsewhere", and that
+      // inference is only sound for rows this sync is authoritative over.
+      // Adopting them is what the bug was; deleting them is a separate decision
+      // with a much worse failure mode, and nothing has asked for it.
+
+      // Prune only where absence is unambiguous — see the header. Every guard
+      // matters; dropping any one turns this into a roster-deleter.
+      //
+      // `promotionState()` is read HERE, after the adoption loop above has
+      // awaited, rather than captured when the effect started. A promotion
+      // running concurrently may have failed in between, and the whole point of
+      // the guard is to see that.
+      if (!mayPrune(legacyLocalDataState(), promotionState())) return
 
       for (const [kind, rows] of kinds) {
         const served = new Set(

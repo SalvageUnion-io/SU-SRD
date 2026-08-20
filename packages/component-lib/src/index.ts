@@ -5,18 +5,7 @@
 // single import site. One implementation lives in the package.
 export { isSchemaName } from 'salvageunion-reference'
 export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
-export type {
-  CatalogCard,
-  CatalogCategory,
-  CatalogSection,
-} from './catalog/catalogHelpers'
-export {
-  buildCatalogCategories,
-  catalogNameOverrides,
-  invariantNouns,
-  pluralize,
-  pluralizeWord,
-} from './catalog/catalogHelpers'
+export type { CatalogSection } from './catalog/catalogHelpers'
 // SRD catalog — the landing-page category sections, their tile colours, and the
 // schema-name guard. Shared so srd's landing page/top nav and the Dashboard's
 // SRD Explorer render one catalog rather than two hand-listed ones.
@@ -44,11 +33,10 @@ export { Callout } from './components/chrome/Callout'
 export { Checkbox, Radio } from './components/chrome/Checkbox'
 // ConditionChip is deliberately NOT exported: it is an internal sub-part of
 // Conditions (its only consumer), demonstrated via that component's story.
-export { Conditions } from './components/chrome/Conditions'
 export { CountStepper } from './components/chrome/CountStepper'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/chrome/EmptyState'
-export { Field, Input, Select, Textarea } from './components/chrome/Field'
+export { Field, Input, Select } from './components/chrome/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './components/chrome/FieldError'
 // Icon glyphs — currentColor, 1em, CSP-safe (ruleset §5, atom 11)
@@ -62,10 +50,7 @@ export { InlineEditField } from './components/chrome/InlineEditField'
  * re-invent.
  */
 export {
-  DISABLED,
   FOCUS_RING,
-  FOCUS_RING_ON_TONE,
-  FOCUS_WITHIN,
   INPUT_FOCUS,
 } from './components/chrome/interaction'
 export { KvRow } from './components/chrome/KvRow'
@@ -82,7 +67,6 @@ export { Slab } from './components/chrome/Slab'
 // Every hand-assembled '-'/value/'+' cluster in the apps now renders through
 // Stat's stepper anatomy instead, so nothing outside this package needs it.
 export { StatusBadge } from './components/chrome/StatusBadge'
-export { Toggle } from './components/chrome/Toggle'
 export type { ActionsDeckView, DeckRow } from './components/dashboard/ActionsDeck'
 export { ActionsDeck } from './components/dashboard/ActionsDeck'
 export type { ActiveItemBandView, BandButton } from './components/dashboard/ActiveItemBand'
@@ -92,7 +76,7 @@ export { ActiveItemBand, StorageBay } from './components/dashboard/ActiveItemBan
 // token scope; ITUN fills it with the store-wired grid + instruments.
 export { DashboardCanvas } from './components/dashboard/DashboardCanvas'
 export { DashboardGrid } from './components/dashboard/DashboardGrid'
-export type { DialGauge, DialItem } from './components/dashboard/Dial'
+export type { DialItem } from './components/dashboard/Dial'
 export { Dial } from './components/dashboard/Dial'
 export { DialConfig } from './components/dashboard/DialConfig'
 export type { DisplayContent } from './components/dashboard/DisplayPanel'
@@ -101,11 +85,7 @@ export { DowntimeWizard } from './components/dashboard/DowntimeWizard'
 export { RailBar } from './components/dashboard/RailBar'
 export { ClassAbilityTree } from './components/referenceEntity/ClassAbilityTree'
 export { Content } from './components/referenceEntity/Content'
-export type { CardDomain } from './components/referenceEntity/card/entityCardTone'
-export {
-  entityHostTone,
-  resolveSchemaDomain,
-} from './components/referenceEntity/card/entityCardTone'
+export { entityHostTone } from './components/referenceEntity/card/entityCardTone'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 // Interactive choice cards (granted-equipment choices)
@@ -114,7 +94,6 @@ export { getClassSelections } from './components/referenceEntity/classSelectionU
 export type {
   EntityExternalLinkBuilder,
   EntityHrefBuilder,
-  PatternHrefBuilder,
 } from './components/referenceEntity/entityHrefContext'
 export {
   EntityDetailLinkProvider,
@@ -140,14 +119,11 @@ export { CatalogTile } from './components/shared/CatalogTile'
 // Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
 export { Colophon } from './components/shared/Colophon'
 export { EntityGridRow } from './components/shared/EntityGrid'
-export type { EntityRowStat, EntityRowType } from './components/shared/EntityRow'
+export type { EntityRowStat } from './components/shared/EntityRow'
 export { EntityRow } from './components/shared/EntityRow'
 export { EntitySearcher } from './components/shared/EntitySearcher'
-export { cardRemoveControls } from './components/shared/editLanguage'
-export type { EntityStatus } from './components/shared/entityStatus'
 export { FilterRow } from './components/shared/FilterRow'
 export { Footer } from './components/shared/Footer'
-export { KofiButton } from './components/shared/KofiButton'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { MobileSearchDialog } from './components/shared/MobileSearchDialog'
 export { ModalShell } from './components/shared/ModalShell'
@@ -170,7 +146,6 @@ export {
   SheetPickerModal,
 } from './components/shared/SheetSection'
 // Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
-export { SheetSectionCard } from './components/shared/SheetSectionCard'
 export { SheetSectionSlab } from './components/shared/SheetSectionSlab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/shared/SlotGrid'
@@ -192,24 +167,17 @@ export { SheetActionsMenu } from './components/sheet/SheetActionsMenu'
 export type { ChassisStatItem } from './components/sheet/SheetHero'
 // Live-sheet presentation lifted out of ITUN (pure presentation — the app keeps
 // only the store-wired containers that feed these).
-export { ChassisStats, SheetHero } from './components/sheet/SheetHero'
+export { SheetHero } from './components/sheet/SheetHero'
 export { SheetSkeleton } from './components/sheet/SheetSkeleton'
 export { SnapshotQr } from './components/sheet/SnapshotQr'
 export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
 // Skeletons
 export { Skeleton } from './components/skeleton/Skeleton'
-export { BayStatus } from './components/stat/BayStatus'
 // Only `heatDangerFrom` survives — `heatLevel`/`HeatLevel`/`HEAT_HIGH_RATIO`
 // were measured to zero consumers and deleted.
 export { heatDangerFrom } from './components/stat/heatLevel'
-export type { ProvenanceLabels } from './components/stat/provenanceLines'
 export { linesFromBreakdown, summarizeBreakdown } from './components/stat/provenanceLines'
-export type {
-  ProvenanceLine,
-  ProvenanceLineKind,
-  StatProvenanceProps,
-} from './components/stat/StatProvenance'
-export { StatProvenance } from './components/stat/StatProvenance'
+export type { ProvenanceLine } from './components/stat/StatProvenance'
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'
 // UI primitives
@@ -234,15 +202,17 @@ export { SystemsList } from './components/wizard/SystemsList'
  * The styling foundation (#798, epic #802) — the target pattern Tailwind is
  * being removed in favour of. Namespaced rather than spread flat into this
  * barrel, because the token names are deliberately generic (`color`, `space`,
- * `radius`) and read correctly only when qualified: `tokens.color.rust`,
- * `style={styles.card}`.
+ * `radius`) and read correctly only when qualified: `tokens.color.rust`.
  *
- * `styles` is the STATIC half. The stateful half — `:hover`, `:focus-visible`,
- * `:disabled`, `@media` — cannot live in a style object at all and ships as
- * the stylesheet `component-lib/styles/index.css`. The split rule between them
- * is in this package's CLAUDE.md; read it before migrating a component.
+ * `tokens` is the values. The other two halves of L1 are `styles/index.css`
+ * (the stateful half — `:hover`, `:focus-visible`, `:disabled`, `@media` —
+ * which a style object cannot express at all) and `styles/sizing.ts`. The split
+ * rule is in this package's CLAUDE.md; read it before migrating a component.
+ *
+ * `design/styles.ts` was the third half and is gone — see this commit. When L2
+ * (#799) migrates a component, reintroduce the object it needs at that point,
+ * with its consumer, rather than restoring the speculative set.
  */
-export * as styles from './design/styles'
 export * as tokens from './design/tokens'
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge

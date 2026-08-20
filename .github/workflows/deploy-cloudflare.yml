@@ -132,7 +132,7 @@ jobs:
         working-directory: apps/su-assets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler deploy
+        run: bunx wrangler@4.108.0 deploy
 
       # ---------------------------------------------------------------------
       # srd — static, but the OG pass needs a browser.
@@ -200,7 +200,7 @@ jobs:
         working-directory: apps/srd
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler deploy
+        run: bunx wrangler@4.108.0 deploy
 
       # ---------------------------------------------------------------------
       # itun — pushes the Convex backend FIRST, then builds against it.
@@ -226,7 +226,7 @@ jobs:
         working-directory: apps/itun
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler deploy
+        run: bunx wrangler@4.108.0 deploy
 
       # ---------------------------------------------------------------------
       # discord-bot — the Worker, not the Render gateway process.
@@ -251,7 +251,7 @@ jobs:
         working-directory: apps/discord-bot
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler deploy
+        run: bunx wrangler@4.108.0 deploy
 
       # ---------------------------------------------------------------------
       # Post-deploy smoke. Cheap, and it is the only thing that knows whether

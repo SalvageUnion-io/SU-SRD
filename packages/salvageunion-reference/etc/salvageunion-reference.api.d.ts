@@ -895,7 +895,7 @@ export declare const SCHEMA_REGISTRY: {
  */
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EnhancedSchemaMetadata } from './ModelFactory.js';
-import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js';
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
@@ -930,33 +930,6 @@ export declare function getHybridClasses(): (SURefObjectAdvancedClass & {
     schemaName: string;
 })[];
 /**
- * Find a crawler by ID
- * @param crawlerId - The ID of the crawler to find
- * @returns The crawler or undefined if not found
- */
-export declare function findCrawlerById(crawlerId: string): (SURefCrawler & {
-    schemaName: string;
-}) | undefined;
-/**
- * Get all mutations for a crawler type by ID
- * @param crawlerId - The crawler type ID
- * @returns Array of mutations, or empty array if none
- */
-export declare function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutation[];
-/**
- * Get the total weapon slot count for a crawler type.
- * Base is 1 (from the Armament Bay) plus any weapon_slots mutations.
- * @param crawlerId - The crawler type ID
- * @returns Total weapon slots available
- */
-export declare function getWeaponSlotCount(crawlerId: string): number;
-/**
- * Get the max SP bonus from a crawler type's mutations.
- * @param crawlerId - The crawler type ID
- * @returns Sum of max_sp_bonus mutation values
- */
-export declare function getMaxSpBonus(crawlerId: string): number;
-/**
  * Resolve the activation currency for a given schema/entity category.
  * Mech-level sources (chassis, systems, modules) cost EP; variable-cost abilities
  * cost XP; everything else costs AP.
@@ -983,6 +956,45 @@ export declare function getEntitySchemas(): EnhancedSchemaMetadata[];
  * @returns The sort rank
  */
 export declare function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number;
+/**
+ * The canonical "Tech Level, then name" comparator.
+ *
+ * This exists because the expression it replaces was written out by hand at
+ * three call sites and one of them got it wrong — using `Number(a.techLevel)`
+ * instead of {@link techLevelRank}. The failure is quieter than it first looks:
+ * `Number('B') - 1` is `NaN`, and `NaN` is FALSY, so the `||` falls straight
+ * through to the name tiebreak. A Bio or Nanite item is therefore not randomly
+ * ordered — it is ordered purely by NAME, interleaved among the numeric tiers
+ * instead of sorted after them. Plausible-looking output is exactly why it
+ * survived at two call sites. It was dormant only by luck of the data:
+ * `equipment.json` happens to carry no Bio or Nanite entries, while
+ * `systems.json` has 7 B + 3 N and `modules.json` 3 B + 3 N — so the same
+ * expression copied one file over ships a scrambled list.
+ *
+ * A comparator is exactly the kind of thing that should not be re-derived per
+ * widget: the ordering is a property of the game's taxonomy, the bug is silent,
+ * and the wrong version looks right.
+ *
+ * **One hand-rolled comparator is deliberately NOT folded in.**
+ * `component-lib/src/components/shared/EntitySearcher.tsx` composes
+ * `techLevelRank` correctly — no NaN — but short-circuits to the name tiebreak
+ * whenever EITHER side's Tech Level is `undefined`, where this ranks `undefined`
+ * last. That is a real behavioural difference on TL-less entities, not a
+ * cosmetic one, so switching it is a decision about search ordering rather than
+ * a de-duplication. Left alone on purpose; noted here so "all the call sites use
+ * the shared one" is not read as a claim about that file.
+ *
+ * @param a - Entity-shaped value carrying a Tech Level and a name
+ * @param b - The value to compare against
+ * @returns Negative, zero or positive, per Array#sort
+ */
+export declare function byTechLevelThenName(a: {
+    techLevel?: number | 'B' | 'N';
+    name: string;
+}, b: {
+    techLevel?: number | 'B' | 'N';
+    name: string;
+}): number;
 /**
  * Get unique tech levels from an array of entities, sorted correctly
  * Numeric levels ascending, then 'B', then 'N'
@@ -13284,7 +13296,7 @@ export * from './enums.js';
 export * from './objects.js';
 import type { AbilitySchema, AbilityTreeRequirementSchema, BioTitanSchema, CatalogCategorySchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerSchema, CrawlerTechLevelSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, GuideSchema, KeywordSchema, MeldSchema, MetaActionSchema, ModuleSchema, NPCSchema, RollTableSchema, SourceEntitySchema, SquadSchema, SystemSchema, TechLevelEntitySchema, TraitEntitySchema, VehicleSchema } from './entities.js';
 import type { SchemaNameSchema } from './enums.js';
-import type { AdvancedClassSchema, ChoiceSchema, ContentBlockSchema, ContentSchema, CrawlerMutationSchema, DamageSchema, DataValueSchema, FormationMechSchema, GrantSchema, GuideStepSchema, PatternSchema, PatternSystemModuleSchema, StatsSchema, SystemModuleSchema, TableContentSchema, TableSchema, TraitSchema } from './objects.js';
+import type { AdvancedClassSchema, ChoiceSchema, ContentBlockSchema, ContentSchema, DamageSchema, DataValueSchema, FormationMechSchema, GrantSchema, GuideStepSchema, PatternSchema, PatternSystemModuleSchema, StatsSchema, SystemModuleSchema, TableContentSchema, TableSchema, TraitSchema } from './objects.js';
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>;
 export type SURefObjectTrait = z.infer<typeof TraitSchema>;
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>;
@@ -13301,7 +13313,6 @@ export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>;
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>;
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>;
 export type SURefObjectGrant = z.infer<typeof GrantSchema>;
-export type SURefObjectCrawlerMutation = z.infer<typeof CrawlerMutationSchema>;
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>;
 export type SURefObjectActionOptions = Array<{
     label: string;

@@ -46,7 +46,6 @@ import type {
   ChoiceSchema,
   ContentBlockSchema,
   ContentSchema,
-  CrawlerMutationSchema,
   DamageSchema,
   DataValueSchema,
   FormationMechSchema,
@@ -82,7 +81,6 @@ export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>
 export type SURefObjectGrant = z.infer<typeof GrantSchema>
-export type SURefObjectCrawlerMutation = z.infer<typeof CrawlerMutationSchema>
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>
 export type SURefObjectActionOptions = Array<{ label: string; value: string }>
 

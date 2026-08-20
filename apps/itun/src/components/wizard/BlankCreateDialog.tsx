@@ -16,7 +16,7 @@
 
 import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
 import { useMemo, useState } from 'react'
-import { nameToSlug, SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
+import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
 
@@ -52,10 +52,7 @@ function chassisOptions(): RefOption[] {
   try {
     const all = SalvageUnionReference.Chassis.all()
     return [...all]
-      .sort(
-        (a, b) =>
-          techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
-      )
+      .sort((a, b) => byTechLevelThenName(a, b))
       .map((c) => ({
         value: nameToSlug(c.name),
         label: `${c.name} · TL ${String(c.techLevel)}`,
