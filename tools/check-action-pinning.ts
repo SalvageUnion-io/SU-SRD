@@ -33,7 +33,7 @@
  * Usage: bun tools/check-action-pinning.ts
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /** Owners published by GitHub itself; a mutable tag here is not a third-party risk. */
@@ -94,9 +94,42 @@ function workflowFiles(root: string): string[] {
  * resolves the pinned `convex` from `apps/itun/package.json` because the step
  * sets a `working-directory` inside that workspace. So the rule is not "every
  * bunx must carry an @version" — it is that a tool with no local manifest entry
- * must. `LOCALLY_RESOLVED` records which those are.
+ * must.
+ *
+ * The exempt set is DERIVED from the manifests rather than hardcoded. The first
+ * version of this check kept a literal list and immediately produced a false
+ * positive on `bunx @convex-dev/auth`, which is pinned at 0.0.94 in
+ * `apps/itun/package.json` — a hand-maintained allow-list of "things that are
+ * pinned elsewhere" goes stale the moment somebody adds a dependency, and a
+ * gate that cries wolf is one that gets switched off.
  */
-const LOCALLY_RESOLVED = new Set(['convex', 'lefthook', 'playwright', 'biome'])
+function locallyResolvedTools(root: string): Set<string> {
+  const names = new Set<string>()
+  const manifests = ['package.json']
+  for (const group of ['apps', 'packages']) {
+    const base = join(root, group)
+    if (!existsSync(base)) continue
+    for (const entry of readdirSync(base, { withFileTypes: true })) {
+      if (entry.isDirectory()) manifests.push(join(group, entry.name, 'package.json'))
+    }
+  }
+  for (const rel of manifests) {
+    const full = join(root, rel)
+    if (!existsSync(full)) continue
+    const pkg = JSON.parse(readFileSync(full, 'utf8')) as {
+      dependencies?: Record<string, string>
+      devDependencies?: Record<string, string>
+    }
+    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) {
+      names.add(name)
+      // `bunx playwright` runs the `playwright` binary that `@playwright/test`
+      // brings; the bin name and the package name differ.
+      const unscoped = name.startsWith('@') ? name.split('/')[1] : undefined
+      if (unscoped !== undefined) names.add(unscoped)
+    }
+  }
+  return names
+}
 
 function bunxCalls(contents: string): { line: number; tool: string }[] {
   const found: { line: number; tool: string }[] = []
@@ -158,6 +191,7 @@ function refPin(ref: string): string {
 
 function main(): void {
   const root = process.cwd()
+  const locallyResolved = locallyResolvedTools(root)
   const unpinned: Unpinned[] = []
   const unpinnedTools: Unpinned[] = []
   let thirdPartyCount = 0
@@ -173,7 +207,7 @@ function main(): void {
       if (!SHA_PIN.test(refPin(ref))) unpinned.push({ file, line, ref })
     }
     for (const { line, tool } of bunxCalls(contents)) {
-      if (LOCALLY_RESOLVED.has(bunxBaseName(tool))) continue
+      if (locallyResolved.has(bunxBaseName(tool))) continue
       bunxCount += 1
       if (!bunxIsPinned(tool)) unpinnedTools.push({ file, line, ref: `bunx ${tool}` })
     }

@@ -12,16 +12,27 @@ import { waitForReady } from './_helpers'
  *
  * ## What it needs, and why it skips without it
  *
- * Three things have to line up, and none is present in the default CI run:
+ * Three things have to line up:
  *
  *  - a reachable Convex deployment (`VITE_CONVEX_URL` compiled into the build),
  *  - `ITUN_TEST_AUTH=true` on that deployment, so the `password` provider exists,
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
- * The default suite builds with none of them, so this skips with a stated
- * reason rather than failing. That is the same shape `offline.e2e.ts` uses for
- * the dev-server case, and the same trade: a spec that went red in the ordinary
- * run would be deleted the first time it annoyed somebody.
+ * The ordinary suite builds with none of them, so this skips there with a
+ * stated reason rather than failing — the same trade `offline.e2e.ts` makes for
+ * the dev-server case: a spec that went red in the ordinary run would be
+ * deleted the first time it annoyed somebody.
+ *
+ * **It does now run.** `e2e-itun-signin` in `.github/workflows/e2e-nightly.yml`
+ * provides all three against a throwaway self-hosted Convex backend — a
+ * container destroyed with the runner, so it needs no credentials, cannot
+ * create junk accounts on a shared deployment, and never puts a password
+ * provider on production.
+ *
+ * That job sets `ITUN_E2E_EXPECT_AUTH_SEAM`, which turns the skip below into a
+ * throw. Until it existed this spec had never executed anywhere: all three
+ * variables were unset in every environment including nightly, so it skipped
+ * silently while reading as covered.
  *
  * Run it for real with a test deployment:
  *

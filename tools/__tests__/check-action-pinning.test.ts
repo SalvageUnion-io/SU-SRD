@@ -180,3 +180,50 @@ describe('check-action-pinning — bunx tools', () => {
     )
   })
 })
+
+/**
+ * The exempt set is derived, not hardcoded.
+ *
+ * The first version kept a literal allow-list and immediately produced a false
+ * positive on `bunx @convex-dev/auth`, which is pinned at 0.0.94 in
+ * `apps/itun/package.json`. A hand-maintained list of "things pinned elsewhere"
+ * goes stale the moment somebody adds a dependency, and a gate that cries wolf
+ * is one that gets switched off.
+ */
+describe('check-action-pinning — locally-resolved derivation', () => {
+  test('a scoped package pinned in a workspace manifest is exempt', async () => {
+    // `bunx @convex-dev/auth` runs unpinned in e2e-nightly.yml and must pass,
+    // because the step's working-directory is inside apps/itun.
+    const { exitCode } = await runCheck()
+    expect(exitCode).toBe(0)
+  })
+
+  test('removing that manifest entry makes the same call site fail', async () => {
+    // The discriminating case: if the exemption came from a hardcoded list
+    // rather than from the manifest, dropping the dependency would change
+    // nothing and this test would pass for the wrong reason.
+    await withFileContents(
+      'apps/itun/package.json',
+      (s) => s.replace(/^\s*"@convex-dev\/auth":\s*"[^"]+",\n/m, ''),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('@convex-dev/auth')
+      }
+    )
+  })
+
+  test('a tool in NO manifest is still caught', async () => {
+    // wrangler is pinned at its call sites precisely because it is not a
+    // dependency; the derivation must not accidentally exempt it.
+    await withFileContents(
+      '.github/workflows/deploy-cloudflare.yml',
+      (s) => s.replace('bunx wrangler@4.108.0 deploy', 'bunx wrangler deploy'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx wrangler')
+      }
+    )
+  })
+})

@@ -66,6 +66,128 @@ jobs:
           path: apps/itun/playwright-report/
           retention-days: 7
 
+  e2e-itun-signin:
+    # The anonymous-build → sign-in → save hand-off, against a THROWAWAY
+    # self-hosted Convex backend.
+    #
+    # Why this job exists at all: `apps/itun/e2e/signin-save.e2e.ts` had never
+    # executed anywhere. It needs a reachable deployment with the test-only
+    # password provider enabled; no workflow set any of its three variables, so
+    # its `test.skip` fired in every environment including this one — a spec
+    # that was written, correct, and permanently silent.
+    #
+    # Why not an existing deployment: enabling `ITUN_TEST_AUTH` on production
+    # would put a password auth provider on the live app, and the dev
+    # deployment is shared — this spec mints a fresh account per run and would
+    # fill it with junk. A container destroyed with the runner has neither
+    # problem and needs no credentials, which is why this job requests no
+    # secrets at all.
+    #
+    # Kept OUT of `e2e-itun` deliberately. That job is the working coverage; if
+    # the backend spin-up below needs iteration it must not take the rest of
+    # the suite down with it.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # `docker run`, not a `services:` block: the admin key has to be produced
+      # by exec-ing into the container after it starts, and `services:` gives no
+      # predictable name to exec into.
+      - name: Start a self-hosted Convex backend
+        run: |
+          docker run -d --name convex-e2e \
+            -p 3210:3210 -p 3211:3211 \
+            -e INSTANCE_NAME=e2e \
+            -e DISABLE_BEACON=true \
+            ghcr.io/get-convex/convex-backend:latest
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3210/version >/dev/null 2>&1; then
+              echo "backend ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Convex backend did not become ready within 60s"
+          docker logs convex-e2e || true
+          exit 1
+
+      - name: Generate an admin key
+        id: adminkey
+        run: |
+          KEY="$(docker exec convex-e2e ./generate_admin_key.sh | tail -n1 | tr -d '\r')"
+          if [ -z "$KEY" ]; then
+            echo "::error::generate_admin_key.sh produced no key"
+            docker logs convex-e2e || true
+            exit 1
+          fi
+          echo "::add-mask::$KEY"
+          printf 'key=%s\n' "$KEY" >> "$GITHUB_OUTPUT"
+
+      # Auth needs a JWT keypair ON the deployment. Without it the JWKS endpoint
+      # 500s and sign-in fails with nothing pointing at the cause — this repo
+      # has already lost a week to exactly that, so it is provisioned explicitly
+      # rather than assumed.
+      - name: Provision auth keys and deployment env
+        working-directory: apps/itun
+        env:
+          CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
+        run: |
+          bunx @convex-dev/auth --variant selfHosted --skip-git-check
+          # `convex/auth.ts` gates the password provider on the exact string
+          # 'true'; anything else leaves the provider absent and the seam gone.
+          bunx convex env set ITUN_TEST_AUTH true
+          # SITE_URL is the FRONTEND origin, not the Convex site URL. Nothing
+          # prompts for it, and omitting it fails as an opaque 500.
+          bunx convex env set SITE_URL http://localhost:5173
+
+      # `--cmd` builds with VITE_CONVEX_URL injected — the same shape
+      # deploy-cloudflare.yml uses. Playwright's CI webServer reuses an existing
+      # `apps/itun/dist`, so this build is what the browser actually receives.
+      - name: Push functions and build itun against the backend
+        working-directory: apps/itun
+        env:
+          CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
+          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
+          VITE_TEST_AUTH: 'true'
+        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/itun
+        run: bunx playwright install --with-deps chromium
+
+      # ITUN_E2E_EXPECT_AUTH_SEAM is the point of the whole job. With it set the
+      # spec THROWS when the seam is absent instead of skipping, so this can
+      # never rejoin the pile of green-because-it-did-nothing runs it came from.
+      - name: Run the sign-in/save spec
+        working-directory: apps/itun
+        env:
+          ITUN_E2E_EXPECT_AUTH_SEAM: '1'
+        run: bunx playwright test signin-save.e2e.ts
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker logs convex-e2e || true
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-itun-signin
+          path: apps/itun/playwright-report/
+          retention-days: 7
+
   e2e-srd:
     # srd Playwright smoke suite: builds the static bundle with the in-house
     # SSG and serves it with `ssg/preview.ts` via Playwright's webServer.
@@ -306,7 +428,7 @@ jobs:
         run: bun run validate:convex-parity:live
 
   notify-failure:
-    needs: [e2e-itun, e2e-srd, observability-probe, convex-parity]
+    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity]
     # NOT `failure()`. A job that exhausts its `timeout-minutes` is reported with
     # result `cancelled`, and `failure()` does not cover `cancelled` — so when
     # e2e-itun started timing out, `notify-failure` AND `notify-recovery` were
@@ -413,7 +535,7 @@ jobs:
             }
 
   notify-recovery:
-    needs: [e2e-itun, e2e-srd, observability-probe, convex-parity]
+    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity]
     # NOT a bare `success()`. A job whose `needs:` includes a SKIPPED job is
     # itself skipped unless its condition starts with always()/!cancelled() —
     # and observability-probe is skipped whenever the OBSERVABILITY_PROBE
