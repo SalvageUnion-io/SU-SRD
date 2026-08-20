@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Doc-drift guard (mechanical, narrow — 6 checks, not a general doc-linter).
+ * Doc-drift guard (mechanical, narrow — 7 checks, not a general doc-linter).
  *
  * A prior campaign PR had to hand-fix docs/architecture/package-contracts.md
  * after its "Entry Points" JSON block silently fell out of sync with
@@ -52,6 +52,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, extname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { assertScanFloor } from './lib/scanFloor'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -1026,6 +1027,25 @@ export function runChecks(root: string): { failures: string[]; passed: string[] 
 }
 
 if (import.meta.main) {
+  // Prove the corpus was actually found before believing anything about it.
+  //
+  // Three of the checks below are "for every live-instruction doc, assert X",
+  // and both directory walkers return `[]` when their directory is missing —
+  // which is correct for the fixture trees the tests build, and catastrophic
+  // here. Rename a directory in `LIVE_INSTRUCTION_DOC_DIRS` and the corpus
+  // silently collapses to the three root files while this still prints
+  // `✓ No live-instruction doc cites any of the 4 superseded ADR(s)…`.
+  //
+  // The tell was missing too: `check-architecture` prints "(588 files checked)"
+  // whereas this printed counts of FINDINGS — 4 ADRs, 181 references — never of
+  // corpus, so a collapsed scan looked identical to a healthy one.
+  //
+  // This gate walks the largest tree of any in `validate:all` and was the one
+  // `tools/lib/scanFloor.ts` was not applied to when its four siblings were
+  // fixed. Floor set well below the real count: a catastrophe detector, not a
+  // coverage target.
+  assertScanFloor('doc-drift (live-instruction docs)', liveInstructionDocs(repoRoot).length, 6)
+
   const { failures, passed } = runChecks(repoRoot)
   for (const message of passed) console.log(`✓ ${message}`)
   for (const message of failures) console.error(`✗ ${message}`)

@@ -104,8 +104,13 @@ test('the app opens and reads with the network cut', async ({ page, context }) =
   await waitForReady(page)
 
   const controlled = await ensureServiceWorkerControls(page)
+  // NOT skippable in CI. The convenience of skipping on a dev-server run, where
+  // vite-plugin-pwa emits no worker, is worth keeping — but unconditional it
+  // meant this spec went silent exactly when the thing it proves broke. If the
+  // worker stops registering or activating, `controlled` is false, both tests
+  // here skip, and nightly is green with the offline guarantee unverified.
   test.skip(
-    !controlled,
+    !controlled && !process.env.CI,
     'No service worker controls the page — this is a dev-server run, where vite-plugin-pwa emits none. Runs for real against the CI preview build.'
   )
 
@@ -133,7 +138,8 @@ test('an unvisited route also resolves offline — the shell is not one page', a
   await waitForReady(page)
 
   const controlled = await ensureServiceWorkerControls(page)
-  test.skip(!controlled, 'No service worker controls the page — dev-server run.')
+  // See the note on the first test: the skip is a local convenience only.
+  test.skip(!controlled && !process.env.CI, 'No service worker controls the page — dev-server run.')
 
   await context.setOffline(true)
 
