@@ -364,8 +364,19 @@ export default defineSchema({
      * Null while the crawler is in a Game — that is what communal means (D8).
      * Set only on the shelf, where a container with no owner would be the
      * invalid row.
+     *
+     * **`v.optional` is load-bearing and is not cosmetic.** Convex validates
+     * every existing document against the schema on push, and every crawler
+     * already in the database predates this column. A required field here would
+     * make the deploy fail on rows that are otherwise perfectly valid — the same
+     * reason `publicRead` above is optional, spelled out there as "the correct
+     * default for every row that already exists".
+     *
+     * So **absent means the same as null**: a crawler that has never been
+     * shelved. Readers must treat the two identically; `ownerOf` in
+     * `model/entities.ts` is the one place that decides it.
      */
-    ownerId: v.union(v.id('users'), v.null()),
+    ownerId: v.optional(v.union(v.id('users'), v.null())),
     /** See `pilots.appId` — same reason, same lookup path. */
     appId: v.optional(v.string()),
     /**
@@ -430,7 +441,7 @@ export default defineSchema({
      * the Mediator reaches it through their role rather than through ownership.
      * Set on a shelf, where a container with no owner would be the invalid row.
      */
-    ownerId: v.union(v.id('users'), v.null()),
+    ownerId: v.optional(v.union(v.id('users'), v.null())),
     body: v.any(),
   })
     .index('by_game', ['gameId'])
