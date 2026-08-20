@@ -8,7 +8,7 @@ Discord dice bot (`apps/discord-bot`), and two shared packages
 ## Prerequisites
 
 - **[Bun](https://bun.com)** — pinned to the version in [`.bun-version`](.bun-version)
-  (currently `1.3.14`). Install with `curl -fsSL https://bun.sh/install | bash`
+  (currently `1.4.0`). Install with `curl -fsSL https://bun.sh/install | bash`
   or `brew install oven-sh/bun/bun`, then `bun upgrade --to <version>` if needed.
   CI enforces this pin via `bun tools/check-bun-version.ts` (part of `validate:all`).
 - Node is **not** required for the apps — Bun runs everything.
