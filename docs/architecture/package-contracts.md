@@ -200,22 +200,30 @@ with no bundler in the loop at all.)
 
 ### Public API (`src/index.ts` is the source of truth)
 
-The barrel exports 144 names. Do NOT trust any hand-maintained list (earlier
-revisions of this doc said "64 named exports", then "~100", and named several
-exports that no longer exist); instead, know the categories and check the
-barrel:
+Do NOT trust any hand-maintained list — including a count. Earlier revisions of
+this doc said "64 named exports", then "~100", then "144"; the last of those was
+already wrong when written and went wrong again when 28 dead re-exports were
+pruned. The number is deliberately not restated here, because a figure nothing
+checks is a figure that drifts. Count it when you need it:
 
-- **Types** — `ReferenceEntityControl`, `CardFootMeta`, `CardDomain`, `ChoiceSelections`, `EntityHrefBuilder`, …
+```bash
+grep -c '^export' packages/component-lib/src/index.ts   # export STATEMENTS
+```
+
+The categories below are stable and worth knowing; the membership is not, so
+read `src/index.ts` for anything load-bearing:
+
+- **Types** — `ReferenceEntityControl`, `CardFootMeta`, `ChoiceSelections`, `EntityHrefBuilder`, …
 - **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
 - **Base typography** — `Text`
 - **UI primitives** — `Toaster` / `toast`, `ModalShell`
-- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Conditions`, `Sel`, `KvRow`, and friends
-- **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `BayStatus`, `heatDangerFrom` (the running-text `StatLine` was
+- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Sel`, `KvRow`, and friends
+- **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `heatDangerFrom` (the running-text `StatLine` was
   absorbed into `Stat` as `orientation="horizontal" surface="plain"`)
-- **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`/`resolveSchemaDomain`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
+- **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
 - **Shared components** — `Card`, `AppBar`, `Footer`, `FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, … (the former `FilterChip` is gone: the interactive chip is now `Badge as="button"`, with the call site owning pressed state)
 - **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
-- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`/`ChassisStats`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
+- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
 - **Wizard steps** (`src/components/wizard/`) — `ClassAbilityStep`, `CrawlerTypeSelectStep`, `EquipmentStep`, …
 - **Changelog** — `parseChangelog`, `mergeChangelogs`, `Changelog`
 - **Utilities** — the single `cn()` (its tailwind-merge config knows the custom utilities; never re-wrap `twMerge` with the default config)

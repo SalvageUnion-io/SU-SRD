@@ -37,8 +37,20 @@
       "project": ["src/**/*.ts"]
     },
     "packages/component-lib": {
+      // `includeEntryExports` is ON here, unlike the app workspaces below.
+      //
+      // For an app, the entry is a framework contract nothing imports, so
+      // checking its exports is noise. For this package the barrel IS the
+      // public API — `src/index.ts` is the only thing the apps may import from
+      // — so switching the check off made the one workspace where barrel rot
+      // matters most the one workspace where it could not be seen. 28 dead
+      // re-exports accumulated behind it.
+      //
+      // Turning it on is only possible because those 28 are gone. If this ever
+      // needs to go back to `false`, the reason belongs here, because the cost
+      // is invisible by construction.
       "project": ["src/**/*.{ts,tsx}"],
-      "includeEntryExports": false
+      "includeEntryExports": true
     },
     "apps/srd": {
       // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
