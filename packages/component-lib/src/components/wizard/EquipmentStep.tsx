@@ -1,5 +1,5 @@
 import type { SURefEquipment } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { byTechLevelThenName, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { EmptyState } from '../chrome/EmptyState'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -52,11 +52,7 @@ export function EquipmentStep({
       ? surEquipment.findAll((e: unknown) => isLegalCreationEquipment(e as SURefEquipment))
       : surEquipment.findAll(() => true)
   ) as SURefEquipment[]
-  const sorted = isCreate
-    ? equipment
-    : [...equipment].sort(
-        (a, b) => Number(a.techLevel) - Number(b.techLevel) || a.name.localeCompare(b.name)
-      )
+  const sorted = isCreate ? equipment : [...equipment].sort(byTechLevelThenName)
 
   // Copies picked per id (create mode allows duplicates).
   const counts = new Map<string, number>()
