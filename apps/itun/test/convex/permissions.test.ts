@@ -297,8 +297,8 @@ describe('leaving a game', () => {
   })
 })
 
-describe('destroying a game preserves owned characters', () => {
-  test('owned entities fall back to their owner shelf; unclaimed ones go', async () => {
+describe('destroying a game preserves everything anybody built', () => {
+  test("owned entities go to their owner's shelf; unclaimed ones to the deleter's", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedGame(t)
     const ownedId = await seedPilot(t, gameId, player.userId)
@@ -314,14 +314,73 @@ describe('destroying a game preserves owned characters', () => {
     expect(owned?.gameId).toBeNull()
     expect(owned?.ownerId).toBe(player.userId)
 
-    // An unclaimed entity has no shelf to fall back to. Keeping it would create
-    // the one combination ADR-030 calls invalid: gameId null AND ownerId null.
-    expect(unclaimed).toBeNull()
+    // An unclaimed entity used to be DELETED here, because it had no owner to
+    // fall back to and `gameId: null` with `ownerId: null` is the one invalid
+    // combination. Deleting was never the only way out of that: the Organizer
+    // doing the deleting is a perfectly good owner, and is the person standing
+    // in front of the consequence. So it survives, on their shelf.
+    expect(unclaimed).not.toBeNull()
+    expect(unclaimed?.gameId).toBeNull()
+    expect(unclaimed?.ownerId).toBe(organizer.userId)
+  })
+
+  test('the crawler comes to the deleting Organizer, and stops being communal', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const crawlerId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', {
+          gameId,
+          ownerId: null,
+          body: { name: '#430' },
+          updatedAt: 1,
+        })
+    )
+
+    await organizer.as.mutation(api.games.destroy, { gameId })
+
+    // The crawler is the crew's HOME, and it used to be destroyed with the Game
+    // — the one build that a deletion could take with it. It now falls back like
+    // everything else. `ownerId` moving from null to the Organizer is not a
+    // change of heart about D8: communal is what a crawler is INSIDE a Game, and
+    // this one is no longer in one.
+    const crawler = await t.run(async (ctx) => await ctx.db.get(crawlerId))
+    expect(crawler).not.toBeNull()
+    expect(crawler?.gameId).toBeNull()
+    expect(crawler?.ownerId).toBe(organizer.userId)
+  })
+
+  test('the table itself is gone — game, crew and invites', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+
+    await organizer.as.mutation(api.games.destroy, { gameId })
+
+    const game = await t.run(async (ctx) => await ctx.db.get(gameId))
+    const memberships = await t.run(async (ctx) => await ctx.db.query('memberships').collect())
+    expect(game).toBeNull()
+    expect(memberships).toHaveLength(0)
   })
 
   test('a Player cannot destroy the game', async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
+    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
+  })
+
+  test('a Mediator who is not the Organizer cannot destroy the game either', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+    await organizer.as.mutation(api.games.setMediator, {
+      gameId,
+      userId: player.userId,
+      mediator: true,
+    })
+
+    // Deliberate, and the reason `destroy` does not use `requireTableRunner`:
+    // that helper hands authority to the Organizer only while a Game has no
+    // Mediator, so who may end a campaign would otherwise depend on whether one
+    // had been appointed yet.
     await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
   })
 })

@@ -323,6 +323,7 @@ describe('the communal crawler is readable', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', {
           gameId,
+          ownerId: null,
           body: { name: 'The Ossuary', techLevel: '3' },
           updatedAt: Date.now(),
         })
@@ -381,6 +382,7 @@ describe('the communal crawler is readable', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', {
           gameId: otherGameId,
+          ownerId: null,
           body: { name: 'Not Yours' },
           updatedAt: Date.now(),
         })

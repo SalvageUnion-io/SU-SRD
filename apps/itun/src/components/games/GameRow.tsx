@@ -10,9 +10,15 @@ import { AppLink } from '../shared/AppLink'
  * — but it *is* another thing you own and open, so it gets the same `EntityRow`
  * the player entities use, with its own blue ontology tone (ADR-030).
  *
- * Deleting is deliberately absent. `games.destroy` ends a shared campaign for
- * everyone in it, which needs a confirm that names what is being destroyed —
- * that lives on the Game's own screen, not behind a trash icon in a list.
+ * Deleting rides the same trash affordance every other `EntityRow` uses, and is
+ * passed in rather than wired here: `games.destroy` ends a shared campaign for
+ * everyone in it, so it needs a confirm that names what is being destroyed, and
+ * one dialog serving the whole list beats one mounted per row. The parent owns
+ * that dialog; this row only reports the click.
+ *
+ * It is offered to the **Organizer alone** — the parent decides, by simply not
+ * passing `onDelete`. That is a courtesy, not the boundary: `games.destroy`
+ * calls `requireOrganizer` regardless of what the client chooses to draw.
  */
 export type GameRowGame = {
   _id: Id<'games'>
@@ -66,7 +72,7 @@ function standingStats(game: GameRowGame): EntityRowStat[] {
   return stats
 }
 
-export function GameRow({ game }: { game: GameRowGame }) {
+export function GameRow({ game, onDelete }: { game: GameRowGame; onDelete?: () => void }) {
   return (
     <EntityRow
       entityType="game"
@@ -75,6 +81,7 @@ export function GameRow({ game }: { game: GameRowGame }) {
       linkAs={AppLink}
       stats={tableStats(game)}
       bodyStats={standingStats(game)}
+      onDeleteClick={onDelete}
     />
   )
 }

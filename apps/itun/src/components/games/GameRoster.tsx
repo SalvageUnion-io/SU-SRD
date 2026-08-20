@@ -348,10 +348,17 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
    * Deliberately no confirm. Copying destroys nothing and the result is one more
    * build on your shelf, so a modal would be friction guarding an undo-by-delete.
    *
-   * Crawlers are excluded at the call site rather than here: `crawlers.gameId` is
-   * **non-nullable** in the Convex schema, so a shelved crawler has no server row
-   * to be — which is why `claimLocal` parks a claimed one on a placeholder Game
-   * instead. Copying one to a shelf is not a thing the model can express.
+   * Crawlers are still excluded at the call site, but the reason has changed and
+   * is worth stating plainly. It used to be a **model limitation**: `crawlers`
+   * had a non-nullable `gameId`, so a shelved crawler had no server row to be.
+   * That is no longer true — a crawler shelves like anything else now, which is
+   * how deleting a Game keeps one.
+   *
+   * So the exclusion is a **product choice nobody has made yet**, not an
+   * impossibility. A crawler is the crew's shared home rather than a character
+   * somebody keeps, so "take your own copy of the table's crawler" wants a
+   * decision before it gets a button. Offering it is a small change if that
+   * decision goes the other way.
    */
   async function copyToShelf(row: RosterRow) {
     const created = await useEntityStore

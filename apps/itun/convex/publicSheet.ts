@@ -177,21 +177,41 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
  * `assertMayWrite`'s ctx-free sibling being reused loosely, but the same rule:
  * there is no Mediator override, because making somebody else's character
  * world-readable is the clearest possible case of a thing that is theirs to
- * decide. The crawler has no `ownerId` at all, so it follows ADR-030 §5a and is
- * the table runner's act, the same way raising and scrapping it are.
+ * decide. A crawler in a Game is communal and owned by nobody, so it follows
+ * ADR-030 §5a and is the table runner's act, the same way raising and scrapping
+ * it are.
+ *
+ * ## Why this takes the table rather than sniffing the row
+ *
+ * It used to discriminate on `!('ownerId' in row)`, which worked only while the
+ * crawler was the one entity without that column. It now has one (`schema.ts`),
+ * so that test silently stopped separating anything — and the branch it guarded
+ * narrowed to `never`. Passing the table makes the distinction explicit, and
+ * the caller already has it in hand.
+ *
+ * The two gates cannot simply be merged, even though all three rows now carry
+ * the same columns, because an **unclaimed** row means opposite things per
+ * table. An unclaimed pilot is a character waiting for a taker and may not be
+ * published until somebody owns it; an unclaimed crawler is the normal state of
+ * a crew's home and is published by whoever runs the table.
  */
 async function assertMayPublish(
   ctx: MutationCtx,
+  table: PublicTable,
   row: Doc<PublicTable>,
   userId: Id<'users'>,
   isPublic: boolean
 ): Promise<void> {
-  if (!('ownerId' in row)) {
-    // `crawlers.gameId` is `v.id('games')` and never null — a crawler is always
-    // in a Game, and a shelf crawler is not a thing — so there is deliberately
-    // no null branch here to write.
-    await requireTableRunner(ctx, row.gameId)
-    return
+  if (table === 'crawlers') {
+    // In a Game: communal, so the table runner decides (ADR-030 §5a). On a
+    // shelf: an ordinary owned entity, so its owner does — the same rule the
+    // ownable branch below applies, and for the same reason.
+    if (row.gameId !== null) {
+      await requireTableRunner(ctx, row.gameId)
+      return
+    }
+    if (row.ownerId === userId) return
+    throw new NotAuthorized("You cannot publish another player's crawler")
   }
   if (row.ownerId === userId) return
   if (row.ownerId === null) {
@@ -226,7 +246,7 @@ export const setPublic = mutation({
     const row = await byAppId(ctx, table, args.appId)
     if (row === null) throw new NotAuthorized('That entity no longer exists')
 
-    await assertMayPublish(ctx, row, userId, args.isPublic)
+    await assertMayPublish(ctx, table, row, userId, args.isPublic)
 
     // Parse before publishing, exactly as every other mutation parses before
     // persisting (ADR-030): the Zod schemas in `src/lib/schemas/` are the

@@ -18,6 +18,8 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
 import { ConvexPending } from '../shared/ConvexPending'
+import type { DeletableGame } from './DeleteGameDialog'
+import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameRow } from './GameRow'
 
 /**
@@ -115,6 +117,14 @@ function ConnectedGames() {
   const [code, setCode] = useState('')
   const [joinError, setJoinError] = useState<string | null>(null)
   const [joinNotice, setJoinNotice] = useState<string | null>(null)
+  /**
+   * One dialog for the whole list, holding the game it is about.
+   *
+   * Not one dialog per row: the confirm carries several paragraphs naming what
+   * is destroyed, and mounting that under every row would build a modal for
+   * each game you belong to so that at most one could ever open.
+   */
+  const [deleteTarget, setDeleteTarget] = useState<DeletableGame | null>(null)
 
   const join = () => {
     setJoinError(null)
@@ -208,11 +218,20 @@ function ConnectedGames() {
         <ul className="flex list-none flex-col gap-2.5 p-0">
           {games.map((game) => (
             <li key={game._id}>
-              <GameRow game={game} />
+              <GameRow
+                game={game}
+                // Organizer only — and only a courtesy. `games.destroy` calls
+                // `requireOrganizer` whatever the client draws (ADR-030 §3).
+                onDelete={game.organizer ? () => setDeleteTarget(game) : undefined}
+              />
             </li>
           ))}
         </ul>
       )}
+
+      {/* Nothing to do on success: `listMine` is a live subscription, so the
+          row leaves the list on its own the moment the mutation lands. */}
+      <DeleteGameDialog game={deleteTarget} onClose={() => setDeleteTarget(null)} />
     </div>
   )
 }

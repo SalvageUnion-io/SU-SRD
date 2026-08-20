@@ -181,6 +181,75 @@ describe('the Games index for a signed-in player', () => {
   })
 })
 
+/**
+ * Deleting from the index.
+ *
+ * The trash is the ONE per-game control that belongs on this screen, which is
+ * the exception to "per-game administration is NOT on the index" above: every
+ * other administrative control acts on the table's *contents* and needs the
+ * table in front of you, while deleting acts on the row itself and is the
+ * ordinary `EntityRow` affordance the Roster already uses for a pilot.
+ */
+describe('deleting a game from the index', () => {
+  test('only the Organizer is offered the trash', () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    // A Player — and, deliberately, a Mediator who is not the Organizer — has
+    // no trash, because `games.destroy` would refuse them. Hiding a control the
+    // server will refuse is the courtesy; the refusal is the boundary.
+    expect(screen.queryByLabelText('Delete Union Crawler #430')).toBeNull()
+
+    withQueries(queriesFor({ ...GAME, mediator: true }))
+    wrap()
+    expect(screen.queryByLabelText('Delete Union Crawler #430')).toBeNull()
+  })
+
+  test('the Organizer gets it', () => {
+    withQueries(queriesFor({ ...GAME, organizer: true }))
+    wrap()
+    expect(screen.getByLabelText('Delete Union Crawler #430')).toBeTruthy()
+  })
+
+  test('the trash asks first, and says where everything lands', () => {
+    withQueries(queriesFor({ ...GAME, organizer: true }))
+    wrap()
+
+    // Nothing is destroyed on click — a shared campaign ending for everyone in
+    // it is the clearest case there is for a confirm.
+    expect(screen.queryByText(/It cannot be undone/i)).toBeNull()
+
+    fireEvent.click(screen.getByLabelText('Delete Union Crawler #430'))
+
+    // The confirm's job is to be checkable against the row that opened it, so
+    // it carries the real counts and the crawler's real name rather than a
+    // generic "this is permanent".
+    expect(screen.getByText(/It cannot be undone/i)).toBeTruthy()
+    expect(screen.getByText(/4 pilots and 3 mechs go back to the shelves/i)).toBeTruthy()
+    expect(screen.getByText(/Hamlet and anything unclaimed land on your shelf/i)).toBeTruthy()
+  })
+
+  test('a game with no crawler does not promise one', () => {
+    withQueries(queriesFor({ ...GAME, organizer: true, crawlerName: null, pilotCount: 0 }))
+    wrap()
+    fireEvent.click(screen.getByLabelText('Delete Union Crawler #430'))
+
+    expect(screen.getByText(/^Anything unclaimed lands on your shelf\.$/)).toBeTruthy()
+    // With no pilots there is no "0 pilots" line to read past.
+    expect(screen.queryByText(/0 pilots/)).toBeNull()
+  })
+
+  test('cancelling leaves the game alone', () => {
+    withQueries(queriesFor({ ...GAME, organizer: true }))
+    wrap()
+
+    fireEvent.click(screen.getByLabelText('Delete Union Crawler #430'))
+    fireEvent.click(screen.getByText('Cancel'))
+
+    expect(screen.queryByText(/It cannot be undone/i)).toBeNull()
+    expect(screen.getByText('Union Crawler #430')).toBeTruthy()
+  })
+})
+
 describe('joining by code from the lobby', () => {
   test('a successful join routes into the game it joined', async () => {
     withQueries(queriesFor(GAME))

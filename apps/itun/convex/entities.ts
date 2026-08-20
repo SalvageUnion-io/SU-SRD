@@ -277,19 +277,30 @@ export const remove = mutation({
  * schema never said one, and forcing it here would make the ordinary course of
  * a campaign look like a bug.
  *
- * There is deliberately no `unassigned` axis: a crawler has no `ownerId` at all
- * (D8). It belongs to the crew from the moment it exists, which is exactly why
- * players may fill in its fields without ever being handed it.
+ * There is deliberately no `unassigned` axis **inside a Game**: a crawler there
+ * carries `ownerId: null`, which is exactly what communal means (D8). It
+ * belongs to the crew from the moment it exists, which is why players may fill
+ * in its fields without ever being handed it.
+ *
+ * ## `gameId: null` raises one on your own shelf
+ *
+ * A crawler can now also live on a shelf (`schema.ts`), and that is the only
+ * case where it has an owner. There is no table to run, so there is no table
+ * runner to require and no crew to be communal with — the caller is simply the
+ * owner. This is the path the local mirror uses for a Solo crawler, which
+ * previously had no server row at all.
  */
 export const createCrawler = mutation({
   args: {
-    gameId: v.id('games'),
+    /** The Game this crawler is raised in, or `null` to raise it on your shelf. */
+    gameId: v.union(v.id('games'), v.null()),
     /** The local UUID this row mirrors — see `pilots.appId`. */
     appId: v.optional(v.string()),
     body: v.any(),
   },
   handler: async (ctx, args): Promise<Id<'crawlers'>> => {
-    await requireTableRunner(ctx, args.gameId)
+    const userId = await requireUser(ctx)
+    if (args.gameId !== null) await requireTableRunner(ctx, args.gameId)
 
     const result = CrawlerSchema.safeParse(args.body)
     if (!result.success) {
@@ -298,6 +309,9 @@ export const createCrawler = mutation({
 
     return await ctx.db.insert('crawlers', {
       gameId: args.gameId,
+      // Communal in a Game, owned on a shelf. Both-null is the invalid row, so
+      // a shelf crawler MUST take an owner and the caller is the only candidate.
+      ownerId: args.gameId === null ? userId : null,
       appId: args.appId,
       body: result.data,
       updatedAt: Date.now(),
@@ -318,10 +332,54 @@ export const removeCrawler = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await ctx.db.get(args.crawlerId)
     if (doc === null) return
-    await requireTableRunner(ctx, doc.gameId)
+    await assertMayScrapCrawler(ctx, doc)
     await ctx.db.delete(args.crawlerId)
   },
 })
+
+/**
+ * Who may write a crawler's body — it depends on which container holds it.
+ *
+ * In a Game the crawler is communal (D8), so **any member** may edit it; that
+ * is the whole point of a shared home and it is why crawler edits resolve by
+ * field-level merge rather than by an ownership check. On a shelf there is no
+ * crew to share with, so it is an ordinary owned entity and only its owner may
+ * touch it.
+ *
+ * Split out from the two call sites rather than inlined at each, because a
+ * container-dependent rule written twice is a rule that will eventually be
+ * written two different ways.
+ */
+async function assertMayEditCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
+  if (doc.gameId !== null) {
+    await requireMember(ctx, doc.gameId)
+    return
+  }
+  const userId = await requireUser(ctx)
+  if (doc.ownerId !== userId) {
+    throw new NotAuthorized("You cannot edit another player's crawler")
+  }
+}
+
+/**
+ * Who may scrap a crawler. Stricter than editing one, on both sides.
+ *
+ * In a Game, destruction is the **table runner's** act and communal editing
+ * deliberately does not extend to it: the crawler is the crew's home and every
+ * pilot is anchored to it, so one member deleting it would take the table's
+ * shared state with them. On a shelf the owner decides, exactly as they do for
+ * their own pilots and mechs.
+ */
+async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
+  if (doc.gameId !== null) {
+    await requireTableRunner(ctx, doc.gameId)
+    return
+  }
+  const userId = await requireUser(ctx)
+  if (doc.ownerId !== userId) {
+    throw new NotAuthorized("You cannot scrap another player's crawler")
+  }
+}
 
 /**
  * Whether this table already holds a row carrying this app id.
@@ -465,22 +523,24 @@ export const claimLocal = mutation({
      * every saved pattern. Somebody claiming a long-running solo campaign would
      * have watched half of it vanish with no error.
      *
-     * A crawler has no owner column (it is communal, D8) and no Game yet, so a
-     * claimed one is parked on a **placeholder Game of one** rather than
-     * discarded: the shelf cannot hold it, and inventing a crawler-shaped shelf
-     * would be a third container the model does not have.
+     * ## This used to invent a container, and no longer needs to
+     *
+     * A claimed crawler had no Game to go in and no shelf able to hold it, so
+     * it was parked on a placeholder **"Claimed crawler" Game of one** — an
+     * entire Game, plus a membership in it, raised solely to satisfy a
+     * non-nullable `gameId`. That is gone: `crawlers` now carries the same two
+     * container columns as `pilots` and `mechs`, so a claimed crawler lands
+     * exactly where a claimed pilot lands, on the claimer's shelf.
+     *
+     * Two problems go with it. The placeholder appeared in the player's games
+     * list as a table they never made and could not meaningfully use; and the
+     * ordering dance that raised it lazily — resolving what to write BEFORE
+     * inserting the Game, so that a re-claim with nothing new to say did not
+     * leave an empty one behind — was load-bearing machinery guarding a
+     * workaround. With no Game to raise there is nothing left to order, so the
+     * crawler pass is now the same straight loop the pilots and mechs use.
      */
-    /*
-     * The crawler pass resolves what it will write BEFORE it raises the
-     * placeholder Game, because that Game is itself a write that must not
-     * repeat. Raising it up front — as this did — meant a re-claim with nothing
-     * new to say still left behind an empty "Claimed crawler" Game and a
-     * membership in it, so a player's game list grew by one every time they
-     * signed in somewhere new.
-     */
-    const crawlers = args.crawlers ?? []
-    const claimableCrawlers: Array<{ appId: string | undefined; body: unknown }> = []
-    for (const body of crawlers) {
+    for (const body of args.crawlers ?? []) {
       const parsed = CrawlerSchema.safeParse(body)
       if (!parsed.success) {
         skipped += 1
@@ -492,29 +552,11 @@ export const claimLocal = mutation({
         alreadyPresent += 1
         continue
       }
-      claimableCrawlers.push({ appId, body: parsed.data })
-    }
-
-    let shelfGameId: Id<'games'> | null = null
-    if (claimableCrawlers.length > 0) {
-      shelfGameId = await ctx.db.insert('games', { name: 'Claimed crawler' })
-      await ctx.db.insert('memberships', {
-        gameId: shelfGameId,
-        userId,
-        mediator: false,
-        organizer: true,
-        joinedAt: now,
-      })
-    }
-    for (const crawler of claimableCrawlers) {
-      if (shelfGameId === null) {
-        skipped += 1
-        continue
-      }
       await ctx.db.insert('crawlers', {
-        gameId: shelfGameId,
-        appId: crawler.appId,
-        body: crawler.body,
+        gameId: null,
+        ownerId: userId,
+        appId,
+        body: parsed.data,
         updatedAt: now,
       })
       bump('crawlers')
@@ -566,7 +608,11 @@ export const claimLocal = mutation({
         continue
       }
 
-      await ctx.db.insert('softLinks', { gameId: shelfGameId, from, to, type: linkType })
+      // `gameId: null` — the shelf, matching the entities these link. It used to
+      // be the placeholder Game's id whenever a crawler happened to be claimed in
+      // the same call, which filed a shelf roster's wiring under a Game the player
+      // never made.
+      await ctx.db.insert('softLinks', { gameId: null, from, to, type: linkType })
       bump('softLinks')
     }
 
@@ -762,7 +808,7 @@ export const patchCrawlerByAppId = mutation({
     const existing = await crawlerByAppId(ctx, args.appId)
     if (existing === null) return
 
-    await requireMember(ctx, existing.gameId)
+    await assertMayEditCrawler(ctx, existing)
 
     const merged = { ...(existing.body as Record<string, unknown>), ...(args.patch as object) }
     const result = CrawlerSchema.safeParse(merged)
@@ -781,7 +827,7 @@ export const removeCrawlerByAppId = mutation({
     const existing = await crawlerByAppId(ctx, args.appId)
     if (existing === null) return
 
-    await requireTableRunner(ctx, existing.gameId)
+    await assertMayScrapCrawler(ctx, existing)
     await ctx.db.delete(existing._id)
   },
 })
