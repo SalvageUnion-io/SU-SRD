@@ -202,15 +202,17 @@ export { SystemsList } from './components/wizard/SystemsList'
  * The styling foundation (#798, epic #802) — the target pattern Tailwind is
  * being removed in favour of. Namespaced rather than spread flat into this
  * barrel, because the token names are deliberately generic (`color`, `space`,
- * `radius`) and read correctly only when qualified: `tokens.color.rust`,
- * `style={styles.card}`.
+ * `radius`) and read correctly only when qualified: `tokens.color.rust`.
  *
- * `styles` is the STATIC half. The stateful half — `:hover`, `:focus-visible`,
- * `:disabled`, `@media` — cannot live in a style object at all and ships as
- * the stylesheet `component-lib/styles/index.css`. The split rule between them
- * is in this package's CLAUDE.md; read it before migrating a component.
+ * `tokens` is the values. The other two halves of L1 are `styles/index.css`
+ * (the stateful half — `:hover`, `:focus-visible`, `:disabled`, `@media` —
+ * which a style object cannot express at all) and `styles/sizing.ts`. The split
+ * rule is in this package's CLAUDE.md; read it before migrating a component.
+ *
+ * `design/styles.ts` was the third half and is gone — see this commit. When L2
+ * (#799) migrates a component, reintroduce the object it needs at that point,
+ * with its consumer, rather than restoring the speculative set.
  */
-export * as styles from './design/styles'
 export * as tokens from './design/tokens'
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge

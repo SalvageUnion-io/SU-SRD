@@ -2,8 +2,13 @@
  * The package stylesheet — the ONE stylesheet a web consumer loads.
  *
  * Layer 1 of the Tailwind removal (#798, epic #802). This is the other half of
- * the pattern whose TypeScript half is `src/design/tokens.ts` +
- * `src/design/styles.ts`, and it is the half that is easy to miss.
+ * the pattern whose TypeScript half is `src/design/tokens.ts`, and it is the
+ * half that is easy to miss.
+ *
+ * (`src/design/styles.ts` used to be named here too. It shipped 21
+ * `CSSProperties` objects ahead of any consumer and never acquired one, so it
+ * was removed rather than carried through L2. Reintroduce an object alongside
+ * the component that needs it.)
  *
  * WHY IT IS NOT OPTIONAL
  *

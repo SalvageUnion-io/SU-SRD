@@ -50,21 +50,7 @@
       // needs to go back to `false`, the reason belongs here, because the cost
       // is invisible by construction.
       "project": ["src/**/*.{ts,tsx}"],
-      "includeEntryExports": true,
-      // `src/design/styles.ts` is excluded from that check, and ONLY that file.
-      //
-      // It is in-flight scaffolding for the Tailwind removal (#802). Its 20
-      // objects are deliberately unconsumed today, and that is a decision on
-      // record rather than rot: `packages/component-lib/CLAUDE.md` says of
-      // `buttonPrimary`/`buttonSecondary` (#813) — "Nothing consumes the two
-      // objects yet, so they are left in place rather than churned". Turning
-      // the entry-export check on without this would have forced a choice
-      // between deleting an open epic's work and leaving the gate red.
-      //
-      // REMOVAL TRIGGER: delete this entry when #802 lands. If the file is
-      // still unconsumed then, the objects are dead and should go — the point
-      // of the exclusion is to defer that call to the epic, not to retire it.
-      "ignore": ["src/design/styles.ts"]
+      "includeEntryExports": true
     },
     "apps/srd": {
       // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
