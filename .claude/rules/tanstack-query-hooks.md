@@ -108,10 +108,17 @@ Do not reach for it just because it is mounted.
   - This is a rule about **new** code. Solo mode still runs today and the phases
     that remove it have not landed — see
     [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md).
-  - Three stores already violate it and are being repaired in P0: `mechPatterns`
-    and `encounterNpcs` write locally with no mirror, and client Change Log
-    appends never leave the device. **Do not copy their shape**; copy
-    `entityStore`'s `mirrorWrite`.
+  - The three stores that used to violate this — `mechPatterns`,
+    `encounterNpcs`, and the client Change Log — now mirror on every write
+    (P4b). `mechPatterns` and `encounterNpcs` go through the `commit` seam on
+    `makeHydratedCollectionSlice`; the Change Log goes through
+    `commitChangeLog`. **Copy one of those**, not `mirrorWrite`, which the
+    server-first reorder removed.
+  - The one deliberate exception is the Change Log commit, which is
+    fire-and-forget: it is provenance about a write that has already landed and
+    already committed, so failing the player's edit because its audit row did
+    not arrive would trade the write for the record of it. Do not treat that as
+    licence for a new fire-and-forget path — everything else awaits.
   - If the schema cannot express where a record needs to live, **the schema
     moves**. #871 is the worked example: `crawlers` gained `ownerId` and a
     nullable `gameId` so a crawler leaving a deleted Game lands in Convex rather
