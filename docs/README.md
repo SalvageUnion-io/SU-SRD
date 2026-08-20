@@ -30,6 +30,8 @@ conventions, then the relevant architecture doc below.
 
 **I'm working on the move to Cloudflare** → [adrs/ADR-033-cloudflare-hosting.md](adrs/ADR-033-cloudflare-hosting.md) (**the decisions** — read before revisiting any of them, especially R2-over-KV) + [architecture/cloudflare-cutover.md](architecture/cloudflare-cutover.md) (**the executable plan** — phase order, per-phase gates, progress table). Hard cutover, no rollback: **a failed gate halts the phase and is never worked around.** Do not execute from issue #830, which the ADR supersedes.
 
+**I'm changing where player data lives, or anything offline/PWA** → [adrs/ADR-034-account-required-persistence.md](adrs/ADR-034-account-required-persistence.md) (**the decisions** — persistence requires an account, Convex is the only source of truth, IndexedDB is a cache) + [architecture/persistence-and-pwa.md](architecture/persistence-and-pwa.md) (**the executable plan** — phase order, gates, progress, and the inventory of what is not DB-backed yet). Accepted, **nothing built**: Solo mode still works today and P3/P4 are the one-way doors. Never add a store that exists only on a device.
+
 **I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with `bun --filter srd gate` — `ssg/snapshot.ts` diffs the built output against a committed snapshot and is the acceptance gate, not your reading of the diff. If the change is intentional, `bun --filter srd snapshot:update` and commit the snapshot alongside it.
 
 ## Directory Map
@@ -57,6 +59,7 @@ conventions, then the relevant architecture doc below.
 | [agent-tooling.md](architecture/agent-tooling.md)                     | **Service registry** — MCP servers + auth models, and every Netlify/Render/Sentry/Convex identifier    |
 | [cloudflare-cutover.md](architecture/cloudflare-cutover.md)           | **Executable plan** for ADR-033 — phase order, per-phase gates, progress table, cutover runbook        |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
+| [persistence-and-pwa.md](architecture/persistence-and-pwa.md)         | **Executable plan** for ADR-034 — phases, gates, progress, and what is not DB-backed yet               |
 
 ### Rules text — extract and grep, no digest
 
@@ -146,6 +149,7 @@ Read the matching ADR before proposing alternatives.
 | [ADR-030](adrs/ADR-030-accounts-games-server-of-record.md)           | **Governing** — accounts, Games, ownership, and Convex as server of record; supersedes ADR-001, amends ADR-022                                                                        |
 | [ADR-031](adrs/ADR-031-srd-vite-ssg.md)                              | `srd` builds on an in-house Vite SSG (`apps/srd/ssg`); supersedes ADR-012 — same decision, different machine                                                                          |
 | [ADR-033](adrs/ADR-033-cloudflare-hosting.md)                        | Hosting moves to Cloudflare; Netlify + Render retired, hard cutover, snapshots on R2 not KV; amends ADR-004, Convex unchanged                                                          |
+| [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; Convex is the only source of truth and IndexedDB is a cache; both apps are ordinary installable PWAs. **Supersedes ADR-030 §1's Solo guarantee**; amends ADR-002 and ADR-022 |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which

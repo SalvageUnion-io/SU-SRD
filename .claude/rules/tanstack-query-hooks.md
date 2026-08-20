@@ -99,6 +99,23 @@ Do not reach for it just because it is mounted.
 - Do **not** build a local-only duplicate of something Convex already owns
   (membership, ownership, invites, proposals, crew vitals). Check
   `apps/itun/convex/` first.
+- Do **not** add a store, field or flow that persists **only on a device**, even
+  where the current code would let you.
+  [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) makes Convex
+  the only source of truth for every persisted record; IndexedDB is a cache of
+  it. A row with no Convex counterpart is invisible on the user's other devices,
+  invisible to sync, and lost when browser storage clears.
+  - This is a rule about **new** code. Solo mode still runs today and the phases
+    that remove it have not landed — see
+    [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md).
+  - Three stores already violate it and are being repaired in P0: `mechPatterns`
+    and `encounterNpcs` write locally with no mirror, and client Change Log
+    appends never leave the device. **Do not copy their shape**; copy
+    `entityStore`'s `mirrorWrite`.
+  - If the schema cannot express where a record needs to live, **the schema
+    moves**. #871 is the worked example: `crawlers` gained `ownerId` and a
+    nullable `gameId` so a crawler leaving a deleted Game lands in Convex rather
+    than in a browser.
 - Do **not** reintroduce `fetchEntity`/`updateEntity`, hosted-DB `Tables<...>`
   types, or `isLocalId` checks — those are from the removed Postgres era and
   have nothing to do with Convex.

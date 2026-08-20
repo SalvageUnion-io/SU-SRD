@@ -7,8 +7,18 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 supersedes ADR-001):
 
 - **Solo** — not signed in. IndexedDB is the source of truth and nothing is
-  gated. This is still the default and must keep working forever; a build with
-  no `VITE_CONVEX_URL` (CI, a fresh checkout) is permanently Solo.
+  gated. This is the default today, and a build with no `VITE_CONVEX_URL` (CI, a
+  fresh checkout) is permanently Solo — which is why every Playwright e2e
+  currently runs Solo.
+  - **"Forever" no longer holds.**
+    [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) withdraws
+    that guarantee: persistence will require an account, anonymous users get
+    in-memory sheets, and IndexedDB becomes a cache. **Accepted, nothing built**
+    — the description above is still accurate for the code as it stands, so keep
+    Solo working until the phase that removes it lands. What changes *now* is
+    what you may add: **never introduce a store, field or flow that persists only
+    on a device.** Plan and phases:
+    [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md).
 - **Connected / Disconnected** — signed in. Convex is the source of truth and
   IndexedDB becomes a cache. Offline means **read-only**, not a write queue.
 
