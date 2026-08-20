@@ -46,6 +46,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
 | —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
 | P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
+| P4b   | Remove the mirrors; prune the cache                        | **no**     | specified — gated on soak |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
 
 P0–P2 are all reversible and all buy information. P3 and P4 are the one-way
@@ -410,6 +411,76 @@ it), so it may deserve its own follow-up phase rather than riding along here.
   should pass.
 - `bun run check:all` green, and the `apps/itun` coverage ratchet is not
   regressed.
+
+---
+
+## P4b — Remove the mirrors, and prune the cache
+
+**Not started, and deliberately not started yet.** This is the last of the
+demotion and the single most dangerous change in the plan, because it rewrites
+the write path — the code that decides whether a player's work exists.
+
+### Why it waits for soak rather than for a phase
+
+Every other "wait" in this document was a dependency. This one is a **soak**: the
+flip has not been deployed, only merged into a stack. Removing the mirror at the
+same time would ship a rewritten write path *simultaneously with* the change that
+alters who uses it, with no period in between where a failure could be attributed
+to one or the other. That is the same reasoning that keeps `srd`'s service worker
+untouched during its host move, applied to the thing with the worst failure mode
+in the app.
+
+**Precondition to start: the flip is live, and has been for long enough that a
+write-path regression would be visible as a write-path regression.**
+
+### Removing the mirrors
+
+`mirrorWrite`, `mirrorCrawlerWrite` and `mirrorSoftLinkWrite` exist because the
+local store used to be authoritative. Both of their defining properties become
+wrong once it is not:
+
+- **Upsert-as-create** exists because a Solo entity has no server row yet. After
+  the flip nothing creates an entity that the server has not seen, so an upsert
+  silently creating a row is no longer a convergence mechanism — it is a way for
+  a bug to look like success.
+- **Fire-and-forget** exists because the local write already succeeded and is
+  what the UI reads. When the local store is a cache, a write the server refused
+  did not happen, and telling the player otherwise is the divergence ADR-034
+  exists to end.
+
+The replacement is ordinary: write to Convex, await it, and fill the cache only
+on success. The failure becomes the user's failure, surfaced the way every other
+refused write already is (`WritesBlockedOffline`, `serverMessage`).
+
+**It is more than a deletion, and that is the part to plan for.** `crud.ts` mints
+the id, stamps the timestamps and Zod-parses *inside* the write, so a server-first
+order needs that record built before it is persisted — `prepareUpdate` already
+does exactly this for updates, and creates need the same split. Do not start by
+deleting the mirrors; start by making a record buildable without persisting it.
+
+### Pruning, and why `listMine` is not enough for it
+
+Deleting local rows the server does not return is what finally makes "the cache
+is a reflection" literally true. It is also the most destructive operation in the
+codebase, and the obvious implementation is wrong:
+
+**`listMine` returns only what the caller OWNS.** A Game's unclaimed pre-gens and
+its communal crawler are legitimately cached — `GameRoster` adopts them — and
+none of them has the viewer as `ownerId`. Pruning against `listMine` alone would
+delete every one of them on the next boot.
+
+So pruning needs the union of what the server would serve this user: their own
+rows *plus* every Game they are a member of. Until that view exists, pruning is
+not implementable safely, and a partial version is worse than none.
+
+### Gate
+
+- A row deleted on device A is gone from device B after a reload.
+- A row the server refused to write **does not appear** locally, and the user is
+  told.
+- A Game's unclaimed entities and its crawler survive a prune. This is the
+  assertion that catches the `listMine` mistake above; write it first.
+- No path writes an entity locally without the server having accepted it.
 
 ---
 
