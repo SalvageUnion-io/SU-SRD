@@ -17,12 +17,12 @@ description: Set up Bun and install dependencies
 # and THAT one genuinely earns its keep: 269 MB, restores in 4–7 s, saves 11–18 s
 # of browser install. It is kept, in the jobs that need it.
 #
-# `oven-sh/setup-bun@v2` has its own small binary cache and stays.
+# `oven-sh/setup-bun` has its own small binary cache and stays.
 runs:
   using: composite
   steps:
     - name: Set up Bun
-      uses: oven-sh/setup-bun@v2
+      uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
       with:
         bun-version-file: .bun-version
 

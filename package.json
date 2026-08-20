@@ -57,7 +57,8 @@
     "sharp": "catalog:",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "typescript-classic": "npm:typescript@6.0.3"
+    "typescript-classic": "npm:typescript@6.0.3",
+    "wrangler": "4.108.0"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
@@ -93,7 +94,7 @@
     "validate:observability:live": "bun tools/check-observability.ts --live",
     "validate:convex-parity": "bun tools/check-convex-parity.ts",
     "validate:convex-parity:live": "bun tools/check-convex-parity.ts --live",
-    "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts && bun run validate:architecture && bun run validate:doc-drift && bun run validate:observability && bun run validate:convex-codegen && bun run validate:convex-parity && bun run check:catalog",
+    "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts && bun run validate:architecture && bun run validate:doc-drift && bun run validate:observability && bun run validate:convex-codegen && bun run validate:convex-parity && bun run check:catalog && bun run check:action-pinning",
     "clean": "bun --filter \"*\" clean || true",
     "reap": "tools/prune-stale-worktrees.sh",
     "knip": "knip",
@@ -101,6 +102,7 @@
     "check:audit": "bun audit --audit-level=high --ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq",
     "check:tokens": "bun tools/check-design-tokens.ts",
     "check:styling": "bun tools/check-styling-ownership.ts",
+    "check:action-pinning": "bun tools/check-action-pinning.ts",
     "check:ci-aggregator": "bun tools/check-ci-aggregator.ts",
     "check:printed-names": "bun tools/check-printed-names.ts",
     "check:fast": "concurrently -g 'bun run lint' 'bun run validate:all' 'bun run knip' && bun run typecheck",
