@@ -422,6 +422,7 @@ describe('games.get and the row summary', () => {
       })
       await ctx.db.insert('crawlers', {
         gameId,
+        ownerId: null,
         body: { name: 'Hamlet' },
         updatedAt: Date.now(),
       })

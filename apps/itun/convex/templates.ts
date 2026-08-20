@@ -92,9 +92,12 @@ export const createGame = mutation({
     for (const mech of STARTER_MECHS) {
       await ctx.db.insert('mechs', { gameId, ownerId: null, body: mech, updatedAt: now })
     }
-    // The crawler has no ownerId column at all: it is communal by design (D8).
+    // `ownerId: null` is what communal means for a crawler in a Game (D8) — the
+    // same value the starter pilots and mechs take above, but for a different
+    // reason: they are unclaimed and waiting for a taker, the crawler is the
+    // crew's and never gets handed to anyone.
     for (const crawler of STARTER_CRAWLERS) {
-      await ctx.db.insert('crawlers', { gameId, body: crawler, updatedAt: now })
+      await ctx.db.insert('crawlers', { gameId, ownerId: null, body: crawler, updatedAt: now })
     }
     for (const link of STARTER_SOFT_LINKS) {
       await ctx.db.insert('softLinks', {

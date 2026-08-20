@@ -57,14 +57,21 @@ describe('starter-set template', () => {
     expect(roster[0]?.mediator).toBe(false)
   })
 
-  test('the crawler is created communally, with no owner column at all', async () => {
+  test('the crawler is created communally — in a game, it belongs to nobody', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'Organizer')
     await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
 
     const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
     expect(crawlers.length).toBeGreaterThan(0)
-    expect(crawlers[0]).not.toHaveProperty('ownerId')
+    // Communal is now expressed as `ownerId: null` on a row that HAS the column,
+    // rather than by the column's absence. This test used to assert the absence
+    // (`not.toHaveProperty('ownerId')`), which stopped meaning anything the
+    // moment a crawler could also sit on a shelf — where it must have an owner.
+    // What matters is unchanged and is what is asserted now: inside a Game, the
+    // crawler is the crew's and is handed to no one.
+    expect(crawlers[0]?.ownerId).toBeNull()
+    expect(crawlers[0]?.gameId).not.toBeNull()
   })
 
   test('soft links come across, so the crew is wired together on arrival', async () => {

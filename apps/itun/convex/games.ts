@@ -174,18 +174,50 @@ export const rename = mutation({
 })
 
 /**
- * Delete a Game and everything scoped to it.
+ * Delete a Game, and land everything it held somewhere real.
  *
- * Entities owned by members are **not** silently destroyed — they fall back to
- * their owner's shelf (`gameId: null`), so deleting a campaign never deletes
- * somebody's character. Unclaimed entities have no shelf to fall back to and
- * are removed with the Game, which is the only place ADR-030's "both columns
- * null is invalid" rule could otherwise be violated.
+ * **Organizer only.** Ending a shared campaign is administrative in the sense
+ * ADR-030 §3 means it — it is about the table's existence, not about what is on
+ * it — so it sits with `rename` and `transferOrganizer` rather than with the
+ * table-runner acts. It is deliberately NOT `requireTableRunner`: that helper
+ * falls back to the Organizer only while a Game has no Mediator, which would
+ * make who may end a campaign depend on whether one has been appointed yet.
+ *
+ * ## Nothing somebody built is destroyed
+ *
+ * Every entity falls back to a shelf — the third row of ADR-030 §2's ownership
+ * table, `gameId: null` with an owner — rather than dying with the Game:
+ *
+ * | What                           | Where it lands                  |
+ * | ------------------------------ | ------------------------------- |
+ * | a pilot or mech with an owner   | that owner's shelf             |
+ * | an **unclaimed** pilot or mech  | the deleting Organizer's shelf |
+ * | every **crawler**               | the deleting Organizer's shelf |
+ *
+ * The first row is the oldest rule here and the one that matters most: deleting
+ * a campaign must never delete somebody's character.
+ *
+ * The other two are what the previous version got wrong. It deleted unclaimed
+ * entities and crawlers outright, reasoning that they had no shelf to fall back
+ * to — true when it was written, because both need a shelf row carrying an
+ * owner and the crawler had no `ownerId` column at all. Both are expressible
+ * now (see `schema.ts`), so both fall back, and the receiving shelf is the
+ * **deleter's**: they are the one person guaranteed to exist, and the one
+ * looking at the consequence as it happens.
+ *
+ * Note this is the moment a crawler stops being communal. Inside a Game it has
+ * no owner by design (D8); on a shelf it must have one, because an entity with
+ * neither container nor owner is the invalid row. The Organizer does not so
+ * much *take* the crawler as become the person it is now filed under.
+ *
+ * Rows describing the *table* rather than something built on it — the
+ * opposition tray, the wiring, invites, requests, memberships — go with it.
  */
 export const destroy = mutation({
   args: { gameId: v.id('games') },
   handler: async (ctx, args): Promise<void> => {
-    await requireOrganizer(ctx, args.gameId)
+    const membership = await requireOrganizer(ctx, args.gameId)
+    const organizerId = membership.userId
 
     for (const table of ['pilots', 'mechs'] as const) {
       const rows = await ctx.db
@@ -193,17 +225,36 @@ export const destroy = mutation({
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
         .collect()
       for (const row of rows) {
-        if (row.ownerId === null) await ctx.db.delete(row._id)
-        else await ctx.db.patch(row._id, { gameId: null })
+        // An unclaimed entity has no owner to fall back to, so the Organizer
+        // becomes one. Anything already owned keeps its owner untouched.
+        await ctx.db.patch(row._id, {
+          gameId: null,
+          ownerId: row.ownerId ?? organizerId,
+        })
       }
+    }
+
+    // The crawler is communal in a Game and owned on a shelf — see above.
+    // `ownerId` is unconditionally the Organizer because a crawler in a Game
+    // never carried one to preserve.
+    const crawlers = await ctx.db
+      .query('crawlers')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    for (const crawler of crawlers) {
+      await ctx.db.patch(crawler._id, { gameId: null, ownerId: organizerId })
     }
 
     // Game-scoped rows with no personal counterpart just go. `inviteRedemptions`
     // and `joinRequests` belong here for the same reason `invites` does: they
     // describe a way into a Game that no longer exists, and an unanswered knock
     // at a deleted door would sit pending forever.
+    //
+    // `softLinks` are here because a link is a fact about the table's wiring
+    // rather than a possession: a pilot-to-crawler assignment means "aboard
+    // this crew's crawler", which stops being true when the crew disbands.
+    // Shelved entities land unwired, which is the honest state.
     for (const table of [
-      'crawlers',
       'encounterNpcs',
       'softLinks',
       'invites',

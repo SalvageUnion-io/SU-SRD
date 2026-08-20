@@ -300,7 +300,7 @@ export async function mirrorWrite(
  */
 export async function mirrorCrawlerWrite(
   op:
-    | { kind: 'create'; appId: string; gameId: string; body: unknown }
+    | { kind: 'create'; appId: string; gameId: string | null; body: unknown }
     | { kind: 'patch'; appId: string; patch: unknown }
     | { kind: 'delete'; appId: string }
 ): Promise<void> {
@@ -309,7 +309,8 @@ export async function mirrorCrawlerWrite(
   try {
     if (op.kind === 'create') {
       await convexClient.mutation(api.entities.createCrawler, {
-        gameId: op.gameId as Id<'games'>,
+        // `null` raises it on the caller's shelf — see `entities.createCrawler`.
+        gameId: op.gameId as Id<'games'> | null,
         appId: op.appId,
         body: op.body,
       })

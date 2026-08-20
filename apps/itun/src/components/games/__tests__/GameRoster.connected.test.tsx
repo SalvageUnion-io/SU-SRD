@@ -213,12 +213,15 @@ describe('copy to shelf', () => {
     expect(screen.getAllByRole('button', { name: 'Copy to shelf' })).toHaveLength(3)
   })
 
-  test('the crawler does not, because a shelved crawler cannot exist', () => {
+  test('the crawler does not — a deliberate hold, no longer an impossibility', () => {
     renderAs(ME, listing({ crawlers: [CRAWLER] }))
 
-    // `crawlers.gameId` is NON-nullable in the Convex schema, so there is no
-    // server row a shelved crawler could be — which is why `claimLocal` parks a
-    // claimed one on a placeholder Game rather than shelving it.
+    // This assertion is unchanged but its reason is not. A shelved crawler was
+    // once unrepresentable (`crawlers.gameId` was non-nullable); it is ordinary
+    // now. The crawler is the crew's shared home rather than a character
+    // somebody keeps, so offering "copy the table's crawler to your shelf" is a
+    // product decision that has not been made — and this test is what will fail
+    // first, loudly and in the right place, when somebody makes it.
     expect(screen.queryByRole('button', { name: 'Copy to shelf' })).toBeNull()
   })
 

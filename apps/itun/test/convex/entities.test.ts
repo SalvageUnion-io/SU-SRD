@@ -298,6 +298,7 @@ describe('the crawler is communal and merges per field', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', {
           gameId,
+          ownerId: null,
           appId: 'c1',
           // Shape probed against CrawlerSchema, not guessed: techLevel is a
           // STRING here, there is no `modules` key, and `systems` is required.
@@ -339,7 +340,13 @@ describe('the crawler is communal and merges per field', () => {
     const outsider = await makeUser(t, 'Outsider')
     await t.run(
       async (ctx) =>
-        await ctx.db.insert('crawlers', { gameId, appId: 'c1', body: {}, updatedAt: 1 })
+        await ctx.db.insert('crawlers', {
+          gameId,
+          ownerId: null,
+          appId: 'c1',
+          body: {},
+          updatedAt: 1,
+        })
     )
 
     await expect(
@@ -428,7 +435,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
     expect(result.skipped).toBe(0)
   })
 
-  test('a claimed crawler gets a game, because a shelf cannot hold one', async () => {
+  test("a claimed crawler lands on the claimer's shelf, like everything else", async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
     await u.as.mutation(api.entities.claimLocal, {
@@ -447,14 +454,19 @@ describe('claiming a legacy roster carries the whole thing', () => {
       ],
     })
 
-    // Crawlers are communal and game-scoped by design, so there is no shelf
-    // shaped to hold one — a placeholder game of one is the honest home.
+    // This used to park the crawler on a placeholder "Claimed crawler" Game of
+    // one, because `crawlers.gameId` was non-nullable and a shelf could not hold
+    // it. The shelf can hold one now, so a claimed crawler goes exactly where a
+    // claimed pilot goes — and no Game is invented to receive it.
     const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
     expect(crawlers).toHaveLength(1)
-    expect(crawlers[0]?.gameId).not.toBeNull()
+    expect(crawlers[0]?.gameId).toBeNull()
+    expect(crawlers[0]?.ownerId).toBe(u.userId)
 
+    const games = await t.run(async (ctx) => await ctx.db.query('games').collect())
     const memberships = await t.run(async (ctx) => await ctx.db.query('memberships').collect())
-    expect(memberships[0]?.organizer).toBe(true)
+    expect(games).toHaveLength(0)
+    expect(memberships).toHaveLength(0)
   })
 
   test('the local id is preserved as appId so later edits find the row', async () => {
@@ -599,22 +611,25 @@ describe('claiming twice is a no-op, not a second copy', () => {
     )
   })
 
-  test('a repeat claim does not raise a second placeholder game', async () => {
+  test('a repeat claim of a crawler makes no second copy, and no game at all', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
     await u.as.mutation(api.entities.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
     await u.as.mutation(api.entities.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
 
-    // The placeholder Game used to be raised before anything checked whether
-    // there was a crawler left to put in it, so a re-claim grew the player's
-    // game list by one empty "Claimed crawler" every time.
+    // Two regressions in one assertion, and the second is now structural rather
+    // than guarded. Claiming twice must not duplicate the crawler — that check
+    // is unchanged. It must also not accumulate placeholder Games, which it once
+    // did on EVERY re-claim: a "Claimed crawler" Game was raised before anything
+    // checked whether a crawler was left to put in it. No placeholder exists to
+    // raise any more, so the count is zero rather than a carefully-held one.
     const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
     const games = await t.run(async (ctx) => await ctx.db.query('games').collect())
     const memberships = await t.run(async (ctx) => await ctx.db.query('memberships').collect())
     expect(crawlers).toHaveLength(1)
-    expect(games).toHaveLength(1)
-    expect(memberships).toHaveLength(1)
+    expect(games).toHaveLength(0)
+    expect(memberships).toHaveLength(0)
   })
 
   test('soft links and patterns are not duplicated either', async () => {

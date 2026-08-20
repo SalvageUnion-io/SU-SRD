@@ -325,13 +325,47 @@ export default defineSchema({
     .index('by_app_id', ['appId']),
 
   /**
-   * The crawler is communal (D8) — no `ownerId` at all, and any member of the
-   * Game may write it. Conflicting writes resolve by field-level merge (D19),
+   * The crawler is communal **inside a Game** (D8) — `ownerId: null` — and any
+   * member may write it. Conflicting writes resolve by field-level merge (D19),
    * which is enforced in the mutation rather than the schema; the contended
    * fields in practice are the scrap pool and cargo lots during Downtime.
+   *
+   * ## Why this now carries the same two columns as `pilots`/`mechs`
+   *
+   * D8 read as "no `ownerId` at all", and `gameId` was correspondingly
+   * non-nullable: a crawler was a thing that could only exist inside a Game.
+   * That is amended here, and the amendment is about **containers**, not about
+   * ownership during play. Communal-while-in-a-Game is unchanged and still
+   * expressed the same way, by `ownerId: null` on a row whose `gameId` is set.
+   *
+   * What it buys is the third row of ADR-030 §2's table — `gameId: null` with
+   * an owner, *on the shelf* — which the crawler was the one entity unable to
+   * occupy. Two real consequences followed from that gap, and both were worked
+   * around rather than fixed:
+   *
+   *   - **Deleting a Game had to destroy its crawler.** Pilots and mechs fell
+   *     back to a shelf; the crew's home had nowhere to fall to.
+   *   - **`claimLocal` invented a container.** A claimed solo crawler was
+   *     parked on a placeholder "Claimed crawler" Game of one, because the
+   *     shelf could not hold it.
+   *
+   * The alternative was to copy a shelved crawler into IndexedDB alone. That is
+   * rejected on principle: offline-first here is ordinary PWA caching, so the
+   * local store is a *reflection* of Convex and never a second source of truth.
+   * A record with no server row to reflect is invisible on the player's other
+   * devices and lost with the browser's storage.
+   *
+   * `gameId == null && ownerId == null` stays the one invalid combination, for
+   * the crawler exactly as for everything else.
    */
   crawlers: defineTable({
-    gameId: v.id('games'),
+    gameId: v.union(v.id('games'), v.null()),
+    /**
+     * Null while the crawler is in a Game — that is what communal means (D8).
+     * Set only on the shelf, where a container with no owner would be the
+     * invalid row.
+     */
+    ownerId: v.union(v.id('users'), v.null()),
     /** See `pilots.appId` — same reason, same lookup path. */
     appId: v.optional(v.string()),
     /**
@@ -351,6 +385,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
+    .index('by_owner', ['ownerId'])
     .index('by_app_id', ['appId']),
 
   /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */

@@ -112,7 +112,12 @@ describe('deleteAccount — the campaign survives', () => {
 
     const crawlerId = await t.run(
       async (ctx) =>
-        await ctx.db.insert('crawlers', { gameId, body: { name: '#430' }, updatedAt: 1 })
+        await ctx.db.insert('crawlers', {
+          gameId,
+          ownerId: null,
+          body: { name: '#430' },
+          updatedAt: 1,
+        })
     )
 
     await organizer.as.mutation(api.account.deleteAccount, {})
@@ -162,7 +167,8 @@ describe('deleteAccount — the campaign survives', () => {
     const solo = await makeUser(t, 'Solo')
     const gameId = await solo.as.mutation(api.games.create, { name: 'Alone' })
     const crawlerId = await t.run(
-      async (ctx) => await ctx.db.insert('crawlers', { gameId, body: {}, updatedAt: 1 })
+      async (ctx) =>
+        await ctx.db.insert('crawlers', { gameId, ownerId: null, body: {}, updatedAt: 1 })
     )
     const unclaimed = await seedPilot(t, gameId, null)
 

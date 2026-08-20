@@ -314,9 +314,14 @@ function mirrorEntityWrite(
     return
   }
   if (type === 'crawler') {
+    // A shelf crawler used to be dropped here — "no server row to merge into",
+    // which was true while `crawlers.gameId` was non-nullable. It is nullable
+    // now, so a shelved crawler has a real row like everything else and this
+    // mirrors it. Skipping was the one place the local store held data the
+    // server had never heard of, which is exactly the local-only state the
+    // offline story forbids: IndexedDB reflects Convex, it is not a second
+    // source of truth.
     const gameId = record.gameId ?? null
-    // Shelf and Solo crawlers have no server row to merge into.
-    if (gameId === null) return
     if (patch === undefined) {
       void mirrorCrawlerWrite({ kind: 'create', appId: record.id, gameId, body: record })
       return

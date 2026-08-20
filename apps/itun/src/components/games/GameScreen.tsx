@@ -14,14 +14,17 @@
  * belonged to. A list of games is a list; the work happens inside one.
  */
 
-import { Badge, Card, PageHeading, PageShell, Text } from 'component-lib'
+import { useNavigate } from '@tanstack/react-router'
+import { Badge, Button, Card, PageHeading, PageShell, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { DeleteGameDialog } from './DeleteGameDialog'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
 import { InvitePanel } from './InvitePanel'
@@ -33,6 +36,8 @@ function GameBody({ gameId }: { gameId: string }) {
   // it distinguishes "still loading" from "not a member" without fetching every
   // table the viewer belongs to.
   const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
+  const navigate = useNavigate()
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   if (game === undefined) return <ConvexPending label="this game" />
   // `null` covers both "you left" and "no such game", deliberately — a
@@ -81,6 +86,44 @@ function GameBody({ gameId }: { gameId: string }) {
           Open the Mediator surface →
         </AppLink>
       )}
+
+      {/* Ending the campaign, last on the page and Organizer-only.
+          It is offered here as well as behind the trash on the Games list
+          because this is the screen that shows what a Game actually IS — the
+          crew, the invites, the wiring — so it is where the reader can weigh
+          the consequence the confirm is about to describe. */}
+      {game.organizer && (
+        <Card
+          headerBg="bg-ink"
+          headerContent={
+            <Badge shape="stamp" as="h2" size="full">
+              End this game
+            </Badge>
+          }
+        >
+          <div className="flex flex-col gap-3 p-4">
+            <Text>
+              Deleting {game.name} disbands the crew for everyone in it. Every pilot and mech goes
+              back to its owner's shelf, and the crawler comes to yours — but the table, its invites
+              and its wiring are gone for good.
+            </Text>
+            <div>
+              <Button variant="danger" size="compact" onClick={() => setConfirmingDelete(true)}>
+                Delete this game
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      <DeleteGameDialog
+        game={confirmingDelete ? game : null}
+        onClose={() => setConfirmingDelete(false)}
+        // Leave BEFORE the `games.get` subscription resolves to `null`, which
+        // would otherwise flip this route to "You are not in this game" — a
+        // true statement that reads as an error to someone who just deleted it.
+        onDeleted={() => void navigate({ to: '/games' })}
+      />
     </div>
   )
 }

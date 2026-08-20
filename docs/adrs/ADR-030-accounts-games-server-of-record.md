@@ -293,6 +293,74 @@ same act as removing someone from the room.
 
 Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
 
+## Amendment — the crawler can sit on a shelf, and deleting a Game destroys nothing
+
+§5 says the crawler is **communal**, and the schema expressed that by giving it
+no `ownerId` column at all and a non-nullable `gameId`: a crawler was a thing
+that could only exist inside a Game. That second half is amended. `crawlers` now
+carries the same two container columns as `pilots` and `mechs`.
+
+**Communal is unchanged.** It is now written as `ownerId: null` on a row whose
+`gameId` is set — the same fact, stated in a column instead of by a column's
+absence. Any member may still edit the crawler, conflicting writes still resolve
+by field-level merge, and raising or scrapping one inside a Game is still the
+table runner's act under §5a.
+
+What the amendment adds is the third row of §2's ownership table — `gameId:
+null` with an owner, *on the shelf* — which the crawler was the one entity
+unable to occupy. Two things were being worked around rather than fixed:
+
+- **Deleting a Game had to destroy its crawler.** Pilots and mechs fell back to
+  a shelf; the crew's home had nowhere to fall to.
+- **Claiming a Solo roster invented a container.** `entities.claimLocal` parked
+  a claimed crawler on a placeholder "Claimed crawler" Game of one, complete
+  with a membership, because the shelf could not hold it. That Game appeared in
+  the player's list as a table they never made.
+
+`gameId == null && ownerId == null` remains the one invalid combination, for the
+crawler exactly as for everything else — which is *why* a shelved crawler must
+take an owner. A crawler stops being communal at the moment it leaves a Game,
+because communal is a property of being in one.
+
+### Deleting a Game
+
+**Organizer only**, and deliberately not the table runner: `requireTableRunner`
+hands authority to the Organizer only while a Game has no Mediator, which would
+make who may end a campaign depend on whether one had been appointed yet.
+
+Nothing anybody built is destroyed:
+
+| What                            | Where it lands                 |
+| ------------------------------- | ------------------------------ |
+| a pilot or mech with an owner    | that owner's shelf            |
+| an **unclaimed** pilot or mech   | the deleting Organizer's shelf |
+| every **crawler**                | the deleting Organizer's shelf |
+
+The first row was always the rule. The other two are new: unclaimed entities and
+crawlers used to be deleted outright, on the reasoning that they had no shelf to
+fall back to — true at the time, since both need a shelf row carrying an owner.
+Both are expressible now, so both fall back, and the receiving shelf is the
+deleter's because they are the one person guaranteed to exist and to be looking
+at the consequence as it happens.
+
+What does go is the **table**: memberships, invites, pending join requests, the
+Mediator's opposition tray, and the soft links. A link is a fact about the
+table's wiring rather than a possession — a pilot-to-crawler assignment means
+"aboard this crew's crawler", which stops being true when the crew disbands — so
+shelved entities land unwired.
+
+### Why not keep a shelved crawler in the browser only
+
+The rejected alternative was to copy the crawler into IndexedDB on deletion and
+leave the server out of it, which needs no schema change. It is rejected on
+principle: offline-first in ITUN is ordinary PWA caching, so the local store is
+a **reflection** of Convex and never a second source of truth. A record with no
+server row to reflect is invisible on the player's other devices, invisible to
+sync, and lost with the browser's storage. `entityStore.adopt()` never mirrors,
+and `mirrorEntityWrite` used to skip a crawler with `gameId === null` for exactly
+this reason — that skip was the last place the client could hold data the server
+had never heard of, and it is now closed.
+
 ## Amendment to ADR-022
 
 ADR-022 states the Change Log is **local only** and never travels with a
