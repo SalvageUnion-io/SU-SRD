@@ -435,6 +435,43 @@ describe('claiming a legacy roster carries the whole thing', () => {
     expect(result.skipped).toBe(0)
   })
 
+  test('a claimed NPC tray lands on the shelf, owned', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+
+    await u.as.mutation(api.entities.claimLocal, {
+      pilots: [],
+      mechs: [],
+      encounterNpcs: [{ name: 'Ambush' }],
+    })
+
+    // Newly claimable, and only because P0 gave `encounterNpcs` the two
+    // container columns. Before that an NPC could exist ONLY inside a Game, so a
+    // claimed one had nowhere to land and was silently dropped — exactly the gap
+    // the crawler had before #871.
+    const npcs = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(npcs).toHaveLength(1)
+    expect(npcs[0]?.gameId).toBeNull()
+    expect(npcs[0]?.ownerId).toBe(u.userId)
+  })
+
+  test('an unreadable NPC is skipped, and the rest of the claim still lands', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+
+    const result = await u.as.mutation(api.entities.claimLocal, {
+      pilots: [],
+      mechs: [],
+      // `name` is the one field every reader of this table uses, so a body
+      // without it cannot be honoured. It must not take the good one with it.
+      encounterNpcs: [{ name: 'Real' }, { notAName: true }],
+    })
+
+    expect(result.skipped).toBe(1)
+    const npcs = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(npcs).toHaveLength(1)
+  })
+
   test("a claimed crawler lands on the claimer's shelf, like everything else", async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
