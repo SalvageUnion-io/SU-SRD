@@ -193,6 +193,7 @@ export const rename = mutation({
  * | a pilot or mech with an owner   | that owner's shelf             |
  * | an **unclaimed** pilot or mech  | the deleting Organizer's shelf |
  * | every **crawler**               | the deleting Organizer's shelf |
+ * | every **encounter NPC**         | the deleting Organizer's shelf |
  *
  * The first row is the oldest rule here and the one that matters most: deleting
  * a campaign must never delete somebody's character.
@@ -245,7 +246,27 @@ export const destroy = mutation({
       await ctx.db.patch(crawler._id, { gameId: null, ownerId: organizerId })
     }
 
-    // Game-scoped rows with no personal counterpart just go. `inviteRedemptions`
+    // The Mediator's prepared opposition falls back for the same reason the
+    // crawler does, and it became able to only in the same way: `encounterNpcs`
+    // gained a nullable `gameId` and an `ownerId` (ADR-034 decision 2), so a
+    // tray is no longer something only a Game can hold. It used to be deleted
+    // here — which threw away prep work somebody had genuinely built, the one
+    // remaining case of exactly what the rule above forbids.
+    //
+    // It goes to the Organizer rather than to whoever mediated: a Game may have
+    // several Mediators or none, while the deleter is by construction exactly
+    // one person who exists.
+    const npcs = await ctx.db
+      .query('encounterNpcs')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    for (const npc of npcs) {
+      await ctx.db.patch(npc._id, { gameId: null, ownerId: organizerId })
+    }
+
+    // What is left has no personal counterpart, so it just goes. Note this list
+    // is now only the *table's own* apparatus — nothing on it is a thing a
+    // person built. `inviteRedemptions`
     // and `joinRequests` belong here for the same reason `invites` does: they
     // describe a way into a Game that no longer exists, and an unanswered knock
     // at a deleted door would sit pending forever.
@@ -255,7 +276,6 @@ export const destroy = mutation({
     // this crew's crawler", which stops being true when the crew disbands.
     // Shelved entities land unwired, which is the honest state.
     for (const table of [
-      'encounterNpcs',
       'softLinks',
       'invites',
       'inviteRedemptions',

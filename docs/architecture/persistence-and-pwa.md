@@ -38,11 +38,11 @@ Update this table as part of each phase's PR. It is the only place that answers
 
 | Phase | What                                                      | Reversible | Status      |
 | ----- | --------------------------------------------------------- | ---------- | ----------- |
-| P0    | Close the DB-backing gaps (patterns, encounter NPCs, log)  | yes        | not started |
+| P0    | Make every container model expressible (schema only)       | yes        | **done**    |
 | P1    | Test and e2e path that does not depend on Solo             | yes        | not started |
 | P2    | In-memory anonymous mode                                   | yes        | not started |
 | P3    | Gate persistence on an account                             | **no**     | not started |
-| P4    | Demote IndexedDB to a cache                                | **no**     | not started |
+| P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | not started |
 | P6    | ITUN install-triggered offline                             | yes        | not started |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
@@ -91,40 +91,90 @@ moves — the record does not fall back to local-only.
 
 ---
 
-## P0 — Close the DB-backing gaps
+## P0 — Make every container model expressible (schema only)
 
-**Goal.** Every persisted record has a Convex row, before anything changes about
-who may persist. Doing this first means P3 does not have to reason about
-partially-backed data.
+**Goal.** Every store has a Convex shape that can hold what it needs to hold, so
+that later phases are wiring and nothing else.
+
+**Why this phase carries no wiring.** The obvious move is to mirror the three
+un-backed stores the way `entityStore` mirrors the other four. That is the wrong
+shape, and it is wrong for the reason ADR-034 decision 2 gives: **a mirror is a
+bridge that exists only because Solo exists.** It upserts because a Solo entity
+has no server row yet, and it is fire-and-forget because the local write has
+already succeeded and is what the UI reads. Both properties are indefensible once
+the local store is a cache — a cache cannot be ahead, so a refused write must
+fail the user's action rather than become a console warning.
+
+Building two new mirrors here would ship a known-lossy path into two stores *as
+their fix*, and then delete it at P4. The schema work below is needed under any
+sequencing and is not throwaway; the wiring waits and is written once.
 
 **Work.** Three jobs, and they are not the same size.
 
-- **`mechPatterns` — mirror only.** The table already carries `ownerId` and a
-  nullable `gameId`, so the container model is right. It lacks an `appId`, which
-  is why `claimLocal` matches a pattern by reading an id out of the opaque body.
-  Add `appId` + `by_app_id`, then mirror on the `mirrorWrite` pattern.
 - **`encounterNpcs` — the #871 move, verbatim.** The model is settled (ADR-034
-  decision 2): one table, two containers. Today it is
-  `gameId: v.id('games')` with no `ownerId` — *exactly* the shape `crawlers` had
-  before #871. Give it a nullable `gameId`, an `ownerId`, `by_owner`, and an
-  `appId`; a Game-scoped NPC keeps `ownerId: null` the way a communal crawler
-  does, and a shelf NPC takes an owner. Then fold the client's local tray onto
-  it. Read #871's diff before starting — this is the same change twice.
-- **`changeLog` — mirror the client appends**, and correct ADR-030's "now
-  synchronized" claim in the same PR. Cross-device ordering is the hard part
-  here; the log is append-only and keyed by an autoincrement `seq` locally, which
-  does not survive being merged with another device's sequence.
+  decision 2): one table, two containers. Today it is `gameId: v.id('games')`
+  with no `ownerId` — *exactly* the shape `crawlers` had before #871. Give it a
+  nullable `gameId`, an `ownerId` and a `by_owner` index; a Game-scoped NPC keeps
+  `ownerId: null` the way a communal crawler does, and a shelf NPC takes an
+  owner. Read #871's diff before starting — this is the same change twice.
+- **`mechPatterns` — nothing to do.** It already carries `ownerId` and a nullable
+  `gameId`, so its container model is already right. It has no `appId`, which is
+  why `claimLocal` matches a pattern by digging an id out of the opaque body —
+  but `appId` is part of the mirror bridge, so it is **not** added here. If the
+  wiring at P4 needs client-minted ids at all, that is the phase to decide it in.
+- **`changeLog` — decide the ordering rule, write it down, build nothing.**
+  Done, below: `seq` does not travel, `ts` does, and the append-only log
+  interleaves rather than conflicts. **No schema change proved necessary** — both
+  sides already carry `ts` and neither server row carries `seq`. Correct
+  ADR-030's "now synchronized" claim in the same PR as the wiring.
+
+### The Change Log ordering rule
+
+Written down here because it is the design question P4 would otherwise discover
+late. **No schema change is needed — the model already turned out to be right**,
+which was worth checking before proposing one.
+
+- **`seq` does not travel.** It is the IndexedDB autoincrement primary key, and
+  its doc comment calls it "the total order" — true on one device and meaningless
+  across two, since each device numbers from its own 1. It is a *storage* key,
+  not part of the record. It is never sent, never received, and is re-assigned by
+  the local store when the cache is filled.
+- **`ts` travels, and it is already on both sides.** The local entry carries
+  `ts` (epoch ms at write time) and so does the Convex row. That is when the
+  change actually happened, on the device that made it.
+- **Order for display by `ts`; paginate and reconcile by Convex's
+  `_creationTime`.** They answer different questions. `ts` is when the player did
+  it; `_creationTime` is when the server heard about it, and it is the only
+  monotonic server-assigned value, so it is the one a cursor can trust.
+- **The two disagreeing is expected, not a bug.** A device that was offline for
+  an hour lands entries whose `ts` precedes rows already stored. Because the log
+  is **append-only and every entry immutable**, that is *interleaving* — there is
+  nothing to merge, only to sort. This is the whole reason the log is the easy
+  one of the three gaps despite looking like the hard one.
+- **`ts` is unauthenticated client input and must never be trusted for anything
+  but display order.** A wrong device clock — or a hostile one — puts an entry
+  anywhere in the sequence. It must not drive authorization, cursors, or
+  supersession (`supersededBy` is an explicit pointer precisely so ordering never
+  has to imply it).
 
 **Gate.**
 
-- A signed-in user creating a pattern, an encounter NPC, and an entity edit that
-  writes a log entry, on device A, sees all three on device B after a reload.
-  Verified by doing it, not by asserting the mirror was called.
-- `bun run check:all` green.
+- Every IndexedDB store has a Convex table whose columns can express the same
+  containers. Asserted by a test over the two schemas, not by reading them.
 - No new local-only store has appeared: a test asserts the set of IndexedDB
-  stores that have no Convex counterpart is exactly `{workspaces}`.
+  stores with no Convex counterpart is exactly `{workspaces}`.
+- The `changeLog` ordering rule is written down and reviewed.
+- `bun run check:all` green.
 
-That last gate is the one worth keeping forever — it is what stops gap four.
+The second gate is the one worth keeping forever — it is what stops gap four.
+
+**Note what this phase deliberately does NOT fix.** Patterns, encounter NPCs and
+log entries still do not reach the server when it ends. That divergence is live
+today and stays live until P4. It is accepted because the alternative is two
+throwaway lossy bridges, and because the exposure is narrow: those records are on
+the user's device, they are covered by the export bundle, and nothing deletes
+them. If that judgement is wrong, the thing to change is the phase *order* — do
+the demotion sooner — not to add the mirrors back.
 
 ---
 
@@ -225,6 +275,20 @@ populated from Convex and read for speed, and nothing treats it as authoritative
 returns collapse. Reconciliation is a plain rule — the server wins — because
 there is no longer a second writer to conflict with, which is the entire benefit
 being bought.
+
+**This is where all six stores are wired, in one shape, once.** The four that
+mirror today stop mirroring; the three that do not reach the server at all are
+wired for the first time. They get the same treatment because after this phase
+they are the same kind of thing: a write goes to Convex and its failure is the
+user's failure, rather than a local success plus a swallowed warning.
+
+The bridge comes out with them. `mirrorWrite`, `mirrorCrawlerWrite` and
+`mirrorSoftLinkWrite` have no remaining premise — and `appId` is on the same
+list, since it exists only because the client mints ids as the source of truth.
+Removing it is a bigger change than the mirrors (`claimLocal`, `byAppId`,
+`upsertByAppId`, the bot's lookups and the public-sheet route all address rows by
+it), so it may deserve its own follow-up phase rather than riding along here.
+**Decide that explicitly when scoping P4 — do not let it happen by accident.**
 
 **Gate.**
 

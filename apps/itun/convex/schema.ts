@@ -400,10 +400,41 @@ export default defineSchema({
     .index('by_to', ['to.id']),
 
   /** Mediator-owned and Mediator-visible. The one thing that must stay hidden. */
+  /**
+   * An NPC, in exactly one of the two containers everything else uses
+   * ([ADR-034](../../../docs/adrs/ADR-034-account-required-persistence.md)
+   * decision 2).
+   *
+   * In a Game (`gameId` set, `ownerId: null`) it is the **Mediator's prepared
+   * opposition** — the one table members cannot read. On a shelf (`gameId:
+   * null`, `ownerId` set) it is somebody's own tray, where they prep before a
+   * Game exists or after one ends.
+   *
+   * ## Why this grew two columns
+   *
+   * It was `gameId: v.id('games')` with no `ownerId` — *precisely* the shape
+   * `crawlers` had before #871, and it produced the same two problems. An NPC
+   * could not exist outside a Game, so deleting a Game destroyed the Mediator's
+   * prep; and the client kept a local-only tray of its own under the same name,
+   * holding a different set of rows that no server table could receive. One
+   * name, two disjoint meanings, and a container model that could express only
+   * one of them.
+   *
+   * `gameId == null && ownerId == null` stays the invalid row here as
+   * everywhere else.
+   */
   encounterNpcs: defineTable({
-    gameId: v.id('games'),
+    gameId: v.union(v.id('games'), v.null()),
+    /**
+     * Null inside a Game — the tray belongs to the table, not to a member, and
+     * the Mediator reaches it through their role rather than through ownership.
+     * Set on a shelf, where a container with no owner would be the invalid row.
+     */
+    ownerId: v.union(v.id('users'), v.null()),
     body: v.any(),
-  }).index('by_game', ['gameId']),
+  })
+    .index('by_game', ['gameId'])
+    .index('by_owner', ['ownerId']),
 
   /**
    * A saved mech pattern. Personal — there is no sharing.

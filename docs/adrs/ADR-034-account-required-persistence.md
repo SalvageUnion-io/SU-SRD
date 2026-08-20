@@ -122,9 +122,33 @@ phone?* If the answer is yes and that is acceptable, it is not data — it is a
 device preference (see *What is not data* below). If the answer is yes and it is
 not acceptable, the schema is wrong and the schema moves.
 
-This closes the three gaps named in Context. `mechPatterns`, `encounterNpcs` and
-the Change Log all become mirrored like pilots, mechs, crawlers and soft links
-already are.
+This closes the three gaps named in Context — but **not by adding mirrors.**
+
+**The mirror is a bridge, and this ADR is what removes the gap it bridges.**
+`entityBackend.ts` states its own three properties plainly, and every one of them
+is a consequence of the local store being able to run ahead of the server: it
+*upserts* rather than updates, because "an entity built while Solo has no server
+row until the account is claimed"; it is **fire-and-forget**, because "the local
+write already succeeded and is what the UI reads", so a failure becomes a console
+warning; and it runs only in `remote`, because "in Solo there is no server to
+mirror to".
+
+None of those premises survive decision 1. There is no pre-account entity for an
+upsert to converge, and a cache can never legitimately be ahead of its source —
+so a write that the server refuses must **fail the user's action**, not be
+swallowed. Fire-and-forget is how this repo already lost an evening of play.
+
+So the end state is not "six mirrored stores". It is **no mirrors**: the client
+writes to Convex and reads Convex's reactive result, and IndexedDB is populated
+from that. `appId` is part of the same bridge — it exists because the client
+mints ids, which it does because it used to be the source of truth — and it goes
+when the bridge does.
+
+The practical consequence for sequencing is in the plan: the *schema* work that
+makes each container model expressible is real either way and lands early, while
+the *wiring* lands once, in the final shape, at the demotion. Adding a mirror to
+`mechPatterns` and `encounterNpcs` first would mean writing a known-lossy path
+into two stores as their fix, and deleting it two phases later.
 
 **`encounterNpcs` is one table with two containers, not two concepts.** An NPC
 lives either in a Game — the Mediator's prepared opposition, `gameId` set — or on

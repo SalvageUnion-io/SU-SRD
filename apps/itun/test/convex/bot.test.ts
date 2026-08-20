@@ -267,7 +267,8 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     const t = testConvex()
     const { gameId } = await seedBoundGame(t)
     const npcId = await t.run(
-      async (ctx) => await ctx.db.insert('encounterNpcs', { gameId, body: { name: 'Ambush' } })
+      async (ctx) =>
+        await ctx.db.insert('encounterNpcs', { gameId, ownerId: null, body: { name: 'Ambush' } })
     )
 
     // ADR-030 §5: the Mediator's prepared opposition is the ONE thing a player
@@ -302,7 +303,8 @@ describe('the Mediator’s prepared opposition stays hidden', () => {
     const t = testConvex()
     const { gameId } = await seedBoundGame(t)
     const npcId = await t.run(
-      async (ctx) => await ctx.db.insert('encounterNpcs', { gameId, body: { name: 'Ambush' } })
+      async (ctx) =>
+        await ctx.db.insert('encounterNpcs', { gameId, ownerId: null, body: { name: 'Ambush' } })
     )
 
     const result = await t.query(internal.botClient.sheet, {

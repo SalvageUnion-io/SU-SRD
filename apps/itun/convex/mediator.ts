@@ -1,8 +1,9 @@
 import { v } from 'convex/values'
-import type { Id } from './_generated/dataModel'
+import type { Doc, Id } from './_generated/dataModel'
+import type { MutationCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { parseBody } from './model/entities'
-import { requireMediator, requireUser } from './model/permissions'
+import { NotAuthorized, requireMediator, requireUser } from './model/permissions'
 
 /**
  * The Mediator surface's server layer (ADR-030 §6, Phase 3).
@@ -60,7 +61,15 @@ export const addNpc = mutation({
   handler: async (ctx, args): Promise<Id<'encounterNpcs'>> => {
     await requireMediator(ctx, args.gameId)
     const body = parseBody('encounterNpcs', args.body)
-    return await ctx.db.insert('encounterNpcs', { gameId: args.gameId, body })
+    // `ownerId: null` is what in-a-Game means for a tray NPC — the opposition
+    // belongs to the table, and the Mediator reaches it through their role.
+    // These mutations are all Game-scoped; the shelf half of the container model
+    // has no writer yet and gains one when the client tray is wired (P4).
+    return await ctx.db.insert('encounterNpcs', {
+      gameId: args.gameId,
+      ownerId: null,
+      body,
+    })
   },
 })
 
@@ -69,7 +78,7 @@ export const updateNpc = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await ctx.db.get(args.npcId)
     if (doc === null) return
-    await requireMediator(ctx, doc.gameId)
+    await requireNpcWriter(ctx, doc)
     const body = parseBody('encounterNpcs', args.body)
     await ctx.db.patch(args.npcId, { body })
   },
@@ -80,10 +89,33 @@ export const removeNpc = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await ctx.db.get(args.npcId)
     if (doc === null) return
-    await requireMediator(ctx, doc.gameId)
+    await requireNpcWriter(ctx, doc)
     await ctx.db.delete(args.npcId)
   },
 })
+
+/**
+ * Who may write an NPC — it depends on which container holds it.
+ *
+ * In a Game, the Mediator and nobody else: the tray is the one thing §5 keeps
+ * hidden from the crew, so the read rule and the write rule are the same rule.
+ * On a shelf it is an ordinary owned record and only its owner may touch it.
+ *
+ * Split out rather than inlined at both call sites, because a
+ * container-dependent rule written twice is a rule that will eventually be
+ * written two different ways — the same reason `entities.ts` has
+ * `assertMayEditCrawler`.
+ */
+async function requireNpcWriter(ctx: MutationCtx, doc: Doc<'encounterNpcs'>): Promise<void> {
+  if (doc.gameId !== null) {
+    await requireMediator(ctx, doc.gameId)
+    return
+  }
+  const userId = await requireUser(ctx)
+  if (doc.ownerId !== userId) {
+    throw new NotAuthorized("You cannot edit another player's NPC")
+  }
+}
 
 /**
  * Whether the caller mediates this Game.
