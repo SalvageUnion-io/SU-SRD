@@ -43,7 +43,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account (mechanism; flip deferred)  | yes        | **done**    |
 | P4    | Demote IndexedDB to a cache (**read path done**; prune + mirror removal await the flip) | **no** | part done |
-| P5    | Claim-on-sign-in coverage and the decline path             | yes        | not started |
+| P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
 | P6    | ITUN install-triggered offline                             | yes        | not started |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
 
@@ -437,8 +437,12 @@ explicitly refused the export too.** A decline dialog that quietly counts as
 **Gate.**
 
 - A pre-ADR-030 IndexedDB fixture claims completely: pilots, mechs, crawlers,
-  soft links, patterns, encounter NPCs, log entries, with counts asserted per
-  kind.
+  soft links, patterns and encounter NPCs, with counts asserted per kind.
+  - **The Change Log is deliberately not claimed here.** Its client appends do
+    not reach the server at all yet, and the wiring that changes that lands with
+    P4's second half together with the ordering rule — claiming a log into a
+    table nothing else writes would be a one-off import with no ongoing sync
+    behind it. Recorded so this reads as sequencing rather than an omission.
 - Claiming twice produces no duplicates (already covered by an existing test —
   extend it to the new kinds rather than writing a second one).
 - Declining, then reloading, then accepting, still claims everything — declining

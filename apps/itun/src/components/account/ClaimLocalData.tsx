@@ -2,12 +2,15 @@ import { Button, Card, Text } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { getBackupNudgeState } from '../../lib/backupNudge'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { serverMessage } from '../../lib/connection/serverError'
 import { captureException } from '../../lib/observability'
+import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
+import { ExportAllButton } from '../export/ExportAllButton'
 
 /**
  * The one-time "bring your local data into your account" step (D11).
@@ -76,6 +79,16 @@ function ConnectedClaim() {
   const crawlers = useEntityStore((s) => s.list('crawler'))
   const softLinks = useEntityStore((s) => s.list('softLink'))
   const patterns = usePatternStore((s) => s.mechPatterns)
+  const npcs = useEncounterStore((s) => s.encounterNpcs)
+
+  /**
+   * Whether a backup has been taken — previously, or just now.
+   *
+   * Seeded from the backup nudge's own record so somebody who exported last week
+   * is not told to do it again, and updated live by `ExportAllButton`, because
+   * that record is persisted state with no change notification.
+   */
+  const [exported, setExported] = useState(() => getBackupNudgeState().lastExportAt !== null)
 
   const [summary, setSummary] = useState<Summary | null>(null)
   const [busy, setBusy] = useState(false)
@@ -111,6 +124,11 @@ function ConnectedClaim() {
               They will be copied to your account and land on your shelf — not in any game — so you
               can place them yourself. Nothing on this device is changed or removed.
             </Text>
+            {!exported && (
+              <Text variant="hint" className="text-left">
+                If you would rather not, download them first — this device holds the only copy.
+              </Text>
+            )}
             <div className="flex gap-2">
               <Button
                 variant="primary"
@@ -125,6 +143,7 @@ function ConnectedClaim() {
                     crawlers: crawlers as unknown[],
                     softLinks: softLinks as unknown[],
                     mechPatterns: patterns as unknown[],
+                    encounterNpcs: npcs as unknown[],
                   })
                     .then((result) => {
                       markClaimed(userKey)
@@ -146,8 +165,25 @@ function ConnectedClaim() {
               >
                 {busy ? 'Copying…' : 'Copy to my account'}
               </Button>
-              <Button variant="ghost" size="compact" onClick={() => setDismissed(true)}>
-                Not now
+              {/* Declining is terminal by design (ADR-034): the app pushes the
+                  download and then stops asking. That is only defensible if the
+                  download is actually TAKEN — "we offered" and "they have a
+                  copy" are different facts, and treating them as one is how a
+                  roster is lost by somebody who meant to deal with it later. So
+                  the download sits beside the decline, and the decline says what
+                  it is costing until a bundle exists. */}
+              <ExportAllButton onExported={() => setExported(true)} />
+              <Button
+                variant="ghost"
+                size="compact"
+                onClick={() => setDismissed(true)}
+                title={
+                  exported
+                    ? undefined
+                    : 'Download your builds first — this device holds the only copy.'
+                }
+              >
+                {exported ? 'Done' : 'Not now'}
               </Button>
             </div>
             {error !== null && (

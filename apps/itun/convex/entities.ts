@@ -530,6 +530,15 @@ export const claimLocal = mutation({
     crawlers: v.optional(v.array(v.any())),
     softLinks: v.optional(v.array(v.any())),
     mechPatterns: v.optional(v.array(v.any())),
+    /**
+     * The player's own NPC tray.
+     *
+     * Newly claimable, and only because P0 gave `encounterNpcs` the two
+     * container columns: before that an NPC could exist only inside a Game, so
+     * there was nowhere for a claimed one to land and it was silently dropped —
+     * the same gap the crawler had before #871.
+     */
+    encounterNpcs: v.optional(v.array(v.any())),
   },
   handler: async (
     ctx,
@@ -629,6 +638,30 @@ export const claimLocal = mutation({
         updatedAt: now,
       })
       bump('crawlers')
+    }
+
+    /**
+     * The NPC tray claims onto the shelf, like everything else here.
+     *
+     * `ownerId: userId` with `gameId: null` — a tray on a shelf is owned, while
+     * a tray in a Game is the Mediator's and owned by nobody. Claiming produces
+     * the first of those, always: a claim has no Game to put anything in.
+     */
+    for (const body of args.encounterNpcs ?? []) {
+      // `PARSERS.encounterNpcs` rather than the schema directly — that map is
+      // the single list of tables owing an edge parse, and reaching around it is
+      // how a table ends up validated two different ways.
+      const parsed = PARSERS.encounterNpcs.safeParse(body)
+      if (!parsed.success) {
+        skipped += 1
+        continue
+      }
+      await ctx.db.insert('encounterNpcs', {
+        gameId: null,
+        ownerId: userId,
+        body: parsed.data,
+      })
+      bump('encounterNpcs')
     }
 
     for (const link of args.softLinks ?? []) {
