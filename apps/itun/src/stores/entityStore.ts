@@ -621,6 +621,33 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       await commitWrite(pu.type, pu.record as { id: string; gameId?: string | null }, pu.patch)
     }
 
+    // Phase 1c — commit the DELETES too, and for the same reason.
+    //
+    // This loop was missing, and its absence was worse than a stale row. Phase
+    // 1b's comment already states the guarantee — "a refusal aborts with
+    // nothing changed locally" — but that only ever held for the updates; the
+    // deletes went straight to disk in phase 2. So a transfer that consumed a
+    // stack of cargo deleted it locally and left it alive on the server, and
+    // `ShelfSync` then restored it on the next sync. The end state is not a
+    // half-applied transfer, it is BOTH ends: the value arrives at the target
+    // and the source keeps it too.
+    //
+    // Reads each record before committing, exactly as `delete()` does: a link
+    // is addressed on the server by its endpoints, and after phase 2 there is
+    // nothing left to name it by.
+    for (const d of deletes) {
+      if (d.type === 'softLink') {
+        await commitSoftLink('delete', get().get('softLink', d.id))
+      } else {
+        const existing = get().get(d.type, d.id)
+        await commitEntityWrite(d.type, {
+          kind: 'delete',
+          appId: d.id,
+          gameId: existing?.gameId ?? null,
+        })
+      }
+    }
+
     // Phase 2 — one IDB transaction for every put and delete.
     const prunedIds = await db.atomicWrite([
       ...prepared.map((pu) => ({

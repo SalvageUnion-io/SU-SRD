@@ -62,8 +62,10 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
 import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
 import { captureException } from '../../lib/observability'
+import type { MechPattern } from '../../lib/schemas/pattern'
 import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
+import { usePatternStore } from '../../stores/patternStore'
 
 type Row = { appId?: string | null; body: unknown }
 
@@ -122,6 +124,34 @@ function ConnectedShelfSync() {
           }
         }
       }
+
+      // Patterns live in their own store, and until now were fetched and then
+      // thrown away: `entities.listMine` returns `mechPatterns`, the stamp
+      // above already keys on them — so this effect re-runs when they change —
+      // and the `kinds` table above simply had no entry for them. A signed-in
+      // player on a second device got their pilots, mechs and crawlers and an
+      // empty pattern library, which is the exact gap ADR-034 P4b exists to
+      // close. The fetch half had landed; the adopt half had not.
+      //
+      // Pattern rows carry only `{ body }` — no `appId` — because a pattern is
+      // addressed by the id inside its body, which is likely why they were
+      // skipped when the `{ appId, body }` kinds were written.
+      const patterns = usePatternStore.getState()
+      for (const row of mine.mechPatterns as { body: unknown }[]) {
+        try {
+          await patterns.adopt(row.body as MechPattern)
+        } catch (err) {
+          // Same rule as the roster loop above: one unreadable pattern must not
+          // stop the rest of the library arriving.
+          captureException(err)
+        }
+      }
+
+      // Patterns are deliberately NOT pruned below. The prune answers "the
+      // server did not return this, so it was deleted elsewhere", and that
+      // inference is only sound for rows this sync is authoritative over.
+      // Adopting them is what the bug was; deleting them is a separate decision
+      // with a much worse failure mode, and nothing has asked for it.
 
       // Prune only where absence is unambiguous — see the header. Every guard
       // matters; dropping any one turns this into a roster-deleter.
