@@ -276,6 +276,47 @@ export async function commitEntityWrite(
  * naturally idempotent, so a repeated write is a no-op rather than a duplicate
  * wire.
  */
+/**
+ * Mirror one saved-pattern write.
+ *
+ * Addressed by the id inside the body rather than by an `appId` column, because
+ * `mechPatterns` has none and needs none — a pattern's own id already is its app
+ * id, which makes the upsert idempotent.
+ *
+ * Same early return as every other commit here: in Solo or anonymous mode there
+ * is no server of record to reach, and this is a no-op rather than an error.
+ */
+export async function commitPatternWrite(
+  op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  if (op.kind === 'delete') {
+    await convexClient.mutation(api.entities.removeMechPattern, { patternId: op.id })
+    return
+  }
+  await convexClient.mutation(api.entities.upsertMechPattern, { body: op.record })
+}
+
+/**
+ * Mirror one shelf-NPC write.
+ *
+ * Shelf only. A tray inside a Game belongs to the table rather than to a member
+ * and is reached through `mediator.*` by the Mediator's role; this store holds
+ * the personal tray, which is the one that had no server write at all.
+ */
+export async function commitNpcWrite(
+  op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  if (op.kind === 'delete') {
+    await convexClient.mutation(api.entities.removeEncounterNpc, { npcId: op.id })
+    return
+  }
+  await convexClient.mutation(api.entities.upsertEncounterNpc, { body: op.record })
+}
+
 export async function commitSoftLink(
   kind: 'upsert' | 'delete',
   link: SoftLink | null

@@ -230,7 +230,7 @@ export const listMine = query({
   handler: async (ctx) => {
     const userId = await requireUser(ctx)
 
-    const [pilots, mechs, crawlers, patterns] = await Promise.all([
+    const [pilots, mechs, crawlers, patterns, npcs] = await Promise.all([
       ctx.db
         .query('pilots')
         .withIndex('by_owner', (q) => q.eq('ownerId', userId))
@@ -247,6 +247,10 @@ export const listMine = query({
         .query('mechPatterns')
         .withIndex('by_owner', (q) => q.eq('ownerId', userId))
         .collect(),
+      ctx.db
+        .query('encounterNpcs')
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect(),
     ])
 
     // Bodies only. The caller is filling a local store whose records are keyed
@@ -258,6 +262,11 @@ export const listMine = query({
       mechs: mechs.map((r) => ({ appId: r.appId ?? null, body: r.body })),
       crawlers: crawlers.map((r) => ({ appId: r.appId ?? null, body: r.body })),
       mechPatterns: patterns.map((r) => ({ body: r.body })),
+      // Without this the shelf tray was WRITE-ONLY. `claimLocal` and
+      // `games.destroy` both wrote `encounterNpcs`, and no query read them
+      // back: `mediator.npcs` requires a `gameId`, so a tray on a shelf was
+      // reachable by nothing. It went up and never came down.
+      encounterNpcs: npcs.map((r) => ({ body: r.body })),
     }
   },
 })
@@ -1018,6 +1027,106 @@ const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
  * shelved before a claim — so there is nothing to anchor a link to and this
  * no-ops rather than inventing one.
  */
+/**
+ * Mirror one saved pattern, addressed by the id inside its body.
+ *
+ * These tables have no `appId` column and need none: a pattern's own id already
+ * is its app id, which makes this naturally idempotent — the same write twice
+ * is a patch, not a duplicate.
+ *
+ * Until this existed, `mechPatterns` reached Convex through exactly one path,
+ * the bulk `claimLocal` at sign-in. Every pattern saved afterwards lived only in
+ * that browser: invisible on a second device, and gone with the site data. This
+ * is the per-write half ADR-034 P4b calls for.
+ */
+export const upsertMechPattern = mutation({
+  args: { body: v.any() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const parsed = PARSERS.mechPatterns.parse(args.body)
+    const patternId = (args.body as { id?: unknown }).id
+    if (typeof patternId !== 'string') {
+      throw new Error('[itun] a mech pattern must carry a string id in its body')
+    }
+
+    const own = await ctx.db
+      .query('mechPatterns')
+      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .collect()
+    const existing = own.find((r) => (r.body as { id?: unknown }).id === patternId)
+
+    if (existing === undefined) {
+      await ctx.db.insert('mechPatterns', { ownerId: userId, gameId: null, body: parsed })
+      return
+    }
+    await ctx.db.patch(existing._id, { body: parsed })
+  },
+})
+
+/** Delete one saved pattern. Scoped to the caller's own rows by construction. */
+export const removeMechPattern = mutation({
+  args: { patternId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const own = await ctx.db
+      .query('mechPatterns')
+      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .collect()
+    const existing = own.find((r) => (r.body as { id?: unknown }).id === args.patternId)
+    // Absent is success: a delete that races a delete, or a row that never
+    // reached the server, must not fail the local write that follows it.
+    if (existing === undefined) return
+    await ctx.db.delete(existing._id)
+  },
+})
+
+/**
+ * Mirror one shelf NPC.
+ *
+ * Shelf only — `ownerId: userId`, `gameId: null`. A tray inside a Game belongs
+ * to the table rather than to a member and is reached through `mediator.*` by
+ * the Mediator's role; this is the personal tray, which is the one the local
+ * store holds and the one that had no server write at all.
+ */
+export const upsertEncounterNpc = mutation({
+  args: { body: v.any() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const parsed = PARSERS.encounterNpcs.parse(args.body)
+    const npcId = (args.body as { id?: unknown }).id
+    if (typeof npcId !== 'string') {
+      throw new Error('[itun] an encounter NPC must carry a string id in its body')
+    }
+
+    const own = await ctx.db
+      .query('encounterNpcs')
+      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .collect()
+    const existing = own.find((r) => (r.body as { id?: unknown }).id === npcId)
+
+    if (existing === undefined) {
+      await ctx.db.insert('encounterNpcs', { gameId: null, ownerId: userId, body: parsed })
+      return
+    }
+    await ctx.db.patch(existing._id, { body: parsed })
+  },
+})
+
+/** Delete one shelf NPC. Absent is success, as for patterns. */
+export const removeEncounterNpc = mutation({
+  args: { npcId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const own = await ctx.db
+      .query('encounterNpcs')
+      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .collect()
+    const existing = own.find((r) => (r.body as { id?: unknown }).id === args.npcId)
+    if (existing === undefined) return
+    await ctx.db.delete(existing._id)
+  },
+})
+
 export const upsertSoftLink = mutation({
   args: {
     from: v.object({ type: entityRefType, id: v.string() }),
