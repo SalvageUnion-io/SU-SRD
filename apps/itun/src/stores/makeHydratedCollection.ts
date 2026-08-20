@@ -30,6 +30,8 @@ type DbCollection<T, CreateInput> = {
   create: (input: CreateInput) => Promise<T>
   update: (id: string, patch: Partial<T>) => Promise<T>
   delete: (id: string) => Promise<void>
+  /** Writes a server-provided record verbatim. Used by {@link HydratedCollectionActions.adopt}. */
+  put: (record: T) => Promise<T>
 }
 
 /** The CRUD + hydration surface every collection store shares. */
@@ -52,6 +54,19 @@ export type HydratedCollectionActions<T, CreateInput> = {
   update: (id: string, patch: Partial<T>) => Promise<T>
   /** Deletes from db and removes from in-memory state. */
   delete: (id: string) => Promise<void>
+  /**
+   * Fills the cache from the server of record, without writing back.
+   *
+   * The counterpart to `entityStore.adopt`, and it exists for the same reason:
+   * `ShelfSync` pulls the account's rows down and must place them locally
+   * WITHOUT that placement being mistaken for a user write and mirrored back up.
+   *
+   * Deliberately no `requireWritableBackend()`, matching `entityStore.adopt`:
+   * filling the cache is not a user write, and refusing it while Disconnected
+   * would make going offline lose access to a record rather than merely making
+   * it read-only.
+   */
+  adopt: (record: T) => Promise<T>
 }
 
 type SliceConfig<K extends string, T, CreateInput> = {
@@ -139,6 +154,25 @@ export function makeHydratedCollectionSlice<
           void get().hydrate()
         }
         return records().find((r) => r.id === id) ?? null
+      },
+
+      async adopt(record) {
+        const cached = await db().put(record)
+        set({
+          [key]: (() => {
+            const list = records()
+            const exists = list.some(
+              (r) => (r as { id: string }).id === (cached as { id: string }).id
+            )
+            return exists
+              ? list.map((r) =>
+                  (r as { id: string }).id === (cached as { id: string }).id ? cached : r
+                )
+              : [cached, ...list]
+          })(),
+        })
+        afterWrite()
+        return cached
       },
 
       async create(input) {
