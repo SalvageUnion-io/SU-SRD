@@ -45,7 +45,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4    | Demote IndexedDB to a cache (**read path done**; prune + mirror removal await the flip) | **no** | part done |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
 | —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
-| P6    | ITUN install-triggered offline                             | yes        | not started |
+| P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
 
 P0–P2 are all reversible and all buy information. P3 and P4 are the one-way
@@ -459,21 +459,48 @@ explicitly refused the export too.** A decline dialog that quietly counts as
 **Goal.** Deliver ADR-034 decision 3 for ITUN: installable, and installed means
 offline-capable in full.
 
-**Work.** ITUN is already installable and already precaches its shell. What is
-missing is the *account data* half: an installed app should hold the signed-in
-user's own roster for offline reading. Detection is by installed state
-(`display-mode: standalone`, `appinstalled`), not by visit count.
+**What this turned out to be.** Less building than expected, and more proving —
+which was the useful outcome.
+
+ITUN was already installable, already precached its shell (`globPatterns`
+covers js/css/html/ico/png/svg/woff2), and after P4 already holds the signed-in
+user's roster in IndexedDB via `ShelfSync`. So the offline promise was
+substantially *true* and supported by **nothing**: no spec had ever exercised the
+service worker, and the Playwright config blocked workers globally with a comment
+saying none was needed.
+
+There is also no install-conditional download to add, and that is worth stating
+rather than leaving as a gap. Your rule — installed buys offline, online visitors
+do not pre-cache — bites on a *corpus*, and ITUN has none: its payload is the app
+shell plus the user's own roster, both of which it must load to render at all.
+`srd` is where the rule has teeth, because there the corpus is 1,039 pages
+(see P7).
+
+So P6 is `e2e/offline.e2e.ts`: the network is cut at the browser and the app is
+asserted to open, render, and resolve an unvisited route.
 
 `registerType: 'prompt'` **does not change**, for the reason ADR-034 gives.
 `chunkRecovery.ts` stays as the backstop.
 
 **Gate.**
 
-- Installed, then offline: the roster opens and reads.
-- **Browser tab, online: no bulk download.** Measured against the existing
-  bundle-budget e2e, so a regression here fails an existing gate rather than
-  needing a new one.
-- Offline is read-only, and says so — the ADR-030 rule is unchanged.
+- Offline, the app opens and renders — asserted with `context.setOffline(true)`,
+  which fails real requests, rather than by toggling a flag inside the app, which
+  would prove nothing about the worker.
+- An unvisited route resolves offline too.
+- **Browser tab, online: no bulk download.** Still covered by the existing
+  bundle-budget e2e rather than a new gate.
+
+**Verified discriminating.** With `serviceWorkers: 'block'` both specs *fail*
+rather than skip, which is what shows they exercise the worker instead of passing
+on a path that never needed it.
+
+**One thing the spec had to learn, and it is worth knowing before touching it.**
+Under `registerType: 'prompt'` a freshly installed worker does not claim the page
+that installed it, so **the first load is never offline-capable** — offline
+begins at the second navigation. That is the deliberate trade recorded in
+`vite.config.ts` (claiming the open page is what deleted the precache it was
+still reading from), not a defect to fix here.
 
 ---
 
