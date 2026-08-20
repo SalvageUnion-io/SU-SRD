@@ -12,16 +12,27 @@ import { waitForReady } from './_helpers'
  *
  * ## What it needs, and why it skips without it
  *
- * Three things have to line up, and none is present in the default CI run:
+ * Three things have to line up:
  *
  *  - a reachable Convex deployment (`VITE_CONVEX_URL` compiled into the build),
  *  - `ITUN_TEST_AUTH=true` on that deployment, so the `password` provider exists,
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
- * The default suite builds with none of them, so this skips with a stated
- * reason rather than failing. That is the same shape `offline.e2e.ts` uses for
- * the dev-server case, and the same trade: a spec that went red in the ordinary
- * run would be deleted the first time it annoyed somebody.
+ * The ordinary suite builds with none of them, so this skips there with a
+ * stated reason rather than failing — the same trade `offline.e2e.ts` makes for
+ * the dev-server case: a spec that went red in the ordinary run would be
+ * deleted the first time it annoyed somebody.
+ *
+ * **It does now run.** `e2e-itun-signin` in `.github/workflows/e2e-nightly.yml`
+ * provides all three against a throwaway self-hosted Convex backend — a
+ * container destroyed with the runner, so it needs no credentials, cannot
+ * create junk accounts on a shared deployment, and never puts a password
+ * provider on production.
+ *
+ * That job sets `ITUN_E2E_EXPECT_AUTH_SEAM`, which turns the skip below into a
+ * throw. Until it existed this spec had never executed anywhere: all three
+ * variables were unset in every environment including nightly, so it skipped
+ * silently while reading as covered.
  *
  * Run it for real with a test deployment:
  *
@@ -55,11 +66,13 @@ test('work built anonymously survives signing in to save it', async ({ page }) =
   // seam BROKE, and skipping there would hide exactly the regression this spec
   // exists to catch.
   //
-  // `ITUN_E2E_EXPECT_AUTH_SEAM` is that distinction. Note the honest state of
-  // things: no workflow sets the three variables today, so this spec currently
-  // skips in every environment including nightly. It is written and correct and
-  // has never actually executed in CI — set the variables plus this flag to
-  // change that.
+  // `ITUN_E2E_EXPECT_AUTH_SEAM` is that distinction, and the `e2e-itun-signin`
+  // job sets it — so in that job a missing seam is a failure, not a skip.
+  //
+  // Historical note, because it is the reason this guard exists: for a long
+  // time no workflow set any of the three variables, so this spec skipped in
+  // every environment including nightly. It was written, correct, and had never
+  // executed anywhere, while reading as coverage.
   if (!ready && process.env.ITUN_E2E_EXPECT_AUTH_SEAM) {
     throw new Error(
       'ITUN_E2E_EXPECT_AUTH_SEAM is set, but no `__itunTestSignIn` seam is present. ' +

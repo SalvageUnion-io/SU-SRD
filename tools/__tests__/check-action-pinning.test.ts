@@ -180,3 +180,102 @@ describe('check-action-pinning — bunx tools', () => {
     )
   })
 })
+
+/**
+ * The exempt set is derived, not hardcoded.
+ *
+ * The first version kept a literal allow-list and immediately produced a false
+ * positive on `bunx @convex-dev/auth`, which is pinned at 0.0.94 in
+ * `apps/itun/package.json`. A hand-maintained list of "things pinned elsewhere"
+ * goes stale the moment somebody adds a dependency, and a gate that cries wolf
+ * is one that gets switched off.
+ */
+describe('check-action-pinning — locally-resolved derivation', () => {
+  test('a tool pinned in a workspace manifest is exempt', async () => {
+    // `bunx convex deploy` runs unpinned in deploy-cloudflare.yml and must
+    // pass: convex is pinned at 1.43.0 in apps/itun/package.json and the step's
+    // working-directory is inside that workspace, so bunx resolves it locally.
+    const { exitCode } = await runCheck()
+    expect(exitCode).toBe(0)
+  })
+
+  test('removing that manifest entry makes the same call site fail', async () => {
+    // The discriminating case: if the exemption came from a hardcoded list
+    // rather than from the manifest, dropping the dependency would change
+    // nothing and this test would pass for the wrong reason.
+    //
+    // This originally targeted `@convex-dev/auth`, and then the commit that
+    // replaced that CLI with inline key generation deleted the call site out
+    // from under it — leaving the test green against nothing until the
+    // pre-push hook caught it. Pointed at `convex` instead, which has a
+    // long-lived call site in the deploy workflow.
+    await withFileContents(
+      'apps/itun/package.json',
+      (s) => s.replace(/^\s*"convex":\s*"[^"]+",\n/m, ''),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx convex')
+      }
+    )
+  })
+
+  test('a tool in NO manifest is still caught', async () => {
+    // wrangler is pinned at its call sites precisely because it is not a
+    // dependency; the derivation must not accidentally exempt it.
+    await withFileContents(
+      '.github/workflows/deploy-cloudflare.yml',
+      (s) => s.replace('bunx wrangler@4.108.0 deploy', 'bunx wrangler deploy'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx wrangler')
+      }
+    )
+  })
+})
+
+/**
+ * The exempt set must be EXACT package names, never a derived suffix.
+ *
+ * An earlier version also exempted the unscoped half of every scoped package,
+ * on a justification that was wrong on its face: `'@playwright/test'` yields
+ * `test`, not `playwright`. Across the eight manifests it exempted 25 bare
+ * names — `auth`, `node`, `core`, `test`, `browser`, `rest`, `blobs` among them
+ * — all real npm packages, none present in any manifest.
+ */
+describe('check-action-pinning — the exempt set is not over-broad', () => {
+  test('a bare name that only resembles a scoped package suffix is NOT exempt', async () => {
+    // `@convex-dev/auth` is a dependency, so a suffix-deriving rule would
+    // exempt the unrelated package `auth`. It must not.
+    await withFileContents(
+      '.github/workflows/e2e-nightly.yml',
+      (s) => `${s}\n      # probe\n      - run: bunx auth --version\n`,
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx auth')
+      }
+    )
+  })
+
+  test('`test` is not exempt either', async () => {
+    // The literal suffix of `@playwright/test`, and a real npm package.
+    await withFileContents(
+      '.github/workflows/e2e-nightly.yml',
+      (s) => `${s}\n      # probe\n      - run: bunx test --version\n`,
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx test')
+      }
+    )
+  })
+
+  test('but a real root dependency still is', async () => {
+    // Control: `playwright` IS a root devDependency by exact name, which is the
+    // actual reason `bunx playwright test` passes — not any suffix rule.
+    const { exitCode } = await runCheck()
+    expect(exitCode).toBe(0)
+  })
+})

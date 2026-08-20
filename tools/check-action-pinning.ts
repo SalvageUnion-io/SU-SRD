@@ -33,7 +33,7 @@
  * Usage: bun tools/check-action-pinning.ts
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /** Owners published by GitHub itself; a mutable tag here is not a third-party risk. */
@@ -94,9 +94,54 @@ function workflowFiles(root: string): string[] {
  * resolves the pinned `convex` from `apps/itun/package.json` because the step
  * sets a `working-directory` inside that workspace. So the rule is not "every
  * bunx must carry an @version" — it is that a tool with no local manifest entry
- * must. `LOCALLY_RESOLVED` records which those are.
+ * must.
+ *
+ * The exempt set is DERIVED from the manifests rather than hardcoded. The first
+ * version of this check kept a literal list and immediately produced a false
+ * positive on `bunx @convex-dev/auth`, which is pinned at 0.0.94 in
+ * `apps/itun/package.json` — a hand-maintained allow-list of "things that are
+ * pinned elsewhere" goes stale the moment somebody adds a dependency, and a
+ * gate that cries wolf is one that gets switched off.
  */
-const LOCALLY_RESOLVED = new Set(['convex', 'lefthook', 'playwright', 'biome'])
+function locallyResolvedTools(root: string): Set<string> {
+  const names = new Set<string>()
+  const manifests = ['package.json']
+  for (const group of ['apps', 'packages']) {
+    const base = join(root, group)
+    if (!existsSync(base)) continue
+    for (const entry of readdirSync(base, { withFileTypes: true })) {
+      if (entry.isDirectory()) manifests.push(join(group, entry.name, 'package.json'))
+    }
+  }
+  for (const rel of manifests) {
+    const full = join(root, rel)
+    if (!existsSync(full)) continue
+    const pkg = JSON.parse(readFileSync(full, 'utf8')) as {
+      dependencies?: Record<string, string>
+      devDependencies?: Record<string, string>
+    }
+    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })) {
+      // EXACT package names only.
+      //
+      // An earlier version also added the unscoped half of every scoped
+      // package, justified as "`bunx playwright` runs the `playwright` binary
+      // that `@playwright/test` brings; the bin name and the package name
+      // differ." That justification was simply wrong —
+      // `'@playwright/test'.split('/')[1]` is `test`, not `playwright` — and
+      // `bunx playwright` passes for an unrelated reason: `playwright` is a
+      // real root devDependency by exact name.
+      //
+      // So the rule bought nothing it was written for, and it cost a great
+      // deal: across the eight manifests it exempted 25 bare names including
+      // `auth`, `node`, `core`, `test`, `browser`, `rest` and `blobs` — all
+      // real npm packages, none in any manifest. `bunx auth …` in a workflow
+      // would have passed this gate unpinned, which is precisely the shape the
+      // gate exists to catch.
+      names.add(name)
+    }
+  }
+  return names
+}
 
 function bunxCalls(contents: string): { line: number; tool: string }[] {
   const found: { line: number; tool: string }[] = []
@@ -158,6 +203,7 @@ function refPin(ref: string): string {
 
 function main(): void {
   const root = process.cwd()
+  const locallyResolved = locallyResolvedTools(root)
   const unpinned: Unpinned[] = []
   const unpinnedTools: Unpinned[] = []
   let thirdPartyCount = 0
@@ -173,17 +219,20 @@ function main(): void {
       if (!SHA_PIN.test(refPin(ref))) unpinned.push({ file, line, ref })
     }
     for (const { line, tool } of bunxCalls(contents)) {
-      if (LOCALLY_RESOLVED.has(bunxBaseName(tool))) continue
+      if (locallyResolved.has(bunxBaseName(tool))) continue
       bunxCount += 1
       if (!bunxIsPinned(tool)) unpinnedTools.push({ file, line, ref: `bunx ${tool}` })
     }
   }
 
-  // Scan floor. Without one this check passes loudest when it is most broken:
-  // rename `.github/workflows` and it would report a clean tree having read
-  // nothing. `tools/lib/scanFloor.ts` exists because four other gates in this
-  // repo had the same hole. The floor is deliberately well below the real count
-  // so it asserts "the scan happened" rather than freezing today's inventory.
+  // Scan floor: assert the scan actually reached a tree.
+  //
+  // Narrower than the sibling gates' floors, and worth being accurate about.
+  // `readdirSync` here is unguarded, so RENAMING `.github/workflows` throws
+  // ENOENT rather than reporting a clean tree — the catastrophe those floors
+  // were written for cannot happen in this shape. What this does cover is an
+  // EMPTIED or partially-globbed directory, which fails silently otherwise.
+  // Set well below the real count (7) so ordinary growth never trips it.
   if (scanned < 5) {
     console.error(
       `✗ action pinning: only ${scanned} workflow file(s) scanned — expected at least 5. ` +
