@@ -45,8 +45,13 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - React 19 + Vite, TypeScript.
 - **TanStack Router** — file-based routes in `src/routes/`; the route tree is
   generated to `src/routeTree.gen.ts` (do not hand-edit).
-- **TanStack Query** — only for async/derived/server-touching data (snapshots).
-  **Not** the persistence cache — see below.
+- **TanStack Query** — mounted, but **currently unused**: no component calls
+  `useQuery`/`useMutation` from `@tanstack/react-query`, and the only two
+  importers are the client module and the root provider. Snapshot retrieval runs
+  in a TanStack Router loader instead, so the "(snapshots)" this line used to
+  claim was already false. Available for genuinely async, non-Convex, cacheable
+  work — but **never** the persistence cache (see below), and do not reach for it
+  just because it is mounted.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **Base UI + Tailwind v4** — UI primitives come from `component-lib` (`ui/`, `chrome/`, `base/`), NOT from an app-local `src/components/ui/`; there is no such directory. SU brand
   theme in `src/index.css` (`@theme` block) + `component-lib` theme.

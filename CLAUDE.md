@@ -112,7 +112,7 @@ class they actually draw) fails nothing and is caught only by running
 
 Any dependency used by **two or more** manifests is declared once in the root
 `package.json` under `workspaces.catalog` and referenced everywhere as
-`"react": "catalog:"`. 19 deps, 44 references. Bump the catalog entry, not the
+`"react": "catalog:"`. 22 deps, 55 references. Bump the catalog entry, not the
 workspace — a version literal in a workspace manifest for a catalogued package
 is a bug, and it silently un-shares that dep.
 

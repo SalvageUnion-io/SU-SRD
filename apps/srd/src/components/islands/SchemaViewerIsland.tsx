@@ -19,9 +19,16 @@ import { GameDataGate } from '../../lib/useGameData'
 import { CatalogTile } from './CatalogTile'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
-// Hoisted to a stable module-level reference so the `memo()` on
-// ReferenceEntityCard is not defeated by a fresh inline object literal on
-// every render (e.g. each keystroke in the name filter re-rendering every card).
+// Hoisted to a stable module-level reference.
+//
+// The original comment justified this by "the `memo()` on ReferenceEntityCard".
+// There is no such memo — the card is a plain `export function` and `React.memo`
+// appears nowhere in this repo as code. Three separate comments asserted it.
+//
+// The hoist stays: a fresh inline object per render is what would defeat a memo,
+// so a stable identity here is the precondition for adding one, and it is free.
+// The cost it describes is real either way — each keystroke in the name filter
+// re-renders every card today, unmemoized.
 
 // URL query-param keys the filter state is synced to, so a filtered view is
 // bookmarkable/shareable and survives back-navigation.
