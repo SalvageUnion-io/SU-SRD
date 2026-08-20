@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.2](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.1...salvageunion-reference-v2.11.2) (2026-08-20)
+
+
+### Bug Fixes
+
+* **reference:** one Tech Level comparator, and it handles Bio/Nanite ([#891](https://github.com/SalvageUnion-io/SU-SRD/issues/891)) ([9e755a0](https://github.com/SalvageUnion-io/SU-SRD/commit/9e755a0723689de5997cc0203ade0a642e11df9c))
+
 ## [2.11.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.0...salvageunion-reference-v2.11.1) (2026-08-16)
 
 

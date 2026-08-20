@@ -2,6 +2,17 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.13.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.13.0...itun-v1.13.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ci:** stop four gates passing while checking nothing ([#890](https://github.com/SalvageUnion-io/SU-SRD/issues/890)) ([5d5d0ef](https://github.com/SalvageUnion-io/SU-SRD/commit/5d5d0ef643ec4d02d836d563c99f3f041484c1a6))
+* **itun:** adopt patterns on sync, and commit transfer deletes ([#889](https://github.com/SalvageUnion-io/SU-SRD/issues/889)) ([40aacfc](https://github.com/SalvageUnion-io/SU-SRD/commit/40aacfc9a545651baaee520eac9eb1b9387d7ea3))
+* **itun:** serve security headers on Cloudflare, and gate their absence ([#885](https://github.com/SalvageUnion-io/SU-SRD/issues/885)) ([c5a763f](https://github.com/SalvageUnion-io/SU-SRD/commit/c5a763f2fa4805d9e34a2c822a30c17e704486aa))
+* **itun:** stop the shelf prune deleting work that failed to promote ([#888](https://github.com/SalvageUnion-io/SU-SRD/issues/888)) ([6efd24d](https://github.com/SalvageUnion-io/SU-SRD/commit/6efd24d1de352d5f6cf5551f64c0b02774dcf357))
+* **reference:** one Tech Level comparator, and it handles Bio/Nanite ([#891](https://github.com/SalvageUnion-io/SU-SRD/issues/891)) ([9e755a0](https://github.com/SalvageUnion-io/SU-SRD/commit/9e755a0723689de5997cc0203ade0a642e11df9c))
+
 ## [1.13.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.12.0...itun-v1.13.0) (2026-08-20)
 
 
