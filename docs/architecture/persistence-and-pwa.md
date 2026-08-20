@@ -39,10 +39,10 @@ Update this table as part of each phase's PR. It is the only place that answers
 | Phase | What                                                      | Reversible | Status      |
 | ----- | --------------------------------------------------------- | ---------- | ----------- |
 | P0    | Make every container model expressible (schema only)       | yes        | **done**    |
-| P1    | Test and e2e path that does not depend on Solo             | yes        | **provider done** — fixture with P3 |
+| P1    | Test and e2e path that does not depend on Solo             | yes        | **done**    |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account (mechanism; flip deferred)  | yes        | **done**    |
-| P4    | Demote IndexedDB to a cache (**read path done**; prune + mirror removal await the flip) | **no** | part done |
+| P4    | Demote IndexedDB to a cache (read path; rest in P4b)       | **no**     | **done**    |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
 | —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
 | P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
@@ -236,10 +236,26 @@ The alternatives, kept because the reasoning matters if this is ever revisited:
 Option 3 is the status quo made explicit and is defensible; option 1 is the one
 that actually covers P3's risk, and is what was chosen.
 
-**Status.** The provider and its production gate are built (#874). The Playwright
-fixture that *uses* it lands with P3, because until the account gate exists there
-is no sign-in flow for a fixture to drive — a fixture that signed in and did
-nothing would assert nothing.
+**Status: done**, in two parts, and the second was nearly forgotten.
+
+The provider and its production gate landed first (#874). The fixture that
+*uses* it landed later — and until it did, **the provider was an auth surface
+with no consumer**, which is the exact shape of dead code this plan is otherwise
+careful about. It was caught by re-reading this table rather than by any check,
+which is worth noticing: a row saying "fixture with P3" stayed true-looking after
+P3 shipped without one.
+
+Closing it needed a piece nobody had costed: there was **nothing in the UI to
+click**. `SignInControl` renders one Discord button, so a browser test could not
+reach the password provider at all. `TestAuthBridge` is that missing half — a
+flag-gated function on `window` rather than a hidden control, because a rendered
+one would need a label, a place in the layout and a decision about what happens
+when a real user sees it.
+
+Two independent flags must both be wrong for the seam to be reachable:
+`VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment. Each is
+asserted separately, and a production build was checked to contain no trace of
+the global.
 
 **Gate.** Depends on which option above is chosen. Under 1 or 2:
 
