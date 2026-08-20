@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import {
+  byTechLevelThenName,
   getCrawlerMutations,
   getMaxSpBonus,
   getUniqueTechLevels,
@@ -94,5 +95,77 @@ describe('techLevelRank', () => {
     const levels = getUniqueTechLevels(entities)
     const resorted = [...levels].sort((a, b) => techLevelRank(a) - techLevelRank(b))
     expect(resorted).toEqual(levels)
+  })
+})
+
+describe('byTechLevelThenName', () => {
+  // The bug this comparator exists to end: two of four hand-written call sites
+  // used `Number(a.techLevel)`. `Number('B')` is NaN, `NaN - NaN` is NaN, and a
+  // comparator returning NaN leaves the sort implementation-defined.
+  it('orders Bio and Nanite after the numeric tiers', () => {
+    const items = [
+      { techLevel: 'N' as const, name: 'Nanite Thing' },
+      { techLevel: 3 as const, name: 'Tier Three' },
+      { techLevel: 'B' as const, name: 'Bio Thing' },
+      { techLevel: 1 as const, name: 'Tier One' },
+    ]
+    expect([...items].sort(byTechLevelThenName).map((i) => i.name)).toEqual([
+      'Tier One',
+      'Tier Three',
+      'Bio Thing',
+      'Nanite Thing',
+    ])
+  })
+
+  it('the naive Number() version really does misorder the same input', () => {
+    // A control, so this file records WHY the shared comparator exists rather
+    // than merely asserting that it works. If `Number()` were adequate the
+    // comparator would be needless indirection.
+    //
+    // The precise failure is subtler than "returns NaN". `Number('B') - 1` IS
+    // NaN — but NaN is FALSY, so `NaN || a.name.localeCompare(b.name)` falls
+    // straight through to the name tiebreak. So a Bio or Nanite item is not
+    // randomly ordered; it is ordered purely by NAME, interleaved among the
+    // numeric tiers instead of sorted after them. Quietly plausible output,
+    // which is why it survived at two call sites.
+    const naive = (
+      a: { techLevel?: number | 'B' | 'N'; name: string },
+      b: { techLevel?: number | 'B' | 'N'; name: string }
+    ) => Number(a.techLevel) - Number(b.techLevel) || a.name.localeCompare(b.name)
+
+    const items = [
+      { techLevel: 'B' as const, name: 'Aardvark Plating' },
+      { techLevel: 1 as const, name: 'Zinc Bolt' },
+    ]
+
+    // Naive: the Bio item leads, because 'Aardvark' < 'Zinc'.
+    expect([...items].sort(naive).map((i) => i.name)).toEqual(['Aardvark Plating', 'Zinc Bolt'])
+
+    // Correct: Bio ranks 7, so it follows every numeric tier regardless of name.
+    expect([...items].sort(byTechLevelThenName).map((i) => i.name)).toEqual([
+      'Zinc Bolt',
+      'Aardvark Plating',
+    ])
+  })
+
+  it('falls back to name within a tier', () => {
+    const items = [
+      { techLevel: 2 as const, name: 'Zeta' },
+      { techLevel: 2 as const, name: 'Alpha' },
+    ]
+    expect([...items].sort(byTechLevelThenName).map((i) => i.name)).toEqual(['Alpha', 'Zeta'])
+  })
+
+  it('an absent Tech Level sorts last, not first', () => {
+    const items = [
+      { techLevel: undefined, name: 'Unranked' },
+      { techLevel: 'N' as const, name: 'Nanite' },
+      { techLevel: 1 as const, name: 'Tier One' },
+    ]
+    expect([...items].sort(byTechLevelThenName).map((i) => i.name)).toEqual([
+      'Tier One',
+      'Nanite',
+      'Unranked',
+    ])
   })
 })
