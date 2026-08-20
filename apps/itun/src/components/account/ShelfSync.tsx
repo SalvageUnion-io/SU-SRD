@@ -49,6 +49,7 @@
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { promotionState } from '../../lib/account/promotionState'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
 import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
@@ -114,9 +115,14 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Prune only where absence is unambiguous — see the header. Both guards
-      // matter; dropping either turns this into a roster-deleter.
-      if (!mayPrune(legacyLocalDataState())) return
+      // Prune only where absence is unambiguous — see the header. Every guard
+      // matters; dropping any one turns this into a roster-deleter.
+      //
+      // `promotionState()` is read HERE, after the adoption loop above has
+      // awaited, rather than captured when the effect started. A promotion
+      // running concurrently may have failed in between, and the whole point of
+      // the guard is to see that.
+      if (!mayPrune(legacyLocalDataState(), promotionState())) return
 
       for (const [kind, rows] of kinds) {
         const served = new Set(
