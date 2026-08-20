@@ -44,9 +44,8 @@ import type { SoftLink } from '../lib/schemas/softLink'
 import { SoftLinkSchema } from '../lib/schemas/softLink'
 import { getActiveContainer } from './activeContainerStore'
 import {
-  mirrorCrawlerWrite,
-  mirrorSoftLinkWrite,
-  mirrorWrite,
+  commitEntityWrite,
+  commitSoftLink,
   requireWritableBackend,
   selectBackend,
 } from './entityBackend'
@@ -283,6 +282,8 @@ type DbStoreApi<T extends EntityType> = {
   prepareUpdate: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
   put: (record: EntityForType<T>) => Promise<EntityForType<T>>
   delete: (id: string) => Promise<void>
+  /** `create` minus the write — see `lib/db/crud.ts`. */
+  prepareCreate: (input: CreateInput<T>) => Promise<EntityForType<T>>
 }
 
 const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
@@ -313,73 +314,47 @@ const MEMORY_STORES: { [K in EntityType]: DbStoreApi<K> } = {
 }
 
 /**
- * Mirror a just-persisted record to the server of record.
+ * Commit one record to the server of record, and throw if it refuses.
  *
- * Pilots and mechs upsert their whole body; the crawler takes the other path
- * (`mirrorCrawlerWrite`) because it is communal — its edits merge per field and
- * only its table runner may raise or scrap one; a SoftLink takes a third
- * (`mirrorSoftLinkWrite`) because it is addressed by its endpoints rather than
- * by an id. Fire-and-forget by design: the local write is what the UI reads, so
- * a mirror failure must not undo it.
+ * The replacement for `mirrorEntityWrite`, and the shape change is the point:
+ * this is **awaited before anything local is written**, so a refused write
+ * leaves no trace on the device. Its predecessor ran after the local write and
+ * swallowed failures into a warning, because back then the local store was the
+ * source of truth and the UI read it. It is not any more.
  *
- * `patch` is passed on an update so a crawler mirrors the *changed fields*
- * rather than its whole body; sending everything would turn a merge back into
- * last-write-wins and lose whatever a crewmate changed in the same minute.
- *
- * SoftLinks used to be excluded here as "derived". They are not, once a Game is
- * involved — `listForGame` reads them back, so an unmirrored link meant the
- * crew's view of who crews what froze at claim time. See `mirrorSoftLinkWrite`.
+ * Each type still dispatches differently, and each difference is a rule rather
+ * than an implementation detail: a crawler sends its *patch* so contended
+ * Downtime edits merge (ADR-030 §5), a pilot or mech sends its whole body, and
+ * a soft link is addressed by its endpoints because the server has no id for it.
  */
-function mirrorEntityWrite(
+async function commitWrite(
   type: EntityType,
   record: { id: string; gameId?: string | null },
   patch?: object
-): void {
+): Promise<void> {
   if (type === 'softLink') {
-    mirrorSoftLink('upsert', record as unknown as SoftLink)
+    await commitSoftLink('upsert', record as unknown as SoftLink)
     return
   }
+
+  const gameId = record.gameId ?? null
   if (type === 'crawler') {
-    // A shelf crawler used to be dropped here — "no server row to merge into",
-    // which was true while `crawlers.gameId` was non-nullable. It is nullable
-    // now, so a shelved crawler has a real row like everything else and this
-    // mirrors it. Skipping was the one place the local store held data the
-    // server had never heard of, which is exactly the local-only state the
-    // offline story forbids: IndexedDB reflects Convex, it is not a second
-    // source of truth.
-    const gameId = record.gameId ?? null
-    if (patch === undefined) {
-      void mirrorCrawlerWrite({ kind: 'create', appId: record.id, gameId, body: record })
-      return
-    }
-    void mirrorCrawlerWrite({ kind: 'patch', appId: record.id, patch })
+    await commitEntityWrite('crawler', {
+      kind: patch === undefined ? 'upsert' : 'patch',
+      appId: record.id,
+      gameId,
+      body: record,
+      patch: patch ?? {},
+    } as Parameters<typeof commitEntityWrite>[1])
     return
   }
-  if (type !== 'pilot' && type !== 'mech') return
-  void mirrorWrite(type, {
+
+  await commitEntityWrite(type, {
     kind: 'upsert',
     appId: record.id,
-    gameId: record.gameId ?? null,
+    gameId,
     body: record,
   })
-}
-
-/**
- * Send one link's endpoints up, in whichever direction.
- *
- * Split out because a link is mirrored from two places that hold it in
- * different shapes — `mirrorEntityWrite` gets the freshly persisted record,
- * while `delete` has to read the record back *before* removing it, since the
- * endpoints are the only address the server has for it.
- *
- * Guarded rather than assumed: a link whose endpoints did not survive a
- * salvage-tolerant read has nothing to address, and sending a half link would
- * fail validation server-side for no benefit.
- */
-function mirrorSoftLink(kind: 'upsert' | 'delete', link: SoftLink | null): void {
-  if (link === null) return
-  if (link.from?.id === undefined || link.to?.id === undefined) return
-  void mirrorSoftLinkWrite({ kind, from: link.from, to: link.to, type: link.type })
 }
 
 /**
@@ -517,8 +492,17 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // (ADR-030 §1): a signed-in user offline is read-only, not silently
     // writing to a local copy that would fork against the server.
     requireWritableBackend()
-    const record = await dbStoreFor(type).create(withActiveContainer(type, input))
-    mirrorEntityWrite(type, record)
+
+    // Build the record WITHOUT persisting it, commit it, and only then write it
+    // locally. The order is the demotion: with Convex as the source of truth, a
+    // record the server refused does not exist, so it must not appear on the
+    // device either. `commitWrite` throws on refusal and this deliberately does
+    // not catch — the caller's write failed, and every caller already handles
+    // that path for `WritesBlockedOffline`.
+    const record = await dbStoreFor(type).prepareCreate(withActiveContainer(type, input))
+    await commitWrite(type, record)
+    await dbStoreFor(type).put(record)
+
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))
@@ -570,8 +554,13 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // Capture the before-image BEFORE the write so the Change Log can diff it.
     const before = get().get(type, id)
     requireWritableBackend()
-    const updated = await dbStoreFor(type).update(id, patch)
-    mirrorEntityWrite(type, updated, patch)
+
+    // Same order as `create`: merge and validate, commit, then persist. A
+    // refused edit leaves the local record exactly as it was.
+    const updated = await dbStoreFor(type).prepareUpdate(id, patch)
+    await commitWrite(type, updated, patch)
+    await dbStoreFor(type).put(updated)
+
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
@@ -620,6 +609,18 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       }))
     )
 
+    // Phase 1b — commit every update to the server BEFORE touching disk.
+    //
+    // Ordering matters more here than anywhere else. A transfer moves value
+    // BETWEEN entities — cargo stow/load, a scrap hand-off — so a half-applied
+    // one is not a stale record but a wrong balance, and the communal crawler
+    // is usually one end of it. Committing first means a refusal aborts with
+    // nothing changed locally, which is the same guarantee phase 1's
+    // validate-everything-first already gives for Zod failures.
+    for (const pu of prepared) {
+      await commitWrite(pu.type, pu.record as { id: string; gameId?: string | null }, pu.patch)
+    }
+
     // Phase 2 — one IDB transaction for every put and delete.
     const prunedIds = await db.atomicWrite([
       ...prepared.map((pu) => ({
@@ -634,23 +635,6 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         pruneSoftLinks: d.type !== 'softLink',
       })),
     ])
-
-    // Phase 2b — mirror to the server of record, exactly as update() does, and
-    // only once the atomic write above has actually landed. Per update rather
-    // than per transfer because the dispatch differs by type: a crawler sends
-    // its patch so contended Downtime edits merge, a pilot/mech upserts its
-    // whole body (see mirrorEntityWrite).
-    //
-    // This was the more serious half of the gap. Cargo stow/load moves value
-    // between a mech and the communal Game crawler (ADR-030 §5); without this
-    // the local copy said the scrap had moved and the server never heard, so
-    // the rest of the table kept seeing the old balance.
-    //
-    // No mirror for `deletes`: no production caller passes any today, so
-    // wiring one would be untested speculation rather than coverage.
-    for (const pu of prepared) {
-      mirrorEntityWrite(pu.type, pu.record as { id: string; gameId?: string | null }, pu.patch)
-    }
 
     // Phase 3 — sync in-memory state + broadcasts, mirroring update()/delete().
     const deletedByKey = new Map<StoreKey, Set<string>>()
@@ -724,14 +708,24 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   async delete(type, id) {
     const key = storeKeyFor(type)
     requireWritableBackend()
-    // Read BEFORE the delete: a link is addressed on the server by its
-    // endpoints, and after the row is gone there is nothing left to name it by.
-    if (type === 'softLink') mirrorSoftLink('delete', get().get('softLink', id))
-    if (type === 'pilot' || type === 'mech') void mirrorWrite(type, { kind: 'delete', appId: id })
-    // Scrapping a crawler is the table runner's act; the server refuses anyone
-    // else, which is why this mirrors rather than deleting only locally.
-    if (type === 'crawler' && get().get('crawler', id)?.gameId != null) {
-      void mirrorCrawlerWrite({ kind: 'delete', appId: id })
+
+    // Commit the delete FIRST, and read the record before doing so: a link is
+    // addressed on the server by its endpoints, and once the row is gone there
+    // is nothing left to name it by.
+    //
+    // Awaited rather than fired off, like every other write now. Scrapping a
+    // crawler is the table runner's act and the server refuses anyone else — a
+    // refusal that only warned would delete the crew's home locally while it
+    // stayed alive for everyone else at the table.
+    if (type === 'softLink') {
+      await commitSoftLink('delete', get().get('softLink', id))
+    } else {
+      const existing = get().get(type, id)
+      await commitEntityWrite(type, {
+        kind: 'delete',
+        appId: id,
+        gameId: existing?.gameId ?? null,
+      })
     }
 
     // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).

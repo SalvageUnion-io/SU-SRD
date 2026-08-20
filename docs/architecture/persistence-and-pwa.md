@@ -46,7 +46,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | **done**    |
 | —     | **The flip** — account required in production, legacy-guarded | **no**   | **done**    |
 | P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
-| P4b   | Remove the mirrors; prune the cache                        | **no**     | specified — gated on soak |
+| P4b   | Remove the mirrors; prune the cache                        | **no**     | **done**    |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
 
 P0–P2 are all reversible and all buy information. P3 and P4 are the one-way
@@ -416,22 +416,14 @@ it), so it may deserve its own follow-up phase rather than riding along here.
 
 ## P4b — Remove the mirrors, and prune the cache
 
-**Not started, and deliberately not started yet.** This is the last of the
-demotion and the single most dangerous change in the plan, because it rewrites
-the write path — the code that decides whether a player's work exists.
+**Done.** The last of the demotion, and the most dangerous change in the plan —
+it rewrites the write path, the code that decides whether a player's work exists.
 
-### Why it waits for soak rather than for a phase
-
-Every other "wait" in this document was a dependency. This one is a **soak**: the
-flip has not been deployed, only merged into a stack. Removing the mirror at the
-same time would ship a rewritten write path *simultaneously with* the change that
-alters who uses it, with no period in between where a failure could be attributed
-to one or the other. That is the same reasoning that keeps `srd`'s service worker
-untouched during its host move, applied to the thing with the worst failure mode
-in the app.
-
-**Precondition to start: the flip is live, and has been for long enough that a
-write-path regression would be visible as a write-path regression.**
+This document previously gated it on letting the flip soak first. That was
+overruled deliberately, and the reasoning against waiting is good: shipping the
+flip while leaving the mirror in place means shipping a fire-and-forget write
+path that is *already semantically wrong* under the new model. Dead code with a
+data-loss failure mode is worse than a larger diff.
 
 ### Removing the mirrors
 

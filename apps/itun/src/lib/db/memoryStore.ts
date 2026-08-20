@@ -59,6 +59,7 @@ export type MemoryEntityStore<T extends EntityBase> = {
   list: () => Promise<T[]>
   get: (id: string) => Promise<T | null>
   create: (input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>) => Promise<T>
+  prepareCreate: (input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>) => Promise<T>
   prepareUpdate: (id: string, patch: Partial<Omit<T, 'id'>>) => Promise<T>
   update: (id: string, patch: Partial<Omit<T, 'id'>>) => Promise<T>
   put: (record: T) => Promise<T>
@@ -96,7 +97,8 @@ export function makeMemoryStore<T extends EntityBase>(
     return rows.get(id) ?? null
   }
 
-  async function create(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
+  /** `create` minus the write — mirrors `crud.ts`, and for the same reason. */
+  async function prepareCreate(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
     const now = new Date().toISOString()
     const candidate: Record<string, unknown> = {
       ...input,
@@ -107,7 +109,11 @@ export function makeMemoryStore<T extends EntityBase>(
 
     // `parse`, not `safeParse` — a ZodError bubbling to the caller is the same
     // contract the IDB store has, and wizards rely on it to surface a bad build.
-    const record = schema.parse(candidate)
+    return schema.parse(candidate)
+  }
+
+  async function create(input: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
+    const record = await prepareCreate(input)
     rows.set(record.id, record)
     return record
   }
@@ -149,5 +155,5 @@ export function makeMemoryStore<T extends EntityBase>(
     rows.delete(id) // silent no-op when absent, like the IDB store
   }
 
-  return { list, get, create, update, prepareUpdate, put, delete: del }
+  return { list, get, create, prepareCreate, update, prepareUpdate, put, delete: del }
 }
