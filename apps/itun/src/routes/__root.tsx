@@ -4,6 +4,7 @@ import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { AppHeader, EntityHrefProvider, RecoveryPanel, Toaster } from 'component-lib'
 import { useState } from 'react'
 import { AccountStrip } from '../components/account/AccountStrip'
+import { ShelfSync } from '../components/account/ShelfSync'
 import { AnonymousWorkPromoter, UnsavedWorkBanner } from '../components/account/UnsavedWorkBanner'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
@@ -92,6 +93,10 @@ function RootComponent() {
               promotion needs to run. */}
           <UnsavedWorkBanner />
           <AnonymousWorkPromoter />
+          {/* Fills the local cache from the server of record. Renders nothing;
+              mounted here because a roster is needed on every route, not only
+              the one that happens to list it. */}
+          <ShelfSync />
           <AppHeader
             onSearchClick={() => setSearchOpen(true)}
             LinkComponent={AppLink}
