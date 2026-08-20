@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.12.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.11.1...itun-v1.12.0) (2026-08-20)
+
+
+### Features
+
+* **itun:** let the Organizer delete a game, keeping everything built ([#871](https://github.com/SalvageUnion-io/SU-SRD/issues/871)) ([91a4546](https://github.com/SalvageUnion-io/SU-SRD/commit/91a4546491035b045aab196a54737e5ede15e0fa))
+
 ## [1.11.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.11.0...itun-v1.11.1) (2026-08-19)
 
 
