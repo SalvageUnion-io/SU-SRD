@@ -100,11 +100,33 @@ jobs:
       # predictable name to exec into.
       - name: Start a self-hosted Convex backend
         run: |
+          # CONVEX_CLOUD_ORIGIN / CONVEX_SITE_ORIGIN are NOT optional here.
+          # `run_backend.sh` passes `--convex-origin "$CONVEX_CLOUD_ORIGIN"
+          # --convex-site "$CONVEX_SITE_ORIGIN"` unconditionally, so leaving
+          # them unset supplies EMPTY STRING arguments rather than omitting the
+          # flags — and the backend deliberately accepts an empty origin ("so
+          # you can start up a self-hosted backend without knowing its url
+          # yet"), which means the built-in defaults never fire. Upstream's
+          # defaults live in their docker-compose.yml, which a bare `docker run`
+          # skips.
+          #
+          # Downstream that lands exactly where this job is meant to be immune:
+          # `convex/auth.config.ts` is `domain: process.env.CONVEX_SITE_URL`,
+          # and @convex-dev/auth signs tokens with `setIssuer(requireEnv(...))`,
+          # whose guard rejects only `undefined` — so an empty string is signed
+          # in as the issuer and sign-in fails for a reason nothing names.
+          #
+          # Pinned by digest, not `:latest`. This stack's whole argument is that
+          # a mutable tag in CI is an unreviewed fetch; shipping one in the job
+          # that makes the argument would be a poor look, and the pinning gate
+          # cannot see `docker run` to catch it.
           docker run -d --name convex-e2e \
             -p 3210:3210 -p 3211:3211 \
             -e INSTANCE_NAME=e2e \
+            -e CONVEX_CLOUD_ORIGIN=http://127.0.0.1:3210 \
+            -e CONVEX_SITE_ORIGIN=http://127.0.0.1:3211 \
             -e DISABLE_BEACON=true \
-            ghcr.io/get-convex/convex-backend:latest
+            ghcr.io/get-convex/convex-backend@sha256:1f2044e3eac463ac78973b136c0baf72d4ada602611d853d6f99f280e29e0a98
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:3210/version >/dev/null 2>&1; then
               echo "backend ready after ${i}s"
@@ -196,6 +218,12 @@ jobs:
       - name: Backend logs on failure
         if: failure()
         run: docker logs convex-e2e || true
+
+      # Ephemeral runners discard this anyway; a self-hosted one would fail the
+      # next run with "name already in use".
+      - name: Remove the backend container
+        if: always()
+        run: docker rm -f convex-e2e || true
 
       - name: Upload Playwright report on failure
         if: failure()

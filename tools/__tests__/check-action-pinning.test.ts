@@ -234,3 +234,48 @@ describe('check-action-pinning — locally-resolved derivation', () => {
     )
   })
 })
+
+/**
+ * The exempt set must be EXACT package names, never a derived suffix.
+ *
+ * An earlier version also exempted the unscoped half of every scoped package,
+ * on a justification that was wrong on its face: `'@playwright/test'` yields
+ * `test`, not `playwright`. Across the eight manifests it exempted 25 bare
+ * names — `auth`, `node`, `core`, `test`, `browser`, `rest`, `blobs` among them
+ * — all real npm packages, none present in any manifest.
+ */
+describe('check-action-pinning — the exempt set is not over-broad', () => {
+  test('a bare name that only resembles a scoped package suffix is NOT exempt', async () => {
+    // `@convex-dev/auth` is a dependency, so a suffix-deriving rule would
+    // exempt the unrelated package `auth`. It must not.
+    await withFileContents(
+      '.github/workflows/e2e-nightly.yml',
+      (s) => `${s}\n      # probe\n      - run: bunx auth --version\n`,
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx auth')
+      }
+    )
+  })
+
+  test('`test` is not exempt either', async () => {
+    // The literal suffix of `@playwright/test`, and a real npm package.
+    await withFileContents(
+      '.github/workflows/e2e-nightly.yml',
+      (s) => `${s}\n      # probe\n      - run: bunx test --version\n`,
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('bunx test')
+      }
+    )
+  })
+
+  test('but a real root dependency still is', async () => {
+    // Control: `playwright` IS a root devDependency by exact name, which is the
+    // actual reason `bunx playwright test` passes — not any suffix rule.
+    const { exitCode } = await runCheck()
+    expect(exitCode).toBe(0)
+  })
+})
