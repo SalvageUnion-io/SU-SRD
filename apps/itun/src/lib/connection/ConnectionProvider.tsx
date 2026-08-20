@@ -2,6 +2,7 @@ import { useConvexAuth } from 'convex/react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { setEntityBackendAuthState } from '../../stores/entityBackend'
+import { probeLegacyLocalData } from '../db/legacyLocalData'
 import type { ConnectionState } from './connectionContext'
 import { ConnectionContext } from './connectionContext'
 import {
@@ -62,6 +63,25 @@ function useConnectionState(signedIn: boolean, authSettled: boolean): Connection
   useEffect(() => {
     setEntityBackendAuthState({ signedIn, online, authSettled })
   }, [signedIn, online, authSettled])
+
+  /**
+   * Ask once, at boot, whether this browser already holds a roster.
+   *
+   * The answer decides whether an anonymous visitor gets the in-memory backend
+   * or keeps reading their existing IndexedDB — see `lib/db/legacyLocalData.ts`.
+   * It lives here because this is already the one place that pushes session
+   * facts down to the stores, and `[]` because the probe caches its own result
+   * and must not re-run per render.
+   *
+   * `setProbed` exists to force the re-render that makes the new answer visible:
+   * `selectBackend()` reads the probe synchronously, so without a render nothing
+   * would notice it had resolved until some unrelated state change happened to
+   * repaint.
+   */
+  const [, setProbed] = useState(false)
+  useEffect(() => {
+    void probeLegacyLocalData().then(() => setProbed(true))
+  }, [])
 
   return useMemo(() => {
     const mode = resolveConnectionMode({

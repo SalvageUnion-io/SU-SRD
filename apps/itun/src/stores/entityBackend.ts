@@ -9,6 +9,8 @@ import {
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
 import { convexFunctionName, serverMessage } from '../lib/connection/serverError'
+import type { LegacyProbeState } from '../lib/db/legacyLocalData'
+import { legacyLocalDataState } from '../lib/db/legacyLocalData'
 import { captureException } from '../lib/observability'
 import type { EntityRef } from '../lib/schemas/entity'
 import type { SoftLink } from '../lib/schemas/softLink'
@@ -79,12 +81,25 @@ export type BackendKind = 'local' | 'remote' | 'blocked' | 'memory'
  * ([ADR-034](../../../../docs/adrs/ADR-034-account-required-persistence.md)
  * decision 1).
  *
- * **Off by default, and that is the whole point of shipping it this way.** The
- * memory backend and the account gate are separate phases (P2 and P3 in
- * `docs/architecture/persistence-and-pwa.md`): this phase builds the backend and
- * makes it selectable so it can be tested against a real app, while Solo remains
- * what an anonymous visitor actually gets. Flipping this on is the one-way door,
- * and it is P3's job together with the UI that explains it.
+ * **The code default stays OFF; production opts in.** `apps/itun/.env.production`
+ * sets this to `true`, and Vite loads that file only for a production build — so
+ * the shipped app requires an account while tests, dev and a fresh checkout do
+ * not.
+ *
+ * That split is deliberate and was arrived at the hard way. Defaulting to ON
+ * when the variable is *unset* flips every environment that never sets it —
+ * CI, the test runner, a contributor's first `bun run dev`. Measured: twelve
+ * wizard, chooser and starter-set tests failed, all of them correctly, because
+ * they assert Solo durability and the flip removes it. A flag whose safe value
+ * depends on remembering to set it is the wrong way round; the deploy is the
+ * thing that should have to say so out loud.
+ *
+ * To exercise the gate locally: `VITE_REQUIRE_ACCOUNT=true bun run dev:itun`.
+ *
+ * **It is not the only condition.** `backendForMode` also asks whether this
+ * browser holds a legacy roster, because sending an existing Solo user to the
+ * memory backend would make their pilots unreachable — see
+ * `lib/db/legacyLocalData.ts` for why that guard exists and which way it fails.
  *
  * Read once at module scope like every other `import.meta.env` flag here. A
  * build-time switch rather than a runtime one is deliberate: "does this build
@@ -118,11 +133,22 @@ function currentMode(): ConnectionMode {
  * `import.meta.env` read that a test cannot vary. The wrapper below supplies the
  * real inputs; this is what the tests drive.
  */
-export function backendForMode(mode: ConnectionMode, requireAccount: boolean): BackendKind {
-  // Anonymous, in a build that requires an account: nothing durable. Checked
-  // BEFORE the Solo branch, because Solo is exactly the state this replaces —
-  // testing it after would make the flag dead code.
-  if (mode === 'solo' && requireAccount) return 'memory'
+export function backendForMode(
+  mode: ConnectionMode,
+  requireAccount: boolean,
+  legacy: LegacyProbeState = 'unknown'
+): BackendKind {
+  // Anonymous, in a build that requires an account, in a browser with no roster
+  // of its own: nothing durable. Checked BEFORE the Solo branch, because Solo is
+  // exactly the state this replaces — testing it after would make the flag dead
+  // code.
+  //
+  // `legacy === 'absent'` rather than `!== 'present'` is the load-bearing part.
+  // While the probe is still running the answer is `unknown`, and an unknown
+  // must not send an existing user's writes to a Map that dies with the tab.
+  // The stricter test resolves that window toward the branch that cannot lose
+  // work; `legacyLocalData.ts` explains why that asymmetry is the right one.
+  if (mode === 'solo' && requireAccount && legacy === 'absent') return 'memory'
   if (mode === 'solo') return 'local'
   if (usesServerOfRecord(mode)) return 'remote'
   // `connecting` lands here alongside `disconnected`, and deliberately: writing
@@ -132,7 +158,7 @@ export function backendForMode(mode: ConnectionMode, requireAccount: boolean): B
 }
 
 export function selectBackend(): BackendKind {
-  return backendForMode(currentMode(), accountRequired)
+  return backendForMode(currentMode(), accountRequired, legacyLocalDataState())
 }
 
 /**
