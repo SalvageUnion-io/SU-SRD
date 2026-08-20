@@ -39,7 +39,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | Phase | What                                                      | Reversible | Status      |
 | ----- | --------------------------------------------------------- | ---------- | ----------- |
 | P0    | Make every container model expressible (schema only)       | yes        | **done**    |
-| P1    | Test and e2e path that does not depend on Solo             | yes        | **blocked — needs a decision** |
+| P1    | Test and e2e path that does not depend on Solo             | yes        | route chosen — not started |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account                             | **no**     | not started |
 | P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
@@ -205,12 +205,21 @@ decision rather than by effort. Sign-in is **Discord OAuth and nothing else**
 could use — and confirmed by reading the suite, **no e2e file authenticates at
 all today**. Nothing in the repo has ever needed to, because everything ran Solo.
 
-### The decision P1 needs
+### The decision P1 needed — **taken: option 1, a test-only auth provider**
 
-Pick one before P3, because P3 and P4 are the one-way doors and the halt rule
-above forbids opening them on an untested path:
+Chosen because it is the only one of the three that covers P3's actual risk: the
+anonymous-build → sign-in → save hand-off, end to end, in a browser. The two
+cheaper routes leave exactly that untested, and it is the step most likely to
+lose somebody's work.
 
-1. **A test-only auth provider.** Add Convex Auth's Password provider, enabled
+**It is an auth bypass, so it is gated like one.** The provider is live only
+under a test flag, and a test asserts a production-shaped build does not expose
+it — asserted, not commented. If that gate cannot be made to fail convincingly,
+fall back to option 3 rather than shipping an ungated second door.
+
+The alternatives, kept because the reasoning matters if this is ever revisited:
+
+1. **A test-only auth provider.** (chosen) Add Convex Auth's Password provider, enabled
    only when a test flag is set. Cheapest to write and the most conventional.
    The risk is obvious and must be gated hard: a second door into every account
    if it is ever live in production.
@@ -223,8 +232,7 @@ above forbids opening them on an untested path:
    exactly what P3 risks getting wrong, would have no end-to-end test.
 
 Option 3 is the status quo made explicit and is defensible; option 1 is the one
-that actually covers P3's risk. **This is a security-shaped choice, so it is not
-being made unilaterally.**
+that actually covers P3's risk, and is what was chosen.
 
 **Gate.** Depends on which option above is chosen. Under 1 or 2:
 
@@ -470,13 +478,14 @@ ADR.
 4. **Discord stays the only sign-in provider.** Unblocks P3. The exclusion is
    real and accepted: no Discord account means no saving, mitigated only by (2).
 
+5. **The export bundle does not carry the Change Log**, and that is now a
+   decision rather than an oversight — see ADR-034's consequences for the
+   reasoning and for the `mergeImport` id-remapping problem that makes reversing
+   it real work. Unblocks P3. The cost is stated: a user who leaves via export
+   loses their provenance history.
+
 ## Still open
 
-One, and it is new — it follows from (1) and (2) both resting on export.
-
-1. **Does the export bundle need to carry the Change Log?** `buildExportBundle`
-   covers pilots, mechs, crawlers, soft links, patterns and encounter NPCs, and
-   **not `changeLog`**. Harmless while export was a backup; not obviously
-   harmless now that it is the way out. The log is provenance rather than the
-   build itself, so dropping it may well be right — but it should be decided out
-   loud. **Needed before P3**, since that is where export becomes a promise.
+Nothing blocking. The remaining unknowns are inside phases and are named in the
+phase that owns them — most substantially, **which of P1's three routes to
+take**, which is a security-shaped choice and gates the two one-way doors.

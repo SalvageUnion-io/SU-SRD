@@ -256,13 +256,28 @@ belongs in Convex, not a reason to widen the exemption.
   bug from the day this ships. It needs a gate asserting it covers every kind,
   and that gate has to be extended whenever a kind is added.
 
-- **The Change Log is not in the bundle, and that needs a ruling.**
+- **The Change Log is deliberately not in the export bundle.**
   `buildExportBundle` covers pilots, mechs, crawlers, soft links, patterns and
-  encounter NPCs — **not `changeLog`**. That was harmless while export was a
-  backup; it is not harmless now that export is the way out. The provenance log
-  is arguably not the user's *build* and losing it may be acceptable, but that is
-  a decision to make out loud rather than a gap to leave. Named as the one open
-  question in the plan.
+  encounter NPCs, and stops there. That was an accident while export was a
+  backup; it is a **decision** now that export is the way out, so it is recorded
+  rather than left to be rediscovered.
+
+  The reasoning is what export is *for*. Somebody downloading a bundle because
+  they will not make an account wants their pilots, not an audit trail of how
+  each stat reached its current value. The log is provenance **about** the
+  builds rather than the builds themselves, and ADR-022 already treats it as a
+  separate kind of thing — a published snapshot is "frozen, historyless and
+  bare" and nobody has ever asked for that to change.
+
+  There is also a mechanical reason not to reverse this casually: `mergeImport`
+  mints a **fresh UUID per row** on import, so log entries carried across would
+  address entities that no longer exist under those ids. Including the log would
+  mean either a remap pass or entries pointing at nothing — real work, in service
+  of something no user has asked for.
+
+  **What this costs, stated plainly:** a user who leaves via export loses their
+  Change Log. That is accepted. If it is ever reversed, export-only (carry it in
+  the bundle, never re-import it) is the shape that avoids the id problem.
 
 - **Declining the claim is a terminal choice, by design.** A user who declines is
   pushed to export and then not asked again. This is the least-nagging option and
