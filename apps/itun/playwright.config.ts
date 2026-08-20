@@ -54,12 +54,16 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    // The app is a PWA (vite-plugin-pwa, registerType: 'autoUpdate'). When the
-    // service worker activates it triggers a page reload; if that reload lands
-    // mid-navigation, page.goto/page.reload abort with
-    // `net::ERR_ABORTED; maybe frame was detached?`. This flaked the preview
-    // suite (E2E_BASE_URL) where a real SW registers. No e2e here exercises
-    // offline/installability, so block SW registration to remove the race.
+    // The app is a PWA (vite-plugin-pwa, registerType: **'prompt'** — this said
+    // 'autoUpdate' until 2026-08-20, which had not been true since the share-link
+    // outage that changed it). A worker activating mid-navigation can abort
+    // page.goto/page.reload with `net::ERR_ABORTED; maybe frame was detached?`,
+    // which flaked the preview suite (E2E_BASE_URL) where a real SW registers.
+    //
+    // So workers stay blocked by default. `e2e/offline.e2e.ts` opts back in for
+    // itself with `test.use({ serviceWorkers: 'allow' })` — it is the one spec
+    // that exercises offline, and it is where the claim that this app works
+    // offline stops being an assertion and starts being a test.
     serviceWorkers: 'block',
   },
   projects: [
