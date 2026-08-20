@@ -30,19 +30,25 @@ import { recordDataWrite } from '../lib/backupNudge'
 import { moveTo } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
+import { makeMemoryStore } from '../lib/db/memoryStore'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { ChangeLogKind } from '../lib/schemas/changeLog'
 import type { Crawler } from '../lib/schemas/crawler'
+import { CrawlerSchema } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
+import { MechSchema } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
+import { PilotSchema } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
+import { SoftLinkSchema } from '../lib/schemas/softLink'
 import { getActiveContainer } from './activeContainerStore'
 import {
   mirrorCrawlerWrite,
   mirrorSoftLinkWrite,
   mirrorWrite,
   requireWritableBackend,
+  selectBackend,
 } from './entityBackend'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
@@ -287,6 +293,26 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
 }
 
 /**
+ * The same four stores, backed by a Map that never touches disk — what an
+ * anonymous visitor builds against under ADR-034 decision 1.
+ *
+ * Built once at module scope rather than per call, because these hold the rows:
+ * a fresh store per `dbStoreFor()` would hand every read an empty Map and the
+ * app would look like it was losing every write instantly.
+ *
+ * `hasUpdatedAt` mirrors `src/lib/db/index.ts`'s options for the same four
+ * stores. If those diverge, an anonymous session stamps different fields from a
+ * signed-in one, which is the kind of difference that only shows up much later
+ * as a failed strict parse on import.
+ */
+const MEMORY_STORES: { [K in EntityType]: DbStoreApi<K> } = {
+  pilot: makeMemoryStore(PilotSchema, STORE_NAMES.pilots, { hasUpdatedAt: true }),
+  mech: makeMemoryStore(MechSchema, STORE_NAMES.mechs, { hasUpdatedAt: true }),
+  crawler: makeMemoryStore(CrawlerSchema, STORE_NAMES.crawlers, { hasUpdatedAt: true }),
+  softLink: makeMemoryStore(SoftLinkSchema, STORE_NAMES.softLinks, { hasUpdatedAt: false }),
+}
+
+/**
  * Mirror a just-persisted record to the server of record.
  *
  * Pilots and mechs upsert their whole body; the crawler takes the other path
@@ -356,11 +382,49 @@ function mirrorSoftLink(kind: 'upsert' | 'delete', link: SoftLink | null): void 
   void mirrorSoftLinkWrite({ kind, from: link.from, to: link.to, type: link.type })
 }
 
+/**
+ * Which persistence this write or read should use.
+ *
+ * The one indirection the whole store reaches persistence through, which is why
+ * adding the anonymous backend needed no change to `create`, `update`,
+ * `delete`, hydration, the in-memory cache, or any component.
+ *
+ * Resolved per call rather than captured once: `selectBackend()` reads live auth
+ * state, and a module-level snapshot would pin an anonymous visitor to the
+ * memory store for the rest of the session — including after they sign in.
+ */
 function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
+  const stores = selectBackend() === 'memory' ? MEMORY_STORES : DB_STORES
   // Single correlated-union assertion: TS cannot carry the runtime
   // discriminant↔record-type invariant through the map lookup for a
   // generic T (microsoft/TypeScript#30581).
-  return DB_STORES[type] as DbStoreApi<T>
+  return stores[type] as DbStoreApi<T>
+}
+
+/**
+ * Whether a write should be announced to other tabs.
+ *
+ * False for the anonymous backend: two tabs of an anonymous session are two
+ * sessions, holding two unrelated Maps. Broadcasting between them would tell tab
+ * B to re-read a store that never received tab A's write, so B would blank its
+ * own cache and lose the work it was holding — inventing exactly the
+ * device-local shared state ADR-034 exists to remove, and losing data doing it.
+ */
+function shouldBroadcast(): boolean {
+  return selectBackend() !== 'memory'
+}
+
+/**
+ * Announce a store change to other tabs, unless the backend is anonymous.
+ *
+ * Every broadcast in this module goes through here rather than calling
+ * `publishStoreChange` directly, so the anonymous case is decided once. Six
+ * guarded call sites would be five chances to forget, and forgetting would not
+ * fail a test — it would quietly blank another tab.
+ */
+function publish(name: StoreName): void {
+  if (!shouldBroadcast()) return
+  publishStoreChange(name)
 }
 
 /** Object-store name for broadcast messages. */
@@ -378,7 +442,7 @@ function broadcastNameFor(type: EntityType): StoreName {
 }
 
 function afterWrite(type: EntityType): void {
-  publishStoreChange(broadcastNameFor(type))
+  publish(broadcastNameFor(type))
   recordDataWrite()
 }
 
@@ -476,7 +540,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         [key]: exists ? list.map((e) => (e.id === cached.id ? cached : e)) : [cached, ...list],
       }
     })
-    publishStoreChange(broadcastNameFor(type))
+    publish(broadcastNameFor(type))
     return cached
   },
 
@@ -488,12 +552,12 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     if (prunedIds.length > 0) {
       const pruned = new Set(prunedIds)
       set((state) => ({ softLinks: state.softLinks.filter((l) => !pruned.has(l.id)) }))
-      publishStoreChange(STORE_NAMES.softLinks)
+      publish(STORE_NAMES.softLinks)
     }
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
-    publishStoreChange(broadcastNameFor(type))
+    publish(broadcastNameFor(type))
   },
 
   async update<T extends EntityType>(
@@ -618,7 +682,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     ])
     for (const type of touched) afterWrite(type)
     if (pruned.size > 0 && !touched.has('softLink')) {
-      publishStoreChange(STORE_NAMES.softLinks)
+      publish(STORE_NAMES.softLinks)
     }
 
     // Phase 4 — provenance (ADR-022), mirroring update()'s awaited emit. One
@@ -681,7 +745,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         set((state) => ({
           softLinks: state.softLinks.filter((l) => !pruned.has(l.id)),
         }))
-        publishStoreChange(STORE_NAMES.softLinks)
+        publish(STORE_NAMES.softLinks)
       }
       set((state) => ({
         [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),

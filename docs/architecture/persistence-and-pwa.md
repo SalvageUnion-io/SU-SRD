@@ -40,7 +40,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | ----- | --------------------------------------------------------- | ---------- | ----------- |
 | P0    | Make every container model expressible (schema only)       | yes        | **done**    |
 | P1    | Test and e2e path that does not depend on Solo             | yes        | not started |
-| P2    | In-memory anonymous mode                                   | yes        | not started |
+| P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account                             | **no**     | not started |
 | P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | not started |
@@ -221,13 +221,35 @@ anonymous session are two sessions, because there is nothing durable tying them
 together, and pretending otherwise invents exactly the local-only semantics
 ADR-034 forbids.
 
+**Ships behind `VITE_REQUIRE_ACCOUNT`, default off.** That is what keeps this
+phase reversible, as the table claims: the backend exists and is selectable, but
+an anonymous visitor still gets Solo until P3 flips it and adds the UI that
+explains what is happening. A backend nobody is routed to yet cannot strand
+anyone.
+
 **Gate.**
 
-- With no account, the three wizards complete and render a finished sheet.
-- **Nothing is written.** Verified by inspecting IndexedDB after a full anonymous
-  session: the database either does not exist or holds no entity rows. This gate
-  is the point of the phase; assert absence, not behaviour.
-- A reload loses the work, and the UI said it would beforehand.
+- The memory store satisfies the same CRUD contract as the IDB store — id and
+  timestamps minted on create, `updatedAt` bumped, id immutable through a patch,
+  update on a missing id throws, delete a silent no-op, `list()` newest-first,
+  strict Zod on every write. Asserted case by case, because `entityStore` is
+  written against that contract and must not learn which backend it has.
+- **Nothing can be written.** Asserted against the module *source*: it imports
+  no `idb`, and names neither `indexedDB` nor `localStorage` nor
+  `sessionStorage`. Behaviour can be right today and one refactor from wrong;
+  this is the assertion that does not rot.
+- Two stores share nothing — an anonymous session is per tab, which is also why
+  `entityStore` routes every broadcast through a guard that no-ops for this
+  backend.
+- **The flag is still off.** A test asserts `backendForMode('solo', false)` is
+  `'local'` and that `selectBackend()` agrees, so opening the one-way door by
+  accident fails a test.
+- The flag changes nothing for a signed-in user: `connected` stays `remote` and
+  `disconnected` stays `blocked` under both flag values.
+
+**Deferred to P3 deliberately:** the wizards-complete-anonymously and
+reload-loses-the-work checks, which need the flag on and the UI that warns
+first. Asserting them now would mean shipping the gate with no way to explain it.
 
 ---
 

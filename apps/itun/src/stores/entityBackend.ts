@@ -72,7 +72,26 @@ export function setEntityBackendAuthState(next: AuthState): void {
   authState = next
 }
 
-export type BackendKind = 'local' | 'remote' | 'blocked'
+export type BackendKind = 'local' | 'remote' | 'blocked' | 'memory'
+
+/**
+ * Whether this build requires an account to persist anything
+ * ([ADR-034](../../../../docs/adrs/ADR-034-account-required-persistence.md)
+ * decision 1).
+ *
+ * **Off by default, and that is the whole point of shipping it this way.** The
+ * memory backend and the account gate are separate phases (P2 and P3 in
+ * `docs/architecture/persistence-and-pwa.md`): this phase builds the backend and
+ * makes it selectable so it can be tested against a real app, while Solo remains
+ * what an anonymous visitor actually gets. Flipping this on is the one-way door,
+ * and it is P3's job together with the UI that explains it.
+ *
+ * Read once at module scope like every other `import.meta.env` flag here. A
+ * build-time switch rather than a runtime one is deliberate: "does this build
+ * require an account" must not be able to change under a running session, which
+ * would strand work in a store the app had stopped reading.
+ */
+export const accountRequired = import.meta.env.VITE_REQUIRE_ACCOUNT === 'true'
 
 /**
  * Which backend a write should use right now.
@@ -90,14 +109,30 @@ function currentMode(): ConnectionMode {
   })
 }
 
-export function selectBackend(): BackendKind {
-  const mode = currentMode()
+/**
+ * The backend rule, as a pure function of its inputs.
+ *
+ * Split out from `selectBackend` for the same reason `resolveConnectionMode` is
+ * a pure function beside `useConnection`: the rule is the part worth testing,
+ * and it is otherwise reachable only through a module-scope
+ * `import.meta.env` read that a test cannot vary. The wrapper below supplies the
+ * real inputs; this is what the tests drive.
+ */
+export function backendForMode(mode: ConnectionMode, requireAccount: boolean): BackendKind {
+  // Anonymous, in a build that requires an account: nothing durable. Checked
+  // BEFORE the Solo branch, because Solo is exactly the state this replaces —
+  // testing it after would make the flag dead code.
+  if (mode === 'solo' && requireAccount) return 'memory'
   if (mode === 'solo') return 'local'
   if (usesServerOfRecord(mode)) return 'remote'
   // `connecting` lands here alongside `disconnected`, and deliberately: writing
   // locally before the handshake resolves is exactly the silent fork this
   // module exists to prevent.
   return 'blocked'
+}
+
+export function selectBackend(): BackendKind {
+  return backendForMode(currentMode(), accountRequired)
 }
 
 /**
@@ -370,6 +405,11 @@ export async function mirrorSoftLinkWrite(
  * Called by the store before it touches persistence. Returns the backend to
  * use; throws rather than silently degrading when the answer is "you cannot
  * write right now".
+ *
+ * `memory` passes: an anonymous build is a legitimate write, it just does not
+ * outlive the tab. Refusing here would make the app read-only for a visitor,
+ * which is the opposite of what ADR-034 decision 1 asks for — the account is
+ * required to *keep* work, never to do it.
  */
 export function requireWritableBackend(): Exclude<BackendKind, 'blocked'> {
   const backend = selectBackend()
