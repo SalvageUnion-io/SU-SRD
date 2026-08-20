@@ -66,11 +66,13 @@ test('work built anonymously survives signing in to save it', async ({ page }) =
   // seam BROKE, and skipping there would hide exactly the regression this spec
   // exists to catch.
   //
-  // `ITUN_E2E_EXPECT_AUTH_SEAM` is that distinction. Note the honest state of
-  // things: no workflow sets the three variables today, so this spec currently
-  // skips in every environment including nightly. It is written and correct and
-  // has never actually executed in CI — set the variables plus this flag to
-  // change that.
+  // `ITUN_E2E_EXPECT_AUTH_SEAM` is that distinction, and the `e2e-itun-signin`
+  // job sets it — so in that job a missing seam is a failure, not a skip.
+  //
+  // Historical note, because it is the reason this guard exists: for a long
+  // time no workflow set any of the three variables, so this spec skipped in
+  // every environment including nightly. It was written, correct, and had never
+  // executed anywhere, while reading as coverage.
   if (!ready && process.env.ITUN_E2E_EXPECT_AUTH_SEAM) {
     throw new Error(
       'ITUN_E2E_EXPECT_AUTH_SEAM is set, but no `__itunTestSignIn` seam is present. ' +
