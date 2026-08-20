@@ -104,10 +104,22 @@ test('the app opens and reads with the network cut', async ({ page, context }) =
   await waitForReady(page)
 
   const controlled = await ensureServiceWorkerControls(page)
+  // NOT skippable in CI. The convenience of skipping on a dev-server run, where
+  // vite-plugin-pwa emits no worker, is worth keeping — but unconditional it
+  // meant this spec went silent exactly when the thing it proves broke. If the
+  // worker stops registering or activating, `controlled` is false, both tests
+  // here skip, and nightly is green with the offline guarantee unverified.
   test.skip(
-    !controlled,
+    !controlled && !process.env.CI,
     'No service worker controls the page — this is a dev-server run, where vite-plugin-pwa emits none. Runs for real against the CI preview build.'
   )
+  // In CI the skip above does not fire, so say WHY the rest is about to fail.
+  // Without this the first thing to break is `page.reload()` under
+  // `setOffline(true)`, which throws `net::ERR_INTERNET_DISCONNECTED` — that
+  // reads as a network or proxy fault, and nothing in the output mentions the
+  // service worker at all. The point of running this in CI is to learn that the
+  // worker stopped controlling the page; the failure has to say so.
+  expect(controlled, 'no service worker took control of the page').toBe(true)
 
   // Cut the network at the browser, not the app: `setOffline` fails real
   // requests, which is what a service worker either answers from cache or does
@@ -133,7 +145,10 @@ test('an unvisited route also resolves offline — the shell is not one page', a
   await waitForReady(page)
 
   const controlled = await ensureServiceWorkerControls(page)
-  test.skip(!controlled, 'No service worker controls the page — dev-server run.')
+  // See the note on the first test: the skip is a local convenience only, and
+  // the assertion is what makes a CI failure legible.
+  test.skip(!controlled && !process.env.CI, 'No service worker controls the page — dev-server run.')
+  expect(controlled, 'no service worker took control of the page').toBe(true)
 
   await context.setOffline(true)
 

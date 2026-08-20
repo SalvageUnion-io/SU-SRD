@@ -89,8 +89,17 @@
       ]
     },
     "apps/su-assets": {
-      "entry": ["netlify/functions/**/*.ts"],
-      "project": ["netlify/**/*.ts"],
+      // `src/worker.ts` is a framework entry in the same sense the Netlify
+      // handler is: workerd loads the module and calls its default export, so
+      // nothing in this repo imports it.
+      //
+      // It was missed when the itun and discord-bot Workers were added above.
+      // The consequence is worse than an un-analyzed file: `project` did not
+      // cover `src/**` either, so the whole Worker and its 217-line test sat
+      // OUTSIDE knip's scope rather than being exempted from one rule inside
+      // it — the gate passed by not looking.
+      "entry": ["netlify/functions/**/*.ts", "src/worker.ts"],
+      "project": ["netlify/**/*.ts", "src/**/*.ts"],
       "includeEntryExports": false
     },
     "apps/discord-bot": {

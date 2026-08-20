@@ -47,6 +47,26 @@ test('work built anonymously survives signing in to save it', async ({ page }) =
   await waitForReady(page)
 
   const ready = await seamIsPresent(page)
+
+  // Two different situations, and collapsing them is how this spec could go
+  // silent. Absence of the seam is EXPECTED in an ordinary build (no
+  // VITE_TEST_AUTH / VITE_CONVEX_URL / ITUN_TEST_AUTH) and is not a failure.
+  // But once a run has deliberately provisioned the seam, absence means the
+  // seam BROKE, and skipping there would hide exactly the regression this spec
+  // exists to catch.
+  //
+  // `ITUN_E2E_EXPECT_AUTH_SEAM` is that distinction. Note the honest state of
+  // things: no workflow sets the three variables today, so this spec currently
+  // skips in every environment including nightly. It is written and correct and
+  // has never actually executed in CI — set the variables plus this flag to
+  // change that.
+  if (!ready && process.env.ITUN_E2E_EXPECT_AUTH_SEAM) {
+    throw new Error(
+      'ITUN_E2E_EXPECT_AUTH_SEAM is set, but no `__itunTestSignIn` seam is present. ' +
+        'The build was expected to expose it (VITE_TEST_AUTH + VITE_CONVEX_URL + ' +
+        'ITUN_TEST_AUTH); either the seam regressed or the build lost a variable.'
+    )
+  }
   test.skip(
     !ready,
     'No test sign-in seam in this build — needs VITE_TEST_AUTH, VITE_CONVEX_URL and ITUN_TEST_AUTH. See this file header.'
