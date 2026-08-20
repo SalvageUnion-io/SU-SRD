@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.7.1...srd-v2.8.0) (2026-08-20)
+
+
+### Features
+
+* **srd:** P7 — installed means offline, without touching the service worker ([#882](https://github.com/SalvageUnion-io/SU-SRD/issues/882)) ([c1fdb4f](https://github.com/SalvageUnion-io/SU-SRD/commit/c1fdb4fbbf4a232cc6eb13636cd80caaaf8c2779))
+
 ## [2.7.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.7.0...srd-v2.7.1) (2026-08-19)
 
 
