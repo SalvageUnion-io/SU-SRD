@@ -138,7 +138,24 @@ jobs:
           CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
           CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
         run: |
-          bunx @convex-dev/auth --variant selfHosted --skip-git-check
+          # The keypair is generated inline rather than by `bunx @convex-dev/auth`.
+          # That CLI has no `--variant` flag (verified against the pinned 0.0.94:
+          # its options are --variables/--skip-git-check/--web-server-url/--prod/
+          # --preview-name/--deployment-name), and it is interactive, so in a
+          # runner it would either error or block. This is deterministic, needs
+          # no network, and is the same pair the CLI would have set.
+          bun -e '
+            const { generateKeyPairSync } = await import("node:crypto")
+            const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 })
+            const jwk = publicKey.export({ format: "jwk" })
+            await Bun.write("jwt.key", privateKey.export({ type: "pkcs8", format: "pem" }))
+            await Bun.write("jwks.json", JSON.stringify({ keys: [{ ...jwk, use: "sig", alg: "RS256" }] }))
+          '
+          # `--from-file` rather than an inline value: JWT_PRIVATE_KEY is a
+          # multi-line PEM, and it is the documented form for exactly this.
+          bunx convex env set JWT_PRIVATE_KEY --from-file jwt.key
+          bunx convex env set JWKS --from-file jwks.json
+          rm -f jwt.key jwks.json
           # `convex/auth.ts` gates the password provider on the exact string
           # 'true'; anything else leaves the provider absent and the seam gone.
           bunx convex env set ITUN_TEST_AUTH true

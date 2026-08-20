@@ -191,9 +191,10 @@ describe('check-action-pinning — bunx tools', () => {
  * is one that gets switched off.
  */
 describe('check-action-pinning — locally-resolved derivation', () => {
-  test('a scoped package pinned in a workspace manifest is exempt', async () => {
-    // `bunx @convex-dev/auth` runs unpinned in e2e-nightly.yml and must pass,
-    // because the step's working-directory is inside apps/itun.
+  test('a tool pinned in a workspace manifest is exempt', async () => {
+    // `bunx convex deploy` runs unpinned in deploy-cloudflare.yml and must
+    // pass: convex is pinned at 1.43.0 in apps/itun/package.json and the step's
+    // working-directory is inside that workspace, so bunx resolves it locally.
     const { exitCode } = await runCheck()
     expect(exitCode).toBe(0)
   })
@@ -202,13 +203,19 @@ describe('check-action-pinning — locally-resolved derivation', () => {
     // The discriminating case: if the exemption came from a hardcoded list
     // rather than from the manifest, dropping the dependency would change
     // nothing and this test would pass for the wrong reason.
+    //
+    // This originally targeted `@convex-dev/auth`, and then the commit that
+    // replaced that CLI with inline key generation deleted the call site out
+    // from under it — leaving the test green against nothing until the
+    // pre-push hook caught it. Pointed at `convex` instead, which has a
+    // long-lived call site in the deploy workflow.
     await withFileContents(
       'apps/itun/package.json',
-      (s) => s.replace(/^\s*"@convex-dev\/auth":\s*"[^"]+",\n/m, ''),
+      (s) => s.replace(/^\s*"convex":\s*"[^"]+",\n/m, ''),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain('@convex-dev/auth')
+        expect(stderr).toContain('bunx convex')
       }
     )
   })
