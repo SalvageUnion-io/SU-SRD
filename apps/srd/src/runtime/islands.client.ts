@@ -102,3 +102,29 @@ if (document.readyState === 'loading') {
 } else {
   mountIslands()
 }
+
+/**
+ * Fill the offline page cache — but only for an installed app, and only once
+ * the page the reader actually asked for has been dealt with.
+ *
+ * Hung off `load` rather than `DOMContentLoaded`, and after island mounting, so
+ * a background warm of 1,039 pages can never compete with first paint or with
+ * the interactive parts of the page. In a browser tab this costs one function
+ * call and a `matchMedia` check — see `offlineWarm.client.ts` for why the guard
+ * is the first thing it does.
+ */
+function startOfflineWarm(): void {
+  void import('./offlineWarm.client')
+    .then((m) => m.warmOfflineCacheIfInstalled())
+    .catch((error: unknown) => {
+      // Offline caching is a progressive enhancement; the site reads fine
+      // without it, so a failure here is logged and nothing else.
+      console.warn('[offline] could not warm the page cache', error)
+    })
+}
+
+if (document.readyState === 'complete') {
+  startOfflineWarm()
+} else {
+  window.addEventListener('load', startOfflineWarm, { once: true })
+}
