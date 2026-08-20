@@ -193,6 +193,75 @@ export const listForGame = query({
  * entity is an offer to the crew, and a player making one would be dropping
  * their own character into the pool rather than offering anything.
  */
+/**
+ * Everything this account owns, for filling the local cache.
+ *
+ * ## Why this did not exist, and why that was a bug
+ *
+ * Writes have mirrored **up** since ADR-030, but nothing ever read back **down**
+ * outside a Game (`listForGame`). The consequence is not subtle: a signed-in
+ * player opening ITUN on a second device saw an **empty roster**. Their builds
+ * were in Convex the whole time; there was simply no query that would return
+ * them. The only path down was `claimLocal`, which is for pushing a local roster
+ * up, and `GameRoster`, which is scoped to one Game.
+ *
+ * That is the gap that makes "IndexedDB is a cache" untrue as a description: a
+ * cache is something that can be *filled*, and until this there was nothing to
+ * fill it from ([ADR-034](../../../docs/adrs/ADR-034-account-required-persistence.md)
+ * decision 2).
+ *
+ * ## Owned, not shelved
+ *
+ * Deliberately every row the caller **owns**, whether it is on their shelf or
+ * in a Game, rather than the shelf alone. A Game entity you own is still yours
+ * and still belongs on your roster; scoping this to `gameId === null` would make
+ * a build vanish from the local cache the moment it was taken into a campaign,
+ * and reappear when the campaign ended.
+ *
+ * Unclaimed rows are excluded by construction — they have no `ownerId`, so the
+ * index cannot return them. That is right: an unclaimed pre-gen sitting in a
+ * Game belongs to the Game's view (`listForGame`), not to anybody's roster.
+ *
+ * The crawler is included on the same rule, which is only expressible at all
+ * because #871 gave it an owner.
+ */
+export const listMine = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireUser(ctx)
+
+    const [pilots, mechs, crawlers, patterns] = await Promise.all([
+      ctx.db
+        .query('pilots')
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('mechs')
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('crawlers')
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('mechPatterns')
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect(),
+    ])
+
+    // Bodies only. The caller is filling a local store whose records are keyed
+    // by the app-level id inside the body, so a Convex `_id` would be noise —
+    // and `appId` rides along separately for the rows that carry one, because
+    // that is what the mirror addresses by.
+    return {
+      pilots: pilots.map((r) => ({ appId: r.appId ?? null, body: r.body })),
+      mechs: mechs.map((r) => ({ appId: r.appId ?? null, body: r.body })),
+      crawlers: crawlers.map((r) => ({ appId: r.appId ?? null, body: r.body })),
+      mechPatterns: patterns.map((r) => ({ body: r.body })),
+    }
+  },
+})
+
 export const create = mutation({
   args: {
     table: OWNABLE,

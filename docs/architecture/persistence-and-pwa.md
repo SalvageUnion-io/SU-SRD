@@ -42,7 +42,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P1    | Test and e2e path that does not depend on Solo             | yes        | **provider done** — fixture with P3 |
 | P2    | In-memory anonymous mode (backend built, flag OFF)         | yes        | **done**    |
 | P3    | Gate persistence on an account (mechanism; flip deferred)  | yes        | **done**    |
-| P4    | Demote IndexedDB to a cache; wire all six stores, no mirrors | **no**    | not started |
+| P4    | Demote IndexedDB to a cache (**read path done**; prune + mirror removal await the flip) | **no** | part done |
 | P5    | Claim-on-sign-in coverage and the decline path             | yes        | not started |
 | P6    | ITUN install-triggered offline                             | yes        | not started |
 | P7    | `srd` install-triggered offline (**blocked on ADR-033 P7**) | yes       | blocked     |
@@ -359,9 +359,27 @@ visit.
 
 ## P4 — Demote IndexedDB to a cache
 
-**One-way door.**
+**One-way door — and it splits, because half of it cannot precede the flip.**
 
-**Work.** Make the demotion true in code rather than in prose: the local store is
+**Done now (the read path).** A cache is something that can be *filled*, and
+until this there was nothing to fill it from: writes have mirrored **up** since
+ADR-030 but nothing outside a Game ever read back **down**, so a signed-in player
+opening ITUN on a second device saw an **empty roster** while their builds sat in
+Convex. `entities.listMine` + `ShelfSync` close that, server-wins, with no merge
+— there is no second writer to conflict with, which is the benefit ADR-034 buys.
+
+**Waiting for the flip.** Two pieces cannot land while Solo still exists, and
+attempting them early is how a roster gets deleted:
+
+- **Pruning local rows the server does not return.** That is the honest
+  completion of "the cache is a reflection", and today it would delete a Solo
+  user's entire IndexedDB, which the server has never heard of.
+- **Removing the mirrors.** `mirrorWrite` upserts *because* a Solo entity has no
+  server row yet, and is fire-and-forget *because* the local write is the one the
+  UI reads. Both premises are still true until the flip; removing them first
+  would break the mode that is still shipping.
+
+**Work still outstanding.** Make the demotion true in code rather than in prose: the local store is
 populated from Convex and read for speed, and nothing treats it as authoritative.
 `writesAllowed()`'s Solo branch goes; `resolveConnectionMode`'s two `'solo'`
 returns collapse. Reconciliation is a plain rule — the server wins — because
