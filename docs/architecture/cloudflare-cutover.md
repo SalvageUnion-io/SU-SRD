@@ -703,9 +703,11 @@ Three facts that individually look fine and together do not compose:
    `transferDnsZone`, which moves a zone **between Netlify accounts** — its name
    invites the opposite reading, so do not reach for it. There is nothing to
    set, from any client.
+
 2. Cloudflare Registrar will not accept a transfer until the domain is
    **Active** on Cloudflare — which means its nameservers already point at
    Cloudflare.
+
 3. Nameservers can only be changed at the registrar.
 
 So the domain cannot be pointed at Cloudflare while Netlify holds it, and
@@ -879,12 +881,12 @@ records, and the obvious conclusion is that the custom domains were never
 attached or have been lost. Measured 2026-08-21, all three `salvageunion.io`
 hostnames:
 
-| Query                            | Against assigned NS         | Reads as     |
-| -------------------------------- | --------------------------- | ------------ |
-| `salvageunion.io AAAA`           | `100::`                     | staged ✅     |
-| `salvageunion.io A`              | `NOERROR`, `ANSWER: 0`      | *empty* ❌    |
-| `www.salvageunion.io AAAA`       | `100::`                     | staged ✅     |
-| `assets.salvageunion.io AAAA`    | `100::`                     | staged ✅     |
+| Query                         | Against assigned NS    | Reads as                    |
+| ----------------------------- | ---------------------- | --------------------------- |
+| `salvageunion.io AAAA`        | `100::`                | staged, correctly           |
+| `salvageunion.io A`           | `NOERROR`, `ANSWER: 0` | **nothing here** — it lies  |
+| `www.salvageunion.io AAAA`    | `100::`                | staged, correctly           |
+| `assets.salvageunion.io AAAA` | `100::`                | staged, correctly           |
 
 The control that settles it either way is `intheunionnow.com`, which is **live**
 on the same two nameservers and answers `A` with real proxied addresses
