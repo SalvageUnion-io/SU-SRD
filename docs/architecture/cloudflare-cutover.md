@@ -660,7 +660,13 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 >
 > `salvageunion.io` was **registered through Netlify** on 2025-11-17. Netlify
 > resells through Name.com, which is why the registry names a registrar nobody
-> here has an account with. It auto-renews **2026-10-14 at $61.99/yr**.
+> here has an account with. It auto-renews **2026-10-16 at $61.99/yr**.
+>
+> The renewal date is `domain.auto_renew_at` on the Netlify DNS zone, not a
+> figure to restate from memory — this line said 2026-10-14 until it was read
+> back from the API. Re-derive it with
+> `netlify api getDnsZones --data '{}'`, which also carries `transferred_at`
+> and `auth_code` — the two fields that actually say whether P7 has moved.
 >
 > That took four independent confirmations, because "who is the registrar" had a
 > misleading answer and acting on it would have sent someone to create an account
@@ -1080,7 +1086,7 @@ Only after P7 has been stable for 24 h.
 > transferred out per P7 and `whois` shows a registrar you control.
 >
 > A related deadline that is not about deletion at all: **auto-renew runs
-> 2026-10-14 at $61.99.** If the transfer has not completed by then, Netlify
+> 2026-10-16 at $61.99.** If the transfer has not completed by then, Netlify
 > charges another year. That is a cost, not a failure — do not let it rush the
 > transfer into being done badly.
 
