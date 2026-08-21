@@ -42,7 +42,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
-| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312 |
+| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312, **no agent reply as of 2026-08-21** |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
@@ -660,7 +660,13 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 >
 > `salvageunion.io` was **registered through Netlify** on 2025-11-17. Netlify
 > resells through Name.com, which is why the registry names a registrar nobody
-> here has an account with. It auto-renews **2026-10-14 at $61.99/yr**.
+> here has an account with. It auto-renews **2026-10-16 at $61.99/yr**.
+>
+> The renewal date is `domain.auto_renew_at` on the Netlify DNS zone, not a
+> figure to restate from memory — this line said 2026-10-14 until it was read
+> back from the API. Re-derive it with
+> `netlify api getDnsZones --data '{}'`, which also carries `transferred_at`
+> and `auth_code` — the two fields that actually say whether P7 has moved.
 >
 > That took four independent confirmations, because "who is the registrar" had a
 > misleading answer and acting on it would have sent someone to create an account
@@ -685,9 +691,23 @@ Three facts that individually look fine and together do not compose:
    `intheunionnow.com`, registered externally, which instead says *"go to your
    domain registrar and change your domain's name servers"* — Netlify expects
    you to have a registrar you can reach. For this domain, Netlify **is** it.)
+
+   **This is a data-model fact, not a UI one** — worth knowing before anyone
+   spends an afternoon hunting for a hidden setting or an undocumented endpoint.
+   The registrar record returned by `netlify api getDnsZone` carries
+   `account_id, auth_code, auto_renew, auto_renew_at, created_at, deleted,
+   expires_at, failure_reason, id, name, registered_at, renewal_price, status,
+   transferred_at, updated_at, user_id` — **no nameserver field of any kind.**
+   The zone's `dns_servers` is a read-out of which NS1 pool Netlify assigned,
+   not a delegation target. And `netlify api --list` exposes only zone CRUD plus
+   `transferDnsZone`, which moves a zone **between Netlify accounts** — its name
+   invites the opposite reading, so do not reach for it. There is nothing to
+   set, from any client.
+
 2. Cloudflare Registrar will not accept a transfer until the domain is
    **Active** on Cloudflare — which means its nameservers already point at
    Cloudflare.
+
 3. Nameservers can only be changed at the registrar.
 
 So the domain cannot be pointed at Cloudflare while Netlify holds it, and
@@ -731,8 +751,29 @@ support link there is pre-filled with the right subject and body.
 
    This is the long pole — a human ticket, not an API call.
 
+   **Ask for the nameserver change too, and ask for it first.** As of
+   2026-08-21 there is still no agent reply, and the ticket as written requests
+   only the larger of the two things Netlify could do. Moving the registration
+   into the Name.com account is a registrar action with ICANN process attached;
+   *setting the nameservers on their side* is a config change that **finishes the
+   migration on its own** and needs no transfer at all — step 3 is the milestone
+   either way, and it does not care which party performs it. Requesting both,
+   preferring the nameserver change, gives support a cheap way to say yes.
+
+   Stated honestly, because the reply may be no: Netlify does **not** document
+   this service. [Transfer a domain](https://docs.netlify.com/manage/domains/manage-domains/transfer-a-domain/)
+   covers only full registrar transfers. Other users have asked for exactly the
+   nameserver change on the community forum — *["Please set custom name servers
+   for my Netlify-registered domain"](https://answers.netlify.com/t/please-set-custom-name-servers-for-my-netlify-registered-domain-mybrimly-com/165752)*
+   and *["How do I change nameservers or get an EPP transfer code…"](https://answers.netlify.com/t/how-do-i-change-nameservers-or-get-an-epp-transfer-code-for-a-domain-registered-through-netlify/163007)* —
+   and **both threads show no staff reply**, one noting that support emails had
+   gone unanswered. It is a reasonable ask with no evidence of it being granted,
+   which is a reason to make it *alongside* the transfer request rather than
+   instead of it.
+
 3. At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
-   `rajeev.ns.cloudflare.com`. **This is the actual cutover moment for `srd` and
+   `rajeev.ns.cloudflare.com` — **or have Netlify set them**, per the note above.
+   **This is the actual cutover moment for `srd` and
    `assets`** — the zone goes Active and both surfaces move.
 4. *Optional, later.* Unlock at Name.com, take the auth code, and transfer the
    registration to Cloudflare Registrar. `.io` is supported; transfers are
@@ -830,6 +871,46 @@ rehearsed against the real Cloudflare zones at zero customer risk.
 
 Both zones drew the **same** nameserver pair, so the two flips are the same edit
 made in two different control panels.
+
+**Verify a staged zone with `AAAA`, not `A` — checking `A` makes a correctly
+staged zone look empty.** A pending Cloudflare zone answers the proxied
+placeholder `100::` on **AAAA only**; the same name queried for `A` comes back
+`NOERROR` with `ANSWER: 0`. Both are authoritative (`aa` set), so nothing in the
+response says "not configured yet" — it reads exactly like a zone with no
+records, and the obvious conclusion is that the custom domains were never
+attached or have been lost. Measured 2026-08-21, all three `salvageunion.io`
+hostnames:
+
+| Query                         | Against assigned NS    | Reads as                    |
+| ----------------------------- | ---------------------- | --------------------------- |
+| `salvageunion.io AAAA`        | `100::`                | staged, correctly           |
+| `salvageunion.io A`           | `NOERROR`, `ANSWER: 0` | **nothing here** — it lies  |
+| `www.salvageunion.io AAAA`    | `100::`                | staged, correctly           |
+| `assets.salvageunion.io AAAA` | `100::`                | staged, correctly           |
+
+The control that settles it either way is `intheunionnow.com`, which is **live**
+on the same two nameservers and answers `A` with real proxied addresses
+(`104.21.43.173`, `172.67.182.140`). If a staged name answers `100::` on AAAA it
+is attached; compare against the live zone only to see what *activated* looks
+like, never to judge whether staging succeeded.
+
+The deploy output is the second, independent confirmation — every
+`Deploy (Cloudflare)` run prints `salvageunion.io (custom domain)`,
+`www.salvageunion.io (custom domain)` and `assets.salvageunion.io (custom
+domain)` under "Deployed … triggers". Both signals agree: **the three hostnames
+are attached and the zone is correctly staged.** Nothing about the flip needs
+re-doing; it needs the nameservers and nothing else.
+
+**DNSSEC is off, and that is one hazard fewer.** `salvageunion.io` publishes no
+`DS` at the `.io` registry and no `DNSKEY` at its current nameservers (measured
+2026-08-21), so the flip cannot strand resolvers on a signed chain that the new
+nameservers cannot satisfy. Worth stating because it is the failure mode that
+would be *invisible* until the flip and unfixable inside the outage window — and
+because the one comparable request found on Netlify's forum had to ask for
+DNSSEC to be disabled as a separate step. `intheunionnow.com` was likewise
+unsigned and flipped cleanly. **Re-check before the flip rather than trusting
+this line**, since either party could enable it in the meantime:
+`dig salvageunion.io DS` must stay empty.
 
 **The current nameservers are Netlify's own** (`nsone.net` is NS1, which Netlify
 DNS runs on). Netlify is therefore not just the origin here, it is the DNS
@@ -1080,7 +1161,7 @@ Only after P7 has been stable for 24 h.
 > transferred out per P7 and `whois` shows a registrar you control.
 >
 > A related deadline that is not about deletion at all: **auto-renew runs
-> 2026-10-14 at $61.99.** If the transfer has not completed by then, Netlify
+> 2026-10-16 at $61.99.** If the transfer has not completed by then, Netlify
 > charges another year. That is a cost, not a failure — do not let it rush the
 > transfer into being done badly.
 
