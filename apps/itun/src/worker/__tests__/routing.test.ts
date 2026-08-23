@@ -195,6 +195,60 @@ describe('a missing FILE is 404, not the shell', () => {
   })
 })
 
+/**
+ * The wiring, not just the helper. `shellMeta.test.ts` covers the rendering;
+ * this covers that a real `/s/:id` request reaches it and that failure degrades
+ * to the defaults rather than to a 500.
+ */
+describe('shared snapshots unfurl with their own metadata', () => {
+  const SHELL = [
+    '<!doctype html><html><head><title>In The Union Now</title>',
+    '<!-- itun:meta:start -->',
+    '<meta property="og:title" content="In The Union Now" />',
+    '<!-- itun:meta:end -->',
+    '</head><body></body></html>',
+  ].join('\n')
+
+  it('injects the sheet name for a snapshot that exists', async () => {
+    const env = envWith(
+      { '/index.html': SHELL },
+      { AAAAAAAA: { kind: 'pilot', entity: { name: 'Rusty' } } }
+    )
+    const res = await worker.fetch(req('/s/AAAAAAAA'), env)
+    const body = await res.text()
+
+    expect(res.status).toBe(200)
+    expect(body).toContain('Rusty — Pilot')
+    expect(body.match(/property="og:title"/g)).toHaveLength(1)
+  })
+
+  it('drops a stale Content-Length rather than truncating the document', async () => {
+    // The injected block changes the body length; keeping the asset response's
+    // header would cut the document off mid-tag.
+    const env = envWith(
+      { '/index.html': SHELL },
+      { AAAAAAAA: { kind: 'pilot', entity: { name: 'Rusty' } } }
+    )
+    const res = await worker.fetch(req('/s/AAAAAAAA'), env)
+    expect(res.headers.get('content-length')).toBeNull()
+    expect(await res.text()).toContain('</html>')
+  })
+
+  it('serves the default shell when the snapshot is missing', async () => {
+    const env = envWith({ '/index.html': SHELL }, {})
+    const res = await worker.fetch(req('/s/AAAAAAAA'), env)
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toContain('In The Union Now')
+  })
+
+  it('leaves every other client route on the defaults', async () => {
+    const env = envWith({ '/index.html': SHELL }, {})
+    const res = await worker.fetch(req('/roster'), env)
+    expect(await res.text()).toContain('content="In The Union Now"')
+  })
+})
+
 describe('/api/snapshots — method-conditioned routing', () => {
   it('POST publishes and returns an id', async () => {
     const env = envWith()

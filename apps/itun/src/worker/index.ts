@@ -62,6 +62,8 @@ import { validateSnapshotPayload } from '../lib/snapshot/payload'
 import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
+import type { ShellMeta } from './shellMeta'
+import { applyMeta, metaForSnapshot } from './shellMeta'
 
 /**
  * The Worker opts OUT of the handlers' in-process rate limiter.
@@ -120,18 +122,64 @@ function clientIp(request: Request): string {
 
 const SHARE_PATH = /^\/sheet\/([^/]+)\/([^/]+)\/share\/?$/
 
-/** Serve the SPA shell for a client-side route. */
+const SNAPSHOT_ROUTE = /^\/s\/([^/]+)\/?$/
+
+/**
+ * Per-route metadata for the shell, or null to keep the sitewide defaults.
+ *
+ * Only `/s/:id` today. That is the route salvageunion.io actually promotes
+ * ("sheets can be shared into Discord as snapshot links") and the one whose
+ * data this Worker already holds — the R2 bucket is bound for the snapshot API.
+ *
+ * `/p/:kind/:appId` is NOT covered, deliberately. Its data lives in Convex
+ * behind a `publicRead` column, and ADR-032 makes a private sheet and a
+ * nonexistent one **indistinguishable on purpose** — "this exists but is
+ * private" is itself a disclosure. Injecting metadata there means reproducing
+ * that invariant exactly in a second place; doing it carelessly would leak the
+ * existence of every private sheet through its unfurl. It needs its own change,
+ * with that as the assertion.
+ *
+ * Never throws: a failed lookup falls back to the defaults. An unfurl is not
+ * worth a 500 on a page that would otherwise render.
+ */
+async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | null> {
+  const url = new URL(request.url)
+  const snapshot = SNAPSHOT_ROUTE.exec(url.pathname)
+  if (!snapshot) return null
+
+  const id = snapshot[1]
+  if (!id || !isValidSnapshotId(id)) return null
+
+  try {
+    const stored = await createR2Storage(env.SNAPSHOTS).get(id)
+    if (!stored) return null
+    return metaForSnapshot(stored, url.toString(), {
+      image: `${url.origin}/icon-512.png`,
+    })
+  } catch {
+    return null
+  }
+}
+
+/** Serve the SPA shell for a client-side route, with this route's metadata. */
 async function spaShell(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url)
   url.pathname = '/index.html'
   const shell = await env.ASSETS.fetch(new Request(url.toString(), { method: 'GET' }))
-  // Re-wrap so the status is 200 for a client-side route rather than whatever
-  // the asset lookup returned, and so this response is not confused with a hit
-  // on a real file.
-  return new Response(shell.body, {
-    status: 200,
-    headers: shell.headers,
-  })
+
+  const meta = await metaForRoute(request, env)
+  if (!meta) {
+    // Re-wrap so the status is 200 for a client-side route rather than whatever
+    // the asset lookup returned, and so this response is not confused with a hit
+    // on a real file.
+    return new Response(shell.body, { status: 200, headers: shell.headers })
+  }
+
+  const headers = new Headers(shell.headers)
+  // The body length changes with the injected metadata, and a stale
+  // Content-Length truncates the document.
+  headers.delete('content-length')
+  return new Response(applyMeta(await shell.text(), meta), { status: 200, headers })
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
