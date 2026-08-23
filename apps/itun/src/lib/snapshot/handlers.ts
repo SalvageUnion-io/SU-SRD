@@ -30,6 +30,7 @@
  */
 
 import { generateUniqueId, isValidSnapshotId } from './id'
+import { validateSnapshotPayload } from './payload'
 import { getClientIp, RateLimiter } from './rateLimit'
 import { reportSnapshotError } from './report'
 import type { SnapshotStorage } from './storage'
@@ -109,8 +110,13 @@ export function makePublishHandler(storage: SnapshotStorage, options?: HandlerOp
       return new Response('Invalid JSON', { status: 400 })
     }
 
-    if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
-      return new Response('Payload must be a JSON object', { status: 400 })
+    // Not merely "is this an object" — the payload must be something `/s/$id`
+    // could actually render, checked with the renderer's own parse. Publishing
+    // an unrenderable snapshot mints a share link whose owner discovers it is
+    // broken from whoever they sent it to. See `payload.ts`.
+    const check = validateSnapshotPayload(payload)
+    if (!check.ok) {
+      return new Response(check.reason, { status: 400 })
     }
 
     let id: string

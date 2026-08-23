@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'bun:test'
+import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { Env } from '../index'
 import worker from '../index'
+
+/**
+ * A body publish will actually accept. These tests posted `{ kind: 'pilot',
+ * name: 'Mule' }` before publish validated its payload — a shape `/s/$id` could
+ * never have rendered. See `lib/snapshot/payload.ts`.
+ */
+const PUBLISHABLE = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker' }) }
 
 /**
  * The itun Worker's routing table (ADR-033 P4).
@@ -143,7 +151,7 @@ describe('/api/snapshots — method-conditioned routing', () => {
       req('/api/snapshots', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: 'pilot', name: 'Mule' }),
+        body: JSON.stringify(PUBLISHABLE),
       }),
       env
     )
@@ -225,7 +233,7 @@ describe('rate limiting', () => {
       req('/api/snapshots', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ok: true }),
+        body: JSON.stringify(PUBLISHABLE),
       }),
       env
     )

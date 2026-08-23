@@ -24,64 +24,21 @@
  */
 
 import { create } from 'zustand'
-import { isRecord } from '../../lib/isRecord'
-import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { CrawlerSchema } from '../../lib/schemas/crawler'
+import type { FrozenParse } from '../../lib/schemas/frozenEntity'
 import type { Mech } from '../../lib/schemas/mech'
-import { MechSchema } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { normalizeLegacyPilotRecord, PilotSchema } from '../../lib/schemas/pilot'
 import type { EntityType, useEntityStore } from '../../stores/entityStore'
 
-/** A parsed frozen entity, or the reason it could not be parsed. */
-export type FrozenParse =
-  | { ok: true; kind: 'pilot'; entity: Pilot }
-  | { ok: true; kind: 'mech'; entity: Mech }
-  | { ok: true; kind: 'crawler'; entity: Crawler }
-  | { ok: false; reason: string }
-
+export type { FrozenParse } from '../../lib/schemas/frozenEntity'
 /**
- * Validate an untrusted entity body against the schema for its kind.
- *
- * Untrusted in both callers, and for the same reason: a snapshot payload was
- * published by some other version of this app, and a server row was written by
- * some other player's browser. Neither is a record this session created, so
- * both go through Zod rather than a cast — a mismatch renders an explanation,
- * never a crash mid-sheet.
+ * Re-exported, not redefined. The parse moved to `lib/schemas/frozenEntity` so
+ * the snapshot publish handler can share it without pulling `zustand` and the
+ * entity store into the Cloudflare Worker bundle — see that module's header.
+ * Rendering callers keep importing it from here, which is where they already
+ * look for it.
  */
-export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
-  if (!isRecord(entity) || Array.isArray(entity)) {
-    return { ok: false, reason: 'Entity data is missing or invalid.' }
-  }
-
-  if (kind === 'pilot') {
-    // Records written before the vestigial `rollResults` removal still carry
-    // the field — the same rewrite parseImportBundle applies.
-    const parsed = PilotSchema.safeParse(normalizeLegacyPilotRecord(entity))
-    return parsed.success
-      ? { ok: true, kind: 'pilot', entity: parsed.data }
-      : { ok: false, reason: `Invalid pilot data: ${parsed.error.message}` }
-  }
-
-  if (kind === 'mech') {
-    // Records written before the cargo→cargoLots rename carry a legacy
-    // `cargo: string[]` field — the same rewrite parseImportBundle applies.
-    const parsed = MechSchema.safeParse(normalizeLegacyCargoRecord(entity))
-    return parsed.success
-      ? { ok: true, kind: 'mech', entity: parsed.data }
-      : { ok: false, reason: `Invalid mech data: ${parsed.error.message}` }
-  }
-
-  if (kind === 'crawler') {
-    const parsed = CrawlerSchema.safeParse(entity)
-    return parsed.success
-      ? { ok: true, kind: 'crawler', entity: parsed.data }
-      : { ok: false, reason: `Invalid crawler data: ${parsed.error.message}` }
-  }
-
-  return { ok: false, reason: `Unknown entity kind: ${String(kind)}` }
-}
+export { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 
 type EntityState = ReturnType<typeof useEntityStore.getState>
 
