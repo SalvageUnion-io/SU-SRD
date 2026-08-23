@@ -33,6 +33,9 @@ import {
   getTraits,
   getTree,
 } from './utilities.js'
+import { isColumnsTable } from './utils/resultForTable.js'
+import type { TableRow } from './utils/tableRows.js'
+import { tableRows } from './utils/tableRows.js'
 
 /**
  * Get the display name for a schema
@@ -348,6 +351,30 @@ export type StaticEntitySummary = {
    * Empty for every entity that has no such sections.
    */
   sections: { name: string; paragraphs: string[] }[]
+  /**
+   * A roll table's outcome rows, highest roll first.
+   *
+   * The same defect as `sections` above, one schema over and found much later.
+   * A roll-table page shipped its whole d20 table as serialized island props
+   * and rendered NONE of it as markup — measured across six tables, 0 rows in
+   * rendered HTML and every row inside a `<script>` tag. Without JavaScript the
+   * page was its name and its source line; the table, which is the entire
+   * reason the page exists, was absent from the text a crawler, a reader-mode
+   * view, or an LLM following `llms.txt` receives.
+   *
+   * That lands on the 96 pages most likely to be opened mid-game on a bad
+   * connection: "roll on Critical Damage" is the commonest thing anyone asks
+   * this site for.
+   *
+   * `columns` tables are deliberately absent. Each of their buckets holds a
+   * further 1–20 mapping, so a flat row list would misrepresent a two-roll
+   * table as a one-roll one — worse than rendering nothing, because it would
+   * look right. They keep the island rendering until the static path grows a
+   * two-roll shape.
+   *
+   * Empty for every entity that is not a roll table.
+   */
+  table: TableRow[]
 }
 
 /**
@@ -461,6 +488,13 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
     }
   }
 
+  // A roll table's rows. `columns` tables are excluded on purpose — see the
+  // note on `StaticEntitySummary.table`.
+  const table =
+    'table' in entity && entity.table && !isColumnsTable(entity.table)
+      ? tableRows(entity.table)
+      : []
+
   return {
     name,
     description,
@@ -471,5 +505,6 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
     stats,
     traits,
     sections,
+    table,
   }
 }
