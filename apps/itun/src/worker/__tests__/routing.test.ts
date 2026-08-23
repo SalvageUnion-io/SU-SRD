@@ -162,6 +162,41 @@ describe('/api/snapshots — method-conditioned routing', () => {
     expect(body.url).toBe(`/api/snapshots/${body.id}`)
   })
 
+  it('POST {} → 400 and stores nothing — the Worker runs the STRICT check', async () => {
+    // The gap this whole change exists to close, asserted on the host that
+    // actually serves publishes. Before validation this answered 201 with a
+    // real share URL for a snapshot `/s/$id` could never render — verified
+    // against production before the fix.
+    const env = envWith()
+    const res = await worker.fetch(
+      req('/api/snapshots', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({}),
+      }),
+      env
+    )
+
+    expect(res.status).toBe(400)
+    expect(await res.text()).toContain('Entity data is missing')
+    expect(env.SNAPSHOTS._store.size).toBe(0)
+  })
+
+  it('POST a known kind with an unrenderable entity → 400', async () => {
+    const env = envWith()
+    const res = await worker.fetch(
+      req('/api/snapshots', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ kind: 'pilot', entity: { nonsense: true } }),
+      }),
+      env
+    )
+
+    expect(res.status).toBe(400)
+    expect(env.SNAPSHOTS._store.size).toBe(0)
+  })
+
   for (const method of ['GET', 'PUT', 'PATCH', 'DELETE']) {
     it(`${method} /api/snapshots is 405`, async () => {
       const env = envWith()

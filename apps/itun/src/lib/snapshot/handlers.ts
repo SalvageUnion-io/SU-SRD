@@ -30,7 +30,6 @@
  */
 
 import { generateUniqueId, isValidSnapshotId } from './id'
-import { validateSnapshotPayload } from './payload'
 import { getClientIp, RateLimiter } from './rateLimit'
 import { reportSnapshotError } from './report'
 import type { SnapshotStorage } from './storage'
@@ -48,6 +47,40 @@ const MAX_PAYLOAD_BYTES = 256 * 1024
 /** Anything that can answer "has this key exceeded its allowance?". */
 export type RateLimitCheck = { check(key: string): boolean }
 
+/** Accepted, or the reason it was refused. Mirrors `payload.ts`'s result type. */
+export type PayloadCheck = { ok: true } | { ok: false; reason: string }
+
+/**
+ * The shape check every host applies: a JSON object, not an array, not null.
+ *
+ * This is the DEFAULT rather than the whole story, for the same reason the
+ * in-process rate limiter is — see the module header. The real check is
+ * `validateSnapshotPayload` in `payload.ts`, which runs the renderer's own Zod
+ * parse so an unrenderable snapshot cannot be minted. The Cloudflare Worker
+ * injects it; the Netlify functions do not, and that asymmetry is deliberate:
+ *
+ * - **It costs nothing observable.** Netlify publish is frozen
+ *   (`SNAPSHOT_WRITES_FROZEN`, ADR-033 P6) and answers 503 before reaching any
+ *   payload, so no publish can succeed there to be under-validated. Cloudflare
+ *   is the only host where a publish happens, and it validates fully.
+ * - **Importing the schemas here would break the Netlify functions outright.**
+ *   `handlers.ts` is shared by all three, so a module-scope import of
+ *   `payload.ts` pulls Zod into every one of them — and Netlify's bundler
+ *   leaves `zod` as an unresolvable bare import, killing the module before any
+ *   handler runs. Measured on deploy previews: 502 on publish AND retrieve,
+ *   including with `zod` declared on `apps/itun`. Declaring the dependency does
+ *   not fix it; not importing it does.
+ *
+ * So the injection point is what keeps the retired surface serving reads while
+ * the live one gets the strict check.
+ */
+function isJsonObject(payload: unknown): PayloadCheck {
+  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+    return { ok: false, reason: 'Payload must be a JSON object' }
+  }
+  return { ok: true }
+}
+
 /**
  * Module-level limiter, shared by every handler that opts in. Persists across
  * invocations within one instance, which is the whole of its reach.
@@ -60,6 +93,13 @@ export type HandlerOptions = {
    * `null` disables it — for hosts with a real edge-enforced limiter.
    */
   rateLimiter?: RateLimitCheck | null
+  /**
+   * `undefined` keeps the shape-only check. Hosts that can afford the Zod
+   * schemas in their bundle pass `validateSnapshotPayload` — see
+   * `isJsonObject` above for why that is an injection point rather than an
+   * import.
+   */
+  validatePayload?: (payload: unknown) => PayloadCheck
 }
 
 function limited(req: Request, options: HandlerOptions | undefined): boolean {
@@ -110,11 +150,11 @@ export function makePublishHandler(storage: SnapshotStorage, options?: HandlerOp
       return new Response('Invalid JSON', { status: 400 })
     }
 
-    // Not merely "is this an object" — the payload must be something `/s/$id`
-    // could actually render, checked with the renderer's own parse. Publishing
-    // an unrenderable snapshot mints a share link whose owner discovers it is
-    // broken from whoever they sent it to. See `payload.ts`.
-    const check = validateSnapshotPayload(payload)
+    // On Cloudflare this is the renderer's own parse, so an unrenderable
+    // snapshot cannot be minted — publishing one would hand its owner a share
+    // link they find out is broken from whoever they sent it to. Elsewhere it
+    // is the shape check. See `isJsonObject` for why this is injected.
+    const check = (options?.validatePayload ?? isJsonObject)(payload)
     if (!check.ok) {
       return new Response(check.reason, { status: 400 })
     }

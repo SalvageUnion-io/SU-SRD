@@ -149,29 +149,35 @@ describe('snapshot-publish', () => {
     expect(res.status).toBe(400)
   })
 
-  it('POST {} → 400 and nothing is stored', async () => {
-    // The reported gap: this used to answer 201 with a real share URL for a
-    // snapshot that `/s/$id` could never render.
-    const counting = new CountingStorage()
-    const res = await makePublishHandler(counting)(
+  it('POST {} → 201 with NO injected validator (shape-only is the default)', async () => {
+    // Deliberate, and the asymmetry is the design: importing the Zod schemas
+    // into the shared `handlers.ts` puts `zod` in every Netlify function bundle,
+    // where it is an unresolvable bare import — 502 on publish AND retrieve.
+    // Measured on a `ready` deploy preview, including with `zod` declared on
+    // apps/itun. See the note at `functions =` in netlify.toml.
+    //
+    // It costs nothing observable: Netlify publish is frozen and answers 503
+    // before reading a body, so no under-validated publish can land here. The
+    // strict check runs where publishes actually happen — the Worker.
+    const res = await makePublishHandler(new InMemoryStorage())(
       makeRequest('POST', 'http://localhost/api/snapshots', {})
     )
 
-    expect(res.status).toBe(400)
-    expect(await res.text()).toContain('Entity data is missing')
-    expect(counting.puts).toBe(0)
+    expect(res.status).toBe(201)
   })
 
-  it('POST with a known kind but an unrenderable entity → 400 and nothing is stored', async () => {
+  it('POST {} → 400 and nothing is stored WHEN a strict validator is injected', async () => {
+    // The seam itself. `src/worker/index.ts` passes `validateSnapshotPayload`;
+    // this asserts the handler honours an injected validator and writes nothing
+    // when it refuses.
     const counting = new CountingStorage()
-    const res = await makePublishHandler(counting)(
-      makeRequest('POST', 'http://localhost/api/snapshots', {
-        kind: 'pilot',
-        entity: { nonsense: true },
-      })
-    )
+    const handlerWithStrict = makePublishHandler(counting, {
+      validatePayload: () => ({ ok: false, reason: 'Entity data is missing or invalid.' }),
+    })
+    const res = await handlerWithStrict(makeRequest('POST', 'http://localhost/api/snapshots', {}))
 
     expect(res.status).toBe(400)
+    expect(await res.text()).toContain('Entity data is missing')
     expect(counting.puts).toBe(0)
   })
 

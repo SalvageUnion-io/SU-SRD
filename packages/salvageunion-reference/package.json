@@ -70,7 +70,7 @@
   "license": "SEE LICENSE IN LICENCE",
   "dependencies": {
     "jsonc-parser": "^3.3.1",
-    "zod": "catalog:"
+    "zod": "^4.4.3"
   },
   "devDependencies": {}
 }

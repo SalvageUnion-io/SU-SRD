@@ -53,6 +53,7 @@ import {
   makeRetrieveHandler,
 } from '../lib/snapshot/handlers'
 import { isValidSnapshotId } from '../lib/snapshot/id'
+import { validateSnapshotPayload } from '../lib/snapshot/payload'
 import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
@@ -67,6 +68,26 @@ import { createR2Storage } from '../lib/snapshot/storage'
  * amplification, and it applies either way.
  */
 const NO_IN_PROCESS_LIMIT = { rateLimiter: null } as const
+
+/**
+ * Publish options for this host: no in-process limiter, and the STRICT payload
+ * check.
+ *
+ * This Worker is the only place a snapshot can actually be published —
+ * Netlify's publish is frozen and answers 503 before it reads a body — so this
+ * is where "a snapshot that cannot be rendered cannot be published" is
+ * enforced. `validateSnapshotPayload` runs the same Zod parse `/s/$id` runs on
+ * the way out, so the two cannot drift.
+ *
+ * It is injected rather than imported inside `handlers.ts` because that module
+ * is shared with the Netlify functions, whose bundler cannot resolve `zod` —
+ * see the note on `isJsonObject` there. wrangler bundles it inline without
+ * complaint; the cost is measured in `payload.ts`.
+ */
+const PUBLISH_OPTIONS = {
+  rateLimiter: null,
+  validatePayload: validateSnapshotPayload,
+} as const
 
 /** Cloudflare's Rate Limiting binding, as much of it as this Worker uses. */
 type RateLimiterBinding = {
@@ -143,7 +164,7 @@ export default {
         }
         // The factory answers 405 for everything that is not POST, so the
         // non-POST branch needs no separate rule the way netlify.toml did.
-        return makePublishHandler(storage, NO_IN_PROCESS_LIMIT)(request)
+        return makePublishHandler(storage, PUBLISH_OPTIONS)(request)
       }
 
       const id = path.slice('/api/snapshots/'.length)
