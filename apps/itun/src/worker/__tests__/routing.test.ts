@@ -144,6 +144,57 @@ describe('SPA fallback', () => {
   })
 })
 
+/**
+ * Rule 6. Before it, the shell answered `200 text/html` for EVERY path that was
+ * not a real file — so `/robots.txt` handed a crawler a web page where it had
+ * asked for crawl rules, `/favicon.ico` returned a document, and every typo was
+ * an indexable soft-404. Measured against production before the fix: those
+ * three plus `/sitemap.xml` all returned `200 text/html`.
+ *
+ * The discriminator is a dot in the last path segment. A client route in this
+ * app never has one; a request for a file always does.
+ */
+describe('a missing FILE is 404, not the shell', () => {
+  for (const path of [
+    '/favicon.ico',
+    '/sitemap.xml',
+    '/robots.txt',
+    '/apple-touch-icon.png',
+    '/manifest.json',
+    '/deep/path/thing.txt',
+  ]) {
+    it(`404s ${path} when it is not a real file`, async () => {
+      const env = envWith({ '/index.html': '<!doctype html>SPA' })
+      const res = await worker.fetch(req(path), env)
+
+      expect(res.status).toBe(404)
+      expect(await res.text()).not.toContain('SPA')
+    })
+  }
+
+  it('still serves such a path when it IS a real file', async () => {
+    const env = envWith({ '/index.html': 'SPA', '/favicon.ico': 'ICO' })
+    const res = await worker.fetch(req('/favicon.ico'), env)
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('ICO')
+  })
+
+  it('does not touch dotless client routes', async () => {
+    // The regression this rule must not cause: a real client route that happens
+    // to look unusual is still the SPA, because it has no extension.
+    const env = envWith({ '/index.html': '<!doctype html>SPA' })
+    for (const path of ['/games/abc123', '/sheet/pilot/xyz', '/p/mech/v1.2']) {
+      const res = await worker.fetch(req(path), env)
+      // `/p/mech/v1.2` is the deliberate edge: a dot in the LAST segment reads
+      // as a file, so it 404s. Recorded rather than hidden — if a route ever
+      // needs a dot in its final segment, this rule is what to revisit.
+      const expected = path.slice(path.lastIndexOf('/') + 1).includes('.') ? 404 : 200
+      expect(res.status, `${path} should be ${expected}`).toBe(expected)
+    }
+  })
+})
+
 describe('/api/snapshots — method-conditioned routing', () => {
   it('POST publishes and returns an id', async () => {
     const env = envWith()

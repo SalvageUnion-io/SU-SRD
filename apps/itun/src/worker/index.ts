@@ -17,7 +17,12 @@
  *   3. `/api/snapshots/:id`    → DELETE revokes, GET retrieves. DELETE must be
  *      matched BEFORE GET, or an unconditioned retrieve swallows it into a 405.
  *   4. `/assets/*`             → a miss is **404**, never the SPA shell.
- *   5. everything else         → the SPA shell, 200.
+ *   5. a real file             → served as itself.
+ *   6. a missing FILE          → **404**. Any path whose last segment contains
+ *      a dot wanted a file; a client route in this app never does. This is what
+ *      makes `/robots.txt` and `/favicon.ico` behave, and what stops every
+ *      typo being an indexable soft-404 — see rule 6's own note below.
+ *   7. everything else         → the SPA shell, 200.
  *
  * ## Rule 4 is the one that has already broken production
  *
@@ -192,10 +197,33 @@ export default {
       return assetResponse
     }
 
-    // 5. A real file wins; anything else is a client-side route.
+    // 5. A real file wins.
     if (assetResponse.status !== 404) {
       return assetResponse
     }
+
+    // 6. A missing FILE is 404, not the SPA shell.
+    //
+    //    Rule 7 below is correct for client-side routes and wrong for
+    //    everything else: `/robots.txt`, `/sitemap.xml` and `/favicon.ico` all
+    //    answered `200 text/html` with the app in the body. A crawler asking
+    //    for crawl rules got a web page; so did every typo, which makes the
+    //    whole origin an infinite well of soft-404s to index.
+    //
+    //    A client route in this app never has a file extension — they are
+    //    `/pilots/$id`, `/sheet/$kind/$id`, `/games/$gameId`. So a dot in the
+    //    last segment is a reliable signal that the request wanted a FILE, and
+    //    a file that is not there is a 404. This is deliberately narrower than
+    //    an allowlist of known filenames, which would go stale silently.
+    //
+    //    `/assets/*` is already handled above (rule 4) and stays there: it has
+    //    its own production-incident history and should not depend on this.
+    const lastSegment = path.slice(path.lastIndexOf('/') + 1)
+    if (lastSegment.includes('.')) {
+      return assetResponse
+    }
+
+    // 7. Anything else is a client-side route.
     return spaShell(request, env)
   },
 }
