@@ -356,6 +356,46 @@ button {
  * every `--su-text-*` consumer, every `text-*` utility — is untouched, which
  * is most of the chrome. The type ladder itself does not move.
  */
+/**
+ * Skip link (WCAG 2.4.1 Bypass Blocks).
+ *
+ * Off-screen until focused, then the first thing a keyboard user lands on.
+ * Before this, tabbing into any page meant traversing the whole masthead — a
+ * wordmark link, the main nav, and the breadcrumb nav — before reaching
+ * content, on every page of the site, with no way past it.
+ *
+ * `left: -9999px` rather than `display: none` / `visibility: hidden` /
+ * `width: 0`: all three of those remove the element from the focus order
+ * entirely, which is the one thing a skip link cannot afford. It has to be
+ * focusable while invisible, so it is moved off-screen and brought back.
+ *
+ * It carries the canonical focus ring like anything else that takes focus —
+ * see `--focus-ring-shadow`.
+ */
+.su-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--su-space-8) var(--su-space-16);
+  background-color: var(--su-color-paper);
+  color: var(--su-color-ink);
+  font-family: var(--su-font-cond);
+  font-size: var(--su-text-base);
+  font-weight: var(--su-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--su-tracking-caps-tight);
+  border: var(--su-bw-entity) solid var(--su-color-rust);
+  border-radius: var(--su-radius-card);
+}
+
+.su-skip-link:focus {
+  left: var(--su-space-8);
+  top: var(--su-space-8);
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
 body {
   background-color: var(--su-color-paper);
   color: var(--su-color-ink);
