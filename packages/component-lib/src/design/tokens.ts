@@ -303,11 +303,15 @@ const base = {
   /** THE single action colour. */
   rust: 'rgb(168, 82, 34)',
   rustHi: 'rgb(138, 64, 25)',
-  /** The focus-ring wash. Added by the Atoms layer of #799: this is the tone
-   *  of the canonical rust focus ring (`ring-rust/25`, design-spec §2.4), so
-   *  it is shared infrastructure rather than one component's colour — Button,
-   *  StepButton, Sel, Toggle and all three input rungs in
-   *  `components/chrome/interaction.ts` resolve to it. */
+  /** A 25% rust wash. Added by the Atoms layer of #799 as the tone of the
+   *  then-canonical focus ring.
+   *
+   *  **It is no longer the focus ring.** That wash measured 1.42:1 against
+   *  paper where WCAG 2.4.11 / 1.4.11 require 3:1, so every ring rung moved to
+   *  the offset ring in `--focus-ring-shadow`; see the rationale above
+   *  `.su-focus-ring` in `styles/index.css`. Kept here as a plain wash for
+   *  non-indicator use, and as the stated counterpart of the error skin below.
+   *  Do not reintroduce it as a focus affordance. */
   rust25: 'rgb(168 82 34 / 0.25)',
   /** The one sanctioned cream — RollTable banding, and nowhere else. */
   bandCream: 'rgb(243, 237, 226)',

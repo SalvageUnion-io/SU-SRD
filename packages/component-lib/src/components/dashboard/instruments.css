@@ -29,12 +29,30 @@
  * `border` and `background`, so the default ring is the only affordance and it
  * is exactly what the rest of the app deliberately replaced.
  *
- * This is `FOCUS_RING` (chrome/interaction.ts — `focus-visible:ring-[3px]
- * focus-visible:ring-rust/25`) transcribed into CSS rather than a new
- * treatment: the dashboard is a self-contained stylesheet by design, so it
- * restates the canonical rung instead of importing Tailwind utilities into
- * markup that is otherwise class-driven. `color-mix()` is this file's own
- * established alpha spelling (it appears 16 times already).
+ * This is `FOCUS_RING` (chrome/interaction.ts) transcribed into CSS rather than
+ * a new treatment: the dashboard is a self-contained stylesheet by design, so
+ * it restates the canonical rung instead of importing Tailwind utilities into
+ * markup that is otherwise class-driven.
+ *
+ * It now READS the canonical token rather than transcribing a literal. It was
+ * `color-mix(… rust 25%, transparent)`, mirroring the canonical rung's old
+ * `rust/25` wash — but that wash measured 1.42:1 on paper and 1.27:1 on
+ * `ink-deep` against the 3:1 WCAG 2.4.11 / 1.4.11 require, and this deck is the
+ * DARK skin, where it was the least visible instance of it anywhere in the app.
+ *
+ * Deliberately NOT "the same literal, made solid". These controls sit on both
+ * `--color-paper` and `--color-ink` grounds (`.is-active` is ink-filled), and
+ * solid rust measures 2.97:1 on ink — that would have traded an invisible ring
+ * for one that fails on half of this file's own surfaces.
+ * `--focus-ring-shadow` is the two-ring construction that holds on every
+ * ground; see the table above `.su-focus-ring` in `styles/index.css`.
+ *
+ * Reading the token is also more faithful to the "restates the canonical rung"
+ * intent above than re-transcribing it, and it removes one more place for the
+ * ring to drift out of sync — which is exactly how it got here.
+ *
+ * `color-mix()` remains this file's alpha spelling everywhere it means a
+ * genuine wash — it is simply not what a focus indicator may be made of.
  *
  * `:focus-visible`, not `:focus` — a mouse click on a tab must not leave a ring
  * behind it, and these are all pointer-first controls. The offset keeps the
@@ -48,8 +66,9 @@
 .pc-srd-result:focus-visible,
 .pc-srd-row:focus-visible,
 .pc-cell:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-rust) 25%, transparent);
+  outline: 3px solid transparent;
   outline-offset: 1px;
+  box-shadow: var(--focus-ring-shadow);
 }
 
 .pc-display-scroll {
