@@ -8,10 +8,11 @@
  */
 
 import { PageHeading, Panel, Slab } from 'component-lib'
+import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { SITE_URL } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
-import { getEntitySchemas } from '../lib/gameData'
+import { getEntitySchemas, SalvageUnionReference } from '../lib/gameData'
 
 const TITLE = 'API Reference - Salvage Union System Reference Document'
 const DESCRIPTION =
@@ -19,16 +20,80 @@ const DESCRIPTION =
 
 const baseUrl = SITE_URL
 
-const SCHEMA_ARRAY_SAMPLE = `[
-  {
-    "id": "iron-mongrel",
-    "name": "Iron Mongrel",
-    "hull": 30,
-    "armor": 2,
-    ...
-  },
-  ...
-]`
+/**
+ * Every sample on this page is DERIVED from a real record at build time.
+ *
+ * It used to be hand-written, and it was wrong in three independent ways at
+ * once. The documented entity — "Iron Mongrel" — does not exist in the dataset,
+ * so both the URL and the `.json` beside it returned 404. `id` was shown as a
+ * readable slug when it is actually a UUID. And `hull` / `armor` are not fields
+ * on chassis at all; the real ones are `structurePoints`, `energyPoints`,
+ * `heatCapacity` and the rest.
+ *
+ * So a developer following this page got a 404, and if they coded against the
+ * documented shape they coded against fields that have never existed. This is
+ * the page whose readers copy-paste most directly into their own code.
+ *
+ * Nothing could have caught it: prose is not typechecked, and the fictional
+ * slug had spread into the repo's own docs, so it looked corroborated.
+ *
+ * The generator already holds the dataset in memory when it renders this page —
+ * the same trick `llms.txt` uses for its category list. Deriving costs nothing
+ * and the samples cannot drift from the data again.
+ */
+
+/**
+ * Built inside `page()`, never at module scope.
+ *
+ * `validate:architecture` forbids a module-scope `SalvageUnionReference` call:
+ * it would execute at import time, before the build's `preload()` bootstrap,
+ * and throw "Schema not loaded". `page()` runs after that bootstrap.
+ */
+function buildSamples() {
+  /**
+   * The entity the samples describe: the first chassis by slug.
+   *
+   * Deterministic on purpose. Picking "whatever is first in the file" would
+   * make the output snapshot churn on unrelated data edits, and picking at
+   * random would make this page's diff meaningless.
+   */
+  const entity = [...SalvageUnionReference.Chassis.all()].sort((a, b) =>
+    getEntitySlug(a).localeCompare(getEntitySlug(b))
+  )[0]
+
+  const slug = entity ? getEntitySlug(entity) : 'aegis'
+  const name = entity?.name ?? 'Aegis'
+
+  /**
+   * A readable excerpt of a real record: identity fields plus the first few
+   * scalars, then an ellipsis. Long prose (`content`) and nested arrays are
+   * skipped — the point is the SHAPE and the real field names, not a full dump.
+   */
+  const json = (indent: string): string => {
+    if (!entity) return `${indent}...`
+    const record = entity as unknown as Record<string, unknown>
+    const scalars = Object.entries(record)
+      .filter(([key, value]) => {
+        if (key === 'schemaName') return false
+        return typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string'
+      })
+      .slice(0, 6)
+    const lines = scalars.map(
+      ([key, value]) => `${indent}  ${JSON.stringify(key)}: ${JSON.stringify(value)},`
+    )
+    return `${lines.join('\n')}\n${indent}  ...`
+  }
+
+  return {
+    slug,
+    name,
+    schemaArray: `[\n  {\n${json('  ')}\n  },\n  ...\n]`,
+    entity: `{\n${json('')}\n}`,
+    fetch: `const response = await fetch('${SITE_URL}/schema/chassis.json')
+const chassis = await response.json()
+console.log(chassis[0].name) // ${JSON.stringify(name)}`,
+  }
+}
 
 const JSON_SCHEMA_SAMPLE = `{
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -43,24 +108,13 @@ const JSON_SCHEMA_SAMPLE = `{
   }
 }`
 
-const ENTITY_SAMPLE = `{
-  "id": "iron-mongrel",
-  "name": "Iron Mongrel",
-  "hull": 30,
-  "armor": 2,
-  ...
-}`
-
-const FETCH_SAMPLE = `const response = await fetch('${SITE_URL}/schema/chassis.json')
-const chassis = await response.json()
-console.log(chassis[0].name) // "Iron Mongrel"`
-
 const CORS_HEADERS_SAMPLE = `Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: GET
 Content-Type: application/json`
 
 function page(): PageResult {
   const schemas = getEntitySchemas()
+  const samples = buildSamples()
 
   return {
     meta: {
@@ -113,7 +167,7 @@ function page(): PageResult {
               <code className="rounded-card bg-paper px-1 py-0.5">/schema/chassis.json</code> serves
               the raw array. The same applies to individual entities:{' '}
               <code className="rounded-card bg-paper px-1 py-0.5">
-                /schema/chassis/item/iron-mongrel.json
+                /schema/chassis/item/{samples.slug}.json
               </code>
               .
             </p>
@@ -147,7 +201,7 @@ function page(): PageResult {
                   </a>
                 </p>
                 <pre className="overflow-x-auto rounded-card bg-wk-bg p-3 text-xs leading-relaxed">
-                  <code>{SCHEMA_ARRAY_SAMPLE}</code>
+                  <code>{samples.schemaArray}</code>
                 </pre>
               </div>
             </Panel>
@@ -200,23 +254,23 @@ function page(): PageResult {
                 <p>
                   Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
                   versions of the entity name (e.g.,{' '}
-                  <code className="rounded-card bg-wk-bg px-1 py-0.5">Iron Mongrel</code> becomes{' '}
-                  <code className="rounded-card bg-wk-bg px-1 py-0.5">iron-mongrel</code>). Slugs
+                  <code className="rounded-card bg-wk-bg px-1 py-0.5">{samples.name}</code> becomes{' '}
+                  <code className="rounded-card bg-wk-bg px-1 py-0.5">{samples.slug}</code>). Slugs
                   match the URLs used on the reference site.
                 </p>
                 <p>
                   <strong>Example:</strong>{' '}
                   <a
-                    href={`${baseUrl}/schema/chassis/item/iron-mongrel.json`}
+                    href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-bold text-rust hover:underline"
                   >
-                    {baseUrl}/schema/chassis/item/iron-mongrel.json
+                    {baseUrl}/schema/chassis/item/{samples.slug}.json
                   </a>
                 </p>
                 <pre className="overflow-x-auto rounded-card bg-wk-bg p-3 text-xs leading-relaxed">
-                  <code>{ENTITY_SAMPLE}</code>
+                  <code>{samples.entity}</code>
                 </pre>
               </div>
             </Panel>
@@ -227,7 +281,7 @@ function page(): PageResult {
             <Slab as="h2" variant="solid" label="Usage Example" />
             <p className="text-sm leading-relaxed">Fetch all chassis data in browser JavaScript:</p>
             <pre className="overflow-x-auto rounded-card bg-wk-bg p-4 text-xs leading-relaxed">
-              <code>{FETCH_SAMPLE}</code>
+              <code>{samples.fetch}</code>
             </pre>
           </section>
 

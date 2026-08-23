@@ -895,8 +895,8 @@ export declare const SCHEMA_REGISTRY: {
  */
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EnhancedSchemaMetadata } from './ModelFactory.js';
-import { type TableRow } from './utils/tableRows.js';
 import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js';
+import type { TableRow } from './utils/tableRows.js';
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
