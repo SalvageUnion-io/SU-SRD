@@ -88,6 +88,22 @@
         "src/stores/cockpitPrefsStore.ts",
         "src/stores/types.ts"
       ],
+      // `zod` is a RESOLUTION dependency, not an import-graph one, and knip can
+      // only see the second kind. No file here imports `zod` by name — the
+      // schemas import `z` from `salvageunion-reference/zod`, which is where the
+      // `jitless` config is applied and is the only import anything should use.
+      //
+      // It has to be declared on THIS manifest anyway, because Netlify's
+      // functions bundler resolves a bare import against the function's nearest
+      // package.json. Without it, all three snapshot handlers fail at module
+      // load with `Cannot find package 'zod'` — a 502 on publish AND on
+      // retrieve, since they share `lib/snapshot/handlers.ts`.
+      //
+      // That was found by a deploy preview, not by any check here: nothing in
+      // `check:all` runs the Functions bundler (the #788/#795 lesson). So this
+      // entry is load-bearing in the literal sense — deleting `zod` to satisfy
+      // knip re-breaks a deployed artifact that every local gate calls healthy.
+      "ignoreDependencies": ["zod"],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.
       // Without it knip cannot see the harness and reports `convex-test` — its
