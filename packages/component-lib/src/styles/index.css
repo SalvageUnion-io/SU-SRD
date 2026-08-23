@@ -333,12 +333,34 @@ button {
   padding: 0;
 }
 
-/* ══ The page ground and body face ══════════════════════════════════════════ */
+/* ══ The page ground and body face ══════════════════════════════════════════
+ *
+ * `text-base` (16px), not `text-sm` (14px), and this is the ONE declaration
+ * that sets it — neither app's stylesheet sets a body `font-size`.
+ *
+ * 14px was inherited rather than chosen. It is below the 16px that browsers
+ * default to and that a phone read at arm's length in bad light needs.
+ *
+ * It does NOT fix the iOS auto-zoom on form controls, which was the other half
+ * of the reason to raise it. The reset above gives controls `font: inherit`,
+ * which looks like it should be enough — but measured against the built output
+ * at 390px, the header search input still computed to **13px** and the
+ * `/search` input to **14px**, because each inherits from a wrapper that sets
+ * its own rung, and an explicit ancestor size beats the body default. So the
+ * controls were raised individually, at their own call sites, where the floor
+ * is documented as a functional requirement rather than a preference:
+ * `shared/SearchField.tsx`, `chrome/inputs.tsx`, `shared/EntitySearcher.tsx`.
+ *
+ * The blast radius is narrower than it looks: this is a DEFAULT, so it moves
+ * only text that sets no size of its own. Anything on an explicit rung —
+ * every `--su-text-*` consumer, every `text-*` utility — is untouched, which
+ * is most of the chrome. The type ladder itself does not move.
+ */
 body {
   background-color: var(--su-color-paper);
   color: var(--su-color-ink);
   font-family: var(--su-font-body);
-  font-size: var(--su-text-sm);
+  font-size: var(--su-text-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
