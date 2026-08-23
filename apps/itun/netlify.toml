@@ -58,6 +58,19 @@
   command = 'if [ "$CONTEXT" = "production" ] && [ -z "$CONVEX_DEPLOY_KEY" ]; then echo "FATAL: production build with no CONVEX_DEPLOY_KEY. Refusing to ship a Solo client against an un-pushed Convex backend. Set it in Site settings > Environment variables (scope: builds, context: production)." >&2; exit 1; fi && bun install --frozen-lockfile && if [ -n "$CONVEX_DEPLOY_KEY" ]; then cd apps/itun && VITE_COMMIT_REF="$COMMIT_REF" bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"; else VITE_COMMIT_REF="$COMMIT_REF" bun --filter itun build; fi'
   publish = "apps/itun/dist"
   functions = "apps/itun/netlify/functions"
+  # These three handlers share `src/lib/snapshot/handlers.ts`, which reaches the
+  # Zod entity schemas so publish can refuse a payload `/s/$id` could not render.
+  # That makes `zod` a RUNTIME dependency of all three, and the bundler resolves
+  # a bare import against the nearest package.json — so `zod` must stay declared
+  # on `apps/itun/package.json` even though nothing there imports it by name
+  # (the schemas import `z` from `salvageunion-reference/zod`). knip cannot see
+  # that kind of dependency and is told so in knip.json.
+  #
+  # Getting it wrong is a module-load failure: `Cannot find package 'zod'`, 502
+  # on publish AND on retrieve, because a dead import kills the module before
+  # any handler — including the write freeze — runs. It is invisible locally:
+  # nothing in `check:all` or CI runs this bundler, so the first signal is a
+  # deploy preview. Same class as #788/#795.
   # Skip the build when nothing affecting ITUN changed since the last published
   # deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build) when none of
   # these paths differ, and 1 (→ build proceeds) when they do. Paths: this app
