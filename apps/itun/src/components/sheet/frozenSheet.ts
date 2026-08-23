@@ -30,14 +30,12 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { EntityType, useEntityStore } from '../../stores/entityStore'
 
+// Re-exported, not redefined. The parse moved to `lib/schemas/frozenEntity` so
+// the snapshot publish handler can share it without pulling `zustand` and the
+// entity store into the Cloudflare Worker bundle — see that module's header.
+// Rendering callers keep importing it from here, which is where they already
+// look for it.
 export type { FrozenParse } from '../../lib/schemas/frozenEntity'
-/**
- * Re-exported, not redefined. The parse moved to `lib/schemas/frozenEntity` so
- * the snapshot publish handler can share it without pulling `zustand` and the
- * entity store into the Cloudflare Worker bundle — see that module's header.
- * Rendering callers keep importing it from here, which is where they already
- * look for it.
- */
 export { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 
 type EntityState = ReturnType<typeof useEntityStore.getState>
