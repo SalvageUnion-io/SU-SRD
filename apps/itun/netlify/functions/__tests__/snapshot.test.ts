@@ -9,6 +9,11 @@
  */
 
 import { beforeEach, describe, expect, it, setSystemTime } from 'bun:test'
+import {
+  crawlerFixture,
+  mechFixture,
+  pilotFixture,
+} from '../../../src/components/__tests__/fixtures'
 import { getClientIp, RateLimiter } from '../../../src/lib/snapshot/rateLimit'
 import { InMemoryStorage } from '../../../src/lib/snapshot/storage'
 import { makeDeleteHandler } from '../snapshot-delete'
@@ -33,6 +38,46 @@ function makeRequest(method: string, url: string, body?: unknown): Request {
   return new Request(url, { method })
 }
 
+/**
+ * A publishable snapshot body.
+ *
+ * These tests previously posted shapes like `{ kind: 'pilot', name: 'Rook' }`,
+ * which publish now refuses — correctly, since nothing could have rendered
+ * them. That they passed is the gap `lib/snapshot/payload.ts` closes: the suite
+ * was asserting that unrenderable payloads publish successfully.
+ *
+ * Built from the shared fixtures so "valid" means the same thing here as in the
+ * renderer, and so a schema change breaks this file rather than silently
+ * loosening it.
+ */
+function validPayload(kind: 'pilot' | 'mech' | 'crawler', id: string) {
+  if (kind === 'mech') return { kind, entity: mechFixture({ id }) }
+  if (kind === 'crawler') return { kind, entity: crawlerFixture({ id }) }
+  return { kind, entity: pilotFixture({ id }) }
+}
+
+/**
+ * `InMemoryStorage` that counts writes.
+ *
+ * "Refused with a 400" and "wrote nothing" are two different claims, and for
+ * validation the second is the one that matters — a handler that rejects the
+ * response while still minting the object would pass a status-only assertion.
+ * Test-local on purpose: production storage gains no accessor that exists only
+ * for a test to read.
+ */
+class CountingStorage extends InMemoryStorage {
+  puts = 0
+
+  override async put(
+    id: string,
+    payload: unknown,
+    options?: Parameters<InMemoryStorage['put']>[2]
+  ): Promise<Awaited<ReturnType<InMemoryStorage['put']>>> {
+    this.puts += 1
+    return super.put(id, payload, options)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Publish endpoint
 // ---------------------------------------------------------------------------
@@ -47,10 +92,7 @@ describe('snapshot-publish', () => {
   })
 
   it('POST with valid JSON → 201 + returns id and url', async () => {
-    const req = makeRequest('POST', 'http://localhost/api/snapshots', {
-      kind: 'pilot',
-      name: 'Rook',
-    })
+    const req = makeRequest('POST', 'http://localhost/api/snapshots', validPayload('pilot', 'p1'))
     const res = await handler(req)
 
     expect(res.status).toBe(201)
@@ -62,7 +104,7 @@ describe('snapshot-publish', () => {
   })
 
   it('POST with valid JSON → storage receives the payload', async () => {
-    const payload = { kind: 'mech', name: 'Iron Lady' }
+    const payload = validPayload('mech', 'm1')
     const req = makeRequest('POST', 'http://localhost/api/snapshots', payload)
     const res = await handler(req)
 
@@ -105,6 +147,38 @@ describe('snapshot-publish', () => {
     })
     const res = await handler(req)
     expect(res.status).toBe(400)
+  })
+
+  it('POST {} → 201 with NO injected validator (shape-only is the default)', async () => {
+    // Deliberate, and the asymmetry is the design: importing the Zod schemas
+    // into the shared `handlers.ts` puts `zod` in every Netlify function bundle,
+    // where it is an unresolvable bare import — 502 on publish AND retrieve.
+    // Measured on a `ready` deploy preview, including with `zod` declared on
+    // apps/itun. See the note at `functions =` in netlify.toml.
+    //
+    // It costs nothing observable: Netlify publish is frozen and answers 503
+    // before reading a body, so no under-validated publish can land here. The
+    // strict check runs where publishes actually happen — the Worker.
+    const res = await makePublishHandler(new InMemoryStorage())(
+      makeRequest('POST', 'http://localhost/api/snapshots', {})
+    )
+
+    expect(res.status).toBe(201)
+  })
+
+  it('POST {} → 400 and nothing is stored WHEN a strict validator is injected', async () => {
+    // The seam itself. `src/worker/index.ts` passes `validateSnapshotPayload`;
+    // this asserts the handler honours an injected validator and writes nothing
+    // when it refuses.
+    const counting = new CountingStorage()
+    const handlerWithStrict = makePublishHandler(counting, {
+      validatePayload: () => ({ ok: false, reason: 'Entity data is missing or invalid.' }),
+    })
+    const res = await handlerWithStrict(makeRequest('POST', 'http://localhost/api/snapshots', {}))
+
+    expect(res.status).toBe(400)
+    expect(await res.text()).toContain('Entity data is missing')
+    expect(counting.puts).toBe(0)
   })
 
   it('POST with a JSON array body → 400 (must be an object)', async () => {
@@ -280,7 +354,7 @@ describe('snapshot-retrieve', () => {
     const publish = makePublishHandler(storage)
     const retrieve = makeRetrieveHandler(storage)
 
-    const payload = { kind: 'pilot', name: 'Ghost', class: 'Operator' }
+    const payload = validPayload('pilot', 'p-roundtrip')
     const publishRes = await publish(makeRequest('POST', 'http://localhost/api/snapshots', payload))
 
     expect(publishRes.status).toBe(201)
@@ -349,7 +423,7 @@ describe('snapshot-delete', () => {
     const retrieve = makeRetrieveHandler(storage)
 
     const publishRes = await publish(
-      makeRequest('POST', 'http://localhost/api/snapshots', { kind: 'mech', name: 'Ghost' })
+      makeRequest('POST', 'http://localhost/api/snapshots', validPayload('mech', 'm-revoke'))
     )
     const { id } = (await publishRes.json()) as { id: string }
 
