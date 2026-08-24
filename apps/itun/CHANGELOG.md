@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.14.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.13.1...itun-v1.14.0) (2026-08-24)
+
+
+### Features
+
+* **itun:** a snapshot that cannot be rendered cannot be published ([#900](https://github.com/SalvageUnion-io/SU-SRD/issues/900)) ([55c6343](https://github.com/SalvageUnion-io/SU-SRD/commit/55c6343d2d1cfe19111925d882497a1540353d2d))
+
 ## [1.13.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.13.0...itun-v1.13.1) (2026-08-20)
 
 
