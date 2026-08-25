@@ -37,12 +37,14 @@ too slow per commit). Lean on the TypeScript LSP in your editor between commits.
 Run the full local gate — it mirrors the CI merge gate:
 
 ```bash
-bun run check:all
+bun run check
 ```
 
 This runs, in order: schema-drift check (`build:package` + `git diff`), lint,
 format check, typecheck, tests, data validation, knip, and `bun audit`. If
-`check:all` is green, CI's `CI Success` gate should be too. The app builds
+`check` is green, CI's `CI Success` gate should be too. `check:all` is a
+deprecated alias for the same script, kept for one release cycle so existing
+muscle memory and scripts keep working — new callers use `check`. The app builds
 (`build:web`, `build:itun`, `build:bot`) run only in CI/deploy; run them locally
 if you touched build config.
 

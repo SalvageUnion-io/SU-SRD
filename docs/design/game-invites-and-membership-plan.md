@@ -470,7 +470,7 @@ What this design does **not** do:
 ## 8. Build order
 
 Five PRs, each independently shippable and reviewable. Each ends green on
-`bun run check:all`.
+`bun run check`.
 
 | #   | Slice                                                                                                                                                                                                                                                    | Depends on |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |

@@ -72,7 +72,9 @@ bun run test          # prefer this — each workspace with its own bunfig.
                       # A bare root `bun test` is viable (the root bunfig
                       # preloads the union) but is not identical; see CLAUDE.md
 bun run validate:all  # Data integrity: IDs, cross-refs, action refs
-bun run check:all     # Full CI suite (lint, format, typecheck, test, validate, knip)
+bun run check         # THE full-check entry point: the whole CI suite (lint,
+                      # format, typecheck, test, validate, knip, audit, …).
+                      # `check:all` is a deprecated alias for it.
 ```
 
 The root scripts are the aggregates only — there are deliberately no
