@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.8.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.8.0...srd-v2.8.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* the 2026-08 audit remediation — accessibility, falsifiable copy, and the gate that missed them ([#903](https://github.com/SalvageUnion-io/SU-SRD/issues/903)) ([727f948](https://github.com/SalvageUnion-io/SU-SRD/commit/727f948eb02db8be2675b56e602da96d6bbed505))
+
 ## [2.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.7.1...srd-v2.8.0) (2026-08-20)
 
 
