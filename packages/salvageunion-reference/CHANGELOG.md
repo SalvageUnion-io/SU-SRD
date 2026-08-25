@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.3](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.2...salvageunion-reference-v2.11.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* the 2026-08 audit remediation — accessibility, falsifiable copy, and the gate that missed them ([#903](https://github.com/SalvageUnion-io/SU-SRD/issues/903)) ([727f948](https://github.com/SalvageUnion-io/SU-SRD/commit/727f948eb02db8be2675b56e602da96d6bbed505))
+
 ## [2.11.2](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.1...salvageunion-reference-v2.11.2) (2026-08-20)
 
 
