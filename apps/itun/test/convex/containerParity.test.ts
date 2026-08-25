@@ -73,6 +73,66 @@ describe('container parity — every local store can reach the server', () => {
     expect([...NO_SERVER_COUNTERPART]).toEqual(['workspaces'])
   })
 
+  /**
+   * A table is not a writer, and that gap is why P4b could read `done` for
+   * weeks while three stores never reached the server.
+   *
+   * The check above asks only "does a Convex table exist with this name". Both
+   * `mechPatterns` and `encounterNpcs` passed it from P0 onward while every
+   * client write went to IndexedDB and stopped there — the tables existed and
+   * nothing wrote to them except the bulk claim at sign-in. The gate agreed
+   * with the plan's `done`, and the plan's own body said the work was still
+   * outstanding.
+   *
+   * So this asserts the other half: for every store that has a table, some
+   * client code must actually commit to it. Deliberately a source scan rather
+   * than a runtime probe — the failure being caught is "nobody wrote the
+   * mirror", which is a fact about the code, not about a session.
+   */
+  test('every mirrored store has a client commit path, not just a table', async () => {
+    const backend = await Bun.file(
+      new URL('../../src/stores/entityBackend.ts', import.meta.url)
+    ).text()
+
+    // store name → the commit function that must reference it
+    const WRITERS: Record<string, string> = {
+      pilots: 'commitEntityWrite',
+      mechs: 'commitEntityWrite',
+      crawlers: 'commitEntityWrite',
+      softLinks: 'commitSoftLink',
+      mechPatterns: 'commitPatternWrite',
+      encounterNpcs: 'commitNpcWrite',
+      changeLog: 'commitChangeLog',
+    }
+
+    const missing = Object.entries(WRITERS)
+      .filter(([, fn]) => !backend.includes(`export async function ${fn}(`))
+      .map(([store, fn]) => `${store} -> ${fn}`)
+
+    expect(missing).toEqual([])
+  })
+
+  test('every store with a table appears in the writer map', () => {
+    // Keeps the map above honest: adding a store with a Convex table but no
+    // entry here would otherwise pass the writer check by not being asked
+    // about — the same shape as the table-only gap it replaces.
+    const tables = convexTables()
+    const mapped = new Set([
+      'pilots',
+      'mechs',
+      'crawlers',
+      'softLinks',
+      'mechPatterns',
+      'encounterNpcs',
+      'changeLog',
+    ])
+    const unmapped = Object.values(STORE_NAMES).filter(
+      (name) => tables.has(name) && !mapped.has(name) && !NO_SERVER_COUNTERPART.has(name)
+    )
+
+    expect(unmapped).toEqual([])
+  })
+
   test('the exemption is still real — `workspaces` has no Convex table', () => {
     // A negative control. If `workspaces` ever gains a server table the
     // exemption is obsolete and should be deleted, not carried forward.

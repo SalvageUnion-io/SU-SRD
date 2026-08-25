@@ -18,7 +18,7 @@ import { makeMemoryStore } from '../lib/db/memoryStore'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { MechPattern } from '../lib/schemas/pattern'
 import { MechPatternSchema } from '../lib/schemas/pattern'
-import { selectBackend } from './entityBackend'
+import { commitPatternWrite, selectBackend } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice, wireCrossTabInvalidation } from './makeHydratedCollection'
 
@@ -43,6 +43,14 @@ const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatte
   db: () => (selectBackend() === 'memory' ? memoryPatterns : db.mechPatterns),
   storeName: STORE_NAMES.mechPatterns,
   shouldBroadcast: () => selectBackend() !== 'memory',
+  /**
+   * The per-write mirror (ADR-034 P4b).
+   *
+   * Before this, a saved pattern reached Convex through one path only — the
+   * bulk `claimLocal` at sign-in — so every pattern saved afterwards was
+   * invisible on a second device and lost with the site data.
+   */
+  commit: commitPatternWrite,
 })
 
 export const usePatternStore = create<PatternState>((set, get) => ({

@@ -139,7 +139,13 @@ function ConnectedPromoter() {
   const pilots = useEntityStore((s) => s.list('pilot'))
   const mechs = useEntityStore((s) => s.list('mech'))
   const crawlers = useEntityStore((s) => s.list('crawler'))
-  const hasWork = pilots.length + mechs.length + crawlers.length > 0
+  // Patterns count. The banner and `countAnonymousWork` both include them, so
+  // omitting them here meant a visitor who had saved only patterns was told
+  // "1 build not saved", signed in, and had the promoter never arm.
+  // `s.mechPatterns`, not `s.list()`: a selector returning a fresh array on
+  // every read re-renders forever. Same access the banner above uses.
+  const promoterPatterns = usePatternStore((s) => s.mechPatterns)
+  const hasWork = pilots.length + mechs.length + crawlers.length + promoterPatterns.length > 0
 
   /**
    * The promotion itself, extracted so the retry control can invoke it.
