@@ -22,25 +22,24 @@ const observability = createObservability(
     // Sentry error maps back to the exact deploy that produced it. Undefined when
     // unset (e.g. local dev) — Sentry simply omits the tag.
     release: config.releaseSha,
+    surface: 'the Discord bot worker',
+    remediation: 'the Render dashboard (render.yaml declares it sync:false)',
   }),
   Sentry
 )
 
 /**
  * Initializes Sentry if SENTRY_DSN is configured. Idempotent and safe to call
- * once at startup. Warns (once) when the DSN is absent so a mis-provisioned
- * production worker is visible in the Render logs instead of silently blind.
+ * once at startup.
+ *
+ * The missing-DSN warning used to live here, hand-written, and was this repo's
+ * only one — both Netlify surfaces came up silent. It now comes from the shared
+ * factory (`surface` / `remediation` above), so the three server surfaces cannot
+ * drift on whether they announce being blind.
  */
 export function initObservability(): void {
   if (observability.enabled) return
-  if (!config.sentryDsn) {
-    console.warn(
-      '[observability] SENTRY_DSN not set — error tracking disabled. ' +
-        'Set it in the Render dashboard (render.yaml declares it sync:false).'
-    )
-    return
-  }
-  observability.init()
+  if (!observability.init()) return
   // Deliberately avoids the word "error": Render classifies log level from
   // message *content*, not the stream it arrived on. This is a console.log on
   // stdout, exactly like the "Starting Salvage Union Discord Bot..." line that
@@ -68,13 +67,77 @@ export function captureException(error: unknown, context?: Record<string, unknow
   observability.captureException(error, context)
 }
 
-/**
- * Reports an informational message to Sentry when enabled; otherwise a no-op.
- * Used as the worker's liveness signal (see `handleReady`): a Render worker
- * has no HTTP port to health-probe, so a breadcrumb on every successful login
- * is the cheapest "the process is alive and connected" alert path — a gap in
- * the expected daily cadence of these events is itself the signal.
+/*
+ * There is deliberately no `captureMessage` export here.
+ *
+ * It existed for exactly one caller — the `discord-bot ready` liveness event —
+ * and that is now a cron monitor. An info event proves only that the process was
+ * alive at the moment it was sent, which is never the moment you care about, so
+ * re-adding this to signal health would be re-adding the bug. Errors go through
+ * `captureException`; liveness goes through `startLivenessHeartbeat`.
  */
-export function captureMessage(message: string, context?: Record<string, unknown>): void {
-  observability.captureMessage(message, context)
+
+/** Sentry cron monitor slug. Changing it starts a new monitor and orphans the old one. */
+const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
+
+/** How often the worker checks in. Kept in step with the schedule below by construction. */
+const HEARTBEAT_INTERVAL_MINUTES = 5
+
+/** Set while a heartbeat is running; also the idempotence guard below. */
+let stopHeartbeat: (() => void) | null = null
+
+/**
+ * Begin reporting "this worker is alive" to Sentry as a cron monitor.
+ *
+ * A Render worker exposes no HTTP port, so there is nothing to health-probe and
+ * a dead bot looks exactly like a quiet one. This is the replacement for the
+ * `discord-bot ready` info event, which could not do the job: Sentry alerts on
+ * events arriving, never on their absence, so the silence that meant "the worker
+ * went dark" was precisely the case that raised nothing. It also accrued into a
+ * permanent error-category issue (SU-DISCORD-1) that had to be archived to keep
+ * the queue readable, which retired the signal altogether.
+ *
+ * With a monitor, Sentry holds the expected cadence and a **missed** check-in is
+ * the alert. `checkinMargin` absorbs a slow tick or a redeploy;
+ * `failureIssueThreshold: 2` means one blip is not an incident, while a genuinely
+ * dead worker opens one after ~12 minutes.
+ *
+ * `isAlive` is re-asked on every tick — pass the client's live connection state,
+ * not a value captured at login, or the monitor reports a running process rather
+ * than a working bot.
+ *
+ * Idempotent: calling it twice does not start a second timer, so a reconnect
+ * cannot stack heartbeats.
+ */
+export function startLivenessHeartbeat(isAlive: () => boolean): void {
+  if (stopHeartbeat) return
+  stopHeartbeat = observability.startHeartbeat({
+    monitorSlug: HEARTBEAT_MONITOR_SLUG,
+    intervalMs: HEARTBEAT_INTERVAL_MINUTES * 60_000,
+    // Re-asked every tick. Reaching `handleReady` proves the bot was connected
+    // once; only this proves it still is. Without it a worker that stays up
+    // after losing its gateway session reports `ok` forever — the exact silence
+    // this monitor exists to break.
+    isAlive,
+    monitorConfig: {
+      schedule: { type: 'interval', value: HEARTBEAT_INTERVAL_MINUTES, unit: 'minute' },
+      checkinMargin: 2,
+      maxRuntime: 1,
+      timezone: 'UTC',
+      failureIssueThreshold: 2,
+      recoveryThreshold: 1,
+    },
+  })
+}
+
+/**
+ * Stops the heartbeat.
+ *
+ * Called from the `uncaughtException` path in `index.ts`, before the flush: a
+ * process on its way out must not report itself alive on the way, and a tick
+ * landing mid-flush would add an event to the buffer being drained.
+ */
+export function stopLivenessHeartbeat(): void {
+  stopHeartbeat?.()
+  stopHeartbeat = null
 }
