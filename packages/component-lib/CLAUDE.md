@@ -158,8 +158,13 @@ working ring reads as a missing one** under that check.
 That is the dangerous direction: it makes a correct feature look broken, which
 invites someone to "fix" it until it really is. Verified on the real thing —
 `el.focus()` gave `boxShadow: none` on a Button whose ring was fine, while a real
-**Tab** press gave `matchesFocusVisible: true` and
-`rgba(168, 82, 34, 0.25) 0 0 0 3px`.
+**Tab** press gave `matchesFocusVisible: true` and a computed `boxShadow`.
+
+(That measurement was originally recorded against the ring's old value,
+`rgba(168, 82, 34, 0.25) 0 0 0 3px`. The ring has since changed — see
+`--focus-ring-shadow` — so the *value* is not restated here: a literal in this
+doc is a second copy that goes stale the next time the ring moves, and the point
+of the section is the `:focus-visible` trap, which is unaffected.)
 
 So to check a focus style: send a real key press (a browser driver's Tab key), or
 assert `el.matches(':focus-visible')` alongside the computed value, so a false
@@ -263,9 +268,15 @@ a `check:tokens` `raw-color` violation, so adding rungs is the only legal move �
 but which rungs the system should own enlarges the closed colour set and is a
 design call, not a port. Tracked on #799.
 
-**The Atoms layer is blocked on five of them**: `paper/70` (Stat), `ink/55` +
-`ink/70` (VitalGauge), `rust/25` (Toggle), `status-bad/25` (InlineEditField).
+**The Atoms layer is blocked on four of them**: `paper/70` (Stat), `ink/55` +
+`ink/70` (VitalGauge), `status-bad/25` (InlineEditField).
 Containers needs seven more, Compositions the rest.
+
+`rust/25` (Toggle) was the fifth and is **no longer a blocker**: Toggle's focus
+ring was a 25% wash measuring 1.42:1 against a required 3:1, so it moved to the
+offset ring alongside every other rung and the alpha usage went with it. The
+`rust25` rung still exists — `RosterSkeleton`'s ghost fill is a genuine wash —
+but no *focus* treatment depends on an alpha rung any more.
 
 **A catalog-only rule goes in `src/stories/_stories.css`, not `index.css`.** The
 split rule sends anything stateful or responsive to a stylesheet class, but

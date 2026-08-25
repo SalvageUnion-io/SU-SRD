@@ -5,6 +5,33 @@
 import { buttonVariants, cn, PageHeading, Panel, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { ITUN_URL, SITE_URL } from '../lib/constants'
+import { SalvageUnionReference } from '../lib/gameData'
+
+/**
+ * Both values are DERIVED, and both are built inside `page()`.
+ *
+ * `validate:architecture` forbids a module-scope `SalvageUnionReference` call —
+ * it would run at import time, before the build's `preload()` bootstrap, and
+ * throw "Schema not loaded".
+ *
+ * What they replaced:
+ *
+ * - the table count was the literal `96`. True at the time, and it would have
+ *   gone quietly false the first time a table was added, with nothing anywhere
+ *   to notice.
+ * - the lookup example was "iron mongrel", a chassis that has never existed —
+ *   the same fiction the `/api` page documented. Anyone who typed the example
+ *   command got nothing back.
+ */
+function buildExamples() {
+  const rollTableCount = SalvageUnionReference.RollTables.all().length
+  // Sorted for determinism: an unsorted `[0]` would churn the output snapshot
+  // whenever the data file's order changed.
+  const lookupExample =
+    [...SalvageUnionReference.Chassis.all()].sort((a, b) => a.name.localeCompare(b.name))[0]
+      ?.name ?? 'Aegis'
+  return { rollTableCount, lookupExample }
+}
 
 const TITLE = 'Discord Bot - Salvage Union System Reference Document'
 const DESCRIPTION =
@@ -24,6 +51,8 @@ const DISCORD_CLIENT_ID = '1442878052823470172'
 const INSTALL_URL = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&scope=bot%20applications.commands&permissions=0`
 
 function page(): PageResult {
+  const examples = buildExamples()
+
   return {
     meta: {
       title: TITLE,
@@ -96,10 +125,11 @@ function page(): PageResult {
                   roll.
                 </p>
                 <p>
-                  Start typing a table name and autocomplete suggests matches from all 96 tables —
-                  Critical Damage, Reactor Overload, Area Salvage, NPC generators, Keepsakes,
-                  Mottos, and every table from the expansions. Column tables (like the NPC tables)
-                  roll two d20s: one for the column, one for the entry.
+                  Start typing a table name and autocomplete suggests matches from all{' '}
+                  {examples.rollTableCount} tables — Critical Damage, Reactor Overload, Area
+                  Salvage, NPC generators, Keepsake, Motto, and every table from the expansions.
+                  Column tables (like the NPC tables) roll two d20s: one for the column, one for the
+                  entry.
                 </p>
                 <p>
                   <strong>Examples:</strong>
@@ -147,12 +177,12 @@ function page(): PageResult {
                 <ul className="ml-5 flex list-disc flex-col gap-1">
                   <li>
                     <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: heavy laser
+                      /su lookup entity: green laser
                     </code>
                   </li>
                   <li>
                     <code className="rounded-card bg-wk-bg px-1 py-0.5">
-                      /su lookup entity: iron mongrel
+                      /su lookup entity: {examples.lookupExample.toLowerCase()}
                     </code>
                   </li>
                   <li>
@@ -192,6 +222,31 @@ function page(): PageResult {
               >
                 In The Union Now
               </a>
+              {/*
+                "no-account" is the one claim on this page that could not be
+                settled from the repo, so it is left as-is deliberately rather
+                than edited on a guess.
+
+                What is known: ADR-034 withdrew ADR-030 §1's "Solo mode works
+                forever" guarantee, and `persistence-and-pwa.md` marks **the
+                flip** — account required in production — as *done*. But the
+                flip is `VITE_REQUIRE_ACCOUNT`, an environment variable set on
+                the deployment and not in this repo, so its live value is not
+                readable from here. That same document's own header records P4
+                and P4b being marked `done` while the code disagreed, which is
+                reason enough not to treat a table cell as the answer.
+
+                What keeps the sentence defensible either way is
+                `entityBackend.ts`, which states the actual rule: *"the account
+                is required to keep work, never to do it."* You can build
+                without an account under either setting; what an account buys is
+                persistence across sessions.
+
+                Before changing this line, confirm the deployed
+                VITE_REQUIRE_ACCOUNT and decide whether "no-account" should mean
+                "usable without one" (still true) or "keeps your work without
+                one" (may not be).
+              */}
               , the no-account character builder &amp; game manager — sheets can be shared into
               Discord as snapshot links.
             </p>

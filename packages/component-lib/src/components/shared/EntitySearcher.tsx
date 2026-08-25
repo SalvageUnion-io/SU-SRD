@@ -316,7 +316,9 @@ export function EntitySearcher({
         placeholder="Search by name or trait…"
         aria-label="Search"
         autoComplete="off"
-        className="w-full bg-transparent font-body text-sm text-ink outline-none placeholder:text-wk-muted"
+        // `text-base`, not `text-sm`: iOS Safari zooms the viewport on a focused
+        // control below 16px. See the note in `chrome/inputs.tsx`.
+        className="w-full bg-transparent font-body text-base text-ink outline-none placeholder:text-wk-muted"
       />
     </label>
   )

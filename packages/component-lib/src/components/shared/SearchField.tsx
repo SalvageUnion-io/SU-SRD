@@ -45,7 +45,17 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       <input
         ref={ref}
         className={cn(
-          'w-full bg-transparent text-ink placeholder:text-wk-muted focus:outline-none',
+          // `text-base` (16px) is REQUIRED, not a style choice, and it must sit
+          // on the input rather than the container. iOS Safari zooms the page
+          // whenever a focused form control renders below 16px — so the
+          // container's `text-caption`, which the input would otherwise
+          // inherit, made every tap on search yank the viewport. Measured at
+          // 390px against the built output: 13px inherited here before this.
+          //
+          // Only the input is raised. The container stays `text-caption` so the
+          // glyph and the field's own metrics are unchanged, which keeps the
+          // header search the same size it has always been.
+          'w-full bg-transparent text-base text-ink placeholder:text-wk-muted focus:outline-none',
           className
         )}
         {...inputProps}

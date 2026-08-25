@@ -407,6 +407,70 @@ function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
  * Actions) each render a `Slab` separator + a 2-up grid of depth+1 cards;
  * actions are rust, always compact, AP via `ActivationCost`.
  */
+
+/**
+ * The element a card's section bands should render as.
+ *
+ * `titleAs === 'h1'` is already how an item page says "this card IS the
+ * document" — `EntityView` / `EntityCardStatic` set it for the entity the URL
+ * names, and nothing else does. So the same signal answers the question the
+ * section bands need: a `Slab` inside a listing card is a visual separator and
+ * must stay a `span`, but a `Slab` inside the card that is the page is that
+ * page's section heading and has to be a real one.
+ *
+ * Before this, an entity page had exactly ONE heading — its `h1` — and every
+ * section under it ("Patterns", a guide's numbered steps) was a styled `span`.
+ * A screen-reader user got one heading and then an undifferentiated wall, with
+ * no way to jump between sections, on the pages whose entire purpose is being
+ * jumped around in. Guides were the worst case: `llms.txt` points machine
+ * readers at them as the primary source of rules procedures, and their steps
+ * are *explicitly numbered* in the visible text — already a document outline in
+ * everything but markup.
+ *
+ * Two things deliberately stay spans:
+ *
+ * - **Bands inside NESTED cards.** They are separators within a component, not
+ *   divisions of the document. A nested card is a separate
+ *   `ReferenceEntityCardInner` with no `titleAs`, so this returns `undefined`
+ *   for it without any depth check — the level follows the CONTENT, not the
+ *   render tree.
+ * - **The `parentSeal` stamp** (e.g. "Chassis Ability"). It reads like a
+ *   section title but is passed INTO each nested card as its own badge, so
+ *   promoting it would emit one `h2` per ability rather than one per section.
+ *
+ * Returning `undefined` rather than `'span'` keeps `Slab`'s own default as the
+ * single source of what a non-heading band is.
+ */
+function sectionHeadingLevel(titleAs: 'span' | 'h1' | undefined): 'h2' | undefined {
+  return titleAs === 'h1' ? 'h2' : undefined
+}
+
+/**
+ * Three pure helpers, lifted to module scope beside `wrapFlat`.
+ *
+ * Each depends only on its arguments, so none of them needed to be inside the
+ * component at all — they were closures over nothing, rebuilt on every render.
+ * They are out here because the component-lib size ratchet asks for a seam
+ * rather than a raised cap, and a pure function is the cheapest honest seam
+ * this file has: no behaviour moves, and the body shrinks by what they cost.
+ */
+
+/** React key for a nested card. */
+function cardKey(nested: ReferenceCardEntity, index: number): string {
+  return `${'id' in nested && typeof nested.id === 'string' ? nested.id : 'nested'}-${index}`
+}
+
+/** A datavalue as display text, with its unit appended when it has one. */
+function fmtDv(dv: { value?: unknown; unit?: string }): string {
+  const v = dv.value == null ? '' : String(dv.value)
+  return dv.unit ? `${v}${dv.unit}` : v
+}
+
+/** A content block's plain text, or '' for anything that is not plain prose. */
+function blockPlainText(b: SURefObjectContentBlock): string {
+  return b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
+}
+
 function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'large',
@@ -454,6 +518,10 @@ function ReferenceEntityCardInner({
   scalingParent,
   expand,
 }: ReferenceEntityCardProps) {
+  // Section bands become real headings only when this card IS the page — see
+  // `sectionHeadingLevel` above for why, and for what deliberately stays a span.
+  const sectionAs = sectionHeadingLevel(titleAs)
+
   // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
   // chosen quantity is ≥ 1, unless `selected` is set explicitly. Single-select
   // cards keep passing `selected` directly (unchanged).
@@ -1180,10 +1248,6 @@ function ReferenceEntityCardInner({
   const addedTraitCells: EntityCardSubHeaderCell[] = traitCells(
     resolvedView.traits.filter((t) => !baseTraitKeys.has(String(t.type).toLowerCase()))
   ).map((c) => ({ ...c, borderColor: MODIFIED }))
-  const fmtDv = (dv: { value?: unknown; unit?: string }): string => {
-    const v = dv.value == null ? '' : String(dv.value)
-    return dv.unit ? `${v}${dv.unit}` : v
-  }
   const baseDvMap = new Map(
     baseView.datavalues
       .filter((d) => d.label != null)
@@ -1337,8 +1401,6 @@ function ReferenceEntityCardInner({
   // and a self-action-only description (e.g. Grappling Harpoon, whose entity
   // content is empty) are both preserved.
   const isSelfAction = foldSingleAction && foldedAction?.name === entityName
-  const blockPlainText = (b: SURefObjectContentBlock): string =>
-    b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
   const entityBodyBlocks = (bodyContent ?? []).filter((b) => b?.type !== 'datavalues')
   const selfActionBlocks =
     isSelfAction && foldedActionContent
@@ -1571,9 +1633,6 @@ function ReferenceEntityCardInner({
   const droneSystems = ownDroneLoadout?.systems ?? []
   const droneModules = ownDroneLoadout?.modules ?? []
 
-  const cardKey = (nested: ReferenceCardEntity, index: number): string =>
-    `${'id' in nested && typeof nested.id === 'string' ? nested.id : 'nested'}-${index}`
-
   // Nested cards. FLAT mode (there's a left ANCHOR — image or NPC) renders each
   // card as a `flow-root` block so it flows beside the floated anchor, then full
   // width once past it. Non-flat renders the 2-col masonry.
@@ -1640,7 +1699,8 @@ function ReferenceEntityCardInner({
     flat = false
   ): ReactNode => (
     <div key={label} className={flat ? 'mb-1.5' : 'flex flex-col gap-1.5'}>
-      {opts?.slab !== false && <Slab variant="dashed" label={label} />}
+      {/* Nested cards resolve `sectionAs` to undefined themselves — no depth check needed. */}
+      {opts?.slab !== false && <Slab variant="dashed" label={label} as={sectionAs} />}
       {renderNested(entities, opts?.seal, opts?.hostTone, flat)}
     </div>
   )
@@ -1698,7 +1758,7 @@ function ReferenceEntityCardInner({
             index > 0 && 'sm:border-l-chrome sm:border-ink/20 sm:pl-3'
           )}
         >
-          <Slab variant="dashed" label={group.label} />
+          <Slab variant="dashed" label={group.label} as={sectionAs} />
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
               of anonymous links. `list-none` keeps the markers off. */}
@@ -1849,10 +1909,12 @@ function ReferenceEntityCardInner({
           ))
           return (
             <div key={step.id} className="flex flex-col gap-1.5">
-              {section && <Slab variant="solid" label={section} />}
+              {section && <Slab variant="solid" label={section} as={sectionAs} />}
+              {/* Steps nest under a `section` band when there is one (h2 -> h3). */}
               <Slab
                 variant="dashed"
                 label={`${number}. ${step.name}`}
+                as={sectionAs && section ? 'h3' : sectionAs}
                 count={step.optional ? 'Optional' : undefined}
               />
               {sidebar ? (
@@ -2219,7 +2281,7 @@ function ReferenceEntityCardInner({
           {/* BASIC CHASSIS → a LIST of its patterns as LISTING rows. */}
           {!hide?.patterns && patternList.length > 0 && (
             <div className={flat ? 'mb-1.5' : 'flex flex-col gap-1.5'}>
-              <Slab variant="dashed" label="Patterns" />
+              <Slab variant="dashed" label="Patterns" as={sectionAs} />
               <div className={flat ? undefined : 'flex flex-col gap-1.5'}>
                 {patternList.map((pat) =>
                   wrapFlat(

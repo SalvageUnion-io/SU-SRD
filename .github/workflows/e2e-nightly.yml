@@ -270,35 +270,42 @@ jobs:
           retention-days: 7
 
   a11y-srd:
-    # WCAG 2.1 AA scan (axe-core via puppeteer-core, `tools/a11y-scan.ts`) over
-    # a representative slice of the srd static build. `docs/architecture/
+    # WCAG 2.1 AA scan (axe-core via Playwright, `tools/a11y-scan.ts`) over a
+    # representative slice of the srd static build. `docs/architecture/
     # seo-accessibility.md` asserts AA compliance; until this job existed that
     # claim was verified by nothing on a schedule.
     #
-    # ADVISORY, deliberately: `continue-on-error: true` and NOT listed in the
-    # notify-* `needs:` below, so a violation can neither redden the nightly run
-    # nor open/keep-open the `nightly-e2e-failure` tracking issue. The signal is
-    # the job's step summary (a per-page violation table) plus the uploaded
-    # `a11y-report.json`. Turning it into a gate on day one would strand work on
-    # a backlog nobody has triaged yet.
+    # BLOCKING. It was advisory — `continue-on-error: true`, and absent from the
+    # notify `needs:` — so a violation could neither redden a run nor open the
+    # tracking issue. That is how the 2026-08 audit's findings survived: a
+    # 1.42:1 focus ring, no skip link on any page, one heading per page, and 96
+    # roll tables that rendered nothing without JavaScript. Every one of them
+    # was reachable by this scan and none of them ever turned anything red.
     #
-    # PROMOTING TO BLOCKING, once the report is clean (or its violations are
-    # accepted), in order:
-    #   1. Commit a baseline: `a11y-baseline.json` next to the scanner, mapping
-    #      each page to its accepted violation ids (e.g.
-    #      `{"/": ["color-contrast"], "/schema/chassis/": []}`) with a comment
-    #      per entry saying why it is tolerated.
-    #   2. Teach `tools/a11y-scan.ts` a `--baseline <file>` flag that diffs the
-    #      run against it and exits non-zero only on ids NOT in the baseline
-    #      (new regressions), so accepted debt does not block.
-    #   3. Drop `continue-on-error` here — the job then fails the nightly run.
-    #   4. Only after it has been stable for a while, add `a11y-srd` to the
-    #      notify-failure/notify-recovery `needs:` so regressions open the
-    #      tracking issue, and/or move it into ci.yml as a PR gate behind the
-    #      `web` path filter.
+    # Fixing them without closing that gap only resets the clock, so steps 1-4
+    # of the promotion path this comment used to describe are now done:
+    #
+    #   1. `tools/a11y-baseline.json` records the accepted ids per page, with
+    #      the reason for each in its `$rationale` block. Exactly one id is
+    #      tolerated — `color-contrast` — and the entry says why: the entity
+    #      card's footer puts 12px light text on a book-derived entity TONE, and
+    #      even full-opacity paper fails on 6 of the 10 tones. Making it pass is
+    #      a palette decision, not a code fix.
+    #   2. `--baseline <file>` diffs a run against it. A rule id NOT in the
+    #      baseline is a regression and exits 1. So is a STALE entry — an id
+    #      that no longer fires, or a page no longer scanned — because a
+    #      baseline nobody prunes decays into a blanket exemption.
+    #   3. `continue-on-error` is gone.
+    #   4. `a11y-srd` is in the notify `needs:` below.
+    #
+    # A crashed scan reports `violations: -1` and the differ treats that as a
+    # regression, never as "no violations found".
+    #
+    # STILL NOT a PR gate: it needs a full srd build plus a browser, and it has
+    # not yet run long enough here to know its flake rate. Moving it into
+    # ci.yml behind the `web` path filter is the remaining step.
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -341,11 +348,21 @@ jobs:
             sleep 2
           done
           curl -sfo /dev/null http://localhost:4321/
-          bun tools/a11y-scan.ts http://localhost:4321 \
+          # The page list must match `tools/a11y-baseline.json` exactly: a page
+          # in the baseline but not scanned is reported as a stale entry, which
+          # is what stops the list and the baseline drifting apart.
+          bun tools/a11y-scan.ts \
+            --baseline tools/a11y-baseline.json \
+            http://localhost:4321 \
             / \
             /about/ \
+            /api/ \
+            /discord/ \
+            /search/ \
             /schema/chassis/ \
-            /schema/chassis/item/mule/ \
+            /schema/chassis/item/aegis/ \
+            /schema/roll-tables/item/ai-personality/ \
+            /schema/guides/item/activating-and-shutting-down-a-mech/ \
             > a11y-report.json
 
       - name: Summarise violations
@@ -353,13 +370,13 @@ jobs:
         run: |
           set -euo pipefail
           if [ ! -s a11y-report.json ]; then
-            echo "### Accessibility scan (advisory) — srd" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Accessibility scan — srd" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "The scanner produced no report; see the step log above." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           {
-            echo "### Accessibility scan (advisory) — srd"
+            echo "### Accessibility scan — srd"
             echo ""
             echo "| Page | Violations | Passes | Incomplete |"
             echo "| --- | ---: | ---: | ---: |"
@@ -390,8 +407,10 @@ jobs:
   # on) a single tracking issue labeled `nightly-e2e-failure`; on the next
   # all-green run, comment + close it. Uses
   # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
-  # nothing to provision. `a11y-srd` is intentionally absent from `needs:`: it
-  # is advisory and must not open or hold open the tracking issue.
+  # nothing to provision. `a11y-srd` IS in `needs:` — it was advisory and is now
+  # blocking, so an accessibility regression opens and holds the tracking issue
+  # like any other suite. It gates on new violations only; accepted debt lives
+  # in `tools/a11y-baseline.json`.
   # ---------------------------------------------------------------------------
   observability-probe:
     # The one observability check CI structurally CANNOT do on a PR: whether the
@@ -473,7 +492,7 @@ jobs:
         run: bun run validate:convex-parity:live
 
   notify-failure:
-    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity]
+    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd]
     # NOT `failure()`. A job that exhausts its `timeout-minutes` is reported with
     # result `cancelled`, and `failure()` does not cover `cancelled` — so when
     # e2e-itun started timing out, `notify-failure` AND `notify-recovery` were
@@ -497,7 +516,9 @@ jobs:
        needs.observability-probe.result == 'failure' ||
        needs.observability-probe.result == 'cancelled' ||
        needs.convex-parity.result == 'failure' ||
-       needs.convex-parity.result == 'cancelled')
+       needs.convex-parity.result == 'cancelled' ||
+       needs.a11y-srd.result == 'failure' ||
+       needs.a11y-srd.result == 'cancelled')
     runs-on: ubuntu-latest
     # Bounded like every other job here: this one is two REST calls, so if it is
     # still running at 5 minutes it is wedged, and a wedged notifier is the
@@ -514,6 +535,7 @@ jobs:
           SRD_RESULT: ${{ needs.e2e-srd.result }}
           PROBE_RESULT: ${{ needs.observability-probe.result }}
           PARITY_RESULT: ${{ needs.convex-parity.result }}
+          A11Y_RESULT: ${{ needs.a11y-srd.result }}
         with:
           script: |
             const label = 'nightly-e2e-failure'
@@ -543,6 +565,10 @@ jobs:
               ['e2e-srd', process.env.SRD_RESULT],
               ...optional('observability-probe', process.env.PROBE_RESULT),
               ...optional('convex-parity', process.env.PARITY_RESULT),
+              // a11y-srd follows the same rule as the two above: it can open
+              // this issue on its own, so it needs a line of its own or the
+              // report would name every other job as successful and no cause.
+              ...optional('a11y-srd', process.env.A11Y_RESULT),
             ]
             const body = [
               `Nightly E2E (\`e2e-nightly.yml\`) did not pass on \`${context.ref}\`.`,
@@ -580,7 +606,7 @@ jobs:
             }
 
   notify-recovery:
-    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity]
+    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd]
     # NOT a bare `success()`. A job whose `needs:` includes a SKIPPED job is
     # itself skipped unless its condition starts with always()/!cancelled() —
     # and observability-probe is skipped whenever the OBSERVABILITY_PROBE
@@ -603,7 +629,9 @@ jobs:
       needs.observability-probe.result != 'failure' &&
       needs.observability-probe.result != 'cancelled' &&
       needs.convex-parity.result != 'failure' &&
-      needs.convex-parity.result != 'cancelled'
+      needs.convex-parity.result != 'cancelled' &&
+      needs.a11y-srd.result != 'failure' &&
+      needs.a11y-srd.result != 'cancelled'
     runs-on: ubuntu-latest
     # Bounded for the same reason as notify-failure above.
     timeout-minutes: 5

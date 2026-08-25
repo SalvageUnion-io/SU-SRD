@@ -896,6 +896,7 @@ export declare const SCHEMA_REGISTRY: {
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EnhancedSchemaMetadata } from './ModelFactory.js';
 import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js';
+import type { TableRow } from './utils/tableRows.js';
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
@@ -1064,6 +1065,30 @@ export type StaticEntitySummary = {
         name: string;
         paragraphs: string[];
     }[];
+    /**
+     * A roll table's outcome rows, highest roll first.
+     *
+     * The same defect as `sections` above, one schema over and found much later.
+     * A roll-table page shipped its whole d20 table as serialized island props
+     * and rendered NONE of it as markup — measured across six tables, 0 rows in
+     * rendered HTML and every row inside a `<script>` tag. Without JavaScript the
+     * page was its name and its source line; the table, which is the entire
+     * reason the page exists, was absent from the text a crawler, a reader-mode
+     * view, or an LLM following `llms.txt` receives.
+     *
+     * That lands on the 96 pages most likely to be opened mid-game on a bad
+     * connection: "roll on Critical Damage" is the commonest thing anyone asks
+     * this site for.
+     *
+     * `columns` tables are deliberately absent. Each of their buckets holds a
+     * further 1–20 mapping, so a flat row list would misrepresent a two-roll
+     * table as a one-roll one — worse than rendering nothing, because it would
+     * look right. They keep the island rendering until the static path grows a
+     * two-roll shape.
+     *
+     * Empty for every entity that is not a roll table.
+     */
+    table: TableRow[];
 };
 /**
  * Extract a static summary from an entity for server-side rendering (SEO)
@@ -1095,6 +1120,7 @@ export { extractContentText, getSuggestions, invalidateSearchIndex, isSchemaName
 export { findEntityBySlug, getEntitySlug, nameToSlug } from './slug.js';
 export * from './utilities.js';
 export { type ColumnsTableRollResult, isColumnsTable, resultForColumnsTable, resultForTable, type TableRollResult, } from './utils/resultForTable.js';
+export { type TableRow, tableRows } from './utils/tableRows.js';
 import type { SearchOptions, SearchResult } from './search.js';
 export type * from './types/index.js';
 export type { EntitySchemaName, SchemaToEntityMap };
@@ -5048,11 +5074,10 @@ export declare function resolveClassRef(ref: string): ({
         page: number;
     }[] | undefined;
     hybrid: boolean;
-    maxAbilities: number;
     advanceable: boolean;
-    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
-    advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
-    legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
+    maxAbilities: number;
+    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
 } & {
     schemaName: string;
 }) | ({
@@ -5095,10 +5120,11 @@ export declare function resolveClassRef(ref: string): ({
         page: number;
     }[] | undefined;
     hybrid: boolean;
-    advanceable: boolean;
     maxAbilities: number;
-    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
-    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    advanceable: boolean;
+    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
+    advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
+    legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -18179,6 +18205,57 @@ export type TableRollResult = {
 export declare function resultForTable(table: SURefObjectTable | undefined, roll: number): TableRollResult;
 export {};
 //# sourceMappingURL=resultForTable.d.ts.map
+// === lib/utils/tableRows.d.ts ===
+import type { SURefObjectTable } from '../types/index.js';
+/**
+ * One row of a roll table, flattened out of the nine-variant bucket union.
+ *
+ * `key` is the roll or roll range exactly as the book prints it ('1', '2-5',
+ * '11-19'), so it doubles as the row's identity for highlighting a result.
+ */
+export type TableRow = {
+    /** Descending sort position — 20 first, 1 last, matching the printed layout. */
+    order: number;
+    /** The roll or range, e.g. '1', '2-5', '11-19'. */
+    key: string;
+    /** Bolded lead-in where the entry has one, otherwise null. */
+    label: string | null;
+    /** The outcome text. */
+    value: string;
+};
+/**
+ * Flatten a roll table into printable rows, highest roll first.
+ *
+ * ## Why this lives in the package rather than in the card that draws it
+ *
+ * There are two consumers with the same question and no shared answer before
+ * this: the interactive `RollTable` component, which needs rows to draw and a
+ * key to highlight after a roll; and `extractStaticEntitySummary`, which needs
+ * the same rows for the no-JS and crawler rendering of a roll-table page.
+ *
+ * Those pages shipped their entire table as serialized island props and
+ * rendered **none of it** as markup — measured across six tables, 0 rows in
+ * rendered HTML and every row present inside a `<script>` tag. The bytes were
+ * paid for and nothing was drawn without JavaScript.
+ *
+ * Writing a second flattener next to the summary would have fixed that page
+ * and created the drift this repo keeps finding: two copies of one piece of
+ * logic, differing later in some bucket variant nobody re-checks. The table
+ * schema is the package's, so the flattening is the package's.
+ *
+ * ## The two entry shapes
+ *
+ * Buckets normally hold `{ label?, value }`. Some hold a bare string, and a
+ * bare string of the form `"Lead-in: rest"` is split on the first colon so it
+ * renders with the same bold lead-in as the object form — the printed tables
+ * use that shape interchangeably.
+ *
+ * `columns` tables are NOT flattened here: each of their five buckets holds a
+ * further 1–20 mapping, so a flat row list would misrepresent a two-roll
+ * table. Callers detect them with `isColumnsTable` and handle both rolls.
+ */
+export declare function tableRows(table: SURefObjectTable | undefined | null): TableRow[];
+//# sourceMappingURL=tableRows.d.ts.map
 // === lib/zod.d.ts ===
 /**
  * Pre-configured Zod instance.

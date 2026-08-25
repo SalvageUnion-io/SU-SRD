@@ -139,12 +139,31 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
       </head>
       <body>
         <div className="flex min-h-screen flex-col bg-paper">
+          {/*
+            Skip link — WCAG 2.4.1. Must be the FIRST focusable thing in the
+            document, so it sits above TopNavigation rather than inside it.
+            Without it, a keyboard user traverses the wordmark, the main nav
+            and the breadcrumb nav before reaching content, on all 1,036 pages.
+          */}
+          <a href="#main-content" className="su-skip-link">
+            Skip to content
+          </a>
           <TopNavigation
             currentPath={pathname}
             breadcrumbs={breadcrumbs}
             breadcrumbDescription={breadcrumbDescription}
           />
-          <main className="flex flex-1 flex-col bg-wk-bg">{children}</main>
+          {/*
+            `tabIndex={-1}` is what makes the skip link actually work. Following
+            a fragment moves the browser's scroll position but NOT its focus
+            unless the target is focusable, so without it the next Tab press
+            resumes from the link — back at the top of the nav, which is the
+            thing the user just asked to skip. It does not add <main> to the tab
+            order; -1 means "focusable by script or fragment, not by Tab".
+          */}
+          <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col bg-wk-bg">
+            {children}
+          </main>
           <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
         </div>
       </body>

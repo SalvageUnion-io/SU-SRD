@@ -61,7 +61,13 @@ const TRACK = cn(
   'border-chrome border-ink bg-paper',
   'transition-colors duration-150 motion-reduce:transition-none',
   'peer-checked:border-rust peer-checked:bg-rust',
-  'peer-focus-visible:ring-[3px] peer-focus-visible:ring-rust/25',
+  // The canonical focus ring, raised by the peer <input>. Written as an
+  // offset ring rather than the old `ring-rust/25` wash, which measured 1.42:1
+  // where 3:1 is required — see the rationale above `.su-focus-ring` in
+  // `styles/index.css`. `ring-offset` gives the paper separator that lets the
+  // solid rust ring read on the dark side of the track as well as on paper.
+  'peer-focus-visible:ring-[2px] peer-focus-visible:ring-rust',
+  'peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-paper',
   // Knob position + colour, driven from the track.
   'peer-checked:[&>span]:translate-x-[14px] peer-checked:[&>span]:bg-paper',
   // Disabled reads as *drained*, not merely faded. A blanket opacity on a

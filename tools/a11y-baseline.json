@@ -1,0 +1,17 @@
+{
+  "$rationale": {
+    "color-contrast": "ACCEPTED DEBT — a design decision, not a code fix. The entity card's footer band puts small light text (`text-paper/70`, 12px) on a caller-supplied ENTITY TONE, and axe measures 3.99:1 against `mech-dark` where AA wants 4.5:1. Raising the alpha does not solve it: measured against the full tone palette, even FULL-OPACITY paper fails on 6 of the 10 tones — pilot 2.41, pilot-light 1.54, tier-core-pale 2.20, guide-salvage 2.91, mech 3.04, crawler 3.68. The tones are book-derived (hue encodes ontology, ruleset §3/§4.1), so making this pass means either re-toning the palette away from the printed book or restructuring the footer band off the tone. Both are design calls with visible consequences on every entity card, and neither belongs in the change that turned this gate on. Recorded here so it is visible debt rather than an invisible failure.",
+    "why-a-baseline-at-all": "Every finding in the 2026-08 audit — a 1.42:1 focus ring, no skip link, one heading per page, 96 roll tables rendering nothing without JS — was invisible to CI, because this scan ran nightly with `continue-on-error: true` and was excluded from the notify job's `needs:`. Nothing could ever turn red. Fixing those without closing that gap just resets the clock, so the scan now blocks on anything NOT listed here."
+  },
+  "pages": {
+    "/": ["color-contrast"],
+    "/about/": ["color-contrast"],
+    "/api/": [],
+    "/discord/": [],
+    "/search/": [],
+    "/schema/chassis/": ["color-contrast"],
+    "/schema/chassis/item/aegis/": ["color-contrast"],
+    "/schema/roll-tables/item/ai-personality/": [],
+    "/schema/guides/item/activating-and-shutting-down-a-mech/": ["color-contrast"]
+  }
+}
