@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.15.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.15.0...itun-v1.15.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* **observability:** say when a surface reports nothing, and make bot liveness a cron monitor ([#807](https://github.com/SalvageUnion-io/SU-SRD/issues/807)) ([6157169](https://github.com/SalvageUnion-io/SU-SRD/commit/6157169f77e7470fb07f9a8b93d667092867c5ce))
+
 ## [1.15.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.14.1...itun-v1.15.0) (2026-08-25)
 
 

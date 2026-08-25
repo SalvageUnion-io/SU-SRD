@@ -1,7 +1,7 @@
 {
   "name": "itun",
   "private": true,
-  "version": "1.15.0",
+  "version": "1.15.1",
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
