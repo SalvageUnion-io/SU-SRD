@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.14.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.14.0...itun-v1.14.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* the 2026-08 audit remediation — accessibility, falsifiable copy, and the gate that missed them ([#903](https://github.com/SalvageUnion-io/SU-SRD/issues/903)) ([727f948](https://github.com/SalvageUnion-io/SU-SRD/commit/727f948eb02db8be2675b56e602da96d6bbed505))
+
 ## [1.14.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.13.1...itun-v1.14.0) (2026-08-24)
 
 
