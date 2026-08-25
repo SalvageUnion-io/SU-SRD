@@ -13,7 +13,7 @@
     "preview": "bun ssg/preview.ts --port 4321",
     "snapshot": "bun ssg/snapshot.ts",
     "snapshot:update": "bun ssg/snapshot.ts --update",
-    "gate": "bun ssg/build.ts && bun ssg/snapshot.ts",
+    "gate": "bun ssg/build.ts && bun ssg/checkPageExamples.ts && bun ssg/snapshot.ts",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "sanity": "bun run lint -- --write && bun run format && bun run typecheck",
@@ -24,7 +24,8 @@
     "test:e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium",
     "clean": "rm -rf dist node_modules/.vite",
-    "check": "bun run lint && bun run format:check && bun run typecheck"
+    "check": "bun run lint && bun run format:check && bun run typecheck",
+    "check:examples": "bun ssg/checkPageExamples.ts"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",

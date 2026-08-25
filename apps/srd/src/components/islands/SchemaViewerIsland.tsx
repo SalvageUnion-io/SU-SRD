@@ -228,7 +228,11 @@ export function SchemaViewerIsland({
                           onChange={(e) => setNameFilter(e.target.value)}
                           placeholder="Filter by name…"
                           aria-label="Filter items by name"
-                          className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-caption md:w-64"
+                          // `text-base`, not `text-caption`: iOS Safari zooms the
+                          // viewport on a focused control under 16px, and this is
+                          // the filter a phone user reaches for first on a schema
+                          // listing. See the note in `chrome/inputs.tsx`.
+                          className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-base md:w-64"
                         />
                       </FilterRow>
                     </div>

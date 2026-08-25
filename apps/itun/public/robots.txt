@@ -1,0 +1,20 @@
+# intheunionnow.com
+#
+# This file exists because it did not. The Worker serves the SPA shell for any
+# path that is not a real file, so `/robots.txt` answered 200 with an HTML
+# document — a crawler asking for crawl rules received a web page, read no
+# rules from it, and proceeded to crawl everything.
+#
+# Being a real file in `public/` is what fixes it: the Worker's asset lookup
+# now finds it before the SPA fallback.
+
+User-agent: *
+Allow: /
+
+# The snapshot API is machine-to-machine. Crawling it costs R2 reads and
+# indexes nothing a person would search for.
+Disallow: /api/
+
+# Shared sheets are deliberately reachable without an account (ADR-032), so
+# they stay crawlable — a link pasted into Discord should unfurl and resolve.
+# They are only served at all when their owner set `publicRead`.

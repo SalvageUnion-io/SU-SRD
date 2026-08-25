@@ -207,9 +207,21 @@
   /* THE single action colour. */
   --su-color-rust: rgb(168, 82, 34);
   --su-color-rust-hi: rgb(138, 64, 25);
-  /* The canonical focus-ring wash (design-spec §2.4) — shared infrastructure,
-     not one component's colour. See the note in tokens.ts. */
+  /* A 25% rust wash. NO LONGER THE FOCUS RING — it measured 1.42:1 against a
+     required 3:1; see `--focus-ring-shadow` below and the rationale above
+     `.su-focus-ring`. Retained as a plain wash, and kept in step with
+     `rust25` in tokens.ts, which the parity guard requires. */
   --su-color-rust-25: rgb(168 82 34 / 0.25);
+
+  /* The canonical focus ring, composed from the two tokens above it.
+     DELIBERATELY NOT `--su-*`: that namespace is the design-token mirror of
+     `design/tokens.ts`, asserted both ways by `tokens.parity.test.ts`, and a
+     token there is an ATOMIC value — the guard's `resolve()` only follows a
+     value that is entirely one `var()`, so a composite could never round-trip.
+     This is derived FROM tokens rather than being one, so it lives outside the
+     mirrored namespace on purpose. Every ring rung reads it; none repeats the
+     literal, which is what let the old ones drift apart twice. */
+  --focus-ring-shadow: 0 0 0 2px var(--su-color-paper), 0 0 0 4px var(--su-color-rust);
   /* The one sanctioned cream — RollTable banding, and nowhere else. */
   --su-color-band-cream: rgb(243, 237, 226);
 
@@ -321,12 +333,74 @@ button {
   padding: 0;
 }
 
-/* ══ The page ground and body face ══════════════════════════════════════════ */
+/* ══ The page ground and body face ══════════════════════════════════════════
+ *
+ * `text-base` (16px), not `text-sm` (14px), and this is the ONE declaration
+ * that sets it — neither app's stylesheet sets a body `font-size`.
+ *
+ * 14px was inherited rather than chosen. It is below the 16px that browsers
+ * default to and that a phone read at arm's length in bad light needs.
+ *
+ * It does NOT fix the iOS auto-zoom on form controls, which was the other half
+ * of the reason to raise it. The reset above gives controls `font: inherit`,
+ * which looks like it should be enough — but measured against the built output
+ * at 390px, the header search input still computed to **13px** and the
+ * `/search` input to **14px**, because each inherits from a wrapper that sets
+ * its own rung, and an explicit ancestor size beats the body default. So the
+ * controls were raised individually, at their own call sites, where the floor
+ * is documented as a functional requirement rather than a preference:
+ * `shared/SearchField.tsx`, `chrome/inputs.tsx`, `shared/EntitySearcher.tsx`.
+ *
+ * The blast radius is narrower than it looks: this is a DEFAULT, so it moves
+ * only text that sets no size of its own. Anything on an explicit rung —
+ * every `--su-text-*` consumer, every `text-*` utility — is untouched, which
+ * is most of the chrome. The type ladder itself does not move.
+ */
+/**
+ * Skip link (WCAG 2.4.1 Bypass Blocks).
+ *
+ * Off-screen until focused, then the first thing a keyboard user lands on.
+ * Before this, tabbing into any page meant traversing the whole masthead — a
+ * wordmark link, the main nav, and the breadcrumb nav — before reaching
+ * content, on every page of the site, with no way past it.
+ *
+ * `left: -9999px` rather than `display: none` / `visibility: hidden` /
+ * `width: 0`: all three of those remove the element from the focus order
+ * entirely, which is the one thing a skip link cannot afford. It has to be
+ * focusable while invisible, so it is moved off-screen and brought back.
+ *
+ * It carries the canonical focus ring like anything else that takes focus —
+ * see `--focus-ring-shadow`.
+ */
+.su-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--su-space-8) var(--su-space-16);
+  background-color: var(--su-color-paper);
+  color: var(--su-color-ink);
+  font-family: var(--su-font-cond);
+  font-size: var(--su-text-base);
+  font-weight: var(--su-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--su-tracking-caps-tight);
+  border: var(--su-bw-entity) solid var(--su-color-rust);
+  border-radius: var(--su-radius-card);
+}
+
+.su-skip-link:focus {
+  left: var(--su-space-8);
+  top: var(--su-space-8);
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
 body {
   background-color: var(--su-color-paper);
   color: var(--su-color-ink);
   font-family: var(--su-font-body);
-  font-size: var(--su-text-sm);
+  font-size: var(--su-text-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -359,15 +433,52 @@ body {
  * The canonical rust focus ring (design-spec §2.4), on `:focus-visible` — a
  * button shows it to the keyboard, not to the mouse.
  *
- * The wash is `rust/25`. These four ring rules shipped against
- * `--su-color-ink-20` in #798 while their own comments named the rust ring; the
- * live value every one of them mirrors is `ring-[3px] ring-rust/25`
- * (`components/chrome/interaction.ts`), so #799 corrected the value rather than
- * the comment. The on-tone rung below was already right.
+ * ## Why this is a paper-offset ring and not a wash
+ *
+ * It used to be `rust/25`, a 25%-alpha wash. Composited, that resolved to
+ * `#e6d0c2` on paper — **1.42:1**, against the 3:1 that WCAG 2.4.11 / 1.4.11
+ * require of a focus indicator, and 1.27:1 on the `ink-deep` header. The ring
+ * was, in practice, invisible.
+ *
+ * The rule it broke is the one the ON-TONE rung below already states: *a ring
+ * that vanishes on a legal background is not an accessibility affordance.* That
+ * rung solved it with a paper offset under a solid ink ring; this is the same
+ * construction in rust, so the focus colour is unchanged and the two rungs are
+ * now the same shape rather than two different ideas.
+ *
+ * ## Why BOTH rings are load-bearing
+ *
+ * WCAG 1.4.11 asks for 3:1 against *adjacent* colours, and the two rings divide
+ * that job by ground — neither one covers every case alone:
+ *
+ *   inner boundary   rust | paper      5.17  — constant, ground-independent
+ *
+ *   outer boundary   rust|ground   paper-ring|ground   whichever carries
+ *     on paper           5.17            1.00              rust    5.17
+ *     on wk-bg           4.66            1.11              rust    4.66
+ *     on ink             2.97           15.35              paper  15.35
+ *     on ink-deep        3.31           17.08              paper  17.08
+ *
+ * Note the 2.97: **solid rust on its own would fail on the mid `ink` ground.**
+ * A single-ring "just make it solid" fix looks correct and is not. On light
+ * grounds the rust carries; on dark grounds the paper ring carries; the inner
+ * boundary holds at 5.17 regardless. That is the whole reason for two rings,
+ * and why the on-tone rung below was built the same way.
+ *
+ * All five ring rules below read ONE token, `--focus-ring-shadow`. They
+ * previously repeated the same literal five times and had already drifted apart
+ * once — #798 shipped them against `--su-color-ink-20` while their comments
+ * said rust, and #799 corrected the value rather than the comment. A single
+ * token is what stops a third round of that.
+ *
+ * `outline: 3px solid transparent` accompanies every `outline: none` here.
+ * Windows High Contrast Mode does not paint `box-shadow` at all, so without it
+ * focus is not merely faint in that mode — it is absent. Forced-colors
+ * substitutes a real colour into the transparent outline.
  */
 .su-focus-ring:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-rust-25);
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
 }
 
 /**
@@ -377,7 +488,7 @@ body {
  * that vanishes on a legal background is not an accessibility affordance.
  */
 .su-focus-ring-on-tone:focus-visible {
-  outline: none;
+  outline: 3px solid transparent;
   box-shadow:
     0 0 0 2px var(--su-color-paper),
     0 0 0 4px var(--su-color-ink);
@@ -400,8 +511,8 @@ body {
 }
 
 .su-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-rust-25);
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
 }
 
 .su-button:disabled {
@@ -415,8 +526,8 @@ body {
  * `:focus-visible`: an editable control shows the ring on every focus.
  */
 .su-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-rust-25);
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
 }
 
 .su-input:disabled {
@@ -435,7 +546,7 @@ body {
  * imply the shell is focusable when it is not.
  */
 .su-focus-within:focus-within {
-  box-shadow: 0 0 0 3px var(--su-color-rust-25);
+  box-shadow: var(--focus-ring-shadow);
 }
 
 /*
@@ -447,8 +558,8 @@ body {
  * `:focus-visible` — an editable control shows the ring on every focus.
  */
 .su-input-focus:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--su-color-rust-25);
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
 }
 
 /** The canonical disabled treatment. */

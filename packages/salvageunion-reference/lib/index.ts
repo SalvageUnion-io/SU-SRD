@@ -74,6 +74,7 @@ export {
   resultForTable,
   type TableRollResult,
 } from './utils/resultForTable.js'
+export { type TableRow, tableRows } from './utils/tableRows.js'
 
 import type { SearchOptions, SearchResult } from './search.js'
 import {

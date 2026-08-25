@@ -49,6 +49,60 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
         </div>
       )}
 
+      {/*
+        A roll table's rows, as a REAL table.
+
+        These pages previously rendered no rows at all without JavaScript — the
+        whole d20 table shipped as serialized island props and nothing was drawn
+        — so this is the first time a crawler, reader mode, or an LLM following
+        `llms.txt` sees the outcomes at all.
+
+        `<th scope="row">` on the roll, not a `<td>`: the roll IS the row's
+        header, which is what lets a screen reader announce "11-19" with each
+        outcome instead of reading a wall of anonymous cells. The `<caption>`
+        names the table for the same reason — it is skipped visually but it is
+        what a rotor listing reads.
+      */}
+      {summary.table.length > 0 && (
+        <div className="mb-3 overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">{`${summary.name} roll table`}</caption>
+            <thead>
+              <tr>
+                <th
+                  scope="col"
+                  className="border-ink border-b-chrome px-2 py-1 font-cond uppercase"
+                >
+                  Roll
+                </th>
+                <th
+                  scope="col"
+                  className="border-ink border-b-chrome px-2 py-1 font-cond uppercase"
+                >
+                  Outcome
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.table.map((row) => (
+                <tr key={row.key}>
+                  <th
+                    scope="row"
+                    className="whitespace-nowrap border-ink/20 border-b px-2 py-1 text-left align-top font-bold tabular-nums"
+                  >
+                    {row.key}
+                  </th>
+                  <td className="border-ink/20 border-b px-2 py-1 align-top">
+                    {row.label && <span className="font-bold">{row.label}: </span>}
+                    {row.value}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Named sections (a guide's steps) — most of a guide's text lives here,
           so without it a guide's no-JS/crawler rendering is a title and one
           paragraph. Headings are h2: they sit under the h1 above. */}

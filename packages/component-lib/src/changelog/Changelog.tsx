@@ -54,9 +54,15 @@ export function Changelog({ entries, className }: ChangelogProps) {
             bodyPadding="px-4 pb-3 pt-1"
             headerContent={
               <>
+                {/*
+                  `h2`, not `h3`: each entry is a direct division of the
+                  changelog, which has only its own `h1` above it. `h3` skipped
+                  a level (h1 -> h3), the one heading-order violation left on
+                  the site once entity pages gained real section headings.
+                */}
                 <PageHeading
                   variant="subheading"
-                  as="h3"
+                  as="h2"
                   className="leading-tight tracking-caps-tight text-ink"
                 >
                   {entryHeadline(entry)}

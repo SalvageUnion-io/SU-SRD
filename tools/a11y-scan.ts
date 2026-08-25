@@ -12,7 +12,7 @@
  * browser, so that step is gone and there is no second stack to keep in sync.
  */
 
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
@@ -121,10 +121,74 @@ async function scanPage(page: Page, url: string, pathname: string): Promise<Page
   return { page: pathname, ...results }
 }
 
+/**
+ * The accepted-violation baseline: page path -> the axe rule ids tolerated there.
+ *
+ * A rule id in this file is DEBT, deliberately accepted with a reason recorded
+ * beside it. A rule id NOT in this file is a regression, and the run exits
+ * non-zero on it.
+ *
+ * The point of the shape is that it only ever gets easier to satisfy: adding a
+ * page or a rule requires editing this file, which is a reviewable act, while
+ * fixing something and deleting its entry needs no ceremony at all.
+ */
+type Baseline = {
+  /** Free-text, per key, explaining why each id is tolerated. Not read by code. */
+  $rationale?: Record<string, string>
+  pages: Record<string, string[]>
+}
+
+/**
+ * Compare a run against the baseline.
+ *
+ * Reports two things, and the second is the one that keeps the file honest:
+ * NEW ids (a regression) and STALE entries (an id that no longer fires, or a
+ * page that is no longer scanned). A baseline nobody prunes drifts into a
+ * blanket exemption, so a stale entry is a failure too.
+ */
+function diffAgainstBaseline(
+  results: PageResult[],
+  baseline: Baseline
+): { regressions: string[]; stale: string[] } {
+  const regressions: string[] = []
+  const stale: string[] = []
+  const scanned = new Set(results.map((r) => r.page))
+
+  for (const result of results) {
+    // A crashed scan is -1. It must never read as "no violations".
+    if (result.violations < 0) {
+      regressions.push(`${result.page}: the scan itself failed`)
+      continue
+    }
+    const accepted = new Set(baseline.pages[result.page] ?? [])
+    const seen = new Set(result.details.map((v) => v.id))
+    for (const id of seen) {
+      if (!accepted.has(id)) regressions.push(`${result.page}: ${id}`)
+    }
+    for (const id of accepted) {
+      if (!seen.has(id)) stale.push(`${result.page}: ${id} no longer fires — remove it`)
+    }
+  }
+
+  for (const page of Object.keys(baseline.pages)) {
+    if (!scanned.has(page)) stale.push(`${page} is in the baseline but was not scanned`)
+  }
+
+  return { regressions, stale }
+}
+
 async function main() {
-  const [baseUrl, ...pages] = process.argv.slice(2)
+  const argv = process.argv.slice(2)
+  const baselineFlag = argv.indexOf('--baseline')
+  const baselinePath = baselineFlag === -1 ? null : argv[baselineFlag + 1]
+  const positional =
+    baselineFlag === -1 ? argv : [...argv.slice(0, baselineFlag), ...argv.slice(baselineFlag + 2)]
+
+  const [baseUrl, ...pages] = positional
   if (!baseUrl || pages.length === 0) {
-    console.error('Usage: bun tools/a11y-scan.ts <base-url> <page1> <page2> ...')
+    console.error(
+      'Usage: bun tools/a11y-scan.ts [--baseline <file>] <base-url> <page1> <page2> ...'
+    )
     process.exit(1)
   }
 
@@ -180,6 +244,25 @@ async function main() {
 
   // Output JSON results
   console.log(JSON.stringify(allResults, null, 2))
+
+  if (!baselinePath) return
+
+  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline
+  const { regressions, stale } = diffAgainstBaseline(allResults, baseline)
+
+  for (const line of regressions) console.error(`NEW VIOLATION  ${line}`)
+  for (const line of stale) console.error(`STALE BASELINE ${line}`)
+
+  if (regressions.length > 0 || stale.length > 0) {
+    console.error(
+      `\n${regressions.length} new violation(s), ${stale.length} stale baseline entr(y/ies).`
+    )
+    console.error(
+      'A new id is a regression. A stale entry means something was fixed — delete the line.'
+    )
+    process.exit(1)
+  }
+  console.error('a11y: no new violations, and no stale baseline entries.')
 }
 
 main()

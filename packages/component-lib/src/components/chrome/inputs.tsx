@@ -9,6 +9,15 @@
  *
  * Nothing else changes — `Field.tsx` re-exports both, so every existing import
  * still resolves and no rendered markup moves.
+ *
+ * ## Both are `text-base`, and that is a functional requirement
+ *
+ * iOS Safari zooms the viewport whenever a focused form control renders below
+ * 16px. These were `text-sm` (14px), so every tap into a field on an iPhone
+ * yanked the page — on the live sheets, that is most of the app's input. The
+ * rung is therefore not a typographic preference and should not be tuned down
+ * to match a neighbouring label; a control the user types into is the one place
+ * the type ladder has a hard floor.
  */
 
 import type { ComponentPropsWithoutRef } from 'react'
@@ -30,7 +39,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       ref={ref}
       className={cn(
-        'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-muted',
+        'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-base text-ink placeholder:text-wk-muted',
         INPUT_FOCUS,
         className
       )}
@@ -56,7 +65,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       ref={ref}
       rows={rows}
       className={cn(
-        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-muted',
+        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-base text-ink placeholder:text-wk-muted',
         INPUT_FOCUS,
         className
       )}
