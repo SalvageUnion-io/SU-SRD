@@ -86,11 +86,23 @@ const observability = createObservability(
     // at build time (e.g. via an esbuild define) rather than reading it from
     // process.env at runtime.
     release: process.env.COMMIT_REF,
+    surface: 'the itun snapshot Functions',
+    // Netlify env vars carry SCOPES, and this is the one that bites: a variable
+    // added for the client build (as VITE_SENTRY_DSN was) defaults to a scope the
+    // Functions runtime never sees, so the code is correct, the dashboard looks
+    // configured, and every handler still reports nothing.
+    remediation: "the Netlify site's env vars, with the Functions scope enabled",
   }),
   Sentry
 )
 
-/** Initializes Sentry once per cold start, if SENTRY_DSN is configured. */
+/**
+ * Initializes Sentry once per cold start, if SENTRY_DSN is configured.
+ *
+ * When it is not, the shared factory warns to the function log — see
+ * `warnUnconfigured`. That warning exists because this project had received zero
+ * events ever, and nothing distinguished that from having no errors.
+ */
 export function initObservability(): void {
   observability.init()
 }

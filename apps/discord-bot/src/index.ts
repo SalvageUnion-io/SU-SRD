@@ -5,7 +5,12 @@ import { config } from './config.js'
 import { handleInteractionCreate } from './events/interactionCreate.js'
 import { handleReady } from './events/ready.js'
 import { setItunSettings } from './itunSettings.js'
-import { captureException, flushObservability, initObservability } from './observability.js'
+import {
+  captureException,
+  flushObservability,
+  initObservability,
+  stopLivenessHeartbeat,
+} from './observability.js'
 import { setReporter } from './report.js'
 
 // Initialize error tracking as early as possible (no-op without SENTRY_DSN).
@@ -56,6 +61,10 @@ process.on('unhandledRejection', (error) => {
 process.on('uncaughtException', (error) => {
   console.error('Uncaught exception:', error)
   captureException(error, { source: 'uncaughtException' })
+  // Stop claiming to be alive on the way out, before the flush: a heartbeat tick
+  // landing mid-drain would add an event to the buffer being drained, and a
+  // process that is exiting is not one the monitor should hear from.
+  stopLivenessHeartbeat()
   // Flush before exiting — the Sentry transport is async and a synchronous
   // exit would drop the very crash event Render restarts the worker for.
   void flushObservability().finally(() => process.exit(1))

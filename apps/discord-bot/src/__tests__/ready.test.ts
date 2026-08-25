@@ -6,17 +6,46 @@
  * (which throws when DISCORD_TOKEN is unset), so we set the env and import it
  * dynamically after — same pattern as interactionCreate.test.ts.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { ActivityType } from 'discord.js'
 import type { ReadyClient } from '../events/ready.js'
 
 process.env.DISCORD_TOKEN ??= 'test-token'
 process.env.DISCORD_CLIENT_ID ??= 'test-client-id'
 
+/**
+ * Records what `handleReady` asks of observability.
+ *
+ * `mock.module` is process-global in Bun, so the real namespace is captured
+ * BEFORE mocking and restored in `afterAll` — see
+ * `.claude/rules/testing-patterns.md`. The spread is load-bearing: a module
+ * namespace is a live view, so holding it unspread would read as the mock by
+ * the time `afterAll` runs.
+ */
+const observabilityCalls: string[] = []
+let heartbeatIsAlive: (() => boolean) | null = null
+const realObservability = { ...(await import('../observability.js')) }
+
+mock.module('../observability.js', () => ({
+  ...realObservability,
+  startLivenessHeartbeat: (isAlive: () => boolean) => {
+    observabilityCalls.push('startLivenessHeartbeat')
+    heartbeatIsAlive = isAlive
+  },
+}))
+
 let handleReady: typeof import('../events/ready.js').handleReady
 
 beforeAll(async () => {
   ;({ handleReady } = await import('../events/ready.js'))
+})
+
+afterAll(() => {
+  mock.module('../observability.js', () => realObservability)
+})
+
+beforeEach(() => {
+  observabilityCalls.length = 0
 })
 
 // A structural SUPERTYPE of discord.js's PresenceData, so the recording mock
@@ -29,6 +58,7 @@ type PresenceArg = {
 /** Minimal ReadyClient stand-in recording the presence set on login. */
 function mockClient() {
   const presences: PresenceArg[] = []
+  let ready = true
   const client: ReadyClient = {
     user: {
       tag: 'SalvageUnion#0001',
@@ -37,8 +67,15 @@ function mockClient() {
       },
     },
     guilds: { cache: { size: 3 } },
+    isReady: () => ready,
   }
-  return { client, presences }
+  return {
+    client,
+    presences,
+    disconnect: () => {
+      ready = false
+    },
+  }
 }
 
 describe('handleReady', () => {
@@ -51,5 +88,35 @@ describe('handleReady', () => {
       name: 'Salvage Union',
       type: ActivityType.Playing,
     })
+  })
+
+  test('starts the liveness heartbeat, and sends no info event to do it', () => {
+    const { client } = mockClient()
+    handleReady(client)
+
+    // The worker's liveness signal is a Sentry cron monitor, where a MISSED
+    // check-in raises the alert. It used to be `captureMessage('discord-bot
+    // ready')`, which could not alert on a dead worker at all — Sentry fires on
+    // events arriving, never on their absence — and instead accrued into a
+    // permanent error-category issue that had to be archived (SU-DISCORD-1).
+    // Exhaustive by construction: `toEqual` on the whole list is what rules out
+    // an info event, and it can do so because the module no longer exports a
+    // `captureMessage` to send one. A separate "no captureMessage" assertion
+    // would be vacuous — nothing could ever record such a call.
+    expect(observabilityCalls).toEqual(['startLivenessHeartbeat'])
+  })
+
+  test('the heartbeat asks the LIVE client, not a value captured at login', () => {
+    const { client, disconnect } = mockClient()
+    handleReady(client)
+
+    expect(heartbeatIsAlive?.()).toBe(true)
+
+    // Reaching handleReady proves the bot connected once. If the predicate had
+    // closed over that moment, a worker that stays up after losing its gateway
+    // session would report `ok` forever and hold the monitor green through the
+    // exact outage it exists to catch.
+    disconnect()
+    expect(heartbeatIsAlive?.()).toBe(false)
   })
 })
