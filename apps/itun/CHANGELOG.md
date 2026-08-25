@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.15.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.14.1...itun-v1.15.0) (2026-08-25)
+
+
+### Features
+
+* **itun:** complete ADR-034 P4/P4b — every store reaches the server ([#898](https://github.com/SalvageUnion-io/SU-SRD/issues/898)) ([cdd2b33](https://github.com/SalvageUnion-io/SU-SRD/commit/cdd2b33845bae474af7ddb02eb8e78fbbdf4864b))
+
 ## [1.14.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.14.0...itun-v1.14.1) (2026-08-25)
 
 
