@@ -19,7 +19,7 @@ import { makeMemoryStore } from '../lib/db/memoryStore'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { EncounterNpc } from '../lib/schemas/encounterNpc'
 import { EncounterNpcSchema } from '../lib/schemas/encounterNpc'
-import { selectBackend } from './entityBackend'
+import { commitNpcWrite, selectBackend } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice, wireCrossTabInvalidation } from './makeHydratedCollection'
 
@@ -45,6 +45,8 @@ const slice = makeHydratedCollectionSlice<'encounterNpcs', EncounterNpc, Encount
   db: () => (selectBackend() === 'memory' ? memoryNpcs : db.encounterNpcs),
   storeName: STORE_NAMES.encounterNpcs,
   shouldBroadcast: () => selectBackend() !== 'memory',
+  /** The per-write mirror (ADR-034 P4b) — see `patternStore` for why. */
+  commit: commitNpcWrite,
 })
 
 export const useEncounterStore = create<EncounterState>((set, get) => ({

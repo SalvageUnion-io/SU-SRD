@@ -24,6 +24,7 @@
 import { recordDataWrite } from '../lib/backupNudge'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import type { StoreName } from '../lib/db/stores'
+import { requireWritableBackend } from './entityBackend'
 
 type DbCollection<T, CreateInput> = {
   list: () => Promise<T[]>
@@ -98,6 +99,21 @@ type SliceConfig<K extends string, T, CreateInput> = {
    * nothing.
    */
   shouldBroadcast?: () => boolean
+  /**
+   * Mirror one write to the server of record, BEFORE it touches disk.
+   *
+   * Optional only so a collection with no server table keeps working; every
+   * collection that has one must pass it. Without this the slice was purely
+   * local, which is how `mechPatterns` and `encounterNpcs` spent P4b reaching
+   * Convex through exactly one path — the bulk `claimLocal` at sign-in — while
+   * every write after that lived only in the browser that made it.
+   *
+   * Awaited and allowed to throw, matching `entityStore`'s server-first order:
+   * a cache cannot legitimately be ahead of its source, so a write the server
+   * refused did not happen. The alternative — fire-and-forget with a swallowed
+   * warning — is the exact shape that lost an evening of play before ADR-034.
+   */
+  commit?: (op: { kind: 'upsert'; record: T } | { kind: 'delete'; id: string }) => Promise<void>
 }
 
 type SetLike = (partial: object | ((state: never) => object)) => void
@@ -112,7 +128,7 @@ export function makeHydratedCollectionSlice<
   T extends { id: string },
   CreateInput,
 >(config: SliceConfig<K, T, CreateInput>) {
-  const { key, db, storeName, shouldBroadcast } = config
+  const { key, db, storeName, shouldBroadcast, commit } = config
 
   function afterWrite(): void {
     if (shouldBroadcast === undefined || shouldBroadcast()) publishStoreChange(storeName)
@@ -184,20 +200,43 @@ export function makeHydratedCollectionSlice<
       },
 
       async create(input) {
+        requireWritableBackend()
+        // Server first. `prepareCreate` is not available on this seam, so the
+        // record is built locally and committed before it is announced — the
+        // ordering that matters (nothing local survives a refusal) still holds,
+        // because a throw here aborts before `set`.
         const record = await db().create(input)
+        if (commit !== undefined) {
+          try {
+            await commit({ kind: 'upsert', record })
+          } catch (err) {
+            // The local row already landed, so undo it rather than leave the
+            // cache ahead of the server — the one state ADR-034 forbids.
+            await db()
+              .delete((record as { id: string }).id)
+              .catch(() => {})
+            throw err
+          }
+        }
         set({ [key]: [record, ...records()] })
         afterWrite()
         return record
       },
 
       async update(id, patch) {
+        requireWritableBackend()
         const updated = await db().update(id, patch)
+        if (commit !== undefined) await commit({ kind: 'upsert', record: updated })
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
         afterWrite()
         return updated
       },
 
       async delete(id) {
+        requireWritableBackend()
+        // Committed BEFORE the local delete, like `entityStore.delete`: once the
+        // row is gone there is nothing left to address it by.
+        if (commit !== undefined) await commit({ kind: 'delete', id })
         await db().delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
         afterWrite()

@@ -27,12 +27,13 @@
 
 import { create } from 'zustand'
 import { recordDataWrite } from '../lib/backupNudge'
-import { moveTo } from '../lib/container'
+import { containerOf, moveTo } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
 import { makeMemoryStore } from '../lib/db/memoryStore'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
+import { captureException } from '../lib/observability'
 import type { ChangeLogKind } from '../lib/schemas/changeLog'
 import type { Crawler } from '../lib/schemas/crawler'
 import { CrawlerSchema } from '../lib/schemas/crawler'
@@ -44,6 +45,7 @@ import type { SoftLink } from '../lib/schemas/softLink'
 import { SoftLinkSchema } from '../lib/schemas/softLink'
 import { getActiveContainer } from './activeContainerStore'
 import {
+  commitChangeLog,
   commitEntityWrite,
   commitSoftLink,
   requireWritableBackend,
@@ -245,18 +247,45 @@ async function emitChangeLog<T extends EntityType>(
     if (changes.length === 0) return
     const ts = Date.now()
     const { kind, source } = meta
-    await db.changeLog.append(
-      changes.map((c) => ({
-        entityType: type,
-        entityId: id,
-        ts,
-        kind,
-        field: c.field,
-        before: c.before,
-        after: c.after,
-        source,
-      }))
-    )
+    const rows = changes.map((c) => ({
+      entityType: type,
+      entityId: id,
+      ts,
+      kind,
+      field: c.field,
+      before: c.before,
+      after: c.after,
+      source,
+    }))
+    await db.changeLog.append(rows)
+
+    // Mirror to the server of record (ADR-034 P4b). Until this existed the log
+    // was TWO disconnected spines: this function terminated at IndexedDB, while
+    // the Convex table was written only by `ownership`, `proposals` and
+    // `botClient` — so each drawer showed half the history, and clearing site
+    // data destroyed the client half outright.
+    //
+    // `gameId` comes from the entity's own container, so a row logged against a
+    // build inside a Game is filed with that Game and the crew can see it.
+    // A soft link has no container of its own — it is addressed by its
+    // endpoints, and `ContainerFields` does not apply to it — so it files
+    // against the shelf. For everything else `containerOf` is a discriminated
+    // union whose shelf arm carries no gameId, which is exactly the `null` the
+    // server column expects.
+    const gameId =
+      type === 'softLink'
+        ? null
+        : (() => {
+            const container = containerOf(after as Parameters<typeof containerOf>[0])
+            return container.kind === 'game' ? container.gameId : null
+          })()
+    void commitChangeLog(rows.map((r) => ({ ...r, gameId }))).catch((err: unknown) => {
+      // Not fatal, and deliberately so: this is provenance ABOUT a write that
+      // has already landed and already committed. Failing the user's edit
+      // because its audit row did not arrive would trade the write for the
+      // record of it.
+      captureException(err)
+    })
   } catch (err) {
     console.warn('[itun-store] change-log append failed', err)
   }
@@ -760,6 +789,21 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // (deleteEntityWithSoftLinks) so a crash/error can never leave orphaned
     // links or a half-applied delete — it is all-or-nothing on disk.
     if (type !== 'softLink') {
+      // Commit the cascaded link deletes BEFORE the local transaction, and read
+      // them first: a link is addressed on the server by its endpoints, so once
+      // `deleteEntityWithSoftLinks` has run there is nothing left to name them
+      // by. This is the same ordering `delete()` already uses for the entity
+      // itself, one line above.
+      //
+      // Without this the cascade was local-only. `listMine` returns no
+      // `softLinks`, so nothing reconciled them either — a mech deleted on one
+      // device left its pilot link alive on the server forever, and a later
+      // adopt could resurrect a link to an entity that no longer exists.
+      for (const link of get().list('softLink')) {
+        if (link.from?.id !== id && link.to?.id !== id) continue
+        await commitSoftLink('delete', link)
+      }
+
       const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
       if (prunedIds.length > 0) {
         const pruned = new Set(prunedIds)
