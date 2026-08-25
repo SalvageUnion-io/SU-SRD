@@ -58,27 +58,27 @@ export class LazyModel<T> extends BaseModel<T> {
     return this._backing
   }
 
-  all(): (T & { schemaName: string })[] {
+  override all(): (T & { schemaName: string })[] {
     return this._loadedBacking().all()
   }
 
-  find(predicate: (item: T) => boolean): (T & { schemaName: string }) | undefined {
+  override find(predicate: (item: T) => boolean): (T & { schemaName: string }) | undefined {
     return this._loadedBacking().find(predicate)
   }
 
-  findAll(predicate: (item: T) => boolean): (T & { schemaName: string })[] {
+  override findAll(predicate: (item: T) => boolean): (T & { schemaName: string })[] {
     return this._loadedBacking().findAll(predicate)
   }
 
-  getById(id: string): (T & { schemaName: string }) | undefined {
+  override getById(id: string): (T & { schemaName: string }) | undefined {
     return this._loadedBacking().getById(id)
   }
 
-  getByName(name: string): (T & { schemaName: string }) | undefined {
+  override getByName(name: string): (T & { schemaName: string }) | undefined {
     return this._loadedBacking().getByName(name)
   }
 
-  getBySlug(slug: string): (T & { schemaName: string }) | undefined {
+  override getBySlug(slug: string): (T & { schemaName: string }) | undefined {
     return this._loadedBacking().getBySlug(slug)
   }
 }
