@@ -276,6 +276,87 @@ export async function commitEntityWrite(
  * naturally idempotent, so a repeated write is a no-op rather than a duplicate
  * wire.
  */
+/**
+ * Mirror a batch of Change Log rows.
+ *
+ * The log is ADR-030's "spine of this feature", and it was two disconnected
+ * spines: the client appended only to IndexedDB while the server table was
+ * written only by `ownership`, `proposals` and `botClient`. Each drawer showed
+ * half the history, and clearing site data destroyed the client half because
+ * Convex held no copy of it.
+ *
+ * Deliberately NOT awaited by its caller, unlike every other commit in this
+ * file. The log is provenance ABOUT a write that has already happened and been
+ * committed; failing the user's edit because its audit row did not land would
+ * trade a real write for a record of one. It reports and moves on — which is
+ * the fire-and-forget shape ADR-034 removed everywhere else, kept here only
+ * because the thing at risk is the annotation rather than the data.
+ */
+export async function commitChangeLog(
+  entries: readonly {
+    gameId: string | null
+    entityType: 'pilot' | 'mech' | 'crawler' | 'softLink' | 'game'
+    entityId: string
+    ts: number
+    kind: 'transaction' | 'override' | 'manual'
+    field: string
+    before: unknown
+    after: unknown
+    source: string
+  }[]
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+  if (entries.length === 0) return
+
+  await convexClient.mutation(api.entities.appendChangeLog, {
+    entries: entries.map((e) => ({
+      ...e,
+      gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
+    })),
+  })
+}
+
+/**
+ * Mirror one saved-pattern write.
+ *
+ * Addressed by the id inside the body rather than by an `appId` column, because
+ * `mechPatterns` has none and needs none — a pattern's own id already is its app
+ * id, which makes the upsert idempotent.
+ *
+ * Same early return as every other commit here: in Solo or anonymous mode there
+ * is no server of record to reach, and this is a no-op rather than an error.
+ */
+export async function commitPatternWrite(
+  op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  if (op.kind === 'delete') {
+    await convexClient.mutation(api.entities.removeMechPattern, { patternId: op.id })
+    return
+  }
+  await convexClient.mutation(api.entities.upsertMechPattern, { body: op.record })
+}
+
+/**
+ * Mirror one shelf-NPC write.
+ *
+ * Shelf only. A tray inside a Game belongs to the table rather than to a member
+ * and is reached through `mediator.*` by the Mediator's role; this store holds
+ * the personal tray, which is the one that had no server write at all.
+ */
+export async function commitNpcWrite(
+  op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  if (op.kind === 'delete') {
+    await convexClient.mutation(api.entities.removeEncounterNpc, { npcId: op.id })
+    return
+  }
+  await convexClient.mutation(api.entities.upsertEncounterNpc, { body: op.record })
+}
+
 export async function commitSoftLink(
   kind: 'upsert' | 'delete',
   link: SoftLink | null

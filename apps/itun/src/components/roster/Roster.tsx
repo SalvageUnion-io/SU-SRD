@@ -43,7 +43,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
 import type { SoftLink } from '../../lib/schemas/softLink'
-import { ensureStarterSetSeeded, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
+import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { cn } from '../../lib/utils'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
@@ -301,7 +301,11 @@ export function Roster() {
   const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
 
   /**
-   * Spawn the built-in Starter Set onto the Shelf (idempotent, opt-in).
+   * Copy the built-in Starter Set into this account (idempotent, opt-in).
+   *
+   * The templates are reference data that belong to nobody; this makes a copy
+   * the player owns, through the ordinary create path so it reaches the server
+   * of record like anything else they build.
    *
    * `isStarterSetSeeded` reads the entity store, so it re-evaluates on the
    * rehydrate the seed performs — the button disappears on its own once the
@@ -312,7 +316,7 @@ export function Roster() {
   async function handleLoadStarterSet() {
     setSeedingStarter(true)
     try {
-      await ensureStarterSetSeeded()
+      await copyStarterSetToRoster()
     } finally {
       setSeedingStarter(false)
     }

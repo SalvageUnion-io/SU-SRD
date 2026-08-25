@@ -62,7 +62,9 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
 import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
 import { captureException } from '../../lib/observability'
+import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
 import type { MechPattern } from '../../lib/schemas/pattern'
+import { useEncounterStore } from '../../stores/encounterStore'
 import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
@@ -93,7 +95,7 @@ function ConnectedShelfSync() {
     // seriously no prune, leaving a row that was deleted on another device
     // cached here forever and looking like it still exists.
     const stamp = JSON.stringify(
-      [mine.pilots, mine.mechs, mine.crawlers, mine.mechPatterns].map((rows) =>
+      [mine.pilots, mine.mechs, mine.crawlers, mine.mechPatterns, mine.encounterNpcs].map((rows) =>
         (rows as Row[])
           .map((r) => (r.body as { id?: unknown } | null)?.id)
           .filter((id): id is string => typeof id === 'string')
@@ -147,7 +149,19 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Patterns are deliberately NOT pruned below. The prune answers "the
+      // The NPC tray, same shape and same reason. `listMine` returns it now;
+      // before that it was written by `claimLocal` and `games.destroy` and read
+      // back by nothing, so a claimed tray went up and never came down.
+      const npcs = useEncounterStore.getState()
+      for (const row of mine.encounterNpcs as { body: unknown }[]) {
+        try {
+          await npcs.adopt(row.body as EncounterNpc)
+        } catch (err) {
+          captureException(err)
+        }
+      }
+
+      // Patterns and NPCs are deliberately NOT pruned below. The prune answers "the
       // server did not return this, so it was deleted elsewhere", and that
       // inference is only sound for rows this sync is authoritative over.
       // Adopting them is what the bug was; deleting them is a separate decision

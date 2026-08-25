@@ -58,9 +58,6 @@
  */
 
 import { useEntityStore } from '../../stores/entityStore'
-import type { AtomicWriteOp } from '../db'
-import { atomicWrite } from '../db'
-import { STORE_NAMES } from '../db/stores'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from './starterSet'
 
 /** Every template row that carries a `seedRef`, by the slug it is known by. */
@@ -97,92 +94,112 @@ export function isStarterSetSeeded(): boolean {
 }
 
 /**
- * Spawn the Starter Set roster into this browser. No-op when it is already
- * fully present; when it is partly present, writes only what is missing.
+ * Copy the Starter Set into this account as ordinary personal records.
+ *
+ * **The templates are REFERENCE data, not a roster.** They ship with the app and
+ * belong to nobody; this turns a copy of them into records the player owns, the
+ * same as anything they build themselves. Idempotent: rows already copied here
+ * (identified by `seedRef`) are skipped, so a second press adds nothing.
+ *
+ * ## Why this stopped being a bulk `atomicWrite`
+ *
+ * It used to write the whole set straight to IndexedDB in one transaction —
+ * no `requireWritableBackend()`, no commit, bypassing `dbStoreFor` entirely.
+ * Under ADR-034 that produced three separate wrongs:
+ *
+ *   - signed in, the rows were shelf records the server had never seen, so
+ *     `ShelfSync` correctly read them as "deleted elsewhere" and **pruned the
+ *     Starter Set away** on the next sync;
+ *   - anonymous under `VITE_REQUIRE_ACCOUNT` it wrote durably to disk while
+ *     `rehydrate` read the in-memory store, so the copy simply never appeared;
+ *   - Disconnected it wrote regardless, which read-only is supposed to forbid.
+ *
+ * Routing every row through `entityStore.create` fixes all three at once: that
+ * path refuses when writes are blocked, picks the right backend, and commits to
+ * the server of record before touching disk.
+ *
+ * ## Ids come from the store, not from the template
+ *
+ * `create` mints its own id, which is why the entities are copied first and the
+ * soft links built afterwards from what came back. That is simpler than the old
+ * pre-computed remap AND safer: a link can only ever be built from an id that
+ * really landed, so a dangling endpoint is unrepresentable rather than merely
+ * guarded against.
  */
-export async function ensureStarterSetSeeded(): Promise<void> {
+export async function copyStarterSetToRoster(): Promise<void> {
   const store = useEntityStore.getState()
   await Promise.all(
     (['pilot', 'mech', 'crawler', 'softLink'] as const).map((t) => store.hydrate(t))
   )
 
   const present = seededRefs()
-  if (STARTER_SEED_REFS.every((ref) => present.has(ref))) return
 
-  /*
-   * Template slug → the id this device will actually store it under.
-   *
-   * Built for the whole roster, not just the rows being written, because the
-   * soft links have to resolve endpoints that may already be here from an
-   * earlier partial seed — under whatever id *that* seed gave them.
-   */
-  const idFor = new Map<string, string>()
+  /** Template id → the id this account actually stored the copy under. */
+  const copiedId = new Map<string, string>()
   for (const row of [...store.list('pilot'), ...store.list('mech'), ...store.list('crawler')]) {
     const ref = seedRefOf(row)
-    if (ref !== undefined) idFor.set(ref, row.id)
-  }
-  for (const ref of STARTER_SEED_REFS) {
-    if (!idFor.has(ref)) idFor.set(ref, crypto.randomUUID())
+    if (ref !== undefined) copiedId.set(ref, row.id)
   }
 
-  const put = (storeName: string, record: object): AtomicWriteOp => ({
-    op: 'put',
-    storeName,
-    record: record as { id: string },
-  })
+  const kinds = [
+    ['pilot', STARTER_PILOTS],
+    ['mech', STARTER_MECHS],
+    ['crawler', STARTER_CRAWLERS],
+  ] as const
 
-  /** A template row, restamped with this device's id and its provenance. */
-  const spawn = <T extends { id: string }>(row: T): T & { seedRef: string } => ({
-    ...row,
-    id: idFor.get(row.id) as string,
-    seedRef: row.id,
-  })
-
-  const writes: AtomicWriteOp[] = [
-    ...STARTER_PILOTS.filter((r) => !present.has(r.id)).map((r) =>
-      put(STORE_NAMES.pilots, spawn(r))
-    ),
-    ...STARTER_MECHS.filter((r) => !present.has(r.id)).map((r) => put(STORE_NAMES.mechs, spawn(r))),
-    ...STARTER_CRAWLERS.filter((r) => !present.has(r.id)).map((r) =>
-      put(STORE_NAMES.crawlers, spawn(r))
-    ),
-  ]
+  for (const [type, rows] of kinds) {
+    for (const row of rows) {
+      if (present.has(row.id)) continue
+      // `id`/`createdAt`/`updatedAt` are the store's to mint — a copy is a NEW
+      // record, and reusing the template id would put one id in two accounts.
+      // `seedRef` keeps the provenance, which is what it is for.
+      const {
+        id: templateId,
+        createdAt: _c,
+        updatedAt: _u,
+        ...rest
+      } = row as Record<string, unknown> & {
+        id: string
+        createdAt?: unknown
+        updatedAt?: unknown
+      }
+      const created = await store.create(type, {
+        ...rest,
+        seedRef: templateId,
+      } as never)
+      copiedId.set(templateId, created.id)
+    }
+  }
 
   /*
-   * Links are rebuilt against the remapped endpoints, and skipped when either
-   * end is missing from the map — the same rule `mergeImport` follows, and for
-   * the same reason: a link to an id that is not here is a dangling reference,
-   * which is worse than an absent link.
+   * Deduped by ENDPOINTS, not by id.
    *
-   * Their own ids stay derived from the endpoints rather than random, so a
-   * re-seed cannot lay down a second copy of a link that is already here. A
-   * soft link has no independent identity — it *is* its endpoints — and those
-   * are now device-unique, so the derived id is too.
+   * The old writer derived a stable id (`starter-link-<type>-<from>-<to>`) and
+   * skipped on that. `create` mints its own id, so a derived one never matches
+   * anything actually stored and every call laid down a second full set of
+   * links — caught by the existing idempotence test, which is exactly what it
+   * is for.
+   *
+   * Endpoints are the better key regardless: a soft link has no independent
+   * identity, it IS its endpoints, so this cannot drift from what uniqueness
+   * actually means here.
    */
-  const existingLinkIds = new Set(store.list('softLink').map((l) => l.id))
-  for (const link of STARTER_SOFT_LINKS) {
-    const from = idFor.get(link.from.id)
-    const to = idFor.get(link.to.id)
-    if (from === undefined || to === undefined) continue
-    const id = `starter-link-${link.type}-${from}-${to}`
-    if (existingLinkIds.has(id)) continue
-    writes.push(
-      put(STORE_NAMES.softLinks, {
-        ...link,
-        id,
-        from: { ...link.from, id: from },
-        to: { ...link.to, id: to },
-      })
-    )
-  }
-
-  if (writes.length === 0) return
-  await atomicWrite(writes)
-
-  // Reflect the newly-written rows in memory so the roster renders them.
-  await Promise.all(
-    (['pilot', 'mech', 'crawler', 'softLink'] as const).map((t) =>
-      useEntityStore.getState().rehydrate(t)
-    )
+  const linkKey = (type: string, from: string, to: string) => `${type}|${from}|${to}`
+  const existingLinks = new Set(
+    store.list('softLink').map((l) => linkKey(l.type, l.from.id, l.to.id))
   )
+  for (const link of STARTER_SOFT_LINKS) {
+    const from = copiedId.get(link.from.id)
+    const to = copiedId.get(link.to.id)
+    // A link to an id that is not here is a dangling reference, which is worse
+    // than an absent link — the same rule `mergeImport` follows.
+    if (from === undefined || to === undefined) continue
+    if (existingLinks.has(linkKey(link.type, from, to))) continue
+    await store.create('softLink', {
+      ...link,
+      from: { ...link.from, id: from },
+      to: { ...link.to, id: to },
+    } as never)
+    existingLinks.add(linkKey(link.type, from, to))
+  }
 }
