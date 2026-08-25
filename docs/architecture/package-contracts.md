@@ -428,7 +428,7 @@ When modifying shared packages, follow this checklist:
 
 ### 3. After any cross-package change
 
-- [ ] Full CI gate: `bun run check:all` (lint, format, typecheck, test, validate)
+- [ ] Full CI gate: `bun run check` (lint, format, typecheck, test, validate)
 - [ ] Check consuming apps for regressions if shared types or components changed
 
 ### Build Order
@@ -439,10 +439,10 @@ When modifying shared packages, follow this checklist:
 3. bun run build:web / build:itun (app builds, if needed)
 ```
 
-The `check:all` script handles this ordering automatically.
+The `check` script handles this ordering automatically.
 
 ---
 
 ## Maintenance
 
-When making structural changes (new packages, new exports, dependency changes), update this document and the relevant `.claude/rules/` files. Run `bun run check:all` to verify nothing broke.
+When making structural changes (new packages, new exports, dependency changes), update this document and the relevant `.claude/rules/` files. Run `bun run check` to verify nothing broke.

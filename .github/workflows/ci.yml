@@ -409,7 +409,7 @@ jobs:
       #     AND THE WATCH LIST IS MANUAL BELOW `high` — know this before trusting
       #     it. `check:audit` is `bun audit --audit-level=high`, so a MODERATE
       #     advisory landing on any of those five fails nothing: not this job, not
-      #     `check:all`, not a pre-push hook. That is precisely the class these
+      #     `check`, not a pre-push hook. That is precisely the class these
       #     packages draw (ReDoS), and the class the dropped `nanoid` floor was
       #     originally added for (GHSA-2v37-7h3g-55p8). Nothing anywhere runs a
       #     bare `bun audit`, so a silent caret step-down onto a moderate-advisory

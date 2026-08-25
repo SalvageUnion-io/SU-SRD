@@ -185,7 +185,7 @@ One PR, pixel-safe where possible:
 
 ## 4. Migration phases
 
-Each phase is independently shippable; `bun run check:all` + per-surface
+Each phase is independently shippable; `bun run check` + per-surface
 screenshots gate anything with a visible delta.
 
 0. **Foundations** — the `theme.css` changes in §3. Mostly token wiring.
@@ -209,7 +209,7 @@ screenshots gate anything with a visible delta.
 5. **Containers** — Modal, Tooltip (SeamStamp title), Toast, EmptyState,
    Skeleton, Tabs, Divider, SlotGrid, InlineRef, Icons to the same discipline.
 6. **Guardrails** — ✅ **BUILT** as `bun run check:tokens`
-   (`tools/check-design-tokens.ts`), wired into `check:all` and pre-push.
+   (`tools/check-design-tokens.ts`), wired into `check` and pre-push.
    Seven rules, each citing the ruleset section it enforces: shadow tokens, raw
    hex/rgb, gradients, arbitrary tracking, arbitrary border widths, arbitrary
    font sizes, pure white. Sanctioned literals live in an `EXEMPTIONS` table

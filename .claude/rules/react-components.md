@@ -76,7 +76,7 @@ Inside an app:
 app must not declare an `@theme` block or define a `--color-*` / `--text-*` /
 `--tracking-*` / `--bw-*` / `--radius-*` / `--font-*` / `--shadow-*` token.
 `tools/check-styling-ownership.ts` (rule `app-theme`) fails on it, and it runs
-in `check:all` and at **pre-push** via lefthook — so a violation surfaces late,
+in `check` and at **pre-push** via lefthook — so a violation surfaces late,
 after the code is written.
 
 There is exactly one exemption, listed in that file: the

@@ -34,6 +34,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a TypeScript monorepo with shared packages (component-lib, etc.). After any cross-package changes, always run typecheck, tests, and lint before considering a task complete. When modifying shared components, check all consuming apps for regressions (especially Tailwind @source paths and import changes).
 
+**`bun run check` is the full-check entry point** — the one command that runs everything (schema drift, lint, format, typecheck, tests, data validation, knip, audit, tokens, styling, CI aggregator gate, srd output gate), and the same spelling as the other repos in this fleet. `bun run check:fast` is the ~12s inner-loop subset. `check:all` remains as a thin alias for `check` for one release cycle and will then be removed; don't add new callers of it.
+
 ### Root Dev Dependencies (Intentional)
 
 - **`playwright`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code. It is a _root_ dependency because that scanner lives in `tools/`, outside any workspace; the apps depend on `@playwright/test` separately for their e2e suites. This replaced `puppeteer-core`, which shipped no browser and had to borrow Playwright's Chromium — one browser stack now, not two.
@@ -103,7 +105,7 @@ cooldown"), where a floor would have errored. So if `bun audit` ever reports
 to restore that package's floor — not to hunt for a new consumer.
 
 **That watch list is manual below `high`.** `check:audit` gates at
-`--audit-level=high`, and nothing in `check:all`, CI or the pre-push hook runs a
+`--audit-level=high`, and nothing in `check`, CI or the pre-push hook runs a
 bare `bun audit` — so a *moderate* advisory on any of those five (the ReDoS
 class they actually draw) fails nothing and is caught only by running
 `bun audit` by hand. The `high` gate is unaffected.
@@ -282,12 +284,16 @@ bun --filter itun test         # Test ITUN app only
 # Code quality
 bun run check:fast       # ~12s inner loop: lint + validate:all + knip (parallel),
                          # then typecheck. THE "did I break anything" command —
-                         # reach for this while iterating, not check:all.
+                         # reach for this while iterating, not check.
 bun run lint             # Lint all packages (Biome)
 bun run format           # Format all packages (Biome — the ONLY formatter; .md/.yml are formatted by nothing)
 bun run typecheck        # TypeScript check all packages
-bun run check:all        # Full CI check (adds format, test, audit, tokens, styling,
-                         # schema-drift). ~35s — run before pushing, not per-edit.
+bun run check            # THE full-check entry point — the one command that runs
+                         # everything (adds format, test, audit, tokens, styling,
+                         # ci-aggregator, schema-drift). ~35s — run before
+                         # pushing, not per-edit.
+                         # `check:all` is a deprecated alias kept for one release
+                         # cycle; new callers use `check`.
 
 # Regenerate JSON schemas from Zod (the package ships TypeScript source — no compile step)
 bun run build:package
@@ -304,7 +310,7 @@ bun run reap             # Dry-run: list abandoned .claude/worktrees/ checkouts
 bun run validate:all     # Check IDs, cross-references, action references
 bun run validate:ids     # Unique ID check only
 
-# Local-only diagnostics — deliberately NOT in check:all or CI. These read the
+# Local-only diagnostics — deliberately NOT in check or CI. These read the
 # copyright-bearing PDFs in rules/, which are gitignored and absent in CI, so
 # there they would be a check that passes by doing nothing. Each no-ops with a
 # notice and exit 0 when the extract is missing. Advisory: read the findings,
@@ -489,7 +495,7 @@ terminal and the transcript — the exact thing this section exists to avoid.
 `--cpu-prof-interval` tightens the 1000µs default sampling when a hot path is
 too short to sample. (It is real but undocumented — it appears in `bun --help`
 for 1.3.14, not in the bundled markdown docs, so don't "correct" it away.) These
-are diagnostics: nothing in `check:all` or CI runs them, and they should not be
+are diagnostics: nothing in `check` or CI runs them, and they should not be
 wired in.
 
 ### Pre-commit Hooks (Lefthook)
