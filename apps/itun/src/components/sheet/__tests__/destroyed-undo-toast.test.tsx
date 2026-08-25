@@ -94,9 +94,19 @@ describe('MechSheet — destroyed-undo toast (U-6)', () => {
     expect(captured.length).toBe(1)
     expect(must(captured[0]).patch.systemConditions?.[SYSTEM_SLUG]).toBe('destroyed')
 
-    // Toast with an Undo action fired — scope the Undo lookup to THIS toast
-    // (sonner state is global; other toasts must never satisfy the assertion).
-    const toastText = await screen.findByText(/marked Destroyed/i)
+    // Toast with an Undo action fired — scope BOTH lookups to THIS toast.
+    //
+    // sonner's toast store is module-global and survives Testing Library's
+    // `cleanup()`, so toasts raised by earlier tests are still mounted when this
+    // one runs. The Undo lookup was already scoped for that reason; the text
+    // lookup was not, and matched on the generic `/marked Destroyed/i`.
+    //
+    // Under sonner 2.0.8 that started failing for real: an earlier test's
+    // ".50 Cal Machine Gun marked Destroyed" toast was still on screen, so
+    // `findByText` matched two elements and threw "Found multiple elements"
+    // — nothing to do with the assertion this test exists to make. Matching on
+    // the item this test actually destroyed cannot collide with another test's.
+    const toastText = await screen.findByText(new RegExp(`${SYSTEM_SLUG} marked Destroyed`, 'i'))
     const toastEl = toastText.closest('[data-sonner-toast]') as HTMLElement
     const undoBtn = within(toastEl).getByRole('button', { name: /undo/i })
 
