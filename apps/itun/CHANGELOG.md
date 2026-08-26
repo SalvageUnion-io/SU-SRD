@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.16.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.15.1...itun-v1.16.0) (2026-08-26)
+
+
+### Features
+
+* **itun:** render a per-snapshot og:image for shared sheets (L10) ([#909](https://github.com/SalvageUnion-io/SU-SRD/issues/909)) ([2a697e3](https://github.com/SalvageUnion-io/SU-SRD/commit/2a697e34ad568fdf122fedc4602f1c1f92c36710))
+
 ## [1.15.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.15.0...itun-v1.15.1) (2026-08-25)
 
 
