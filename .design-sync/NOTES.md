@@ -147,6 +147,30 @@ ground behind the chassis.
   fixed/portal positioning (→ `"single"`). Both are set in `overrides`; a rebuild
   clears the warning. Column mode also re-flags nothing by construction.
 
+## Capture limits, measured
+
+- **`EntitySearcher` cannot render a large schema under capture.** Entity cards
+  emit a responsive `srcSet` of REMOTE candidates (`CardImage` +
+  `cardImageSizes`), so a pool of 82 equipment cards fans out to several hundred
+  image requests and the capture browser dies outright — `page.setViewportSize:
+  Target page, context or browser has been closed`, reproducibly, at every
+  viewport tried (1200x1400 → 1000x900) and in both `column` and `single` card
+  modes. Chassis is worse still: it carries the heaviest artwork in the set.
+  The preview therefore searches `crawler-bays` (14) and `crawlers` (5), both
+  real uses of the identical configuration — the story itself names Change
+  Crawler Type alongside Change Chassis. **Do not "restore" equipment/chassis
+  here without re-checking that it captures**; it silently takes the whole
+  validate run down with a `root empty` that looks like a render bug.
+- **`package-capture.mjs` over all 94 at once hangs.** It stalled at 39/94 with
+  no output and no further file writes. Scoped batches of ~12 are reliable;
+  batches of ~24 occasionally report transient errors that clear on a re-run of
+  the same set in smaller groups. Prefer `--components` batches.
+- **`write_files` drops the socket on large payloads.** A 60-file batch
+  containing `_ds_bundle.js` (3.5 MB) fails with `socket hang up` / `Socket is
+  closed`. Upload the bundle ALONE, and keep other batches at ~24-30 files. The
+  failure is transient and the connection recovers — `list_files` right after
+  confirms project state before retrying.
+
 ## Re-sync risks
 
 - **Everything under "two artifacts are generated" is gitignored.** A fresh
@@ -168,6 +192,13 @@ ground behind the chassis.
   dataset), and they have no `label` field. `Content`'s cells collect blocks by
   type across schemas for this reason — a single entity is a wall of paragraphs
   (2003 paragraph blocks vs 17 headings, 15 hints, 7 flavor, 4 label).
+- **main moves under a long run.** This sync started at `5aa69088` and main had
+  advanced ~20 files in `component-lib/src` + the ORM by the time it finished —
+  including `index.ts`, `ReferenceEntityCard` (+124), `index.css` (+149) and the
+  new `CardImage` srcSet. The uploaded bundle was stale until it was rebuilt on
+  the rebased HEAD. **Rebase and rebuild before the final upload**, and re-run
+  validate: that rebuild is what surfaced the EntitySearcher capture limit
+  above, which did not exist on the older tree.
 - **Write-layer stories were deliberately not ported.** `ReferenceEntityCard`'s
   selection / status-cycle / stat-stepper / multi-select stories are all live
   `useState` interactions that a still card cannot show. If those become

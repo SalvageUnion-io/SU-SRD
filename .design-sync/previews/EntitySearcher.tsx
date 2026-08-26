@@ -1,4 +1,14 @@
-/* Ported from packages/component-lib/src/components/shared/EntitySearcher.stories.tsx. */
+/*
+ * Ported from packages/component-lib/src/components/shared/EntitySearcher.stories.tsx.
+ *
+ * The multi-select cell searches `crawler-bays` (14 entities) rather than the
+ * story's `equipment` (82). Not a stylistic choice: entity cards gained a
+ * responsive `srcSet` of remote candidates, so 82 cards fan out to several
+ * hundred image requests and the capture browser dies outright ("Target page,
+ * context or browser has been closed") — reproducibly, at every viewport tried.
+ * A smaller real schema is a faithful use of the same picker; an uncapturable
+ * cell is not.
+ */
 import { Button, EntitySearcher } from 'component-lib'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../preview-lib/harness'
@@ -15,14 +25,14 @@ import { Caption } from '../preview-lib/harness'
 export function MultiSelect() {
   return (
     <div className="flex flex-col gap-3 bg-paper p-4">
-      <Caption>multi-select over equipment — nothing chosen yet</Caption>
+      <Caption>multi-select over crawler bays — nothing chosen yet</Caption>
       <div className="mx-auto w-full max-w-5xl">
         <EntitySearcher
-          schema="equipment"
+          schema="crawler-bays"
           selected={[]}
           onToggle={() => {}}
           chosenLabel="Chosen"
-          title="Choose Equipment"
+          title="Choose a Bay"
           onClose={() => {}}
         />
       </div>
@@ -31,36 +41,39 @@ export function MultiSelect() {
 }
 
 /**
- * `mode="single"` — the exactly-one picker, over the largest entity in the data.
- * This is what the Change Chassis and Change Crawler Type modals render: a
- * `radiogroup` pool, one Chosen entry in the rail, and the picker's actions
- * pinned beneath it. `hide.patterns` drops a section the picker cannot act on.
+ * `mode="single"` — the exactly-one picker: a `radiogroup` pool, one Chosen
+ * entry in the rail, and the picker's actions pinned beneath it.
+ *
+ * The story names two canonical single-select flows, Change Chassis and Change
+ * Crawler Type, and renders the first. This uses the second, for the same
+ * capture reason as the multi-select cell above: chassis carry the heaviest
+ * artwork in the dataset, and that pool alone reproducibly kills the capture
+ * browser. Crawler Type is an equally real use of the identical configuration.
  */
 export function SingleSelect() {
-  const first = nameToSlug(SalvageUnionReference.Chassis.all()[0]?.name ?? '')
+  const first = nameToSlug(SalvageUnionReference.Crawlers.all()[0]?.name ?? '')
   return (
     <div className="flex flex-col gap-3 bg-paper p-4">
-      <Caption>single-select over chassis — one chosen, actions pinned</Caption>
+      <Caption>single-select over crawler types — one chosen, actions pinned</Caption>
       <div className="mx-auto w-full max-w-5xl">
         <EntitySearcher
-          schema="chassis"
+          schema="crawlers"
           mode="single"
           selected={first ? [first] : []}
           onToggle={() => {}}
           idOf={(item: { name: string }) => nameToSlug(item.name)}
-          hide={{ patterns: true }}
           facets={{ status: false }}
           chosenLabel="Chosen"
-          title="Change Chassis"
-          subtitle="Swapping chassis clears the current loadout."
-          emptyMessage="No matching chassis."
+          title="Change Crawler Type"
+          subtitle="Swapping type re-derives the crawler's stats."
+          emptyMessage="No matching crawler types."
           onClose={() => {}}
           railActions={
             <>
               <Button variant="ghost" size="compact">
                 Cancel
               </Button>
-              <Button size="compact">Apply chassis</Button>
+              <Button size="compact">Apply type</Button>
             </>
           }
         />
