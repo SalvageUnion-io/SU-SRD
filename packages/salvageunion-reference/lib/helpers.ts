@@ -8,6 +8,7 @@ import { lazyModelMap } from './generated/schemaRegistry.generated.js'
 import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
 import type { EnhancedSchemaMetadata } from './ModelFactory.js'
 import { getSchemaCatalog } from './ModelFactory.js'
+import { getAssetSrcSet } from './assets.js'
 import { getEntitySlug } from './slug.js'
 import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js'
 import {
@@ -302,6 +303,8 @@ export type ReferenceEntityData = {
   page: number | undefined
   techLevel: number | 'B' | 'N' | undefined
   assetUrl: string | undefined
+  /** Width-constrained candidates for `assetUrl`; see `getAssetSrcSet`. */
+  assetSrcSet: string | undefined
 }
 
 /**
@@ -321,6 +324,7 @@ export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData
     page: getPageReference(entity),
     techLevel: getTechLevel(entity),
     assetUrl: getAssetUrl(entity),
+    assetSrcSet: getAssetSrcSet(entity),
   }
 }
 

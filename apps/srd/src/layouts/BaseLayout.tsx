@@ -61,6 +61,8 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
     additionalStructuredData,
     noindex = false,
     preloadImage,
+    preloadImageSrcSet,
+    preloadImageSizes,
     breadcrumbs,
     breadcrumbDescription,
   } = meta
@@ -107,7 +109,20 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
 
         {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 
-        {preloadImage ? <link rel="preload" href={preloadImage} as="image" /> : null}
+        {/*
+            `imageSrcSet`/`imageSizes` are not decoration: without them this
+            preload picks a different candidate than the <img> and the page
+            fetches both files. See `cardImageSizes`.
+         */}
+        {preloadImage ? (
+          <link
+            rel="preload"
+            href={preloadImage}
+            as="image"
+            imageSrcSet={preloadImageSrcSet}
+            imageSizes={preloadImageSizes}
+          />
+        ) : null}
 
         {/* `escapeJsonForScript`, not bare JSON.stringify: these blocks
             interpolate entity-derived prose (itemName, the generated meta

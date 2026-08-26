@@ -7,6 +7,7 @@
  * like every other page's.
  */
 
+import { cardImageSizes } from 'component-lib'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import type {
   PageModule,
@@ -94,6 +95,9 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       ogType: 'article',
       structuredData,
       preloadImage: displayData?.assetUrl,
+      // Same srcset/sizes as the <img>, or the preload fetches a second file.
+      preloadImageSrcSet: displayData?.assetSrcSet,
+      preloadImageSizes: displayData?.assetSrcSet ? cardImageSizes() : undefined,
       breadcrumbs: [
         { name: 'SRD', url: `${SITE_URL}/` },
         { name: 'Chassis', url: `${SITE_URL}${schemaHref(schemaId)}` },

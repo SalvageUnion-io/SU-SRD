@@ -17,6 +17,16 @@ export type DocumentMeta = {
   additionalStructuredData?: StructuredData[]
   noindex?: boolean
   preloadImage?: string
+  /**
+   * `imagesrcset` / `imagesizes` for `preloadImage`.
+   *
+   * A preload for a responsive image MUST carry the same srcset and sizes as
+   * the `<img>`, or it selects a different candidate and the page downloads
+   * BOTH. Measured: the `<img>` took the 30 KB 440w derivative while a bare
+   * `href` preload pulled the 446 KB master alongside it.
+   */
+  preloadImageSrcSet?: string
+  preloadImageSizes?: string
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbDescription?: string
 }
