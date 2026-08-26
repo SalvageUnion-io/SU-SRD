@@ -122,3 +122,35 @@ describe('metaForSnapshot', () => {
     expect(meta?.title).toBe('Thing — Sheet')
   })
 })
+
+/**
+ * The tags that decide how the rendered card is PRESENTED, as opposed to which
+ * image is used. Getting these wrong wastes the render rather than breaking it,
+ * which is why they are asserted rather than left to inspection: a 1200x630
+ * card shown as a small square thumbnail looks like a design choice, not a bug.
+ */
+describe('unfurl presentation', () => {
+  const meta = {
+    title: 'Rusty — Pilot',
+    description: 'A shared sheet.',
+    url: 'https://intheunionnow.com/s/AAAAAAAA',
+    image: 'https://intheunionnow.com/og/s/AAAAAAAA.png',
+  }
+
+  it('asks for the large card, not the thumbnail', () => {
+    expect(renderMeta(meta)).toContain('name="twitter:card" content="summary_large_image"')
+  })
+
+  it('declares the card dimensions so a consumer need not fetch to lay it out', () => {
+    const html = renderMeta(meta)
+    expect(html).toContain('property="og:image:width" content="1200"')
+    expect(html).toContain('property="og:image:height" content="630"')
+  })
+
+  it('differs from index.html on purpose — that default is a square icon', () => {
+    // If someone ever "fixes the inconsistency" by making these match, one of
+    // the two is then wrong: the shell default points at the 512x512 app icon,
+    // which a large card would letterbox.
+    expect(renderMeta(meta)).not.toContain('content="summary"')
+  })
+})

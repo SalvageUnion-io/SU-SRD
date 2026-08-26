@@ -43,7 +43,7 @@
     },
     "apps/itun": {
       "name": "itun",
-      "version": "1.15.0",
+      "version": "1.15.1",
       "dependencies": {
         "@auth/core": "0.41.3",
         "@base-ui/react": "catalog:",
@@ -52,6 +52,7 @@
         "@fontsource/barlow-semi-condensed": "catalog:",
         "@netlify/blobs": "catalog:",
         "@randsum/roller": "catalog:",
+        "@resvg/resvg-wasm": "^2.6.0",
         "@sentry/browser": "catalog:",
         "@sentry/node": "catalog:",
         "@tanstack/react-query": "^5.101.4",
@@ -85,7 +86,7 @@
     },
     "apps/srd": {
       "name": "srd",
-      "version": "2.8.1",
+      "version": "2.8.2",
       "dependencies": {
         "@base-ui/react": "catalog:",
         "@fontsource/barlow": "catalog:",
@@ -162,7 +163,7 @@
     },
     "packages/salvageunion-reference": {
       "name": "salvageunion-reference",
-      "version": "2.11.3",
+      "version": "2.11.4",
       "dependencies": {
         "jsonc-parser": "^3.3.1",
         "zod": "^4.4.3",
@@ -734,6 +735,8 @@
     "@playwright/test": ["@playwright/test@1.62.1", "", { "dependencies": { "playwright": "1.62.1" }, "bin": { "playwright": "cli.js" } }, "sha512-DTcUc8qii+cpHvtOwggMtBRMjKZHXYWdw8syRYu2vtzuq4Wxphqq4NfCs5Zt44L6mA8rfDfj+PHnxFc/FeK6mQ=="],
 
     "@randsum/roller": ["@randsum/roller@4.0.0", "", {}, "sha512-3TMPTMcrFujndyQzeX59hUClYlChj887SPB2/uiHzeY4HcYvSSzfcu4PWKm925O8cQ+A2r/eQ9TCJNyDvkqoUQ=="],
+
+    "@resvg/resvg-wasm": ["@resvg/resvg-wasm@2.6.2", "", {}, "sha512-FqALmHI8D4o6lk/LRWDnhw95z5eO+eAa6ORjVg09YRR7BkcM6oPHU9uyC0gtQG5vpFLvgpeU4+zEAz2H8APHNw=="],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.5", "", { "os": "android", "cpu": "arm" }, "sha512-DLe/i+l8ynIBY7XEQ191TeZvCoowIGa18R+dIV30GW7DiOtp74i/xX8hs8GUjW5ARV7VZuie3d6AumSmCwbeRA=="],
 

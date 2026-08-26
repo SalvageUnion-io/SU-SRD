@@ -124,6 +124,9 @@ const SHARE_PATH = /^\/sheet\/([^/]+)\/([^/]+)\/share\/?$/
 
 const SNAPSHOT_ROUTE = /^\/s\/([^/]+)\/?$/
 
+/** `/og/s/<id>.png` — the rendered preview for a shared snapshot. */
+const OG_ROUTE = /^\/og\/s\/([^/]+)\.png$/
+
 /**
  * Per-route metadata for the shell, or null to keep the sitewide defaults.
  *
@@ -154,10 +157,85 @@ async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | nul
     const stored = await createR2Storage(env.SNAPSHOTS).get(id)
     if (!stored) return null
     return metaForSnapshot(stored, url.toString(), {
-      image: `${url.origin}/icon-512.png`,
+      image: `${url.origin}/og/s/${id}.png`,
     })
   } catch {
     return null
+  }
+}
+
+/**
+ * The edge cache, or null where there isn't one.
+ *
+ * Two separate problems, both resolved here so the call site reads as one idea:
+ *
+ *   - **Types.** `caches.default` is a Cloudflare extension to `CacheStorage`,
+ *     and this app's tsconfig loads the DOM lib — it is a browser app that
+ *     happens to contain a Worker — so the standard type wins and knows nothing
+ *     about `default`.
+ *   - **Runtime.** Under `bun test` there is no `caches` global at all, and
+ *     reading through it throws a ReferenceError that `ogImage`'s catch would
+ *     swallow into a fallback. That would make "the renderer is broken" and
+ *     "there is no cache here" produce the same 302, which is exactly the kind
+ *     of collapse that hides a real failure.
+ */
+function edgeCache(): Cache | null {
+  if (typeof caches === 'undefined') return null
+  return (caches as CacheStorage & { default?: Cache }).default ?? null
+}
+
+/**
+ * Serve the rendered preview for a shared snapshot.
+ *
+ * Every failure path ends at the static icon rather than an error. An unfurl
+ * that is slightly generic is fine; one that 404s or hangs makes the link look
+ * broken in the channel it was pasted into, which is worse than no image.
+ *
+ * Cached in the Cache API keyed on the request URL. A snapshot is FROZEN once
+ * published (that is what distinguishes it from a public sheet), so the render
+ * can never go stale and there is nothing to invalidate on.
+ */
+async function ogImage(request: Request, env: Env, id: string): Promise<Response> {
+  const url = new URL(request.url)
+  const fallback = () => Response.redirect(`${url.origin}/icon-512.png`, 302)
+
+  if (!isValidSnapshotId(id)) return fallback()
+
+  const cache = edgeCache()
+  const hit = await cache?.match(request)
+  if (hit) return hit
+
+  try {
+    const stored = await createR2Storage(env.SNAPSHOTS).get(id)
+    if (!stored) return fallback()
+
+    const meta = metaForSnapshot(stored, url.toString(), { image: '' })
+    if (!meta) return fallback()
+
+    // `renderOgImage` is imported lazily so the ~2.4 MB resvg wasm and the two
+    // embedded TTFs stay out of the startup path of every OTHER route. They are
+    // in the same bundle either way; this keeps them off the critical path of a
+    // page load.
+    const { renderOgImage } = await import('./ogImage')
+    const [name, kind] = meta.title.split(' — ')
+    // The description opens with "<Kind>: <Name>." — which the card already
+    // shows, in larger type, directly above this line. Drop the lead so the
+    // detail row carries something the reader has not just read.
+    const detail = meta.description.replace(/^[^:]+:\s*[^.]+\.\s*/, '')
+    const png = await renderOgImage(name ?? 'Sheet', kind ?? 'Sheet', detail || null)
+
+    const response = new Response(png as BodyInit, {
+      headers: {
+        'content-type': 'image/png',
+        // Immutable: a snapshot never changes, and its id is content-addressed.
+        'cache-control': 'public, max-age=31536000, immutable',
+      },
+    })
+    await cache?.put(request, response.clone())
+    return response
+  } catch (error) {
+    console.error('[itun] og:image render failed', error)
+    return fallback()
   }
 }
 
@@ -235,6 +313,12 @@ export default {
       }
       return makeRetrieveHandler(storage)(request)
     }
+
+    // 3b. The rendered og:image. Ahead of the asset lookup because `/og/s/*`
+    //     is not on disk, and ahead of rule 6 because it ends in `.png` and
+    //     would otherwise 404 as a missing file.
+    const og = OG_ROUTE.exec(path)
+    if (og?.[1]) return ogImage(request, env, og[1])
 
     const assetResponse = await env.ASSETS.fetch(request)
 

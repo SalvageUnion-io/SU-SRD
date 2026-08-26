@@ -190,9 +190,20 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 ```json
 {
   ".": "./src/index.ts",
+  "./design/tokens": "./src/design/tokens.ts",
+  "./styles/index.css": "./src/styles/index.css",
   "./styles/theme.css": "./src/styles/theme.css"
 }
 ```
+
+`./design/tokens` exists for consumers that need the palette as **values** rather
+than as CSS: `src/design/tokens.ts` is a leaf module — plain `as const` objects,
+zero imports — so reaching it does not drag React into the bundle. The itun
+Worker's `og:image` renderer is the reason it was added: it rasterises SVG
+through resvg with no stylesheet in the process, so `var(--su-*)` cannot resolve
+and the colour has to arrive as a string. Import from here rather than from the
+barrel, and never copy a token's literal to a call site — `tokens.parity.test.ts`
+guards the scale against `theme.css`, and it cannot guard a copy.
 
 Consuming apps' Vite bundlers compile `.ts/.tsx` files directly. No intermediate build step.
 (In `srd` this is doubly true: the SSR pass runs the same `.tsx` source under Bun,

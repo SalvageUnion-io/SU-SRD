@@ -6,6 +6,7 @@
   "license": "Salvage Union Open Game Licence 1.0b",
   "exports": {
     ".": "./src/index.ts",
+    "./design/tokens": "./src/design/tokens.ts",
     "./styles/index.css": "./src/styles/index.css",
     "./styles/theme.css": "./src/styles/theme.css"
   },
