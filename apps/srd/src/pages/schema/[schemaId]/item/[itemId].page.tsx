@@ -8,6 +8,7 @@
  * of those pages moved.
  */
 
+import { cardImageSizes } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
 import { EntityView } from '../../../../components/EntityView'
@@ -100,6 +101,9 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   // rendered. Doing it in that order means a skipped, budget-capped or failed
   // generation leaves a working default rather than an og:image that 404s.
   const preloadImage = displayData?.assetUrl
+  // The preload MUST carry the same srcset/sizes as the <img>, or it selects a
+  // different candidate and the page downloads both files. See `cardImageSizes`.
+  const preloadImageSrcSet = displayData?.assetSrcSet
 
   return {
     meta: {
@@ -109,6 +113,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       ogType: 'article',
       structuredData,
       preloadImage,
+      preloadImageSrcSet,
+      preloadImageSizes: preloadImageSrcSet ? cardImageSizes() : undefined,
       breadcrumbs: [
         { name: 'SRD', url: `${SITE_URL}/` },
         { name: schemaName, url: `${SITE_URL}${schemaHref(schemaId)}` },

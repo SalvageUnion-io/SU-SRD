@@ -14,6 +14,7 @@ import type {
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
+  getAssetSrcSet,
   getAssetUrl,
   getBooklet,
   getChassisAbilities,
@@ -466,6 +467,22 @@ function fmtDv(dv: { value?: unknown; unit?: string }): string {
   return dv.unit ? `${v}${dv.unit}` : v
 }
 
+/**
+ * Whether a choice would render an empty region.
+ *
+ * Takes its two dependencies as arguments rather than closing over them, so it
+ * sits at module scope with the other pure helpers instead of being rebuilt per
+ * render. Same behaviour, no captured state.
+ */
+function choiceRendersNothing(
+  choice: SURefObjectChoice,
+  editableChoices: boolean | undefined,
+  selections: Record<string, string[] | undefined> | undefined
+): boolean {
+  if (editableChoices) return false
+  return getChoiceSourceKind(choice) === 'text' && !selections?.[choice.id]?.[0]
+}
+
 /** A content block's plain text, or '' for anything that is not plain prose. */
 function blockPlainText(b: SURefObjectContentBlock): string {
   return b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
@@ -658,9 +675,10 @@ function ReferenceEntityCardInner({
   // so a card at depth N+1 is always strictly smaller than its parent at depth N
   // (until the ladder's legibility floor). See `titleSizeClass`.
   const titleClass = titleSizeClass(depth, size)
-  // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork`; the
-  // chassis art also stands in for its full PATTERN view (but not the tight
-  // pattern-summary list rows).
+  // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork` and
+  // `getAssetSrcSet` its width-constrained candidates; the chassis art also
+  // stands in for its full PATTERN view (but not the tight pattern-summary
+  // list rows).
   //
   // A MINI catalog tile drops the artwork entirely: the catalog extent is
   // artwork + description, and at the small size the image would crowd out the
@@ -668,6 +686,7 @@ function ReferenceEntityCardInner({
   // label. Every other size keeps it.
   const isMiniCatalog = isCatalog && size === 'small'
   const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
+  const assetSrcSet = isMiniCatalog ? undefined : getAssetSrcSet(entity)
 
   // PATTERN view — the pattern is the subject; the chassis (`entity`) supplies
   // stats / tone / source. Patterns carry NO stampseal. A `size="medium" extent="head"`
@@ -1421,10 +1440,8 @@ function ReferenceEntityCardInner({
   // value — Name / Motto in the SRD) must not emit its wrapper region either, or
   // it leaves an empty margin gap in the prose. Only text choices go empty;
   // table/options/catalog always render a reference.
-  const choiceRendersNothing = (choice: SURefObjectChoice): boolean => {
-    if (editableChoices) return false
-    return getChoiceSourceKind(choice) === 'text' && !selections?.[choice.id]?.[0]
-  }
+  const choiceIsEmpty = (c: SURefObjectChoice) =>
+    choiceRendersNothing(c, editableChoices, selections)
 
   // BONUS PER TECH LEVEL — its own distinct rendering, anchored INLINE at the
   // prose that describes it (choice-plan): the green "Bonus per Tech Level" label
@@ -1563,7 +1580,7 @@ function ReferenceEntityCardInner({
     for (const block of anchoredBlocks) {
       if (block?.type === 'choice') {
         const choice = block.choiceId ? choiceById.get(block.choiceId) : undefined
-        if (choice && !hide?.choices && !rendered.has(choice.id) && !choiceRendersNothing(choice)) {
+        if (choice && !hide?.choices && !rendered.has(choice.id) && !choiceIsEmpty(choice)) {
           flush()
           bodyNodes.push(renderChoiceRegion(choice))
           rendered.add(choice.id)
@@ -1580,7 +1597,7 @@ function ReferenceEntityCardInner({
     flush()
     if (!hide?.choices) {
       for (const choice of entityChoices) {
-        if (!rendered.has(choice.id) && !choiceRendersNothing(choice))
+        if (!rendered.has(choice.id) && !choiceIsEmpty(choice))
           bodyNodes.push(renderChoiceRegion(choice))
       }
     }
@@ -2003,6 +2020,7 @@ function ReferenceEntityCardInner({
     showImage && assetUrl ? (
       <CardImage
         url={assetUrl}
+        srcSet={assetSrcSet}
         alt={`${entityName} illustration`}
         compact={compact}
         aside={asideLead}

@@ -48,6 +48,47 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
+ * The derivative widths that exist in the asset store beside every master.
+ *
+ * Written by `tools/generate-lp-asset-derivatives.ts`. The render slot is 220
+ * CSS px (`CardImage`'s container), so 440 covers a 2x display and 880 covers
+ * 4x. **Changing this list means re-running that tool** — a width named here
+ * with no object behind it is a 404 in a `srcset`, which browsers handle by
+ * quietly falling back rather than by telling anyone.
+ */
+export const ASSET_DERIVATIVE_WIDTHS = [440, 880] as const
+
+/**
+ * An entity's artwork as a `srcset`, or undefined if it has none.
+ *
+ * The masters are print scans — measured across all 57, 30.9 MB total, up to
+ * 1,295,746 B and 6098x7016 (42.8 megapixels) — and they were being delivered
+ * whole into a 220px slot. That is a ~28x linear oversample, and it made an
+ * illustrated entity page roughly 1.3 MB for a thumbnail.
+ *
+ * The master stays the widest candidate rather than being dropped: it is what
+ * the og:image screenshot pass renders (catalog tile at a 1440 viewport), and
+ * it is the only source that survives if the derivatives are ever pruned.
+ *
+ * Pair with `sizes` — without it a browser assumes `100vw` and picks the widest
+ * candidate, which is exactly the behaviour this replaces.
+ */
+export function getAssetSrcSet(entity: SURefMetaEntity): string | undefined {
+  const master = getAssetUrl(entity)
+  if (!master) return undefined
+  const derivatives = ASSET_DERIVATIVE_WIDTHS.map(
+    (width) => `${master.replace(/\.webp$/, `-${width}.webp`)} ${width}w`
+  )
+  // A `w` descriptor for the master would be a guess: masters vary from 1772px
+  // to 7196px wide and the entity carries no dimensions. Omitting it is not an
+  // option either — a candidate with no descriptor is treated as `1x` and
+  // competes with the `w` set. So the master is deliberately NOT in the srcset;
+  // it stays on `src`, which is what a browser uses when no candidate fits and
+  // what a `srcset`-blind client gets.
+  return derivatives.join(', ')
+}
+
+/**
  * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
  * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
  * the site's own canonical/OG tags — is this base plus {@link srdEntityPath},

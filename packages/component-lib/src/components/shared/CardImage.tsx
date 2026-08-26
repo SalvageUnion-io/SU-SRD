@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
+import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes } from './cardImageSizes'
 
 type CardImageProps = {
   url?: string
+  /**
+   * Width-constrained candidates, from `getAssetSrcSet`.
+   *
+   * Optional: a caller with only a URL still renders, it just fetches the
+   * master. The `sizes` that pairs with it is set here rather than by the
+   * caller, because the width it describes is THIS component's container —
+   * a caller cannot know it, and a wrong `sizes` silently picks the wrong
+   * candidate rather than failing.
+   */
+  srcSet?: string
   alt: string
   compact?: boolean
   /**
@@ -29,7 +40,7 @@ type CardImageProps = {
  * capability this library has a consumer for; when one exists it should arrive
  * as a deliberate design with the danger tone resolved, not as a dormant branch.
  */
-export function CardImage({ url, alt, compact, aside }: CardImageProps) {
+export function CardImage({ url, srcSet, alt, compact, aside }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
   // the server. On srd an entity card is rendered by the ZERO-JS static path
@@ -70,7 +81,9 @@ export function CardImage({ url, alt, compact, aside }: CardImageProps) {
 
   if (!url || !showImage) return null
 
-  const containerWidth = compact ? '180px' : '220px'
+  const containerWidth = compact
+    ? CARD_IMAGE_CONTAINER_WIDTH.compact
+    : CARD_IMAGE_CONTAINER_WIDTH.normal
 
   return (
     <div
@@ -87,6 +100,15 @@ export function CardImage({ url, alt, compact, aside }: CardImageProps) {
         <img
           ref={imgRef}
           src={url}
+          srcSet={srcSet}
+          // `sizes` MUST accompany a `w`-descriptor srcset. Without it a browser
+          // assumes `100vw` and picks the widest candidate — which is the
+          // oversampling this exists to stop, so a missing `sizes` would leave
+          // the markup looking fixed while behaving exactly as before.
+          //
+          // The container is a fixed `containerWidth` capped at `maxWidth:100%`,
+          // so it is that width except on a viewport narrower than the card.
+          sizes={srcSet ? cardImageSizes(compact) : undefined}
           alt={alt}
           className="block h-auto w-full object-contain transition-opacity duration-300"
           style={{ opacity: loaded ? 1 : 0 }}
