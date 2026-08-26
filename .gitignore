@@ -99,3 +99,14 @@ apps/itun/test-results
 # errors the moment a dev server has run. Ignoring it keeps `bun run lint` from
 # depending on whether someone left a server up.
 .wrangler/
+
+# claude.ai/design sync (design-sync skill)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+packages/component-lib/types/
+packages/component-lib/.ds-css/
+packages/component-lib/index.d.ts
+.design-sync/tsconfig.dts.tsbuildinfo
