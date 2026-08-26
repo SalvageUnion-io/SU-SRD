@@ -92,3 +92,10 @@ rules/*
 apps/itun/playwright-report
 apps/itun/test-results
 .design-bundle/
+
+# wrangler's local state and build scratch. `wrangler dev` writes its bundled
+# Worker (plus the miniflare middleware it injects) into `.wrangler/tmp/`, which
+# is generated JS nobody wrote — it is not just untracked noise, it is 69 lint
+# errors the moment a dev server has run. Ignoring it keeps `bun run lint` from
+# depending on whether someone left a server up.
+.wrangler/

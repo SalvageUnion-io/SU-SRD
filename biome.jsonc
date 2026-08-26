@@ -44,6 +44,14 @@
       "!**/build",
       "!**/build-ladle",
       "!**/.netlify",
+      // `wrangler dev` writes its bundled Worker — plus the miniflare error
+      // middleware it injects — into `.wrangler/tmp/`. That is generated JS
+      // nobody wrote, and linting it produced 69 errors from a running dev
+      // server. Biome does NOT read `.gitignore` (there is no `vcs` block in
+      // this file), so ignoring it there is not enough; it has to be said here
+      // too, or `bun run lint` passes or fails depending on whether someone
+      // happens to have a server up.
+      "!**/.wrangler",
       "!**/.vite",
       "!**/.ladle",
       "!**/coverage",

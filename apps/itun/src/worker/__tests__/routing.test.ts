@@ -395,3 +395,81 @@ describe('rate limiting', () => {
     expect(res.status).toBe(200)
   })
 })
+
+/**
+ * `/og/s/:id.png` — the rendered unfurl image.
+ *
+ * **What can be asserted here is the routing, not the render.** The handler
+ * reaches `renderOgImage` through a lazy `await import('./ogImage')`, and that
+ * module imports two TTFs and a 2.4 MB `.wasm` via wrangler's module rules —
+ * under `bun test` those imports throw, the handler's catch turns that into the
+ * static fallback, and a valid snapshot is therefore indistinguishable from a
+ * missing one. So the success path is deliberately not asserted; it was
+ * verified against `wrangler dev`, which is the only runtime that can load it.
+ * The card's own layout is covered in `ogCard.test.ts`.
+ *
+ * What IS worth pinning down is everything around it, because each part has a
+ * way of silently going wrong:
+ *
+ *   - the route must be matched BEFORE the asset lookup. `/og/s/X.png` ends in
+ *     a dot-bearing segment, which is exactly what rule 6 turns into a 404.
+ *   - every failure must end at an image, never at an error. A 404 or a 500
+ *     here makes the link look broken in the channel it was pasted into, which
+ *     is worse than a generic picture.
+ */
+describe('/og/s/:id.png', () => {
+  it('is matched before the asset lookup, despite ending in .png', async () => {
+    // Rule 6 404s any path whose last segment contains a dot. If this route
+    // were dispatched after it, every unfurl would be a 404 and the reason
+    // would look like a CDN problem.
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    const res = await worker.fetch(req('/og/s/AAAAAAAA.png'), env)
+
+    expect(res.status).not.toBe(404)
+    expect(env.ASSETS.asked).not.toContain('/og/s/AAAAAAAA.png')
+  })
+
+  it('falls back to the static icon for a malformed id', async () => {
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    const res = await worker.fetch(req('/og/s/not a valid id!.png'), env)
+
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('https://intheunionnow.com/icon-512.png')
+  })
+
+  it('falls back to the static icon when the snapshot is gone', async () => {
+    // A revoked snapshot is the common case, not an exotic one: the id is the
+    // whole capability, and revoking it is how sharing is undone.
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    const res = await worker.fetch(req('/og/s/AAAAAAAA.png'), env)
+
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('https://intheunionnow.com/icon-512.png')
+  })
+
+  it('never answers an unfurl with an error status', async () => {
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    for (const path of ['/og/s/AAAAAAAA.png', '/og/s/!!.png', '/og/s/A.png']) {
+      const res = await worker.fetch(req(path), env)
+      expect(res.status).toBeLessThan(400)
+    }
+  })
+
+  it('points the shell metadata at this route for a snapshot that exists', async () => {
+    // The two halves have to agree: a card nobody links to is not an unfurl.
+    const SHELL = [
+      '<!doctype html><html><head>',
+      '<!-- itun:meta:start -->',
+      '<meta property="og:title" content="In The Union Now" />',
+      '<!-- itun:meta:end -->',
+      '</head><body></body></html>',
+    ].join('\n')
+    const env = envWith(
+      { '/index.html': SHELL },
+      { AAAAAAAA: { kind: 'pilot', entity: { name: 'Rusty' } } }
+    )
+    const body = await (await worker.fetch(req('/s/AAAAAAAA'), env)).text()
+
+    expect(body).toContain('content="https://intheunionnow.com/og/s/AAAAAAAA.png"')
+  })
+})

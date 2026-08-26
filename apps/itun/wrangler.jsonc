@@ -43,6 +43,13 @@
     "not_found_handling": "none"
   },
 
+  // `Data` turns a matched import into an ArrayBuffer at build time, which is
+  // how the og:image renderer gets its fonts. TTF specifically: resvg reads TTF
+  // and OTF but NOT WOFF, and fails silently on one — see `ogImage.ts`. The
+  // `.wasm` import needs no rule; wrangler treats WebAssembly as a module type
+  // natively.
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"] }],
+
   "r2_buckets": [
     {
       "binding": "SNAPSHOTS",

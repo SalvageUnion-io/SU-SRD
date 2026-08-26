@@ -24,6 +24,7 @@
     "@fontsource/barlow-semi-condensed": "catalog:",
     "@netlify/blobs": "catalog:",
     "@randsum/roller": "catalog:",
+    "@resvg/resvg-wasm": "^2.6.0",
     "@sentry/browser": "catalog:",
     "@sentry/node": "catalog:",
     "@tanstack/react-query": "^5.101.4",

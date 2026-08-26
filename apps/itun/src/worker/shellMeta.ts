@@ -69,7 +69,19 @@ export function renderMeta(meta: ShellMeta): string {
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:image" content="${image}" />`,
     `<meta property="og:image:alt" content="${title}" />`,
-    `<meta name="twitter:card" content="summary" />`,
+    // Stated so a consumer can lay the card out before it has fetched the
+    // bytes. Discord in particular decides between the small and the large
+    // presentation from the metadata alone.
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    // `summary_large_image` here, `summary` in index.html, and the difference
+    // is deliberate rather than drift: the sitewide default image is the
+    // 512x512 app icon, which a large card would letterbox, while every image
+    // this function emits is the 1200x630 rendered snapshot card. Declaring
+    // `summary` for that one would render a purpose-built wide card as a small
+    // square thumbnail — the whole point of rendering it, thrown away in the
+    // one tag that decides how it is shown.
+    `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`,
     `<meta name="twitter:image" content="${image}" />`,
