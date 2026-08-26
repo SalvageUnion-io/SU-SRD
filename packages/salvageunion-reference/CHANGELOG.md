@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.4](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.3...salvageunion-reference-v2.11.4) (2026-08-26)
+
+
+### Performance Improvements
+
+* **srd:** serve entity artwork at the size it renders ([#907](https://github.com/SalvageUnion-io/SU-SRD/issues/907)) ([fb9e789](https://github.com/SalvageUnion-io/SU-SRD/commit/fb9e78983142e1a35e2da51a97550c33557e303a))
+
 ## [2.11.3](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.2...salvageunion-reference-v2.11.3) (2026-08-25)
 
 
