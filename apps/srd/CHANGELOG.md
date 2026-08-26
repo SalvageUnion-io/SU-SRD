@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.8.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.8.1...srd-v2.8.2) (2026-08-26)
+
+
+### Performance Improvements
+
+* **srd:** serve entity artwork at the size it renders ([#907](https://github.com/SalvageUnion-io/SU-SRD/issues/907)) ([fb9e789](https://github.com/SalvageUnion-io/SU-SRD/commit/fb9e78983142e1a35e2da51a97550c33557e303a))
+
 ## [2.8.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.8.0...srd-v2.8.1) (2026-08-25)
 
 
