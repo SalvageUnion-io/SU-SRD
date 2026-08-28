@@ -94,22 +94,63 @@ describe('container parity — every local store can reach the server', () => {
       new URL('../../src/stores/entityBackend.ts', import.meta.url)
     ).text()
 
-    // store name → the commit function that must reference it
-    const WRITERS: Record<string, string> = {
-      pilots: 'commitEntityWrite',
-      mechs: 'commitEntityWrite',
-      crawlers: 'commitEntityWrite',
-      softLinks: 'commitSoftLink',
-      mechPatterns: 'commitPatternWrite',
-      encounterNpcs: 'commitNpcWrite',
-      changeLog: 'commitChangeLog',
+    // store name → the commit function, and the store module that must CALL it.
+    //
+    // The consumer half is the point. This test asserted only that
+    // `entityBackend.ts` DECLARED each function, which is a weaker claim than
+    // it reads as: `commitPatternWrite` and `commitNpcWrite` have exactly one
+    // call site each, so deleting `commit: commitPatternWrite` from
+    // `patternStore.ts` stops patterns reaching Convex while leaving the
+    // declaration — and this test — untouched. That is the same shape as the
+    // table-only gap this test replaced: "the name exists somewhere" standing
+    // in for "the data arrives".
+    const WRITERS: Record<string, { fn: string; consumer: string }> = {
+      pilots: { fn: 'commitEntityWrite', consumer: 'entityStore.ts' },
+      mechs: { fn: 'commitEntityWrite', consumer: 'entityStore.ts' },
+      crawlers: { fn: 'commitEntityWrite', consumer: 'entityStore.ts' },
+      softLinks: { fn: 'commitSoftLink', consumer: 'entityStore.ts' },
+      mechPatterns: { fn: 'commitPatternWrite', consumer: 'patternStore.ts' },
+      encounterNpcs: { fn: 'commitNpcWrite', consumer: 'encounterStore.ts' },
+      changeLog: { fn: 'commitChangeLog', consumer: 'entityStore.ts' },
     }
 
-    const missing = Object.entries(WRITERS)
-      .filter(([, fn]) => !backend.includes(`export async function ${fn}(`))
-      .map(([store, fn]) => `${store} -> ${fn}`)
+    const undeclared = Object.entries(WRITERS)
+      .filter(([, { fn }]) => !backend.includes(`export async function ${fn}(`))
+      .map(([store, { fn }]) => `${store} -> ${fn} is not declared in entityBackend.ts`)
 
-    expect(missing).toEqual([])
+    const sources = new Map<string, string>()
+    for (const { consumer } of Object.values(WRITERS)) {
+      if (sources.has(consumer)) continue
+      sources.set(
+        consumer,
+        await Bun.file(new URL(`../../src/stores/${consumer}`, import.meta.url)).text()
+      )
+    }
+
+    // Importing it is not using it, and NEITHER IS MENTIONING IT IN A COMMENT.
+    //
+    // Both exclusions were found by controlling this test rather than by
+    // reasoning about it. The first draft filtered only import lines, so
+    // commenting out `commit: commitPatternWrite` — the precise edit that
+    // silently stops patterns reaching the server — left the identifier
+    // sitting on a `//` line and the test went on passing. A gate for "prose
+    // asserts what code does not" that a comment can satisfy is the very bug
+    // it is meant to catch.
+    const isCode = (line: string) => {
+      const t = line.trimStart()
+      return (
+        !t.startsWith('import') && !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')
+      )
+    }
+
+    const uncalled = Object.entries(WRITERS)
+      .filter(([, { fn, consumer }]) => {
+        const source = sources.get(consumer) ?? ''
+        return !source.split('\n').some((line) => line.includes(fn) && isCode(line))
+      })
+      .map(([store, { fn, consumer }]) => `${store} -> ${consumer} never calls ${fn}`)
+
+    expect([...undeclared, ...uncalled]).toEqual([])
   })
 
   test('every store with a table appears in the writer map', () => {
