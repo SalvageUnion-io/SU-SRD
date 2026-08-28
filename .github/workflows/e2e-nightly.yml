@@ -513,6 +513,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success' ||
+       needs.e2e-itun-signin.result != 'success' ||
        needs.observability-probe.result == 'failure' ||
        needs.observability-probe.result == 'cancelled' ||
        needs.convex-parity.result == 'failure' ||
@@ -533,6 +534,7 @@ jobs:
         env:
           ITUN_RESULT: ${{ needs.e2e-itun.result }}
           SRD_RESULT: ${{ needs.e2e-srd.result }}
+          SIGNIN_RESULT: ${{ needs.e2e-itun-signin.result }}
           PROBE_RESULT: ${{ needs.observability-probe.result }}
           PARITY_RESULT: ${{ needs.convex-parity.result }}
           A11Y_RESULT: ${{ needs.a11y-srd.result }}
@@ -563,6 +565,14 @@ jobs:
             const results = [
               ['e2e-itun', process.env.ITUN_RESULT],
               ['e2e-srd', process.env.SRD_RESULT],
+              // e2e-itun-signin carries no `if:` of its own, so it always runs
+              // and is never 'skipped' — which puts it in the same class as the
+              // two above rather than in `optional()`. It shipped in `needs:`
+              // and in neither notifier's `if:`, the same defect convex-parity
+              // had, with one extra consequence: notify-recovery's condition
+              // was SATISFIED while this job was failing, so a red run CLOSED
+              // the tracking issue instead of opening one.
+              ['e2e-itun-signin', process.env.SIGNIN_RESULT],
               ...optional('observability-probe', process.env.PROBE_RESULT),
               ...optional('convex-parity', process.env.PARITY_RESULT),
               // a11y-srd follows the same rule as the two above: it can open
@@ -626,6 +636,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.e2e-itun.result == 'success' && needs.e2e-srd.result == 'success' &&
+      needs.e2e-itun-signin.result == 'success' &&
       needs.observability-probe.result != 'failure' &&
       needs.observability-probe.result != 'cancelled' &&
       needs.convex-parity.result != 'failure' &&
