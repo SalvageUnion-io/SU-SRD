@@ -2,6 +2,14 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.16.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.0...itun-v1.16.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **convex:** appendChangeLog must check membership, and must not write alerts ([#918](https://github.com/SalvageUnion-io/SU-SRD/issues/918)) ([d4c68f3](https://github.com/SalvageUnion-io/SU-SRD/commit/d4c68f3655a751aa9fab5801ec03fbc759e68f9c))
+* **itun:** anonymous "Save pattern" threw on every attempt ([#919](https://github.com/SalvageUnion-io/SU-SRD/issues/919)) ([353bdb3](https://github.com/SalvageUnion-io/SU-SRD/commit/353bdb37f7587e87b488aaebf731c9c42ef03e2e))
+
 ## [1.16.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.15.1...itun-v1.16.0) (2026-08-26)
 
 
