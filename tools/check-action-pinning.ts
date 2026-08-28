@@ -143,23 +143,49 @@ function locallyResolvedTools(root: string): Set<string> {
   return names
 }
 
-function bunxCalls(contents: string): { line: number; tool: string }[] {
-  const found: { line: number; tool: string }[] = []
+/**
+ * Every one-off package runner invocation in a workflow.
+ *
+ * `npx` and `bun x` are scanned alongside `bunx` because they do the same
+ * thing — fetch and execute a package that is not in the lockfile. Neither
+ * appears in these workflows today, so widening this is a latent guard, not a
+ * live fix; the point is that adding one later cannot slip past a gate whose
+ * whole subject is unreviewed fetches in a credentialed job.
+ *
+ * `docker run` remains out of scope: it takes an image reference rather than a
+ * package, and the one call site is digest-pinned by hand.
+ */
+function runnerCalls(contents: string): { line: number; runner: string; tool: string }[] {
+  const found: { line: number; runner: string; tool: string }[] = []
   contents.split('\n').forEach((raw, i) => {
     const line = raw.trim()
     if (line.startsWith('#')) return
-    for (const m of line.matchAll(/\bbunx\s+(?:--[\w-]+\s+)*([@\w./-]+)/g)) {
-      const tool = m[1]
-      if (tool !== undefined) found.push({ line: i + 1, tool })
+    for (const m of line.matchAll(/\b(bunx|npx|bun\s+x)\s+(?:--[\w-]+\s+)*([@\w./-]+)/g)) {
+      const runner = m[1]
+      const tool = m[2]
+      if (runner !== undefined && tool !== undefined)
+        found.push({ line: i + 1, runner: runner.replace(/\s+/, ' '), tool })
     }
   })
   return found
 }
 
-/** `wrangler@4.108.0` is pinned; `wrangler` is not. A scoped name keeps its leading @. */
+/**
+ * `wrangler@4.108.0` is pinned; `wrangler`, `wrangler@latest` and `wrangler@4`
+ * are not. A scoped name keeps its leading `@`, hence `lastIndexOf`.
+ *
+ * This tested only that SOME `@` followed position 0, so every mutable tag
+ * passed — `@latest`, `@next`, `@beta`, a bare major. The message this gate
+ * prints on failure already says "Write it as `bunx tool@X.Y.Z`"; nothing
+ * checked that shape. That mattered here more than it looks: the calls this
+ * gate guards run in the deploy job, which holds CLOUDFLARE_API_TOKEN,
+ * CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN, so an unreviewed `@latest` fetch is
+ * exactly the thing the whole check exists to prevent.
+ */
 function bunxIsPinned(tool: string): boolean {
   const at = tool.lastIndexOf('@')
-  return at > 0
+  if (at <= 0) return false
+  return /^\d+\.\d+\.\d+/.test(tool.slice(at + 1))
 }
 
 function bunxBaseName(tool: string): string {
@@ -218,10 +244,10 @@ function main(): void {
       thirdPartyCount += 1
       if (!SHA_PIN.test(refPin(ref))) unpinned.push({ file, line, ref })
     }
-    for (const { line, tool } of bunxCalls(contents)) {
+    for (const { line, runner, tool } of runnerCalls(contents)) {
       if (locallyResolved.has(bunxBaseName(tool))) continue
       bunxCount += 1
-      if (!bunxIsPinned(tool)) unpinnedTools.push({ file, line, ref: `bunx ${tool}` })
+      if (!bunxIsPinned(tool)) unpinnedTools.push({ file, line, ref: `${runner} ${tool}` })
     }
   }
 
@@ -242,13 +268,16 @@ function main(): void {
   }
 
   if (unpinnedTools.length > 0) {
-    console.error('\n✗ a `bunx` tool with no local manifest entry must carry an exact version:\n')
+    console.error(
+      '\n✗ a `bunx`/`npx` tool with no local manifest entry must carry an exact version:\n'
+    )
     for (const { file, line, ref } of unpinnedTools) {
       console.error(`  ${file}:${line}  ${ref}`)
     }
     console.error(
       `\n  Unpinned, this resolves whatever npm published most recently — in a job\n` +
-        `  that holds this repo's deploy credentials. Write it as \`bunx tool@X.Y.Z\`,\n` +
+        `  that holds this repo's deploy credentials. Write it as \`bunx tool@X.Y.Z\`\n` +
+        `  — an exact version, not \`@latest\` or a bare major —\n` +
         `  or add the tool to the manifest so bunx resolves it from the lockfile.\n`
     )
     process.exit(1)
@@ -271,7 +300,7 @@ function main(): void {
 
   console.log(
     `✓ supply-chain pinning: ${thirdPartyCount} third-party action reference(s) SHA-pinned ` +
-      `and ${bunxCount} bunx tool invocation(s) version-pinned across ${scanned} workflow file(s).`
+      `and ${bunxCount} one-off runner invocation(s) version-pinned across ${scanned} workflow file(s).`
   )
 }
 

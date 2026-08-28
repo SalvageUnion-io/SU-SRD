@@ -60,6 +60,22 @@ import { SalvageUnionReference } from '../packages/salvageunion-reference/lib/in
 import { DEVIATIONS } from '../packages/salvageunion-reference/lib/printedNameDeviations'
 
 const EXTRACT_DIR = 'rules/extracted'
+
+/**
+ * Which extract is the Core Book.
+ *
+ * `extract-rules.ts` names every output for its source PDF
+ * (`${basename(pdf, '.pdf')}.txt`), so the Core Book arrives as
+ * "Salvage Union Digital Edition <version>.txt". This probe previously tested
+ * for `/core book/i`, which no filename the extractor can produce will ever
+ * match — so the check exited 0 with "nothing to check against" on a fully
+ * populated directory, every time it was run.
+ *
+ * Anchored at the start deliberately: the expansions share the "Digital
+ * Edition" suffix (False Flag, Rainmaker, We Were Here First), and an
+ * unanchored pattern would pick whichever the filesystem listed first.
+ */
+const CORE_BOOK_EXTRACT = /^salvage union digital/i
 /** Entities carrying this `source` are printed in the Core Book. */
 const CORE_SOURCE = 'Salvage Union Workshop Manual'
 
@@ -219,9 +235,25 @@ async function main() {
     )
     return
   }
-  const coreFile = readdirSync(EXTRACT_DIR).find((f) => /core book/i.test(f))
+  const extracts = readdirSync(EXTRACT_DIR).filter((f) => f.endsWith('.txt'))
+  if (extracts.length === 0) {
+    console.log(
+      `No extracts in ${EXTRACT_DIR}/ — run \`bun tools/extract-rules.ts\` first (needs the PDFs in rules/).`
+    )
+    return
+  }
+
+  const coreFile = extracts.find((f) => CORE_BOOK_EXTRACT.test(f))
   if (!coreFile) {
-    console.log(`No Core Book extract in ${EXTRACT_DIR}/ — nothing to check against.`)
+    // Loud, not a notice. An ABSENT extract directory is the ordinary local
+    // case and returns above; extracts that exist while none is the Core Book
+    // means this check cannot do its job, and saying so quietly is how it
+    // spent its whole life reporting success having compared nothing.
+    console.error(
+      `${extracts.length} extract(s) in ${EXTRACT_DIR}/ but none matches ${CORE_BOOK_EXTRACT} — ` +
+        `cannot check against the Core Book index.\n  found: ${extracts.join(', ')}`
+    )
+    process.exitCode = 1
     return
   }
 
