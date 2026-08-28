@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.16.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.1...itun-v1.16.2) (2026-08-28)
+
+
+### Bug Fixes
+
+* **itun:** the two gates from [#919](https://github.com/SalvageUnion-io/SU-SRD/issues/919)/[#920](https://github.com/SalvageUnion-io/SU-SRD/issues/920) were vacuous — close them ([#923](https://github.com/SalvageUnion-io/SU-SRD/issues/923)) ([55d4b99](https://github.com/SalvageUnion-io/SU-SRD/commit/55d4b991659e37fcb006448d26b5e1d17047d1e7))
+
 ## [1.16.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.0...itun-v1.16.1) (2026-08-28)
 
 
