@@ -44,7 +44,15 @@ import type { ItemCondition } from '../../lib/schemas/mech'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 
-/** Stable hide literal — keeps ReferenceEntityCard's memo effective. */
+/**
+ * Stable hide literal — hoisted so its identity does not change per render.
+ *
+ * NOT because `ReferenceEntityCard` is memoized. It is a plain
+ * `export function` and `React.memo` appears nowhere in this repo. A stable
+ * identity is the precondition for adding one, which is the reason worth
+ * keeping; claiming the memo already exists is what made three separate call
+ * sites look like they were maintaining something they were not.
+ */
 const HIDE_CHOICES = { choices: true } as const
 
 type MechItemCardProps = {

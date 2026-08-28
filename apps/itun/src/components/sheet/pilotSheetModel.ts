@@ -52,7 +52,12 @@ export type PilotSheetModel = {
   /** The home crawler resolved through the pilot-to-crawler SoftLink. */
   linkedCrawler: Crawler | null
   effectiveCrawlerLevel: number | undefined
-  /** Stable `{ techLevel }` identity for the memoized entity-card subtree. */
+  /**
+   * Stable `{ techLevel }` identity for the entity-card subtree.
+   *
+   * The subtree is not memoized — see the note on `scalingParent` below. The
+   * stability is still the right shape, and is what adding a memo would need.
+   */
   scalingParent: { techLevel: number } | undefined
   partners: NonNullable<Pilot['partners']>
   /** Equipment slugs whose card is NOT replaced by a partner instance. */
@@ -112,7 +117,7 @@ export function usePilotSheetModel({
   // this call site is already correct for it.
   const scalingParent = useMemo(
     () => (effectiveCrawlerLevel !== undefined ? { techLevel: effectiveCrawlerLevel } : undefined),
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the memoized ReferenceEntityCard subtree
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the ReferenceEntityCard subtree, which is NOT itself memoized (see the note above)
     [effectiveCrawlerLevel]
   )
 
