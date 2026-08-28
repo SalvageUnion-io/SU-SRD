@@ -42,7 +42,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
-| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312, **no agent reply as of 2026-08-21** |
+| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312, **still no agent reply as of 2026-08-28** — follow-up sent 2026-08-28 asking Netlify to set the nameservers directly, Name.com transfer kept as fallback |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
@@ -751,14 +751,18 @@ support link there is pre-filled with the right subject and body.
 
    This is the long pole — a human ticket, not an API call.
 
-   **Ask for the nameserver change too, and ask for it first.** As of
-   2026-08-21 there is still no agent reply, and the ticket as written requests
-   only the larger of the two things Netlify could do. Moving the registration
-   into the Name.com account is a registrar action with ICANN process attached;
-   *setting the nameservers on their side* is a config change that **finishes the
-   migration on its own** and needs no transfer at all — step 3 is the milestone
-   either way, and it does not care which party performs it. Requesting both,
-   preferring the nameserver change, gives support a cheap way to say yes.
+   **Ask for the nameserver change too, and ask for it first. Done
+   2026-08-28** — a follow-up on #1093312 now asks for both, leading with the
+   nameserver change. The original 2026-08-19 message requested only the larger
+   of the two things Netlify could do and drew no agent reply in nine days; the
+   only response the ticket has ever had is the auto-triage bot, which offered
+   an auth code and was told why an auth code alone cannot help. Moving the
+   registration into the Name.com account is a registrar action with ICANN
+   process attached; *setting the nameservers on their side* is a config change
+   that **finishes the migration on its own** and needs no transfer at all —
+   step 3 is the milestone either way, and it does not care which party
+   performs it. Requesting both, preferring the nameserver change, gives
+   support a cheap way to say yes.
 
    Stated honestly, because the reply may be no: Netlify does **not** document
    this service. [Transfer a domain](https://docs.netlify.com/manage/domains/manage-domains/transfer-a-domain/)
