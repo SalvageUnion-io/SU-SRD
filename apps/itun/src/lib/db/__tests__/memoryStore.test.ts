@@ -9,6 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { z } from 'salvageunion-reference/zod'
+import { MechPatternSchema } from '../../schemas/pattern'
 import { makeMemoryStore } from '../memoryStore'
 
 const ThingSchema = z
@@ -106,5 +107,46 @@ describe('what makes it the ANONYMOUS store', () => {
     expect(source).not.toContain('indexedDB')
     expect(source).not.toContain('localStorage')
     expect(source).not.toContain('sessionStorage')
+  })
+})
+
+describe('the memory twin must agree with its schema about updatedAt', () => {
+  test('a pattern saves anonymously', async () => {
+    // The real pairing from `patternStore.ts`, not a stand-in. `MechPatternSchema`
+    // is `.strict()` and defines `createdAt` only — patterns are immutable after
+    // creation — so this store must NOT be given `hasUpdatedAt`.
+    const store = makeMemoryStore(MechPatternSchema, 'mechPatterns')
+
+    const saved = await store.create({
+      schemaVersion: 1,
+      name: 'Mule Pattern',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+      cargoLots: [],
+    } as never)
+
+    expect(saved.name).toBe('Mule Pattern')
+    expect(saved).not.toHaveProperty('updatedAt')
+  })
+
+  test('turning the flag back on breaks it — the bug, pinned', async () => {
+    // The control for the test above, and the whole reason it exists. With
+    // `hasUpdatedAt` the store stamps a field the strict schema rejects, so
+    // `prepareCreate` throws on the record it has just built and every
+    // anonymous "Save pattern" fails. `db.mechPatterns` never set the flag,
+    // which is why signed-in saves worked and the divergence went unseen.
+    const store = makeMemoryStore(MechPatternSchema, 'mechPatterns', { hasUpdatedAt: true })
+
+    await expect(
+      store.create({
+        schemaVersion: 1,
+        name: 'Mule Pattern',
+        chassisRef: 'mule',
+        systems: [],
+        modules: [],
+        cargoLots: [],
+      } as never)
+    ).rejects.toThrow(/updatedAt/)
   })
 })

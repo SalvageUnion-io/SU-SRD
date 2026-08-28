@@ -34,9 +34,21 @@ type PatternState = HydratedCollectionSlice<'mechPatterns', MechPattern> &
  * Built at module scope so it HOLDS the rows: a store created per call would
  * hand every read an empty Map. Mirrors `entityStore`'s `MEMORY_STORES`.
  */
-const memoryPatterns = makeMemoryStore(MechPatternSchema, STORE_NAMES.mechPatterns, {
-  hasUpdatedAt: true,
-})
+/*
+ * `hasUpdatedAt` is deliberately ABSENT, matching `db.mechPatterns`.
+ *
+ * `MechPatternSchema` is `.strict()` and defines `createdAt` only — patterns
+ * are immutable after creation, so there is nothing for an `updatedAt` to
+ * mean. With the flag on, `prepareCreate` stamped the field and the strict
+ * parse then rejected the record it had just built, so every anonymous "Save
+ * pattern" threw `Unrecognized key: "updatedAt"` before it could write.
+ *
+ * The IndexedDB store never set it, which is why signed-in saves worked and
+ * the divergence went unseen — exactly the mismatch `entityStore`'s
+ * `MEMORY_STORES` comment warns about, where an anonymous session stamps
+ * different fields from a signed-in one.
+ */
+const memoryPatterns = makeMemoryStore(MechPatternSchema, STORE_NAMES.mechPatterns)
 
 const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatternCreateInput>({
   key: 'mechPatterns',
