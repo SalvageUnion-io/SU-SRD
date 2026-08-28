@@ -15,6 +15,7 @@ import {
   isTableRunner,
   NotAuthorized,
   requireMember,
+  requireMemberAs,
   requireTableRunner,
   requireUser,
 } from './model/permissions'
@@ -1070,6 +1071,35 @@ export const appendChangeLog = mutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
+
+    // `alert` is the Mediator's broadcast channel, not a field a client may
+    // append. `proposals.broadcast` writes those rows behind `requireMediator`,
+    // and `proposals.alerts` returns every one of them to every member of the
+    // game — so without this line any signed-in user could post a message into
+    // the whole crew's alert feed, carrying a real `actorId`, by calling this
+    // mutation instead. The gate on the intended path is only a gate if the
+    // unintended one is closed too.
+    const alert = args.entries.find((e) => e.field === 'alert')
+    if (alert !== undefined) {
+      throw new NotAuthorized('Alerts are written by the Mediator, not by a client append')
+    }
+
+    // Membership is checked per distinct game, not per entry.
+    //
+    // Every field of an entry is client-supplied, `gameId` included, and
+    // nothing here derived it from a record the caller can be shown to own. A
+    // user who has left a game — or who holds its id from an unredeemed invite
+    // link — could therefore write rows into that game's log indefinitely, and
+    // `proposals.alerts`/the Change Log drawer would render them as genuine
+    // provenance attributed to them.
+    //
+    // Distinct rather than per-entry because the batch is usually one edit
+    // touching several fields of ONE entity: deduplicating keeps this at one
+    // membership read for the common case rather than one per row, which
+    // preserves the round-trip argument the comment below makes.
+    const gameIds = [...new Set(args.entries.flatMap((e) => (e.gameId === null ? [] : [e.gameId])))]
+    await Promise.all(gameIds.map((gameId) => requireMemberAs(ctx, gameId, userId)))
+
     // `Promise.all` rather than a serial loop: these are independent inserts and
     // this runs on every sheet edit, so the round trips are the cost.
     await Promise.all(
