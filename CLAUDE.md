@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
   ADR-015–020 cover the Dashboard play surface, built at `apps/itun/src/components/dashboard/`.
 
-- **Hosting is migrating to Cloudflare** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)) — Netlify and Render are being retired in a **hard cutover with no rollback**. Everything below still describes the *current* Netlify/Render reality and stays accurate until the phase that changes it lands. Before touching hosting, deploy config, the snapshot backend or the Discord bot's transport, read the ADR and then [`docs/architecture/cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md), which carries the phase order, the per-phase gates and a progress table. Two things bind immediately: **a failed gate halts the phase and is never worked around**, and **snapshots go to R2 rather than into Convex**, which keeps a future Convex→D1 move open. Do not execute from issue #830 — the ADR supersedes it.
+- **Hosting is migrating to Cloudflare** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)) — Netlify and Render are being retired in a **hard cutover with no rollback**. **The cutover is half done, so "hosting" is now split.** `apps/itun` (`intheunionnow.com`) and the Discord bot both serve from Cloudflare as of 2026-08-19 (ADR-033 P5 and P7); `apps/srd` (`salvageunion.io`) and `apps/su-assets` are still on Netlify, P7 for them being blocked on a registrar delegation. Render is a dormant fallback, not production. The per-service reality is in the progress table, not here. Before touching hosting, deploy config, the snapshot backend or the Discord bot's transport, read the ADR and then [`docs/architecture/cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md), which carries the phase order, the per-phase gates and a progress table. Two things bind immediately: **a failed gate halts the phase and is never worked around**, and **snapshots go to R2 rather than into Convex**, which keeps a future Convex→D1 move open. Do not execute from issue #830 — the ADR supersedes it.
 
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - **Rules text** — there is no curated digest. To answer "what does the book actually say", run `bun run rules:extract` (local only; the copyright-bearing PDFs in `rules/` are gitignored and absent in CI) and grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers so you can cite exact pages.
@@ -197,10 +197,18 @@ Two escape hatches, both configured via `tags` in `knip.json`:
   show the export _is_ consumed (e.g. deleting it fails typecheck), and say so in
   the tag comment.
 
-Whole workspaces whose entry file legitimately _is_ the public surface set
-`includeEntryExports: false` per-workspace: `component-lib` (barrel is the library
-API), `srd` (`*.page.tsx` route + endpoint modules, consumed by `ssg/routes.ts`
-and `ssg/endpoints.ts`), `su-assets` (platform handlers).
+Two workspaces whose entry files legitimately _are_ the public surface set
+`includeEntryExports: false` per-workspace: `srd` (`*.page.tsx` route + endpoint
+modules, consumed by `ssg/routes.ts` and `ssg/endpoints.ts`) and `su-assets`
+(platform handlers).
+
+**`component-lib` is NOT one of them — it sets `includeEntryExports: true`**
+(`knip.json`), deliberately and against the same intuition. Its barrel IS the
+library API, which is exactly why switching the check off there made the one
+workspace where barrel rot matters most the one workspace where it could not be
+seen: 28 dead re-exports accumulated behind it, removed in #893. This paragraph
+previously listed `component-lib` with the other two, so an agent reading it
+would have "restored" the setting that hid them.
 
 When knip flags something, the default is to **delete it** — reach for a tag only
 in the two cases above. Deleting dead code often cascades (its callees become dead
@@ -216,9 +224,9 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts each contributor to approve it per-project) and declares **six** servers — Netlify, Sentry, Render, GitHub, Convex, Context7:
 
-- **Netlify** — hosts three sites: `apps/srd` (static, no functions), `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)), and `apps/su-assets` (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp`, run over stdio via `npx`; authenticates through the Netlify CLI/OAuth.
+- **Netlify** — still hosts `apps/srd` (static, no functions) and `apps/su-assets`; **`apps/itun` has moved to Cloudflare** and its Netlify site remains built and publicly reachable only because P8 has not run. Netlify config for all three still exists (`apps/*/netlify.toml`), and the snapshot backend's Netlify Functions + Blobs path ([ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)) is still live there. `apps/su-assets` is (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp`, run over stdio via `npx`; authenticates through the Netlify CLI/OAuth.
 - **Sentry** — browser + server error tracking for all three code apps (`@sentry/browser` in `srd` and `itun`, `@sentry/node` in `itun` and `discord-bot`, `@sentry/vite-plugin` for `itun` release artifacts). MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
-- **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: hosted HTTP at `https://mcp.render.com/mcp`.
+- **Render** — **no longer serves production.** The bot moved to HTTP interactions on a Cloudflare Worker (ADR-033 P5, live 2026-08-19); `render.yaml` and this service remain as a dormant fallback until P8 retires them. MCP server: hosted HTTP at `https://mcp.render.com/mcp`.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: remote HTTP at `https://api.githubcopilot.com/mcp/`. **This one does not work unconfigured** — the endpoint does not support dynamic client registration, so it needs a machine-local PAT header; see the registry doc. Until then, use the `gh` CLI.
 - **Convex** — the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (`auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, … — `tools/check-convex-codegen.ts` prints the true module count on every run, so it is not restated here) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md). MCP server: stdio via `bunx convex mcp start --project-dir apps/itun`, authenticating with the Convex CLI's own device credentials. It targets the **dev** deployment resolved from `CONVEX_DEPLOYMENT`, so run `bunx convex dev` once or every tool call fails; production access is gated behind flags that are deliberately **not** set.
 
@@ -228,7 +236,7 @@ The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts ea
 
 **`claude mcp list` is the only way to know a server works.** Zero tool calls is indistinguishable from broken, and two of these authenticate outside the file.
 
-**Sentry's failure mode is silent, and CI guards it.** Both browser apps env-gate the SDK on a DSN, so with no DSN Vite tree-shakes Sentry out and the build looks identical to a working one; and even with a DSN, a `connect-src` that omits Sentry's ingest origin blocks every event in the browser while still looking healthy. `tools/check-observability.ts` checks both halves together (wired into `validate:all` via `bun run validate:observability`) and asserts its `SENTRY_INGEST_HOST` constant against both apps' `netlify.toml` CSPs. **If you change the CSP or the Sentry region, change both in lockstep** — `apps/srd/netlify.toml` carries the reciprocal comment.
+**Sentry's failure mode is silent, and CI guards it.** Both browser apps env-gate the SDK on a DSN, so with no DSN Vite tree-shakes Sentry out and the build looks identical to a working one; and even with a DSN, a `connect-src` that omits Sentry's ingest origin blocks every event in the browser while still looking healthy. `tools/check-observability.ts` checks both halves together (wired into `validate:all` via `bun run validate:observability`) and asserts its `SENTRY_INGEST_HOST` constant against **four** CSP sources, not two: each app's `netlify.toml` _and_ its `public/_headers` (`cspSources` in that file). The distinction is not academic — for `itun` the CSP actually served is `public/_headers`, because it deploys to Cloudflare, and the checker gained the `_headers` half after itun went live there with no `_headers` at all while this check stayed green on the strength of a `netlify.toml` describing a host that had stopped serving it. **If you change the CSP or the Sentry region, change every source for that app in lockstep** — `apps/srd/netlify.toml` carries the reciprocal comment.
 
 ## SU-SRD Monorepo
 
