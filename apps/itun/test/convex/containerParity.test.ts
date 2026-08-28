@@ -127,27 +127,50 @@ describe('container parity — every local store can reach the server', () => {
       )
     }
 
-    // Importing it is not using it, and NEITHER IS MENTIONING IT IN A COMMENT.
-    //
-    // Both exclusions were found by controlling this test rather than by
-    // reasoning about it. The first draft filtered only import lines, so
-    // commenting out `commit: commitPatternWrite` — the precise edit that
-    // silently stops patterns reaching the server — left the identifier
-    // sitting on a `//` line and the test went on passing. A gate for "prose
-    // asserts what code does not" that a comment can satisfy is the very bug
-    // it is meant to catch.
-    const isCode = (line: string) => {
-      const t = line.trimStart()
-      return (
-        !t.startsWith('import') && !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')
-      )
-    }
+    /**
+     * Strip everything that can carry the name without using it.
+     *
+     * This started as a per-LINE filter that skipped lines beginning `import`,
+     * `//`, `*` or `/*`, and it was vacuous for five of the seven stores.
+     * Biome formats a multi-name import one name per line, so
+     * `entityStore.ts`'s import block contributes lines that read exactly
+     * `  commitEntityWrite,` — which begins with none of those prefixes and was
+     * therefore counted as a use. Deleting all ten real call sites in
+     * `entityStore.ts` left `pilots`, `mechs`, `crawlers`, `softLinks` and
+     * `changeLog` passing on the strength of the import block alone.
+     *
+     * That is the same "the name exists somewhere" substitution this test was
+     * written to remove, one level down: table → declaration → mention.
+     *
+     * So the scan is now source-level rather than line-level. Comments go
+     * first (a trailing `// was commitPatternWrite` on a disabled line is what
+     * switching a mirror off actually looks like), then import and re-export
+     * statements, which name a function without invoking it.
+     */
+    const strip = (source: string) =>
+      source
+        .replace(/\/\*[\s\S]*?\*\//g, ' ')
+        .replace(/\/\/[^\n]*/g, ' ')
+        .replace(/\bimport\s+(?:type\s+)?[\s\S]*?\bfrom\s*['"][^'"]*['"]/g, ' ')
+        .replace(/\bexport\s*\{[\s\S]*?\}\s*from\s*['"][^'"]*['"]/g, ' ')
+
+    /**
+     * A use is a CALL or a wiring, not a mention.
+     *
+     * `fn(` covers the direct calls in `entityStore.ts`; `commit: fn` covers
+     * the slice wiring in `patternStore.ts` and `encounterStore.ts`, which is
+     * the single line whose removal silently stops those mirrors.
+     *
+     * Known residual, stated rather than papered over: a call inside dead code
+     * (`if (false) await commitPatternWrite(op)`) still reads as a use.
+     * Distinguishing that needs reachability analysis, not a regex, and it is
+     * a much less likely edit than the two this now catches.
+     */
+    const uses = (source: string, fn: string) =>
+      new RegExp(`\\b${fn}\\s*\\(|commit:\\s*${fn}\\b`).test(strip(source))
 
     const uncalled = Object.entries(WRITERS)
-      .filter(([, { fn, consumer }]) => {
-        const source = sources.get(consumer) ?? ''
-        return !source.split('\n').some((line) => line.includes(fn) && isCode(line))
-      })
+      .filter(([, { fn, consumer }]) => !uses(sources.get(consumer) ?? '', fn))
       .map(([store, { fn, consumer }]) => `${store} -> ${consumer} never calls ${fn}`)
 
     expect([...undeclared, ...uncalled]).toEqual([])
