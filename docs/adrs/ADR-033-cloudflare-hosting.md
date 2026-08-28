@@ -180,11 +180,15 @@ for CSP.** Zod v4's JIT parser compiles validators with `new Function`, which
 workerd bans. `packages/salvageunion-reference/lib/zod.ts` already disables it;
 that must not be reverted as an optimisation.
 
-**Removing `@netlify/blobs` retires two standing security suppressions.**
-`check:audit` currently ignores `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`,
-both reachable only via `@netlify/blobs → @netlify/dev-utils → image-size`. Once
-that dependency is gone, both `--ignore` flags come out and the CLAUDE.md section
-documenting them is deleted.
+**Two standing security suppressions are already retired — but not by this
+migration.** `check:audit` used to ignore `GHSA-w3rx-r6r6-pgpr` and
+`GHSA-5p2g-fcmc-qvqq`, both reachable only via
+`@netlify/blobs → @netlify/dev-utils → image-size`. This ADR predicted they
+would come out when `@netlify/blobs` did. What actually happened is that
+`@netlify/dev-utils` stopped depending on `image-size`, so the package left the
+lockfile while `@netlify/blobs` stayed (10.7.13, still used by `itun` and
+`su-assets`). Both `--ignore` flags and the CLAUDE.md section are gone; this
+is no longer a benefit P8 has left to deliver.
 
 **The CI token's blast radius is the whole personal account** (§6), and that now
 includes **two live RANDSUM Workers**. Cloudflare API tokens scope by permission

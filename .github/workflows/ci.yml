@@ -377,9 +377,10 @@ jobs:
       #   brace-expansion ^5.0.9 -> top level unchanged at 5.0.9 (minimatch@10 asks ^5.0.5)
       #   nanoid       ^3.3.18 -> NOT ONE LOCKFILE LINE CHANGED; a pure no-op
       #   @vitejs/plugin-react-swc ^4.3.3 -> adds a nested @ladle/react copy at 3.11.0
-      # Post-removal `bun run check:audit` is EMPTY, and full `bun audit` reports
-      # only the two suppressed image-size ids below — i.e. no new advisory at any
-      # severity. `check:all`, `bun --filter component-lib ladle:build`,
+      # Post-removal `bun run check:audit` was EMPTY, and full `bun audit`
+      # reported only the two image-size ids that were suppressed at the time
+      # (since gone from the lockfile entirely — see below) — i.e. no new
+      # advisory at any severity. `check:all`, `bun --filter component-lib ladle:build`,
       # `bun run build:bot` and `bun install --frozen-lockfile` were all green.
       #
       # KNOW WHAT THIS TRADED AWAY, because it is a real cost and not zero.
@@ -425,13 +426,17 @@ jobs:
       #     Removing it costs one duplicate copy (a nested @ladle/react 3.11.0)
       #     and no advisory — install weight only, in a dev-only tool.
       #
-      # TWO ADVISORIES ARE SUPPRESSED. `check:audit` passes
-      # `--ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq`, both
-      # `image-size <=2.0.2` via `@netlify/blobs -> @netlify/dev-utils`. There is
-      # no fixed version to float a floor to — 2.0.2 IS latest — so the usual
-      # `bun update` / raise-the-floor remedy below cannot apply. Full reasoning
-      # and the removal condition are in CLAUDE.md, "Audit gate". The ignores are
-      # scoped to those two ids, so everything else still gates.
+      # NOTHING IS SUPPRESSED. `check:audit` is a bare
+      # `bun audit --audit-level=high` with no `--ignore` flags, and a full
+      # `bun audit` is clean at every severity.
+      #
+      # Two ids used to be suppressed here — `GHSA-w3rx-r6r6-pgpr` and
+      # `GHSA-5p2g-fcmc-qvqq`, both `image-size <=2.0.2` reached via
+      # `@netlify/blobs -> @netlify/dev-utils`. They were not fixed and no floor
+      # was floated: the transitive edge simply went away. `@netlify/blobs` is
+      # still here (10.7.13) and `bun why image-size` now reports the package is
+      # not in the lockfile at all, so the justification became counterfactual
+      # rather than merely satisfied. Flags and prose were removed together.
       #
       # TWO DEAD DEDUPE FLOORS, kept as lessons rather than as config:
       #

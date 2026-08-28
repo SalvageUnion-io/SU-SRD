@@ -99,7 +99,7 @@
     "knip": "knip",
     "check": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling' 'bun run check:ci-aggregator' 'bun run check:srd-output'",
     "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/docs packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc .vscode/settings.json",
-    "check:audit": "bun audit --audit-level=high --ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq",
+    "check:audit": "bun audit --audit-level=high",
     "check:tokens": "bun tools/check-design-tokens.ts",
     "check:styling": "bun tools/check-styling-ownership.ts",
     "check:action-pinning": "bun tools/check-action-pinning.ts",
