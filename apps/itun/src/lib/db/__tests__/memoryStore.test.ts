@@ -130,6 +130,28 @@ describe('the memory twin must agree with its schema about updatedAt', () => {
     expect(saved).not.toHaveProperty('updatedAt')
   })
 
+  test('patternStore actually builds its memory store without the flag', async () => {
+    // The two behavioural tests either side of this one build their OWN store,
+    // so neither observes `patternStore.ts` — restore `hasUpdatedAt: true`
+    // there and both stay green while every anonymous save throws again. They
+    // prove the flag is fatal; only this proves the shipped file does not set
+    // it, and that pairing is what makes the fix regression-proof.
+    //
+    // A source assertion rather than a behavioural one because selecting the
+    // memory backend needs `selectBackend()` to return 'memory', which is
+    // driven by module-scope connection state; `mock.module` is process-global
+    // here (see `.claude/rules/testing-patterns.md`) and mocking it for one
+    // test would leak into every later file in the workspace.
+    const source = await Bun.file(
+      new URL('../../../stores/patternStore.ts', import.meta.url).pathname
+    ).text()
+
+    const call = source.match(/makeMemoryStore\([\s\S]*?\)\n/)?.[0]
+    expect(call).toBeDefined()
+    expect(call).toContain('MechPatternSchema')
+    expect(call).not.toContain('hasUpdatedAt')
+  })
+
   test('turning the flag back on breaks it — the bug, pinned', async () => {
     // The control for the test above, and the whole reason it exists. With
     // `hasUpdatedAt` the store stamps a field the strict schema rejects, so
