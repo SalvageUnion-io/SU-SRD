@@ -22,8 +22,11 @@
  * a `bun test` file it could only fail there or — worse — skip, and a check
  * that skips when the build is missing reads as a pass while asserting nothing.
  *
- * Running inside `gate` puts it immediately after the build that produces its
- * input, in the same job as the snapshot comparison, where `dist` is guaranteed.
+ * `gate` chains it immediately after the build that produces its input. CI does
+ * not run `gate` — it runs `build`, then this via `check:examples`, then
+ * `snapshot`, as three steps of `build-srd` so each failure stays separately
+ * attributable and the build happens once. Either way it runs where `dist` is
+ * guaranteed.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'

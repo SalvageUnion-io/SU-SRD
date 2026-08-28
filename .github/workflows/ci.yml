@@ -573,6 +573,21 @@ jobs:
       - name: Build srd
         run: bun --filter srd build
 
+      # Every example the site prints must resolve against what it emitted.
+      #
+      # This ran in NO automated check before. `gate` chains it between the
+      # build and the snapshot, and its own header says so — but CI runs
+      # `build` and `snapshot` as separate steps and never `gate`, so the one
+      # place the chain was documented to hold was the one place it did not.
+      # A fabricated example on /api or /discord merged green.
+      #
+      # A step rather than `gate` because `gate` re-runs the build, and this
+      # job deliberately builds once: the Playwright tier below serves that
+      # same dist. Separate steps also keep failure attribution, which is why
+      # the snapshot below is its own step too.
+      - name: Check printed examples against the built site
+        run: bun --filter srd check:examples
+
       # The output gate (ssg/snapshot.ts). Runs HERE rather than as its own job
       # because it needs the dist this step just produced, and rebuilding it in
       # a second job would double the slowest thing in the workflow.
