@@ -42,7 +42,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
-| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312, **no agent reply as of 2026-08-21** |
+| P7    | Cutover                                  | **no**     | **half done, and UNBLOCKED** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` transferred out of Netlify **2026-08-28** (ticket #1093312 resolved) and now sits in the Name.com account. Nothing is waiting on anyone else: the only remaining act is the nameserver change, step 3 below |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
@@ -649,14 +649,16 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 
 ### P7 — Cutover · **irreversible**
 
-> **The two domains are in different places, and only one of them can be flipped.
-> This corrects an earlier version of this section that named Name.com and
-> Tucows as two registrar logins, as though they were symmetrical. They are not.**
+> **BOTH domains can now be flipped. As of 2026-08-28 this table's last column
+> is history** — `salvageunion.io` was transferred out of Netlify into the
+> operator's own Name.com account, which is what the deadlock section below
+> exists to break. The section is kept because the *shape* of the trap is worth
+> recognising again, not because it still binds.
 >
-> | Domain              | Registrar (registry record) | You manage it at                 | Flip possible?              |
-> | ------------------- | --------------------------- | -------------------------------- | --------------------------- |
-> | `intheunionnow.com` | Tucows Domains Inc.         | **Hover** — it is in the account | **Yes**                     |
-> | `salvageunion.io`   | Name.com, Inc.              | **Netlify**                      | **No — see the deadlock**   |
+> | Domain              | Registrar (registry record) | You manage it at                 | Flip possible?                    |
+> | ------------------- | --------------------------- | -------------------------------- | --------------------------------- |
+> | `intheunionnow.com` | Tucows Domains Inc.         | **Hover** — it is in the account | **Yes** — done 2026-08-19         |
+> | `salvageunion.io`   | Name.com, Inc.              | **Name.com** — since 2026-08-28  | **Yes** — was "no, see deadlock"  |
 >
 > `salvageunion.io` was **registered through Netlify** on 2025-11-17. Netlify
 > resells through Name.com, which is why the registry names a registrar nobody
@@ -682,9 +684,10 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 > The `whois` answer alone is the trap: it is technically correct and practically
 > useless, because the account that controls the domain is the **Netlify** one.
 
-#### The deadlock on `salvageunion.io`
+#### The deadlock on `salvageunion.io` — BROKEN 2026-08-28
 
-Three facts that individually look fine and together do not compose:
+**Resolved by step 2's ticket; kept because the shape recurs.** Three facts that
+individually looked fine and together did not compose:
 
 1. Netlify's domain page for a **Netlify-registered** domain shows its
    nameservers **read-only**, with no field to change them. (Compare the page for
@@ -751,34 +754,75 @@ support link there is pre-filled with the right subject and body.
 
    This is the long pole — a human ticket, not an API call.
 
-   **Ask for the nameserver change too, and ask for it first.** As of
-   2026-08-21 there is still no agent reply, and the ticket as written requests
-   only the larger of the two things Netlify could do. Moving the registration
-   into the Name.com account is a registrar action with ICANN process attached;
-   *setting the nameservers on their side* is a config change that **finishes the
-   migration on its own** and needs no transfer at all — step 3 is the milestone
-   either way, and it does not care which party performs it. Requesting both,
-   preferring the nameserver change, gives support a cheap way to say yes.
+   **GRANTED, 2026-08-28.** Netlify Support (Mary Pangan) replied on the ticket:
 
-   Stated honestly, because the reply may be no: Netlify does **not** document
-   this service. [Transfer a domain](https://docs.netlify.com/manage/domains/manage-domains/transfer-a-domain/)
-   covers only full registrar transfers. Other users have asked for exactly the
-   nameserver change on the community forum — *["Please set custom name servers
-   for my Netlify-registered domain"](https://answers.netlify.com/t/please-set-custom-name-servers-for-my-netlify-registered-domain-mybrimly-com/165752)*
-   and *["How do I change nameservers or get an EPP transfer code…"](https://answers.netlify.com/t/how-do-i-change-nameservers-or-get-an-epp-transfer-code-for-a-domain-registered-through-netlify/163007)* —
-   and **both threads show no staff reply**, one noting that support emails had
-   gone unanswered. It is a reasonable ask with no evidence of it being granted,
-   which is a reason to make it *alongside* the transfer request rather than
-   instead of it.
+   > "The transfer of the domain to your account at Name.com is complete and you
+   > will see the domain settings there now. **No DNS changes have happened
+   > yet.** However, you now can change the name servers at Name and all domain
+   > renewals will happen directly at Name. It is also now possible to transfer
+   > the domain from Name to some other registrar if you prefer another company."
+
+   Name.com sent two confirmations in the same minute: an account transfer of
+   `salvageunion.io` from `bitballoon` (Netlify's legacy entity) to the operator's
+   account, and the registrant-contact update.
+
+   **The deadlock this section describes is gone.** Netlify no longer holds the
+   domain, so "the nameservers are read-only because Netlify is the registrar"
+   no longer applies. The pessimism above — nine paragraphs on how Netlify does
+   not document this service and two forum threads with no staff reply — is kept
+   as written because it was honest when written and it correctly predicted
+   nothing about the outcome. **It took nine days, and the answer was yes.**
+
+   It also settles the either/or: Netlify moved the *registration* rather than
+   setting the nameservers, so step 3 is ours to perform and needs no further
+   correspondence.
 
 3. At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
-   `rajeev.ns.cloudflare.com` — **or have Netlify set them**, per the note above.
-   **This is the actual cutover moment for `srd` and
+   `rajeev.ns.cloudflare.com`. **This is the actual cutover moment for `srd` and
    `assets`** — the zone goes Active and both surfaces move.
-4. *Optional, later.* Unlock at Name.com, take the auth code, and transfer the
-   registration to Cloudflare Registrar. `.io` is supported; transfers are
-   at-cost, add a year to the expiry, and take up to 10 days. This is
-   consolidation, not cutover — step 3 already finished the migration.
+
+   **Pre-flight, re-measured 2026-08-29 — all green.** The earlier readings were
+   taken 2026-08-21, before the transfer, so they were re-run rather than
+   trusted:
+
+   | Check                                   | Result                                          |
+   | --------------------------------------- | ----------------------------------------------- |
+   | `dig salvageunion.io DS`                | **empty** — DNSSEC off, cannot strand resolvers  |
+   | `AAAA` for all three hostnames @ CF NS  | **`100::`** — apex, `www` and `assets` attached  |
+   | Artwork through the Worker              | **byte-identical** to Netlify (SHA-256 `9f3a06c7…`, 503,202 B, `/chassis/mule.webp`) |
+   | `srd` routes, Worker vs Netlify         | **10/10 identical** — incl. `/about/`, two deep `/schema/…` pages, a 404 and the `sitemap.xml` 301 |
+
+   The artwork check is the one worth keeping: `ASSET_BASE_URL` is compile-time,
+   so every entity image in **both** apps moves the instant this hostname does.
+   Comparing one rendered page would have covered whichever images that page
+   happened to use; hashing the bytes through the deployed Worker covers the
+   object itself.
+
+   **This step needs a human at a keyboard.** It is a registrar UI action:
+   Name.com has no session an agent can borrow, `op` needs interactive approval,
+   and entering credentials is off-limits. There is a Name.com API
+   (`POST /v4/domains/{domain}:setNameservers`) if a token is ever provisioned —
+   nothing in this repo has one today, and this is the only step in the whole
+   cutover that an agent cannot perform.
+4. **Wanted, and now possible.** Unlock at Name.com, take the auth code, and
+   transfer the registration to Cloudflare Registrar. `.io` is supported;
+   transfers are at-cost, add a year to the expiry, and take up to 10 days.
+   Netlify's reply explicitly clears it: *"it is also now possible to transfer
+   the domain from Name to some other registrar."* This is consolidation, not
+   cutover — step 3 already finished the migration.
+
+   **Order matters, and it is the opposite of the intuitive one.** Do step 3
+   first. Cloudflare Registrar will not accept a domain whose zone is not
+   already Active, which is exactly the deadlock that cost nine days — so
+   flipping the nameservers is the *prerequisite* for the transfer, not a
+   consolation prize if the transfer stalls.
+
+   **A renewal note that is no longer a deadline.** Renewals now happen at
+   Name.com, not Netlify — Netlify's reply says so directly — so the 2026-10-16
+   date this document used to treat as a forcing function is now an ordinary
+   registrar renewal. It is still worth completing the transfer before it, to
+   avoid paying a year at one registrar and then moving; but a missed date costs
+   money, not the domain.
 
 **Step 3 is the milestone. Step 4 is tidying.** Do not let the 10-day transfer
 window read as 10 days of blocked cutover.
@@ -1148,22 +1192,28 @@ and the DNS-only placeholders it replaces are never in the serving path.
 
 Only after P7 has been stable for 24 h.
 
-> **DO NOT DELETE THE NETLIFY TEAM. It is the registrar of record for
-> `salvageunion.io`.**
+> **CLEARED 2026-08-28 — the Netlify team is no longer the registrar of record.**
 >
-> This is the sharpest hazard in the whole cutover, and the plan did not have it
-> until the registration was traced (P7). Netlify does not merely host that
-> domain — it **sold** it and holds it. Closing the account, or letting it lapse,
-> puts the domain itself at risk, not just its DNS.
+> This block used to read *"DO NOT DELETE THE NETLIFY TEAM"*, and it was the
+> sharpest hazard in the cutover: Netlify did not merely host `salvageunion.io`,
+> it **sold** it and held it, so closing the account would have put the domain
+> itself at risk rather than just its DNS. The registration has now been
+> transferred out per P7 step 2 and sits in the operator's Name.com account.
 >
-> Deleting the three *sites* is fine and is what this phase means. Deleting the
-> **team/account** is not, and must wait until the registration has been
-> transferred out per P7 and `whois` shows a registrar you control.
+> **Verify before acting on this paragraph, rather than trusting it** — the whole
+> reason the hazard existed is that `whois` gave a technically-correct answer
+> (`Name.com, Inc.`) that was practically useless, because the account that
+> controlled the domain was the Netlify one. The check that actually settles it
+> is logging into Name.com and seeing the domain, plus Netlify's own domain page
+> no longer listing it. Do that once before deleting anything.
 >
-> A related deadline that is not about deletion at all: **auto-renew runs
-> 2026-10-16 at $61.99.** If the transfer has not completed by then, Netlify
-> charges another year. That is a cost, not a failure — do not let it rush the
-> transfer into being done badly.
+> Deleting the three *sites* was always fine and is what this phase means.
+> Deleting the **team/account** is now unblocked in principle; it still waits on
+> P7 being complete and stable.
+>
+> The renewal is no longer a Netlify charge at all: renewals happen at Name.com
+> now (**2026-10-16, $61.99**). Still a cost worth beating with the registrar
+> transfer, but no longer a reason to rush it.
 
 - Delete the three Netlify sites and the Render service.
 - `.mcp.json`: remove `netlify` and `render`; add
