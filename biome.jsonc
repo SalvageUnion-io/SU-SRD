@@ -51,6 +51,16 @@
       // too, or `bun run lint` passes or fails depending on whether someone
       // happens to have a server up.
       "!**/.wrangler",
+      // Compiled Tailwind output for the claude.ai/design sync
+      // (`.design-sync/tailwind-entry.css` → `packages/component-lib/.ds-css/`).
+      // It has to live INSIDE the package because the converter bounds
+      // `cfg.cssEntry` to the package dir, so it lands under `packages/**` and
+      // is in scope by default. Linting it is meaningless — it is Tailwind's
+      // emitted CSS, not hand-authored — and it fails: `!important` from
+      // `@utility`, and `:is(:where(.x)::before)` selectors Biome's CSS parser
+      // rejects. Same reasoning as `.wrangler` and `.astro` above: gitignored
+      // is not enough, it has to be said here.
+      "!**/.ds-css",
       "!**/.vite",
       "!**/.ladle",
       "!**/coverage",

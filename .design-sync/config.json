@@ -1,0 +1,176 @@
+{
+  "projectId": "ef3d846c-aff3-488c-a208-695068f62ae3",
+  "shape": "package",
+  "pkg": "component-lib",
+  "globalName": "SalvageUnion",
+  "srcDir": "src",
+  "tsconfig": "tsconfig.json",
+  "buildCmd": "bun run build:package && ./node_modules/.bin/tsc -p .design-sync/tsconfig.dts.json && .ds-sync/node_modules/.bin/tailwindcss -i .design-sync/tailwind-entry.css -o packages/component-lib/.ds-css/compiled.css",
+  "cssEntry": ".ds-css/compiled.css",
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraEntries": [
+    "salvageunion-reference",
+    "../../.design-sync/ds-provider.tsx"
+  ],
+  "extraFonts": [
+    "../../apps/itun/node_modules/@fontsource/barlow/400.css",
+    "../../apps/itun/node_modules/@fontsource/barlow/500.css",
+    "../../apps/itun/node_modules/@fontsource/barlow/600.css",
+    "../../apps/itun/node_modules/@fontsource/barlow/700.css",
+    "../../apps/itun/node_modules/@fontsource/barlow-semi-condensed/500.css",
+    "../../apps/itun/node_modules/@fontsource/barlow-semi-condensed/600.css",
+    "../../apps/itun/node_modules/@fontsource/barlow-semi-condensed/700.css"
+  ],
+  "provider": {
+    "component": "SalvageUnionDataProvider"
+  },
+  "dtsPropsFor": {
+    "EntityHrefProvider": "/** Builds a navigable show-page href for an entity. The route shape is the consuming app's concern, so the library stays route-agnostic. Return `undefined` for entities with no page. */\n  value: ((entity: SURefEntity) => string | undefined) | undefined;\n  children?: React.ReactNode;",
+    "EntityDetailLinkProvider": "/** When true, nested \"View details\" controls open the entity's show page in a new tab (via the EntityHrefProvider builder) instead of the in-place modal. The SRD sets this; ITUN leaves it false so detail stays an in-app modal. */\n  value: boolean;\n  children?: React.ReactNode;",
+    "EntityExternalLinkProvider": "/** Builds an external cross-link node for an entity (e.g. a \"View in SRD →\" deep link). Full entity cards render it in their foot band. Return `undefined` for entities with no external page. */\n  value: ((entity: SURefEntity) => React.ReactNode | undefined) | undefined;\n  children?: React.ReactNode;",
+    "PatternHrefProvider": "/** Builds the href of a chassis PATTERN's own page. Patterns are nested objects on a chassis, not entities — they have no id and no schemaName — so this builder takes both halves of the identity. Provide nothing and pattern rows stay inert. */\n  value: ((chassis: SURefEntity, pattern: SURefObjectPattern) => string | undefined) | undefined;\n  children?: React.ReactNode;"
+  },
+  "storyImports": {
+    "loaders": {
+      ".md": "text"
+    }
+  },
+  "overrides": {
+    "ReferenceEntityCard": {
+      "viewport": "900x1900"
+    },
+    "ClassAbilityTree": {
+      "cardMode": "column",
+      "viewport": "900x1600"
+    },
+    "Content": {
+      "cardMode": "column",
+      "viewport": "900x1200"
+    },
+    "MasonryColumns": {
+      "viewport": "900x1200"
+    },
+    "StaticEntityContent": {
+      "viewport": "900x1100"
+    },
+    "VitalGauge": {
+      "viewport": "900x900"
+    },
+    "Stat": {
+      "viewport": "900x900"
+    },
+    "ClassAbilityStep": {
+      "viewport": "900x1900"
+    },
+    "EquipmentStep": {
+      "viewport": "900x1900"
+    },
+    "CrawlerTypeSelectStep": {
+      "viewport": "900x1900"
+    },
+    "SystemsList": {
+      "viewport": "900x1400"
+    },
+    "WizShell": {
+      "cardMode": "column",
+      "viewport": "1000x1100"
+    },
+    "WizTracker": {
+      "cardMode": "column",
+      "viewport": "900x1100"
+    },
+    "BackgroundStep": {
+      "viewport": "900x1000"
+    },
+    "DisplayPanel": {
+      "viewport": "900x1300"
+    },
+    "ActionsDeck": {
+      "viewport": "900x1300"
+    },
+    "ModalShell": {
+      "cardMode": "single",
+      "primaryStory": "Action",
+      "viewport": "900x700"
+    },
+    "MobileSearchDialog": {
+      "cardMode": "single",
+      "primaryStory": "OpenSheet",
+      "viewport": "900x700"
+    },
+    "NavDrawer": {
+      "cardMode": "single",
+      "primaryStory": "SrdForm",
+      "viewport": "900x900"
+    },
+    "EntitySearcher": {
+      "cardMode": "column",
+      "viewport": "1000x1100"
+    },
+    "AppBar": {
+      "cardMode": "column",
+      "viewport": "1200x800"
+    },
+    "AboutScreen": {
+      "viewport": "900x1900"
+    },
+    "Colophon": {
+      "viewport": "900x1900"
+    },
+    "SheetSectionSlab": {
+      "viewport": "900x1100"
+    },
+    "FilterRow": {
+      "cardMode": "column",
+      "viewport": "900x1000"
+    },
+    "SheetPickerModal": {
+      "cardMode": "single",
+      "primaryStory": "Picker",
+      "viewport": "1200x1400"
+    },
+    "Toaster": {
+      "cardMode": "single",
+      "primaryStory": "Statuses",
+      "viewport": "900x700"
+    },
+    "ActiveItemBand": {
+      "cardMode": "column",
+      "viewport": "900x900"
+    },
+    "AppHeader": {
+      "cardMode": "column",
+      "viewport": "1200x700"
+    },
+    "Card": {
+      "cardMode": "column",
+      "viewport": "1200x1000"
+    },
+    "EntityExternalLinkProvider": {
+      "cardMode": "column",
+      "viewport": "900x1600"
+    },
+    "EntityDetailLinkProvider": {
+      "cardMode": "column",
+      "viewport": "900x1900"
+    },
+    "EntityHrefProvider": {
+      "cardMode": "column",
+      "viewport": "900x1500"
+    },
+    "PatternHrefProvider": {
+      "cardMode": "column",
+      "viewport": "900x1900"
+    },
+    "SheetHero": {
+      "cardMode": "column",
+      "viewport": "900x900"
+    },
+    "EntityRow": {
+      "viewport": "900x1000"
+    },
+    "Changelog": {
+      "viewport": "900x1000"
+    }
+  }
+}

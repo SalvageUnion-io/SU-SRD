@@ -1,0 +1,35 @@
+{
+  // Declaration-emit config for the claude.ai/design sync — NOT part of the
+  // repo's build.
+  //
+  // component-lib ships TypeScript source (`exports["."] = "./src/index.ts"`)
+  // and has no build step, so there is no `.d.ts` tree. The design-sync
+  // converter discovers components from the shipped `.d.ts` exports and
+  // extracts each `<Name>Props` body from them; with none it finds zero
+  // components and emits stub prop contracts.
+  //
+  // Emitting into `packages/component-lib/types/` is what makes the converter
+  // pick it up WITHOUT editing the package's own `package.json`: its
+  // `findTypesRoot` falls back to a `types/` directory when no `types` field is
+  // declared. The directory is generated and gitignored.
+  //
+  // `allowImportingTsExtensions` is dropped (it is incompatible with emit) and
+  // `noEmit` is inverted; everything else is inherited so the emitted types
+  // match what the package actually type-checks as.
+  "extends": "../packages/component-lib/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "skipLibCheck": true,
+    "outDir": "../packages/component-lib/types",
+    "rootDir": "../packages/component-lib/src"
+  },
+  "include": ["../packages/component-lib/src"],
+  "exclude": [
+    "../packages/component-lib/src/**/*.test.ts",
+    "../packages/component-lib/src/**/*.test.tsx",
+    "../packages/component-lib/src/**/*.stories.tsx"
+  ]
+}

@@ -1,0 +1,46 @@
+/*
+ * design-sync's Tailwind compile entry — NOT a repo stylesheet.
+ *
+ * The claude.ai/design converter copies CSS; it does not run Tailwind. This
+ * package's shipped stylesheets are Tailwind v4 SOURCE (`theme.css` carries
+ * `@theme` and `@utility`, and the components are written in utility classes),
+ * so a straight copy would ship a design system with no utilities at all.
+ * This entry is compiled once into `.design-sync/.cache/compiled.css`, and
+ * `cfg.cssEntry` points there.
+ *
+ * The layer order and the `layer(su-base)` import are copied verbatim from
+ * `apps/itun/src/index.css` — the real consumer cascade. They are load-bearing
+ * for the same reason documented there and in `src/styles/ladle.css`:
+ * `index.css` is written unlayered (for the post-Tailwind world), and unlayered
+ * CSS beats layered CSS regardless of source order, so a bare `@import` would
+ * put the package's element-level base rules above every Tailwind utility and
+ * collapse type on every heading.
+ *
+ * `@source` scans decide which utilities exist in the output. component-lib is
+ * the design system itself; the two apps are included because they are its real
+ * consumers, and the utilities they use are the vocabulary a design built from
+ * this system will reach for.
+ */
+@layer reset, theme, base, su-base, components, utilities;
+@import 'tailwindcss';
+@import '../packages/component-lib/src/styles/theme.css';
+@import '../packages/component-lib/src/styles/index.css' layer(su-base);
+
+/*
+ * The dashboard stylesheets. These are NOT reachable from `index.css` — each is
+ * a side-effect `import './x.css'` inside its own component, which Vite injects
+ * for the apps. The design-sync converter compiles `.css` imports to empty (its
+ * contract is that styles ship via the stylesheet, not the bundle), so without
+ * these three lines every dashboard component renders unstyled: the Dial, the
+ * rail, the Active Item band and the whole `.pc-*` instrument vocabulary.
+ *
+ * Unlayered, and last, deliberately — that is exactly how a side-effect import
+ * lands in the apps, and the `.pc-*` rules are written expecting to win.
+ */
+@import '../packages/component-lib/src/components/dashboard/DashboardCanvas.css';
+@import '../packages/component-lib/src/components/dashboard/DashboardGrid.css';
+@import '../packages/component-lib/src/components/dashboard/instruments.css';
+
+@source '../packages/component-lib/src';
+@source '../apps/itun/src';
+@source '../apps/srd/src';
