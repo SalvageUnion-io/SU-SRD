@@ -189,6 +189,18 @@ jobs:
       # ---------------------------------------------------------------------
       # su-assets — no build step; the Worker is its own source.
       # ---------------------------------------------------------------------
+      # `wrangler@4.108.0` is written out at all four deploy steps, deliberately.
+      #
+      # Hoisting it to one `env:` var was tried and reverted: `check-action-pinning`
+      # refuses a `bunx` invocation it cannot statically read as an exact version,
+      # and it is right to — this job holds the deploy credentials, so an
+      # unresolvable pin there is where a supply-chain problem would land. A
+      # variable defeats that check for the sake of removing three literals.
+      #
+      # Dependabot cannot update this in either shape (it reads manifests; this is
+      # a shell argument), so the four copies must be moved by hand — TOGETHER,
+      # and together with `compatibility_date` in all four wrangler.jsonc files,
+      # which is pinned to the workerd this version bundles.
       - name: Deploy su-assets
         working-directory: apps/su-assets
         env:

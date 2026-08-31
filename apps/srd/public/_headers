@@ -28,7 +28,7 @@
   # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
   # which fails CI if this drifts. Wildcarded subdomain because the host encodes
   # the Sentry org id.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
 # Content-hashed bundle output. `/assets/*`, not the old `/_astro/*`: the
 # in-house SSG emits through Vite's default assetsDir. If ssg/vite.config.ts
