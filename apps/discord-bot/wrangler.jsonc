@@ -7,12 +7,15 @@
   // every server. Until then this Worker can be deployed and exercised with the
   // signed replay harness while Render keeps serving production.
   //
-  // No `compatibility_flags: ["nodejs_compat"]` on purpose: the portable
-  // Discord packages (@discordjs/builders, /collection, /rest and
-  // discord-api-types) run on workerd unaided, and adding the Node shim would
-  // both grow the bundle and make it easy to reintroduce a Node-only import
-  // without noticing. If something genuinely needs it, add it deliberately and
-  // say what.
+  // Still no `nodejs_compat`: the portable Discord packages (@discordjs/builders,
+  // /collection, /rest and discord-api-types) run on workerd unaided, and the
+  // Node shim would both grow the bundle and make it easy to reintroduce a
+  // Node-only import without noticing.
+  //
+  // That note asked anything that genuinely needed a flag to "add it
+  // deliberately and say what". `@sentry/cloudflare` did — see
+  // `compatibility_flags` above, which grants AsyncLocalStorage and nothing
+  // else.
   "name": "su-discord-bot",
   "main": "src/http/worker.ts",
 
@@ -21,6 +24,17 @@
   // compatibility date X, but the newest date supported by this server binary
   // is Y" — which reads like a config error and is really a version skew.
   "compatibility_date": "2026-07-13",
+
+  // `nodejs_als` — AsyncLocalStorage ONLY, not the full `nodejs_compat` shim.
+  //
+  // `@sentry/cloudflare` imports `node:async_hooks` to isolate scope per
+  // request. Without a flag wrangler warns and the Worker throws at runtime.
+  //
+  // This is the narrow flag on purpose, and it is the deliberate exception the
+  // note below reserved. `nodejs_compat` would pull the whole Node shim and
+  // make it easy to reintroduce a Node-only import without noticing; measured,
+  // `nodejs_als` alone clears the warning, so the broad flag buys nothing.
+  "compatibility_flags": ["nodejs_als"],
 
   // ---------------------------------------------------------------------------
   // Public configuration. NOT secrets, and treating them as secrets was a

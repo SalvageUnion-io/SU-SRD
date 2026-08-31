@@ -708,6 +708,97 @@ function checkFunctionDirs(): void {
  * way to observe it is to bundle with zip-it-and-ship-it and count entries, or
  * to deploy. Hence a check on the import shape, which is cheap and hermetic.
  */
+/**
+ * The Cloudflare Workers surfaces.
+ *
+ * These are the three that actually serve production after ADR-033, and until
+ * they were wired NONE of them reported to Sentry — each installed a bare
+ * `console.error`, which lands in Workers Logs, which nothing alerts on.
+ *
+ * That gap survived because this checker had no notion of a Worker: it gated the
+ * two BROWSER apps' CSP and two Netlify function directories, so it stayed green
+ * across the entire cutover while every surface serving traffic went dark. The
+ * lesson is the one this repo keeps relearning — a guard that does not know
+ * about a surface cannot fail for it.
+ *
+ * Two things are asserted per Worker, and both are needed:
+ *
+ *   1. the entry module wraps its export with `withObservability`. Without it an
+ *      unhandled throw never becomes an event.
+ *   2. `wrangler.jsonc` grants `nodejs_als`. `@sentry/cloudflare` imports
+ *      `node:async_hooks`; without the flag the Worker THROWS AT RUNTIME rather
+ *      than at build, so a missing flag is a production outage that every local
+ *      check passes.
+ */
+type WorkerSurface = {
+  name: string
+  /** The Worker entry named by `main`, relative to repo root. */
+  entryPath: string
+  /** Its wrangler config, relative to repo root. */
+  configPath: string
+}
+
+const WORKER_SURFACES: WorkerSurface[] = [
+  {
+    name: 'itun-worker',
+    entryPath: 'apps/itun/src/worker/index.ts',
+    configPath: 'apps/itun/wrangler.jsonc',
+  },
+  {
+    name: 'su-assets-worker',
+    entryPath: 'apps/su-assets/src/worker.ts',
+    configPath: 'apps/su-assets/wrangler.jsonc',
+  },
+  {
+    name: 'discord-bot-worker',
+    entryPath: 'apps/discord-bot/src/http/worker.ts',
+    configPath: 'apps/discord-bot/wrangler.jsonc',
+  },
+]
+
+const WORKER_WRAPPER = /withObservability\(/
+const WORKER_IMPORT = /from 'observability\/cloudflare'/
+const ALS_FLAG = /"compatibility_flags"\s*:\s*\[[^\]]*"nodejs_als"/
+
+function checkWorkerSurface(surface: WorkerSurface): void {
+  const entry = read(surface.entryPath)
+  if (entry === null) {
+    fail(surface.name, `no Worker entry at ${surface.entryPath}`)
+    return
+  }
+
+  if (!WORKER_IMPORT.test(entry)) {
+    fail(
+      surface.name,
+      `${surface.entryPath} does not import from 'observability/cloudflare' — ` +
+        `this Worker's errors would reach Workers Logs and nothing else.`
+    )
+  }
+
+  if (!WORKER_WRAPPER.test(entry)) {
+    fail(
+      surface.name,
+      `${surface.entryPath} does not wrap its default export with withObservability() — ` +
+        `an unhandled throw never becomes a Sentry event.`
+    )
+  }
+
+  const config = read(surface.configPath)
+  if (config === null) {
+    fail(surface.name, `no wrangler config at ${surface.configPath}`)
+    return
+  }
+
+  if (!ALS_FLAG.test(config)) {
+    fail(
+      surface.name,
+      `${surface.configPath} does not grant "nodejs_als". @sentry/cloudflare imports ` +
+        `node:async_hooks, so without it this Worker throws AT RUNTIME — a production ` +
+        `outage that every local check passes.`
+    )
+  }
+}
+
 const SHARED_WIRING_BY_PATH = /from '(\.\.\/)+packages\/observability\/src\/node'/
 const SHARED_WIRING_BY_NAME = /from 'observability\/node'/
 
@@ -806,6 +897,7 @@ if (!live) {
   checkFunctionDirs()
   checkSharedPackage()
   for (const surface of SERVER_SURFACES) checkServerSurface(surface)
+  for (const surface of WORKER_SURFACES) checkWorkerSurface(surface)
 }
 
 if (failures.length > 0) {

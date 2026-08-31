@@ -26,6 +26,9 @@
  * silently breaks entity artwork in both srd and itun at once.
  */
 
+import type { ObservabilityEnv } from 'observability/cloudflare'
+import { reportError, withObservability } from 'observability/cloudflare'
+
 /** The slice of an R2 bucket binding this Worker uses. */
 export type AssetBucket = {
   get(key: string): Promise<{ body: ReadableStream | null } | null>
@@ -328,14 +331,14 @@ function imageResponse(body: ReadableStream, contentType: string): Response {
   })
 }
 
-export type Env = {
+export type Env = ObservabilityEnv & {
   LP_ASSETS: AssetBucket
   /** Cloudflare Images. Optional: absent means derivatives 404 rather than crash. */
   IMAGES?: ImagesBinding
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default {
+export default withObservability('su-assets', {
   // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
   // parameter is optional so the routing tests can call this entrypoint with
   // two arguments, and because every use of it is already null-guarded — a
@@ -344,7 +347,11 @@ export default {
     const handler = makeAssetHandler(
       () => env.LP_ASSETS,
       (error, context) => {
+        // Both, deliberately: Workers Logs is what `wrangler tail` shows during
+        // an incident, Sentry is what alerts. Dropping either trades one blind
+        // spot for another.
         console.error('[su-assets]', error, context ?? {})
+        reportError(error, context)
       },
       env.IMAGES,
       ctx
@@ -356,7 +363,8 @@ export default {
       // anything that does is a bug in this Worker rather than a storage
       // outage, and is worth logging precisely because it was never anticipated.
       console.error('[su-assets] unhandled', error)
+      reportError(error, { fn: 'asset', op: 'unhandled' })
       return plain('Internal Server Error', 500)
     }
   },
-}
+})

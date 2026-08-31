@@ -41,6 +41,16 @@
   // date X, but the newest date supported by this server binary is Y", which
   // reads like a config error and is really version skew.
   "compatibility_date": "2026-07-13",
+  // `nodejs_als` — AsyncLocalStorage ONLY, not the full `nodejs_compat` shim.
+  //
+  // `@sentry/cloudflare` imports `node:async_hooks` to isolate scope per
+  // request. Without a flag wrangler warns and the Worker throws at runtime.
+  //
+  // This is the narrow flag on purpose. `nodejs_compat` would pull the whole
+  // Node shim and, as apps/discord-bot/wrangler.jsonc puts it, "make it easy to
+  // reintroduce a Node-only import without noticing". Measured: `nodejs_als`
+  // alone clears the warning, so the broad flag would buy nothing.
+  "compatibility_flags": ["nodejs_als"],
 
   // Cloudflare Images, used to render the `-440`/`-880` derivatives from the
   // master on demand instead of baking them into the bucket. The Worker treats

@@ -59,6 +59,8 @@
  * it now, and `__tests__/rateLimitBinding.test.ts` fails if that is removed.
  */
 
+import type { ObservabilityEnv } from 'observability/cloudflare'
+import { reportError, withObservability } from 'observability/cloudflare'
 import {
   makeDeleteHandler,
   makePublishHandler,
@@ -113,7 +115,7 @@ type RateLimiterBinding = {
   limit(options: { key: string }): Promise<{ success: boolean }>
 }
 
-export type Env = {
+export type Env = ObservabilityEnv & {
   /** Static assets (the built SPA). `not_found_handling` is "none" — see above. */
   ASSETS: { fetch(request: Request): Promise<Response> }
   SNAPSHOTS: R2BucketLike
@@ -284,14 +286,17 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default {
+export default withObservability('itun', {
   // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
   // parameter is optional so the routing tests can call this entrypoint with
   // two arguments, and because every use of it is already null-guarded — a
   // missing ctx costs the edge-cache write, not correctness.
   async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
     setSnapshotReporter((error, context) => {
+      // Both, deliberately: Workers Logs is what `wrangler tail` shows during an
+      // incident, Sentry is what alerts.
       console.error('[itun]', error, context ?? {})
+      reportError(error, context)
     })
 
     const url = new URL(request.url)
@@ -385,4 +390,4 @@ export default {
     // 7. Anything else is a client-side route.
     return spaShell(request, env)
   },
-}
+})
