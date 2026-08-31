@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.16.4](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.3...itun-v1.16.4) (2026-08-31)
+
+
+### Bug Fixes
+
+* **itun:** provision the snapshot rate limiter that was only ever described ([#931](https://github.com/SalvageUnion-io/SU-SRD/issues/931)) ([3ebdab5](https://github.com/SalvageUnion-io/SU-SRD/commit/3ebdab58f0de135bec5337489832ec21980f3fc6))
+
 ## [1.16.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.2...itun-v1.16.3) (2026-08-31)
 
 
