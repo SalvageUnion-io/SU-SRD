@@ -104,6 +104,27 @@ passed. The probe that produced them is in the Appendix.
 | Warm request CPU                     | below timer resolution  | 10 ms      | —      |
 | Bot CPU, real `/su roll` in Discord  | **951 µs** (19 invocations, 0 errors) | 10 ms | **10%** |
 | `preload('all')` under Bun           | 81.6 ms                 | —          | —      |
+
+**These describe the BOT probe (P2), not every Worker.** Two rows worth adding
+because their absence was mistaken for coverage:
+
+| Quantity                                  | Measured                | Free limit | Used   |
+| ----------------------------------------- | ----------------------- | ---------- | ------ |
+| `su-itun` size, compressed                | **1,185 KiB**           | 3 MB       | **39%** |
+| `su-discord-bot` size, compressed         | 659 KiB                 | 3 MB       | 21%    |
+| `su-assets` size, compressed              | 105 KiB                 | 3 MB       | 3%     |
+| `renderOgImage`, LOCAL (Apple silicon)    | 47.6 ms cold / ~15 ms warm | 10 ms CPU | **UNKNOWN on workerd** |
+
+The last row is an **open question, not a measurement of production**. The
+og:image renderer was never sized against the CPU ceiling — it does not appear
+above because it did not exist when that probe ran — and a local benchmark says
+nothing definitive about workerd. It matters because a CPU-limit kill is not
+catchable, so the renderer's own fallback cannot run.
+
+The runbook for settling it is in the doc block above `ogImage` in
+`apps/itun/src/worker/index.ts`, and a `console.log` there makes the tail entry
+greppable. **Do this before assuming the unfurl works**; do not rewrite the
+publish path on the strength of the local number alone.
 | All 27 data JSON files, gzipped      | 268 KB                  | —          | —      |
 | Workers Free requests / subrequests  | —                       | 100k/day · 50 | —   |
 | KV global propagation                | up to 60 s              | —          | —      |
