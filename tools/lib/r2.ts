@@ -20,9 +20,18 @@
  *
  * Four values, all read from the environment and never logged:
  *
- *   R2_ACCOUNT_ID          the Cloudflare account id
+ *   R2_ACCOUNT_ID          the Cloudflare account id, OR the S3 endpoint URL
+ *                          Cloudflare actually hands you — see below
  *   R2_ACCESS_KEY_ID       from an R2 API token
  *   R2_SECRET_ACCESS_KEY   from the same token
+ *
+ * `R2_ACCOUNT_ID` accepts the endpoint because that is the form the dashboard
+ * gives you: creating an R2 token shows an Access Key ID, a Secret Access Key
+ * and an endpoint like `https://<account id>.r2.cloudflarestorage.com`, and
+ * nowhere on that screen is the bare account id presented as a copyable value.
+ * Demanding one meant an operator had to know that the first hostname label IS
+ * the account id and retype it — friction invented by this tool, paid every
+ * time, for nothing.
  *
  * Create the token scoped to a single bucket. ADR-033 records that Cloudflare
  * supports per-bucket R2 scoping but not per-Worker scoping, and asks for the
@@ -58,6 +67,21 @@ export type R2Object = {
  *
  * One error listing all three beats three runs each revealing the next gap.
  */
+/**
+ * The account id, from either the bare id or the S3 endpoint URL.
+ *
+ * Tolerant of what a person actually has on their clipboard: with or without a
+ * scheme, with or without a trailing slash or path. Anything that is not an
+ * endpoint is returned unchanged, so a bare id still works and a malformed
+ * value still fails later with a signing error naming the host it tried.
+ */
+export function accountIdFrom(value: string): string {
+  const withoutScheme = value.replace(/^https?:\/\//, '')
+  const host = withoutScheme.split('/')[0] ?? withoutScheme
+  const label = host.split('.')[0] ?? host
+  return host.includes('.r2.cloudflarestorage.com') ? label : value
+}
+
 export function credentialsFromEnv(): R2Credentials {
   const accountId = process.env.R2_ACCOUNT_ID
   const accessKeyId = process.env.R2_ACCESS_KEY_ID
@@ -78,7 +102,7 @@ export function credentialsFromEnv(): R2Credentials {
   }
 
   return {
-    accountId: accountId as string,
+    accountId: accountIdFrom(accountId as string),
     accessKeyId: accessKeyId as string,
     secretAccessKey: secretAccessKey as string,
   }
