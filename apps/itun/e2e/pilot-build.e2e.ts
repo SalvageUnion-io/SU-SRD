@@ -71,16 +71,27 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // place rather than replaying Guided Creation. The INTENT is unchanged and is
   // what matters: an ability beyond the creation budget can be added, and it
   // persists.
-  await page
-    .getByRole('link', { name: /^View$/ })
-    .first()
-    .click()
+  // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
+  // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
+  // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
+  // The locator is already scoped to this entity's row, so the href is the
+  // contract that matters and it survives the next copy change. This is the
+  // same reasoning `openSheetFor` in `_helpers.ts` records.
+  await page.locator('a[href*="/sheet/"]').first().click()
   await page.waitForURL(/\/sheet\/pilot\//, { timeout: 15_000 })
   await waitForReady(page)
 
-  // The Abilities section's '+ Add ability' opens the one shared picker modal.
-  // It writes through on toggle — there is no Save button to press.
-  await page.getByRole('button', { name: /^Add ability$/i }).click()
+  // The Abilities section header's manage control opens the one shared picker
+  // modal. It writes through on toggle — there is no Save button to press.
+  //
+  // `Manage abilities`, not `+ Add ability`. `SectionManageButton` labels itself
+  // `Manage ${label}` and PilotSheet passes label="abilities"; the old copy has
+  // not existed for some time. The component tests in
+  // `sheet/__tests__/sheet-soft-warnings.test.tsx` were already using the
+  // current label, so only this e2e spec was left behind — which is why the
+  // break showed up as a nightly 90-second click timeout rather than a unit
+  // failure. `mech-build.e2e.ts` uses the same `/^Manage systems$/i` shape.
+  await page.getByRole('button', { name: /^Manage abilities$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
 
@@ -102,7 +113,10 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   })
   await page.goto('/')
   await waitForReady(page)
-  await expect(page.getByRole('link', { name: /^View$/ })).toHaveCount(1)
+  // One sheet link on the roster. Matched by href rather than by label for the
+  // reason above — and by href specifically because this asserts a COUNT across
+  // all rows, so it must not depend on any single entity's name.
+  await expect(page.locator('a[href*="/sheet/"]')).toHaveCount(1)
 })
 
 test('the creation ability budget caps at one pick', async ({ page }) => {

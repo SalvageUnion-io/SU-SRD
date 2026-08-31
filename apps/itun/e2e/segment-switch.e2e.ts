@@ -24,10 +24,20 @@ test.describe('wired sheet segment switch', () => {
     const nav = page.getByRole('navigation', { name: /wired sheets/i })
     await expect(nav).toBeVisible()
 
-    // Active segment = the sheet being viewed: rust fill, not a link.
+    // Active segment = the sheet being viewed: marked, and NOT a link.
+    //
+    // This used to assert `toHaveClass(/bg-rust/)`. That utility was renamed
+    // when the button variants moved to `su-btn--*`, and the assertion had been
+    // failing every night since. The component test
+    // (`sheet/__tests__/Sheet-topbar-segments.test.tsx`) survived the rename by
+    // deriving the class from `buttonVariants` rather than naming it — but an
+    // e2e cannot import that, so this asserts the two things that are actually
+    // the contract and that no restyle can break: it is marked `aria-current`,
+    // and it is not an anchor. "You cannot navigate to the page you are on" is
+    // the behaviour; the fill colour is how it is drawn.
     const active = nav.locator('[aria-current="page"]')
     await expect(active).toHaveText('Mech')
-    await expect(active).toHaveClass(/bg-rust/)
+    await expect(active).not.toHaveJSProperty('tagName', 'A')
 
     // Tapping the pilot segment navigates to the wired pilot's sheet.
     await nav.getByRole('link', { name: 'Pilot' }).click()
