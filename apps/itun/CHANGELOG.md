@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.16.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.2...itun-v1.16.3) (2026-08-31)
+
+
+### Performance Improvements
+
+* **workers:** edge-cache artwork, and stop blocking on cache writes ([#929](https://github.com/SalvageUnion-io/SU-SRD/issues/929)) ([a4db8b6](https://github.com/SalvageUnion-io/SU-SRD/commit/a4db8b62b072635cd2dd51dcfc523569dd10cc75))
+
 ## [1.16.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.1...itun-v1.16.2) (2026-08-28)
 
 
