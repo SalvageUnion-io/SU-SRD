@@ -105,7 +105,14 @@ export default defineConfig({
           // Observability tooling that can take down a deploy is an
           // anti-pattern: an expired token, wrong org/project, or a Sentry
           // API blip should degrade to "no sourcemaps this deploy", not fail
-          // the Netlify build. Warn instead of the plugin's default throw.
+          // the deploy. Warn instead of the plugin's default throw.
+          //
+          // This tolerates a FAILING upload, which is different from tolerating
+          // an ABSENT credential. The latter was the actual state from the
+          // Cloudflare cutover onward — Netlify held these as site env vars and
+          // only the deploy credentials were ported — so every production event
+          // was a minified stack. `deploy-cloudflare.yml` now refuses to build
+          // without all three; this handler covers the blip, not the gap.
           errorHandler: (error) => {
             console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
           },

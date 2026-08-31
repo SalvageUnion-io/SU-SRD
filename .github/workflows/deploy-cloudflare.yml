@@ -125,6 +125,50 @@ jobs:
             exit 1
           fi
 
+      # The OTHER half of Sentry, and it was missing for the whole cutover.
+      #
+      # A DSN gets events to Sentry. Source maps make them readable. itun ships a
+      # minified bundle, so without an upload every production issue is a stack
+      # of mangled frames pointing at `assets/index-<hash>.js` — an event that
+      # exists, is counted, and cannot be acted on.
+      #
+      # `apps/itun/vite.config.ts` gates BOTH the plugin and `build.sourcemap` on
+      # `SENTRY_AUTH_TOKEN`, so with the secret absent the build silently emits
+      # no maps and uploads nothing. The step below it passes all three variables
+      # and they resolved to empty on every deploy since P7: the repository has
+      # exactly four secrets and none of them is a Sentry one.
+      #
+      # This is a migration regression, not an old gap. Netlify held the build
+      # credentials as SITE env vars (the cutover doc says so: "Netlify holds its
+      # own build credentials and this repository holds no deploy credentials at
+      # all"), and moving builds into Actions ported the deploy half and not this
+      # one. The stale "should not fail the Netlify build" comment still sitting
+      # in vite.config.ts is the fingerprint.
+      #
+      # It FAILS rather than warns, deliberately and in line with ADR-033 §7. A
+      # warning is what the previous state effectively was, and it went unread
+      # for the length of the cutover.
+      - name: Refuse to build itun with no Sentry source-map upload
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          missing=0
+          for name in SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT; do
+            eval "value=\$$name"
+            if [ -z "$value" ]; then
+              echo "FATAL: $name is not set — itun would ship with no source maps," >&2
+              echo "       making every production Sentry event a minified stack." >&2
+              missing=1
+            fi
+          done
+          if [ "$missing" = "1" ]; then
+            echo "Set them in Settings > Secrets and variables > Actions > Secrets." >&2
+            echo "Unlike the DSNs above these ARE secrets: the auth token can write to the org." >&2
+            exit 1
+          fi
+
       # ---------------------------------------------------------------------
       # su-assets — no build step; the Worker is its own source.
       # ---------------------------------------------------------------------
