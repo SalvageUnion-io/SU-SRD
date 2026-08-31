@@ -55,8 +55,8 @@ conventions, then the relevant architecture doc below.
 | [dashboard.md](architecture/dashboard.md)                             | The Dashboard (Guided-Play surface) design — layout, instruments, canvas                               |
 | [combat-loop.md](architecture/combat-loop.md)                         | Action activation, heat checks, conditions — the client-side flow                                      |
 | [seo-accessibility.md](architecture/seo-accessibility.md)             | SEO strategy (srd) + WCAG 2.1 AA patterns                                                              |
-| [accounts-and-games.md](architecture/accounts-and-games.md)           | ADR-030 delivery phases + the Convex/Netlify/Discord operational reference                             |
-| [agent-tooling.md](architecture/agent-tooling.md)                     | **Service registry** — MCP servers + auth models, and every Netlify/Render/Sentry/Convex identifier    |
+| [accounts-and-games.md](architecture/accounts-and-games.md)           | ADR-030 delivery phases + the Convex/Cloudflare/Discord operational reference                          |
+| [agent-tooling.md](architecture/agent-tooling.md)                     | **Service registry** — MCP servers + auth models, and every Cloudflare/Sentry/Convex identifier        |
 | [cloudflare-cutover.md](architecture/cloudflare-cutover.md)           | **Executable plan** for ADR-033 — phase order, per-phase gates, progress table, cutover runbook        |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
 | [persistence-and-pwa.md](architecture/persistence-and-pwa.md)         | **Executable plan** for ADR-034 — phases, gates, progress, and what is not DB-backed yet               |
@@ -120,7 +120,7 @@ Read the matching ADR before proposing alternatives.
 | [ADR-001](adrs/ADR-001-local-first-no-backend.md)                    | Local-first, no backend, no auth — **superseded by ADR-030**; reasoning retained for Solo + snapshots                                                                                 |
 | [ADR-002](adrs/ADR-002-indexeddb-idb-zod.md)                         | IndexedDB via `idb`, Zod as schema source, salvage-read resilience                                                                                                                    |
 | [ADR-003](adrs/ADR-003-zustand-hydration.md)                         | Zustand state — lazy hydration, write-through, cross-tab invalidation                                                                                                                 |
-| [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)                | Snapshot sharing — unauthenticated Netlify Functions + Blobs                                                                                                                          |
+| [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)                | Snapshot sharing — unauthenticated, ID-as-capability. **Amended by ADR-033**: same contract, now a Worker + R2                                                                        |
 | [ADR-005](adrs/ADR-005-reference-data-orm.md)                        | Game-data ORM — Zod → generated JSON Schema, lazy data loading                                                                                                                        |
 | [ADR-006](adrs/ADR-006-pure-rules-logic.md)                          | Rules/combat logic as pure functions                                                                                                                                                  |
 | [ADR-007](adrs/ADR-007-automation-boundary.md)                       | **Automation boundary** — consult before building rules-driven features                                                                                                               |
@@ -174,9 +174,9 @@ conventions:
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
 - [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library
 
-`apps/su-assets/` has no `CLAUDE.md` — it is a single Netlify function
+`apps/su-assets/` has no `CLAUDE.md` — it is a single Cloudflare Worker
 (`assets.salvageunion.io`) that serves licensed entity artwork out of the
-`lp-assets` Netlify Blobs store, with the bytes deliberately kept out of git.
+`su-lp-assets` R2 bucket, with the bytes deliberately kept out of git.
 `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in
 `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 See [`apps/su-assets/netlify.toml`](../apps/su-assets/netlify.toml).

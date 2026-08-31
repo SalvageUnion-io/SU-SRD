@@ -29,7 +29,7 @@ Resolve the mode through `src/lib/connection/` — never by reading
 ([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)):**
 
 - **Snapshot** ([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md))
-  — a **frozen** copy, minted per share, stored as an opaque Netlify Blob. Its
+  — a **frozen** copy, minted per share, stored as an opaque R2 object. Its
   id is the whole capability, including for revocation. Unchanged.
 - **Public sheet** — a **live** read-only page at `/p/:kind/:appId`, opt-in per
   entity via the `publicRead` Convex column, addressed by app id, and served by
@@ -213,4 +213,5 @@ bun run e2e:itun          # Playwright e2e (chromium)
 bun run typecheck:itun
 ```
 
-Deploys to Netlify (SPA + snapshot Functions); config in `netlify.toml`.
+Deploys to Cloudflare Workers (SPA + the snapshot API in one Worker); config in
+`wrangler.jsonc`, deployed from `.github/workflows/deploy-cloudflare.yml`.

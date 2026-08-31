@@ -17,9 +17,9 @@ import { getEntitySlug } from './slug.js'
 import type { SURefMetaEntity } from './types/index.js'
 
 /**
- * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
- * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
- * schema name and slug — see getAssetUrl().
+ * Base URL of the artwork CDN — the `su-assets` Cloudflare Worker, backed by the
+ * `su-lp-assets` R2 bucket. Asset URLs are derived from this base plus the
+ * entity's schema name and slug; see getAssetUrl().
  */
 
 export const ASSET_BASE_URL = 'https://assets.salvageunion.io'

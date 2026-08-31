@@ -37,9 +37,10 @@ something outside the file.
 
 | Server    | Transport                                        | Auth model                                                         | Reaches                                    |
 | --------- | ------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------ |
-| `netlify` | stdio — `npx -y @netlify/mcp`                    | Netlify CLI / OAuth on first connect                                | The three Netlify sites, deploys, env vars |
+| _(none yet)_ | — | — | **Cloudflare — the actual host. No MCP server is declared; use `wrangler`.** P8 adds `bindings` and `observability`. |
+| `netlify` | stdio — `npx -y @netlify/mcp`                    | Netlify CLI / OAuth on first connect                                | A retired host. Sites still exist, serve no traffic |
 | `sentry`  | http — `https://mcp.sentry.dev/mcp`              | OAuth on first connect                                              | The `susrd` org's six projects, issues     |
-| `render`  | http — `https://mcp.render.com/mcp`              | OAuth on first connect, or a machine-local API-key header           | The `suref-discord-bot` worker, logs       |
+| `render`  | http — `https://mcp.render.com/mcp`              | OAuth on first connect, or a machine-local API-key header           | A retired host. `render.yaml` is deleted   |
 | `convex`  | stdio — `bunx convex mcp start --project-dir apps/itun` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
 | `github`  | http — `https://api.githubcopilot.com/mcp/`      | **Machine-local PAT header — see below.** Does not work unconfigured | The `SalvageUnion-io/SU-SRD` repo, PRs, CI |
 | `context7` | http — `https://mcp.context7.com/mcp`           | None — keyless on the free tier                                     | Version-pinned docs for this repo's dependencies |
@@ -113,7 +114,37 @@ documentation, not the source** — verify anything load-bearing against
 machine, though no repo content does. It exposes two tools, the smallest context
 cost of any server here.
 
-## Netlify
+## Cloudflare
+
+**This is where everything runs** (ADR-033). Account `alxjrvs@gmail.com` — the
+same personal account that hosts RANDSUM, which is why the CI token's blast
+radius is not contained (ADR-033 §6, and it is an accepted risk, not a solved
+one).
+
+| Worker            | Serves                                        | Bindings                          |
+| ----------------- | --------------------------------------------- | --------------------------------- |
+| `su-srd`          | `salvageunion.io`, `www.` (redirect)          | none — Static Assets, no script    |
+| `su-itun`         | `intheunionnow.com`, `www.`, the snapshot API | `ASSETS`, R2 `SNAPSHOTS`, `RATE_LIMITER` |
+| `su-assets`       | `assets.salvageunion.io`                      | R2 `LP_ASSETS`, `IMAGES`           |
+| `su-discord-bot`  | Discord HTTP interactions + a 5-minute cron   | none; secrets only                 |
+
+**R2 buckets:** `su-itun-snapshots` (shared sheets), `su-lp-assets` (licensed
+artwork). **Zones:** `salvageunion.io` and `intheunionnow.com`, both on
+Cloudflare nameservers since 2026-08-31.
+
+**Preview URLs** live under `alxjrvs.workers.dev` — one subdomain per account,
+shared with RANDSUM, so it could not be named for this project.
+
+Re-derive any of this rather than trusting the table: `wrangler deployments
+list`, `wrangler r2 bucket list`, and the four `apps/*/wrangler.jsonc` files,
+which are the source of truth for every binding above.
+
+**Two things are configured OUTSIDE the repo and are invisible to `grep`:** the
+zone-level Redirect Rule that sends `www` to the apex (a `_redirects` file
+cannot express a domain-level rule), and Images Transformations, which must be
+enabled per zone in the dashboard.
+
+## Netlify — retired
 
 Team **SalvageUnion.io** (`salvageunion-io`, `6a3b41d74a67a34e3aae3ede`, Pro) —
 [team dashboard](https://app.netlify.com/teams/salvageunion-io). The account also
@@ -140,7 +171,7 @@ For ITUN specifically, **the production origin is the custom domain, not the
 use `https://intheunionnow.com`. See
 [`accounts-and-games.md`](accounts-and-games.md).
 
-## Render
+## Render — retired
 
 | Service             | Type              | Service id                | Workspace                                   | Dashboard                                                                  |
 | ------------------- | ----------------- | ------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
