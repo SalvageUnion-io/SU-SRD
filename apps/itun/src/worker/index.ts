@@ -96,6 +96,9 @@ const PUBLISH_OPTIONS = {
   validatePayload: validateSnapshotPayload,
 } as const
 
+/** The slice of workerd's ExecutionContext this Worker uses. */
+type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
+
 /** Cloudflare's Rate Limiting binding, as much of it as this Worker uses. */
 type RateLimiterBinding = {
   limit(options: { key: string }): Promise<{ success: boolean }>
@@ -195,7 +198,12 @@ function edgeCache(): Cache | null {
  * published (that is what distinguishes it from a public sheet), so the render
  * can never go stale and there is nothing to invalidate on.
  */
-async function ogImage(request: Request, env: Env, id: string): Promise<Response> {
+async function ogImage(
+  request: Request,
+  env: Env,
+  id: string,
+  ctx: ExecutionCtx | undefined
+): Promise<Response> {
   const url = new URL(request.url)
   const fallback = () => Response.redirect(`${url.origin}/icon-512.png`, 302)
 
@@ -231,7 +239,13 @@ async function ogImage(request: Request, env: Env, id: string): Promise<Response
         'cache-control': 'public, max-age=31536000, immutable',
       },
     })
-    await cache?.put(request, response.clone())
+    // `waitUntil`, not `await`: awaiting serializes the cache write into every
+    // MISS's response time for no benefit to that caller. With no ctx the
+    // response is simply returned uncached rather than the write being dropped
+    // silently. The clone is required — a Response body is a single-use stream,
+    // so handing the same one to the cache and the client starves whichever
+    // reads second.
+    if (cache && ctx) ctx.waitUntil(cache.put(request, response.clone()))
     return response
   } catch (error) {
     console.error('[itun] og:image render failed', error)
@@ -262,7 +276,11 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
+  // parameter is optional so the routing tests can call this entrypoint with
+  // two arguments, and because every use of it is already null-guarded — a
+  // missing ctx costs the edge-cache write, not correctness.
+  async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
     setSnapshotReporter((error, context) => {
       console.error('[itun]', error, context ?? {})
     })
@@ -318,7 +336,7 @@ export default {
     //     is not on disk, and ahead of rule 6 because it ends in `.png` and
     //     would otherwise 404 as a missing file.
     const og = OG_ROUTE.exec(path)
-    if (og?.[1]) return ogImage(request, env, og[1])
+    if (og?.[1]) return ogImage(request, env, og[1], ctx)
 
     const assetResponse = await env.ASSETS.fetch(request)
 

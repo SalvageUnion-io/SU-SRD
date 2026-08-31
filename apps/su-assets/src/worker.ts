@@ -56,6 +56,36 @@ export type ImagesBinding = {
  */
 const ALLOWED_WIDTHS = new Set([440, 880])
 
+/** The slice of workerd's ExecutionContext this Worker uses. */
+export type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
+
+/**
+ * The edge cache, or null where there isn't one.
+ *
+ * Two separate problems, resolved together so the call sites read as one idea —
+ * the same shape as `edgeCache()` in `apps/itun/src/worker/index.ts`, which is
+ * where this pattern was already proven:
+ *
+ *   - **Types.** `caches.default` is a Cloudflare extension to `CacheStorage`
+ *     that the standard lib knows nothing about.
+ *   - **Runtime.** Under `bun test` there is no `caches` global at all, and
+ *     reading through it throws a ReferenceError. Returning null instead keeps
+ *     "there is no cache here" from being indistinguishable from a real failure.
+ *
+ * ## Why this is needed at all
+ *
+ * `cache-control: immutable` only spares a browser that has ALREADY fetched the
+ * byte. Cloudflare does not edge-cache a Worker's own response — that requires
+ * an explicit `caches.default.put` — so before this, every artwork request from
+ * every cold client worldwide cost one Worker invocation plus one billable R2
+ * read. Measured on production: artwork responses carried no `cf-cache-status`
+ * header at all, while srd's static assets on the same account returned `HIT`.
+ */
+function edgeCache(): Cache | null {
+  if (typeof caches === 'undefined') return null
+  return (caches as CacheStorage & { default?: Cache }).default ?? null
+}
+
 /** `chassis/mule-440.webp` -> `{ masterKey: 'chassis/mule.webp', width: 440 }`. */
 function parseDerivative(key: string): { masterKey: string; width: number } | null {
   const match = /^(.*)-(\d+)(\.[a-z0-9]+)$/i.exec(key)
@@ -110,12 +140,21 @@ function plain(body: string, status: number): Response {
 export function makeAssetHandler(
   openBucket: () => AssetBucket,
   report: AssetFailureReporter = () => {},
-  images?: ImagesBinding
+  images?: ImagesBinding,
+  ctx?: ExecutionCtx
 ) {
   return async (req: Request): Promise<Response> => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       return plain('Method not allowed', 405)
     }
+
+    // Edge cache first. Only successful image responses are ever stored (see
+    // `cached`), so a hit here is always a real asset — a 404 is cheap to
+    // recompute and caching it would make a newly-uploaded image invisible for
+    // as long as the negative entry lived.
+    const cache = edgeCache()
+    const hit = await cache?.match(req)
+    if (hit) return hit
 
     const { pathname } = new URL(req.url)
     const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
@@ -154,7 +193,7 @@ export function makeAssetHandler(
     // derivatives serving unchanged until someone prunes them, so this change
     // needs no coordinated bucket edit to be safe.
     if (object?.body) {
-      return imageResponse(object.body, contentType)
+      return cached(req, imageResponse(object.body, contentType), cache, ctx)
     }
 
     // No stored object. If the key names a derivative, render it from the master
@@ -191,7 +230,12 @@ export function makeAssetHandler(
         .input(master.body)
         .transform({ width: derivative.width })
         .output({ format: contentType })
-      return imageResponse(rendered.response().body as ReadableStream, contentType)
+      return cached(
+        req,
+        imageResponse(rendered.response().body as ReadableStream, contentType),
+        cache,
+        ctx
+      )
     } catch (error) {
       // A transformation failure IS worth reporting — unlike a 404 it means the
       // quota is exhausted (`9422`), the zone is misconfigured, or the master is
@@ -210,6 +254,31 @@ export function makeAssetHandler(
  * new name — so an immutable year is safe. A rendered derivative is equally
  * immutable: it is a pure function of a master that cannot change under it.
  */
+/**
+ * Store a successful image response at the edge and return it to the caller.
+ *
+ * The `put` runs under `waitUntil` rather than being awaited. Awaiting it would
+ * serialize a cache write into every cache MISS's response time, which is
+ * exactly the latency this change exists to remove — `apps/itun`'s og:image
+ * path had that bug and is fixed alongside this one.
+ *
+ * The body must be `clone()`d because a Response body is a single-use stream:
+ * hand the same one to both the cache and the client and whichever reads second
+ * gets nothing.
+ *
+ * With no `ctx` (the tests, and any caller that does not pass one) the response
+ * is returned uncached rather than the write being dropped silently.
+ */
+function cached(
+  req: Request,
+  response: Response,
+  cache: Cache | null,
+  ctx: ExecutionCtx | undefined
+): Response {
+  if (cache && ctx) ctx.waitUntil(cache.put(req, response.clone()))
+  return response
+}
+
 function imageResponse(body: ReadableStream, contentType: string): Response {
   return new Response(body, {
     status: 200,
@@ -229,13 +298,18 @@ export type Env = {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
+  // parameter is optional so the routing tests can call this entrypoint with
+  // two arguments, and because every use of it is already null-guarded — a
+  // missing ctx costs the edge-cache write, not correctness.
+  async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
     const handler = makeAssetHandler(
       () => env.LP_ASSETS,
       (error, context) => {
         console.error('[su-assets]', error, context ?? {})
       },
-      env.IMAGES
+      env.IMAGES,
+      ctx
     )
     try {
       return await handler(request)
