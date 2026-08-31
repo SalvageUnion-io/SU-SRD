@@ -365,8 +365,11 @@ describe('rate limiting', () => {
   })
 
   it('is optional — an absent binding means no limiting, not a crash', async () => {
-    // Deliberate: the enforced 256 KB payload cap does the storage-amplification
-    // work, so a Worker with no binding provisioned must still serve.
+    // Deliberate tolerance, and NOT evidence that an absent binding is fine:
+    // the 256 KB cap bounds bytes per request, not requests, so it does not
+    // bound storage amplification at all. This asserts the Worker still SERVES
+    // without the binding; that the binding is actually declared is asserted by
+    // `rateLimitBinding.test.ts`, which reads wrangler.jsonc.
     const env = envWith()
     expect(env.RATE_LIMITER).toBeUndefined()
     const res = await worker.fetch(
