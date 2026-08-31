@@ -43,7 +43,6 @@
       "!**/dist",
       "!**/build",
       "!**/build-ladle",
-      "!**/.netlify",
       // `wrangler dev` writes its bundled Worker — plus the miniflare error
       // middleware it injects — into `.wrangler/tmp/`. That is generated JS
       // nobody wrote, and linting it produced 69 errors from a running dev
@@ -199,7 +198,7 @@
         //
         // The two exemptions are real framework contracts, not preferences:
         // TanStack Router route modules, and Ladle story `meta` — both are
-        // read by their framework as a default export. Netlify Functions and
+        // read by their framework as a default export. Cloudflare Workers and
         // the Convex http router are the same shape. All are listed as
         // overrides at the bottom rather than suppressed per-file.
         "noDefaultExport": "error",
@@ -355,15 +354,13 @@
     },
     {
       // The other legitimate default-export contracts, each read by a framework
-      // rather than imported by us: TanStack Router route modules, Netlify
-      // Functions handlers, Cloudflare Worker entrypoints, the Convex http
-      // router and schema, and build/test config files. Listed here so the rule
-      // stays `error` everywhere else.
+      // rather than imported by us: TanStack Router route modules, Cloudflare
+      // Worker entrypoints, the Convex http router and schema, and build/test
+      // config files. Listed here so the rule stays `error` everywhere else.
       "includes": [
         "apps/itun/src/routes/**",
-        "apps/*/netlify/functions/**",
-        // workerd reads `export default { fetch }` — the module IS the contract,
-        // exactly as a Netlify handler is. Each entry location is named
+        // workerd reads `export default { fetch }` — the module IS the contract.
+        // Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
         // same app cannot quietly acquire a default export under this exemption.
         // These three are the `main` of the three wrangler configs; a fourth
