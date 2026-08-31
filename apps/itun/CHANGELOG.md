@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.4...itun-v1.17.0) (2026-08-31)
+
+
+### Features
+
+* **workers:** report Worker errors to Sentry ([#932](https://github.com/SalvageUnion-io/SU-SRD/issues/932)) ([61691cf](https://github.com/SalvageUnion-io/SU-SRD/commit/61691cf611a227eb49cc01bdabb5e3369d89d3ca))
+
 ## [1.16.4](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.3...itun-v1.16.4) (2026-08-31)
 
 
