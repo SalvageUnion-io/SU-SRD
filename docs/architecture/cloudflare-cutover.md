@@ -43,7 +43,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
 | P7    | Cutover                                  | **no**     | **DONE** — `intheunionnow.com` live 2026-08-19; `salvageunion.io` + `assets.salvageunion.io` live **2026-08-31 03:52:49Z**. Both zones active on Cloudflare; post-flip gate all-pass |
-| P8    | Decommission and tooling cleanup         | **no**     | not started               |
+| P8    | Decommission and tooling cleanup         | **no**     | **partly done** — the repo is clean of Netlify/Render (config, functions, deps, guards, docs); the ACCOUNTS and their sites still exist |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
 The write freeze ships as code that is **off** (`SNAPSHOT_WRITES_FROZEN` unset),
@@ -1269,7 +1269,9 @@ Only after P7 has been stable for 24 h.
 
 **Gate**
 
-- [ ] `bun run check:all` green with no `netlify.toml` anywhere in the tree.
+- [ ] `bun run check` green with no `netlify.toml` anywhere in the tree. (`check:all`
+      is a deprecated alias slated for removal — a gate that invokes a removed
+      script fails for the wrong reason.)
 - [ ] `claude mcp list` shows the Cloudflare servers connected — zero tool calls
       means "broken or unused" and the two are indistinguishable from usage data
       alone.
