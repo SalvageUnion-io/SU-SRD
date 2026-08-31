@@ -1,6 +1,20 @@
 {
-  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  // `netlify` survives as an ignored binary for exactly ONE consumer:
+  // `tools/sync-snapshots-to-r2.ts`, the P6 migration one-shot.
+  //
+  // It is kept deliberately even though every other Netlify path is deleted.
+  // Its SOURCE — the `snapshots` Blobs store — still exists, and P6's delta run
+  // (the second pass, after the write freeze) was never performed: the cutover
+  // doc records the bulk copy as done, 45/45 verified by content, and the freeze
+  // as "merged and OFF". Deleting the tool before the Netlify account goes would
+  // remove the only path to reconcile a snapshot that landed after the bulk
+  // copy, and a snapshot id IS the capability — a missing one is a share link
+  // that 404s forever with no way to tell its owner which broke.
+  //
+  // Retire this entry together with the tool, as part of deleting the Netlify
+  // account (P8) — not before.
   "ignoreBinaries": ["netlify"],
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
   "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
@@ -70,7 +84,6 @@
     "apps/itun": {
       "entry": [
         "src/routes/**/*.tsx",
-        "netlify/functions/**/*.ts",
         // The Cloudflare Worker entry (ADR-033). workerd loads the module and
         // calls its default export, so nothing in this repo imports it. Listed
         // for the same reason the Netlify handlers are: without it, the file
@@ -82,7 +95,6 @@
         "src/lib/db/crud.ts",
         "src/lib/snapshot/storage.ts",
         "src/lib/snapshot/id.ts",
-        "src/lib/snapshot/rateLimit.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
         "src/stores/cockpitPrefsStore.ts",
@@ -95,7 +107,6 @@
       // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
       "project": [
         "src/**/*.{ts,tsx}",
-        "netlify/**/*.ts",
         "convex/**/*.ts",
         "test/**/*.ts"
       ]
@@ -110,8 +121,8 @@
       // cover `src/**` either, so the whole Worker and its 217-line test sat
       // OUTSIDE knip's scope rather than being exempted from one rule inside
       // it — the gate passed by not looking.
-      "entry": ["netlify/functions/**/*.ts", "src/worker.ts"],
-      "project": ["netlify/**/*.ts", "src/**/*.ts"],
+      "entry": ["src/worker.ts"],
+      "project": ["src/**/*.ts"],
       "includeEntryExports": false
     },
     "apps/discord-bot": {

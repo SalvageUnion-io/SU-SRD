@@ -39,12 +39,14 @@
  *
  * ## Rate limiting
  *
- * The Netlify handler carried a module-scope `RateLimiter{10/min}` keyed on
- * `x-nf-client-connection-ip`. It is **deliberately not ported** (P3 decision):
- * it was already approximate across Function instances, would be equally so
- * across isolates, and sits behind an enforced 256 KB payload cap that does the
- * actual storage-amplification work. Porting it would produce something that
- * looks like a control without being one.
+ * Enforced at the edge by Cloudflare's Rate Limiting binding, declared as
+ * `ratelimits` in `wrangler.jsonc` and applied to POST below.
+ *
+ * The Netlify handler's module-scope `RateLimiter{10/min}` was deliberately not
+ * ported (P3): it counted per Function instance and would count per isolate
+ * here, which is approximate to the point of being decorative. `handlers.ts` no
+ * longer carries it at all — it was only ever the default so Netlify's
+ * behaviour stayed unchanged during the migration, and that host is gone.
  *
  * `RATE_LIMITER` is Cloudflare's own binding, which is a real control because it
  * is enforced at the edge rather than per-instance. It is optional here so the
@@ -67,45 +69,11 @@ import {
   makeRetrieveHandler,
 } from '../lib/snapshot/handlers'
 import { isValidSnapshotId } from '../lib/snapshot/id'
-import { validateSnapshotPayload } from '../lib/snapshot/payload'
 import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
 import type { ShellMeta } from './shellMeta'
 import { applyMeta, metaForSnapshot } from './shellMeta'
-
-/**
- * The Worker opts OUT of the handlers' in-process rate limiter.
- *
- * It counts per isolate, which makes it approximate to the point of being
- * decorative, and Cloudflare's Rate Limiting binding is enforced at the edge —
- * a real control. Running both would be two mechanisms where one is meaningful
- * (ADR-033 P3).
- *
- * The 256 KB payload cap is a SIZE bound, not a rate bound. It applies either
- * way and is worth keeping, but it does not substitute for this.
- */
-const NO_IN_PROCESS_LIMIT = { rateLimiter: null } as const
-
-/**
- * Publish options for this host: no in-process limiter, and the STRICT payload
- * check.
- *
- * This Worker is the only place a snapshot can actually be published —
- * Netlify's publish is frozen and answers 503 before it reads a body — so this
- * is where "a snapshot that cannot be rendered cannot be published" is
- * enforced. `validateSnapshotPayload` runs the same Zod parse `/s/$id` runs on
- * the way out, so the two cannot drift.
- *
- * It is injected rather than imported inside `handlers.ts` because that module
- * is shared with the Netlify functions, whose bundler cannot resolve `zod` —
- * see the note on `isJsonObject` there. wrangler bundles it inline without
- * complaint; the cost is measured in `payload.ts`.
- */
-const PUBLISH_OPTIONS = {
-  rateLimiter: null,
-  validatePayload: validateSnapshotPayload,
-} as const
 
 /** The slice of workerd's ExecutionContext this Worker uses. */
 type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
@@ -327,7 +295,7 @@ export default withObservability('itun', {
         }
         // The factory answers 405 for everything that is not POST, so the
         // non-POST branch needs no separate rule the way netlify.toml did.
-        return makePublishHandler(storage, PUBLISH_OPTIONS)(request)
+        return makePublishHandler(storage)(request)
       }
 
       const id = path.slice('/api/snapshots/'.length)
@@ -341,7 +309,7 @@ export default withObservability('itun', {
       // warns about: the retrieve rule has no method condition, so it would
       // swallow DELETE and answer 405.
       if (request.method === 'DELETE') {
-        return makeDeleteHandler(storage, NO_IN_PROCESS_LIMIT)(request)
+        return makeDeleteHandler(storage)(request)
       }
       return makeRetrieveHandler(storage)(request)
     }
