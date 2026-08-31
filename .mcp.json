@@ -1,16 +1,16 @@
 {
   "mcpServers": {
-    "netlify": {
-      "command": "npx",
-      "args": ["-y", "@netlify/mcp"]
+    "cloudflare-bindings": {
+      "type": "http",
+      "url": "https://bindings.mcp.cloudflare.com/mcp"
+    },
+    "cloudflare-observability": {
+      "type": "http",
+      "url": "https://observability.mcp.cloudflare.com/mcp"
     },
     "sentry": {
       "type": "http",
       "url": "https://mcp.sentry.dev/mcp"
-    },
-    "render": {
-      "type": "http",
-      "url": "https://mcp.render.com/mcp"
     },
     "convex": {
       "command": "bunx",

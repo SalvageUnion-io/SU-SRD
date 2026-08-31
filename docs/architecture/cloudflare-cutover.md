@@ -41,7 +41,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
-| P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
+| P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF. Delta never run; reconciled by measurement on 2026-08-31 instead — 43/45 resolve on production, the other 2 exported to disk. See P8 |
 | P7    | Cutover                                  | **no**     | **DONE** — `intheunionnow.com` live 2026-08-19; `salvageunion.io` + `assets.salvageunion.io` live **2026-08-31 03:52:49Z**. Both zones active on Cloudflare; post-flip gate all-pass |
 | P8    | Decommission and tooling cleanup         | **no**     | **partly done** — the repo is clean of Netlify/Render (config, functions, deps, guards, docs); the ACCOUNTS and their sites still exist |
 
@@ -1268,6 +1268,40 @@ Only after P7 has been stable for 24 h.
 > The renewal is no longer a Netlify charge at all: renewals happen at Name.com
 > now (**2026-10-16, $61.99**). Still a cost worth beating with the registrar
 > transfer, but no longer a reason to rush it.
+
+> **BLOCKED on two snapshots, measured 2026-08-31.** Deleting the `in-the-union-now`
+> site destroys its `snapshots` Blobs store, and two objects in it do not resolve
+> against production:
+>
+> ```
+> 45 keys in Netlify Blobs
+> 43 return 200 from https://intheunionnow.com/api/snapshots/<id>
+>  2 return 404 — RA0WMH9Q (pilot), XAM6VH8K (mech)
+> ```
+>
+> Those two are a matched pilot-and-mech pair, so they were almost certainly
+> shared together by one person. There are two readings and they have opposite
+> consequences:
+>
+> - **Revoked.** They were synced, then their owner deleted the share. A 404 is
+>   then CORRECT and the Netlify copy is stale. Restoring them would un-revoke
+>   somebody's sheet.
+> - **Never synced.** They were published to the Netlify functions after the
+>   bulk copy — P6's write freeze was merged but never activated, and the final
+>   delta sync never ran — so deleting the store destroys two live capabilities.
+>
+> The count is the argument for the first reading: Netlify holds exactly 45, and
+> the bulk sync copied exactly 45 "compared by content", so nothing appears to
+> have been published after it. That rests on trusting a recorded claim, which
+> is not the standard this file holds itself to elsewhere.
+>
+> **Settled cheaply instead of argued:** all 45 are exported to
+> `~/Documents/SU-snapshots-backup` (180 KB, one JSON per id). Deleting the site
+> is now safe under EITHER reading — the never-synced case is recoverable with
+> `tools/upload-lp-assets.ts`'s sibling path, and the revoked case needs nothing.
+>
+> Read the two files before restoring anything. A revoked share that comes back
+> is a worse outcome than a dead link.
 
 - Delete the three Netlify sites and the Render service.
 - `.mcp.json`: remove `netlify` and `render`; add
