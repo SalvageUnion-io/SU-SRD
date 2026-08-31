@@ -36,7 +36,12 @@ import { REST } from '@discordjs/rest'
 import type { APIInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
 import type { ObservabilityEnv } from 'observability/cloudflare'
-import { reportError, withObservability } from 'observability/cloudflare'
+import {
+  finishCheckIn,
+  reportError,
+  startCheckIn,
+  withObservability,
+} from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
 import { commands } from '../commands/index.js'
@@ -47,6 +52,7 @@ import {
   makeButtonInteraction,
   makeExecuteInteraction,
   ResponseSink,
+  webhookRoutes,
 } from './adapter.js'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify.js'
 
@@ -148,10 +154,40 @@ async function dispatch(
     work = Promise.resolve()
   }
 
-  const guarded = work.catch((error) => {
+  const guarded = work.catch(async (error) => {
     console.error('interaction handler failed:', error)
-    // The handler may have already answered; if not, say something rather than
-    // letting Discord time out with "The application did not respond".
+    reportError(error, { fn: 'dispatch', type: raw.type })
+
+    // Two different repairs, because the sink can already be spent.
+    //
+    // `sink.send` is a NO-OP once settled, and `deferReply` settles it. So for
+    // the commands that defer — which are exactly the ones that make a network
+    // call and can therefore throw — the old single `sink.send` here wrote
+    // nothing at all, and Discord left "<bot> is thinking…" on screen forever.
+    //
+    // The gateway path got this right: `events/interactionCreate.ts` sends a
+    // followUp when `deferred`. Evidence this was a half-finished port rather
+    // than a decision: `ResponseSink.deferred` was WRITTEN by `deferReply` and
+    // read nowhere in the repo until now.
+    if (sink.settled) {
+      // Already deferred (or answered). The initial response is spent, so the
+      // only way to say anything is to edit the message it promised. PATCH
+      // @original with the same rest client the adapter uses.
+      try {
+        await rest.patch(webhookRoutes(env.DISCORD_APPLICATION_ID, raw.token).original, {
+          body: { content: 'There was an error while executing this command!' },
+        })
+      } catch (patchError) {
+        // The interaction token has a 15-minute life and Discord can refuse.
+        // Nothing further can be said to the user at this point; make sure the
+        // reason is at least visible to us.
+        console.error('failed to report handler error to Discord:', patchError)
+        reportError(patchError, { fn: 'dispatch', op: 'patch-original' })
+      }
+      return
+    }
+
+    // Nothing sent yet — the initial response is still ours to use.
     sink.send({
       type: InteractionResponseType.ChannelMessageWithSource,
       data: { content: 'There was an error while executing this command!', flags: 64 },
@@ -196,6 +232,16 @@ async function dispatch(
  * Unauthenticated on purpose: it reveals only public facts, and requiring a
  * credential to check a credential is a loop that helps nobody at 3am.
  */
+/**
+ * The Sentry cron monitor slug.
+ *
+ * Deliberately the SAME string the gateway heartbeat used
+ * (`src/observability.ts`). The monitor is about "is the Salvage Union bot
+ * alive", not about which transport happens to answer, so reusing the slug
+ * continues one history rather than orphaning it and starting a second.
+ */
+const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
+
 async function health(env: Env): Promise<Response> {
   const configured = {
     applicationId: Boolean(env.DISCORD_APPLICATION_ID),
@@ -251,6 +297,59 @@ async function health(env: Env): Promise<Response> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
+/**
+ * The liveness signal, rebuilt for Workers.
+ *
+ * ## Why the old one stopped meaning anything
+ *
+ * `startLivenessHeartbeat` (src/observability.ts) is a `setInterval` on a
+ * long-lived process, started from `events/ready.ts` — the GATEWAY path. A
+ * Worker has no long-lived process and never reaches that file, so after the
+ * P5 cutover the `discord-bot-heartbeat` Sentry monitor was watching a Render
+ * service that no longer serves any interaction. It either alerted forever
+ * (Render stopped) or reported green for a process nobody was using.
+ *
+ * ADR-033 said this signal "needs rethinking rather than deleting" and nothing
+ * was done. This is the rethink.
+ *
+ * ## Why a check-in rather than an event
+ *
+ * Sentry alerts on events ARRIVING, never on their absence — which is exactly
+ * why the original `discord-bot ready` info event could not do this job, and is
+ * recorded as such in `observability.ts`. A cron monitor inverts that: silence
+ * is the alarm.
+ *
+ * ## Why it probes Discord rather than just checking in
+ *
+ * A check-in that only proves "the cron fired" would go green while the bot
+ * token was revoked — reporting health for a bot that answers nothing. So it
+ * asks Discord the same question `/health` asks (`GET /users/@me`), and reports
+ * `error` when the token is rejected. Under HTTP interactions there is no
+ * gateway session to observe, so token validity IS the liveness question.
+ */
+async function heartbeat(env: Env): Promise<void> {
+  const checkInId = startCheckIn(HEARTBEAT_MONITOR_SLUG)
+
+  let ok = false
+  try {
+    const res = await fetch('https://discord.com/api/v10/users/@me', {
+      headers: { authorization: `Bot ${env.DISCORD_TOKEN}` },
+    })
+    ok = res.ok
+    if (!ok) {
+      console.error('[worker] heartbeat: Discord rejected the token', res.status)
+    }
+  } catch (error) {
+    // Unreachable Discord is not a dead bot, but it is not evidence of a live
+    // one either, so it still reports `error` — a monitor that goes green on
+    // "could not check" is the failure this replaces.
+    console.error('[worker] heartbeat: could not reach Discord', error)
+    reportError(error, { fn: 'heartbeat', op: 'discord.probe' })
+  }
+
+  finishCheckIn(HEARTBEAT_MONITOR_SLUG, checkInId, ok ? 'ok' : 'error')
+}
+
 export default withObservability('discord-bot', {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
@@ -301,5 +400,15 @@ export default withObservability('discord-bot', {
     }
 
     return json(await dispatch(interaction, env, ctx))
+  },
+
+  /**
+   * Cron entry point. Bound to the schedule in `wrangler.jsonc`; see
+   * `heartbeat` above for why this exists at all.
+   */
+  async scheduled(_event: unknown, env: Env, ctx: ExecutionCtx): Promise<void> {
+    // `waitUntil` so the check-in flushes before the isolate is torn down —
+    // the same reason the interaction path uses it.
+    ctx.waitUntil(heartbeat(env))
   },
 })

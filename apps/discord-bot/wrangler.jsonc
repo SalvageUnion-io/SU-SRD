@@ -68,6 +68,21 @@
   //                      rather than Solo.
   //   DISCORD_BOT_AVATAR optional avatar hash, for embed branding.
 
+  // Cron Trigger for the liveness heartbeat.
+  //
+  // Every 5 minutes, matching HEARTBEAT_INTERVAL_MINUTES in
+  // `src/observability.ts` — the Sentry cron monitor's expected interval is
+  // configured against that number, so the two move together or the monitor
+  // alerts on a schedule nobody changed.
+  //
+  // This replaces a `setInterval` that only ever ran on the Render gateway
+  // process (started from `events/ready.ts`), so after P5 it was watching a
+  // service that no longer answers anything. ADR-033 said the signal "needs
+  // rethinking rather than deleting"; this is the rethink.
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+
   "observability": {
     "enabled": true
   }
