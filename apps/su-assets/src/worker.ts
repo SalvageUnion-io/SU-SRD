@@ -133,6 +133,17 @@ const COMMON_HEADERS: Record<string, string> = {
   'x-dns-prefetch-control': 'on',
 }
 
+/**
+ * Byte-for-byte what the Netlify site's `public/robots.txt` served. That file
+ * is deleted in the same change: this Worker publishes no assets directory, so
+ * it was an orphan asserting a policy nothing applied.
+ *
+ * This origin serves image bytes and short error strings — there is nothing here
+ * a search index should hold, and the artwork is licensed. Disallowing all of it
+ * is the intended posture, and was the posture until the cutover.
+ */
+const ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
+
 function plain(body: string, status: number): Response {
   return new Response(body, { status, headers: COMMON_HEADERS })
 }
@@ -157,6 +168,33 @@ export function makeAssetHandler(
     if (hit) return hit
 
     const { pathname } = new URL(req.url)
+
+    // `/robots.txt`, ahead of the extension check below — which does not know
+    // `.txt` and would answer 404.
+    //
+    // The Netlify site published this from `public/`. This Worker has no assets
+    // directory (its config says robots "is served from the Worker rather than
+    // smuggled in as a second mechanism"), but no branch was ever written, so
+    // after the cutover the path fell through to Cloudflare's zone-level managed
+    // robots.txt — which carries content-signal comments and NO `Disallow`
+    // directive at all. A robots.txt with no directives permits everything.
+    //
+    // That silently took this origin from "closed to every crawler" to "open",
+    // and it holds artwork licensed from Leyline Press under
+    // "do not redistribute". Restoring the original body is the whole fix.
+    if (pathname === '/robots.txt') {
+      return new Response(ROBOTS_TXT, {
+        status: 200,
+        headers: {
+          ...COMMON_HEADERS,
+          'content-type': 'text/plain; charset=utf-8',
+          // Short, unlike the artwork: this is policy, and a year-long immutable
+          // cache on a crawl directive is a year-long mistake if it changes.
+          'cache-control': 'public, max-age=3600',
+        },
+      })
+    }
+
     const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
 
     // Reject empty keys, path traversal, and dotfiles. R2 keys are flat strings

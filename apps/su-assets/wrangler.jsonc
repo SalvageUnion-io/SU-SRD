@@ -10,6 +10,11 @@
   // robots.txt) alongside the function; here the Worker answers every path, and
   // robots is served from the Worker rather than smuggled in as a second
   // mechanism — one place decides what this origin returns.
+  //
+  // That was the INTENT from the start and the branch was missing until it was
+  // written: `/robots.txt` fell through to Cloudflare's zone-level managed file,
+  // which has no `Disallow`, so this origin was open to crawlers between the
+  // cutover and that fix. `src/__tests__/robots.test.ts` now holds it closed.
   "name": "su-assets",
 
   // One hostname, and it moves with srd rather than separately: `ASSET_BASE_URL`
