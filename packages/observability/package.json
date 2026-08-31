@@ -12,6 +12,10 @@
     "./browser": {
       "types": "./src/browser.ts",
       "default": "./src/browser.ts"
+    },
+    "./cloudflare": {
+      "types": "./src/cloudflare.ts",
+      "default": "./src/cloudflare.ts"
     }
   },
   "scripts": {
@@ -22,6 +26,7 @@
     "test": "bun test"
   },
   "devDependencies": {
+    "@sentry/cloudflare": "10.69.0",
     "@sentry/node": "catalog:"
   }
 }

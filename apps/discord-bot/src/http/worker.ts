@@ -35,6 +35,8 @@
 import { REST } from '@discordjs/rest'
 import type { APIInteraction } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType } from 'discord-api-types/v10'
+import type { ObservabilityEnv } from 'observability/cloudflare'
+import { reportError, withObservability } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
 import { commands } from '../commands/index.js'
@@ -59,22 +61,27 @@ await SalvageUnionReference.preload('all')
 /**
  * Shared code reports through `report.ts`, which names no transport. The
  * gateway installs `@sentry/node`; that package drags in OpenTelemetry and
- * `node:path` and does not bundle for workerd, so this isolate logs instead.
+ * `node:path` and does not bundle for workerd, which is why this isolate cannot
+ * use it.
  *
- * Swapping this for `@sentry/cloudflare` is the one remaining Sentry port
- * (ADR-033) and is deliberately NOT bundled in here yet — it needs a DSN and a
- * `wrangler secret`, and shipping a dark SDK is the exact failure
- * `check-observability.ts` exists to prevent. Until then the Worker's errors are
- * in `wrangler tail`, which is where its logs already are.
+ * This is the `@sentry/cloudflare` port that comment used to defer — the last
+ * of the three Workers to get one. It reports to BOTH: Workers Logs is what
+ * `wrangler tail` shows during an incident, Sentry is what alerts, and dropping
+ * either trades one blind spot for another.
+ *
+ * With no `SENTRY_DSN` secret the SDK initialises disabled and this is exactly
+ * the old behaviour — a logging Worker, not a dark SDK.
  *
  * Assignment at module scope is fine: workerd forbids I/O, timers and
- * randomness in global scope, not assignment.
+ * randomness in global scope, not assignment. `reportError` performs no I/O
+ * until it is CALLED, which is inside a request.
  */
 setReporter((error, context) => {
   console.error('[worker]', error, context ?? {})
+  reportError(error, context)
 })
 
-export type Env = {
+export type Env = ObservabilityEnv & {
   DISCORD_PUBLIC_KEY: string
   DISCORD_APPLICATION_ID: string
   DISCORD_TOKEN: string
@@ -244,7 +251,7 @@ async function health(env: Env): Promise<Response> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default {
+export default withObservability('discord-bot', {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
       return health(env)
@@ -295,4 +302,4 @@ export default {
 
     return json(await dispatch(interaction, env, ctx))
   },
-}
+})

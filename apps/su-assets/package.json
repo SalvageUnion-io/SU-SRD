@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@netlify/blobs": "catalog:",
+    "observability": "workspace:*",
     "@sentry/node": "catalog:"
   }
 }
