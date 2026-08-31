@@ -39,7 +39,7 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 ### Root Dev Dependencies (Intentional)
 
 - **`playwright`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code. It is a _root_ dependency because that scanner lives in `tools/`, outside any workspace; the apps depend on `@playwright/test` separately for their e2e suites. This replaced `puppeteer-core`, which shipped no browser and had to borrow Playwright's Chromium — one browser stack now, not two.
-- **`sharp`** — Used by `tools/convert-lp-assets-to-webp.ts` to transcode the `lp-assets` Netlify Blobs artwork to WebP (`bun run assets:webp`). Not dead code.
+- **`sharp`** — no longer a ROOT dependency. It moved to `apps/srd`, whose `scripts/og-screenshots.ts` is now its only consumer; `tools/convert-lp-assets-to-webp.ts` and `tools/generate-lp-asset-derivatives.ts` were the other two and both were deleted when Cloudflare Images took over derivative rendering. With one consumer left it is also **out of the catalog** — `check:catalog` fails an entry with fewer than two references, and it caught exactly this.
 
 ### Audit gate (`check:audit`)
 

@@ -7,7 +7,7 @@
  * like every other page's.
  */
 
-import { cardImageSizes } from 'component-lib'
+import { assetSrcSetFor, cardImageSizes } from 'component-lib'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import type {
   PageModule,
@@ -87,6 +87,10 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     },
   }
 
+  // The preload MUST carry the same srcset/sizes as the <img>, or it selects a
+  // different candidate and the page downloads both files. See `cardImageSizes`.
+  const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
+
   return {
     meta: {
       title: `${patternName} - ${chassisName} Pattern - Salvage Union System Reference Document`,
@@ -95,9 +99,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       ogType: 'article',
       structuredData,
       preloadImage: displayData?.assetUrl,
-      // Same srcset/sizes as the <img>, or the preload fetches a second file.
-      preloadImageSrcSet: displayData?.assetSrcSet,
-      preloadImageSizes: displayData?.assetSrcSet ? cardImageSizes() : undefined,
+      preloadImageSrcSet,
+      preloadImageSizes: preloadImageSrcSet ? cardImageSizes() : undefined,
       breadcrumbs: [
         { name: 'SRD', url: `${SITE_URL}/` },
         { name: 'Chassis', url: `${SITE_URL}${schemaHref(schemaId)}` },
