@@ -167,6 +167,42 @@ function edgeCache(): Cache | null {
 }
 
 /**
+ * ## OPEN QUESTION: does this fit the Free plan's CPU budget?
+ *
+ * Benchmarked locally on Apple silicon, `renderOgImage` took **47.6 ms cold**
+ * and then ~15 ms warm. The documented budget is **10 ms CPU per invocation**
+ * on Workers Free (`docs/architecture/cloudflare-cutover.md`), and edge CPUs are
+ * slower than that laptop.
+ *
+ * If it does exceed the limit the failure is bad in a specific way: **a CPU-limit
+ * kill is not a catchable exception**, so the `fallback()` below — carefully
+ * built so an unfurl degrades to the site icon rather than a broken image —
+ * never runs. The unfurl gets a Cloudflare error page instead.
+ *
+ * This is UNVERIFIED. The feature appears nowhere in the cutover doc's
+ * measurement table, so it was never sized against the ceiling, and a local
+ * benchmark is not evidence about workerd. It is deliberately not "fixed" on
+ * that basis — rewriting the publish path to pre-render into R2 is a real
+ * architectural change, and doing it speculatively would trade a possible
+ * problem for a definite one.
+ *
+ * ## How to settle it
+ *
+ *     bunx wrangler@4.108.0 tail su-itun --format=pretty | grep 'og:image'
+ *
+ * then request `https://intheunionnow.com/og/s/<a real snapshot id>.png` with a
+ * cache-busting query string. Read `cpuTime` from the tail entry — NOT the
+ * `wallMs` the log line prints, which measures I/O waits and is only there to
+ * make the entry greppable.
+ *
+ * Take a cold reading and a warm one: the wasm instantiation is the expensive
+ * half, and the cache means most real requests never reach this code at all.
+ *
+ * If `cpuTime` is near or over 10 ms: render the PNG once at publish time into
+ * R2 under `waitUntil`, and stream it from here. That is correct regardless of
+ * the measurement; it is just not worth the change without one.
+ */
+/**
  * Serve the rendered preview for a shared snapshot.
  *
  * Every failure path ends at the static icon rather than an error. An unfurl
@@ -204,12 +240,29 @@ async function ogImage(
     // in the same bundle either way; this keeps them off the critical path of a
     // page load.
     const { renderOgImage } = await import('./ogImage')
+    const startedAt = Date.now()
     const [name, kind] = meta.title.split(' — ')
     // The description opens with "<Kind>: <Name>." — which the card already
     // shows, in larger type, directly above this line. Drop the lead so the
     // detail row carries something the reader has not just read.
     const detail = meta.description.replace(/^[^:]+:\s*[^.]+\.\s*/, '')
     const png = await renderOgImage(name ?? 'Sheet', kind ?? 'Sheet', detail || null)
+
+    // MEASUREMENT, not instrumentation to keep. See the block above `ogImage`.
+    //
+    // `Date.now()` in a Worker advances only on I/O, so between two points of
+    // pure CPU it returns the SAME value — which is exactly what makes it
+    // useful here rather than misleading: a non-zero duration means the render
+    // yielded, and the number to trust is the `cpuTime` that `wrangler tail`
+    // reports for the whole invocation. This line exists to make the
+    // corresponding tail entry findable by grep.
+    // `console.log`, not `console.error`, on purpose: this is not a failure, and
+    // reporting it as one would put every routine render into Sentry. Remove it
+    // together with the open question above, once that is answered.
+    // biome-ignore lint/suspicious/noConsole: deliberate measurement instrumentation
+    console.log(
+      `[itun] og:image rendered id=${id} bytes=${png.byteLength} wallMs=${Date.now() - startedAt}`
+    )
 
     const response = new Response(png as BodyInit, {
       headers: {
