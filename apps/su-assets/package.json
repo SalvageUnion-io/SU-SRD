@@ -9,8 +9,6 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@netlify/blobs": "catalog:",
-    "observability": "workspace:*",
-    "@sentry/node": "catalog:"
+    "observability": "workspace:*"
   }
 }

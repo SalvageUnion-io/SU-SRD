@@ -65,44 +65,23 @@ describe('check-convex-parity static guard', () => {
   test('passes on the tree as committed', async () => {
     const { exitCode, stdout } = await runCheck()
     expect(exitCode).toBe(0)
-    expect(stdout).toContain('[netlify.toml]')
+    // `[deploy-cloudflare.yml]`, not `[netlify.toml]`. The Netlify half of this
+    // guard is gone with the file it read; the workflow half is now the whole
+    // of it, which is what makes the assertion below load-bearing rather than
+    // one of two redundant sources.
+    expect(stdout).toContain('[deploy-cloudflare.yml]')
   })
 
-  test('fails when netlify.toml stops making an absent key fatal', async () => {
-    await withFileContents(
-      'apps/itun/netlify.toml',
-      (s) => s.replace('-z "$CONVEX_DEPLOY_KEY"', '-n "$CONVEX_DEPLOY_KEY"'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('no longer fails a production build')
-      }
-    )
-  })
-
-  test('fails when NEITHER a netlify.toml nor a deploy workflow carries the guard', async () => {
-    // Both must be absent. An earlier version of this test removed only
-    // `netlify.toml` and passed because `deploy-cloudflare.yml` did not exist
-    // yet — so it was asserting a fact about the tree's current shape rather
-    // than the rule, and it failed the moment P4 added the workflow. Failing
-    // there was correct; relying on a file's absence was not.
-    await withFileAbsent('apps/itun/netlify.toml', async () => {
-      await withFileAbsent(WORKFLOW, async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('no build definition carries the Convex deploy guard')
-      })
-    })
-  })
-
-  test('the real deploy workflow satisfies the guard on its own', async () => {
-    // The committed `.github/workflows/deploy-cloudflare.yml`, not a fixture:
-    // the point of naming that path in the tool before the file existed was
-    // that the file would have to satisfy it.
-    await withFileAbsent('apps/itun/netlify.toml', async () => {
-      const { exitCode, stdout } = await runCheck()
-      expect(exitCode).toBe(0)
-      expect(stdout).toContain('[deploy-cloudflare.yml]')
+  test('fails when NO build definition carries the guard', async () => {
+    // The one state that must never pass. This used to require removing BOTH
+    // `netlify.toml` and the workflow — an earlier version removed only the
+    // former and passed, because it was asserting a fact about the tree's shape
+    // rather than the rule. With `netlify.toml` deleted the workflow is the only
+    // source left, so removing it is now sufficient AND necessary.
+    await withFileAbsent(WORKFLOW, async () => {
+      const { exitCode, stderr } = await runCheck()
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain('no build definition carries the Convex deploy guard')
     })
   })
 

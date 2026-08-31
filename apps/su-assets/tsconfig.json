@@ -9,5 +9,5 @@
     "declarationMap": false,
     "composite": false
   },
-  "include": ["netlify/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }
