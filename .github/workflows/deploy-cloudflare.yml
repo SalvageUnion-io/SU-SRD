@@ -150,9 +150,17 @@ jobs:
       # for the length of the cutover.
       - name: Refuse to build itun with no Sentry source-map upload
         env:
+          # ONE secret and TWO variables, split the same way the DSNs above are
+          # and for the same stated reason: storing a public value as a secret
+          # hides which values genuinely need protecting.
+          #
+          #   SENTRY_ORG / SENTRY_PROJECT  slugs. They appear in every Sentry URL
+          #                                for this project and in the committed
+          #                                docs. Variables.
+          #   SENTRY_AUTH_TOKEN            can write to the org. Secret.
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: |
           missing=0
           for name in SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT; do
@@ -164,8 +172,9 @@ jobs:
             fi
           done
           if [ "$missing" = "1" ]; then
-            echo "Set them in Settings > Secrets and variables > Actions > Secrets." >&2
-            echo "Unlike the DSNs above these ARE secrets: the auth token can write to the org." >&2
+            echo "Settings > Secrets and variables > Actions:" >&2
+            echo "  SENTRY_AUTH_TOKEN -> Secrets (it can write to the Sentry org)" >&2
+            echo "  SENTRY_ORG, SENTRY_PROJECT -> Variables (public slugs)" >&2
             exit 1
           fi
 
@@ -262,8 +271,8 @@ jobs:
           VITE_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       - name: Deploy itun
