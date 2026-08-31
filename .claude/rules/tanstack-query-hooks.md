@@ -81,7 +81,8 @@ queries: { staleTime: 5 min, retry: 1 }
 As of this writing **no component calls `useQuery`/`useMutation` from
 `@tanstack/react-query`** — the only two importers in `apps/itun/src` are the
 client module and the root provider. Snapshot retrieval
-([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md)) runs in a
+([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md), now served by
+the itun Worker) runs in a
 TanStack Router loader instead (`src/routes/s/$id.tsx` → `retrieveSnapshot()`
 from `src/lib/snapshot/client.ts`).
 

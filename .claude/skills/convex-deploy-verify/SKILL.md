@@ -42,9 +42,10 @@ omitting it fails with an opaque `Missing environment variable SITE_URL` 500
 from the OAuth callback rather than anything that points at configuration.
 
 For production the frontend origin is the **custom domain**
-(`https://intheunionnow.com`), not the `.netlify.app` subdomain. That site also
-carries a pre-existing `VITE_SITE_URL` of `https://in-the-union-now.netlify.app`
-— two different origins, deliberately. Do not "fix" one to match the other.
+(`https://intheunionnow.com`), which is now the Worker's own route — the
+`.netlify.app` subdomain it used to be distinguished from is decommission
+debris, and the `VITE_SITE_URL` that pointed at it is gone with the Netlify
+site's build config.
 
 ## 2. Bot credential, only if wiring the Discord bot
 
@@ -105,17 +106,20 @@ A plausible length means present; `0` means absent.
 
 ## 5. Switching production on (or off)
 
-Production builds in **Solo mode** until `VITE_CONVEX_URL` is set on the
-`in-the-union-now` Netlify site. That is safe and deliberate, not an outage — a
-build with no Convex URL is the pre-accounts app, fully working.
+Production builds in **Solo mode** until `VITE_CONVEX_URL` reaches the itun
+build. That is safe and deliberate, not an outage — a build with no Convex URL
+is the pre-accounts app, fully working.
+
+The build moved from Netlify to GitHub Actions (ADR-033 §4), so this is no
+longer a site setting:
 
 1. Add the prod redirect URI to the Discord application.
-2. Set `VITE_CONVEX_URL=https://exuberant-porpoise-183.convex.cloud` on the
-   Netlify site (production context, `builds` scope) and **redeploy** — it is a
-   build-time variable, so it takes effect on the next deploy, not immediately.
+2. `VITE_CONVEX_URL` is supplied by `convex deploy --cmd-url-env-var-name` in
+   `.github/workflows/deploy-cloudflare.yml`, so it is set by the Convex deploy
+   itself rather than pasted anywhere. It is a **build-time** variable: it takes
+   effect on the next deploy, not immediately.
 
-Reversing is the same in reverse: unset and redeploy. Local builds are
-unaffected either way.
+Reversing means changing that step. Local builds are unaffected either way.
 
 ## Report
 
