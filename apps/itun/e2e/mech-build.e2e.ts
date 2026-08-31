@@ -71,10 +71,13 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   await waitForReady(page)
 
   // Open the mech's live sheet from its roster row.
-  await page
-    .locator('li', { hasText: 'Iron Fist' })
-    .getByRole('link', { name: /^View$/ })
-    .click()
+  // Matched on `href`, not the label. EntityRow's sheet link reads "View" on
+  // every row, so it carries `aria-label="View <name>"` for WCAG 2.4.4 — which
+  // means its ACCESSIBLE NAME is not "View" and `/^View$/` matches nothing.
+  // The locator is already scoped to this entity's row, so the href is the
+  // contract that matters and it survives the next copy change. This is the
+  // same reasoning `openSheetFor` in `_helpers.ts` records.
+  await page.locator('li', { hasText: 'Iron Fist' }).locator('a[href*="/sheet/"]').click()
   await page.waitForURL(/\/sheet\/mech\//, { timeout: 15_000 })
   await waitForReady(page)
 
