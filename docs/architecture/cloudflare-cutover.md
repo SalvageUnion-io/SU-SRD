@@ -42,7 +42,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
-| P7    | Cutover                                  | **no**     | **half done, and UNBLOCKED** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` transferred out of Netlify **2026-08-28** (ticket #1093312 resolved) and now sits in the Name.com account. Nothing is waiting on anyone else: the only remaining act is the nameserver change, step 3 below |
+| P7    | Cutover                                  | **no**     | **DONE** — `intheunionnow.com` live 2026-08-19; `salvageunion.io` + `assets.salvageunion.io` live **2026-08-31 03:52:49Z**. Both zones active on Cloudflare; post-flip gate all-pass |
 | P8    | Decommission and tooling cleanup         | **no**     | not started               |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
@@ -777,9 +777,42 @@ support link there is pre-filled with the right subject and body.
    setting the nameservers, so step 3 is ours to perform and needs no further
    correspondence.
 
-3. At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
-   `rajeev.ns.cloudflare.com`. **This is the actual cutover moment for `srd` and
-   `assets`** — the zone goes Active and both surfaces move.
+3. ~~At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
+   `rajeev.ns.cloudflare.com`.~~ **DONE 2026-08-31.** The zone activated at
+   **03:52:49Z** and `srd` + `assets` moved with it.
+
+   #### How it actually went
+
+   | Gate                        | Result                                              |
+   | --------------------------- | --------------------------------------------------- |
+   | Registry delegation         | only `davina` + `rajeev`; all four `nsone` gone      |
+   | Zone activation             | `status: active`, `activated_on 03:52:49Z`          |
+   | TLS + origin                | apex and `assets` both `server: cloudflare`         |
+   | Content                     | `/`, `/about/`, deep `/schema/…` all 200            |
+   | Missing page                | **404** — not the SPA shell, not a soft-200         |
+   | `www` → apex                | **301**                                             |
+   | Artwork                     | SHA-256 matches pre-flight (503,202 B)              |
+
+   **Pressing "Check nameservers now" immediately is what made this cheap.** The
+   API equivalent is `PUT /zones/{id}/activation_check`, which is what was
+   actually used here — no dashboard needed, and it can be fired repeatedly while
+   waiting. The itun flip's 3–4 minute outage did not repeat at anything like
+   that length.
+
+   **A stale public resolver will lie to you, and it looks exactly like a failed
+   flip.** Minutes after activation, `dig A www.salvageunion.io @1.1.1.1` still
+   returned the **Netlify** addresses (`98.84.224.111`, `18.208.88.157`) while
+   Cloudflare's own nameservers already returned `104.21.92.92` /
+   `172.67.190.224` — and an actual HTTPS request to `www` was being served by
+   Cloudflare (`server: cloudflare`, `cf-ray` present) the whole time. Judge the
+   flip by the **authoritative** nameservers and by `cf-ray` on a real response,
+   never by a public resolver's cached A record.
+
+   **Do not write a post-flip check that only asserts "an A record exists".** The
+   first version of this gate did exactly that and printed `PASS` for the stale
+   `www` answer above. A check that cannot distinguish the new origin from the
+   old one is not a check — assert `server: cloudflare`/`cf-ray`, or compare
+   against the authoritative nameservers.
 
    **Pre-flight, re-measured 2026-08-29 — all green.** The earlier readings were
    taken 2026-08-21, before the transfer, so they were re-run rather than
