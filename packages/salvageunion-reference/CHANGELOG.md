@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.4...salvageunion-reference-v2.12.0) (2026-08-31)
+
+
+### Features
+
+* **assets:** render artwork derivatives with Cloudflare Images ([#928](https://github.com/SalvageUnion-io/SU-SRD/issues/928)) ([b198cd8](https://github.com/SalvageUnion-io/SU-SRD/commit/b198cd8a28e98069c183b7eef87c05ab44e3d8db))
+
 ## [2.11.4](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.3...salvageunion-reference-v2.11.4) (2026-08-26)
 
 
