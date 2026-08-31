@@ -48,8 +48,15 @@
  *
  * `RATE_LIMITER` is Cloudflare's own binding, which is a real control because it
  * is enforced at the edge rather than per-instance. It is optional here so the
- * Worker still runs without it — absent binding means no limiting, which is the
- * same protection the 256 KB cap already provides, rather than a crash.
+ * Worker still runs without it.
+ *
+ * That tolerance is not a claim that its absence is harmless, and this comment
+ * used to say it was — "the same protection the 256 KB cap already provides".
+ * The cap bounds bytes PER REQUEST, not requests, so it bounds nothing about
+ * how many a caller may make. The binding was in fact unprovisioned through
+ * P4-P7 while this paragraph called it a real control, and the endpoint took
+ * unlimited unauthenticated POSTs into billable R2. `wrangler.jsonc` declares
+ * it now, and `__tests__/rateLimitBinding.test.ts` fails if that is removed.
  */
 
 import {
@@ -71,8 +78,10 @@ import { applyMeta, metaForSnapshot } from './shellMeta'
  * It counts per isolate, which makes it approximate to the point of being
  * decorative, and Cloudflare's Rate Limiting binding is enforced at the edge —
  * a real control. Running both would be two mechanisms where one is meaningful
- * (ADR-033 P3). The enforced 256 KB payload cap is what actually bounds storage
- * amplification, and it applies either way.
+ * (ADR-033 P3).
+ *
+ * The 256 KB payload cap is a SIZE bound, not a rate bound. It applies either
+ * way and is worth keeping, but it does not substitute for this.
  */
 const NO_IN_PROCESS_LIMIT = { rateLimiter: null } as const
 
