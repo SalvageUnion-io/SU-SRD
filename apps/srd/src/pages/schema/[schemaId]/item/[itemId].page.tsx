@@ -8,7 +8,7 @@
  * of those pages moved.
  */
 
-import { cardImageSizes } from 'component-lib'
+import { assetSrcSetFor, cardImageSizes } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
 import { EntityView } from '../../../../components/EntityView'
@@ -103,7 +103,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const preloadImage = displayData?.assetUrl
   // The preload MUST carry the same srcset/sizes as the <img>, or it selects a
   // different candidate and the page downloads both files. See `cardImageSizes`.
-  const preloadImageSrcSet = displayData?.assetSrcSet
+  const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
 
   return {
     meta: {

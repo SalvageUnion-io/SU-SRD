@@ -44,7 +44,7 @@
     "@testing-library/react": "catalog:",
     "@vitejs/plugin-react-swc": "catalog:",
     "playwright": "catalog:",
-    "sharp": "catalog:",
+    "sharp": "0.35.3",
     "vite": "catalog:",
     "workbox-build": "7.4.1"
   }

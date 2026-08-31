@@ -37,6 +37,19 @@
   // reads like a config error and is really version skew.
   "compatibility_date": "2026-07-13",
 
+  // Cloudflare Images, used to render the `-440`/`-880` derivatives from the
+  // master on demand instead of baking them into the bucket. The Worker treats
+  // it as optional — an absent binding makes a derivative 404, which a browser
+  // resolves by falling back to the `src` master rather than showing nothing.
+  //
+  // REQUIRES Transformations enabled on the salvageunion.io zone
+  // (dashboard -> Images -> Transformations -> salvageunion.io). Free plan
+  // allows 5,000 unique transformations/month; this origin has 57 masters and
+  // an allowlist of 2 widths, so the ceiling is 114.
+  "images": {
+    "binding": "IMAGES"
+  },
+
   "r2_buckets": [
     {
       "binding": "LP_ASSETS",

@@ -14,7 +14,6 @@ import type {
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
-  getAssetSrcSet,
   getAssetUrl,
   getBooklet,
   getChassisAbilities,
@@ -41,6 +40,7 @@ import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCost } from '../../shared/ActivationCost'
+import { assetSrcSetFor } from '../../shared/assetSrcSet'
 import type { CardFootMeta } from '../../shared/Card'
 import { CardControlRail } from '../../shared/CardControlRail'
 import { CardImage } from '../../shared/CardImage'
@@ -675,9 +675,9 @@ function ReferenceEntityCardInner({
   // so a card at depth N+1 is always strictly smaller than its parent at depth N
   // (until the ladder's legibility floor). See `titleSizeClass`.
   const titleClass = titleSizeClass(depth, size)
-  // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork` and
-  // `getAssetSrcSet` its width-constrained candidates; the chassis art also
-  // stands in for its full PATTERN view (but not the tight pattern-summary
+  // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork`, and
+  // `assetSrcSetFor` derives its width-constrained candidates; the chassis art
+  // also stands in for its full PATTERN view (but not the tight pattern-summary
   // list rows).
   //
   // A MINI catalog tile drops the artwork entirely: the catalog extent is
@@ -686,7 +686,7 @@ function ReferenceEntityCardInner({
   // label. Every other size keeps it.
   const isMiniCatalog = isCatalog && size === 'small'
   const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
-  const assetSrcSet = isMiniCatalog ? undefined : getAssetSrcSet(entity)
+  const assetSrcSet = assetSrcSetFor(assetUrl)
 
   // PATTERN view — the pattern is the subject; the chassis (`entity`) supplies
   // stats / tone / source. Patterns carry NO stampseal. A `size="medium" extent="head"`
