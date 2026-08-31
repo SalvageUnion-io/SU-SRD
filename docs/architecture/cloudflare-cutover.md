@@ -41,9 +41,9 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P3    | R2 `SnapshotStorage`                     | yes        | **done** — 20/20 R2 RAW   |
 | P4    | Three web surfaces on `workers.dev`      | yes        | **done** — all three live |
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
-| P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF |
-| P7    | Cutover                                  | **no**     | **half done** — `intheunionnow.com` **LIVE on Cloudflare** (2026-08-19); `salvageunion.io` blocked on Netlify support ticket #1093312, **no agent reply as of 2026-08-21** |
-| P8    | Decommission and tooling cleanup         | **no**     | not started               |
+| P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF. Delta never run; reconciled by measurement on 2026-08-31 instead — 43/45 resolve on production, the other 2 exported to disk. See P8 |
+| P7    | Cutover                                  | **no**     | **DONE** — `intheunionnow.com` live 2026-08-19; `salvageunion.io` + `assets.salvageunion.io` live **2026-08-31 03:52:49Z**. Both zones active on Cloudflare; post-flip gate all-pass |
+| P8    | Decommission and tooling cleanup         | **no**     | **partly done** — the repo is clean of Netlify/Render (config, functions, deps, guards, docs); the ACCOUNTS and their sites still exist |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
 The write freeze ships as code that is **off** (`SNAPSHOT_WRITES_FROZEN` unset),
@@ -104,6 +104,27 @@ passed. The probe that produced them is in the Appendix.
 | Warm request CPU                     | below timer resolution  | 10 ms      | —      |
 | Bot CPU, real `/su roll` in Discord  | **951 µs** (19 invocations, 0 errors) | 10 ms | **10%** |
 | `preload('all')` under Bun           | 81.6 ms                 | —          | —      |
+
+**These describe the BOT probe (P2), not every Worker.** Two rows worth adding
+because their absence was mistaken for coverage:
+
+| Quantity                                  | Measured                | Free limit | Used   |
+| ----------------------------------------- | ----------------------- | ---------- | ------ |
+| `su-itun` size, compressed                | **1,185 KiB**           | 3 MB       | **39%** |
+| `su-discord-bot` size, compressed         | 659 KiB                 | 3 MB       | 21%    |
+| `su-assets` size, compressed              | 105 KiB                 | 3 MB       | 3%     |
+| `renderOgImage`, LOCAL (Apple silicon)    | 47.6 ms cold / ~15 ms warm | 10 ms CPU | **UNKNOWN on workerd** |
+
+The last row is an **open question, not a measurement of production**. The
+og:image renderer was never sized against the CPU ceiling — it does not appear
+above because it did not exist when that probe ran — and a local benchmark says
+nothing definitive about workerd. It matters because a CPU-limit kill is not
+catchable, so the renderer's own fallback cannot run.
+
+The runbook for settling it is in the doc block above `ogImage` in
+`apps/itun/src/worker/index.ts`, and a `console.log` there makes the tail entry
+greppable. **Do this before assuming the unfurl works**; do not rewrite the
+publish path on the strength of the local number alone.
 | All 27 data JSON files, gzipped      | 268 KB                  | —          | —      |
 | Workers Free requests / subrequests  | —                       | 100k/day · 50 | —   |
 | KV global propagation                | up to 60 s              | —          | —      |
@@ -649,14 +670,16 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 
 ### P7 — Cutover · **irreversible**
 
-> **The two domains are in different places, and only one of them can be flipped.
-> This corrects an earlier version of this section that named Name.com and
-> Tucows as two registrar logins, as though they were symmetrical. They are not.**
+> **BOTH domains can now be flipped. As of 2026-08-28 this table's last column
+> is history** — `salvageunion.io` was transferred out of Netlify into the
+> operator's own Name.com account, which is what the deadlock section below
+> exists to break. The section is kept because the *shape* of the trap is worth
+> recognising again, not because it still binds.
 >
-> | Domain              | Registrar (registry record) | You manage it at                 | Flip possible?              |
-> | ------------------- | --------------------------- | -------------------------------- | --------------------------- |
-> | `intheunionnow.com` | Tucows Domains Inc.         | **Hover** — it is in the account | **Yes**                     |
-> | `salvageunion.io`   | Name.com, Inc.              | **Netlify**                      | **No — see the deadlock**   |
+> | Domain              | Registrar (registry record) | You manage it at                 | Flip possible?                    |
+> | ------------------- | --------------------------- | -------------------------------- | --------------------------------- |
+> | `intheunionnow.com` | Tucows Domains Inc.         | **Hover** — it is in the account | **Yes** — done 2026-08-19         |
+> | `salvageunion.io`   | Name.com, Inc.              | **Name.com** — since 2026-08-28  | **Yes** — was "no, see deadlock"  |
 >
 > `salvageunion.io` was **registered through Netlify** on 2025-11-17. Netlify
 > resells through Name.com, which is why the registry names a registrar nobody
@@ -682,9 +705,10 @@ Two stores move, and writes landing on Netlify after the final sync are lost.
 > The `whois` answer alone is the trap: it is technically correct and practically
 > useless, because the account that controls the domain is the **Netlify** one.
 
-#### The deadlock on `salvageunion.io`
+#### The deadlock on `salvageunion.io` — BROKEN 2026-08-28
 
-Three facts that individually look fine and together do not compose:
+**Resolved by step 2's ticket; kept because the shape recurs.** Three facts that
+individually looked fine and together did not compose:
 
 1. Netlify's domain page for a **Netlify-registered** domain shows its
    nameservers **read-only**, with no field to change them. (Compare the page for
@@ -751,34 +775,108 @@ support link there is pre-filled with the right subject and body.
 
    This is the long pole — a human ticket, not an API call.
 
-   **Ask for the nameserver change too, and ask for it first.** As of
-   2026-08-21 there is still no agent reply, and the ticket as written requests
-   only the larger of the two things Netlify could do. Moving the registration
-   into the Name.com account is a registrar action with ICANN process attached;
-   *setting the nameservers on their side* is a config change that **finishes the
-   migration on its own** and needs no transfer at all — step 3 is the milestone
-   either way, and it does not care which party performs it. Requesting both,
-   preferring the nameserver change, gives support a cheap way to say yes.
+   **GRANTED, 2026-08-28.** Netlify Support (Mary Pangan) replied on the ticket:
 
-   Stated honestly, because the reply may be no: Netlify does **not** document
-   this service. [Transfer a domain](https://docs.netlify.com/manage/domains/manage-domains/transfer-a-domain/)
-   covers only full registrar transfers. Other users have asked for exactly the
-   nameserver change on the community forum — *["Please set custom name servers
-   for my Netlify-registered domain"](https://answers.netlify.com/t/please-set-custom-name-servers-for-my-netlify-registered-domain-mybrimly-com/165752)*
-   and *["How do I change nameservers or get an EPP transfer code…"](https://answers.netlify.com/t/how-do-i-change-nameservers-or-get-an-epp-transfer-code-for-a-domain-registered-through-netlify/163007)* —
-   and **both threads show no staff reply**, one noting that support emails had
-   gone unanswered. It is a reasonable ask with no evidence of it being granted,
-   which is a reason to make it *alongside* the transfer request rather than
-   instead of it.
+   > "The transfer of the domain to your account at Name.com is complete and you
+   > will see the domain settings there now. **No DNS changes have happened
+   > yet.** However, you now can change the name servers at Name and all domain
+   > renewals will happen directly at Name. It is also now possible to transfer
+   > the domain from Name to some other registrar if you prefer another company."
 
-3. At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
-   `rajeev.ns.cloudflare.com` — **or have Netlify set them**, per the note above.
-   **This is the actual cutover moment for `srd` and
-   `assets`** — the zone goes Active and both surfaces move.
-4. *Optional, later.* Unlock at Name.com, take the auth code, and transfer the
-   registration to Cloudflare Registrar. `.io` is supported; transfers are
-   at-cost, add a year to the expiry, and take up to 10 days. This is
-   consolidation, not cutover — step 3 already finished the migration.
+   Name.com sent two confirmations in the same minute: an account transfer of
+   `salvageunion.io` from `bitballoon` (Netlify's legacy entity) to the operator's
+   account, and the registrant-contact update.
+
+   **The deadlock this section describes is gone.** Netlify no longer holds the
+   domain, so "the nameservers are read-only because Netlify is the registrar"
+   no longer applies. The pessimism above — nine paragraphs on how Netlify does
+   not document this service and two forum threads with no staff reply — is kept
+   as written because it was honest when written and it correctly predicted
+   nothing about the outcome. **It took nine days, and the answer was yes.**
+
+   It also settles the either/or: Netlify moved the *registration* rather than
+   setting the nameservers, so step 3 is ours to perform and needs no further
+   correspondence.
+
+3. ~~At Name.com, set the nameservers to `davina.ns.cloudflare.com` and
+   `rajeev.ns.cloudflare.com`.~~ **DONE 2026-08-31.** The zone activated at
+   **03:52:49Z** and `srd` + `assets` moved with it.
+
+   #### How it actually went
+
+   | Gate                        | Result                                              |
+   | --------------------------- | --------------------------------------------------- |
+   | Registry delegation         | only `davina` + `rajeev`; all four `nsone` gone      |
+   | Zone activation             | `status: active`, `activated_on 03:52:49Z`          |
+   | TLS + origin                | apex and `assets` both `server: cloudflare`         |
+   | Content                     | `/`, `/about/`, deep `/schema/…` all 200            |
+   | Missing page                | **404** — not the SPA shell, not a soft-200         |
+   | `www` → apex                | **301**                                             |
+   | Artwork                     | SHA-256 matches pre-flight (503,202 B)              |
+
+   **Pressing "Check nameservers now" immediately is what made this cheap.** The
+   API equivalent is `PUT /zones/{id}/activation_check`, which is what was
+   actually used here — no dashboard needed, and it can be fired repeatedly while
+   waiting. The itun flip's 3–4 minute outage did not repeat at anything like
+   that length.
+
+   **A stale public resolver will lie to you, and it looks exactly like a failed
+   flip.** Minutes after activation, `dig A www.salvageunion.io @1.1.1.1` still
+   returned the **Netlify** addresses (`98.84.224.111`, `18.208.88.157`) while
+   Cloudflare's own nameservers already returned `104.21.92.92` /
+   `172.67.190.224` — and an actual HTTPS request to `www` was being served by
+   Cloudflare (`server: cloudflare`, `cf-ray` present) the whole time. Judge the
+   flip by the **authoritative** nameservers and by `cf-ray` on a real response,
+   never by a public resolver's cached A record.
+
+   **Do not write a post-flip check that only asserts "an A record exists".** The
+   first version of this gate did exactly that and printed `PASS` for the stale
+   `www` answer above. A check that cannot distinguish the new origin from the
+   old one is not a check — assert `server: cloudflare`/`cf-ray`, or compare
+   against the authoritative nameservers.
+
+   **Pre-flight, re-measured 2026-08-29 — all green.** The earlier readings were
+   taken 2026-08-21, before the transfer, so they were re-run rather than
+   trusted:
+
+   | Check                                   | Result                                          |
+   | --------------------------------------- | ----------------------------------------------- |
+   | `dig salvageunion.io DS`                | **empty** — DNSSEC off, cannot strand resolvers  |
+   | `AAAA` for all three hostnames @ CF NS  | **`100::`** — apex, `www` and `assets` attached  |
+   | Artwork through the Worker              | **byte-identical** to Netlify (SHA-256 `9f3a06c7…`, 503,202 B, `/chassis/mule.webp`) |
+   | `srd` routes, Worker vs Netlify         | **10/10 identical** — incl. `/about/`, two deep `/schema/…` pages, a 404 and the `sitemap.xml` 301 |
+
+   The artwork check is the one worth keeping: `ASSET_BASE_URL` is compile-time,
+   so every entity image in **both** apps moves the instant this hostname does.
+   Comparing one rendered page would have covered whichever images that page
+   happened to use; hashing the bytes through the deployed Worker covers the
+   object itself.
+
+   **This step needs a human at a keyboard.** It is a registrar UI action:
+   Name.com has no session an agent can borrow, `op` needs interactive approval,
+   and entering credentials is off-limits. There is a Name.com API
+   (`POST /v4/domains/{domain}:setNameservers`) if a token is ever provisioned —
+   nothing in this repo has one today, and this is the only step in the whole
+   cutover that an agent cannot perform.
+4. **Wanted, and now possible.** Unlock at Name.com, take the auth code, and
+   transfer the registration to Cloudflare Registrar. `.io` is supported;
+   transfers are at-cost, add a year to the expiry, and take up to 10 days.
+   Netlify's reply explicitly clears it: *"it is also now possible to transfer
+   the domain from Name to some other registrar."* This is consolidation, not
+   cutover — step 3 already finished the migration.
+
+   **Order matters, and it is the opposite of the intuitive one.** Do step 3
+   first. Cloudflare Registrar will not accept a domain whose zone is not
+   already Active, which is exactly the deadlock that cost nine days — so
+   flipping the nameservers is the *prerequisite* for the transfer, not a
+   consolation prize if the transfer stalls.
+
+   **A renewal note that is no longer a deadline.** Renewals now happen at
+   Name.com, not Netlify — Netlify's reply says so directly — so the 2026-10-16
+   date this document used to treat as a forcing function is now an ordinary
+   registrar renewal. It is still worth completing the transfer before it, to
+   avoid paying a year at one registrar and then moving; but a missed date costs
+   money, not the domain.
 
 **Step 3 is the milestone. Step 4 is tidying.** Do not let the 10-day transfer
 window read as 10 days of blocked cutover.
@@ -1148,22 +1246,62 @@ and the DNS-only placeholders it replaces are never in the serving path.
 
 Only after P7 has been stable for 24 h.
 
-> **DO NOT DELETE THE NETLIFY TEAM. It is the registrar of record for
-> `salvageunion.io`.**
+> **CLEARED 2026-08-28 — the Netlify team is no longer the registrar of record.**
 >
-> This is the sharpest hazard in the whole cutover, and the plan did not have it
-> until the registration was traced (P7). Netlify does not merely host that
-> domain — it **sold** it and holds it. Closing the account, or letting it lapse,
-> puts the domain itself at risk, not just its DNS.
+> This block used to read *"DO NOT DELETE THE NETLIFY TEAM"*, and it was the
+> sharpest hazard in the cutover: Netlify did not merely host `salvageunion.io`,
+> it **sold** it and held it, so closing the account would have put the domain
+> itself at risk rather than just its DNS. The registration has now been
+> transferred out per P7 step 2 and sits in the operator's Name.com account.
 >
-> Deleting the three *sites* is fine and is what this phase means. Deleting the
-> **team/account** is not, and must wait until the registration has been
-> transferred out per P7 and `whois` shows a registrar you control.
+> **Verify before acting on this paragraph, rather than trusting it** — the whole
+> reason the hazard existed is that `whois` gave a technically-correct answer
+> (`Name.com, Inc.`) that was practically useless, because the account that
+> controlled the domain was the Netlify one. The check that actually settles it
+> is logging into Name.com and seeing the domain, plus Netlify's own domain page
+> no longer listing it. Do that once before deleting anything.
 >
-> A related deadline that is not about deletion at all: **auto-renew runs
-> 2026-10-16 at $61.99.** If the transfer has not completed by then, Netlify
-> charges another year. That is a cost, not a failure — do not let it rush the
-> transfer into being done badly.
+> Deleting the three *sites* was always fine and is what this phase means.
+> Deleting the **team/account** is now unblocked in principle; it still waits on
+> P7 being complete and stable.
+>
+> The renewal is no longer a Netlify charge at all: renewals happen at Name.com
+> now (**2026-10-16, $61.99**). Still a cost worth beating with the registrar
+> transfer, but no longer a reason to rush it.
+
+> **BLOCKED on two snapshots, measured 2026-08-31.** Deleting the `in-the-union-now`
+> site destroys its `snapshots` Blobs store, and two objects in it do not resolve
+> against production:
+>
+> ```
+> 45 keys in Netlify Blobs
+> 43 return 200 from https://intheunionnow.com/api/snapshots/<id>
+>  2 return 404 — RA0WMH9Q (pilot), XAM6VH8K (mech)
+> ```
+>
+> Those two are a matched pilot-and-mech pair, so they were almost certainly
+> shared together by one person. There are two readings and they have opposite
+> consequences:
+>
+> - **Revoked.** They were synced, then their owner deleted the share. A 404 is
+>   then CORRECT and the Netlify copy is stale. Restoring them would un-revoke
+>   somebody's sheet.
+> - **Never synced.** They were published to the Netlify functions after the
+>   bulk copy — P6's write freeze was merged but never activated, and the final
+>   delta sync never ran — so deleting the store destroys two live capabilities.
+>
+> The count is the argument for the first reading: Netlify holds exactly 45, and
+> the bulk sync copied exactly 45 "compared by content", so nothing appears to
+> have been published after it. That rests on trusting a recorded claim, which
+> is not the standard this file holds itself to elsewhere.
+>
+> **Settled cheaply instead of argued:** all 45 are exported to
+> `~/Documents/SU-snapshots-backup` (180 KB, one JSON per id). Deleting the site
+> is now safe under EITHER reading — the never-synced case is recoverable with
+> `tools/upload-lp-assets.ts`'s sibling path, and the revoked case needs nothing.
+>
+> Read the two files before restoring anything. A revoked share that comes back
+> is a worse outcome than a dead link.
 
 - Delete the three Netlify sites and the Render service.
 - `.mcp.json`: remove `netlify` and `render`; add
@@ -1186,7 +1324,9 @@ Only after P7 has been stable for 24 h.
 
 **Gate**
 
-- [ ] `bun run check:all` green with no `netlify.toml` anywhere in the tree.
+- [ ] `bun run check` green with no `netlify.toml` anywhere in the tree. (`check:all`
+      is a deprecated alias slated for removal — a gate that invokes a removed
+      script fails for the wrong reason.)
 - [ ] `claude mcp list` shows the Cloudflare servers connected — zero tool calls
       means "broken or unused" and the two are indistinguishable from usage data
       alone.

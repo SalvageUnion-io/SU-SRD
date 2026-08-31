@@ -2,6 +2,42 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.4...itun-v1.17.0) (2026-08-31)
+
+
+### Features
+
+* **workers:** report Worker errors to Sentry ([#932](https://github.com/SalvageUnion-io/SU-SRD/issues/932)) ([61691cf](https://github.com/SalvageUnion-io/SU-SRD/commit/61691cf611a227eb49cc01bdabb5e3369d89d3ca))
+
+## [1.16.4](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.3...itun-v1.16.4) (2026-08-31)
+
+
+### Bug Fixes
+
+* **itun:** provision the snapshot rate limiter that was only ever described ([#931](https://github.com/SalvageUnion-io/SU-SRD/issues/931)) ([3ebdab5](https://github.com/SalvageUnion-io/SU-SRD/commit/3ebdab58f0de135bec5337489832ec21980f3fc6))
+
+## [1.16.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.2...itun-v1.16.3) (2026-08-31)
+
+
+### Performance Improvements
+
+* **workers:** edge-cache artwork, and stop blocking on cache writes ([#929](https://github.com/SalvageUnion-io/SU-SRD/issues/929)) ([a4db8b6](https://github.com/SalvageUnion-io/SU-SRD/commit/a4db8b62b072635cd2dd51dcfc523569dd10cc75))
+
+## [1.16.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.1...itun-v1.16.2) (2026-08-28)
+
+
+### Bug Fixes
+
+* **itun:** the two gates from [#919](https://github.com/SalvageUnion-io/SU-SRD/issues/919)/[#920](https://github.com/SalvageUnion-io/SU-SRD/issues/920) were vacuous — close them ([#923](https://github.com/SalvageUnion-io/SU-SRD/issues/923)) ([55d4b99](https://github.com/SalvageUnion-io/SU-SRD/commit/55d4b991659e37fcb006448d26b5e1d17047d1e7))
+
+## [1.16.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.0...itun-v1.16.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **convex:** appendChangeLog must check membership, and must not write alerts ([#918](https://github.com/SalvageUnion-io/SU-SRD/issues/918)) ([d4c68f3](https://github.com/SalvageUnion-io/SU-SRD/commit/d4c68f3655a751aa9fab5801ec03fbc759e68f9c))
+* **itun:** anonymous "Save pattern" threw on every attempt ([#919](https://github.com/SalvageUnion-io/SU-SRD/issues/919)) ([353bdb3](https://github.com/SalvageUnion-io/SU-SRD/commit/353bdb37f7587e87b488aaebf731c9c42ef03e2e))
+
 ## [1.16.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.15.1...itun-v1.16.0) (2026-08-26)
 
 

@@ -1,7 +1,7 @@
 {
   "name": "itun",
   "private": true,
-  "version": "1.16.0",
+  "version": "1.17.0",
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
@@ -22,11 +22,9 @@
     "@convex-dev/auth": "0.0.95",
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
-    "@netlify/blobs": "catalog:",
     "@randsum/roller": "catalog:",
     "@resvg/resvg-wasm": "^2.6.0",
     "@sentry/browser": "catalog:",
-    "@sentry/node": "catalog:",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-router": "^1.170.31",
     "@tanstack/router-plugin": "^1.168.34",

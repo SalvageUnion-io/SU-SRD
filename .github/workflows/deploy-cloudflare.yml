@@ -41,8 +41,16 @@ jobs:
   deploy:
     # `workflow_run` gives us the triggering run's conclusion; a manual dispatch
     # has no triggering run, so it is allowed through on its own.
+    #
+    # The `github.ref` clause is what stops that from being a hole. A dispatch
+    # checks out `github.sha` — the tip of WHATEVER ref was selected — and every
+    # branch cut from main carries this file, so without it any branch could be
+    # dispatched straight to production with no CI having passed. It needs repo
+    # write access, so this was a footgun rather than an external threat, but it
+    # is precisely the "green gate suffices" assumption in decision D3 being
+    # bypassed rather than satisfied.
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -125,9 +133,74 @@ jobs:
             exit 1
           fi
 
+      # The OTHER half of Sentry, and it was missing for the whole cutover.
+      #
+      # A DSN gets events to Sentry. Source maps make them readable. itun ships a
+      # minified bundle, so without an upload every production issue is a stack
+      # of mangled frames pointing at `assets/index-<hash>.js` — an event that
+      # exists, is counted, and cannot be acted on.
+      #
+      # `apps/itun/vite.config.ts` gates BOTH the plugin and `build.sourcemap` on
+      # `SENTRY_AUTH_TOKEN`, so with the secret absent the build silently emits
+      # no maps and uploads nothing. The step below it passes all three variables
+      # and they resolved to empty on every deploy since P7: the repository has
+      # exactly four secrets and none of them is a Sentry one.
+      #
+      # This is a migration regression, not an old gap. Netlify held the build
+      # credentials as SITE env vars (the cutover doc says so: "Netlify holds its
+      # own build credentials and this repository holds no deploy credentials at
+      # all"), and moving builds into Actions ported the deploy half and not this
+      # one. The stale "should not fail the Netlify build" comment still sitting
+      # in vite.config.ts is the fingerprint.
+      #
+      # It FAILS rather than warns, deliberately and in line with ADR-033 §7. A
+      # warning is what the previous state effectively was, and it went unread
+      # for the length of the cutover.
+      - name: Refuse to build itun with no Sentry source-map upload
+        env:
+          # ONE secret and TWO variables, split the same way the DSNs above are
+          # and for the same stated reason: storing a public value as a secret
+          # hides which values genuinely need protecting.
+          #
+          #   SENTRY_ORG / SENTRY_PROJECT  slugs. They appear in every Sentry URL
+          #                                for this project and in the committed
+          #                                docs. Variables.
+          #   SENTRY_AUTH_TOKEN            can write to the org. Secret.
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: |
+          missing=0
+          for name in SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT; do
+            eval "value=\$$name"
+            if [ -z "$value" ]; then
+              echo "FATAL: $name is not set — itun would ship with no source maps," >&2
+              echo "       making every production Sentry event a minified stack." >&2
+              missing=1
+            fi
+          done
+          if [ "$missing" = "1" ]; then
+            echo "Settings > Secrets and variables > Actions:" >&2
+            echo "  SENTRY_AUTH_TOKEN -> Secrets (it can write to the Sentry org)" >&2
+            echo "  SENTRY_ORG, SENTRY_PROJECT -> Variables (public slugs)" >&2
+            exit 1
+          fi
+
       # ---------------------------------------------------------------------
       # su-assets — no build step; the Worker is its own source.
       # ---------------------------------------------------------------------
+      # `wrangler@4.108.0` is written out at all four deploy steps, deliberately.
+      #
+      # Hoisting it to one `env:` var was tried and reverted: `check-action-pinning`
+      # refuses a `bunx` invocation it cannot statically read as an exact version,
+      # and it is right to — this job holds the deploy credentials, so an
+      # unresolvable pin there is where a supply-chain problem would land. A
+      # variable defeats that check for the sake of removing three literals.
+      #
+      # Dependabot cannot update this in either shape (it reads manifests; this is
+      # a shell argument), so the four copies must be moved by hand — TOGETHER,
+      # and together with `compatibility_date` in all four wrangler.jsonc files,
+      # which is pinned to the workerd this version bundles.
       - name: Deploy su-assets
         working-directory: apps/su-assets
         env:
@@ -218,8 +291,8 @@ jobs:
           VITE_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       - name: Deploy itun
@@ -277,11 +350,39 @@ jobs:
               fail=1
             fi
           }
-          check https://su-srd.alxjrvs.workers.dev/ 200 "srd home"
-          check https://su-srd.alxjrvs.workers.dev/nope-does-not-exist/ 404 "srd 404"
-          check https://su-itun.alxjrvs.workers.dev/ 200 "itun shell"
-          check https://su-itun.alxjrvs.workers.dev/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
-          check https://su-assets.alxjrvs.workers.dev/chassis/mule.webp 200 "artwork"
+          # The PRODUCTION hostnames, not workers.dev.
+          #
+          # Every check here used to target `*.alxjrvs.workers.dev`. That was
+          # correct before P7 — those URLs were the only way to reach these
+          # Workers — and became the wrong target the moment the nameservers
+          # flipped. A broken route binding, a DNS record that did not get
+          # created, or a custom domain detached from its Worker all pass a
+          # workers.dev smoke test while production is down.
+          #
+          # One workers.dev check is kept below, deliberately: if the custom
+          # domains fail and it passes, the Worker deployed fine and the routing
+          # layer is what broke, which is a different fix.
+          check https://salvageunion.io/ 200 "srd home"
+          check https://salvageunion.io/nope-does-not-exist/ 404 "srd 404"
+          check https://www.salvageunion.io/ 301 "srd www redirect"
+          check https://intheunionnow.com/ 200 "itun shell"
+          check https://intheunionnow.com/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
+          check https://assets.salvageunion.io/chassis/mule.webp 200 "artwork"
+          # BODY, not status. The broken state returned 200 too — Cloudflare's
+          # zone-level managed robots.txt, which carries no `Disallow` at all —
+          # so a status check here would pass on exactly the regression it is
+          # meant to catch: the licensed-artwork origin silently going from
+          # closed to open to every crawler.
+          robots=$(curl -fsS --max-time 15 https://assets.salvageunion.io/robots.txt || true)
+          if printf '%s' "$robots" | grep -q '^Disallow: /$'; then
+            echo "  ok   artwork origin disallows crawlers"
+          else
+            echo "  FAIL artwork origin robots.txt has no 'Disallow: /'" >&2
+            fail=1
+          fi
+          # The one workers.dev check, isolating "did the Worker deploy" from
+          # "did routing survive". See the note above.
+          check https://su-srd.alxjrvs.workers.dev/ 200 "srd reachable on workers.dev"
           # /health answers 200 only when Discord itself accepted the bot token
           # (it calls /users/@me rather than checking a variable is non-empty),
           # 503 when the token is rejected or absent, 502 when Discord is

@@ -57,7 +57,7 @@
   # differs by context: production is `exuberant-porpoise-183`, while a branch
   # deploy or a local `convex dev` points elsewhere. Both schemes are required —
   # `wss:` does NOT inherit from `https:`.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
 
 # Content-hashed bundle output from Vite's default assetsDir.
 /assets/*

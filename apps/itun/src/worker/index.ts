@@ -39,69 +39,51 @@
  *
  * ## Rate limiting
  *
- * The Netlify handler carried a module-scope `RateLimiter{10/min}` keyed on
- * `x-nf-client-connection-ip`. It is **deliberately not ported** (P3 decision):
- * it was already approximate across Function instances, would be equally so
- * across isolates, and sits behind an enforced 256 KB payload cap that does the
- * actual storage-amplification work. Porting it would produce something that
- * looks like a control without being one.
+ * Enforced at the edge by Cloudflare's Rate Limiting binding, declared as
+ * `ratelimits` in `wrangler.jsonc` and applied to POST below.
+ *
+ * The Netlify handler's module-scope `RateLimiter{10/min}` was deliberately not
+ * ported (P3): it counted per Function instance and would count per isolate
+ * here, which is approximate to the point of being decorative. `handlers.ts` no
+ * longer carries it at all — it was only ever the default so Netlify's
+ * behaviour stayed unchanged during the migration, and that host is gone.
  *
  * `RATE_LIMITER` is Cloudflare's own binding, which is a real control because it
  * is enforced at the edge rather than per-instance. It is optional here so the
- * Worker still runs without it — absent binding means no limiting, which is the
- * same protection the 256 KB cap already provides, rather than a crash.
+ * Worker still runs without it.
+ *
+ * That tolerance is not a claim that its absence is harmless, and this comment
+ * used to say it was — "the same protection the 256 KB cap already provides".
+ * The cap bounds bytes PER REQUEST, not requests, so it bounds nothing about
+ * how many a caller may make. The binding was in fact unprovisioned through
+ * P4-P7 while this paragraph called it a real control, and the endpoint took
+ * unlimited unauthenticated POSTs into billable R2. `wrangler.jsonc` declares
+ * it now, and `__tests__/rateLimitBinding.test.ts` fails if that is removed.
  */
 
+import type { ObservabilityEnv } from 'observability/cloudflare'
+import { reportError, withObservability } from 'observability/cloudflare'
 import {
   makeDeleteHandler,
   makePublishHandler,
   makeRetrieveHandler,
 } from '../lib/snapshot/handlers'
 import { isValidSnapshotId } from '../lib/snapshot/id'
-import { validateSnapshotPayload } from '../lib/snapshot/payload'
 import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
 import type { ShellMeta } from './shellMeta'
 import { applyMeta, metaForSnapshot } from './shellMeta'
 
-/**
- * The Worker opts OUT of the handlers' in-process rate limiter.
- *
- * It counts per isolate, which makes it approximate to the point of being
- * decorative, and Cloudflare's Rate Limiting binding is enforced at the edge —
- * a real control. Running both would be two mechanisms where one is meaningful
- * (ADR-033 P3). The enforced 256 KB payload cap is what actually bounds storage
- * amplification, and it applies either way.
- */
-const NO_IN_PROCESS_LIMIT = { rateLimiter: null } as const
-
-/**
- * Publish options for this host: no in-process limiter, and the STRICT payload
- * check.
- *
- * This Worker is the only place a snapshot can actually be published —
- * Netlify's publish is frozen and answers 503 before it reads a body — so this
- * is where "a snapshot that cannot be rendered cannot be published" is
- * enforced. `validateSnapshotPayload` runs the same Zod parse `/s/$id` runs on
- * the way out, so the two cannot drift.
- *
- * It is injected rather than imported inside `handlers.ts` because that module
- * is shared with the Netlify functions, whose bundler cannot resolve `zod` —
- * see the note on `isJsonObject` there. wrangler bundles it inline without
- * complaint; the cost is measured in `payload.ts`.
- */
-const PUBLISH_OPTIONS = {
-  rateLimiter: null,
-  validatePayload: validateSnapshotPayload,
-} as const
+/** The slice of workerd's ExecutionContext this Worker uses. */
+type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
 
 /** Cloudflare's Rate Limiting binding, as much of it as this Worker uses. */
 type RateLimiterBinding = {
   limit(options: { key: string }): Promise<{ success: boolean }>
 }
 
-export type Env = {
+export type Env = ObservabilityEnv & {
   /** Static assets (the built SPA). `not_found_handling` is "none" — see above. */
   ASSETS: { fetch(request: Request): Promise<Response> }
   SNAPSHOTS: R2BucketLike
@@ -185,6 +167,42 @@ function edgeCache(): Cache | null {
 }
 
 /**
+ * ## OPEN QUESTION: does this fit the Free plan's CPU budget?
+ *
+ * Benchmarked locally on Apple silicon, `renderOgImage` took **47.6 ms cold**
+ * and then ~15 ms warm. The documented budget is **10 ms CPU per invocation**
+ * on Workers Free (`docs/architecture/cloudflare-cutover.md`), and edge CPUs are
+ * slower than that laptop.
+ *
+ * If it does exceed the limit the failure is bad in a specific way: **a CPU-limit
+ * kill is not a catchable exception**, so the `fallback()` below — carefully
+ * built so an unfurl degrades to the site icon rather than a broken image —
+ * never runs. The unfurl gets a Cloudflare error page instead.
+ *
+ * This is UNVERIFIED. The feature appears nowhere in the cutover doc's
+ * measurement table, so it was never sized against the ceiling, and a local
+ * benchmark is not evidence about workerd. It is deliberately not "fixed" on
+ * that basis — rewriting the publish path to pre-render into R2 is a real
+ * architectural change, and doing it speculatively would trade a possible
+ * problem for a definite one.
+ *
+ * ## How to settle it
+ *
+ *     bunx wrangler@4.108.0 tail su-itun --format=pretty | grep 'og:image'
+ *
+ * then request `https://intheunionnow.com/og/s/<a real snapshot id>.png` with a
+ * cache-busting query string. Read `cpuTime` from the tail entry — NOT the
+ * `wallMs` the log line prints, which measures I/O waits and is only there to
+ * make the entry greppable.
+ *
+ * Take a cold reading and a warm one: the wasm instantiation is the expensive
+ * half, and the cache means most real requests never reach this code at all.
+ *
+ * If `cpuTime` is near or over 10 ms: render the PNG once at publish time into
+ * R2 under `waitUntil`, and stream it from here. That is correct regardless of
+ * the measurement; it is just not worth the change without one.
+ */
+/**
  * Serve the rendered preview for a shared snapshot.
  *
  * Every failure path ends at the static icon rather than an error. An unfurl
@@ -195,7 +213,12 @@ function edgeCache(): Cache | null {
  * published (that is what distinguishes it from a public sheet), so the render
  * can never go stale and there is nothing to invalidate on.
  */
-async function ogImage(request: Request, env: Env, id: string): Promise<Response> {
+async function ogImage(
+  request: Request,
+  env: Env,
+  id: string,
+  ctx: ExecutionCtx | undefined
+): Promise<Response> {
   const url = new URL(request.url)
   const fallback = () => Response.redirect(`${url.origin}/icon-512.png`, 302)
 
@@ -217,12 +240,29 @@ async function ogImage(request: Request, env: Env, id: string): Promise<Response
     // in the same bundle either way; this keeps them off the critical path of a
     // page load.
     const { renderOgImage } = await import('./ogImage')
+    const startedAt = Date.now()
     const [name, kind] = meta.title.split(' — ')
     // The description opens with "<Kind>: <Name>." — which the card already
     // shows, in larger type, directly above this line. Drop the lead so the
     // detail row carries something the reader has not just read.
     const detail = meta.description.replace(/^[^:]+:\s*[^.]+\.\s*/, '')
     const png = await renderOgImage(name ?? 'Sheet', kind ?? 'Sheet', detail || null)
+
+    // MEASUREMENT, not instrumentation to keep. See the block above `ogImage`.
+    //
+    // `Date.now()` in a Worker advances only on I/O, so between two points of
+    // pure CPU it returns the SAME value — which is exactly what makes it
+    // useful here rather than misleading: a non-zero duration means the render
+    // yielded, and the number to trust is the `cpuTime` that `wrangler tail`
+    // reports for the whole invocation. This line exists to make the
+    // corresponding tail entry findable by grep.
+    // `console.log`, not `console.error`, on purpose: this is not a failure, and
+    // reporting it as one would put every routine render into Sentry. Remove it
+    // together with the open question above, once that is answered.
+    // biome-ignore lint/suspicious/noConsole: deliberate measurement instrumentation
+    console.log(
+      `[itun] og:image rendered id=${id} bytes=${png.byteLength} wallMs=${Date.now() - startedAt}`
+    )
 
     const response = new Response(png as BodyInit, {
       headers: {
@@ -231,7 +271,13 @@ async function ogImage(request: Request, env: Env, id: string): Promise<Response
         'cache-control': 'public, max-age=31536000, immutable',
       },
     })
-    await cache?.put(request, response.clone())
+    // `waitUntil`, not `await`: awaiting serializes the cache write into every
+    // MISS's response time for no benefit to that caller. With no ctx the
+    // response is simply returned uncached rather than the write being dropped
+    // silently. The clone is required — a Response body is a single-use stream,
+    // so handing the same one to the cache and the client starves whichever
+    // reads second.
+    if (cache && ctx) ctx.waitUntil(cache.put(request, response.clone()))
     return response
   } catch (error) {
     console.error('[itun] og:image render failed', error)
@@ -261,10 +307,17 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+export default withObservability('itun', {
+  // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
+  // parameter is optional so the routing tests can call this entrypoint with
+  // two arguments, and because every use of it is already null-guarded — a
+  // missing ctx costs the edge-cache write, not correctness.
+  async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
     setSnapshotReporter((error, context) => {
+      // Both, deliberately: Workers Logs is what `wrangler tail` shows during an
+      // incident, Sentry is what alerts.
       console.error('[itun]', error, context ?? {})
+      reportError(error, context)
     })
 
     const url = new URL(request.url)
@@ -295,7 +348,7 @@ export default {
         }
         // The factory answers 405 for everything that is not POST, so the
         // non-POST branch needs no separate rule the way netlify.toml did.
-        return makePublishHandler(storage, PUBLISH_OPTIONS)(request)
+        return makePublishHandler(storage)(request)
       }
 
       const id = path.slice('/api/snapshots/'.length)
@@ -309,7 +362,7 @@ export default {
       // warns about: the retrieve rule has no method condition, so it would
       // swallow DELETE and answer 405.
       if (request.method === 'DELETE') {
-        return makeDeleteHandler(storage, NO_IN_PROCESS_LIMIT)(request)
+        return makeDeleteHandler(storage)(request)
       }
       return makeRetrieveHandler(storage)(request)
     }
@@ -318,7 +371,7 @@ export default {
     //     is not on disk, and ahead of rule 6 because it ends in `.png` and
     //     would otherwise 404 as a missing file.
     const og = OG_ROUTE.exec(path)
-    if (og?.[1]) return ogImage(request, env, og[1])
+    if (og?.[1]) return ogImage(request, env, og[1], ctx)
 
     const assetResponse = await env.ASSETS.fetch(request)
 
@@ -358,4 +411,4 @@ export default {
     // 7. Anything else is a client-side route.
     return spaShell(request, env)
   },
-}
+})

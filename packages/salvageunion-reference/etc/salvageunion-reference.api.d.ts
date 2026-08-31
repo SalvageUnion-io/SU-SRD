@@ -352,9 +352,9 @@ export {};
  */
 import type { SURefMetaEntity } from './types/index.js';
 /**
- * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
- * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
- * schema name and slug — see getAssetUrl().
+ * Base URL of the artwork CDN — the `su-assets` Cloudflare Worker, backed by the
+ * `su-lp-assets` R2 bucket. Asset URLs are derived from this base plus the
+ * entity's schema name and slug; see getAssetUrl().
  */
 export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
 /**
@@ -369,32 +369,6 @@ export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 export declare function getAssetUrl(entity: SURefMetaEntity): string | undefined;
-/**
- * The derivative widths that exist in the asset store beside every master.
- *
- * Written by `tools/generate-lp-asset-derivatives.ts`. The render slot is 220
- * CSS px (`CardImage`'s container), so 440 covers a 2x display and 880 covers
- * 4x. **Changing this list means re-running that tool** — a width named here
- * with no object behind it is a 404 in a `srcset`, which browsers handle by
- * quietly falling back rather than by telling anyone.
- */
-export declare const ASSET_DERIVATIVE_WIDTHS: readonly [440, 880];
-/**
- * An entity's artwork as a `srcset`, or undefined if it has none.
- *
- * The masters are print scans — measured across all 57, 30.9 MB total, up to
- * 1,295,746 B and 6098x7016 (42.8 megapixels) — and they were being delivered
- * whole into a 220px slot. That is a ~28x linear oversample, and it made an
- * illustrated entity page roughly 1.3 MB for a thumbnail.
- *
- * The master stays the widest candidate rather than being dropped: it is what
- * the og:image screenshot pass renders (catalog tile at a 1440 viewport), and
- * it is the only source that survives if the derivatives are ever pruned.
- *
- * Pair with `sizes` — without it a browser assumes `100vw` and picks the widest
- * candidate, which is exactly the behaviour this replaces.
- */
-export declare function getAssetSrcSet(entity: SURefMetaEntity): string | undefined;
 /**
  * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
  * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
@@ -1055,8 +1029,6 @@ export type ReferenceEntityData = {
     page: number | undefined;
     techLevel: number | 'B' | 'N' | undefined;
     assetUrl: string | undefined;
-    /** Width-constrained candidates for `assetUrl`; see `getAssetSrcSet`. */
-    assetSrcSet: string | undefined;
 };
 /**
  * Extract common display data from an entity in one call

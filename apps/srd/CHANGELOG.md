@@ -2,6 +2,20 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.9.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.0...srd-v2.9.1) (2026-08-31)
+
+
+### Performance Improvements
+
+* **srd:** give the public JSON API a real cache policy ([#936](https://github.com/SalvageUnion-io/SU-SRD/issues/936)) ([1be4857](https://github.com/SalvageUnion-io/SU-SRD/commit/1be4857bff689e32d5d4f6dc9598d1683cb9c671))
+
+## [2.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.8.2...srd-v2.9.0) (2026-08-31)
+
+
+### Features
+
+* **assets:** render artwork derivatives with Cloudflare Images ([#928](https://github.com/SalvageUnion-io/SU-SRD/issues/928)) ([b198cd8](https://github.com/SalvageUnion-io/SU-SRD/commit/b198cd8a28e98069c183b7eef87c05ab44e3d8db))
+
 ## [2.8.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.8.1...srd-v2.8.2) (2026-08-26)
 
 

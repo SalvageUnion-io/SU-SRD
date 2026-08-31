@@ -30,7 +30,8 @@ ephemerally/non-editably
   `tools/check-architecture.ts`, which needs the classic compiler API that TS 7
   does not expose. `generateApiReport.ts` moved to TS 7 — it only ever needed
   the `tsc` binary. Astro was never a consumer of either.)
-- **Deployment:** Netlify (static)
+- **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`; no Worker
+  script — `srd` is fully static, so every request is an asset lookup)
 
 ## Architecture
 

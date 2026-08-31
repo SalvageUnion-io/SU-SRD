@@ -70,52 +70,6 @@ const IGNORED_ERRORS = [
 ]
 
 /**
- * Netlify's Real User Metrics beacon, injected into every page by the platform.
- *
- * It is enabled per-site in the Netlify UI, not in this repo, and it is not
- * loaded, wrapped or called by any code here.
- */
-const NETLIFY_RUM_SCRIPT = '/.netlify/scripts/rum'
-
-/** The slice of a Sentry event this filter reads — see `buildCaptureHint` for why it is spelled out. */
-type EventWithFrames = {
-  exception?: {
-    values?: Array<{ stacktrace?: { frames?: Array<{ filename?: string }> } }>
-  }
-}
-
-/**
- * True when the event is Netlify's RUM beacon failing to reach its collector.
- *
- * The beacon POSTs to `ingesteer.services-prod.nsvcs.net/rum_collection` on
- * `pagehide`/`visibilitychange` and does not catch the rejection. That is a
- * `TypeError: Failed to fetch` in Chrome and `TypeError: Load failed` in Safari
- * (issues SRD-4 and SRD-E, together the second-largest source of events in this
- * project), fired whenever a content blocker, a captive portal, or simply a
- * page being closed mid-flight stops the request. It is unactionable here: we
- * neither call it nor can we make it stop.
- *
- * This is a `beforeSend` rather than an `ignoreErrors` entry, and rather than
- * `denyUrls`, for two separate reasons:
- *
- * - `ignoreErrors: ['Failed to fetch']` would also silence every genuine fetch
- *   failure in this app — far too blunt for a message that generic.
- * - `denyUrls` matches the *last* usable frame, and Sentry's own `fetch`
- *   instrumentation sits on top of the RUM frames, so the frame it tests is
- *   this site's bundle. It would not match.
- *
- * Keying on any frame naming the RUM script is precise: no first-party stack can
- * contain it.
- */
-export function isNetlifyRumFailure(event: EventWithFrames): boolean {
-  return (
-    event.exception?.values?.some((value) =>
-      value.stacktrace?.frames?.some((frame) => frame.filename?.includes(NETLIFY_RUM_SCRIPT))
-    ) ?? false
-  )
-}
-
-/**
  * Initializes browser Sentry when `PUBLIC_SENTRY_DSN` is configured.
  * Idempotent and safe to call once on every page load. Resolves immediately
  * (no-op) when the DSN is absent.
@@ -143,7 +97,6 @@ export async function initBrowserObservability(): Promise<void> {
     // chatter minimal and avoids additional CSP surface.
     tracesSampleRate: 0,
     ignoreErrors: IGNORED_ERRORS,
-    beforeSend: (event) => (isNetlifyRumFailure(event) ? null : event),
   })
 }
 

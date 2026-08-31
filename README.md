@@ -34,7 +34,7 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 │   ├── srd/                    # Static SRD reference site (in-house SSG in srd/ssg + React islands)
 │   ├── itun/                   # Character builder & game manager (React 19)
 │   ├── discord-bot/            # Discord.js bot for rolling on SU tables
-│   └── su-assets/              # Netlify site serving entity artwork from Blobs
+│   └── su-assets/              # Cloudflare Worker serving entity artwork from R2
 ├── packages/
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset
 │   ├── component-lib/          # Shared React component library
@@ -112,10 +112,14 @@ with the test that enforces them.
 
 ## Deployment
 
-- **srd** and **itun** → Netlify (config in each app's
-  `netlify.toml`). ITUN also serves the snapshot-sharing backend as Netlify
-  Functions — see [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md).
-- **discord-bot** → Render worker (Blueprint in `render.yaml`).
+- **srd**, **itun**, **su-assets** and **discord-bot** → Cloudflare Workers
+  (config in each app's `wrangler.jsonc`), deployed from
+  `.github/workflows/deploy-cloudflare.yml`. ITUN also serves the
+  snapshot-sharing backend as part of its Worker
+  the same Worker — see [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md),
+  whose contract ADR-033 keeps while changing the platform underneath it.
+- Storage is **R2**: `su-itun-snapshots` for shared sheets, `su-lp-assets` for
+  licensed artwork. See [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
 
 ## Monorepo Conventions
 

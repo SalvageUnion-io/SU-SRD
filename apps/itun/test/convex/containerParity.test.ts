@@ -94,22 +94,86 @@ describe('container parity — every local store can reach the server', () => {
       new URL('../../src/stores/entityBackend.ts', import.meta.url)
     ).text()
 
-    // store name → the commit function that must reference it
-    const WRITERS: Record<string, string> = {
-      pilots: 'commitEntityWrite',
-      mechs: 'commitEntityWrite',
-      crawlers: 'commitEntityWrite',
-      softLinks: 'commitSoftLink',
-      mechPatterns: 'commitPatternWrite',
-      encounterNpcs: 'commitNpcWrite',
-      changeLog: 'commitChangeLog',
+    // store name → the commit function, and the store module that must CALL it.
+    //
+    // The consumer half is the point. This test asserted only that
+    // `entityBackend.ts` DECLARED each function, which is a weaker claim than
+    // it reads as: `commitPatternWrite` and `commitNpcWrite` have exactly one
+    // call site each, so deleting `commit: commitPatternWrite` from
+    // `patternStore.ts` stops patterns reaching Convex while leaving the
+    // declaration — and this test — untouched. That is the same shape as the
+    // table-only gap this test replaced: "the name exists somewhere" standing
+    // in for "the data arrives".
+    const WRITERS: Record<string, { fn: string; consumer: string }> = {
+      pilots: { fn: 'commitEntityWrite', consumer: 'entityStore.ts' },
+      mechs: { fn: 'commitEntityWrite', consumer: 'entityStore.ts' },
+      crawlers: { fn: 'commitEntityWrite', consumer: 'entityStore.ts' },
+      softLinks: { fn: 'commitSoftLink', consumer: 'entityStore.ts' },
+      mechPatterns: { fn: 'commitPatternWrite', consumer: 'patternStore.ts' },
+      encounterNpcs: { fn: 'commitNpcWrite', consumer: 'encounterStore.ts' },
+      changeLog: { fn: 'commitChangeLog', consumer: 'entityStore.ts' },
     }
 
-    const missing = Object.entries(WRITERS)
-      .filter(([, fn]) => !backend.includes(`export async function ${fn}(`))
-      .map(([store, fn]) => `${store} -> ${fn}`)
+    const undeclared = Object.entries(WRITERS)
+      .filter(([, { fn }]) => !backend.includes(`export async function ${fn}(`))
+      .map(([store, { fn }]) => `${store} -> ${fn} is not declared in entityBackend.ts`)
 
-    expect(missing).toEqual([])
+    const sources = new Map<string, string>()
+    for (const { consumer } of Object.values(WRITERS)) {
+      if (sources.has(consumer)) continue
+      sources.set(
+        consumer,
+        await Bun.file(new URL(`../../src/stores/${consumer}`, import.meta.url)).text()
+      )
+    }
+
+    /**
+     * Strip everything that can carry the name without using it.
+     *
+     * This started as a per-LINE filter that skipped lines beginning `import`,
+     * `//`, `*` or `/*`, and it was vacuous for five of the seven stores.
+     * Biome formats a multi-name import one name per line, so
+     * `entityStore.ts`'s import block contributes lines that read exactly
+     * `  commitEntityWrite,` — which begins with none of those prefixes and was
+     * therefore counted as a use. Deleting all ten real call sites in
+     * `entityStore.ts` left `pilots`, `mechs`, `crawlers`, `softLinks` and
+     * `changeLog` passing on the strength of the import block alone.
+     *
+     * That is the same "the name exists somewhere" substitution this test was
+     * written to remove, one level down: table → declaration → mention.
+     *
+     * So the scan is now source-level rather than line-level. Comments go
+     * first (a trailing `// was commitPatternWrite` on a disabled line is what
+     * switching a mirror off actually looks like), then import and re-export
+     * statements, which name a function without invoking it.
+     */
+    const strip = (source: string) =>
+      source
+        .replace(/\/\*[\s\S]*?\*\//g, ' ')
+        .replace(/\/\/[^\n]*/g, ' ')
+        .replace(/\bimport\s+(?:type\s+)?[\s\S]*?\bfrom\s*['"][^'"]*['"]/g, ' ')
+        .replace(/\bexport\s*\{[\s\S]*?\}\s*from\s*['"][^'"]*['"]/g, ' ')
+
+    /**
+     * A use is a CALL or a wiring, not a mention.
+     *
+     * `fn(` covers the direct calls in `entityStore.ts`; `commit: fn` covers
+     * the slice wiring in `patternStore.ts` and `encounterStore.ts`, which is
+     * the single line whose removal silently stops those mirrors.
+     *
+     * Known residual, stated rather than papered over: a call inside dead code
+     * (`if (false) await commitPatternWrite(op)`) still reads as a use.
+     * Distinguishing that needs reachability analysis, not a regex, and it is
+     * a much less likely edit than the two this now catches.
+     */
+    const uses = (source: string, fn: string) =>
+      new RegExp(`\\b${fn}\\s*\\(|commit:\\s*${fn}\\b`).test(strip(source))
+
+    const uncalled = Object.entries(WRITERS)
+      .filter(([, { fn, consumer }]) => !uses(sources.get(consumer) ?? '', fn))
+      .map(([store, { fn, consumer }]) => `${store} -> ${consumer} never calls ${fn}`)
+
+    expect([...undeclared, ...uncalled]).toEqual([])
   })
 
   test('every store with a table appears in the writer map', () => {

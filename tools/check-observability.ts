@@ -40,7 +40,7 @@
  *   bun tools/check-observability.ts --live    # production probe (nightly)
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /**
@@ -118,7 +118,7 @@ const BROWSER_APPS: BrowserApp[] = [
     // inline module script. With Astro gone there is a single client entry, so
     // the init lives there — one place instead of one per layout.
     entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    cspSources: ['apps/srd/netlify.toml', 'apps/srd/public/_headers'],
+    cspSources: ['apps/srd/public/_headers'],
     wranglerPath: 'apps/srd/wrangler.jsonc',
     workersHeadersPath: 'apps/srd/public/_headers',
     productionUrl: 'https://salvageunion.io',
@@ -128,7 +128,7 @@ const BROWSER_APPS: BrowserApp[] = [
     dsnEnvVar: 'VITE_SENTRY_DSN',
     modulePath: 'apps/itun/src/lib/observability.ts',
     entryPath: 'apps/itun/src/main.tsx',
-    cspSources: ['apps/itun/netlify.toml', 'apps/itun/public/_headers'],
+    cspSources: ['apps/itun/public/_headers'],
     wranglerPath: 'apps/itun/wrangler.jsonc',
     workersHeadersPath: 'apps/itun/public/_headers',
     productionUrl: 'https://intheunionnow.com',
@@ -617,18 +617,6 @@ type ServerSurface = {
 
 const SERVER_SURFACES: ServerSurface[] = [
   {
-    name: 'itun-functions',
-    modulePath: 'apps/itun/netlify/lib/observability.ts',
-    manifestPath: 'apps/itun/package.json',
-    netlifyBundled: true,
-  },
-  {
-    name: 'su-assets-functions',
-    modulePath: 'apps/su-assets/netlify/lib/observability.ts',
-    manifestPath: 'apps/su-assets/package.json',
-    netlifyBundled: true,
-  },
-  {
     name: 'discord-bot',
     modulePath: 'apps/discord-bot/src/observability.ts',
     manifestPath: 'apps/discord-bot/package.json',
@@ -637,77 +625,110 @@ const SERVER_SURFACES: ServerSurface[] = [
 ]
 
 /**
- * Every Netlify functions directory in the repo.
+ * `checkFunctionDirs` lived here and is RETIRED, not ported.
  *
- * A file sitting here IS an endpoint. That is positional and absolute: the
- * `functions = …` key in netlify.toml is what makes a file a function, and no
- * naming convention overrides it. `_observability.ts` lived in both of these on
- * the belief that a leading underscore excluded it; Netlify deployed it anyway,
- * on both sites, where it answered
+ * It enforced that nothing sat in a Netlify functions directory unless it was a
+ * function — a rule with a real incident behind it: `_observability.ts` was
+ * deployed as a public endpoint on two sites, answering
+ * `Runtime.HandlerNotFound` because a leading underscore was believed to
+ * exclude it.
  *
- *     Runtime.HandlerNotFound: _observability.handler is undefined or not exported
- *
- * — a public 502 printing an internal path, for a module that was never a
- * handler. Nothing was watching, because the belief was in a comment.
+ * ADR-033 predicted this retirement and its reason: a Worker declares ONE entry
+ * point, so "every file in a directory is a public endpoint" is not a failure
+ * class that can occur any more. The directories it watched are deleted.
  */
-const FUNCTION_DIRS = ['apps/itun/netlify/functions', 'apps/su-assets/netlify/functions']
-
-/** What the Netlify runtime looks for: v2 `export default`, or v1 `handler`. */
-const EXPORTS_A_HANDLER =
-  /^\s*export\s+(default\b|(async\s+)?function\s+handler\b|const\s+handler\b)/m
 
 /**
- * Nothing may sit in a functions directory unless it is a function.
+ * The Cloudflare Workers surfaces.
  *
- * Subdirectories are skipped — zisi only treats top-level files as entries, so
- * `__tests__/` is not an endpoint.
+ * These are the three that actually serve production after ADR-033, and until
+ * they were wired NONE of them reported to Sentry — each installed a bare
+ * `console.error`, which lands in Workers Logs, which nothing alerts on.
+ *
+ * That gap survived because this checker had no notion of a Worker: it gated the
+ * two BROWSER apps' CSP and two Netlify function directories, so it stayed green
+ * across the entire cutover while every surface serving traffic went dark. The
+ * lesson is the one this repo keeps relearning — a guard that does not know
+ * about a surface cannot fail for it.
+ *
+ * Two things are asserted per Worker, and both are needed:
+ *
+ *   1. the entry module wraps its export with `withObservability`. Without it an
+ *      unhandled throw never becomes an event.
+ *   2. `wrangler.jsonc` grants `nodejs_als`. `@sentry/cloudflare` imports
+ *      `node:async_hooks`; without the flag the Worker THROWS AT RUNTIME rather
+ *      than at build, so a missing flag is a production outage that every local
+ *      check passes.
  */
-function checkFunctionDirs(): void {
-  for (const dir of FUNCTION_DIRS) {
-    const full = join(process.cwd(), dir)
-    // A directory that is GONE means that surface became a Worker (ADR-033).
-    // The whole failure class this check exists for — "every top-level file is
-    // implicitly a public endpoint" — is a property of Netlify's positional
-    // functions directory, and a Worker declares exactly one entry point in its
-    // wrangler config instead. So there is nothing left here to guard, and the
-    // check retires per-surface rather than being switched off wholesale: any
-    // directory that still EXISTS keeps the strict rule below, unchanged.
-    if (!existsSync(full)) continue
-    for (const entry of readdirSync(full, { withFileTypes: true })) {
-      if (!entry.isFile() || !/\.(ts|js|mjs)$/.test(entry.name)) continue
-      const source = read(join(dir, entry.name))
-      if (source !== null && EXPORTS_A_HANDLER.test(source)) continue
-      failures.push(
-        `  [functions] ${dir}/${entry.name} exports no handler, but everything in a\n` +
-          '      functions directory is deployed as a public endpoint — this one would\n' +
-          '      answer Runtime.HandlerNotFound. A leading underscore does NOT exclude it.\n' +
-          '      Shared modules belong in ../lib/, which the bundler still inlines.'
-      )
-    }
+type WorkerSurface = {
+  name: string
+  /** The Worker entry named by `main`, relative to repo root. */
+  entryPath: string
+  /** Its wrangler config, relative to repo root. */
+  configPath: string
+}
+
+const WORKER_SURFACES: WorkerSurface[] = [
+  {
+    name: 'itun-worker',
+    entryPath: 'apps/itun/src/worker/index.ts',
+    configPath: 'apps/itun/wrangler.jsonc',
+  },
+  {
+    name: 'su-assets-worker',
+    entryPath: 'apps/su-assets/src/worker.ts',
+    configPath: 'apps/su-assets/wrangler.jsonc',
+  },
+  {
+    name: 'discord-bot-worker',
+    entryPath: 'apps/discord-bot/src/http/worker.ts',
+    configPath: 'apps/discord-bot/wrangler.jsonc',
+  },
+]
+
+const WORKER_WRAPPER = /withObservability\(/
+const WORKER_IMPORT = /from 'observability\/cloudflare'/
+const ALS_FLAG = /"compatibility_flags"\s*:\s*\[[^\]]*"nodejs_als"/
+
+function checkWorkerSurface(surface: WorkerSurface): void {
+  const entry = read(surface.entryPath)
+  if (entry === null) {
+    fail(surface.name, `no Worker entry at ${surface.entryPath}`)
+    return
+  }
+
+  if (!WORKER_IMPORT.test(entry)) {
+    fail(
+      surface.name,
+      `${surface.entryPath} does not import from 'observability/cloudflare' — ` +
+        `this Worker's errors would reach Workers Logs and nothing else.`
+    )
+  }
+
+  if (!WORKER_WRAPPER.test(entry)) {
+    fail(
+      surface.name,
+      `${surface.entryPath} does not wrap its default export with withObservability() — ` +
+        `an unhandled throw never becomes a Sentry event.`
+    )
+  }
+
+  const config = read(surface.configPath)
+  if (config === null) {
+    fail(surface.name, `no wrangler config at ${surface.configPath}`)
+    return
+  }
+
+  if (!ALS_FLAG.test(config)) {
+    fail(
+      surface.name,
+      `${surface.configPath} does not grant "nodejs_als". @sentry/cloudflare imports ` +
+        `node:async_hooks, so without it this Worker throws AT RUNTIME — a production ` +
+        `outage that every local check passes.`
+    )
   }
 }
 
-/**
- * How a Netlify-bundled surface must reach the shared wiring: by RELATIVE PATH
- * into `packages/observability`, never by the `observability` package name.
- *
- * By package name it resolves through node_modules, which makes it a shared
- * chunk — and esbuild emits that chunk once per entry point that uses it. With
- * three snapshot Functions importing it, zip-it-and-ship-it wrote the chunk into
- * each zip under the FUNCTION'S OWN filename, so every zip held two files at one
- * path and the last one won:
- *
- *   apps/itun/netlify/functions/snapshot-retrieve.mjs   3662 bytes  (the function)
- *   apps/itun/netlify/functions/snapshot-retrieve.mjs   1369 bytes  (observability)
- *
- * The Lambda loaded the observability module, which exports no handler, and
- * every snapshot endpoint answered `TypeError: D.handler is not a function`.
- *
- * Nothing local could see it. Typecheck, tests, lint, knip and the app build all
- * passed throughout, because none of them run the Functions bundler — the only
- * way to observe it is to bundle with zip-it-and-ship-it and count entries, or
- * to deploy. Hence a check on the import shape, which is cheap and hermetic.
- */
 const SHARED_WIRING_BY_PATH = /from '(\.\.\/)+packages\/observability\/src\/node'/
 const SHARED_WIRING_BY_NAME = /from 'observability\/node'/
 
@@ -803,9 +824,9 @@ for (const app of BROWSER_APPS) {
 
 // Static-only: this is repo layout, and the live probe reads deployed bytes.
 if (!live) {
-  checkFunctionDirs()
   checkSharedPackage()
   for (const surface of SERVER_SURFACES) checkServerSurface(surface)
+  for (const surface of WORKER_SURFACES) checkWorkerSurface(surface)
 }
 
 if (failures.length > 0) {

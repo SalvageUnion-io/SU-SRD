@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
   ADR-015–020 cover the Dashboard play surface, built at `apps/itun/src/components/dashboard/`.
 
-- **Hosting is migrating to Cloudflare** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)) — Netlify and Render are being retired in a **hard cutover with no rollback**. Everything below still describes the *current* Netlify/Render reality and stays accurate until the phase that changes it lands. Before touching hosting, deploy config, the snapshot backend or the Discord bot's transport, read the ADR and then [`docs/architecture/cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md), which carries the phase order, the per-phase gates and a progress table. Two things bind immediately: **a failed gate halts the phase and is never worked around**, and **snapshots go to R2 rather than into Convex**, which keeps a future Convex→D1 move open. Do not execute from issue #830 — the ADR supersedes it.
+- **Hosting is on Cloudflare** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)) — Netlify and Render are being retired in a **hard cutover with no rollback**. **Every production surface now serves from Cloudflare**: `apps/itun` (`intheunionnow.com`) and the Discord bot since 2026-08-19, `apps/srd` (`salvageunion.io`) and `apps/su-assets` (`assets.salvageunion.io`) since **2026-08-31** — P7 is done. Netlify and Render still exist as ACCOUNTS but serve no traffic, and every trace of them has been removed from this repo — no `netlify.toml`, no `render.yaml`, no functions, no `@netlify/blobs`. Builds are **stopped** on both repo-linked Netlify sites, so they no longer post PR checks; **deleting the sites and the accounts is the rest of P8**. A Netlify site still answering on its `.netlify.app` hostname is decommission debris, not a live origin. Render is a dormant fallback, not production. The per-service reality is in the progress table, not here. Before touching hosting, deploy config, the snapshot backend or the Discord bot's transport, read the ADR and then [`docs/architecture/cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md), which carries the phase order, the per-phase gates and a progress table. Two things bind immediately: **a failed gate halts the phase and is never worked around**, and **snapshots go to R2 rather than into Convex**, which keeps a future Convex→D1 move open. Do not execute from issue #830 — the ADR supersedes it.
 
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - **Rules text** — there is no curated digest. To answer "what does the book actually say", run `bun run rules:extract` (local only; the copyright-bearing PDFs in `rules/` are gitignored and absent in CI) and grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers so you can cite exact pages.
@@ -39,43 +39,46 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 ### Root Dev Dependencies (Intentional)
 
 - **`playwright`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code. It is a _root_ dependency because that scanner lives in `tools/`, outside any workspace; the apps depend on `@playwright/test` separately for their e2e suites. This replaced `puppeteer-core`, which shipped no browser and had to borrow Playwright's Chromium — one browser stack now, not two.
-- **`sharp`** — Used by `tools/convert-lp-assets-to-webp.ts` to transcode the `lp-assets` Netlify Blobs artwork to WebP (`bun run assets:webp`). Not dead code.
+- **`sharp`** — no longer a ROOT dependency. It moved to `apps/srd`, whose `scripts/og-screenshots.ts` is now its only consumer; `tools/convert-lp-assets-to-webp.ts` and `tools/generate-lp-asset-derivatives.ts` were the other two and both were deleted when Cloudflare Images took over derivative rendering. With one consumer left it is also **out of the catalog** — `check:catalog` fails an entry with fewer than two references, and it caught exactly this.
 
-### Audit gate (`check:audit`) — two suppressed advisories
+### Audit gate (`check:audit`)
 
 `bun audit --audit-level=high` gates merges via the `static-checks` job, and
 `package.json` cannot carry comments, so the reasoning lives here.
 
-**Suppressed: `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`** — both
-`image-size <=2.0.2`, infinite loops in its ICNS / JXL / HEIF parsers (DoS).
+**There are no suppressed advisories.** `check:audit` carries no `--ignore`
+flags, and a bare `bun audit` reports nothing across 1,073 packages. It used to
+suppress two — `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`, both
+`image-size <=2.0.2` — behind a page of justification about which code paths
+could reach the parser. That justification is now moot rather than merely
+satisfied: `bun why image-size` reports the package is not in the lockfile at
+all. `@netlify/blobs` was still here when that was written (10.7.13, catalogued);
+it simply stopped pulling `image-size`. It has since been removed outright —
+`bun why @netlify/blobs` now reports *"No packages matching … found in
+lockfile"*. The flags and their rationale were removed together, on this
+section's own former instruction that a suppression outliving its cause is how
+a real advisory gets hidden.
 
-- **There is no fixed version.** `2.0.2` IS the latest release (published
-  2025-04-02) and the advisory covers `<=2.0.2`, so no `overrides` pin can
-  resolve it — `bun install` fails outright with "No version matching ^2.0.3".
-- **Nothing here can reach the vulnerable code.** The chain is
-  `@netlify/blobs → @netlify/dev-utils → image-size`, and dev-utils imports it
-  from **`src/test/image.ts`**, a test helper that generates images. This repo's
-  only use of that package is `getStore` in
-  `apps/su-assets/netlify/functions/asset.ts`; nothing in `apps/`, `packages/`
-  or `tools/` imports `image-size` or calls `imageSize()`. Exploiting it needs
-  attacker-controlled bytes fed to that parser, and no path does that.
-
-**Re-check when `@netlify/blobs` updates**: drop both `--ignore` flags and run
-`bun run check:audit`. If it passes, delete this section — a suppression that
-outlives its cause is how a real advisory gets hidden.
+**If you add an `--ignore` back, write down what would remove it.** A
+suppression with no stated exit condition is the failure mode above; the pair
+that lived here survived their cause by an unknown number of dependency bumps
+because nothing re-derived the chain.
 
 **Re-derive the chain, don't trust this prose.** `bun why <pkg>` prints the real
-path from the lockfile, so a suppression's justification can be checked in one
-command instead of read:
+path from the lockfile, so any claim about how a package got here can be
+checked in one command instead of read:
 
 ```
-$ bun why image-size
-image-size@2.0.2
-  └─ @netlify/dev-utils@4.4.7 (requires ^2.0.2)
-     └─ @netlify/blobs@10.7.12 (requires 4.4.7)
-        ├─ itun@workspace (requires ^10.7.11)
-        └─ su-assets@workspace (requires ^10.7.11)
+$ bun why @sentry/cloudflare
+@sentry/cloudflare@10.69.0
+  └─ dev observability@workspace (requires 10.69.0)
+     ├─ discord-bot@workspace (requires workspace:*)
+     ├─ itun@workspace (requires workspace:*)
 ```
+
+This example used to be `@netlify/blobs`, and it outlived the package —
+printing a dependency tree that no longer existed, three paragraphs under a
+heading that says not to trust this prose. Re-derived, not edited.
 
 Use it before editing an `overrides` entry too — the CI comment in
 `.github/workflows/ci.yml` documents what each entry holds back and via what,
@@ -97,7 +100,7 @@ clean" is necessary but *not sufficient* — `@opentelemetry/core` is the worked
 example of a removal that audits clean and still degrades behaviour.
 
 `nanoid` was among the six: it is no longer pinned anywhere, and `3.3.18` holds
-only because `postcss`'s `^3.3.16` caret happens to resolve there. That is a
+only because `postcss`'s `^3.3.17` caret happens to resolve there. That is a
 caret, not a guarantee — **`bunfig.toml`'s `minimumReleaseAge` makes a caret
 resolve silently *down*** to the newest version old enough (see "Install
 cooldown"), where a floor would have errored. So if `bun audit` ever reports
@@ -196,15 +199,23 @@ public API lives. Without it knip stays green while an entire export surface rot
 Two escape hatches, both configured via `tags` in `knip.json`:
 
 - **`@public`** — the export is deliberately public or is a framework contract
-  invoked rather than imported (e.g. a Netlify Functions handler). Tag the export.
+  invoked rather than imported (e.g. a Cloudflare Worker's default export). Tag the export.
 - **`@knipignore`** — a genuine knip false positive. Only use this when you can
   show the export _is_ consumed (e.g. deleting it fails typecheck), and say so in
   the tag comment.
 
-Whole workspaces whose entry file legitimately _is_ the public surface set
-`includeEntryExports: false` per-workspace: `component-lib` (barrel is the library
-API), `srd` (`*.page.tsx` route + endpoint modules, consumed by `ssg/routes.ts`
-and `ssg/endpoints.ts`), `su-assets` (platform handlers).
+Two workspaces whose entry files legitimately _are_ the public surface set
+`includeEntryExports: false` per-workspace: `srd` (`*.page.tsx` route + endpoint
+modules, consumed by `ssg/routes.ts` and `ssg/endpoints.ts`) and `su-assets`
+(platform handlers).
+
+**`component-lib` is NOT one of them — it sets `includeEntryExports: true`**
+(`knip.json`), deliberately and against the same intuition. Its barrel IS the
+library API, which is exactly why switching the check off there made the one
+workspace where barrel rot matters most the one workspace where it could not be
+seen: 28 dead re-exports accumulated behind it, removed in #893. This paragraph
+previously listed `component-lib` with the other two, so an agent reading it
+would have "restored" the setting that hid them.
 
 When knip flags something, the default is to **delete it** — reach for a tag only
 in the two cases above. Deleting dead code often cascades (its callees become dead
@@ -218,11 +229,12 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 **The registry lives in [`docs/architecture/agent-tooling.md`](docs/architecture/agent-tooling.md)** — every site id, service id, org slug, deployment name and dashboard URL, plus how each MCP server authenticates and how to re-derive any of it. Read that instead of listing every project on an account. This section is the summary.
 
-The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts each contributor to approve it per-project) and declares **six** servers — Netlify, Sentry, Render, GitHub, Convex, Context7:
+The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts each contributor to approve it per-project) and declares **five** servers — Cloudflare (bindings and observability), Sentry, Convex, Context7:
 
-- **Netlify** — hosts three sites: `apps/srd` (static, no functions), `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)), and `apps/su-assets` (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp`, run over stdio via `npx`; authenticates through the Netlify CLI/OAuth.
-- **Sentry** — browser + server error tracking for all three code apps (`@sentry/browser` in `srd` and `itun`, `@sentry/node` in `itun` and `discord-bot`, `@sentry/vite-plugin` for `itun` release artifacts). MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
-- **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: hosted HTTP at `https://mcp.render.com/mcp`.
+- **Cloudflare** — hosts **everything**: `apps/srd` (`salvageunion.io`), `apps/itun` (`intheunionnow.com`), `apps/su-assets` (`assets.salvageunion.io`) and the Discord bot, all on Workers, with two R2 buckets (`su-itun-snapshots`, `su-lp-assets`) and Images for artwork derivatives. Config is `apps/*/wrangler.jsonc`; deploys run from `.github/workflows/deploy-cloudflare.yml`. MCP servers: `cloudflare-bindings` (`https://bindings.mcp.cloudflare.com/mcp`) and `cloudflare-observability` (`https://observability.mcp.cloudflare.com/mcp`), both remote HTTP, both OAuth on first connect — which is what keeps `.mcp.json` secret-free.
+- **Netlify** — **hosts nothing.** Every `netlify.toml`, both `netlify/` function trees and `@netlify/blobs` are deleted. The account still exists and its three sites still answer on their `.netlify.app` hostnames, serving a stale build; that is decommission debris, not an origin. **Nothing in this repo reaches it any more.** `tools/sync-snapshots-to-r2.ts` was the last consumer and is deleted: P6's delta was reconciled by measurement instead of by running it (43 of 45 snapshots resolve on production; the other two are archived to disk). The MCP server is gone too. Builds are stopped on both repo-linked sites; deleting them is the remaining step.
+- **Sentry** — error tracking across every surface: `@sentry/browser` in `srd` and `itun`, `@sentry/cloudflare` in all three Workers via `observability/cloudflare`, `@sentry/node` in the bot's dormant gateway path, and `@sentry/vite-plugin` for `itun` release artifacts. MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
+- **Render** — **no longer serves production.** The bot moved to HTTP interactions on a Cloudflare Worker (ADR-033 P5, live 2026-08-19); `render.yaml` is deleted; the service itself remains until P8 retires the account. **The MCP server is gone** — it reached one dormant service, and a declared server that is never called is indistinguishable from a broken one.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: remote HTTP at `https://api.githubcopilot.com/mcp/`. **This one does not work unconfigured** — the endpoint does not support dynamic client registration, so it needs a machine-local PAT header; see the registry doc. Until then, use the `gh` CLI.
 - **Convex** — the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (`auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, … — `tools/check-convex-codegen.ts` prints the true module count on every run, so it is not restated here) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md). MCP server: stdio via `bunx convex mcp start --project-dir apps/itun`, authenticating with the Convex CLI's own device credentials. It targets the **dev** deployment resolved from `CONVEX_DEPLOYMENT`, so run `bunx convex dev` once or every tool call fails; production access is gated behind flags that are deliberately **not** set.
 
@@ -232,7 +244,11 @@ The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts ea
 
 **`claude mcp list` is the only way to know a server works.** Zero tool calls is indistinguishable from broken, and two of these authenticate outside the file.
 
-**Sentry's failure mode is silent, and CI guards it.** Both browser apps env-gate the SDK on a DSN, so with no DSN Vite tree-shakes Sentry out and the build looks identical to a working one; and even with a DSN, a `connect-src` that omits Sentry's ingest origin blocks every event in the browser while still looking healthy. `tools/check-observability.ts` checks both halves together (wired into `validate:all` via `bun run validate:observability`) and asserts its `SENTRY_INGEST_HOST` constant against both apps' `netlify.toml` CSPs. **If you change the CSP or the Sentry region, change both in lockstep** — `apps/srd/netlify.toml` carries the reciprocal comment.
+**Sentry's failure mode is silent, and CI guards it.** Both browser apps env-gate the SDK on a DSN, so with no DSN Vite tree-shakes Sentry out and the build looks identical to a working one; and even with a DSN, a `connect-src` that omits Sentry's ingest origin blocks every event in the browser while still looking healthy. `tools/check-observability.ts` checks both halves together (wired into `validate:all` via `bun run validate:observability`) and asserts its `SENTRY_INGEST_HOST` constant against each app's `public/_headers` — **two sources now, not four**: the `netlify.toml` half went with the files, and where an app's `wrangler.jsonc` declares `assets`, `_headers` is **mandatory** rather than merely one candidate.
+
+It also gates the three **Workers**, which it did not until 2026-08-31: each must wrap its export with `withObservability` and grant `nodejs_als`. That gap is worth remembering rather than just closing — the checker stayed green across the entire cutover while all three production Workers reported to nothing but `console.error`, because it had no notion of a Worker. **A guard that does not know about a surface cannot fail for it.**
+
+**If you change the CSP or the Sentry region, change every source for that app in lockstep.**
 
 ## SU-SRD Monorepo
 
@@ -345,9 +361,9 @@ bun --filter srd gate             # build, then diff the output against the comm
 - `apps/srd/` - Static SRD reference site (in-house SSG at `apps/srd/ssg`, React 19 islands, Tailwind v4, Vite). No auth, no backend, no user data. **Not Astro** — Astro was removed; see the "srd App" section below.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Has roster, wizards, dashboard, live sheets, snapshot sharing. **Two storage modes** ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md), which supersedes ADR-001): **Solo** — not signed in, IndexedDB is the source of truth, nothing is gated, and this must keep working forever (a build with no `VITE_CONVEX_URL` is permanently Solo); **Connected / Disconnected** — signed in, Convex (`apps/itun/convex/`) is the source of truth and IndexedDB becomes a cache, with offline meaning read-only rather than a write queue. Resolve the mode through `src/lib/connection/`, never by reading `navigator.onLine` or an auth flag directly. Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) before touching data.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
-- `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/assets.ts`, re-exported from `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
+- `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with the `-440`/`-880` derivatives rendered on demand through Cloudflare Images. Image bytes live in R2, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/assets.ts`, re-exported from `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
-- `packages/observability/` - Sentry wiring shared by the Node surfaces (`/node`: the two Netlify Functions + the Discord bot) plus the capture-hint helper the two browser shims share (`/browser`, imports no Sentry code).
+- `packages/observability/` - Sentry wiring: `/cloudflare` for the three Workers (`withObservability`, `reportError`, the cron check-in), `/node` for the Discord bot's dormant gateway path, and `/browser` for the capture-hint helper the two browser shims share (imports no Sentry code).
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 **Dependency graph:**
@@ -445,7 +461,7 @@ generator implements — and then [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md).
   leave it alone.
 - **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
 - **Testing:** Bun test runner with React Testing Library + happy-dom. No backend env vars needed.
-- **Deployment:** Netlify (static site, no server functions)
+- **Deployment:** Cloudflare Workers Static Assets — no Worker script at all, so every request is an asset lookup
 
 ### Data Conventions
 

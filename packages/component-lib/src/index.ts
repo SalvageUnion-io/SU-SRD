@@ -120,13 +120,14 @@ export { AppHeader } from './components/shared/AppHeader'
 // srd's item pages need this string for their `rel=preload`: it must match the
 // `sizes` on the <img> exactly, or the preload selects a different candidate
 // and the page fetches two files instead of one.
-export { cardImageSizes } from './components/shared/cardImageSizes'
+export { assetSrcSetFor } from './components/shared/assetSrcSet'
 export type { CardFootMeta } from './components/shared/Card'
 // Shared components
 export { Card } from './components/shared/Card'
 export { CatalogTile } from './components/shared/CatalogTile'
 // Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
 export { Colophon } from './components/shared/Colophon'
+export { cardImageSizes } from './components/shared/cardImageSizes'
 export { EntityGridRow } from './components/shared/EntityGrid'
 export type { EntityRowStat } from './components/shared/EntityRow'
 export { EntityRow } from './components/shared/EntityRow'

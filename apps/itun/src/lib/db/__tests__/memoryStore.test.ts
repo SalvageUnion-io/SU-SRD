@@ -9,6 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { z } from 'salvageunion-reference/zod'
+import { MechPatternSchema } from '../../schemas/pattern'
 import { makeMemoryStore } from '../memoryStore'
 
 const ThingSchema = z
@@ -106,5 +107,68 @@ describe('what makes it the ANONYMOUS store', () => {
     expect(source).not.toContain('indexedDB')
     expect(source).not.toContain('localStorage')
     expect(source).not.toContain('sessionStorage')
+  })
+})
+
+describe('the memory twin must agree with its schema about updatedAt', () => {
+  test('a pattern saves anonymously', async () => {
+    // The real pairing from `patternStore.ts`, not a stand-in. `MechPatternSchema`
+    // is `.strict()` and defines `createdAt` only — patterns are immutable after
+    // creation — so this store must NOT be given `hasUpdatedAt`.
+    const store = makeMemoryStore(MechPatternSchema, 'mechPatterns')
+
+    const saved = await store.create({
+      schemaVersion: 1,
+      name: 'Mule Pattern',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+      cargoLots: [],
+    } as never)
+
+    expect(saved.name).toBe('Mule Pattern')
+    expect(saved).not.toHaveProperty('updatedAt')
+  })
+
+  test('patternStore actually builds its memory store without the flag', async () => {
+    // The two behavioural tests either side of this one build their OWN store,
+    // so neither observes `patternStore.ts` — restore `hasUpdatedAt: true`
+    // there and both stay green while every anonymous save throws again. They
+    // prove the flag is fatal; only this proves the shipped file does not set
+    // it, and that pairing is what makes the fix regression-proof.
+    //
+    // A source assertion rather than a behavioural one because selecting the
+    // memory backend needs `selectBackend()` to return 'memory', which is
+    // driven by module-scope connection state; `mock.module` is process-global
+    // here (see `.claude/rules/testing-patterns.md`) and mocking it for one
+    // test would leak into every later file in the workspace.
+    const source = await Bun.file(
+      new URL('../../../stores/patternStore.ts', import.meta.url).pathname
+    ).text()
+
+    const call = source.match(/makeMemoryStore\([\s\S]*?\)\n/)?.[0]
+    expect(call).toBeDefined()
+    expect(call).toContain('MechPatternSchema')
+    expect(call).not.toContain('hasUpdatedAt')
+  })
+
+  test('turning the flag back on breaks it — the bug, pinned', async () => {
+    // The control for the test above, and the whole reason it exists. With
+    // `hasUpdatedAt` the store stamps a field the strict schema rejects, so
+    // `prepareCreate` throws on the record it has just built and every
+    // anonymous "Save pattern" fails. `db.mechPatterns` never set the flag,
+    // which is why signed-in saves worked and the divergence went unseen.
+    const store = makeMemoryStore(MechPatternSchema, 'mechPatterns', { hasUpdatedAt: true })
+
+    await expect(
+      store.create({
+        schemaVersion: 1,
+        name: 'Mule Pattern',
+        chassisRef: 'mule',
+        systems: [],
+        modules: [],
+        cargoLots: [],
+      } as never)
+    ).rejects.toThrow(/updatedAt/)
   })
 })

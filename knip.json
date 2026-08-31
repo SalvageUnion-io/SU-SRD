@@ -1,6 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreBinaries": ["netlify"],
   "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": true,
@@ -70,19 +69,17 @@
     "apps/itun": {
       "entry": [
         "src/routes/**/*.tsx",
-        "netlify/functions/**/*.ts",
         // The Cloudflare Worker entry (ADR-033). workerd loads the module and
         // calls its default export, so nothing in this repo imports it. Listed
-        // for the same reason the Netlify handlers are: without it, the file
-        // stays alive only because a test imports it, and deleting that test
-        // would make the deployed Worker look like dead code.
+        // here because otherwise the file stays alive only because a test
+        // imports it, and deleting that test would make the deployed Worker
+        // look like dead code.
         "src/worker/index.ts",
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
         "src/lib/snapshot/storage.ts",
         "src/lib/snapshot/id.ts",
-        "src/lib/snapshot/rateLimit.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
         "src/stores/cockpitPrefsStore.ts",
@@ -95,29 +92,27 @@
       // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
       "project": [
         "src/**/*.{ts,tsx}",
-        "netlify/**/*.ts",
         "convex/**/*.ts",
         "test/**/*.ts"
       ]
     },
     "apps/su-assets": {
-      // `src/worker.ts` is a framework entry in the same sense the Netlify
-      // handler is: workerd loads the module and calls its default export, so
-      // nothing in this repo imports it.
+      // `src/worker.ts` is a framework entry: workerd loads the module and
+      // calls its default export, so nothing in this repo imports it.
       //
       // It was missed when the itun and discord-bot Workers were added above.
       // The consequence is worse than an un-analyzed file: `project` did not
       // cover `src/**` either, so the whole Worker and its 217-line test sat
       // OUTSIDE knip's scope rather than being exempted from one rule inside
       // it — the gate passed by not looking.
-      "entry": ["netlify/functions/**/*.ts", "src/worker.ts"],
-      "project": ["netlify/**/*.ts", "src/**/*.ts"],
+      "entry": ["src/worker.ts"],
+      "project": ["src/**/*.ts"],
       "includeEntryExports": false
     },
     "apps/discord-bot": {
-      // `src/http/worker.ts` is a framework entry in the same sense the Netlify
-      // handlers are: workerd loads the module and calls its default export, so
-      // nothing in this repo imports it. Without it listed, knip reports the
+      // `src/http/worker.ts` is a framework entry: workerd loads the module and
+      // calls its default export, so nothing in this repo imports it. Without
+      // it listed, knip reports the
       // whole HTTP-interactions transport — and `@discordjs/rest`, which only
       // that transport uses — as dead code.
       //

@@ -163,7 +163,7 @@ type AdapterContext = {
  * interaction token. Both use the interaction token rather than the bot token,
  * which is why they work for 15 minutes and then stop.
  */
-function webhookRoutes(applicationId: string, token: string) {
+export function webhookRoutes(applicationId: string, token: string) {
   return {
     original: Routes.webhookMessage(applicationId, token, '@original'),
     followUp: Routes.webhook(applicationId, token),

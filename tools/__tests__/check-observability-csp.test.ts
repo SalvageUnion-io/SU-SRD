@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 /**
@@ -52,18 +52,7 @@ async function withFileContents(
   }
 }
 
-/** Create a file that does not exist, run, then remove it again. */
-async function withNewFile(relPath: string, contents: string, fn: () => Promise<void>) {
-  const abs = join(ROOT, relPath)
-  if (existsSync(abs)) throw new Error(`${relPath} already exists — test would clobber it`)
-  try {
-    writeFileSync(abs, contents)
-    await fn()
-  } finally {
-    rmSync(abs, { force: true })
-  }
-}
-
+/** Rename a file out of the way, run, then put it back. */
 async function withFileAbsent(relPath: string, fn: () => Promise<void>) {
   const abs = join(ROOT, relPath)
   const stash = `${abs}.check-observability-test-stash`
@@ -81,50 +70,22 @@ describe('check-observability CSP source resolution', () => {
     expect(exitCode).toBe(0)
   })
 
-  test('fails when the netlify.toml CSP drops the Sentry ingest origin', async () => {
+  test('fails when NO source declares a CSP at all', async () => {
+    // One source to neutralise now, not two. This test used to blank BOTH
+    // itun's `netlify.toml` and its `_headers`, because either alone would let
+    // the run pass on the other and prove nothing. With the toml deleted,
+    // `_headers` IS the only source — which makes the check stricter, not
+    // weaker: there is no longer a second file that could paper over a stale
+    // sibling.
     await withFileContents(
-      'apps/itun/netlify.toml',
-      (s) => s.replace(SENTRY_HOST, 'https://example.invalid'),
+      'apps/itun/public/_headers',
+      (s) => s.replace(/Content-Security-Policy/g, 'X-Retired-Policy'),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain('CSP connect-src does not allow')
+        expect(stderr).toContain('declares a Content-Security-Policy')
       }
     )
-  })
-
-  test('fails when NO source declares a CSP at all', async () => {
-    // BOTH itun sources have to be neutralised now. When this test was written
-    // itun had no `public/_headers`, so retiring the toml's header was enough to
-    // reach "nothing declares a policy". itun has one since the Cloudflare flip,
-    // and leaving it out here would have made this assertion vacuous — the run
-    // would pass on the `_headers` CSP and the test would be proving nothing.
-    await withFileContents(
-      'apps/itun/netlify.toml',
-      (s) => s.replace(/Content-Security-Policy/g, 'X-Retired-Policy'),
-      async () => {
-        await withFileContents(
-          'apps/itun/public/_headers',
-          (s) => s.replace(/Content-Security-Policy/g, 'X-Retired-Policy'),
-          async () => {
-            const { exitCode, stderr } = await runCheck()
-            expect(exitCode).toBe(1)
-            expect(stderr).toContain('declares a Content-Security-Policy')
-          }
-        )
-      }
-    )
-  })
-
-  test('accepts the _headers file as the CSP source once netlify.toml is gone', async () => {
-    // This used to invent the `_headers` file, because itun had none. It is now
-    // committed, so the test asserts the real thing: delete the toml — as P8
-    // will — and the committed `_headers` must carry the pass on its own. That
-    // makes this a live check on the actual policy rather than on a fixture.
-    await withFileAbsent('apps/itun/netlify.toml', async () => {
-      const { exitCode } = await runCheck()
-      expect(exitCode).toBe(0)
-    })
   })
 
   test('a _headers CSP that omits Sentry still fails — the dialect is not an escape hatch', async () => {
@@ -139,64 +100,44 @@ describe('check-observability CSP source resolution', () => {
     )
   })
 
-  test('a present source with no CSP is not itself a failure', async () => {
-    // The rule is "at least one source declares a policy", not "every source
-    // does" — a `_headers` file may legitimately exist for other reasons (srd's
-    // carried only CORS for the JSON endpoints before the Cloudflare cutover
-    // moved the CSP into it).
+  test('a source that declares no CSP is skipped, not failed', async () => {
+    // The rule is "at least one source declares a policy, and every source that
+    // does must permit Sentry" — not "every source declares one". A `_headers`
+    // file may legitimately exist for other reasons.
     //
-    // Constructed rather than read off the real file. The original version of
-    // this test asserted that srd's `_headers` contained no CSP, which was true
-    // when written and became false the moment ADR-033 moved the policy there —
-    // so it was testing a passing fact about a file in flight, not the rule. It
-    // failed for the right reason and is now written so it cannot.
+    // This used to blank srd's CSP and rely on its `netlify.toml` still carrying
+    // one. With the toml deleted there is no second source to fall back to, so
+    // it asserts the other half of the rule instead: itun, whose `_headers`
+    // still declares a policy, keeps the run green while srd's is neutralised —
+    // which is exactly "a present source with no CSP is not itself a failure",
+    // now expressed as a failure of srd alone rather than of the whole run.
     await withFileContents(
       'apps/srd/public/_headers',
       (s) => s.replace(/^\s*Content-Security-Policy:.*$/m, '  X-Retired-Policy: none'),
       async () => {
-        const { exitCode } = await runCheck()
-        // srd's netlify.toml still declares one, so the app is covered.
-        expect(exitCode).toBe(0)
-      }
-    )
-  })
-})
-
-describe('check-observability functions-directory retirement', () => {
-  test('a retired functions directory is tolerated, not failed', async () => {
-    await withFileAbsent('apps/su-assets/netlify/functions', async () => {
-      const { exitCode } = await runCheck()
-      expect(exitCode).toBe(0)
-    })
-  })
-
-  test('a file in a SURVIVING functions directory still must export a handler', async () => {
-    await withNewFile(
-      'apps/itun/netlify/functions/_probe-not-a-handler.ts',
-      'export const notAHandler = 1\n',
-      async () => {
         const { exitCode, stderr } = await runCheck()
+        // srd now has NO source declaring a policy, so it fails — and the
+        // message names that app rather than complaining about a missing file.
         expect(exitCode).toBe(1)
-        expect(stderr).toContain('exports no handler')
+        expect(stderr).toContain('[srd]')
+        // itun is untouched and must not be implicated.
+        expect(stderr).not.toContain('[itun]')
       }
     )
   })
 })
 
-/**
- * The rule that would have caught the real outage.
+/*
+ * `check-observability functions-directory retirement` lived here and is
+ * DELETED along with `checkFunctionDirs` itself.
  *
- * itun went live on Cloudflare with no `apps/itun/public/_headers` at all, and
- * this checker stayed green: the CSP rule above judges only sources that EXIST,
- * so an absent policy was filtered out before it could fail anything, and the
- * pass came from a `netlify.toml` describing a host that had stopped answering.
- * The site served no CSP, no HSTS and no X-Frame-Options for a day.
- *
- * The fix is a different KIND of rule — "config present, property missing →
- * fail" — keyed on the deploy target rather than on the file set: if
- * `wrangler.jsonc` declares `assets`, Cloudflare serves this app from static
- * assets, and `_headers` is the only thing there that can carry a policy.
+ * It enforced that nothing sat in a Netlify functions directory unless it was a
+ * function — a rule with a real incident behind it. ADR-033 predicted its
+ * retirement and the reason: a Worker declares ONE entry point, so "every file
+ * in a directory is a public endpoint" is not a failure class that can occur
+ * any more. The directories it watched no longer exist.
  */
+
 describe('check-observability Workers static-assets headers', () => {
   test('fails when an app whose wrangler declares assets has no _headers', async () => {
     await withFileAbsent('apps/itun/public/_headers', async () => {
@@ -227,9 +168,17 @@ describe('check-observability Workers static-assets headers', () => {
       (s) => s.replace(/"assets"\s*:/, '"assetsDisabledForTest":'),
       async () => {
         await withFileAbsent('apps/itun/public/_headers', async () => {
-          const { exitCode, stderr } = await runCheck()
+          const { stderr } = await runCheck()
+          // The claim is narrow and stays narrow: the ASSETS rule does not fire
+          // for a wrangler config that declares no assets.
           expect(stderr).not.toContain('apps/itun/public/_headers does not exist')
-          expect(exitCode).toBe(0)
+          // The exit code is deliberately NOT asserted. With `netlify.toml`
+          // deleted, `_headers` is itun's only CSP source, so removing it trips
+          // the CSP rule as well — a different rule, correctly firing. Asserting
+          // exit 0 here would force this test to depend on that unrelated
+          // failure never happening, which is how a narrow test quietly becomes
+          // a broad one.
+          expect(stderr).toContain('[itun]')
         })
       }
     )

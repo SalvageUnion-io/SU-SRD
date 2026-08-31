@@ -30,7 +30,6 @@
   "include": [
     "src/**/*",
     "test/**/*",
-    "netlify/**/*",
     "convex/**/*",
     "e2e/**/*",
     "vite.config.ts",

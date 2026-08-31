@@ -59,8 +59,8 @@ apps/srd/.vite
 # Prune abandoned ones with tools/prune-stale-worktrees.sh.
 .claude/worktrees/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
-# (Netlify + Render). Auth is via env vars (e.g. RENDER_API_KEY) / OAuth —
-# never put tokens in it.
+# (Cloudflare, Sentry, Convex, Context7). Every server authenticates by OAuth on
+# first connect — never put tokens in it.
 
 # Editor directories and files
 .vscode/*
@@ -76,8 +76,6 @@ apps/srd/.vite
 *.sln
 *.sw?
 
-# Netlify
-.netlify
 
 # Salvage Union rules content is NOT checked into git. The source PDFs and their
 # text extract (rules/) are copyright-bearing verbatim material, generated and

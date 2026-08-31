@@ -77,7 +77,21 @@ export function captureException(error: unknown, context?: Record<string, unknow
  * `captureException`; liveness goes through `startLivenessHeartbeat`.
  */
 
-/** Sentry cron monitor slug. Changing it starts a new monitor and orphans the old one. */
+/**
+ * Sentry cron monitor slug. Changing it starts a new monitor and orphans the old
+ * one.
+ *
+ * **The Worker checks in to this same slug**, from a Cron Trigger in
+ * `http/worker.ts`. That is deliberate — the monitor asks "is the Salvage Union
+ * bot alive", not "which transport answered" — so the history is continuous
+ * across the P5 transport change rather than split in two.
+ *
+ * Everything below this line is the GATEWAY path and runs only on Render, which
+ * serves no production traffic (ADR-033 P5). It is kept as the dormant fallback,
+ * not because it is a live signal; the Worker's is the live one. If both ever
+ * run at once they check in to the same monitor, which is harmless — two `ok`s
+ * where one was expected — but is worth knowing before it is seen.
+ */
 const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
 
 /** How often the worker checks in. Kept in step with the schedule below by construction. */

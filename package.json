@@ -13,7 +13,6 @@
       "@base-ui/react": "1.6.0",
       "@fontsource/barlow": "5.3.0",
       "@fontsource/barlow-semi-condensed": "5.3.0",
-      "@netlify/blobs": "^10.7.11",
       "@playwright/test": "1.62.1",
       "@randsum/roller": "^4.0.0",
       "@sentry/browser": "10.69.0",
@@ -29,7 +28,6 @@
       "playwright": "1.62.1",
       "react": "^19.2.8",
       "react-dom": "^19.2.8",
-      "sharp": "0.35.3",
       "tailwind-merge": "^3.6.0",
       "vite": "^8.2.0"
     }
@@ -54,7 +52,6 @@
     "knip": "6.32.2",
     "lefthook": "2.1.10",
     "playwright": "catalog:",
-    "sharp": "catalog:",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "typescript-classic": "npm:typescript@6.0.3"
@@ -73,7 +70,6 @@
     "deploy-commands": "bun --filter discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter discord-bot deploy-commands:global",
     "rules:extract": "bun tools/extract-rules.ts",
-    "assets:webp": "bun tools/convert-lp-assets-to-webp.ts",
     "typecheck": "bun --filter salvageunion-reference typecheck && concurrently -g 'bun run typecheck:tools' 'bun --filter component-lib typecheck' 'bun --filter observability typecheck' 'bun --filter srd typecheck' 'bun --filter itun typecheck' 'bun --filter discord-bot typecheck' 'bun --filter su-assets typecheck'",
     "typecheck:tools": "tsc --noEmit -p tsconfig.tools.json",
     "typecheck:itun": "bun --filter itun typecheck",
@@ -99,7 +95,7 @@
     "knip": "knip",
     "check": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling' 'bun run check:ci-aggregator' 'bun run check:srd-output'",
     "check:schemas": "bun run build:package && git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/docs packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc .vscode/settings.json",
-    "check:audit": "bun audit --audit-level=high --ignore=GHSA-w3rx-r6r6-pgpr --ignore=GHSA-5p2g-fcmc-qvqq",
+    "check:audit": "bun audit --audit-level=high",
     "check:tokens": "bun tools/check-design-tokens.ts",
     "check:styling": "bun tools/check-styling-ownership.ts",
     "check:action-pinning": "bun tools/check-action-pinning.ts",

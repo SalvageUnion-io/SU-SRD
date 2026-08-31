@@ -72,14 +72,28 @@ function read(root: string, relPath: string): string {
   return readFileSync(join(root, relPath), 'utf-8')
 }
 
-/** Repo-relative paths of the `.md` files directly inside `dir`, sorted. */
+/**
+ * Repo-relative paths of the `.md` files at or below `dir`, sorted.
+ *
+ * Recursive, and that is load-bearing rather than tidy: this walked one level
+ * only, while a Claude Code skill lives at `.claude/skills/<name>/SKILL.md`.
+ * `.claude/skills` is listed in `LIVE_INSTRUCTION_DOC_DIRS` precisely because a
+ * stale skill is worse than a stale doc — it hands an agent a wrong command to
+ * RUN — and it contributed exactly zero files. All four project skills were
+ * scanned by no check here.
+ *
+ * `.claude/skills` is the only listed directory that has subdirectories at all,
+ * so this widens the corpus by those four files and by nothing else.
+ */
 function markdownIn(root: string, dir: string): string[] {
   const full = join(root, dir)
   if (!existsSync(full)) return []
-  return readdirSync(full)
-    .filter((name) => name.endsWith('.md'))
-    .sort()
-    .map((name) => `${dir}/${name}`)
+  const found: string[] = []
+  for (const entry of readdirSync(full, { withFileTypes: true })) {
+    if (entry.isDirectory()) found.push(...markdownIn(root, `${dir}/${entry.name}`))
+    else if (entry.name.endsWith('.md')) found.push(`${dir}/${entry.name}`)
+  }
+  return found.sort()
 }
 
 /**
@@ -1044,7 +1058,21 @@ if (import.meta.main) {
   // `tools/lib/scanFloor.ts` was not applied to when its four siblings were
   // fixed. Floor set well below the real count: a catastrophe detector, not a
   // coverage target.
-  assertScanFloor('doc-drift (live-instruction docs)', liveInstructionDocs(repoRoot).length, 6)
+  //
+  // The floor was 6 against a real corpus of 40, which made it inert against
+  // the very catastrophe the paragraph above describes: if all four
+  // `LIVE_INSTRUCTION_DOC_DIRS` were renamed, the 3 root files and the 10
+  // per-workspace ones still survive — 13, comfortably over 6 — so the gate
+  // passed on exactly the collapse it was written to detect. 26 is ~65% of the
+  // corpus, the calibration `scanFloor.ts` prescribes and the one its four
+  // siblings use, and it sits clear of that 13-file residue.
+  const liveDocs = liveInstructionDocs(repoRoot)
+  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 26)
+  // Printed because this gate reported counts of FINDINGS and never of corpus,
+  // so a collapsed scan and a healthy one read identically. Printed is not
+  // asserted — the floor above is the assertion — but it is the tell that was
+  // missing when this was diagnosed.
+  console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const { failures, passed } = runChecks(repoRoot)
   for (const message of passed) console.log(`✓ ${message}`)

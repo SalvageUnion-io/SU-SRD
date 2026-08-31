@@ -128,8 +128,10 @@ dead wall-clock everywhere else. Use one of:
   `act()` when the component's own timer must be driven — see
   `RollTable.test.tsx`, `SearchIsland.test.tsx`, `useSearchCombobox.test.tsx`.
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
-  timer — see the `RateLimiter` window tests in
-  `apps/itun/netlify/functions/__tests__/snapshot.test.ts`.
+  timer — see the retry-backoff tests in
+  `apps/itun/src/lib/snapshot/__tests__/client.test.ts`. (This used to cite the
+  `RateLimiter` window tests; that limiter counted per instance, was replaced by
+  Cloudflare's edge-enforced binding, and went with the Netlify functions.)
 - `await screen.findByText(...)` / `waitFor(...)` — polls, so it returns as
   soon as the assertion holds.
 

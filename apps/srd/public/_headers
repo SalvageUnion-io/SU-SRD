@@ -28,7 +28,7 @@
   # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
   # which fails CI if this drifts. Wildcarded subdomain because the host encodes
   # the Sentry org id.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
 # Content-hashed bundle output. `/assets/*`, not the old `/_astro/*`: the
 # in-house SSG emits through Vite's default assetsDir. If ssg/vite.config.ts
@@ -58,12 +58,31 @@
   Cache-Control: public, max-age=0, must-revalidate
 
 # The JSON endpoints are a public, CORS-readable API surface (899 of them).
+#
+# `Cache-Control` is NOT inherited from anywhere. Without a rule here Workers
+# Static Assets serves the default `max-age=0, must-revalidate`, so every
+# consumer of this API revalidated on every request for data that only changes
+# on deploy. Measured against production before this:
+#
+#   $ curl -sSI https://salvageunion.io/schema/chassis.json
+#   cache-control: public, max-age=0, must-revalidate
+#
+# One hour rather than a year, and NOT `immutable`: unlike `/assets/*` these
+# URLs are stable across deploys, so the content behind them really does change
+# when the dataset does. An immutable year would pin a stale copy of the game
+# data into every consumer's cache until the URL changed, which it never does.
+#
+# `stale-while-revalidate` on top means a consumer past the hour is served
+# immediately from cache while the refresh happens behind it — the freshness of
+# a short max-age with the latency of a long one.
 /schema/*.json
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Content-Type: application/json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 /schema/*/item/*.json
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Content-Type: application/json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

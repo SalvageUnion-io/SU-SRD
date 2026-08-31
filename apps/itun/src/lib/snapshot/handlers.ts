@@ -1,36 +1,40 @@
 /**
- * The three snapshot handlers, as transport-neutral factories.
+ * The three snapshot handlers.
  *
- * ## Why they live here rather than in `netlify/functions/`
+ * ## Why they live here rather than in `src/worker/`
  *
- * They were defined alongside the Netlify default exports, which was fine while
- * Netlify was the only host. ADR-033 adds a Cloudflare Worker, and importing a
- * factory out of `netlify/functions/snapshot-publish.ts` drags the whole module
- * — including its `@sentry/node` import — into the Worker bundle. esbuild
- * follows the module, not the call, so splitting the *usage* was not enough:
- * the build still pulled in OpenTelemetry, `require-in-the-middle` and
- * `node:path`, none of which run on workerd.
+ * They were shared code once, when Netlify Functions and a Cloudflare Worker
+ * both served this API. Only the Worker does now, so "transport-neutral
+ * factories" overstates it — but they stay factories because the STORAGE is
+ * still injected, which is what lets the tests drive every branch without an R2
+ * binding. That seam is real; the platform seam was the one that went away.
  *
- * So the handlers are the shared thing and each platform file is a thin
- * adapter: `netlify/functions/*` supplies Blobs storage and Sentry,
- * `src/worker/index.ts` supplies R2 and console logging. Neither owns the logic.
+ * ## What this file lost when the Netlify functions were deleted
  *
- * ## Rate limiting is a parameter, and that is a decision not an accident
+ * Two injection points existed purely to work around Netlify's bundler, and
+ * both are gone:
  *
- * The in-process `RateLimiter{10/min}` was already approximate — it counts per
- * Function instance, and instances are ephemeral. Across Workers isolates it
- * would be equally approximate, and porting it would produce something that
- * *looks* like a control without being one (ADR-033 P3).
+ * - **`validatePayload`.** The strict Zod check was INJECTED rather than
+ *   imported, because a module-scope import of `payload.ts` pulled Zod into
+ *   every Netlify function and their bundler left it as an unresolvable bare
+ *   import — a 502 on publish and retrieve, measured, and not fixable by
+ *   declaring the dependency. So `handlers.ts` shipped a weaker default
+ *   (`isJsonObject`, a shape-only check) and the Worker passed the real one in.
+ *   It now imports the real one directly and there is no weaker path to pick.
  *
- * Rather than delete it from a live surface during a migration, it stays the
- * DEFAULT — Netlify behaviour is unchanged, existing tests still exercise it —
- * and the Worker passes `null` to opt out, because Cloudflare's Rate Limiting
- * binding is enforced at the edge and is a real control. One host, one
- * mechanism; nothing runs two.
+ * - **`rateLimiter`.** An in-process `RateLimiter{10/min}` was the DEFAULT so
+ *   Netlify's behaviour stayed unchanged during the migration, and the Worker
+ *   passed `null` to opt out. It counted per instance, which made it
+ *   approximate to the point of being decorative (ADR-033 P3). The real control
+ *   is Cloudflare's edge-enforced Rate Limiting binding, declared in
+ *   `apps/itun/wrangler.jsonc`.
+ *
+ * A retired host was shaping the live one's code. Deleting it is what allows
+ * both of these to become plain, unconditional behaviour.
  */
 
 import { generateUniqueId, isValidSnapshotId } from './id'
-import { getClientIp, RateLimiter } from './rateLimit'
+import { validateSnapshotPayload } from './payload'
 import { reportSnapshotError } from './report'
 import type { SnapshotStorage } from './storage'
 
@@ -44,85 +48,23 @@ import type { SnapshotStorage } from './storage'
  */
 const MAX_PAYLOAD_BYTES = 256 * 1024
 
-/** Anything that can answer "has this key exceeded its allowance?". */
-export type RateLimitCheck = { check(key: string): boolean }
-
-/** Accepted, or the reason it was refused. Mirrors `payload.ts`'s result type. */
-export type PayloadCheck = { ok: true } | { ok: false; reason: string }
-
-/**
- * The shape check every host applies: a JSON object, not an array, not null.
- *
- * This is the DEFAULT rather than the whole story, for the same reason the
- * in-process rate limiter is — see the module header. The real check is
- * `validateSnapshotPayload` in `payload.ts`, which runs the renderer's own Zod
- * parse so an unrenderable snapshot cannot be minted. The Cloudflare Worker
- * injects it; the Netlify functions do not, and that asymmetry is deliberate:
- *
- * - **It costs nothing observable.** Netlify publish is frozen
- *   (`SNAPSHOT_WRITES_FROZEN`, ADR-033 P6) and answers 503 before reaching any
- *   payload, so no publish can succeed there to be under-validated. Cloudflare
- *   is the only host where a publish happens, and it validates fully.
- * - **Importing the schemas here would break the Netlify functions outright.**
- *   `handlers.ts` is shared by all three, so a module-scope import of
- *   `payload.ts` pulls Zod into every one of them — and Netlify's bundler
- *   leaves `zod` as an unresolvable bare import, killing the module before any
- *   handler runs. Measured on deploy previews: 502 on publish AND retrieve,
- *   including with `zod` declared on `apps/itun`. Declaring the dependency does
- *   not fix it; not importing it does.
- *
- * So the injection point is what keeps the retired surface serving reads while
- * the live one gets the strict check.
- */
-function isJsonObject(payload: unknown): PayloadCheck {
-  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
-    return { ok: false, reason: 'Payload must be a JSON object' }
-  }
-  return { ok: true }
-}
-
-/**
- * Module-level limiter, shared by every handler that opts in. Persists across
- * invocations within one instance, which is the whole of its reach.
- */
-const inProcessRateLimiter = new RateLimiter({ limit: 10, windowMs: 60_000 })
-
-export type HandlerOptions = {
-  /**
-   * `undefined` keeps the in-process limiter (Netlify's behaviour).
-   * `null` disables it — for hosts with a real edge-enforced limiter.
-   */
-  rateLimiter?: RateLimitCheck | null
-  /**
-   * `undefined` keeps the shape-only check. Hosts that can afford the Zod
-   * schemas in their bundle pass `validateSnapshotPayload` — see
-   * `isJsonObject` above for why that is an injection point rather than an
-   * import.
-   */
-  validatePayload?: (payload: unknown) => PayloadCheck
-}
-
-function limited(req: Request, options: HandlerOptions | undefined): boolean {
-  const limiter = options?.rateLimiter === undefined ? inProcessRateLimiter : options.rateLimiter
-  if (limiter === null) return false
-  return !limiter.check(getClientIp(req))
-}
-
-/** The `:id` segment of `/api/snapshots/<id>`. */
+/** The last path segment — the snapshot id, for the `/:id` routes. */
 function idFromPath(req: Request): string | undefined {
   const url = new URL(req.url)
   return url.pathname.split('/').filter(Boolean).at(-1)
 }
 
-export function makePublishHandler(storage: SnapshotStorage, options?: HandlerOptions) {
+export function makePublishHandler(storage: SnapshotStorage) {
   return async function handler(req: Request): Promise<Response> {
     if (req.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 })
     }
 
-    if (limited(req, options)) {
-      return new Response('Too many requests', { status: 429 })
-    }
+    // No rate-limit check here any more. It is enforced at the EDGE by
+    // Cloudflare's Rate Limiting binding, ahead of this handler — see
+    // `apps/itun/src/worker/index.ts` and the `ratelimits` block in
+    // `wrangler.jsonc`. The in-process counter this replaces was per-instance
+    // and therefore decorative (ADR-033 P3).
 
     // Fast reject on a declared Content-Length over the cap, before reading the
     // body at all.
@@ -150,11 +92,15 @@ export function makePublishHandler(storage: SnapshotStorage, options?: HandlerOp
       return new Response('Invalid JSON', { status: 400 })
     }
 
-    // On Cloudflare this is the renderer's own parse, so an unrenderable
-    // snapshot cannot be minted — publishing one would hand its owner a share
-    // link they find out is broken from whoever they sent it to. Elsewhere it
-    // is the shape check. See `isJsonObject` for why this is injected.
-    const check = (options?.validatePayload ?? isJsonObject)(payload)
+    // The renderer's own Zod parse, so an unrenderable snapshot cannot be
+    // minted — publishing one would hand its owner a share link they find out
+    // is broken from whoever they sent it to.
+    //
+    // Imported directly rather than injected. It used to be a parameter with a
+    // weaker shape-only default, purely because pulling Zod into the Netlify
+    // functions broke their bundler; with those gone there is no host that
+    // cannot afford it, and so no weaker path left to pick by accident.
+    const check = validateSnapshotPayload(payload)
     if (!check.ok) {
       return new Response(check.reason, { status: 400 })
     }
@@ -220,15 +166,13 @@ export function makeRetrieveHandler(storage: SnapshotStorage) {
   }
 }
 
-export function makeDeleteHandler(storage: SnapshotStorage, options?: HandlerOptions) {
+export function makeDeleteHandler(storage: SnapshotStorage) {
   return async function handler(req: Request): Promise<Response> {
     if (req.method !== 'DELETE') {
       return new Response('Method not allowed', { status: 405 })
     }
 
-    if (limited(req, options)) {
-      return new Response('Too many requests', { status: 429 })
-    }
+    // Rate limiting is edge-enforced — see the note in `makePublishHandler`.
 
     const id = idFromPath(req)
     if (!id) {
