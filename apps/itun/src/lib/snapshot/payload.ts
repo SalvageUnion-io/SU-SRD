@@ -35,12 +35,21 @@
  * | | Uncompressed | Gzipped |
  * | --- | --- | --- |
  * | before | 10.08 KiB | 3.09 KiB |
- * | after | 601.56 KiB | **94.10 KiB** |
+ * | after (at the time) | 601.56 KiB | 94.10 KiB |
+ * | **the whole Worker today** | **3,619 KiB** | **1,185 KiB** |
  *
- * Against Cloudflare's **3 MB compressed** limit that is ~3% of the ceiling,
- * for the guarantee above. (An isolated bundle of the three schemas measured
- * 63 KiB gzipped; the in-Worker figure is the one to trust, and is why this
- * table records a measurement rather than that estimate.)
+ * Against Cloudflare's **3 MB compressed** limit that is ~39% of the ceiling.
+ *
+ * The last row is the one to read, and the reason it was added: the "after"
+ * figure describes the Worker as it stood when this was written, and by the
+ * time anyone came to check it it was low by roughly 11x — the og:image
+ * renderer's resvg wasm alone is 2.5 MB. A stale measurement in a budget note
+ * is worse than none, because it is consulted instead of taken. Re-measure with
+ * `wrangler deploy --dry-run` rather than trusting any row here.
+ *
+ * (An isolated bundle of the three schemas measured 63 KiB gzipped; the
+ * in-Worker figure is the one to trust, and is why this table records a
+ * measurement rather than that estimate.)
  *
  * The other budget is the 1 s startup limit, which Cloudflare enforces at
  * deploy time: these schemas are constructed at module scope, so a regression

@@ -39,9 +39,7 @@ mock.module('@sentry/browser', () => ({
   },
 }))
 
-const { captureException, initBrowserObservability, isNetlifyRumFailure } = await import(
-  '../observability'
-)
+const { captureException, initBrowserObservability } = await import('../observability')
 
 afterAll(() => {
   mock.module('@sentry/browser', () => realSentry)
@@ -61,25 +59,6 @@ beforeEach(() => {
  * instrumentation wraps the call. That is why `denyUrls` — which tests the last
  * usable frame — cannot catch these, and why the filter scans every frame.
  */
-const rumEvent = {
-  exception: {
-    values: [
-      {
-        stacktrace: {
-          frames: [{ filename: '/.netlify/scripts/rum' }, { filename: '/assets/prod-oZptZeYY.js' }],
-        },
-      },
-    ],
-  },
-}
-
-/** A first-party fetch failure — same error class, must still be reported. */
-const firstPartyEvent = {
-  exception: {
-    values: [{ stacktrace: { frames: [{ filename: '/assets/prod-oZptZeYY.js' }] } }],
-  },
-}
-
 describe('observability', () => {
   // Order matters: these walk one module's state machine, unconfigured first.
 
@@ -130,11 +109,12 @@ describe('observability', () => {
       expect(ignored.some((pattern) => title.includes(pattern))).toBe(true)
     }
 
-    // The RUM filter has to be wired in, not merely exported — a correct
-    // predicate that `init` never installs drops nothing.
-    const beforeSend = options.beforeSend as (event: unknown) => unknown
-    expect(beforeSend(rumEvent)).toBeNull()
-    expect(beforeSend(firstPartyEvent)).toBe(firstPartyEvent)
+    // No `beforeSend`. It existed solely to drop Netlify's RUM beacon failures,
+    // and that beacon was injected BY THE NETLIFY PLATFORM — on Cloudflare it is
+    // never loaded, so the event class it filtered can no longer occur. Asserted
+    // as absent rather than deleted silently: a `beforeSend` reappearing here
+    // would mean something is being dropped, and that should be deliberate.
+    expect(options.beforeSend).toBeUndefined()
 
     const boom = new Error('boom')
     captureException(boom, { where: 'island' })
@@ -148,16 +128,6 @@ describe('observability', () => {
     await initBrowserObservability()
 
     expect(sentryCalls.filter((c) => c.fn === 'init')).toHaveLength(0)
-  })
-
-  test('isNetlifyRumFailure keys on the RUM frame, not on the error message', () => {
-    expect(isNetlifyRumFailure(rumEvent)).toBe(true)
-    // `TypeError: Failed to fetch` is far too common a message to filter on, so
-    // an identically-shaped first-party failure must survive.
-    expect(isNetlifyRumFailure(firstPartyEvent)).toBe(false)
-    // Events with no exception at all (a `captureMessage`) must not throw.
-    expect(isNetlifyRumFailure({})).toBe(false)
-    expect(isNetlifyRumFailure({ exception: { values: [{}] } })).toBe(false)
   })
 
   test('captureException still forwards after init, with no context', () => {

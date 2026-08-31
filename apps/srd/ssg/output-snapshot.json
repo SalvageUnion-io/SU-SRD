@@ -3098,7 +3098,7 @@
     "search/index.html": {"title":"Search - Salvage Union System Reference Document","description":"Search the full Salvage Union SRD — chassis, systems, modules, abilities, equipment, and more.","canonical":"https://salvageunion.io/search/","robots":"noindex, nofollow","social":"a763fb29c965c1bf","jsonLd":["BreadcrumbList"],"main":"e6007fd86a744abe","mainChars":14}
   },
   "files_digested": {
-    "_headers": {"hash":"aed6e867fca9eae6","bytes":4049},
+    "_headers": {"hash":"a00d5ecb451ff965","bytes":4007},
     "llms.txt": {"hash":"f4008c69ade6aee3","bytes":5410},
     "robots.txt": {"hash":"7adeb64c89fc64c5","bytes":75},
     "schema/abilities.json": {"hash":"e6c0b83fff84efa7","bytes":37059},
