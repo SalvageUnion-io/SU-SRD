@@ -679,22 +679,33 @@ recommended — the adapter destroys binary, and attaching one requires a defer.
 
 ## 10. Open questions
 
-1. **Is `DISCORD_BOT_AVATAR` actually set in production?** It is referenced only
-   in a `wrangler.jsonc` comment (line 69) and is absent from `vars`. If it was
-   never set via `wrangler secret put`, `client.user` is null and **no embed the
-   bot emits carries the `Salvage Union` author at all** — the branding in
-   `format.ts:10-15` would be aspirational. One check settles it. **Already
-   moot for the roll surface**, which names the roller on a text line and no
-   longer reads `client.user` at all; still open for `/su lookup` and the Game
-   embeds, which continue to gate their author on that avatar.
-2. ~~**Should `getColor` call `coreRollBand`, and should the `ROLL_COLORS` ↔
+1. ~~**Is `DISCORD_BOT_AVATAR` actually set in production?**~~ **Retired — the
+   question no longer has a subject.** It asked whether the variable was ever
+   set, because if it was not, `client.user` was null and no embed the bot
+   emitted carried the `Salvage Union` author at all. Every surface is a
+   container now and none asks for an avatar: a roll names the roller on its
+   context line, and lookup and the Game surfaces each carry their own footer
+   line. `BRAND_NAME`, the contract's `client` member, the adapter's
+   `botAvatarURL` helper and the env var itself are all deleted.
+
+2. **Can `IsComponentsV2` be set when editing a deferred placeholder?** The one
+   unverified dependency left in the migration, and the only one that can break
+   a shipped command. Every ITUN Game command defers ephemerally and then edits
+   that placeholder; a **public** result is a follow-up, so its flag is set at
+   creation and never toggled, but an **ephemeral** one edits a message created
+   without the flag. Discord is documented as refusing that toggle, and nothing
+   in the installed packages encodes the rule, so no local test can answer it.
+   One `/su sheet` in a test guild settles it; if the edit is refused, the fix
+   is local to `respondWithItun` — render the ephemeral result as a follow-up
+   too, at the cost of one stray placeholder line.
+3. ~~**Should `getColor` call `coreRollBand`, and should the `ROLL_COLORS` ↔
    `theme.css` lockstep be enforced by a check?**~~ **Both resolved in
    implementation.** `getColor` is gone — the container builder classifies with
    `coreRollBand` directly, so there is no second copy of the thresholds to
    drift. `themeLockstep.test.ts` reads the stylesheet and asserts all five
    `--color-roll-*` bands plus `--color-rust` against the bot's constants; it
    was verified to fail against the old off-canon value before being committed.
-3. **Confirm the V2 ceilings and the `content`/`embeds` prohibition** with one
+4. **Confirm the V2 ceilings and the `content`/`embeds` prohibition** with one
    live message. Neither is encoded in any installed package — the builders
    impose no total-component cap — so the ~40-component / ~4000-character
    limits are currently taken on documentation alone. Same message can settle
@@ -702,7 +713,7 @@ recommended — the adapter destroys binary, and attaching one requires a defer.
    are proven by the shipped `gauge()`. **This is the cheapest test in the
    document and it gates §5 and §5b.**
 
-4. **Does the Core Mechanic tier vocabulary fit outcome tables?** This is the
+5. **Does the Core Mechanic tier vocabulary fit outcome tables?** This is the
    biggest open risk in the proposal, and the Crawler Damage mockup above shows
    it: an 11–19 there means *"your Union Crawler is inoperable and grounded"*,
    which `CORE_ROLL_BANDS` would label **SUCCESS**. The colour ramp is
