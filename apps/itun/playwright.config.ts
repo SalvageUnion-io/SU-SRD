@@ -112,8 +112,19 @@ export default defineConfig({
         // A process env var beats a .env file in Vite, so this restores what the
         // suite is written to assert. The account-required shape is covered
         // separately by the `e2e-itun-signin` job.
+        //
+        // `scripts/preview.ts`, NOT `vite preview`. The latter loads the whole
+        // Vite config — React plugin, PWA plugin, TanStack Router's filesystem
+        // route generation — before it serves a byte, and it intermittently
+        // never reached `listen` after that pass: the job printed the router
+        // plugin's output and then sat until this 240 s timeout, with no spec
+        // run. Measured on #958 and #962, roughly one run in two, never
+        // reproducible locally. Serving an already-built directory needs none
+        // of that machinery, so the replacement has nothing left to hang on and
+        // starts in milliseconds. It reproduces the Worker's own routing rules
+        // — see its header.
         command: process.env.CI
-          ? '[ -d apps/itun/dist ] || VITE_REQUIRE_ACCOUNT=false bun --filter itun build; cd apps/itun && bunx --bun vite preview --port 5173 --strictPort'
+          ? '[ -d apps/itun/dist ] || VITE_REQUIRE_ACCOUNT=false bun --filter itun build; bun apps/itun/scripts/preview.ts --port 5173'
           : 'bun run dev:itun',
         cwd: '../..',
         url: 'http://localhost:5173',
