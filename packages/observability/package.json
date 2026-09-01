@@ -5,10 +5,6 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "exports": {
-    "./node": {
-      "types": "./src/node.ts",
-      "default": "./src/node.ts"
-    },
     "./browser": {
       "types": "./src/browser.ts",
       "default": "./src/browser.ts"
@@ -27,7 +23,6 @@
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage"
   },
   "devDependencies": {
-    "@sentry/cloudflare": "10.69.0",
-    "@sentry/node": "catalog:"
+    "@sentry/cloudflare": "10.69.0"
   }
 }

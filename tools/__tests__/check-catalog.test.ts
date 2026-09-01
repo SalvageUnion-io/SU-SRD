@@ -80,10 +80,10 @@ describe('check-catalog', () => {
 
   test('FAILS when a catalogued package is pinned with a literal', async () => {
     const { exitCode, stderr } = await withManifest('apps/su-assets/package.json', (j) => {
-      deps(j)['@sentry/node'] = '10.69.0'
+      deps(j)['@sentry/browser'] = '10.69.0'
     })
     expect(exitCode).toBe(1)
-    expect(stderr).toContain('@sentry/node')
+    expect(stderr).toContain('@sentry/browser')
     expect(stderr).toContain('IS catalogued')
   })
 

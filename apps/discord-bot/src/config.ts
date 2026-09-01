@@ -29,11 +29,6 @@ export const config = {
   // Optional error tracking. When SENTRY_DSN is unset, observability is a no-op.
   sentryDsn: optionalEnv('SENTRY_DSN'),
   nodeEnv: optionalEnv('NODE_ENV'),
-  // Render auto-populates this for every service/worker (no provisioning
-  // needed) — the deployed commit SHA, used to tag Sentry events with a
-  // release so an error maps back to the exact deploy that produced it.
-  releaseSha: optionalEnv('RENDER_GIT_COMMIT'),
-
   // In The Union Now (ADR-030 Phase 6). BOTH optional and BOTH required
   // together: with either missing the bot runs in Solo mode — reference
   // commands work exactly as they always have, and the Game commands say they
