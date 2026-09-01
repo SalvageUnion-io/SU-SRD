@@ -9,6 +9,7 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
+import { toast } from 'component-lib'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
 import { reportWriteFailure, runWrite } from '../sheetWrite'
 
@@ -16,6 +17,19 @@ const realError = console.error
 
 afterEach(() => {
   console.error = realError
+  // `reportWriteFailure` raises a REAL sonner toast, and sonner's store is a
+  // process-global `Observer` whose `subscribe` REPLAYS every still-active
+  // toast into the next `<Toaster/>` mounted anywhere in the process. This file
+  // mounts none, so the four toasts it raises reached no subscriber and were
+  // never dismissed — they simply waited.
+  //
+  // `ActiveItemBand.writesBlocked.test.tsx` mounts a `<Toaster/>` and asserts on
+  // the offline refusal copy, which is byte-identical to the one raised here.
+  // It inherited this file's stale copy, found two matching elements, and —
+  // because `findByText` retries a multiple-match throw rather than surfacing it
+  // — spent the full 1000 ms `waitFor` budget and reported as a timeout. Same
+  // module-global hazard as `mock.module`, different module.
+  toast.dismiss()
 })
 
 /** Collects anything the process would have reported as unhandled. */
