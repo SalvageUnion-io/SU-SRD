@@ -44,7 +44,24 @@ import { join } from 'node:path'
 /** The token in `public/_headers` this replaces. */
 export const CSP_HASH_PLACEHOLDER = '__SRD_INLINE_SCRIPT_HASHES__'
 
-const SCRIPT_RE = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi
+/**
+ * One `<script>` element.
+ *
+ * Both halves use a lookahead rather than `\b`, because HTML's tag-name rule is
+ * "the next character is whitespace, `/` or `>`" and `\b` is not that:
+ *
+ * - `</script foo>` and `</script/>` **do** end a script block in a browser.
+ *   `<\/script\s*>` matched neither, so the body would have run past the real
+ *   end tag and hashed the wrong bytes — or, more likely, matched nothing at
+ *   all and dropped the script from `script-src` entirely. A dropped hash is
+ *   the exact silent failure this module exists to prevent: strict-looking CSP,
+ *   blocked script.
+ * - `<script-foo>` is a custom element, not a script. `<script\b` matched it
+ *   with `-foo` as its "attributes".
+ *
+ * `</scriptfoo>` is correctly NOT an end tag, and stays part of the body.
+ */
+const SCRIPT_RE = /<script(?=[\s/>])([^>]*)>([\s\S]*?)<\/script(?=[\s/>])[^>]*>/gi
 const TYPE_RE = /\btype\s*=\s*["']([^"']+)["']/i
 const SRC_RE = /\bsrc\s*=\s*["']/i
 

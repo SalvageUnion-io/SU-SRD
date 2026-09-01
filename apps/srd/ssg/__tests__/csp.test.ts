@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -65,6 +66,36 @@ describe('collectInlineScriptHashes', () => {
     const hashes = await collectInlineScriptHashes(dir)
     expect(hashes).toHaveLength(2)
     expect([...hashes].sort()).toEqual(hashes)
+  })
+
+  test('ends a script where the browser ends it, not where `</script>` appears', async () => {
+    // HTML ends a script block at `</script` followed by whitespace, `/` or
+    // `>` — trailing junk and all. A regex that insisted on `</script\s*>`
+    // matched neither of these, which does not fail loudly: the script is
+    // simply absent from `script-src`, so the CSP still reads as strict and
+    // the browser blocks a script the site actually ships.
+    const dir = await fixture({
+      'a.html': '<script>a()</script foo>',
+      'b.html': '<script>b()</script/>',
+    })
+    expect(await collectInlineScriptHashes(dir)).toHaveLength(2)
+  })
+
+  test('does not end a script at `</scriptfoo>`, which is not an end tag', async () => {
+    // The mirror of the case above, and the reason the fix is a lookahead
+    // rather than a looser `[^>]*`: over-matching here would truncate the body
+    // and hash bytes the browser never executes.
+    const body = 'a()</scriptfoo>b()'
+    const dir = await fixture({ 'a.html': `<script>${body}</script>` })
+    // Computed here rather than copied from a run, so it pins the body the
+    // browser would execute instead of whatever the regex happened to capture.
+    const expected = `'sha256-${createHash('sha256').update(body).digest('base64')}'`
+    expect(await collectInlineScriptHashes(dir)).toEqual([expected])
+  })
+
+  test('ignores `<script-foo>`, a custom element rather than a script', async () => {
+    const dir = await fixture({ 'a.html': '<script-foo>a()</script-foo>' })
+    expect(await collectInlineScriptHashes(dir)).toEqual([])
   })
 
   test('distinguishes scripts that differ only in whitespace', async () => {
