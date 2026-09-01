@@ -220,18 +220,19 @@ const LIVE_INSTRUCTION_DOC_DIRS = [
  * their own "this is what we used to think / what no longer exists" banner, and
  * naming dead things is the entire point of them.
  *
- * Both entries are currently pre-registrations rather than live exemptions:
- * `dashboard-display-completion-plan.md` was deleted once its workstreams had
- * shipped, and `game-invites-and-membership-plan.md` lives under `docs/design`,
- * which `LIVE_INSTRUCTION_DOC_DIRS` does not scan. Every use of this set is
- * `existsSync`-filtered, so a path that is not there costs nothing — and the
- * mechanism is what matters, since the next bannered historical doc will need
- * it. Do not read a listed path as evidence the file exists.
+ * The one entry is a PRE-REGISTRATION rather than a live exemption: that plan
+ * was deleted once its workstreams shipped. Every use of this set is
+ * `existsSync`-filtered, so a path that is not there costs nothing, and the
+ * mechanism is worth keeping armed for the next bannered historical doc — which
+ * is what `check-doc-drift.test.ts` exercises through this same path. Do not
+ * read a listed path as evidence the file exists.
+ *
+ * A second entry, `game-invites-and-membership-plan.md`, went with that doc. It
+ * had never matched anything even while the file existed: it named a
+ * `docs/architecture/` path for a file that lived under `docs/design/`, which
+ * `LIVE_INSTRUCTION_DOC_DIRS` does not scan.
  */
-const HISTORICAL_DOCS = new Set([
-  'docs/architecture/dashboard-display-completion-plan.md',
-  'docs/architecture/game-invites-and-membership-plan.md',
-])
+const HISTORICAL_DOCS = new Set(['docs/architecture/dashboard-display-completion-plan.md'])
 
 /**
  * Per-workspace instruction docs and the two files a new contributor opens
