@@ -87,9 +87,9 @@ supplies an `Authorization` header from a PAT:
 ```
 
 A local-scope entry **shadows** the same-named `.mcp.json` entry, so this is
-additive — nothing needs to be removed from the committed file. The `render`
-entry is already overridden the same way on the maintainer's machine, which is
-why `render` connects while `github` does not.
+additive — nothing needs to be removed from the committed file. This is how the
+now-deleted hosting entries were overridden on the maintainer's machine, and why
+those connected while `github` does not.
 
 `gh` on the command line is unaffected and remains the fallback for everything
 the MCP server would have done.
@@ -186,25 +186,27 @@ not an origin**. This section previously carried the live production URLs in a
 in the present tense — months after those files were deleted — which is exactly
 the kind of row an agent acts on rather than checks.
 
-## Render — retired
+## Render — gone
 
-| Service             | Type              | Service id                | Workspace                                   | Dashboard                                                                  |
-| ------------------- | ----------------- | ------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
-| `suref-discord-bot` | background worker | `srv-d600r21r0fns73el5kk0` | `tea-cspvcb0gph6c739fv6s0` (Alex Jarvis's) | [↗](https://dashboard.render.com/worker/srv-d600r21r0fns73el5kk0)          |
+**The account was deleted on 2026-09-01.** Nothing here is actionable; this
+section survives only so a future reader who finds "Render" in git history knows
+it was retired deliberately rather than lost.
 
-This is the **only** SU-SRD service on Render. The workspace also holds services
-for unrelated repos (`hermuz`, `randsum-discord-bot`, `gear`), so **the Render
-MCP will refuse to act until you pass a `workspaceId`** — pass the id above, and
-target the service by id.
+What used to be here: a table naming the single SU-SRD service
+(`suref-discord-bot`, a background worker), its service and workspace ids, a
+dashboard link, and instructions for passing a `workspaceId` to that host's own
+MCP server because the workspace also held services for unrelated repos. Every one of those
+identifiers now resolves to nothing, and the MCP server was removed before the
+account was.
 
-It WAS Blueprint-managed from a `render.yaml` with `autoSync`, so that file was
-the source of truth for build config — a change made in the
-dashboard gets reverted on the next sync. `buildFilter` deliberately restricts
-rebuilds to paths the bot actually bundles; the reasoning is in that file and is
-worth reading before widening it.
+The service was Blueprint-managed from a `render.yaml` with `autoSync`, deleted
+in ADR-033 P8. The bot has served from a Cloudflare Worker since 2026-08-19
+(ADR-033 P5); its dormant Node gateway — the last code in this repo that read a
+`RENDER_*` variable — was deleted on 2026-09-01, immediately before the account.
 
-Secrets (`DISCORD_TOKEN`, `SENTRY_DSN`, `ITUN_BOT_SECRET`, …) are `sync: false`
-and set in the dashboard, never in the repo.
+This is the failure mode the Netlify section above describes: rows written in the
+present tense outliving the thing they describe, which an agent acts on rather
+than checks. Stating the deletion date is what stops that happening twice.
 
 ## Sentry
 
@@ -220,7 +222,7 @@ is EU.
 | `itun-functions` | `apps/itun` Netlify Functions             | `SENTRY_DSN`         |
 | `itun-convex`    | The ITUN Convex deployments               | _dashboard toggle_   |
 | `su-assets`      | `apps/su-assets` function                 | `SENTRY_DSN`         |
-| `su-discord`     | `apps/discord-bot` worker (Render)        | `SENTRY_DSN`         |
+| `su-discord`     | `apps/discord-bot` Cloudflare Worker      | `SENTRY_DSN`         |
 
 `itun-convex` has **no DSN env var in this repo on purpose.** Convex reports
 through its first-party Exception Reporting integration, configured in the
@@ -270,7 +272,6 @@ Identifiers drift. Each row below can be re-derived, and the check is cheap:
 | ---------------------- | ------------------------------------------------------------------------------------------ |
 | All MCP servers up     | `claude mcp list`                                                                          |
 | Netlify sites + ids    | `netlify sites:list` (retired host — needed only to DELETE them, per ADR-033 P8)            |
-| Render service id      | the Render dashboard (retired host; the service is dormant, not production)                |
 | Sentry org + projects  | Sentry MCP `find_organizations` / `find_projects`                                          |
 | Convex deployments     | `bunx convex mcp start` → `status`, or the Convex dashboard                                |
 | Sentry wiring is live  | `bun run validate:observability` (and `--live` against production, which the tool supports) |

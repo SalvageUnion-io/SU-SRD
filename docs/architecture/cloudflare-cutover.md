@@ -43,7 +43,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF. Delta never run; reconciled by measurement on 2026-08-31 instead — 43/45 resolve on production, the other 2 exported to disk. See P8 |
 | P7    | Cutover                                  | **no**     | **DONE** — `intheunionnow.com` live 2026-08-19; `salvageunion.io` + `assets.salvageunion.io` live **2026-08-31 03:52:49Z**. Both zones active on Cloudflare; post-flip gate all-pass |
-| P8    | Decommission and tooling cleanup         | **no**     | **partly done** — the repo is clean of Netlify/Render (config, functions, deps, guards, docs); the ACCOUNTS and their sites still exist |
+| P8    | Decommission and tooling cleanup         | **no**     | **mostly done** — the repo is clean of Netlify/Render (config, functions, deps, guards, docs), and the **Render account was deleted 2026-09-01**. Only the Netlify account and its three sites remain |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
 The write freeze ships as code that is **off** (`SNAPSHOT_WRITES_FROZEN` unset),
@@ -532,10 +532,17 @@ and `ITUN_BOT_SECRET` as `sync: false`, and neither was ever set — on Render o
 in Convex. Reference commands (`/su roll`, `/su check`, `/su lookup`) behave
 identically; Game commands said "not connected" before and still do.
 
-**This one is reversible, unlike the DNS flip** — clearing the Interactions
-Endpoint URL returns delivery to the gateway. **So leave the Render service
-running until a real command has been exercised in Discord**; it is the fallback,
-and deleting it is what makes this irreversible. That is a P8 step, not this one.
+**This one WAS reversible, unlike the DNS flip** — clearing the Interactions
+Endpoint URL returned delivery to the gateway, so the instruction here was to
+leave the Render service running as the fallback until a real command had been
+exercised in Discord.
+
+**That window is closed.** The command was exercised the same day (below), and
+the Render account was deleted on 2026-09-01 along with the gateway code itself.
+There is no fallback to return to and no longer anything to return to it: the
+Worker is the only transport. Kept as written because the sequencing — prove the
+new path with a real command BEFORE destroying the old one — is the part worth
+repeating, and it was followed.
 
 **Verified by a real command in a real server, 2026-08-19.** `/su roll` was run
 in Discord and rendered correctly. The server side agrees, and the subrequest
@@ -1314,7 +1321,8 @@ Only after P7 has been stable for 24 h.
 > Read the two files before restoring anything. A revoked share that comes back
 > is a worse outcome than a dead link.
 
-- Delete the three Netlify sites and the Render service.
+- ~~Delete the Render service.~~ **Done 2026-09-01 — the whole account is gone.**
+- Delete the three Netlify sites and that account. **Still outstanding.**
 - `.mcp.json`: remove `netlify` and `render`; add
   `https://bindings.mcp.cloudflare.com/mcp` and
   `https://observability.mcp.cloudflare.com/mcp`. Both authenticate by OAuth on
