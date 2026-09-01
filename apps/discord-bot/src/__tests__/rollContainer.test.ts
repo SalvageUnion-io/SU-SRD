@@ -7,6 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { buildRollMessage } from '../commands/roll.js'
 import type { ContainerData } from '../container.js'
 import { NEUTRAL_EMBED_COLOR, ROLL_COLORS } from '../format.js'
 import { buildRollContainerData, isTieredTable, rollTableUrl } from '../rollContainer.js'
@@ -166,4 +167,29 @@ describe('context', () => {
 test('the See table link resolves to the reference site, with no trailing slash', () => {
   const url = rollTableUrl(table('Core Mechanic'))
   expect(url).toBe('https://salvageunion.io/schema/roll-tables/item/core-mechanic')
+})
+
+describe('a dramatic table miss is a result, not an error', () => {
+  // Blinding Blue Laser Rifle and Bio-Talon carry only a `20` key, so
+  // resultForTable reports failure on 19 of every 20 rolls. The old builder
+  // rendered its internal diagnostic — "No result found for roll 7" — to the
+  // user as an error. That is not an error; it is what the book means.
+  test.each([1, 7, 19])('a %i renders NO EFFECT publicly', (roll) => {
+    const message = buildRollMessage('Bio-Talon', 'Vex Marrow', () => roll)
+    if ('error' in message) throw new Error('a miss must not be an error')
+    const body = message.data.blocks.map((b) => (b.kind === 'text' ? b.content : '')).join('\n')
+    expect(body).toContain('NO EFFECT')
+    expect(body).toContain('only triggers on a 20')
+    expect(body).not.toContain('No result found')
+    // A result, so it is public — no ephemeral flag.
+    expect(message.ephemeral).toBeUndefined()
+  })
+
+  test('a 20 still rolls the real entry', () => {
+    const message = buildRollMessage('Bio-Talon', 'Vex Marrow', () => 20)
+    if ('error' in message) throw new Error('expected a roll')
+    const body = message.data.blocks.map((b) => (b.kind === 'text' ? b.content : '')).join('\n')
+    expect(body).not.toContain('NO EFFECT')
+    expect(body).toContain('▌20▐')
+  })
 })

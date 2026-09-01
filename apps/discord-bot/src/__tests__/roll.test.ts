@@ -57,15 +57,28 @@ describe('rollCommand.execute', () => {
     expect(replies[0]?.components).toHaveLength(1)
   })
 
-  test('an unknown table replies with an ephemeral error, not an embed', async () => {
+  test('an unknown table replies with an ephemeral container, not a dead-end string', async () => {
     const { interaction, replies } = mockChatInput('Not A Real Table')
     await rollCommand.execute(interaction)
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(reply.embeds).toBeUndefined()
-    expect(reply.content).toContain('Could not find table')
-    expect(reply.flags).toBe(MessageFlags.Ephemeral)
+    expect(reply.content).toBeUndefined()
+    expect(reply.components).toHaveLength(1)
+    // Ephemeral AND V2 — a typo is the asker's problem, not the channel's.
+    expect(reply.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
+  })
+
+  test('a near-miss offers tapped recovery rather than telling you to try again', async () => {
+    const { interaction, replies } = mockChatInput('criticl damage')
+    await rollCommand.execute(interaction)
+    const container = replies[0]?.components?.[0] as { toJSON(): { components: unknown[] } }
+    const row = container.toJSON().components.find((c) => (c as { type: number }).type === 1) as
+      | { components: { label: string }[] }
+      | undefined
+    expect(row).toBeDefined()
+    // The search index that already backs autocomplete finds the real table.
+    expect(row?.components.map((b) => b.label)).toContain('Critical Damage')
   })
 })
 

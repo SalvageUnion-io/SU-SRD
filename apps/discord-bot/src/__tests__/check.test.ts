@@ -58,11 +58,13 @@ describe('buildCheckMessage', () => {
     expect(containerText(message.data)).toMatch(/`\d+`/)
   })
 
-  test('invalid notation returns an error, never throws', () => {
+  test('invalid notation returns a container, never throws', () => {
     const message = buildCheckMessage('not-dice-at-all')
-    expect('error' in message).toBe(true)
-    if (!('error' in message)) return
-    expect(message.error).toContain('not-dice-at-all')
+    expect('error' in message).toBe(false)
+    if ('error' in message) return
+    // Randsum is the source of truth for validity; we render its complaint.
+    expect(containerText(message.data)).toContain('not-dice-at-all')
+    expect(message.ephemeral).toBe(true)
   })
 
   test('supports the full RANDSUM grammar (drop-lowest)', () => {
@@ -110,14 +112,13 @@ describe('checkCommand.execute', () => {
     expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
   })
 
-  test('invalid notation replies with an ephemeral error, not an embed', async () => {
+  test('invalid notation replies with an ephemeral container carrying examples', async () => {
     const { interaction, replies } = mockChatInput('garbage')
     await checkCommand.execute(interaction)
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(reply.embeds).toBeUndefined()
-    expect(reply.content).toContain('garbage')
-    expect(reply.flags).toBe(MessageFlags.Ephemeral)
+    expect(reply.content).toBeUndefined()
+    expect(reply.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 })

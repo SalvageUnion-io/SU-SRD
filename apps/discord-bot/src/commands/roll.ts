@@ -6,9 +6,27 @@ import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
 import { makeCustomId } from '../customId.js'
+import { noEffectContainer, unknownTableContainer } from '../errorContainer.js'
 import { buildRollContainerData, rollTableUrl } from '../rollContainer.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
+
+/**
+ * An error container, ephemeral. A typo is the asker's problem, not the
+ * channel's — the old plain-text errors were ephemeral for the same reason, and
+ * that half of them was right.
+ */
+function ephemeralContainer(data: ContainerData): {
+  flags: number
+  components: [ContainerBuilder]
+  data: ContainerData
+} {
+  return {
+    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+    components: [toContainer(data)],
+    data,
+  }
+}
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
 // Accessing them at module load would throw before preload completes, so defer to first use.
@@ -33,7 +51,7 @@ function rollD20(): number {
  * one more line rather than mutating a sent message — see rollAttribution.ts.
  */
 export type RollMessage =
-  | { flags: MessageFlags.IsComponentsV2; components: [ContainerBuilder]; data: ContainerData }
+  | { flags: number; components: [ContainerBuilder]; data: ContainerData; ephemeral?: true }
   | { error: string }
 
 /**
@@ -41,22 +59,41 @@ export type RollMessage =
  * `/su roll` handler and the "Roll again" button router so both produce an
  * identical container carrying its own re-roll button.
  */
-export function buildRollMessage(tableName: string, roller?: string): RollMessage {
+export function buildRollMessage(
+  tableName: string,
+  roller?: string,
+  /** Injectable for tests; production always uses the real d20. */
+  d20: () => number = rollD20
+): RollMessage {
   // Exact name first, through the model's name index; the case-insensitive
   // scan is only the fallback for a hand-typed name that skipped autocomplete.
   const table =
     SalvageUnionReference.RollTables.getByName(tableName) ??
     getRollTables().find((t) => t.name.toLowerCase() === tableName.toLowerCase())
   if (!table) {
-    return {
-      error: `Could not find table: "${tableName}". Use autocomplete to see available tables.`,
-    }
+    // An in-system container with tapped recovery, not a dead-end string.
+    const data = unknownTableContainer(tableName, getRollTables().length)
+    return { ...ephemeralContainer(data), ephemeral: true }
   }
 
   // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
-  // branch — shared with ITUN's pilot-identity roll buttons.
-  const outcome = rollOnTable(table.table, rollD20)
+  // branch — shared with ITUN's pilot-identity roll buttons. Capture what was
+  // rolled so a miss can be told apart from a malformed table.
+  let rolled: number | null = null
+  const outcome = rollOnTable(table.table, () => {
+    const value = d20()
+    rolled ??= value
+    return value
+  })
   if (!outcome.success) {
+    // A `dramatic` table carries only a `20` key, so 19 of every 20 rolls land
+    // here. That is not an error — it is "nothing happens", which is what the
+    // book means. Only a table with no entries at all is a genuine fault.
+    if (rolled !== null && Object.keys(table.table).length > 1) {
+      // A miss is a RESULT, so it stays public like any other roll.
+      const data = noEffectContainer(table, rolled, roller)
+      return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
+    }
     return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
   }
 
@@ -123,8 +160,10 @@ export const rollCommand = {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data, ...payload } = message
+    const { data, ephemeral, ...payload } = message
     await interaction.reply(payload)
+    // An error container is not a roll; nothing to record.
+    if (ephemeral === true) return
     // After the reply, never before it: a bound channel adds a footer line, an
     // unbound one costs the roller nothing. See rollAttribution.ts.
     await attributeRoll(interaction, data, `Rolled on ${tableName}`, {
