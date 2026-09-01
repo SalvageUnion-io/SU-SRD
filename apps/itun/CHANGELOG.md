@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.0...itun-v1.17.1) (2026-09-01)
+
+
+### Bug Fixes
+
+* **test:** restore the two red signals nobody could act on ([#954](https://github.com/SalvageUnion-io/SU-SRD/issues/954)) ([7f019ae](https://github.com/SalvageUnion-io/SU-SRD/commit/7f019ae0afb09b2758875fdb86a429468673472e))
+
 ## [1.17.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.16.4...itun-v1.17.0) (2026-08-31)
 
 
