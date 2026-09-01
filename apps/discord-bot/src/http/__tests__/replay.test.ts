@@ -326,15 +326,19 @@ describe('interaction dispatch', () => {
 
     const body = (await res.json()) as {
       type: number
-      data?: { embeds?: Array<{ title?: string }>; content?: string }
+      data?: { components?: unknown[]; content?: string }
     }
     expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
-    // A real result, not the generic failure reply. Asserted on the embed
-    // rather than on `content`: a successful lookup carries embeds and NO
-    // content, so `expect(content).not.toContain(...)` would be checking
-    // `undefined` — which throws rather than passing, and would have made this
-    // test fail for a reason unrelated to the behaviour under test.
-    expect(body.data?.embeds?.[0]?.title).toBe('Mule')
+    // A real result, not the generic failure reply. Asserted on the rendered
+    // container rather than on `content`: a successful lookup carries
+    // components and NO content, so `expect(content).not.toContain(...)` would
+    // be checking `undefined` — which throws rather than passing, and would
+    // have made this test fail for a reason unrelated to the behaviour under
+    // test.
+    //
+    // This also proves the whole V2 path end to end: the container survives
+    // `toPlainPayload` and reaches the wire as real JSON.
+    expect(JSON.stringify(body.data?.components)).toContain('Mule')
     expect(body.data?.content).toBeUndefined()
   })
 

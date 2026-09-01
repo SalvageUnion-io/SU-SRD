@@ -25,8 +25,19 @@ function mockAutocomplete(focused: string) {
   return { interaction, responses }
 }
 
-function embedOf(reply: ReplyArg): { data: { title?: string; url?: string } } {
-  return reply.embeds?.[0] as { data: { title?: string; url?: string } }
+/** Every rendered text block of a V2 reply, joined — what a reader sees. */
+function containerTextOf(reply: ReplyArg): string {
+  const container = reply.components?.[0] as { toJSON(): { components: unknown[] } } | undefined
+  if (!container) throw new Error('expected a container on the reply')
+  return container
+    .toJSON()
+    .components.flatMap((c) => {
+      const node = c as { content?: string; components?: { content?: string }[] }
+      if (node.content !== undefined) return [node.content]
+      // a section's text lives one level down, beside its thumbnail accessory
+      return (node.components ?? []).map((t) => t.content ?? '')
+    })
+    .join('\n')
 }
 
 describe('lookupCommand.execute', () => {
@@ -36,11 +47,13 @@ describe('lookupCommand.execute', () => {
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(reply.embeds).toHaveLength(1)
-    const embed = embedOf(reply)
-    expect(embed.data.title).toBe('.50 Cal Machine Gun')
-    expect(embed.data.url).toBe('https://salvageunion.io/schema/systems/item/50-cal-machine-gun')
-    expect(reply.flags).toBeUndefined()
+    expect(reply.components).toHaveLength(1)
+    // The deep link survives the move to a container as a masked link in the
+    // heading — a container has no title slot to carry a url.
+    expect(containerTextOf(reply)).toContain(
+      '## [.50 Cal Machine Gun](https://salvageunion.io/schema/systems/item/50-cal-machine-gun)'
+    )
+    expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
   })
 
   test('free-typed text falls back to the top search hit', async () => {
@@ -49,9 +62,9 @@ describe('lookupCommand.execute', () => {
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(reply.embeds).toHaveLength(1)
-    expect(embedOf(reply).data.title).toBeTruthy()
-    // A real hit deep-links out; the not-found path would carry no embed.
+    expect(reply.components).toHaveLength(1)
+    expect(containerTextOf(reply)).toContain('## [')
+    // A real hit deep-links out; the not-found path carries content instead.
     expect(reply.content).toBeUndefined()
   })
 
@@ -68,16 +81,20 @@ describe('lookupCommand.execute', () => {
 })
 
 describe('buildTableLookupMessage — the "See table" button target', () => {
-  test('resolves a roll-table by name into its full lookup embed', () => {
+  test('resolves a roll-table by name into its full lookup container', () => {
     const message = buildTableLookupMessage('Core Mechanic')
     expect('error' in message).toBe(false)
     if ('error' in message) return
-    const embed = message.embeds[0]?.toJSON() as { title?: string; description?: string }
-    expect(embed.title).toBe('Core Mechanic')
-    // Full rows are inlined (backtick roll keys), not just a link-out.
-    expect(embed.description).toContain('`20`')
+    const text = message.data.blocks
+      .map((b) => (b.kind === 'text' ? b.content : b.kind === 'section' ? b.text.join('\n') : ''))
+      .join('\n')
+    // The title survives the move as a masked link — a container has no title
+    // slot, and masked links do render inside a TextDisplay.
+    expect(text).toContain('## [Core Mechanic](https://salvageunion.io/')
+    // Full rows are still inlined (backtick roll keys), not just a link-out.
+    expect(text).toContain('`20`')
     // A roll-table lookup offers a one-click "Roll on this table" button.
-    expect(message.components).toHaveLength(1)
+    expect(message.data.blocks.some((b) => b.kind === 'buttons')).toBe(true)
   })
 
   test('returns an error for an unknown table name', () => {
