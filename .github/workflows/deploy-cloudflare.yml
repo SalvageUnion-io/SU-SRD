@@ -180,6 +180,28 @@ jobs:
       - name: Bundle every Worker before deploying any
         run: |
           set -euo pipefail
+          # itun's Worker declares `assets.directory: ./dist`, and wrangler
+          # refuses to bundle when that directory is missing — which it is here,
+          # because this step deliberately runs BEFORE anything is built.
+          #
+          # That combination broke every deploy between this step landing and
+          # this line: `✘ The directory specified by the "assets.directory"
+          # field in your configuration file does not exist`. The guard was
+          # added ahead of the build it depends on, so it failed closed on a
+          # healthy tree — and it failed at the one moment nobody was reading
+          # deploy logs, because CI on the PR had been green.
+          #
+          # An empty placeholder is the right shape rather than a workaround.
+          # What this step exists to catch is a Worker SCRIPT that will not
+          # bundle; the static assets are a separate artifact that `Push Convex
+          # and build itun` produces and `Deploy itun` uploads, and they are not
+          # part of the bundle being validated. Building the app here to satisfy
+          # a config check would cost the whole build twice and defeat the point
+          # of a cheap pre-flight.
+          #
+          # The real build writes into this directory later, so the placeholder
+          # never reaches production.
+          mkdir -p apps/itun/dist
           for app in su-assets itun discord-bot; do
             echo "--- bundling $app"
             (cd "apps/$app" && bunx wrangler@4.108.0 deploy --dry-run --outdir "/tmp/predeploy-$app")
