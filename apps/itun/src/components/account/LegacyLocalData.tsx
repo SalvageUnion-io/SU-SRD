@@ -149,16 +149,44 @@ function SignedOutNotice({ rows }: { rows: LegacyRows }) {
  * land — the work is still here, so take a copy — rather than describing the
  * mechanism.
  */
-function SignedInMigration({ rows }: { rows: LegacyRows }) {
+function SignedInMigration({ rows }: { rows: LegacyRows | null }) {
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
   const claimLocal = useMutation(api.entities.claimLocal)
+  const repairContainers = useMutation(api.entities.repairContainers)
 
   /** One pass per mount. A live query re-emits; the reconciliation must not. */
   const ran = useRef(false)
+  const repaired = useRef(false)
   const [error, setError] = useState<string | null>(null)
 
+  /**
+   * Repair bodies whose container disagrees with the row they are stored in.
+   *
+   * Deliberately **not** gated on this browser holding a legacy roster, which
+   * is why it is its own effect rather than a step inside the one below. The
+   * rows it fixes were already claimed, so they are in the account and may not
+   * be in this IndexedDB at all — claimed on a phone, opened on a laptop. A
+   * repair that only ran where the old rows happened to still sit would miss
+   * exactly the device the player is looking at.
+   *
+   * Silent either way, including on failure. Nothing is at risk here: these
+   * rows are owned and server-backed, so a failed repair leaves them exactly as
+   * they were — visible signed out, hidden signed in — rather than losing
+   * anything. Sentry is the right audience for that, not a banner the player
+   * cannot act on.
+   */
   useEffect(() => {
+    if (repaired.current) return
+    repaired.current = true
+    void repairContainers({}).catch((err: unknown) => {
+      captureException(err, { source: 'repairContainers' })
+    })
+  }, [repairContainers])
+
+  useEffect(() => {
+    // Nothing on this device to reconcile. The repair above still ran.
+    if (rows === null) return
     // `undefined` is Convex's in-flight value, not an empty result. Running
     // against it would read every local row as stranded and re-upload the lot.
     if (mine === undefined || games === undefined) return
@@ -222,16 +250,20 @@ export function LegacyLocalData() {
   const { mode } = useConnection()
   const rows = useLegacyRows()
 
-  if (rows === null) return null
-
   const backend = backendForMode(mode, accountRequired)
 
   // `local` is a build that does not require an account at all (CI, `bun run
   // dev`, a backend-free deploy). There, IndexedDB is still the source of truth
   // by design and there is nothing to migrate off.
   if (backend === 'local') return null
-  if (backend === 'memory') return <SignedOutNotice rows={rows} />
+  // Signed out there is no account to migrate into, so this is the whole of
+  // what can be said — and nothing to say at all in a browser holding nothing.
+  if (backend === 'memory') return rows === null ? null : <SignedOutNotice rows={rows} />
   // `blocked` is Disconnected or mid-handshake: no writes, so no migration.
   if (backend !== 'remote' || !isConvexConfigured) return null
+  // `rows` may be null here, and the component still mounts: the container
+  // repair inside it is about the ACCOUNT, not about this device. Gating the
+  // whole thing on a local roster is what would leave a player's already-claimed
+  // builds invisible on every device except the one that first held them.
   return <SignedInMigration rows={rows} />
 }

@@ -1,4 +1,5 @@
 import { v } from 'convex/values'
+import { containerOf, SHELF, sameContainer } from '../src/lib/container'
 import { CrawlerSchema } from '../src/lib/schemas/crawler'
 import type { EntityRef } from '../src/lib/schemas/entity'
 import { EntityRefSchema } from '../src/lib/schemas/entity'
@@ -533,6 +534,95 @@ async function appIdTaken(
  * is a real limitation, not a fix; closing it means keying the index on
  * (ownerId, appId), which is a schema change and its own piece of work.
  */
+/** The three tables whose body carries a container the client reads. */
+const CONTAINED = {
+  pilots: PARSERS.pilots,
+  mechs: PARSERS.mechs,
+  crawlers: CrawlerSchema,
+} as const
+
+/**
+ * Make every owned body agree with the row it is stored in
+ * ([ADR-035](../../../docs/adrs/ADR-035-no-isolated-local-only-data.md)
+ * decision 3).
+ *
+ * ## The rows `claimLocal` cannot reach
+ *
+ * `shelveBody` fixes this on the way in, and `legacyMigration` sends anything
+ * the account does not hold. Neither touches a build that was **already
+ * claimed** under the old card: the account owns it, so it is not stranded and
+ * nothing re-sends it — while its body still names a Workspace that migration
+ * v13 turned into a `gameId` and that has never been a Game. Signed out nothing
+ * filters and it renders; signed in, `Roster` scopes to the active container
+ * and it is gone. Owned, server-backed, and invisible.
+ *
+ * That population is unreachable from the client's side of the migration, which
+ * is why the repair is a mutation over the account rather than a pass over one
+ * browser's IndexedDB. It also fixes rows this device has never held — a build
+ * claimed from a phone, opened on a laptop.
+ *
+ * ## The column is the authority, not membership
+ *
+ * The rule is `body.gameId := row.gameId`, and it is deliberately not "shelve
+ * anything whose Game I am not a member of". The column is what the server
+ * enforces ownership and container against; the body is a client record that
+ * drifted from it. Repairing toward the column needs no membership lookup, is
+ * right for a Game row as well as a shelf row, and cannot move an entity
+ * somewhere it was not already filed.
+ *
+ * Compared through `containerOf` rather than on the raw field, because a
+ * pre-ADR-030 body carries no `gameId` at all and resolves through
+ * `workspaceId` — that record reads as being in a phantom Game too, and a raw
+ * `body.gameId ?? null` check would call it identical to a shelf row and skip
+ * it. Idempotent either way: after the patch the two resolve the same, so a
+ * second run writes nothing.
+ */
+export const repairContainers = mutation({
+  args: {},
+  handler: async (
+    ctx
+  ): Promise<{ repaired: number; skipped: number; byKind: Record<string, number> }> => {
+    const userId = await requireUser(ctx)
+    let repaired = 0
+    let skipped = 0
+    const byKind: Record<string, number> = {}
+
+    for (const table of ['pilots', 'mechs', 'crawlers'] as const) {
+      const rows = await ctx.db
+        .query(table)
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect()
+
+      for (const row of rows) {
+        const body = row.body as Record<string, unknown> | null
+        if (typeof body !== 'object' || body === null) {
+          skipped += 1
+          continue
+        }
+
+        const declared = row.gameId === null ? SHELF : { kind: 'game' as const, gameId: row.gameId }
+        if (sameContainer(containerOf(body), declared)) continue
+
+        const parsed = CONTAINED[table].safeParse({ ...body, gameId: row.gameId ?? null })
+        if (!parsed.success) {
+          // A body this build cannot re-parse is left exactly as it is. It is
+          // still readable, still owned, and still exportable; refusing to
+          // rewrite it is strictly safer than writing a shape the schema
+          // rejects, and the count comes back so the caller can say so.
+          skipped += 1
+          continue
+        }
+
+        await ctx.db.patch(row._id, { body: parsed.data, updatedAt: Date.now() })
+        repaired += 1
+        byKind[table] = (byKind[table] ?? 0) + 1
+      }
+    }
+
+    return { repaired, skipped, byKind }
+  },
+})
+
 /**
  * Rewrite a claimed body so its container agrees with the row it lands in.
  *

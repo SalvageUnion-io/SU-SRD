@@ -746,6 +746,12 @@ exactly as stuck. ADR-035 has both in full; in short:
 - `claimLocal` shelves the bodies it writes, and gains the repeat guard the NPC
   tray never had — survivable when a human pressed the button once, not when the
   same call runs on every signed-in load.
+- `entities.repairContainers` fixes the population neither of those reaches: a
+  build **already claimed** under the old card is owned, so it is not stranded
+  and nothing re-sends it, while its body still names a Workspace id. It runs
+  once per signed-in session, repairs toward the row's own `gameId` column, and
+  is deliberately NOT gated on this browser holding a legacy roster — those rows
+  are in the account and may not be in this IndexedDB at all.
 
 **Gate.**
 
@@ -760,6 +766,12 @@ exactly as stuck. ADR-035 has both in full; in short:
   reads.
 - The reconciliation is idempotent: a second pass against an account that already
   holds everything sends nothing at all, which is what lets the window close.
+- The repair is idempotent too, and asserted as such rather than assumed — it
+  runs on every signed-in load, so a rule that rewrote on each pass would be a
+  write storm against the account rather than a repair of it.
+- The repair moves nothing between containers: a build genuinely in a Game keeps
+  that Game, a communal crawler is out of reach because it has no owner, and
+  another account's rows are never read.
 - Migration is never marked complete while a row is stranded — `skipped` or
   `alreadyPresent` above zero leaves the state `present`, so a browser that
   cannot fully reconcile never prunes.

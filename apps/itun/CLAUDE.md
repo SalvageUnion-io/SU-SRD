@@ -39,6 +39,13 @@ supersedes ADR-001):
       naming no real Game) arrived in the account and stayed invisible behind
       `Roster`'s container filter. `shelveBody` in `convex/entities.ts` is the
       fix; the rule is general.
+    - **A build already claimed under the old card is repaired, not re-sent.**
+      It is owned, so `isStranded` skips it and no client pass reaches it —
+      `entities.repairContainers` applies `body.gameId := row.gameId` to the
+      account once per signed-in session. Toward the **column**, never toward
+      the shelf: "shelve anything whose Game I am not in" would move a live
+      campaign build. It is not gated on local rows existing, because those
+      entities may sit on a device that never held them.
   - That distinction is not academic. It is why the nightly e2e was red for a
     month: the Playwright `webServer` builds a production bundle, so the suite
     inherited the gate, entities stopped persisting, and twelve specs failed

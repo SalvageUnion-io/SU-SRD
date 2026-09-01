@@ -121,7 +121,33 @@ must be written together.** A record whose column and body disagree is
 addressable by one reader and invisible to another, which is a worse failure than
 either value being wrong, because nothing looks broken from either side alone.
 
-### 4. What counts as isolated
+### 4. A body that already reached the account is repaired in place
+
+Decision 3 fixes every body on the way in, and decision 2 sends everything the
+account does not hold. **Neither reaches a build that was already claimed under
+the old card**: the account owns it, so it is not isolated and nothing re-sends
+it — while its body still names a Workspace that migration v13 turned into a
+`gameId`. Owned, server-backed, and invisible.
+
+So `entities.repairContainers` runs once per signed-in session and applies
+decision 3 to rows already in the database. The rule is `body.gameId :=
+row.gameId`, and two things about it are deliberate:
+
+- **The column is the authority, not membership.** "Shelve anything whose Game I
+  am not a member of" is a different rule and a destructive one — it would move
+  a live campaign build onto the shelf. The column is what the server enforces
+  container and ownership against; the body is the client record that drifted
+  from it.
+- **It is not gated on this browser holding a legacy roster.** The rows it fixes
+  are in the account and may not be in this IndexedDB at all — claimed on a
+  phone, opened on a laptop. A repair that ran only where the old rows happened
+  to still sit would miss exactly the device the player is looking at.
+
+Silent on failure, unlike the claim. Nothing is at risk: these rows are owned and
+server-backed, so a failed repair leaves them as they were rather than losing
+anything.
+
+### 5. What counts as isolated
 
 A local row is isolated — and therefore migrated — unless one of these holds:
 
@@ -176,6 +202,12 @@ is not a container.
   runs on every signed-in load. It now matches on the id inside the body, like
   patterns.
 
+- **The repair is a write against the account on every signed-in load.** It is
+  one indexed read of the caller's own rows and, in the steady state, zero
+  writes — but it is not free, and it is the price of reaching a population the
+  client cannot enumerate. It converges: once a row agrees with its column the
+  rule finds nothing, so it repairs each row once and then goes quiet.
+
 - **`ClaimLocalData` is deleted rather than kept as a fallback.** A manual path
   beside an automatic one is a second answer to "did my roster arrive", and the
   manual one is the one that was wrong.
@@ -195,8 +227,9 @@ mechanism exists for.
 **Repair the phantom containers with a v16 IndexedDB migration.** Rejected as
 insufficient rather than wrong. It would fix the rows on that one device while
 leaving the same bodies already claimed into accounts untouched, and it does
-nothing about rows that never reached the server. The claim is the one place both
-populations pass through.
+nothing about rows that never reached the server. Decision 4 repairs the account
+instead, which reaches every device at once — including ones that never held the
+original rows.
 
 **Load the device rows into the anonymous in-memory session so a signed-out user
 still sees them.** Rejected, and it was the most tempting option — it preserves
