@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.2...itun-v1.17.3) (2026-09-01)
+
+
+### Bug Fixes
+
+* **itun:** serve the e2e preview statically, so it cannot hang ([#963](https://github.com/SalvageUnion-io/SU-SRD/issues/963)) ([47520bd](https://github.com/SalvageUnion-io/SU-SRD/commit/47520bdb9213540b39336f131b6dd26d5b118586))
+
 ## [1.17.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.1...itun-v1.17.2) (2026-09-01)
 
 
