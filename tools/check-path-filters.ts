@@ -67,6 +67,7 @@ const APP_TO_FILTER: Record<string, string> = {
   itun: 'itun',
   srd: 'web',
   'discord-bot': 'bot',
+  'su-assets': 'assets',
 }
 
 /**
@@ -76,9 +77,10 @@ const APP_TO_FILTER: Record<string, string> = {
  * to park an app that is merely inconvenient to gate.
  */
 const NO_FILTER_GROUP: Record<string, string> = {
-  'su-assets':
-    'has no build job in ci.yml at all, so there is no job for a filter to gate. ' +
-    'Remove this exemption in the same change that adds `build-su-assets`.',
+  // Empty, and that is the point: `su-assets` was the entry here when this
+  // check landed, exempted because it had no build job for a filter to gate.
+  // It has one now (`build-su-assets`), so the exemption went with it — which
+  // is what an exemption carrying an exit condition is supposed to do.
 }
 
 type Manifest = {

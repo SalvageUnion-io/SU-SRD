@@ -132,9 +132,12 @@ describe('asset worker — serving', () => {
     expect(res.headers.get('x-content-type-options')).toBe('nosniff')
     expect(res.headers.get('x-frame-options')).toBe('DENY')
     expect(res.headers.get('strict-transport-security')).toContain('max-age=63072000')
-    // Deliberately absent: this origin serves bytes, never HTML or script, so a
-    // CSP would govern nothing.
-    expect(res.headers.get('content-security-policy')).toBeNull()
+    // PRESENT, and this assertion is inverted from what it used to be. It read
+    // `toBeNull()` on the reasoning that "this origin serves bytes, never HTML
+    // or script, so a CSP would govern nothing" — which is false for `svg`,
+    // which the extension allowlist admits and which executes script when
+    // fetched by direct navigation.
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox")
   })
 
   it('decodes percent-encoded keys before looking them up', async () => {

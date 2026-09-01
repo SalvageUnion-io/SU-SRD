@@ -28,6 +28,13 @@ function installCache() {
       return store.get(req.url)?.clone()
     },
     async put(req: Request, res: Response) {
+      // The real Cache API THROWS on a non-GET put. This double used to accept
+      // any method, which is precisely why the suite could not see that the
+      // handler was caching HEAD requests — the throw happened inside
+      // `waitUntil`, after the response had gone out, so nothing surfaced.
+      if (req.method !== 'GET') {
+        throw new TypeError('Cannot cache response to non-GET request.')
+      }
       puts.push({ req, res })
       store.set(req.url, res)
     },
@@ -217,6 +224,28 @@ describe('su-assets edge cache', () => {
 
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('bytes')
+    expect(puts).toHaveLength(0)
+  })
+
+  it('does not try to cache a HEAD request', async () => {
+    // Regression test for a silent failure: the handler admits HEAD, and
+    // `cache.put` on a non-GET throws inside `waitUntil` — so the response
+    // succeeded, the throw was swallowed, and nothing was ever cached. With the
+    // double above now throwing like the real API, an unguarded `put` fails
+    // this test instead of disappearing.
+    const { puts } = installCache()
+    const bucket = bucketWith({ 'chassis/mule.webp': 'bytes' })
+    const ctx = collectingCtx()
+
+    const res = await makeAssetHandler(
+      () => bucket,
+      undefined,
+      undefined,
+      ctx
+    )(new Request('https://assets.salvageunion.io/chassis/mule.webp', { method: 'HEAD' }))
+
+    expect(res.status).toBe(200)
+    await ctx.settled()
     expect(puts).toHaveLength(0)
   })
 })

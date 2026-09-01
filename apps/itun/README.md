@@ -17,23 +17,28 @@ bun --filter itun test     # tests (bun test runner)
 
 ## Snapshot publishing in dev
 
-Sharing publishes read-only snapshots to Netlify Blobs via two Netlify
-Functions (`netlify/functions/snapshot-publish.ts`, `snapshot-retrieve.ts`)
-routed under `/api/snapshots` (see `netlify.toml` and ADR-004). Plain
-`vite dev` has no Netlify redirect layer, so `vite.config.ts` proxies
-`/api/snapshots` to a locally-running functions server:
+Sharing publishes read-only snapshots to **R2** through the Worker at
+`src/worker/index.ts`, which owns `/api/snapshots` and `/api/snapshots/:id`
+(ADR-004 as amended by ADR-033). `vite dev` serves the SPA only and never runs
+that Worker, so `vite.config.ts` proxies those paths to a local `wrangler dev`:
 
 ```bash
-# terminal 1 — functions on port 9999
-bunx netlify functions:serve
+# terminal 1 — the Worker, with local R2, on port 8787
+cd apps/itun && bunx wrangler dev
 
 # terminal 2 — the app
 bun run dev:itun
 ```
 
-Without the functions server, publish requests fail with a connection error
-and publishing is treated as unavailable; the rest of the app is unaffected.
-(Alternatively `netlify dev` serves app + functions together on port 8888.)
+Without it, publish requests fail with a connection error and the UI's
+feature-detection treats publishing as unavailable; the rest of the app is
+unaffected.
+
+> This section previously told you to run `bunx netlify functions:serve` against
+> `netlify/functions/snapshot-publish.ts` and `snapshot-retrieve.ts` on port
+> 9999. Those files, and every other trace of Netlify, were deleted in ADR-033
+> P7 — so local snapshot publishing had been broken ever since, silently: no
+> test covers the dev proxy and no CI job runs it.
 
 ## Data durability
 

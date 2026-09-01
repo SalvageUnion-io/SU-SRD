@@ -8,8 +8,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 // Sourcemap upload is entirely env-gated on SENTRY_AUTH_TOKEN, mirroring the
 // discipline of src/lib/observability.ts: absent locally and in CI (no token
 // provisioned there), so the plugin is inert and no sourcemaps are generated
-// or shipped. Provisioned only on the Netlify production build via site env
-// vars (SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT — not committed).
+// or shipped. Provisioned only on the production build in
+// `.github/workflows/deploy-cloudflare.yml`, from repository secrets
+// (SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT — not committed), which
+// refuses to build itun without all three.
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
 
 // https://vite.dev/config/
@@ -96,8 +98,8 @@ export default defineConfig({
           authToken: sentryAuthToken,
           // Explicit release name pinned to the same VITE_COMMIT_REF the
           // client tags itself with at runtime (src/lib/observability.ts) —
-          // auto-detecting from git would use Netlify's shallow clone and
-          // could silently mismatch, which breaks sourcemap resolution.
+          // auto-detecting from git would use the CI checkout's shallow
+          // clone and could silently mismatch, breaking sourcemap resolution.
           release: { name: process.env.VITE_COMMIT_REF, inject: false },
           sourcemaps: {
             filesToDeleteAfterUpload: ['dist/**/*.map'],
@@ -158,26 +160,28 @@ export default defineConfig({
     watch: {
       ignored: ['**/routeTree.gen.ts'],
     },
-    // Snapshot API dev proxy (plan 2.9). In production Netlify redirects map
-    // /api/snapshots[/:id] to the two functions (netlify.toml); plain
-    // `vite dev` has no such layer, so PublishButton would 404. Run
-    //   bunx netlify functions:serve        (port 9999)
-    // alongside `bun run dev:itun` and this proxy replicates the redirect
-    // mapping. Without the functions server, publish requests fail with a
-    // connection error and the UI's feature-detection treats publishing as
-    // unavailable. See README.md ("Snapshot publishing in dev").
+    // Snapshot API dev proxy. `vite dev` serves the SPA only — the snapshot
+    // API lives in `src/worker/index.ts`, which Vite never runs — so without
+    // this, PublishButton 404s and the UI's feature-detection quietly decides
+    // publishing is unavailable.
+    //
+    // The target is `wrangler dev`, which runs that Worker with local R2:
+    //
+    //   bunx wrangler dev            # from apps/itun, port 8787
+    //   bun run dev:itun             # alongside it
+    //
+    // NO REWRITE. The Worker owns `/api/snapshots` and `/api/snapshots/:id`
+    // directly, so the path passes through untouched.
+    //
+    // This block used to rewrite to `/.netlify/functions/snapshot-retrieve`
+    // and `snapshot-publish` on port 9999, and the README told you to run
+    // `netlify functions:serve`. Those functions were deleted with the rest of
+    // Netlify in ADR-033 P7, so local snapshot publishing had simply been
+    // broken since — a dev-only path no test covers and no CI job exercises.
     proxy: {
       '/api/snapshots': {
-        target: 'http://localhost:9999',
+        target: 'http://localhost:8787',
         changeOrigin: true,
-        rewrite: (path) => {
-          // /api/snapshots/<id> → snapshot-retrieve (id read from last path segment)
-          // /api/snapshots      → snapshot-publish (method handling inside the fn)
-          const match = path.match(/^\/api\/snapshots\/([^/?#]+)/)
-          return match
-            ? `/.netlify/functions/snapshot-retrieve/${match[1]}`
-            : '/.netlify/functions/snapshot-publish'
-        },
       },
     },
   },

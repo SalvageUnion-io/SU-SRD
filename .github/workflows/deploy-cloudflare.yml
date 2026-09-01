@@ -26,7 +26,21 @@ on:
     branches: [main]
   # Manual re-deploy, for when a deploy fails on something unrelated to the code
   # (a Cloudflare incident, a rotated token) and the commit is already green.
+  #
+  # `sha` is the ROLLBACK PATH, and it exists because there was none: dispatch
+  # took no inputs and checked out `github.sha`, so recovering from a bad deploy
+  # meant a revert PR through full CI — five minutes at best, and it re-runs all
+  # four deploys anyway. Now: dispatch with the last known-good commit.
+  #
+  # Validated as an ancestor of `main` before anything is built (see the guard
+  # below), so this cannot become the "any branch straight to production" hole
+  # the `github.ref` clause was added to close.
   workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit to deploy (must be an ancestor of main). Defaults to the tip of main.'
+        required: false
+        type: string
 
 # One deploy at a time, and never cancel one in flight: a half-uploaded asset
 # manifest is worse than a queued deploy.
@@ -89,10 +103,88 @@ jobs:
           # workflow_run checks out the DEFAULT branch by default, not the commit
           # that was tested. Deploying a different commit than the one CI passed
           # would make the gate meaningless.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          # Ancestry cannot be checked in a shallow clone, and the deploy-set
+          # diff below needs the previous commit on main.
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
+
+      # A dispatched `sha` must be an ancestor of main. Without this the input
+      # would reintroduce exactly what the `github.ref == 'refs/heads/main'`
+      # clause exists to prevent: an arbitrary commit, with no CI having passed,
+      # deployed straight to production by anyone with write access.
+      - name: The dispatched commit must be an ancestor of main
+        if: inputs.sha != ''
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "${{ inputs.sha }}" origin/main; then
+            echo "FATAL: ${{ inputs.sha }} is not an ancestor of origin/main." >&2
+            echo "Only a commit that has been on main — and therefore through CI — may be deployed." >&2
+            exit 1
+          fi
+          echo "OK: ${{ inputs.sha }} is on main."
+
+      # Which surfaces this commit actually touches.
+      #
+      # ci.yml path-filters every heavy job; this workflow filtered nothing, so
+      # a docs-only merge still installed Chromium, rendered ~2,000 OG images
+      # and ran four `wrangler deploy`s. `main` is squash-merged, so `HEAD^` is
+      # the previous commit on main and `HEAD^..HEAD` is exactly the merged PR.
+      #
+      # Fails SAFE in every direction: no parent (first commit, a force-push, a
+      # dispatch of an old sha) deploys everything, and so does any change to a
+      # shared path. Under-deploying is the only outcome that could serve a
+      # stale surface, so nothing here may narrow on a guess.
+      - name: Decide which surfaces to deploy
+        id: surfaces
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --verify -q HEAD^ >/dev/null; then
+            echo "no parent commit — deploying every surface"
+            changed=""
+            all=true
+          else
+            changed=$(git diff --name-only HEAD^ HEAD)
+            all=false
+            # Anything shared, or the deploy machinery itself, means everything.
+            if printf '%s\n' "$changed" | grep -qE '^(packages/|test/|package\.json|bun\.lock|bunfig\.toml|tsconfig|patches/|\.bun-version|\.github/)'; then
+              all=true
+            fi
+          fi
+          emit() {
+            if [ "$all" = true ] || printf '%s\n' "$changed" | grep -qE "^apps/$2/"; then
+              echo "$1=true" >> "$GITHUB_OUTPUT"; echo "  deploy $2"
+            else
+              echo "$1=false" >> "$GITHUB_OUTPUT"; echo "  skip   $2"
+            fi
+          }
+          emit assets su-assets
+          emit srd srd
+          emit itun itun
+          emit bot discord-bot
+
+      # Bundle ALL FOUR before ANY of them ships.
+      #
+      # The four deploys are sequential with no compensating action, so a
+      # bundling failure on the third left the first two on the new commit and
+      # the last two on the old — a partial deploy nobody chose. Producing every
+      # bundle first turns that class of failure into an abort before any
+      # traffic moves, which is the property `wrangler versions upload` would
+      # buy, without changing how deployment itself works.
+      #
+      # `--dry-run` needs no credential, so this also runs before the credential
+      # guards below have any effect.
+      - name: Bundle every Worker before deploying any
+        run: |
+          set -euo pipefail
+          for app in su-assets itun discord-bot; do
+            echo "--- bundling $app"
+            (cd "apps/$app" && bunx wrangler@4.108.0 deploy --dry-run --outdir "/tmp/predeploy-$app")
+          done
+          echo "All Worker bundles produced. srd declares no main (Static Assets only)."
 
       # ---------------------------------------------------------------------
       # The guard. FIRST, before anything is built.
@@ -230,6 +322,7 @@ jobs:
       # and together with `compatibility_date` in all four wrangler.jsonc files,
       # which is pinned to the workerd this version bundles.
       - name: Deploy su-assets
+        if: steps.surfaces.outputs.assets == 'true'
         working-directory: apps/su-assets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -245,6 +338,7 @@ jobs:
       # generic", never a failed deploy. `og:generate` (build + screenshots in
       # one script) is deliberately NOT used here — see the steps below.
       - name: Install Chromium for the srd OG pass
+        if: steps.surfaces.outputs.srd == 'true'
         run: bun --filter srd og:install-browser
 
       # Build and OG pass are separate steps rather than one `og:generate`, so
@@ -252,6 +346,7 @@ jobs:
       # the Sentry DSN, the screenshot pass takes its budget. It also keeps the
       # best-effort half independently skippable from the half that must succeed.
       - name: Build srd
+        if: steps.surfaces.outputs.srd == 'true'
         env:
           PUBLIC_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
@@ -291,6 +386,7 @@ jobs:
       # Additive and non-fatal by design: a missing browser or a
       # wedged render leaves those pages on the default og:image.
       - name: Render srd OG images
+        if: steps.surfaces.outputs.srd == 'true'
         working-directory: apps/srd
         env:
           OG_SCREENSHOTS: '1'
@@ -298,6 +394,7 @@ jobs:
         run: bun scripts/og-screenshots.ts
 
       - name: Deploy srd
+        if: steps.surfaces.outputs.srd == 'true'
         working-directory: apps/srd
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -313,6 +410,7 @@ jobs:
       # schema had not been deployed yet would fail at runtime rather than at
       # build time — which is exactly how the 2026-08 incident presented.
       - name: Push Convex and build itun
+        if: steps.surfaces.outputs.itun == 'true'
         working-directory: apps/itun
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
@@ -324,6 +422,7 @@ jobs:
         run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
 
       - name: Deploy itun
+        if: steps.surfaces.outputs.itun == 'true'
         working-directory: apps/itun
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -349,6 +448,7 @@ jobs:
       # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
       # and are NOT touched by a deploy, so this cannot clobber them.
       - name: Deploy discord-bot
+        if: steps.surfaces.outputs.bot == 'true'
         working-directory: apps/discord-bot
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

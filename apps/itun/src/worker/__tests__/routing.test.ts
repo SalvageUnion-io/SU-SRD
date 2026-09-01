@@ -458,6 +458,54 @@ describe('/og/s/:id.png', () => {
     }
   })
 
+  // ---------------------------------------------------------------------
+  // Security headers
+  //
+  // Cloudflare does not apply `public/_headers` to responses Worker code
+  // GENERATES, and `wrangler.jsonc` sets `run_worker_first`, so every exit
+  // path below used to ship with no CSP, no HSTS and no nosniff. These assert
+  // the wrapper covers the paths a request can actually leave by — including
+  // the redirect, which is the one that cannot have its headers mutated in
+  // place and so is the likeliest to be missed by a per-return fix.
+  // ---------------------------------------------------------------------
+
+  it.each([
+    ['a redirect', '/share/pilot/AAAAAAAA'],
+    ['a 400 on a malformed snapshot id', '/api/snapshots/!!!'],
+    ['an og:image fallback', '/og/s/!!.png'],
+    ['the SPA shell', '/pilots/whatever'],
+    ['a 404 for a missing file', '/nope.txt'],
+  ])('sets the security headers on %s', async (_label, path) => {
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    const res = await worker.fetch(req(path), env)
+
+    expect(res.headers.get('content-security-policy')).toContain("default-src 'self'")
+    expect(res.headers.get('strict-transport-security')).toContain('max-age=63072000')
+    expect(res.headers.get('x-frame-options')).toBe('DENY')
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff')
+  })
+
+  it('keeps the CSP in lockstep with public/_headers', async () => {
+    // Two sources for one policy is a drift hazard, so it is asserted rather
+    // than trusted. tools/check-observability.ts holds the Sentry ingest origin
+    // to the same value in both; this holds the whole directive list.
+    const headersFile = await Bun.file(new URL('../../../public/_headers', import.meta.url)).text()
+    const declared = headersFile
+      .split('\n')
+      .find((line) => line.trim().startsWith('Content-Security-Policy:'))
+    expect(declared).toBeDefined()
+
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    const served = (await worker.fetch(req('/pilots/x'), env)).headers.get(
+      'content-security-policy'
+    )
+
+    const normalise = (value: string) => value.replace(/\s+/g, ' ').trim().replace(/;$/, '')
+    expect(normalise(served ?? '')).toBe(
+      normalise((declared as string).replace('Content-Security-Policy:', ''))
+    )
+  })
+
   it('points the shell metadata at this route for a snapshot that exists', async () => {
     // The two halves have to agree: a card nobody links to is not an unfurl.
     const SHELL = [
