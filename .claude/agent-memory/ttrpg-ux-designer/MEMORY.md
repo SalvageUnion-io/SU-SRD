@@ -27,6 +27,13 @@
   an in-house SSG at `apps/srd/ssg` over Vite, with React islands mounted via
   `createRoot`. Contract: `apps/srd/ssg/DESIGN.md`.
 
+## Discord bot embed surface
+
+See [discord-bot-embeds.md](discord-bot-embeds.md) — where the embed builders
+live, the nine `table.type` shapes in `roll-tables.json` and which of them break
+the current roll embed, and the Discord markdown facts (headers/subtext render
+in embed *descriptions*, not usefully in fields) any embed redesign rests on.
+
 ## Dataviz Idioms (pips/tracks/roll readouts)
 
 See [dataviz-idioms.md](dataviz-idioms.md) — the unified segment-state logic,
