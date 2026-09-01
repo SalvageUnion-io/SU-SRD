@@ -61,18 +61,23 @@
   // natively.
   "rules": [{ "type": "Data", "globs": ["**/*.ttf"] }],
 
-  // RETENTION IS UNMANAGED, and this is the note rather than the fix because the
-  // fix is an ACCOUNT action: R2 lifecycle rules are set on the bucket, not in
-  // this file, and `wrangler` cannot express them here.
+  // RETENTION: the period is DECIDED — 365 days — but applying it is an ACCOUNT
+  // action, because R2 lifecycle rules are set on the bucket rather than here,
+  // and `wrangler` cannot express them in this file.
   //
   // `apps/itun/src/lib/snapshot/storage.ts` has no TTL or expiry — a snapshot
   // lives until its owner revokes it, and most never are. Storage therefore only
   // grows, and it is billable. Nothing surfaces that until a bill does.
   //
+  // 365 days was chosen (2026-09-01) so that a link shared during a campaign
+  // outlives the campaign, while still bounding storage. It is a product
+  // decision rather than a cleanup: a shared snapshot URL going dead is a real
+  // cost to a player, which is why the number is written down here instead of
+  // being left to whoever next opens the dashboard.
+  //
   // TO DO, in the Cloudflare dashboard on `su-itun-snapshots`: add a lifecycle
-  // rule expiring objects after an agreed period. Decide the period first — a
-  // shared snapshot URL going dead is a real cost to a player, so this is a
-  // product decision, not a cleanup.
+  // rule expiring objects 365 days after creation. Until that is applied,
+  // nothing expires — this comment records the decision, not its enforcement.
   "r2_buckets": [
     {
       "binding": "SNAPSHOTS",

@@ -219,6 +219,14 @@ const LIVE_INSTRUCTION_DOC_DIRS = [
  * Live-instruction docs that are deliberately historical records. They carry
  * their own "this is what we used to think / what no longer exists" banner, and
  * naming dead things is the entire point of them.
+ *
+ * Both entries are currently pre-registrations rather than live exemptions:
+ * `dashboard-display-completion-plan.md` was deleted once its workstreams had
+ * shipped, and `game-invites-and-membership-plan.md` lives under `docs/design`,
+ * which `LIVE_INSTRUCTION_DOC_DIRS` does not scan. Every use of this set is
+ * `existsSync`-filtered, so a path that is not there costs nothing — and the
+ * mechanism is what matters, since the next bannered historical doc will need
+ * it. Do not read a listed path as evidence the file exists.
  */
 const HISTORICAL_DOCS = new Set([
   'docs/architecture/dashboard-display-completion-plan.md',
