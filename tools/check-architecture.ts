@@ -74,6 +74,7 @@ import { fileURLToPath } from 'node:url'
 // against typescript@7.0.2, not assumed. Revisit when that API stabilises.
 import ts from 'typescript-classic'
 import { assertScanFloor } from './lib/scanFloor'
+import { assertCoversWorkspaces } from './lib/workspaceCoverage'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -83,6 +84,8 @@ const INCLUDE_GLOBS = [
   'apps/discord-bot/src/**/*.ts',
   'packages/component-lib/src/**/*.{ts,tsx}',
   'packages/salvageunion-reference/lib/**/*.ts',
+  'apps/su-assets/src/**/*.ts',
+  'packages/observability/src/**/*.ts',
 ]
 
 const EXCLUDE_PATTERNS: RegExp[] = [
@@ -314,6 +317,10 @@ const RULE_HEADLINE: Record<RuleId, string> = {
 async function main() {
   const files = await collectFiles()
   assertScanFloor('architecture', files.length, SCAN_FLOOR)
+  // The floor above catches a RENAMED scan dir; it cannot catch one that was
+  // never listed. `apps/su-assets` and `packages/observability` were both
+  // missing here until this assertion was added. See tools/lib/workspaceCoverage.ts.
+  assertCoversWorkspaces('architecture', INCLUDE_GLOBS)
   const violations = files.flatMap(checkFile)
 
   if (violations.length > 0) {

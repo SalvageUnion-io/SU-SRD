@@ -30,6 +30,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { assertScanFloor } from './lib/scanFloor'
+import { assertCoversWorkspaces } from './lib/workspaceCoverage'
 
 const ROOT = join(import.meta.dir, '..')
 
@@ -81,6 +82,27 @@ const allTsFiles = [
 assertScanFloor('styling ownership (app CSS)', appCssFiles.length, 2)
 assertScanFloor('styling ownership (app source)', appSourceFiles.length, 350)
 assertScanFloor('styling ownership (repo TS)', allTsFiles.length, 800)
+
+/**
+ * APP_DIRS is the set of apps whose LOCAL css this gate audits, and it is a
+ * hardcoded list — the same shape that let `apps/su-assets` and
+ * `packages/observability` go unscanned by three sibling gates. Here the gaps
+ * are real decisions rather than oversights, so they are written down: this
+ * check is about an app owning styling it should not own, and a workspace with
+ * no stylesheet cannot violate that.
+ *
+ * If any of these ever grows a `.css` file, the exemption becomes stale and
+ * this assertion fails — which is the point. See tools/lib/workspaceCoverage.ts.
+ */
+assertCoversWorkspaces('styling ownership', APP_DIRS, {
+  'apps/discord-bot': 'ships no stylesheet — it renders Discord embeds, not DOM.',
+  'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
+  'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
+  'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
+  'packages/component-lib':
+    'is the OWNER this gate checks apps against, not an app to audit. Its dashboard ' +
+    'CSS is read separately via DASHBOARD_DIR.',
+})
 
 /** Which app a repo-relative path belongs to (for same-app reference checks). */
 function appOf(relPath: string): string | null {

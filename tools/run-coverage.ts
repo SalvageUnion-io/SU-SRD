@@ -88,6 +88,8 @@ const WORKSPACES: ReadonlyArray<{ dir: string; filter: string }> = [
   { dir: 'apps/srd', filter: 'srd' },
   { dir: 'apps/itun', filter: 'itun' },
   { dir: 'apps/discord-bot', filter: 'discord-bot' },
+  { dir: 'apps/su-assets', filter: 'su-assets' },
+  { dir: 'packages/observability', filter: 'observability' },
 ]
 
 const lcovFor = (dir: string) => join(root, dir, 'coverage', 'lcov.info')

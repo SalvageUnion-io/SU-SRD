@@ -44,9 +44,11 @@ esac
 case "$FILE_PATH" in
   *packages/salvageunion-reference/*) WORKSPACE="salvageunion-reference" ;;
   *packages/component-lib/*)          WORKSPACE="component-lib" ;;
+  *packages/observability/*)          WORKSPACE="observability" ;;
   *apps/srd/*)                        WORKSPACE="srd" ;;
   *apps/itun/*)                       WORKSPACE="itun" ;;
   *apps/discord-bot/*)                WORKSPACE="discord-bot" ;;
+  *apps/su-assets/*)                  WORKSPACE="su-assets" ;;
   # tools/, scripts and repo-root config belong to no workspace. The root
   # tsconfig does not typecheck them as a project, and the full matrix would
   # cost 7 s to prove nothing about the edited file — leave them to CI.
