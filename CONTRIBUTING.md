@@ -45,7 +45,7 @@ format check, typecheck, tests, data validation, knip, and `bun audit`. If
 `check` is green, CI's `CI Success` gate should be too. `check:all` is a
 deprecated alias for the same script, kept for one release cycle so existing
 muscle memory and scripts keep working — new callers use `check`. The app builds
-(`build:web`, `build:itun`, `build:bot`) run only in CI/deploy; run them locally
+(`build:web`, `build:itun`) run only in CI/deploy; run them locally
 if you touched build config.
 
 ### Common workspace-scoped commands
@@ -53,7 +53,6 @@ if you touched build config.
 ```bash
 bun run dev            # build:package + srd dev server
 bun run dev:itun       # build:package + ITUN dev server
-bun run dev:bot        # build:package + Discord bot (local)
 
 bun --filter srd test          # test one workspace
 bun run typecheck:itun               # typecheck one workspace

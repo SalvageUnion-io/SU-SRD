@@ -4,12 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
-  "main": "./dist/index.js",
   "scripts": {
-    "dev": "bun run src/index.ts",
-    "dev:watch": "bun --watch run src/index.ts",
-    "build": "bun build src/index.ts src/deploy-commands.ts --outdir dist --target node --sourcemap=linked --external discord.js --external @sentry/node --external @randsum/roller",
-    "start": "node --enable-source-maps dist/index.js",
     "deploy-commands": "bun run src/deploy-commands.ts",
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",
     "typecheck": "tsc --noEmit",
@@ -18,14 +13,13 @@
     "format:check": "biome format .",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
-    "clean": "rm -rf dist"
+    "clean": "true"
   },
   "dependencies": {
     "@discordjs/builders": "1.14.1",
     "@discordjs/collection": "2.1.1",
     "@discordjs/rest": "2.6.3",
     "@randsum/roller": "catalog:",
-    "@sentry/node": "catalog:",
     "discord-api-types": "0.38.53",
     "discord.js": "^14.27.0",
     "observability": "workspace:*",

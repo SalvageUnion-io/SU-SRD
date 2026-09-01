@@ -69,7 +69,7 @@ The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts ea
 
 - **Cloudflare** — hosts **everything**: `apps/srd` (`salvageunion.io`), `apps/itun` (`intheunionnow.com`), `apps/su-assets` (`assets.salvageunion.io`) and the Discord bot, all on Workers, with two R2 buckets (`su-itun-snapshots`, `su-lp-assets`) and Images for artwork derivatives. Config is `apps/*/wrangler.jsonc`; deploys run from `.github/workflows/deploy-cloudflare.yml`. MCP servers: `cloudflare-bindings` (`https://bindings.mcp.cloudflare.com/mcp`) and `cloudflare-observability` (`https://observability.mcp.cloudflare.com/mcp`), both remote HTTP, both OAuth on first connect — which is what keeps `.mcp.json` secret-free.
 - **Netlify** — **hosts nothing.** Every `netlify.toml`, both `netlify/` function trees and `@netlify/blobs` are deleted. The account still exists and its three sites still answer on their `.netlify.app` hostnames, serving a stale build; that is decommission debris, not an origin. **Nothing in this repo reaches it any more.** `tools/sync-snapshots-to-r2.ts` was the last consumer and is deleted: P6's delta was reconciled by measurement instead of by running it (43 of 45 snapshots resolve on production; the other two are archived to disk). The MCP server is gone too. Builds are stopped on both repo-linked sites; deleting them is the remaining step.
-- **Sentry** — error tracking across every surface: `@sentry/browser` in `srd` and `itun`, `@sentry/cloudflare` in all three Workers via `observability/cloudflare`, `@sentry/node` in the bot's dormant gateway path, and `@sentry/vite-plugin` for `itun` release artifacts. MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
+- **Sentry** — error tracking across every surface: `@sentry/browser` in `srd` and `itun`, `@sentry/cloudflare` in all three Workers via `observability/cloudflare`, and `@sentry/vite-plugin` for `itun` release artifacts. `@sentry/node` is **gone** — its only consumer was the bot's dormant Node gateway, deleted once Render was retired. MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
 - **Render** — **no longer serves production.** The bot moved to HTTP interactions on a Cloudflare Worker (ADR-033 P5, live 2026-08-19); `render.yaml` is deleted; the service itself remains until P8 retires the account. **The MCP server is gone** — it reached one dormant service, and a declared server that is never called is indistinguishable from a broken one.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: remote HTTP at `https://api.githubcopilot.com/mcp/`. **This one does not work unconfigured** — the endpoint does not support dynamic client registration, so it needs a machine-local PAT header; see the registry doc. Until then, use the `gh` CLI.
 - **Convex** — the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (`auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, … — `tools/check-convex-codegen.ts` prints the true module count on every run, so it is not restated here) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md). MCP server: stdio via `bunx convex mcp start --project-dir apps/itun`, authenticating with the Convex CLI's own device credentials. It targets the **dev** deployment resolved from `CONVEX_DEPLOYMENT`, so run `bunx convex dev` once or every tool call fails; production access is gated behind flags that are deliberately **not** set.
@@ -99,7 +99,6 @@ bun run dev              # Build package + start reference site dev server
                          # (srd's own `bun ssg/dev.ts` — Vite in middleware mode,
                          # rendering through the SAME ssg/render.tsx path as prod)
 bun run dev:watch        # Alias of dev — package TS is consumed directly, nothing to watch
-bun run dev:bot          # Start Discord bot locally
 bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
@@ -191,10 +190,10 @@ bun run deploy-commands          # Deploy slash commands to test guild
 bun run deploy-commands:global   # Deploy globally (production)
 
 # Building
-bun run build            # Full build (package + reference site + ITUN + bot)
+bun run build            # Full build (package + reference site + ITUN)
+                         # The bot has no build: wrangler bundles its Worker.
 bun run build:web        # Build srd only (= `bun ssg/build.ts` in apps/srd)
 bun run build:itun       # Build ITUN app
-bun run build:bot        # Build Discord bot
 
 # srd build + output gate (run from apps/srd, not the root)
 bun ssg/build.ts         # The static build: vite client build -> render every
@@ -213,7 +212,7 @@ bun --filter srd gate             # build, then diff the output against the comm
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with the `-440`/`-880` derivatives rendered on demand through Cloudflare Images. Image bytes live in R2, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/assets.ts`, re-exported from `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
-- `packages/observability/` - Sentry wiring: `/cloudflare` for the three Workers (`withObservability`, `reportError`, the cron check-in), `/node` for the Discord bot's dormant gateway path, and `/browser` for the capture-hint helper the two browser shims share (imports no Sentry code).
+- `packages/observability/` - Sentry wiring: `/cloudflare` for the three Workers (`withObservability`, `reportError`, the cron check-in) and `/browser` for the capture-hint helper the two browser shims share (imports no Sentry code). The `/node` subpath is **deleted**: the Discord bot's Node gateway was its only consumer.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 **Dependency graph:**

@@ -23,8 +23,8 @@ bun run build:package
 bun run dev
 ```
 
-Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
-(Discord bot).
+Other dev servers: `bun run dev:itun` (character builder), or `bunx wrangler dev`
+in `apps/discord-bot` (the Discord bot's Worker).
 
 ## Structure
 
@@ -58,7 +58,6 @@ is not a prerequisite for typechecking or running anything.
 # Development
 bun run dev          # Reference site (srd)
 bun run dev:itun     # Character builder (itun)
-bun run dev:bot      # Discord bot
 
 # Build
 bun run build            # Everything (package + all apps)

@@ -771,15 +771,12 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build discord-bot
-        run: bun --filter discord-bot build
-
-      # The bundle CI builds above is `src/index.ts` — the DORMANT Node gateway.
-      # `wrangler.jsonc` deploys `src/http/worker.ts`, and the two share no
-      # import path (only a comment), so the entrypoint that actually ships was
-      # never bundled outside the deploy job, credentials in hand. `--dry-run`
-      # parses the config, resolves the bindings and esbuild-bundles the Worker,
-      # and needs no credential to do it.
+      # There is no `bun --filter discord-bot build` step any more. It bundled
+      # `src/index.ts` — the dormant Node gateway — which is deleted, along with
+      # the `dist/` nothing ran. `wrangler.jsonc` deploys `src/http/worker.ts`,
+      # and this dry-run is now the only bundle CI produces for the bot, which
+      # is the right one: it parses the config, resolves the bindings and
+      # esbuild-bundles the entrypoint that actually ships, with no credential.
       - name: Bundle the Worker that actually deploys
         run: bunx wrangler@4.108.0 deploy --dry-run --outdir /tmp/bot-worker
         working-directory: apps/discord-bot

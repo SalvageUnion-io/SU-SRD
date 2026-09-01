@@ -65,10 +65,10 @@ other bots that register a bare `/roll`).
    bun run deploy-commands
    ```
 
-5. Start the bot:
+5. Run the Worker locally:
 
    ```bash
-   bun run dev:bot
+   cd apps/discord-bot && bunx wrangler dev
    ```
 
 ### Registering slash commands
@@ -90,12 +90,9 @@ old standalone `/roll` and `/lookup`) deregister automatically on the next run.
 
 ### Production Deployment
 
-1. Build and start:
-
-   ```bash
-   bun run build:bot
-   node apps/discord-bot/dist/index.js
-   ```
+1. Deploying is `.github/workflows/deploy-cloudflare.yml` on push to `main` —
+   there is no build step and no artifact to start. `wrangler` bundles
+   `src/http/worker.ts` and ships it.
 
 2. If (and only if) the command shape changed, register globally as a separate,
    intentional step:
@@ -104,33 +101,29 @@ old standalone `/roll` and `/lookup`) deregister automatically on the next run.
    bun run deploy-commands:global
    ```
 
-### Render Deployment
+### Deployment
 
-The bot deploys to **Cloudflare Workers** ([ADR-033](../../docs/adrs/ADR-033-cloudflare-hosting.md)), from `.github/workflows/deploy-cloudflare.yml`, using `apps/discord-bot/wrangler.jsonc`. It runs as an HTTP-interactions Worker, not a gateway process.
+The bot deploys to **Cloudflare Workers**
+([ADR-033](../../docs/adrs/ADR-033-cloudflare-hosting.md)) from
+`.github/workflows/deploy-cloudflare.yml`, using `apps/discord-bot/wrangler.jsonc`.
+It runs as an HTTP-interactions Worker, not a gateway process. Secrets
+(`DISCORD_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_CLIENT_ID`, …) are Worker
+secrets, set with `wrangler secret put`.
 
-Render is retired: the `render.yaml` blueprint that used to drive it was deleted in P8 and the service is dormant. The section below is kept only as a record of the previous deployment.
+**Deploying does _not_ register slash commands**, deliberately: it must never
+silently re-register global commands. When the command shape changes, register
+it once, out-of-band, with `bun run deploy-commands:global` locally (production
+`DISCORD_TOKEN` / `DISCORD_CLIENT_ID` in your environment).
 
-1. Connect your repository to Render
-2. Render will automatically detect the blueprint
-3. Set environment variables in the Render dashboard:
-   - `DISCORD_TOKEN`
-   - `DISCORD_CLIENT_ID`
-   - `DISCORD_GUILD_ID` (optional)
-   - `SENTRY_DSN` (optional — error tracking; observability is a no-op without it)
-
-**The Render build does _not_ register slash commands.** The `buildCommand`
-only installs deps and builds the bot (`bun install --ignore-scripts && bun run
-build:bot`); deploying never silently re-registers global commands. When the
-command shape changes, register it once, out-of-band, by running
-`bun run deploy-commands:global` locally (with production `DISCORD_TOKEN` /
-`DISCORD_CLIENT_ID` in your environment).
+Render is **retired** — the account is gone, `render.yaml` was deleted in
+ADR-033 P8, and the Node gateway it ran was deleted with it. The previous
+deployment instructions that lived here went with it; git history has them.
 
 ## Scripts
 
 | Script                           | Description                       |
 | -------------------------------- | --------------------------------- |
-| `bun run dev:bot`                | Start the bot in development mode |
-| `bun run build:bot`              | Build the bot for production      |
+| `bunx wrangler dev`              | Run the Worker locally            |
 | `bun run deploy-commands`        | Deploy commands to test guild     |
 | `bun run deploy-commands:global` | Deploy commands globally          |
 

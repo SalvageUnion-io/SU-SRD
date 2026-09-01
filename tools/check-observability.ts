@@ -615,14 +615,31 @@ type ServerSurface = {
   netlifyBundled: boolean
 }
 
-const SERVER_SURFACES: ServerSurface[] = [
-  {
-    name: 'discord-bot',
-    modulePath: 'apps/discord-bot/src/observability.ts',
-    manifestPath: 'apps/discord-bot/package.json',
-    netlifyBundled: false,
-  },
-]
+/**
+ * EMPTY, and retired rather than merely unpopulated.
+ *
+ * This list held exactly one surface: the Discord bot's `src/observability.ts`,
+ * the shim for the dormant Node gateway. That gateway is deleted — the bot has
+ * served from a Cloudflare Worker since 2026-08-19 (ADR-033 P5) and the Worker
+ * reports through `observability/cloudflare`, which `WORKER_SURFACES` covers.
+ *
+ * The rule this enforced is worth recording even though nothing is subject to
+ * it now, because the incident behind it was expensive: a server surface had to
+ * import `@sentry/node` ITSELF and pass it in, because Netlify's Functions
+ * bundler externalised the package and copied it beside the file the import
+ * RESOLVED FROM. With the import in `packages/observability`, the copy landed in
+ * `packages/observability/node_modules/` while the function was emitted under
+ * `apps/itun/netlify/functions/` — and Node resolves upward from the emitted
+ * file, never reaching `packages/`. Every snapshot Function died at module load,
+ * sharing entirely down, from a one-line package.json edit that typecheck,
+ * tests, lint and knip all passed.
+ *
+ * Both halves of that are now gone: the Netlify Functions with ADR-033 P7, and
+ * `observability/node` with the gateway. The list and `checkServerSurface` are
+ * kept armed and empty on purpose — if a Node surface is ever added back, add a
+ * row here rather than rediscovering the constraint from a 502.
+ */
+const SERVER_SURFACES: ServerSurface[] = []
 
 /**
  * `checkFunctionDirs` lived here and is RETIRED, not ported.
@@ -790,24 +807,13 @@ function checkServerSurface(surface: ServerSurface): void {
 }
 
 /**
- * The shared package must NOT value-import the SDK — that is the exact edit
- * that took production down, so it is asserted from both ends.
+ * `checkSharedPackage` lived here and is RETIRED with its subject.
+ *
+ * It asserted that `packages/observability/src/node.ts` imported the SDK for
+ * TYPES only — the exact edit that once took production down, asserted from
+ * both ends. That file is deleted along with the Node gateway that was its only
+ * consumer, so there is no longer a shared server module to constrain.
  */
-function checkSharedPackage(): void {
-  const shared = read('packages/observability/src/node.ts')
-  if (shared === null) {
-    failures.push('  [observability] packages/observability/src/node.ts is missing')
-    return
-  }
-  if (SDK_VALUE_IMPORT.test(shared)) {
-    failures.push(
-      '  [observability] packages/observability/src/node.ts value-imports @sentry/node.\n' +
-        '      It must import it for TYPES only (`import type * as SentryNode`) and take\n' +
-        '      the SDK as a parameter — otherwise the bundler resolves it here and the\n' +
-        '      deployed Netlify Functions 502 at module load.'
-    )
-  }
-}
 
 const live = process.argv.includes('--live')
 
@@ -824,7 +830,6 @@ for (const app of BROWSER_APPS) {
 
 // Static-only: this is repo layout, and the live probe reads deployed bytes.
 if (!live) {
-  checkSharedPackage()
   for (const surface of SERVER_SURFACES) checkServerSurface(surface)
   for (const surface of WORKER_SURFACES) checkWorkerSurface(surface)
 }
