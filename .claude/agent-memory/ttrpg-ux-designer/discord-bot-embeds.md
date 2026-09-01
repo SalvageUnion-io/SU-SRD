@@ -30,7 +30,7 @@ and the plumbing, not a component roster.
 
 | type | n | shape |
 |---|---|---|
-| `standard` | 69 | exactly `1 / 2-5 / 6-10 / 11-19 / 20`, labelled |
+| `standard` | 69 | exactly `1 / 2-5 / 6-10 / 11-19 / 20`; **54 of the 69 carry no labels** |
 | `flat` | 16 | 20 singleton keys, **no labels** (Keepsake, Callsign-ish name tables) |
 | `bio-chassis` | 2 | finer monotone bands, labelled, ALL-CAPS labels |
 | `duos` | 2 | `1-2 … 19-20`, no labels, enumerative (Faction Encounter) |
@@ -45,7 +45,13 @@ Consequences that bite:
   renders in cascade red. Tier colour only means something on monotone tables.
 - Unlabelled tables fall into `buildRollEmbedData`'s flat branch with
   `outcome.label ?? 'Roll: N'` → the **title becomes "Roll: 14"** and the actual
-  result is body text. Affects flat/duos/octet = 20 tables.
+  result is body text. **Measured: 76 of the 96 tables have zero labelled
+  entries** (only 139 of 833 entries carry one), so this is the majority case,
+  not an edge case. It is NOT confined to the name-table types — 54 of the 69
+  `standard` tables are unlabelled too (e.g. Meteor Encounter, p.9), and those
+  are monotone outcome ramps where the tier genuinely applies. `CORE_ROLL_BANDS`
+  (`salvageunion-reference/lib/rules/coreMechanic.ts`) already supplies the
+  label/range/summary the title should be using.
 - `columns` results carry no description at all (title + 3 fields only).
 - Critical Damage / Mech Salvage / Area Salvage are `standard`, NOT `columns` —
   a common mis-assumption.
