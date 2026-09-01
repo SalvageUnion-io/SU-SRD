@@ -16,7 +16,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm building the play surface (the Dashboard)** → [architecture/dashboard.md](architecture/dashboard.md) + [adrs/ADR-015-dashboard-distinct-play-surface.md](adrs/ADR-015-dashboard-distinct-play-surface.md) (through ADR-020)
 
-**I'm working on the snapshot share feature** → [adrs/ADR-004-snapshot-netlify-functions.md](adrs/ADR-004-snapshot-netlify-functions.md)
+**I'm working on sharing a sheet — snapshots, public sheets, or unifying the two** → [adrs/ADR-004-snapshot-netlify-functions.md](adrs/ADR-004-snapshot-netlify-functions.md) (the frozen `/s/:id` snapshot — unauthenticated, id-as-capability) + [adrs/ADR-032-public-read-only-sheets.md](adrs/ADR-032-public-read-only-sheets.md) (the live `/p/:kind/:appId` sheet — owner opt-in, revoked everywhere at once) + [architecture/unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md) (**the plan to combine them** — phases, gates, and the four decisions a future ADR must settle before any one-way phase begins). The two render through one renderer already; what differs is the capability model, so do not treat the merge as a routing change.
 
 **I'm working on accounts, Games, or the Discord bot as a game client** → [adrs/ADR-030-accounts-games-server-of-record.md](adrs/ADR-030-accounts-games-server-of-record.md) (**governing** ADR for identity + ownership) + [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (delivery phases + ops reference) + [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)
 
@@ -63,6 +63,7 @@ conventions, then the relevant architecture doc below.
 | [cloudflare-cutover.md](architecture/cloudflare-cutover.md)           | **Executable plan** for ADR-033 — phase order, per-phase gates, progress table, cutover runbook        |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
 | [persistence-and-pwa.md](architecture/persistence-and-pwa.md)         | **Executable plan** for ADR-034 and ADR-035 — phases, gates, progress, and what is not DB-backed yet   |
+| [unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md)   | **Plan** for unifying the two account-free share surfaces (`/s/:id` frozen, `/p/:kind/:appId` live) — phases, gates, and the open decisions a future ADR must settle |
 
 ### Rules text — extract and grep, no digest
 
