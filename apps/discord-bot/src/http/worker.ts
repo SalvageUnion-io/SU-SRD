@@ -92,7 +92,6 @@ export type Env = ObservabilityEnv & {
   DISCORD_APPLICATION_ID: string
   DISCORD_TOKEN: string
   /** Optional: the bot's avatar hash, for branding embeds. */
-  DISCORD_BOT_AVATAR?: string
   /**
    * ITUN (ADR-030 Phase 6). BOTH optional and BOTH required together: with
    * either missing the bot runs in Solo mode, which is the deliberate default —
@@ -133,7 +132,6 @@ async function dispatch(
   const adapterCtx = {
     raw,
     applicationId: env.DISCORD_APPLICATION_ID,
-    botAvatarHash: env.DISCORD_BOT_AVATAR ?? null,
     rest,
     sink,
   }

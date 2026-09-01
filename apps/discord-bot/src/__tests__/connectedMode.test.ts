@@ -8,6 +8,7 @@ import { rollCommand } from '../commands/roll.js'
 import { suCommand } from '../commands/su.js'
 import type { ItunClient } from '../itun/client.js'
 import type { ItunResult } from '../itun/types.js'
+import type { ReplyArg } from './fakeInteraction.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 import { buttonInteractionHandlerFor } from './helpers.js'
 
@@ -46,6 +47,24 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
 
 function connect(result: ItunResult<unknown>): void {
   restore = setItunClientForTests(clientReturning(result))
+}
+
+/**
+ * Assert a recorded reply carried exactly one rendered Game container.
+ *
+ * These used to read `reply.embeds`. The Game surfaces are Components V2 now,
+ * so the payload carries `components` plus the flag and never an embed — V2 is
+ * all-in per message.
+ */
+function expectContainer(reply: ReplyArg | undefined, options: { ephemeral: boolean }): void {
+  if (!reply) throw new Error('expected a reply')
+  expect(reply.components).toHaveLength(1)
+  expect(reply.embeds).toBeUndefined()
+  expect(reply.flags).toBe(
+    options.ephemeral
+      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      : MessageFlags.IsComponentsV2
+  )
 }
 
 /** A realistic Convex document id — the option carries one of these, not a name. */
@@ -88,7 +107,7 @@ describe('an ephemeral command', () => {
     await meCommand.execute(interaction)
 
     expect(deferred.ephemeral).toBe(true)
-    expect(edits[0]?.embeds).toHaveLength(1)
+    expectContainer(edits[0], { ephemeral: true })
     // Personal, so it stays with the person who asked.
     expect(followUps).toHaveLength(0)
   })
@@ -103,7 +122,7 @@ describe('an ephemeral command', () => {
     })
     const { interaction, edits } = fakeExecute({ subcommand: name })
     await command.execute(interaction)
-    expect(edits[0]?.embeds).toHaveLength(1)
+    expectContainer(edits[0], { ephemeral: true })
   })
 })
 
@@ -114,7 +133,7 @@ describe('a public command', () => {
     await crewCommand.execute(interaction)
 
     // The board goes to the table; the invoker gets a private receipt.
-    expect(followUps[0]?.embeds).toHaveLength(1)
+    expectContainer(followUps[0], { ephemeral: false })
     expect(edits[0]?.content).toBe('Posted to the channel.')
   })
 
@@ -159,7 +178,7 @@ describe('/su sheet', () => {
       strings: { entity: 'pilots:p1' },
     })
     await sheetCommand.execute(interaction)
-    expect(edits[0]?.embeds).toHaveLength(1)
+    expectContainer(edits[0], { ephemeral: true })
   })
 
   test.each([['just-a-name'], ['pilots:'], ['bogus:p1']])(
@@ -304,7 +323,7 @@ describe('/su game', () => {
     })
     const { interaction, followUps } = fakeExecute({ subcommand: 'info', subcommandGroup: 'game' })
     await gameCommand.execute(interaction)
-    expect(followUps[0]?.embeds).toHaveLength(1)
+    expectContainer(followUps[0], { ephemeral: false })
   })
 
   test('every subcommand needs a channel', async () => {
@@ -398,7 +417,7 @@ describe('/su dispatch', () => {
       strings: { entity: 'pilots:p1' },
     })
     await suCommand.execute(interaction)
-    expect(edits[0]?.embeds).toHaveLength(1)
+    expectContainer(edits[0], { ephemeral: true })
   })
 
   test('routes sheet autocomplete', async () => {

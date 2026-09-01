@@ -19,7 +19,6 @@ export function buttonInteractionHandlerFor(customId: string): {
 
   const interaction: CommandButtonInteraction = {
     customId,
-    client: { user: null },
     user: { id: 'discord-tester' },
     channelId: 'chan-1',
     reply: (arg: ReplyArg) => {

@@ -140,17 +140,10 @@ function stringOption(
   return found.value
 }
 
-/** The bot's own avatar URL, derived from the ids Discord sends. */
-function botAvatarURL(applicationId: string, avatarHash: string | null | undefined): string | null {
-  if (!avatarHash) return null
-  return `https://cdn.discordapp.com/avatars/${applicationId}/${avatarHash}.png`
-}
-
 type AdapterContext = {
   raw: APIInteraction
   applicationId: string
   /** Bot avatar hash, if known. Handlers tolerate a null icon. */
-  botAvatarHash?: string | null
   rest: REST
   sink: ResponseSink
 }
@@ -250,7 +243,6 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     user?: { id: string; global_name?: string | null; username?: string }
   }
   const { group, subcommand, values } = resolveOptionPath(raw.data?.options)
-  const iconURL = botAvatarURL(ctx.applicationId, ctx.botAvatarHash)
 
   return {
     options: {
@@ -268,7 +260,6 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     // actually used.
     user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
-    client: { user: iconURL ? { displayAvatarURL: () => iconURL } : null },
     ...replyMembers(ctx),
   } as CommandExecuteInteraction
 }
@@ -284,13 +275,11 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
     }
     user?: { id: string; global_name?: string | null; username?: string }
   }
-  const iconURL = botAvatarURL(ctx.applicationId, ctx.botAvatarHash)
 
   return {
     customId: raw.data?.custom_id ?? '',
     user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
-    client: { user: iconURL ? { displayAvatarURL: () => iconURL } : null },
     ...replyMembers(ctx),
   } as CommandButtonInteraction
 }

@@ -1,6 +1,7 @@
-import { EmbedBuilder } from '@discordjs/builders'
+import type { ContainerBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
-import { BRAND_NAME, enforceEmbedLimits } from '../format.js'
+import { toContainer } from '../container.js'
+import { gameContainerData } from '../gameContainer.js'
 import type { EmbedData } from '../gameEmbed.js'
 import { denialMessage } from '../gameEmbed.js'
 import type { ItunClient } from '../itun/client.js'
@@ -99,20 +100,23 @@ export const SOLO_NOTICE = [
  * `enforceEmbedLimits` mutates, which is safe precisely because the argument is
  * always a freshly-built literal from a `build*Embed` call.
  */
-export function toEmbed(data: EmbedData, iconURL?: string): EmbedBuilder {
-  const safe = enforceEmbedLimits(data)
-  const embed = new EmbedBuilder()
-    .setTitle(safe.title)
-    .setColor(safe.color)
-    .addFields(safe.fields)
-    .setFooter({ text: safe.footer })
-    .setTimestamp()
-  if (safe.description) embed.setDescription(safe.description)
-  if (safe.url) embed.setURL(safe.url)
-  // Remote CDN URL, never an attachment — see `EmbedData.thumbnail`.
-  if (safe.thumbnail) embed.setThumbnail(safe.thumbnail)
-  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
-  return embed
+export function toGameContainer(data: EmbedData): ContainerBuilder {
+  // `toContainer` runs its own guard, which is a different budget from
+  // EMBED_LIMIT — do not enforce twice.
+  return toContainer(gameContainerData(data))
+}
+
+/** The V2 payload for a rendered Game result, at the given visibility. */
+function containerPayload(
+  data: EmbedData,
+  ephemeral: boolean
+): { flags: number; components: [ContainerBuilder] } {
+  return {
+    flags: ephemeral
+      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      : MessageFlags.IsComponentsV2,
+    components: [toGameContainer(data)],
+  }
 }
 
 /**
@@ -153,15 +157,17 @@ export async function respondWithItun<T>(
   const result = await options.call(active)
   switch (result.kind) {
     case 'ok': {
-      const embed = toEmbed(
-        options.render(result.value),
-        interaction.client.user?.displayAvatarURL()
-      )
+      const rendered = options.render(result.value)
       if (options.visibility === 'public') {
-        await interaction.followUp({ embeds: [embed] })
+        // A follow-up is a NEW message, so the V2 flag is set at creation and
+        // never toggled — the safe half of this path.
+        await interaction.followUp(containerPayload(rendered, false))
         await interaction.editReply({ content: 'Posted to the channel.' })
       } else {
-        await interaction.editReply({ embeds: [embed] })
+        // An ephemeral result edits the deferred placeholder. See the note on
+        // `respondWithItun` about why this is the one place the V2 migration
+        // depends on unverified behaviour.
+        await interaction.editReply(containerPayload(rendered, true))
       }
       return
     }
