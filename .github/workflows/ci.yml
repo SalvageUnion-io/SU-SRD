@@ -72,6 +72,7 @@ jobs:
       itun: ${{ steps.filter.outputs.itun || steps.all.outputs.all }}
       web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
       bot: ${{ steps.filter.outputs.bot || steps.all.outputs.all }}
+      assets: ${{ steps.filter.outputs.assets || steps.all.outputs.all }}
       code: ${{ steps.filter.outputs.code || steps.all.outputs.all }}
     steps:
       - name: Checkout
@@ -172,6 +173,9 @@ jobs:
             bot:
               - *shared
               - 'apps/discord-bot/**'
+            assets:
+              - *shared
+              - 'apps/su-assets/**'
             code:
               - *shared
               - 'apps/**'
@@ -693,6 +697,15 @@ jobs:
       - name: Build itun
         run: bun --filter itun build
 
+      # `bun --filter itun build` is `tsc --noEmit && vite build`, which emits
+      # the ASSETS. `wrangler.jsonc` also declares `main: src/worker/index.ts`,
+      # and nothing bundled that until the deploy job. srd is deliberately not
+      # dry-run here: it declares no `main` at all (Static Assets with no Worker
+      # script), so there is no bundle to produce.
+      - name: Bundle the Worker that actually deploys
+        run: bunx wrangler@4.108.0 deploy --dry-run --outdir /tmp/itun-worker
+        working-directory: apps/itun
+
       # The TanStack Router plugin regenerates src/routeTree.gen.ts as part of
       # the build. It is a COMMITTED artifact, so if the build emits something
       # different from what is checked in, every contributor gets a spuriously
@@ -761,6 +774,37 @@ jobs:
       - name: Build discord-bot
         run: bun --filter discord-bot build
 
+      # The bundle CI builds above is `src/index.ts` — the DORMANT Node gateway.
+      # `wrangler.jsonc` deploys `src/http/worker.ts`, and the two share no
+      # import path (only a comment), so the entrypoint that actually ships was
+      # never bundled outside the deploy job, credentials in hand. `--dry-run`
+      # parses the config, resolves the bindings and esbuild-bundles the Worker,
+      # and needs no credential to do it.
+      - name: Bundle the Worker that actually deploys
+        run: bunx wrangler@4.108.0 deploy --dry-run --outdir /tmp/bot-worker
+        working-directory: apps/discord-bot
+
+  # ---------------------------------------------------------------------------
+  # su-assets had no filter, no job and no coverage baseline — a production
+  # Worker serving assets.salvageunion.io whose only gate was the generic
+  # typecheck/test/lint sweep, and which `deploy-cloudflare.yml` ships FIRST.
+  # ---------------------------------------------------------------------------
+  build-su-assets:
+    needs: [changes, static-checks, test]
+    if: needs.changes.outputs.assets == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Bundle the Worker
+        run: bunx wrangler@4.108.0 deploy --dry-run --outdir /tmp/su-assets-worker
+        working-directory: apps/su-assets
+
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
@@ -784,6 +828,7 @@ jobs:
       - build-srd
       - build-itun
       - build-discord-bot
+      - build-su-assets
       # NOTE: the FULL browser e2e suites (ITUN + srd) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.
       # the PR-blocking browser tier folded into build-srd/build-itun covers

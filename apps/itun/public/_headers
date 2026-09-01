@@ -57,7 +57,21 @@
   # differs by context: production is `exuberant-porpoise-183`, while a branch
   # deploy or a local `convex dev` points elsewhere. Both schemes are required —
   # `wss:` does NOT inherit from `https:`.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+  # script-src carries NO 'unsafe-inline'. It used to, and that removed CSP's
+  # primary XSS control: with it, an injected <script> executes.
+  #
+  # Removing it cost nothing, which is the point — the built `dist/index.html`
+  # contains ZERO inline scripts (measured: two external <script src> tags and
+  # nothing else), so the directive was permitting a class of thing this app
+  # does not emit. Vite bundles every module; the PWA registration is external.
+  #
+  # If a build ever DOES need an inline script, do not put this back: give that
+  # script a sha256 hash here, the way apps/srd does. A single 'unsafe-inline'
+  # re-opens the whole origin.
+  #
+  # 'unsafe-inline' remains in style-src, deliberately — Tailwind and React
+  # inline styles need it, and style injection is not script execution.
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
 
 # Content-hashed bundle output from Vite's default assetsDir.
 /assets/*

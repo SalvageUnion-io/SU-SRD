@@ -28,7 +28,28 @@
   # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
   # which fails CI if this drifts. Wildcarded subdomain because the host encodes
   # the Sentry org id.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
+  # script-src carries NO 'unsafe-inline'. With it, an injected <script>
+  # executes and CSP's primary XSS control is gone.
+  #
+  # __SRD_INLINE_SCRIPT_HASHES__ is a PLACEHOLDER, substituted at build time by
+  # ssg/csp.ts from the inline scripts this build actually emitted (3 of them
+  # today: the js-class snippet on every page, plus one each on /about and
+  # /greembeem). Generated rather than written down because a hardcoded hash
+  # drifts the moment its script changes by a character, and a stale hash fails
+  # silently — the CSP still reads as strict and the script is simply blocked.
+  # The build throws if this token is missing or if it finds nothing to hash.
+  #
+  # 'inline-speculation-rules' covers <script type="speculationrules">, which is
+  # gated by script-src but cannot be hashed. Browsers that don't know the
+  # keyword ignore it, and those are the ones with no speculation rules anyway.
+  #
+  # JSON-LD and the island props are type="application/ld+json" and
+  # type="application/json" — DATA BLOCKS, which the browser never executes and
+  # script-src does not gate. They need no hash.
+  #
+  # 'unsafe-inline' stays in style-src deliberately: Tailwind needs it, and
+  # style injection is not script execution.
+  Content-Security-Policy: default-src 'self'; script-src __SRD_INLINE_SCRIPT_HASHES__ 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
 # Content-hashed bundle output. `/assets/*`, not the old `/_astro/*`: the
 # in-house SSG emits through Vite's default assetsDir. If ssg/vite.config.ts
@@ -86,3 +107,35 @@
   Access-Control-Allow-Methods: GET
   Content-Type: application/json
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# The remaining generated, deploy-stable files — every one of which matched NO
+# rule above and therefore inherited the same `max-age=0, must-revalidate` the
+# `/schema/*.json` block was added to fix.
+#
+# The costly one is the search index: 493 KB, fetched by the search island on
+# first interaction, and revalidated on every single page view. It is generated
+# per deploy from the same dataset as the JSON endpoints, so it gets the same
+# reasoning and the same numbers — one hour, not immutable, because the URL is
+# stable across deploys and the content behind it changes when the dataset does.
+#
+# The rest are small but equally uncovered: llms.txt, both sitemaps, robots.txt,
+# the webmanifest and the favicon.
+/search-index.json
+  Access-Control-Allow-Origin: *
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/llms.txt
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/robots.txt
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/*.xml
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/*.webmanifest
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/*.ico
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400

@@ -127,6 +127,17 @@ const CONTENT_TYPES: Record<string, string> = {
  * here.
  */
 const COMMON_HEADERS: Record<string, string> = {
+  // `default-src 'none'; sandbox` because the extension allowlist admits `svg`,
+  // and SVG is SCRIPT-CAPABLE: fetched by direct navigation it executes in this
+  // origin. The block below used to justify having no CSP with "this origin
+  // serves image bytes and short error strings, never HTML or script" — true of
+  // the other formats, not of SVG.
+  //
+  // Defence in depth rather than a live hole: the R2 bucket has no user-write
+  // path, so every object is one we uploaded. That is a fact about today's
+  // deployment, not a property of the Worker, which is exactly the kind of
+  // assumption worth not depending on.
+  'content-security-policy': "default-src 'none'; sandbox",
   'access-control-allow-origin': '*',
   'x-content-type-options': 'nosniff',
   'x-frame-options': 'DENY',
@@ -316,7 +327,15 @@ function cached(
   cache: Cache | null,
   ctx: ExecutionCtx | undefined
 ): Response {
-  if (cache && ctx) ctx.waitUntil(cache.put(req, response.clone()))
+  // GET only. The handler admits HEAD (see `makeAssetHandler`), and the Cache
+  // API throws a TypeError on a non-GET `put` — inside `waitUntil`, where the
+  // response has already been returned, so the request still succeeds and the
+  // failure is invisible. Every HEAD was quietly throwing here.
+  //
+  // The test double accepted any method, which is why the suite could not see
+  // it; `edgeCache.test.ts` now has a fake that throws on non-GET, matching the
+  // real API.
+  if (cache && ctx && req.method === 'GET') ctx.waitUntil(cache.put(req, response.clone()))
   return response
 }
 

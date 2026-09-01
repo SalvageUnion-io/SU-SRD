@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Dedicated Netlify site serving Salvage Union entity artwork from Netlify Blobs. Bytes live in Blobs, not git.",
+  "description": "Cloudflare Worker serving licensed entity artwork from the su-lp-assets R2 bucket, with -440/-880 derivatives rendered on demand through Cloudflare Images",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
