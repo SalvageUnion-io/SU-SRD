@@ -131,19 +131,20 @@ body. (`/su sheet` and `/su crew` have genuinely columnar data and keep theirs.)
 ### The band structure, identical on every roll
 
 ```
-AUTHOR    <roller> rolled                  ← who
-TITLE     █████ · TABLE NAME  (linked)     ← context + colour-free tier
-##        ▌20▐ NAILED IT                   ← the shout
-BODY      the outcome text
--#        d20 20 · band 20 · Core Book p.232
--#        █ LOGGED TO <GAME>               ← appended post-send, only if bound
-FOOTER    Salvage Union Reference · Randsum.dev · timestamp
-ACCENT    tier colour
+CONTAINER accent = tier colour
+-#        TABLE NAME · rolled by <roller>       ← context + who
+-#        <banner>                              ← extremes only (1 and 20)
+##        ▌20▐ NAILED IT                        ← the shout
+          the outcome text
+─────────                                       ← Separator
+-#        d20 20 · band 20 · Core Book p.232 · <t:…:R>
+-#        █ LOGGED TO <GAME>                    ← rebuilt post-send, only if bound
+[ ↻ Roll again ]  [ See table ↗ ]               ← Primary + Link
 ```
 
 ### Tier eligibility — derive from `table.type`, don't hand-maintain
 
-| Tiered — ladder, tier word, tier colour | Untiered — no ladder, neutral rust |
+| Tiered — tier word, tier colour, banners | Untiered — no tier word, neutral rust |
 |---|---|
 | `standard` 69, `bio-chassis` 2, `octet` 2, `alternate` 1, `salvage-cache` 1 | `flat` 16, `duos` 2, `columns` 1, `dramatic` 2 |
 
@@ -227,10 +228,9 @@ Core Mechanic      1                  1
 **After** · accent `#b0432b`
 
 ```
-⬤ Vex Marrow rolled
-█░░░░ · CORE MECHANIC
+CORE MECHANIC · rolled by Vex Marrow
 
--# ▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚▚
+-# ▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░▓▒░
 ## ▌1▐ CASCADE FAILURE
 
 Something has gone terribly wrong. You suffer a severe consequence of the
@@ -239,9 +239,9 @@ Mediator's choice.
 -# d20 1 · band 1 · Core Book p.232
 ```
 
-The `▚▚▚▚` hazard tape appears on tier 1 **and nowhere else**. Restraint is
-what gives it force. A natural 20 gets no equivalent — a full ladder and the
-coolest colour on the ramp is already a crown.
+The sawtooth banner appears on a natural 1, and the centred swell on a natural
+20. Bands 2–19 get neither — restraint is what gives both their force. See §5b
+for the textures considered and why the glyph set changed.
 
 ### 4c. The case that actually looks broken — Crawler Damage (`standard`, unlabelled)
 
@@ -263,8 +263,7 @@ Crawler Damage     14        11-19
 **After** · accent `#6f8a4a`
 
 ```
-⬤ Vex Marrow rolled
-████░ · CRAWLER DAMAGE
+CRAWLER DAMAGE · rolled by Vex Marrow
 
 ## ▌14▐ SUCCESS
 
@@ -331,8 +330,8 @@ Dice as inline code spans render as monospace boxes — small die plates that
 wrap naturally at any width, which is what you want for `10d6`.
 
 **SU-aware special case:** when the notation is exactly `1d20`/`d20` with no
-modifier, the player is invoking the Core Mechanic — give it the full ladder
-and tier. Scoped to *bare* `1d20` deliberately: Salvage Union reads the die raw
+modifier, the player is invoking the Core Mechanic — give it the tier word,
+the tier colour, and a banner if it lands on a 1 or a 20. Scoped to *bare* `1d20` deliberately: Salvage Union reads the die raw
 and has no `+N` modifiers, so tiering a modified total would be a rules error
 dressed as a feature.
 
@@ -370,62 +369,153 @@ Two load-bearing points:
 
 ---
 
-## 5. Ornament system — one Unicode block, six glyphs, zero emoji
+## 5. The frame — Components V2
 
-The bot already has an ornamental vocabulary: `gauge()` in `gameEmbed.ts` draws
-vitals as `██████░░░░ 6/10` using **Block Elements** (U+2580–U+259F). A bot that
-renders heat with `██████░░░░` and dice with 🎲 has two systems and belongs to
-neither.
+Rev 1 argued that all the typography should live in the description, because
+fields are the wrong primitive for a headline-plus-body. **Components V2 is
+that argument made native.**
 
-> **Every ornament on the roll surface comes from Block Elements. No emoji.**
+The flag is `MessageFlags.IsComponentsV2 = 32768`, present in the pinned
+`discord-api-types@0.38.53` (`payloads/v10/message.d.ts:438`), with every
+builder available in `@discordjs/builders@1.14.1`. A full roll container —
+accent, text blocks, a section with a thumbnail accessory, a separator and an
+action row — builds and serialises cleanly under the pinned versions, and
+**passes through the bot's own `toPlainPayload` unchanged** (`adapter.ts:174-184`).
+No adapter work.
 
-| Glyph | Code | Job |
-|---|---|---|
-| `█` | U+2588 | lit segment — ladder, status LED |
-| `░` | U+2591 | unlit segment — ladder |
-| `▌` `▐` | U+258C / U+2590 | die-plate edges |
-| `▚` | U+259A | hazard tape — natural 1 only |
-| `▁` | U+2581 | optional hairline rule |
+**The colour bar survives.** The one thing that could have killed this: V2
+rejects `embeds` outright, and the tier colour was an *embed* feature. But
+`ContainerBuilder.setAccentColor()` is the direct equivalent — the built
+payload carries `"accent_color": 11551531`, which is `0xb0432b`, cascade red.
+Going V2 costs nothing on the ramp.
 
-Three composed forms, never overlapping: **`▌20▐`** the die plate (die results
-only); **`█████`** the tier ladder (tiers only, always five segments regardless
-of band count); **`▚▚▚▚`** hazard tape (natural 1 only). Plus two established
-carry-overs: `↻` on the re-roll button, and backtick code spans for `/su check`
-dice.
+### What V2 gives the roll surface
 
-`gauge()` is the shipped proof that this block renders correctly on every
-Discord client.
+- **Real separators.** `SeparatorBuilder` draws an actual rule with
+  `Small`/`Large` spacing — structural division no embed can do without
+  spending a field.
+- **Link buttons cost no `custom_id`.** `ButtonStyle.Link` carries a URL
+  instead of an id, so *See table* stops consuming the 100-char budget.
+- **Sections with a thumbnail accessory** put art beside one block of text
+  rather than narrowing the whole column.
+- **One structured text column.** Author, footer and timestamp stop being fixed
+  embed slots and become ordinary lines you place.
 
-### Rejected alternatives
+### What it costs
 
-- **🎲 emoji** — the visual signature of every generic dice bot; full colour
-  against an otherwise monochrome panel; renders at wildly different sizes.
-- **Custom app emoji per d20 face** — 20 assets to maintain, render at ~22px
-  (no larger than a `##` glyph), buy nothing a `##`-scaled plate doesn't.
-- **`⚀⚁⚂⚃⚄⚅`** — six faces. This is a d20 game.
-- **ANSI code blocks** — tempting (real colour, true monospace) but rejected on
-  three counts: it kills markdown *inside* the block, so no links, no headers;
-  ANSI rendering is unreliable on mobile, the exact client this optimises for;
-  and the accent bar already carries tier colour, so it would be a second
-  channel for the same fact.
-- **`▰▱`** — prettier, but Geometric Shapes has measurably weaker coverage than
-  Block Elements, and consistency with `gauge()` beats the aesthetic delta.
+- **`content` and `embeds` are rejected** when the flag is set. All-in per message.
+- **The author, footer and timestamp slots disappear.** Author and footer become
+  `-#` lines; the timestamp becomes `<t:unix:R>` inside one. A useful side
+  effect: naming the roller no longer depends on `DISCORD_BOT_AVATAR`.
+- **Different ceilings.** The 6000-char embed budget is replaced by roughly 40
+  components and 4000 characters across all text blocks, so `enforceEmbedLimits`
+  does not apply and a V2 path needs its own guard. *(Ceilings **unverified** —
+  the builders impose no total-component cap, so this is Discord-side.)*
+- **The flag reportedly cannot be toggled on an existing message.** Harmless
+  here — every roll replies fresh — but any `editReply` on a V2 message must
+  itself be V2. *(Unverified.)*
 
-### Accessibility, stated honestly
+### The one real migration cost: `attributeRoll`
 
-The ladder announces as "full block, full block, light shade…" to a screen
-reader. That is real noise and it is the price of the mobile and colourblind
-fix. Three mitigations, all deliberate: the ladder is **pure redundancy** (the
-tier is always spelled in words in the `##` headline, so a screen-reader user
-loses noise, never information); it appears **once per embed**, five glyphs; and
-the die plate wraps a real number, so `▌20▐` announces the digits.
+Recording a roll to a bound Game currently mutates the sent message:
+`embed.setFooter(…)` then `editReply({ embeds })`. Its type is hard-coded —
+`editReply(payload: { embeds: EmbedBuilder[] })` at `rollAttribution.ts:37`.
+**Under V2 there are no embeds, so this breaks outright.**
 
-Uppercased tier text is announced letter-by-letter by some configurations. Caps
-cannot be applied as a text transform in Discord, so this is a real cost of the
-stencil voice — accepted, because the tier vocabulary is five short known
-phrases. Body copy stays sentence case.
+The fix is idiomatic for this repo rather than awkward: make the roll builder a
+pure `data → container` function, as `gameEmbed.ts` already is, and re-invoke it
+with a `loggedTo` value set. Rebuilding beats mutating once the message is a
+component tree. It is the only place V2 forces a change the redesign didn't
+already want.
 
 ---
+
+## 5b. Ornament — the banner
+
+### The ladder is cut
+
+An earlier pass put a five-segment meter (`█████` / `███░░`) in the title to
+carry the tier without colour. It was the weakest element in the system: five
+glyphs of screen-reader noise, restating a word that sits two lines below it in
+27px type, and reading as instrumentation on a surface that is otherwise a
+printed document. Cutting it costs nothing — the tier is still named in the
+headline and still coloured on the container accent.
+
+**Cutting the ladder is what earns the banner its job.** The first pass reserved
+hazard tape for a natural 1 and argued a 20 needed no equivalent because "a full
+ladder and the coolest colour on the ramp is already a crown." With the ladder
+gone that argument collapses — a 20 now has only colour. So the banner stops
+being a one-off alarm and becomes the device that marks **both ends of the ramp**.
+
+### The rule
+
+- **A banner marks the extremes only.** Natural 1 and natural 20. Bands 2–19
+  get nothing. Restraint is the whole mechanism.
+- **One glyph set, two rhythms.** Repetition reads as alarm; a single centred
+  swell reads as a peak. Same four characters, opposite motion.
+- **The banner never carries information the text doesn't.** Pure redundancy, so
+  a screen reader loses texture and no meaning.
+- **A banner is not a separator.** V2's `SeparatorBuilder` is uniform and
+  structural; the banner is textured and tier-specific. They do different jobs
+  and can coexist in one container.
+
+### Glyph safety — why the texture changed
+
+The first pass proposed `▚` (U+259A, a *quadrant* character). The bot's shipped
+`gauge()` (`gameEmbed.ts:141-148`) uses only `█` U+2588 and `░` U+2591 — the
+CP437 shade blocks, which have the broadest font coverage in the range.
+Quadrants are the weakest-covered glyphs in Block Elements and the most likely
+to fall back to a different font, which shows up as **gaps and uneven weight in
+a tiled run** — the one failure mode a banner cannot survive.
+
+So every variant is built from `░ ▒ ▓ █` only: the four shades, two of which
+the bot has already proven render everywhere it runs.
+
+### Cascade banner — textures considered
+
+| | Texture | Glyphs | Note |
+|---|---|---|---|
+| A | `▚▚▚▚▚▚▚▚▚▚▚▚` | U+259A | Truest to hazard tape, but **coverage risk** — not in the proven set. |
+| **B** | `▓▒░▓▒░▓▒░▓▒░` | `░▒▓` | **Recommended.** Repeating heavy→light ramp; the eye follows the falling weight and reads diagonal motion. Safest glyphs, strongest rhythm. |
+| C | `▓▓▒▒░░▓▓▒▒░░` | `░▒▓` | Doubled period. Calmer, more printed banding than tape. Loses urgency. |
+| D | `████░░████░░` | `░█` | Highest contrast, most alarming — but reads as a barrier, and can look like a loading bar. |
+| E | `█▓▒░░▒▓██▓▒░` | `░▒▓█` | Symmetrical swell. Handsome, but reads as breathing rather than danger — better on the 20. |
+
+### Nailed It banner — the inverse rhythm
+
+| | Texture | Note |
+|---|---|---|
+| **F** | `░░░░░▒▒▒▓▓███████▓▓▒▒▒░░░░░` | **Recommended.** One centred peak, no repetition — the exact opposite motion to the cascade sawtooth in the same four glyphs, so the pair reads as one system with two moods. |
+| G | `░░░░░░░░░░░░░░░` | Quiet, clean, "all systems nominal". Arguably too quiet for the best roll in the game. |
+| H | `▒▓█▓▒░ … ░▒▓█▓▒` | Bookends framing empty space. Elegant, but the gap collapses at narrow widths. |
+
+**Weight:** both banners sit at `-#` subtext weight, which keeps them a printed
+rule rather than a bar competing with the 27px headline. **Above** the headline,
+never framing it — a second rule below costs a line, doubles the screen-reader
+noise, and on a phone pushes the outcome text further from its number.
+
+### The surviving glyph set
+
+| Form | Glyphs | Job | Proven |
+|---|---|---|---|
+| Die plate | `▌ ▐` | Wraps the die number in the headline | half-blocks, **untested** |
+| Cascade banner | `▓ ▒ ░` | Repeating sawtooth, natural 1 only | `░` proven by `gauge()` |
+| Nailed banner | `░ ▒ ▓ █` | Centred swell, natural 20 only | `█ ░` proven by `gauge()` |
+| Status LED | `█` | One lit block on the "logged to Game" line | proven by `gauge()` |
+| Re-roll mark | `↻` | Button label | already shipped |
+
+The half-block plate edges `▌▐` are the one unproven pair left. If they render
+unevenly the fallback is backticks — `` `20` `` — giving the same stamped-plate
+reading via Discord's own code-span box, at the cost of the tier colour on the
+number.
+
+### Still rejected
+
+**Emoji** — the signature of every generic dice bot, full colour against a
+monochrome panel. **Custom app emoji per die face** — 20 assets, rendering no
+larger than a `##` glyph. **`⚀⚁⚂⚃⚄⚅`** — six faces; this is a d20 game.
+**ANSI code blocks** — kill markdown inside the block, so no links or headers,
+and unreliable on the mobile clients this optimises for.
 
 ## 6. Interaction design
 
@@ -483,7 +573,9 @@ Pinned: `discord.js` 14.27.0, `@discordjs/builders` 1.14.1, `@discordjs/rest`
 
 | Capability | Status | Works over this Worker as built? |
 |---|---|---|
-| **Components V2** (`MessageFlags.IsComponentsV2 = 32768`) | ✅ available | ✅ **yes, no adapter change** |
+| **Components V2** (`MessageFlags.IsComponentsV2 = 32768`) | ✅ available | ✅ **yes, no adapter change** — see §5, now the frame |
+| Container accent · Section · Separator · Thumbnail | ✅ available | ✅ all four verified in one built payload |
+| `ButtonStyle.Link` — no `custom_id` | ✅ available | ✅ unused today |
 | `Container/Section/TextDisplay/Separator/Thumbnail/MediaGallery` builders | ✅ available, unused | ✅ |
 | `setImage` / `setThumbnail` / `setAuthor({url})` | ✅ available, unused | ✅ |
 | Markdown `##` / `-#` / `<t:…:R>` as raw strings | ✅ | ✅ |
@@ -527,14 +619,15 @@ throwaway message to confirm.
   flicker through a spinner would be a visible regression". Pinned by
   `soloMode.test.ts:26-38` and `http/__tests__/replay.test.ts:263-280`. Anything
   needing I/O to build the first embed forfeits this.
-- **The footer edit flow.** `rollAttribution.ts:47-67` mutates `embeds[0]` only,
-  edits with `{ embeds }` only (adding `components: []` would nuke the buttons),
-  and must never throw. Moving the recorded signal into the description is
-  compatible; going multi-embed is not.
-- **Roll/check embeds bypass limit enforcement entirely.** They call bare
-  `truncate` inline and have no total-length guard — fine today because payloads
-  are small, but anything that inlines table rows must route through a real
-  enforcer or hit a 400 (`EMBED_LIMIT.total = 6000`).
+- **The footer edit flow — broken by V2, deliberately.** `rollAttribution.ts:47-67`
+  mutates `embeds[0]` and its type is hard-coded to `{ embeds: EmbedBuilder[] }`
+  (`:37`). Under a container there are no embeds, so this must become a rebuild
+  rather than a mutation. See §5. It must still never throw, and must still be
+  silent on failure.
+- **Limit enforcement does not transfer.** Roll/check already bypass it (bare
+  `truncate`, no total guard), and under V2 `EMBED_LIMIT.total = 6000` stops
+  applying at all — the ceiling becomes ~40 components and ~4000 characters
+  across text blocks. A V2 path needs its own guard rather than inheriting one.
 - **Solo mode must not regress** — roll/check/lookup behave identically with
   `ITUN_*` unset (`apps/discord-bot/CLAUDE.md`).
 - **`customId` is capped at 100 chars**, payload unescaped and unversioned. The
@@ -556,27 +649,31 @@ Impact per unit of effort, highest first. Items 1–10 are all **S** and live in
 |---|---|---|---|
 | 1 | **Adopt the `## ▌die▐ TIER — LABEL` headline** with the three-branch rule, sourcing tier words from `CORE_ROLL_BANDS`. | S | **Fixes 78.7% of rolls.** The tier becomes unmissable; the die ~3× larger. |
 | 2 | **Delete the three inline fields**; fold Table/Roll/Range into one `-#` line. | S | Removes ~6 lines of mobile chrome; ends `Roll: 20 / Range: 20`. |
-| 3 | **Gate the tier ramp on `table.type`** — untiered types get neutral rust, no ladder. | S | Kills the "Callsign 1 = cascade red" misinformation on 21 tables. |
+| 3 | **Gate the tier ramp on `table.type`** — untiered types get neutral rust and no banner. | S | Kills the "Callsign 1 = cascade red" misinformation on 21 tables. |
 | 4 | **Swap button styles** — `Roll again` → Primary. | S | Removes blurple from the loudest control. One line. |
 | 5 | **Fix `0xb7410e` → `0xa85222`** in all three copies. | S | Puts the bot's most-used colour back on canon. |
-| 6 | **Add the `█████` ladder** to the title. | S | Colour-independent tier read; the a11y + mobile fix. |
+| 6 | **Add the two extreme banners** — sawtooth on a natural 1, swell on a natural 20, subtext weight, tiered tables only. | S | Colour-independent tier read; the a11y + mobile fix. |
 | 7 | **Author slot → the roller.** | S | Restores identity on button re-rolls. |
 | 8 | **Move the Game signal** to its own `-# █ LOGGED TO <GAME>` line. | S | Un-buries a game fact from boilerplate; survives truncation. |
 | 9 | **`/su check`: total into `## ▌11▐`**, dice as code spans, drop 🎲 and the two fields. | S | The answer becomes the headline. |
-| 10 | **Page citation** in the provenance line via `getPageReference`; link the title via `srdEntityUrl` (`entityUrl` in `format.ts:275` is currently dead code). | S | New capability at near-zero cost. |
-| 11 | **Hazard tape on a natural 1.** | S | Makes the game's most dramatic beat look like it. |
+| 10 | **Page citation + a `Link`-style See table button** — `entityUrl` (`format.ts:275`) is dead code, and a link button spends no `custom_id`. | S | New capability at near-zero cost. |
+ Makes the game's most dramatic beat look like it. |
 | 12 | **Error embeds** in-system, with three fuzzy-matched recovery buttons reusing `su:roll:<name>`. | M | Turns the surface's only dead end into one tap. |
 | 13 | **"No entry" → `NO EFFECT`**, not an error, on the two `dramatic` tables. | M | Stops an internal diagnostic leaking on 19 of 20 rolls. |
 | 14 | **Bare-`1d20` tiering** in `/su check`. | M | Game-aware touch no generic dice bot has. |
 | 15 | **`private: true`** + `Post to channel`, encoding the *result* in the custom id (`su:post:Core Mechanic:20`, 24 chars) so the shared roll is provably the one you saw. | M | Serves Mediator rolls and solo prep without a second command. |
 | 16 | **`/su panel`** — a pinnable table console with a select of ~12 combat-facing tables. | L | A new play artifact rather than a restyle. |
 
-**If only three ship: 1, 2, 3** — hierarchy, density, correctness. That alone
-makes the surface read like a damage report instead of a dice bot.
+**0 is now the gate.** Everything below it is authored against a container
+rather than an embed, so do it first and the rest follow as content decisions
+rather than migrations. **If only three ship after it: 1, 2 and 3** —
+hierarchy, density, correctness.
 
-Items 1–11 need **no** Components V2, no attachments, and no adapter changes.
-V2 is available and free if a later pass wants containers; generated dice images
-are the one genuinely expensive idea and are not recommended.
+Two items grew from S to M once V2 became the frame, both for the same reason:
+there is no embed to mutate. That is the honest price, and it buys real
+separators, a free link button, and a builder that is pure by construction.
+Generated dice images remain the one genuinely expensive idea and are still not
+recommended — the adapter destroys binary, and attaching one requires a defer.
 
 ---
 
@@ -593,7 +690,15 @@ are the one genuinely expensive idea and are not recommended.
 3. **Should the `ROLL_COLORS` ↔ `theme.css` lockstep be enforced by a check?**
    `tools/check-styling-ownership.ts` exists and already polices theme
    ownership.
-4. **Does the Core Mechanic tier vocabulary fit outcome tables?** This is the
+4. **Confirm the V2 ceilings and the `content`/`embeds` prohibition** with one
+   live message. Neither is encoded in any installed package — the builders
+   impose no total-component cap — so the ~40-component / ~4000-character
+   limits are currently taken on documentation alone. Same message can settle
+   whether `▌▐` and `▓▒` tile evenly in Discord's client font; only `█` and `░`
+   are proven by the shipped `gauge()`. **This is the cheapest test in the
+   document and it gates §5 and §5b.**
+
+5. **Does the Core Mechanic tier vocabulary fit outcome tables?** This is the
    biggest open risk in the proposal, and the Crawler Damage mockup above shows
    it: an 11–19 there means *"your Union Crawler is inoperable and grounded"*,
    which `CORE_ROLL_BANDS` would label **SUCCESS**. The colour ramp is
@@ -602,7 +707,7 @@ are the one genuinely expensive idea and are not recommended.
 
    Three options, in preference order:
    - **Tier word only where the table is the Core Mechanic** (or an explicit
-     allowlist), and elsewhere show the ladder + die plate with no tier noun.
+     allowlist), and elsewhere show the die plate with no tier noun.
      Keeps every gain from change #1 — the headline stops being `Roll: 14` —
      without asserting a judgement the table doesn't make.
    - Use a neutral positional vocabulary for non-Core tables (`BEST CASE` …
@@ -611,4 +716,6 @@ are the one genuinely expensive idea and are not recommended.
      Correct but expensive, and a data change rather than a bot change.
 
    **Recommendation: option 1**, and resolve this before implementing #1 — it
-   changes what the headline says on 54 tables.
+   changes what the headline says on 54 tables. The banners are unaffected: a
+   natural 1 and a natural 20 are extremes on any monotone table, whatever you
+   call the bands between.
