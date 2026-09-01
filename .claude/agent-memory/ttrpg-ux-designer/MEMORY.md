@@ -63,9 +63,14 @@ the over-capacity red idiom, heat escalation, roll colour scope.
 
 ## Storage modes (ADR-030) — every surface needs all three
 
-- **Solo** — not signed in. IndexedDB is the truth, nothing is gated. Default,
-  first-class, must keep working forever. A build with no `VITE_CONVEX_URL` is
-  permanently Solo, so no surface may call a Convex hook unconditionally.
+- **Solo** — not signed in. IndexedDB is the truth, nothing is gated. This is
+  what a build with no `VITE_CONVEX_URL` gets (CI, a fresh checkout, `bun run
+  dev`), so no surface may call a Convex hook unconditionally.
+  - **Not "forever" any more.** ADR-034 withdrew that guarantee and has shipped:
+    in a production build `VITE_REQUIRE_ACCOUNT=true`, so an anonymous visitor
+    gets the in-memory backend and their work does not survive a reload. Design
+    for that — an anonymous user needs to be told their work is temporary, not
+    handed a UI that implies durability.
 - **Connected** — signed in. Convex is the server of record, IndexedDB is a cache.
 - **Disconnected** — signed in and offline = **read-only**, not a write queue.
   Design the read-only state deliberately; do not show a disabled control with

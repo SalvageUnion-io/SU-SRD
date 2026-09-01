@@ -41,185 +41,21 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 - **`playwright`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code. It is a _root_ dependency because that scanner lives in `tools/`, outside any workspace; the apps depend on `@playwright/test` separately for their e2e suites. This replaced `puppeteer-core`, which shipped no browser and had to borrow Playwright's Chromium — one browser stack now, not two.
 - **`sharp`** — no longer a ROOT dependency. It moved to `apps/srd`, whose `scripts/og-screenshots.ts` is now its only consumer; `tools/convert-lp-assets-to-webp.ts` and `tools/generate-lp-asset-derivatives.ts` were the other two and both were deleted when Cloudflare Images took over derivative rendering. With one consumer left it is also **out of the catalog** — `check:catalog` fails an entry with fewer than two references, and it caught exactly this.
 
-### Audit gate (`check:audit`)
+### Dependencies, the catalog, `overrides` and the audit gate
 
-`bun audit --audit-level=high` gates merges via the `static-checks` job, and
-`package.json` cannot carry comments, so the reasoning lives here.
+**All of it now lives in
+[`docs/architecture/dependency-management.md`](docs/architecture/dependency-management.md).**
+Read it before touching `package.json`, `bunfig.toml`, `workspaces.catalog` or
+`overrides` — every rule there exists because something went wrong once, and the
+reasoning is the part that matters.
 
-**There are no suppressed advisories.** `check:audit` carries no `--ignore`
-flags, and a bare `bun audit` reports nothing across 1,073 packages. It used to
-suppress two — `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`, both
-`image-size <=2.0.2` — behind a page of justification about which code paths
-could reach the parser. That justification is now moot rather than merely
-satisfied: `bun why image-size` reports the package is not in the lockfile at
-all. `@netlify/blobs` was still here when that was written (10.7.13, catalogued);
-it simply stopped pulling `image-size`. It has since been removed outright —
-`bun why @netlify/blobs` now reports *"No packages matching … found in
-lockfile"*. The flags and their rationale were removed together, on this
-section's own former instruction that a suppression outliving its cause is how
-a real advisory gets hidden.
+The three that bite most often, so you know whether you need to open it:
+`bun audit --audit-level=high` gates merges and there are **no** suppressed
+advisories; a dependency used by two or more manifests is declared once in
+`workspaces.catalog` and a version literal for a catalogued package is a bug;
+and `bunfig.toml` refuses versions published less than three days ago, which
+makes a **caret range resolve silently downward** rather than erroring.
 
-**If you add an `--ignore` back, write down what would remove it.** A
-suppression with no stated exit condition is the failure mode above; the pair
-that lived here survived their cause by an unknown number of dependency bumps
-because nothing re-derived the chain.
-
-**Re-derive the chain, don't trust this prose.** `bun why <pkg>` prints the real
-path from the lockfile, so any claim about how a package got here can be
-checked in one command instead of read:
-
-```
-$ bun why @sentry/cloudflare
-@sentry/cloudflare@10.69.0
-  └─ dev observability@workspace (requires 10.69.0)
-     ├─ discord-bot@workspace (requires workspace:*)
-     ├─ itun@workspace (requires workspace:*)
-```
-
-This example used to be `@netlify/blobs`, and it outlived the package —
-printing a dependency tree that no longer existed, three paragraphs under a
-heading that says not to trust this prose. Re-derived, not edited.
-
-Use it before editing an `overrides` entry too — the CI comment in
-`.github/workflows/ci.yml` documents what each entry holds back and via what,
-and that comment can go stale while `bun why` cannot.
-
-**`overrides` is now two entries, and NEITHER is a security floor** — both are
-dedupe pins. **Neither is optional, though: do not drop either as install
-weight.** `@discordjs/rest` lifts one stale `discord.js` edge onto a version its
-own range already allows, so `undici` clears `GHSA-vxpw-j846-p89q` unaided —
-which makes that pin the only thing keeping a **HIGH** advisory out of the tree,
-dedupe or not;
-`@opentelemetry/core` collapses two OTel cores that would otherwise coexist in
-one subtree and silently desync `@sentry/node`'s span context. The other six
-entries were removed in #787 after measuring what each held back; `ci.yml`
-records the per-entry evidence, the watch list and the restore conditions.
-
-**Read that comment before removing an entry here**, because "the audit is still
-clean" is necessary but *not sufficient* — `@opentelemetry/core` is the worked
-example of a removal that audits clean and still degrades behaviour.
-
-`nanoid` was among the six: it is no longer pinned anywhere, and `3.3.18` holds
-only because `postcss`'s `^3.3.17` caret happens to resolve there. That is a
-caret, not a guarantee — **`bunfig.toml`'s `minimumReleaseAge` makes a caret
-resolve silently *down*** to the newest version old enough (see "Install
-cooldown"), where a floor would have errored. So if `bun audit` ever reports
-`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote` or `filelist`, the fix is
-to restore that package's floor — not to hunt for a new consumer.
-
-**That watch list is manual below `high`.** `check:audit` gates at
-`--audit-level=high`, and nothing in `check`, CI or the pre-push hook runs a
-bare `bun audit` — so a *moderate* advisory on any of those five (the ReDoS
-class they actually draw) fails nothing and is caught only by running
-`bun audit` by hand. The `high` gate is unaffected.
-
-### Shared versions live in the catalog
-
-Any dependency used by **two or more** manifests is declared once in the root
-`package.json` under `workspaces.catalog` and referenced everywhere as
-`"react": "catalog:"`. 22 deps, 55 references. Bump the catalog entry, not the
-workspace — a version literal in a workspace manifest for a catalogued package
-is a bug, and it silently un-shares that dep.
-
-Adopting it changed **zero** resolved versions (`bun install` reported
-"Checked 953 installs ... (no changes)"); it only changed where the version is
-written.
-
-Two things this interacts with, both of which have bitten:
-
-- **`overrides` beats the catalog.** An `overrides` entry forces a version
-  tree-wide, so raising a catalogued dep past the range its override allows
-  leaves the catalog stating a version that is not what resolves — the catalog
-  becomes fiction, silently. **No dependency is currently in both places**, so
-  this hazard is dormant, not active — check before assuming it applies.
-  `@vitejs/plugin-react-swc` used to be the one example (catalogued *and*
-  overridden at `^4.3.3`), which is why `.catalog-updaterc.json` ignored its
-  major updates. That override is gone, so the ignore is gone with it and its
-  majors are automated like everything else. If you ever add an override for a
-  catalogued dep, restore the ignore in the same change.
-  (`sharp` is *not* an example of this — it has never had an override. Check
-  `overrides` before assuming; `ci.yml`'s audit job asserted a `sharp` override
-  that never existed.)
-- **Dependabot cannot read `catalog:`.** It will not update catalogued deps
-  (dependabot-core #14320) and may strip the `catalog` field from a manifest it
-  rewrites (#12522) — both still open.
-  `.github/workflows/catalog-update.yml` covers updates instead, pinned to a
-  commit SHA because it is a young composite action running in this repo's
-  runner. **Delete that workflow when dependabot-core supports `catalog:`.**
-
-`.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
-takes no comments, so the reason lives here. That feature defaults to **on** at
-`moderate` severity and writes `overrides` entries automatically; this repo
-curates `overrides` by hand — every entry documented in `ci.yml`, and as of
-#787 that is two dedupe pins with zero security floors — and gates at
-`--audit-level=high`. Leaving it on would open PRs editing that block for
-advisories `check:audit` deliberately ignores.
-
-`tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
-majors; anything else that learns a version by reading a workspace manifest
-needs the same treatment.
-
-### Install cooldown (`minimumReleaseAge`)
-
-`bunfig.toml` refuses dependency versions **published less than 3 days ago**.
-Dependabot opens *grouped* minor/patch PRs weekly, so reviewing one realistically
-means glancing at a list of version numbers — three days is about how long a
-hijacked npm release lasts before it is noticed and unpublished, and this makes
-such a version unresolvable rather than trusting that glance to catch it.
-
-Two behaviours, measured on Bun 1.3.14 — know which one you are hitting:
-
-- an **exact pin** the gate cannot satisfy is a hard, self-describing error
-  (`... (blocked by minimum-release-age: N seconds)`). Most deps here are exact
-  pins, so this is the usual case.
-- a **caret range silently resolves *down*** to the newest version old enough.
-  No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
-  did nothing — check the publish date before concluding the fix is broken.
-  An `overrides` floor is the loud alternative: resolving below one errors
-  instead of silently stepping down. **Both current `overrides` entries are
-  dedupe pins, not floors** (see "Audit gate"), so nothing here is protected that
-  way today. That is the accepted cost of #787, not an oversight — the five
-  packages it applies to (`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote`,
-  `filelist`) are listed there with the instruction to restore a floor if any of
-  them goes red.
-
-`bun install --frozen-lockfile` does no resolution and is **unaffected** —
-verified; CI and all four deploy targets never see this gate.
-
-The escape hatch is `minimumReleaseAgeExcludes` (currently `bun-types`, which
-must track `.bun-version` exactly), **not** lowering the number.
-
-### Dead-code gate (knip)
-
-`bun run knip` runs with **`includeEntryExports: true`**, so it also reports unused
-exports of _entry_ files — which is where a workspace-internal package's whole
-public API lives. Without it knip stays green while an entire export surface rots
-(this is how 72 dead exports accumulated in `salvageunion-reference`).
-
-Two escape hatches, both configured via `tags` in `knip.json`:
-
-- **`@public`** — the export is deliberately public or is a framework contract
-  invoked rather than imported (e.g. a Cloudflare Worker's default export). Tag the export.
-- **`@knipignore`** — a genuine knip false positive. Only use this when you can
-  show the export _is_ consumed (e.g. deleting it fails typecheck), and say so in
-  the tag comment.
-
-Two workspaces whose entry files legitimately _are_ the public surface set
-`includeEntryExports: false` per-workspace: `srd` (`*.page.tsx` route + endpoint
-modules, consumed by `ssg/routes.ts` and `ssg/endpoints.ts`) and `su-assets`
-(platform handlers).
-
-**`component-lib` is NOT one of them — it sets `includeEntryExports: true`**
-(`knip.json`), deliberately and against the same intuition. Its barrel IS the
-library API, which is exactly why switching the check off there made the one
-workspace where barrel rot matters most the one workspace where it could not be
-seen: 28 dead re-exports accumulated behind it, removed in #893. This paragraph
-previously listed `component-lib` with the other two, so an agent reading it
-would have "restored" the setting that hid them.
-
-When knip flags something, the default is to **delete it** — reach for a tag only
-in the two cases above. Deleting dead code often cascades (its callees become dead
-in turn), so re-run knip after each removal.
 
 ## Repository Overview
 
@@ -272,21 +108,35 @@ bun run test             # Canonical FULL suite: each workspace with its own
                          # Pre-push does NOT run this; it runs the --changed
                          # subset (see "Pre-commit Hooks" below), so run this by
                          # hand when you want the whole sweep locally.
-bun test                 # Also works. The root bunfig.toml preloads the UNION
-                         # of the workspace preloads, so a bare root run is
-                         # viable; it used to fail by the hundreds (639) purely
-                         # from missing preloads. NOT byte-identical to the
-                         # per-workspace run though — measured 2026-08-11 it is
-                         # 4990 pass / 1 fail, the failure being
-                         # component-lib CardImage.ssr.test.tsx, which passes in
-                         # its own workspace. That is a PRELOAD-SET difference
-                         # (the root bunfig adds fake-indexeddb + the bot env
-                         # shim), not cross-file leakage — it fails the same way
-                         # under --isolate. Prefer `bun run test`.
+bun test                 # Also works, but it is NOT the gate and it is NOT
+                         # green. The root bunfig.toml preloads the UNION of the
+                         # workspace preloads, so a bare root run is viable; it
+                         # used to fail by the hundreds (639) purely from missing
+                         # preloads. Measured 2026-09-01: 5446 pass / 9 fail
+                         # across 416 files. Every one of the 9 passes in its own
+                         # workspace, and they are TWO different causes — an
+                         # earlier version of this note asserted one:
+                         #
+                         #   1 x component-lib CardImage.ssr.test.tsx — a genuine
+                         #     PRELOAD-SET difference (the root bunfig adds
+                         #     fake-indexeddb + the bot env shim). Fails the same
+                         #     way under --isolate.
+                         #   8 x the two identically-named `observability` suites
+                         #     in apps/srd and apps/itun, which both
+                         #     mock.module('@sentry/browser'). That IS cross-file
+                         #     leakage — mock.module is process-global — and this
+                         #     note used to rule it out explicitly. They pass
+                         #     alone AND together; only a 416-file shared process
+                         #     interleaves one file's afterAll restore with the
+                         #     other's capture.
+                         #
+                         # Prefer `bun run test`, which forks per workspace and
+                         # is the gate. If it is red, something is actually
+                         # broken — do not reach for this note to explain it away.
 
 # DO NOT reach for --parallel or --isolate to speed the suite up. Both are large
-# regressions here and this is measured, not assumed (1.3.14, this machine):
-#   bun test              34.4s   4991 tests / 365 files
+# regressions here and this is measured, not assumed (this machine):
+#   bun test              67.7s   5455 tests / 416 files
 #   bun test --parallel   65.1s   + 2 spurious 5s-timeout failures
 #   bun test --isolate   234.1s   6.8x slower
 # The preloads (happy-dom, testing-library, a full ORM schema load,
@@ -359,7 +209,7 @@ bun --filter srd gate             # build, then diff the output against the comm
 **Workspace structure:**
 
 - `apps/srd/` - Static SRD reference site (in-house SSG at `apps/srd/ssg`, React 19 islands, Tailwind v4, Vite). No auth, no backend, no user data. **Not Astro** — Astro was removed; see the "srd App" section below.
-- `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Has roster, wizards, dashboard, live sheets, snapshot sharing. **Two storage modes** ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md), which supersedes ADR-001): **Solo** — not signed in, IndexedDB is the source of truth, nothing is gated, and this must keep working forever (a build with no `VITE_CONVEX_URL` is permanently Solo); **Connected / Disconnected** — signed in, Convex (`apps/itun/convex/`) is the source of truth and IndexedDB becomes a cache, with offline meaning read-only rather than a write queue. Resolve the mode through `src/lib/connection/`, never by reading `navigator.onLine` or an auth flag directly. Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) before touching data.
+- `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Has roster, wizards, dashboard, live sheets, snapshot sharing. **Two storage modes** ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md), which supersedes ADR-001): **Solo** — not signed in, IndexedDB is the source of truth, nothing is gated. This describes a build with the account gate OFF (no `VITE_CONVEX_URL`: CI, a fresh checkout, `bun run dev`). It is **no longer a forever guarantee** — [ADR-034](docs/adrs/ADR-034-account-required-persistence.md) withdrew it and has shipped, so a production-mode build gives an anonymous visitor the in-memory backend instead; **Connected / Disconnected** — signed in, Convex (`apps/itun/convex/`) is the source of truth and IndexedDB becomes a cache, with offline meaning read-only rather than a write queue. Resolve the mode through `src/lib/connection/`, never by reading `navigator.onLine` or an auth flag directly. Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) before touching data.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with the `-440`/`-880` derivatives rendered on demand through Cloudflare Images. Image bytes live in R2, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/assets.ts`, re-exported from `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
@@ -397,6 +247,26 @@ lint` is the authority, not this list. See [`biome.jsonc`](biome.jsonc) and
 Not enforced, so stated here: **Bun** for package management (never npm/yarn),
 and Biome cannot parse Markdown or YAML — `.md`/`.yml` are formatted by
 **nothing**, so keep them tidy by hand.
+
+### `.claude/rules/` — read the one that matches the task
+
+These are **not** all loaded automatically, and which of them a session receives
+is not something to rely on. Nothing here imports them, deliberately: inlining
+all nine would cost more context than the whole dependency section this file
+just moved out. So the index is the contract — open the file when the task is
+in its area, and do not assume you have already been given it.
+
+| Rule                                                                     | Read it when                                                              |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [`typescript-style.md`](.claude/rules/typescript-style.md)               | Writing any TS. Mostly Biome-enforced; the file explains the intent.       |
+| [`testing-patterns.md`](.claude/rules/testing-patterns.md)               | **Writing or fixing any test.** The `mock.module` / preload hazards here are process-global and have cost this repo whole afternoons. |
+| [`react-components.md`](.claude/rules/react-components.md)               | Adding or reshaping a component.                                          |
+| [`display-system.md`](.claude/rules/display-system.md)                   | Touching entity cards or the two card shells.                             |
+| [`tanstack-router.md`](.claude/rules/tanstack-router.md)                 | Adding or changing an ITUN route.                                         |
+| [`tanstack-query-hooks.md`](.claude/rules/tanstack-query-hooks.md)       | Adding a data hook.                                                       |
+| [`package-development.md`](.claude/rules/package-development.md)         | Changing `salvageunion-reference` schemas or data.                        |
+| [`monorepo-patterns.md`](.claude/rules/monorepo-patterns.md)             | Adding a workspace or a cross-workspace dependency.                       |
+| [`stacked-prs.md`](.claude/rules/stacked-prs.md)                         | **Before any multi-layer PR stack.** Squash-merge plus `delete_branch_on_merge` makes `--force` able to resurrect merged branches; the recovery is `rebase --onto`. |
 
 ### salvageunion-reference Package
 
@@ -510,7 +380,7 @@ terminal and the transcript — the exact thing this section exists to avoid.
 
 `--cpu-prof-interval` tightens the 1000µs default sampling when a hot path is
 too short to sample. (It is real but undocumented — it appears in `bun --help`
-for 1.3.14, not in the bundled markdown docs, so don't "correct" it away.) These
+for the pinned Bun, not in the bundled markdown docs, so don't "correct" it away.) These
 are diagnostics: nothing in `check` or CI runs them, and they should not be
 wired in.
 

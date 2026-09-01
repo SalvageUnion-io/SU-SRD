@@ -48,10 +48,18 @@ Update this table as part of each phase's PR. It is the only place that answers
 **"Built" is not "activated", and for P6 the difference is the whole point.**
 The write freeze ships as code that is **off** (`SNAPSHOT_WRITES_FROZEN` unset),
 because turning it on stops sharing for real users. Activating it is a P7 step at
-−1 h, not something a merge should ever do. The same applies to P7's staging: the
-zones exist and answer on their assigned nameservers, but the live delegation
-still points at Netlify, so **nothing customer-facing has moved.** The single
-irreversible act is the nameserver flip, and it has not happened.
+−1 h, not something a merge should ever do. The same applied to P7's staging while it was staging: the
+zones existed and answered on their assigned nameservers before the live
+delegation moved, so nothing customer-facing had moved yet, and the single
+irreversible act was the nameserver flip.
+
+> **That flip has happened.** `intheunionnow.com` went live 2026-08-19 and
+> `salvageunion.io` + `assets.salvageunion.io` on 2026-08-31; the progress table
+> above marks P7 **DONE**. The paragraph above is preserved as the reasoning
+> that shaped the phase, in the past tense. It sat here in the present tense for
+> months, eight lines below a table saying the opposite, so a reader asking "are
+> we cut over?" got both answers from the document designated as authoritative
+> on exactly that question.
 
 **Account:** everything runs on the existing `alxjrvs@gmail.com` account
 (ADR-033 §6). A dedicated account was considered and declined; the residue is a
@@ -142,9 +150,10 @@ CPU cannot be timed from inside a Worker. The authoritative reading is
 
 ### P0 — Port the CI guards · reversible · ½ day
 
-Three tools read `netlify.toml`, and each exists because of a documented
-silent-production incident. A hard cutover deletes that file, so they are ported
-**first**, not during.
+Three tools READ `netlify.toml` at the time this phase was written, and each
+exists because of a documented silent-production incident. A hard cutover
+deletes that file, so they were ported **first**, not during. (That file no
+longer exists anywhere in the tree; this phase is complete.)
 
 - `tools/check-observability.ts` — CSP `connect-src` per browser app. It also
   carries a `netlifyBundled` flag per surface and a hardcoded `FUNCTION_DIRS`.
@@ -958,9 +967,11 @@ Netlify write a snapshot into Blobs that R2 never receives, which is the exact
 loss the freeze exists to prevent. Nothing reaches Netlify once propagation
 finishes, so there is nothing to gain by unfreezing and one way to lose.
 
-Both zones are **staged and answering** on their assigned nameservers while the
-live delegation still points at Netlify, so everything below has already been
-rehearsed against the real Cloudflare zones at zero customer risk.
+**Historical — this flip is done.** At the time of writing both zones were
+staged and answering on their assigned nameservers while the live delegation
+still pointed at Netlify, so everything below had been rehearsed against the
+real Cloudflare zones at zero customer risk. The "Live NS today" column below
+records what was live *then*, not now.
 
 | Zone                | Cloudflare NS                                            | Live NS today             | Flip it at |
 | ------------------- | -------------------------------------------------------- | ------------------------- | ---------- |

@@ -27,7 +27,7 @@ in `knip.json`:
 
 | Tag           | Use when                                                                                                                                            |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@public`     | The export is deliberately public, or is a **framework contract invoked rather than imported** — a Netlify Functions handler, a platform entry point. |
+| `@public`     | The export is deliberately public, or is a **framework contract invoked rather than imported** — a Cloudflare Worker's default export, a platform entry point. |
 | `@knipignore` | A genuine knip false positive. **Only** when you can show the export _is_ consumed — e.g. deleting it fails typecheck — and you say so in the comment. |
 
 `@knipignore` without that demonstration is how dead code gets laundered into
