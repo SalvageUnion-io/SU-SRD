@@ -14,8 +14,14 @@ import { getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
  */
 export const BRAND_NAME = 'Salvage Union'
 
-/** Neutral SU rust tone for embeds without pass/fail semantics. */
-const NEUTRAL_EMBED_COLOR = 0xb7410e
+/**
+ * Neutral SU rust tone for embeds without pass/fail semantics.
+ *
+ * `--color-rust: rgb(168, 82, 34)` from
+ * `packages/component-lib/src/styles/theme.css`, annotated there as "THE single
+ * action color". Same lockstep rule as {@link ROLL_COLORS}.
+ */
+export const NEUTRAL_EMBED_COLOR = 0xa85222
 
 /**
  * Single source for the Core Mechanic roll-outcome embed colors. These mirror
