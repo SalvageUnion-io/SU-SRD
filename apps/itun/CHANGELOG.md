@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.1...itun-v1.17.2) (2026-09-01)
+
+
+### Bug Fixes
+
+* **edge:** remove unsafe-inline, and stop shipping headers nothing sets ([#957](https://github.com/SalvageUnion-io/SU-SRD/issues/957)) ([7b3a880](https://github.com/SalvageUnion-io/SU-SRD/commit/7b3a8802df213b4a7e89d1a9e54ae5485a77d1ad))
+
 ## [1.17.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.0...itun-v1.17.1) (2026-09-01)
 
 

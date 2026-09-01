@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.9.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.1...srd-v2.9.2) (2026-09-01)
+
+
+### Bug Fixes
+
+* **edge:** remove unsafe-inline, and stop shipping headers nothing sets ([#957](https://github.com/SalvageUnion-io/SU-SRD/issues/957)) ([7b3a880](https://github.com/SalvageUnion-io/SU-SRD/commit/7b3a8802df213b4a7e89d1a9e54ae5485a77d1ad))
+
 ## [2.9.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.0...srd-v2.9.1) (2026-08-31)
 
 
