@@ -15,6 +15,7 @@ import type { CommandButtonInteraction } from './commands/interactions.js'
 import { buildTableLookupMessage } from './commands/lookup.js'
 import { buildRollMessage } from './commands/roll.js'
 import { attributeRoll } from './commands/rollAttribution.js'
+import type { ContainerData } from './container.js'
 import { parseCustomId } from './customId.js'
 
 export async function handleButtonInteraction(
@@ -30,22 +31,26 @@ export async function handleButtonInteraction(
     return
   }
 
-  // Brand re-rolled / looked-up embeds with the bot's own avatar, same as the
-  // slash-command replies.
-  const iconURL = interaction.client.user?.displayAvatarURL()
+  // Name the roller on the re-roll, same as the slash-command replies. This is
+  // the interaction where it matters most: Discord's own "used /su roll" header
+  // attributes a component reply far more weakly than a slash command.
+  const roller = interaction.user.displayName
   const message =
     parsed.action === 'roll'
-      ? buildRollMessage(parsed.payload, iconURL)
+      ? buildRollMessage(parsed.payload, roller)
       : parsed.action === 'check'
-        ? buildCheckMessage(parsed.payload, iconURL)
-        : buildTableLookupMessage(parsed.payload, iconURL)
+        ? buildCheckMessage(parsed.payload, roller)
+        : buildTableLookupMessage(parsed.payload, interaction.client.user?.displayAvatarURL())
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
     return
   }
 
-  await interaction.reply(message)
+  // `data` rides along on the V2 payloads so attributeRoll can rebuild; the
+  // lookup path is still an embed message and has none.
+  const { data, ...payload } = message as typeof message & { data?: ContainerData }
+  await interaction.reply(payload)
 
   // A re-roll is a roll. Recording only the slash-command form would mean the
   // Change Log quietly disagreed with the channel about what happened at the
@@ -54,6 +59,8 @@ export async function handleButtonInteraction(
   if (parsed.action === 'roll' || parsed.action === 'check') {
     const description =
       parsed.action === 'roll' ? `Rolled on ${parsed.payload}` : `Rolled ${parsed.payload}`
-    await attributeRoll(interaction, message.embeds, description, { rerolled: parsed.payload })
+    if (data !== undefined) {
+      await attributeRoll(interaction, data, description, { rerolled: parsed.payload })
+    }
   }
 }

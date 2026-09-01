@@ -33,7 +33,7 @@ export type CommandExecuteInteraction = {
     getString(name: string, required?: boolean): string | null
   }
   client: { user: { displayAvatarURL(): string } | null }
-  user: { id: string }
+  user: { id: string; displayName?: string }
   channelId: string | null
   reply(payload: InteractionReplyOptions): Promise<unknown>
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
@@ -53,7 +53,7 @@ export type CommandExecuteInteraction = {
 export type CommandButtonInteraction = {
   customId: string
   client: { user: { displayAvatarURL(): string } | null }
-  user: { id: string }
+  user: { id: string; displayName?: string }
   channelId: string | null
   reply(payload: InteractionReplyOptions): Promise<unknown>
   editReply(payload: InteractionEditReplyOptions): Promise<unknown>
@@ -66,7 +66,7 @@ export type CommandAutocompleteInteraction = {
     getSubcommandGroup(): string | null
     getFocused(): string
   }
-  user: { id: string }
+  user: { id: string; displayName?: string }
   channelId: string | null
   respond(choices: CommandChoice[]): Promise<unknown>
 }

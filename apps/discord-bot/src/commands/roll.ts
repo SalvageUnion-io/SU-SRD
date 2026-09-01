@@ -1,10 +1,12 @@
-import { EmbedBuilder } from '@discordjs/builders'
+import type { ContainerBuilder } from '@discordjs/builders'
 import { roll as rollDie } from '@randsum/roller'
-import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
-import { MessageFlags } from 'discord-api-types/v10'
+import type { SlashCommandSubcommandBuilder } from 'discord.js'
+import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { rollResultRow } from '../customId.js'
-import { BRAND_NAME, buildRollEmbedData, ROLL_EMBED_FOOTER } from '../format.js'
+import type { ContainerData } from '../container.js'
+import { toContainer } from '../container.js'
+import { makeCustomId } from '../customId.js'
+import { buildRollContainerData, rollTableUrl } from '../rollContainer.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
@@ -25,17 +27,21 @@ function rollD20(): number {
   return rollDie('1d20').total
 }
 
-/** A message payload ready for `interaction.reply`, or a user-facing error. */
+/**
+ * A Components V2 payload ready for `interaction.reply`, or a user-facing
+ * error. `data` rides along so `attributeRoll` can rebuild the container with
+ * one more line rather than mutating a sent message — see rollAttribution.ts.
+ */
 export type RollMessage =
-  | { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] }
+  | { flags: MessageFlags.IsComponentsV2; components: [ContainerBuilder]; data: ContainerData }
   | { error: string }
 
 /**
  * Roll on a named table and shape the result into a reply. Shared by the slash
  * `/su roll` handler and the "Roll again" button router so both produce an
- * identical embed carrying its own re-roll button.
+ * identical container carrying its own re-roll button.
  */
-export function buildRollMessage(tableName: string, iconURL?: string): RollMessage {
+export function buildRollMessage(tableName: string, roller?: string): RollMessage {
   // Exact name first, through the model's name index; the case-insensitive
   // scan is only the fallback for a hand-typed name that skipped autocomplete.
   const table =
@@ -54,20 +60,34 @@ export function buildRollMessage(tableName: string, iconURL?: string): RollMessa
     return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
   }
 
-  const data = buildRollEmbedData(table.name, outcome)
-  const embed = new EmbedBuilder()
-    .setTitle(data.title)
-    .setColor(data.color)
-    .addFields(data.fields)
-    .setFooter({ text: ROLL_EMBED_FOOTER })
-    .setTimestamp()
-  if (data.description) {
-    embed.setDescription(data.description)
-  }
-  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
+  const data = buildRollContainerData(table, outcome, { roller })
 
-  const row = rollResultRow(table.name)
-  return { embeds: [embed], components: row ? [row] : [] }
+  // `Roll again` is Primary now: it is the action people take. `See table` was
+  // Primary, which put Discord's loudest, most off-brand colour on the least
+  // used control — and it is a Link button now, so it costs no customId at all.
+  const rerollId = makeCustomId('roll', table.name)
+  data.blocks.push({
+    kind: 'buttons',
+    buttons: [
+      ...(rerollId
+        ? [
+            {
+              kind: 'action' as const,
+              customId: rerollId,
+              label: '↻ Roll again',
+              style: ButtonStyle.Primary,
+            },
+          ]
+        : []),
+      { kind: 'link' as const, url: rollTableUrl(table), label: 'See table' },
+    ],
+  })
+
+  return {
+    flags: MessageFlags.IsComponentsV2,
+    components: [toContainer(data)],
+    data,
+  }
 }
 
 export const rollCommand = {
@@ -98,15 +118,16 @@ export const rollCommand = {
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
-    const message = buildRollMessage(tableName, interaction.client.user?.displayAvatarURL())
+    const message = buildRollMessage(tableName, interaction.user.displayName)
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-    await interaction.reply(message)
+    const { data, ...payload } = message
+    await interaction.reply(payload)
     // After the reply, never before it: a bound channel adds a footer line, an
     // unbound one costs the roller nothing. See rollAttribution.ts.
-    await attributeRoll(interaction, message.embeds, `Rolled on ${tableName}`, {
+    await attributeRoll(interaction, data, `Rolled on ${tableName}`, {
       table: tableName,
     })
   },

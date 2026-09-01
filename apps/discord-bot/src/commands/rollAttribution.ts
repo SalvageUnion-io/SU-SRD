@@ -1,5 +1,8 @@
-import type { EmbedBuilder } from '@discordjs/builders'
-import { ROLL_EMBED_FOOTER } from '../format.js'
+import type { InteractionEditReplyOptions } from 'discord.js'
+import { MessageFlags } from 'discord-api-types/v10'
+import type { ContainerData } from '../container.js'
+import { toContainer } from '../container.js'
+import { STATUS_LED } from '../ornament.js'
 import { report } from '../report.js'
 import { itun } from './itunReply.js'
 
@@ -21,6 +24,23 @@ import { itun } from './itunReply.js'
  * costs a rolling player nothing at all, which is the property that matters:
  * the reference bot is the thing people already use.
  *
+ * ## Why this rebuilds rather than edits
+ *
+ * This used to re-stamp the sent embed's footer — `embed.setFooter(…)` then
+ * `editReply({ embeds })`. A Components V2 message has no embed and no footer,
+ * so there is nothing to mutate: the container is rebuilt from the same pure
+ * data with one more block, and the whole message is replaced.
+ *
+ * That is a better shape than the one it replaces. The signal used to be
+ * appended to `ROLL_EMBED_FOOTER`, which buried a real, personal game fact
+ * inside attribution boilerplate — in the smallest text on the message, and the
+ * first thing to truncate on mobile. It is now its own line.
+ *
+ * Two properties are preserved deliberately: the line is appended at the
+ * **end**, so nothing the player is already reading reflows; and the edit
+ * carries `components` and the V2 flag together, because a message created with
+ * the flag must keep it.
+ *
  * ## Why failure is silent
  *
  * `resolveActor` cannot distinguish "no account", "not bound" and "not a
@@ -34,11 +54,11 @@ import { itun } from './itunReply.js'
 export type AttributableInteraction = {
   user: { id: string }
   channelId: string | null
-  editReply(payload: { embeds: EmbedBuilder[] }): Promise<unknown>
+  editReply(payload: InteractionEditReplyOptions): Promise<unknown>
 }
 
 /**
- * Record a roll, and on success re-stamp the embed footer to say so.
+ * Record a roll, and on success rebuild the container with a line saying so.
  *
  * Never throws and never rejects: it is called after the user already has their
  * roll, so there is no failure here worth surfacing to them. A genuine fault
@@ -46,21 +66,33 @@ export type AttributableInteraction = {
  */
 export async function attributeRoll(
   interaction: AttributableInteraction,
-  embeds: EmbedBuilder[],
+  data: ContainerData,
   description: string,
   result: unknown
 ): Promise<void> {
   const channelId = interaction.channelId
-  const embed = embeds[0]
   const client = itun()
-  if (client === null || channelId === null || embed === undefined) return
+  if (client === null || channelId === null) return
 
   try {
     const recorded = await client.recordRoll(interaction.user.id, channelId, description, result)
     if (recorded.kind !== 'ok') return
 
-    embed.setFooter({ text: `${ROLL_EMBED_FOOTER} · recorded to ${recorded.value.game}` })
-    await interaction.editReply({ embeds })
+    // Rebuild from the same data with the status line appended. Splicing it
+    // before the buttons keeps the action row last, where it belongs.
+    const blocks = [...data.blocks]
+    const buttonsAt = blocks.findIndex((block) => block.kind === 'buttons')
+    const line = {
+      kind: 'text' as const,
+      content: `-# ${STATUS_LED} LOGGED TO ${recorded.value.game.toUpperCase()}`,
+    }
+    if (buttonsAt === -1) blocks.push(line)
+    else blocks.splice(buttonsAt, 0, line)
+
+    await interaction.editReply({
+      flags: MessageFlags.IsComponentsV2,
+      components: [toContainer({ ...data, blocks })],
+    })
   } catch (error) {
     report(error, { source: 'roll-attribution' })
   }

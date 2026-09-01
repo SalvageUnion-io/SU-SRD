@@ -98,8 +98,9 @@ describe('buildCheckMessage — over-cap notation', () => {
     const message = buildCheckMessage(notation)
     expect('error' in message).toBe(false)
     if ('error' in message) return
-    expect(message.embeds).toHaveLength(1)
-    // customId would exceed the cap, so no button rides along.
-    expect(message.components).toHaveLength(0)
+    // The roll still renders; only the button is dropped.
+    expect(message.components).toHaveLength(1)
+    // customId would exceed the cap, so no button block rides along.
+    expect(message.data.blocks.some((b) => b.kind === 'buttons')).toBe(false)
   })
 })
