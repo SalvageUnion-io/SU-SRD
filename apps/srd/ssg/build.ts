@@ -253,6 +253,13 @@ async function main(): Promise<void> {
   await writeSitemap(sitemapRoutes)
   await writeServiceWorker()
 
+  // Entity links must use slugs, never UUIDs (CLAUDE.md, Data Conventions).
+  // Asserted against the emitted HTML rather than the source, because that is
+  // where the property holds or fails: one helper can produce a slug for one
+  // entity and fall back to an id for another whose slug is missing.
+  const { assertNoUuidLinks } = await import('./linkAudit')
+  await assertNoUuidLinks(distDir)
+
   // AFTER every page is on disk: the hashes are computed from what was actually
   // emitted, not from what the source is expected to emit. See ssg/csp.ts for
   // why srd's script-src is generated rather than written down.

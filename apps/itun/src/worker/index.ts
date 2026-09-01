@@ -89,6 +89,17 @@ export type Env = ObservabilityEnv & {
   SNAPSHOTS: R2BucketLike
   /** Optional. Absent means no rate limiting, not a crash. */
   RATE_LIMITER?: RateLimiterBinding
+  /**
+   * Optional. Absent means no measurement, not a crash — same discipline as
+   * RATE_LIMITER, so a local `wrangler dev` and the routing tests need no
+   * binding. See the OG open question below for what this exists to answer.
+   */
+  OG_METRICS?: AnalyticsEngineDataset
+}
+
+/** The write half of a Workers Analytics Engine dataset — the only half a Worker has. */
+type AnalyticsEngineDataset = {
+  writeDataPoint(event: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void
 }
 
 /**
@@ -256,13 +267,27 @@ async function ogImage(
     // yielded, and the number to trust is the `cpuTime` that `wrangler tail`
     // reports for the whole invocation. This line exists to make the
     // corresponding tail entry findable by grep.
-    // `console.log`, not `console.error`, on purpose: this is not a failure, and
-    // reporting it as one would put every routine render into Sentry. Remove it
-    // together with the open question above, once that is answered.
-    // biome-ignore lint/suspicious/noConsole: deliberate measurement instrumentation
-    console.log(
-      `[itun] og:image rendered id=${id} bytes=${png.byteLength} wallMs=${Date.now() - startedAt}`
-    )
+    // Written to Workers Analytics Engine, not just logged.
+    //
+    // This was a `console.log` whose own comment said to remove it "once that
+    // [open question] is answered" — but a log line in `wrangler tail` is only
+    // visible to someone already tailing during a render, so it could never
+    // answer it. A datapoint aggregates: `wallMs` percentiles across real
+    // traffic, split by whether the render was a cold start, is exactly the
+    // evidence the question needs.
+    //
+    // Wall time still is not CPU time (see above), so this narrows the question
+    // rather than closing it: a p99 wallMs comfortably under 10 ms is strong
+    // evidence, and anything above it is a reason to look at the invocation's
+    // reported cpuTime.
+    //
+    // Optional binding, so an absent dataset degrades to no measurement.
+    const wallMs = Date.now() - startedAt
+    env.OG_METRICS?.writeDataPoint({
+      indexes: [id.slice(0, 1)],
+      doubles: [wallMs, png.byteLength],
+      blobs: ['og-render'],
+    })
 
     const response = new Response(png as BodyInit, {
       headers: {

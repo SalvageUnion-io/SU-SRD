@@ -1,0 +1,45 @@
+# Review ownership.
+#
+# This file exists for a narrow reason, not as ceremony. Two rules this repo
+# treats as important cannot be mechanised, and a required reviewer is the only
+# lever left for them:
+#
+#   1. "Do not hand-edit generated files." `.claude/hooks/protect-generated-files.sh`
+#      stops an AGENT, and `bun run check:schemas` fails CI on drift for the
+#      reference package — but nothing stops a human editing a generated file in
+#      a way that happens to be self-consistent.
+#
+#   2. "Never re-bless the srd output snapshot without reading the diff."
+#      `apps/srd/CLAUDE.md` says the diff IS the deliverable — "the complete,
+#      reviewable statement of what your change did to the site" — and that
+#      re-blessing without reading it defeats the entire mechanism. There is no
+#      way to assert that someone read something. A named reviewer on the file
+#      is the closest available thing.
+#
+# Everything else is deliberately unowned: a blanket owner on a solo-maintained
+# repo adds a required approval to every PR and teaches people to click through
+# it, which would make the two entries above worth less, not more.
+
+# The output gate's baseline. See rule 2 above.
+/apps/srd/ssg/output-snapshot.json                 @alxjrvs
+
+# Generated artifacts, all of them diffed by `bun run check:schemas`.
+/packages/salvageunion-reference/schemas/          @alxjrvs
+/packages/salvageunion-reference/docs/             @alxjrvs
+/packages/salvageunion-reference/lib/generated/    @alxjrvs
+/packages/salvageunion-reference/etc/              @alxjrvs
+/apps/itun/convex/_generated/                      @alxjrvs
+
+# The ratchets. Each is a committed baseline that a check compares against, so
+# editing one is how you make a failing check pass without fixing anything.
+/coverage-baseline.json                            @alxjrvs
+/tools/a11y-baseline.json                          @alxjrvs
+/tools/design-tokens-baseline.json                 @alxjrvs
+/tools/styling-ownership-baseline.json             @alxjrvs
+
+# Credentials, deploy machinery and the agent-facing instruction surface.
+/.github/workflows/deploy-cloudflare.yml           @alxjrvs
+/.github/CODEOWNERS                                @alxjrvs
+/CLAUDE.md                                         @alxjrvs
+/.claude/                                          @alxjrvs
+/.mcp.json                                         @alxjrvs

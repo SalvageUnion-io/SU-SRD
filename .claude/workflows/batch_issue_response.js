@@ -193,10 +193,12 @@ const triageAgent = (fb) =>
       '   src/routes (pilots / mechs / crawlers / sheet / s), the component(s) under src/components,',
       '   and/or the store under src/stores. Name concrete files where you can.',
       '2. RULES: identify the Salvage Union rule(s) that govern the correct behaviour, consulting the',
-      '   rulebooks in ~/Documents/SURules (Salvage Union Core Book Digital Edition 2.0a.pdf,',
-      '   SU_Quick Ref Sheets Digital 2.0.pdf, "Salvage Union Starter Set 1.0/"). Cite book + page/',
-      '   section. If no game rule applies (pure UX/usability), return an empty rules list.',
-      '3. Propose the smallest in-scope fix. ITUN is local-first (IndexedDB, no auth/backend) — set',
+      '   extracted rules text at rules/extracted/*.txt — run `bun run rules:extract` first, which',
+      '   converts the gitignored PDFs in rules/ and emits <!-- page N --> markers so a citation can',
+      '   name a real page. If the extract is unavailable, say so and return an empty rules list —',
+      '   do NOT invent a rule or a page number. If no game rule applies (pure UX), also empty.',
+      '3. Propose the smallest in-scope fix. ITUN has an account-gated Convex backend (ADR-030/034);'
+      '   persistence requires an account and anonymous work is in-memory only. Set',
       '   inScope=false for anything needing a backend or out of ITUN scope, and explain in approach.',
     ]
       .filter(Boolean)

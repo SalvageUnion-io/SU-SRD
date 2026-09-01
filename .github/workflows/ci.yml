@@ -668,7 +668,7 @@ jobs:
 
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/srd
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       - name: Run smoke + bundle-budget specs
         working-directory: apps/srd
@@ -745,7 +745,7 @@ jobs:
 
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/itun
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       - name: Run smoke + bundle-budget specs
         working-directory: apps/itun
@@ -783,6 +783,52 @@ jobs:
       - name: Bundle the Worker that actually deploys
         run: bunx wrangler@4.108.0 deploy --dry-run --outdir /tmp/bot-worker
         working-directory: apps/discord-bot
+
+  # ---------------------------------------------------------------------------
+  # release-please derives every CHANGELOG entry and every version bump from
+  # conventional-commit subjects. This repo is SQUASH-merge, so the commit
+  # subject is the PULL REQUEST TITLE — and nothing validated it. A mistyped or
+  # scopeless title does not fail: it silently drops out of the changelog and
+  # out of the version computation, which is the kind of miss nobody notices
+  # until a release is wrong.
+  #
+  # There is no commitlint here and no `commit-msg` hook, deliberately: on a
+  # squash repo the individual commit subjects never reach main, so linting them
+  # would gate the wrong string.
+  #
+  # Only meaningful on `pull_request`; on push and merge_group it skips, which
+  # `CI Success` correctly treats as a pass.
+  # ---------------------------------------------------------------------------
+  pr-title:
+    name: PR title is a conventional commit
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          # types release-please understands, optional (scope), optional ! for a
+          # breaking change, then ": " and a non-empty description.
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .+'
+          if printf '%s' "$TITLE" | grep -qE "$pattern"; then
+            echo "ok: $TITLE"
+            exit 0
+          fi
+          echo "This PR's title is not a conventional commit, and on a squash-merge repo" >&2
+          echo "the title IS the commit subject that release-please reads." >&2
+          echo "" >&2
+          echo "  got:      $TITLE" >&2
+          echo "  expected: <type>(<optional scope>): <description>" >&2
+          echo "  types:    feat fix docs style refactor perf test build ci chore revert" >&2
+          echo "" >&2
+          echo "  e.g.  fix(deploy): require same-repo push provenance on the deploy gate" >&2
+          echo "" >&2
+          echo "A title that does not match still merges cleanly and silently produces no" >&2
+          echo "changelog entry and no version bump. See ADR-024." >&2
+          exit 1
 
   # ---------------------------------------------------------------------------
   # su-assets had no filter, no job and no coverage baseline — a production
@@ -829,6 +875,7 @@ jobs:
       - build-itun
       - build-discord-bot
       - build-su-assets
+      - pr-title
       # NOTE: the FULL browser e2e suites (ITUN + srd) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.
       # the PR-blocking browser tier folded into build-srd/build-itun covers

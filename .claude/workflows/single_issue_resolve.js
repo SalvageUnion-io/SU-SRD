@@ -41,10 +41,23 @@ if (!triage.summary && !triage.title) {
 const baseBranch = (triage.baseBranch && String(triage.baseBranch)) || 'main'
 const stacked = baseBranch !== 'main'
 
-// Canonical Salvage Union rules, outside the repo so always present in a fresh worktree.
+// Canonical Salvage Union rules.
+//
+// This used to read "~/Documents/SURules (…), outside the repo so always present
+// in a fresh worktree" — which is exactly backwards. A machine-local absolute
+// path is present on ONE machine and absent in every container, worktree and CI
+// runner, which is where this workflow actually runs.
+//
+// The in-repo path is `bun run rules:extract`, which turns the copyright-bearing
+// PDFs in `rules/` into `rules/extracted/*.txt` with `<!-- page N -->` markers so
+// a citation can name a real page. Those PDFs are gitignored and absent in CI, so
+// this is best-effort by design — and the instruction below says what to do when
+// it is unavailable, rather than leaving an agent to invent a rule.
 const RULES =
-  '~/Documents/SURules (Salvage Union Core Book Digital Edition 2.0a.pdf, ' +
-  'SU_Quick Ref Sheets Digital 2.0.pdf, and the "Salvage Union Starter Set 1.0/" folder)'
+  'the extracted rules text at `rules/extracted/*.txt` — run `bun run rules:extract` first ' +
+  '(it converts the PDFs in `rules/`, which are gitignored and may be absent). ' +
+  'If the extract is unavailable, say so explicitly in your output and do NOT invent a ' +
+  'rule or a page number: an unsourced citation is worse than none'
 
 const RESOLVE_SCHEMA = {
   type: 'object',
@@ -124,7 +137,7 @@ const impl = await agent(
     '   repo .prettierrc, so format explicitly).',
     `5. Commit on a new branch named fix/itun-<short-slug>${stacked ? ` cut from origin/${baseBranch} (see above)` : ''}. Use a conventional-commit message and the`,
     '   Co-Authored-By / Claude-Session trailers required by CLAUDE.md.',
-    `6. Push the branch and open a PR with "gh pr create --base ${baseBranch}". The PR body MUST: restate`,
+    `6. Push the branch and open a PR with "gh pr create --base ${baseBranch}". If ${baseBranch} is not main, this is a STACKED PR: read .claude/rules/stacked-prs.md before doing anything to it later. When the layer beneath yours squash-merges, the fix is `git rebase --onto` from the recorded parent tip, never `gh pr update-branch` (which fails on the duplicated commit) and never a bare `--force` (which on this repo can resurrect an already-merged branch). The PR body MUST: restate`,
     '   the feedback, name the UX area changed, cite the SURules reference(s), summarize the fix, and list',
     `   which checks passed.${stacked ? ` Note at the top that this PR is STACKED on "${baseBranch}" and should merge after it.` : ''}`,
     '   End the body with the "Generated with Claude Code" footer from CLAUDE.md.',

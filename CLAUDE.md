@@ -430,8 +430,10 @@ impossible while the queue existed.
 
 ### Project Skills (`.claude/skills/`)
 
-Four skills, and each encodes a **decision procedure or a silent failure mode** — something you would get wrong by reading the command alone:
+Six skills, and each encodes a **decision procedure or a silent failure mode** — something you would get wrong by reading the command alone:
 
+- `/stacked-pr` — recover a stacked PR after the layer beneath it merges. `gh pr update-branch` cannot do it (the duplicated commit collides with its own squashed self), the fix is `git rebase --onto` from a tip you must record *before* rebasing, and on this repo a bare `--force` can resurrect an already-merged branch.
+- `/srd-gate` — change srd's output safely. Two commands; the failure mode is re-blessing the snapshot without reading the diff, which is invisible because a re-blessed snapshot is green by construction. Also carries what the gate deliberately does **not** cover, so a green gate is not trusted for the wrong thing.
 - `/triage` — read every production and CI signal, then propose the day's work in priority order.
 - `/component-refresh` — redesign an existing component through the three-level loop (real SSR "before" → NEW\* Ladle comparison → staged cutover).
 - `/knip-triage` — resolve a knip dead-code failure. The command is one line; the failure mode is applying the wrong rule, so this encodes the decision procedure (delete by default; `@public` / `@knipignore` are the only exemptions and `@knipignore` requires showing the export is consumed).

@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@base-ui/react": "catalog:",
-    "@ladle/react": "^5.1.1",
+    "@ladle/react": "5.1.1",
     "@randsum/roller": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@testing-library/jest-dom": "catalog:",

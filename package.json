@@ -34,7 +34,11 @@
   },
   "overrides": {
     "@discordjs/rest": "^2.6.3",
-    "@opentelemetry/core": "^2.8.0"
+    "@opentelemetry/core": "^2.8.0",
+    "fast-uri": ">=3.1.5",
+    "filelist": ">=1.0.6",
+    "nanoid": ">=3.3.18",
+    "shell-quote": ">=1.9.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
@@ -81,7 +85,6 @@
     "test:coverage": "bun tools/run-coverage.ts",
     "test:tools": "bun test ./tools",
     "e2e:itun": "cd apps/itun && bunx playwright test",
-    "e2e:itun:install": "cd apps/itun && bunx playwright install --with-deps chromium",
     "validate:ids": "bun --filter salvageunion-reference validate:ids",
     "validate:architecture": "bun tools/check-architecture.ts",
     "validate:doc-drift": "bun tools/check-doc-drift.ts",
@@ -90,7 +93,7 @@
     "validate:observability:live": "bun tools/check-observability.ts --live",
     "validate:convex-parity": "bun tools/check-convex-parity.ts",
     "validate:convex-parity:live": "bun tools/check-convex-parity.ts --live",
-    "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts && bun run validate:architecture && bun run validate:doc-drift && bun run validate:observability && bun run validate:convex-codegen && bun run validate:convex-parity && bun run check:catalog && bun run check:action-pinning && bun run check:path-filters",
+    "validate:all": "bun --filter salvageunion-reference validate:all && bun tools/check-bun-version.ts && bun run validate:architecture && bun run validate:doc-drift && bun run validate:observability && bun run validate:convex-codegen && bun run validate:convex-parity && bun run check:catalog && bun run check:action-pinning && bun run check:path-filters && bun run check:srd-css",
     "clean": "bun --filter \"*\" clean || true",
     "reap": "tools/prune-stale-worktrees.sh",
     "knip": "knip",
@@ -101,6 +104,7 @@
     "check:styling": "bun tools/check-styling-ownership.ts",
     "check:action-pinning": "bun tools/check-action-pinning.ts",
     "check:path-filters": "bun tools/check-path-filters.ts",
+    "check:srd-css": "bun tools/check-srd-css-ownership.ts",
     "check:ci-aggregator": "bun tools/check-ci-aggregator.ts",
     "check:printed-names": "bun tools/check-printed-names.ts",
     "check:fast": "concurrently -g 'bun run lint' 'bun run validate:all' 'bun run knip' && bun run typecheck",
