@@ -32,6 +32,7 @@ import {
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseLcov } from './lib/parse-lcov'
+import { assertCoversWorkspaces } from './lib/workspaceCoverage'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -56,7 +57,19 @@ const WORKSPACES = [
   'apps/srd',
   'apps/itun',
   'apps/discord-bot',
+  // Added once `assertCoversWorkspaces` made their absence visible. Both were
+  // missing from this list entirely — not merely unbaselined — so no row was
+  // emitted for them and the gap could not be seen in the report output. Their
+  // coverage could have gone to zero silently, and `apps/su-assets` is a
+  // production Worker.
+  'apps/su-assets',
+  'packages/observability',
 ]
+
+// Every workspace must be in the ratchet or explicitly out of it. There are no
+// exemptions here on purpose: coverage is meaningful for any workspace that has
+// tests, and a workspace with none should fail this rather than be waved past.
+assertCoversWorkspaces('coverage ratchet', WORKSPACES)
 
 const results: WorkspaceCoverage[] = []
 const missing: string[] = []
@@ -120,7 +133,14 @@ for (const workspace of missing) {
   }
 }
 
-const regressions = rows.filter((r) => r.status === 'regressed' || r.status === 'missing')
+// `unbaselined` fails too. It used to be report-only, which meant a new
+// workspace joined the ratchet in name and was exempt from it in fact — the
+// status existed precisely for the two workspaces that were not in WORKSPACES
+// at all, so nothing ever printed it. Baselining a new workspace is a
+// deliberate act; forgetting to should not be a silent one.
+const regressions = rows.filter(
+  (r) => r.status === 'regressed' || r.status === 'missing' || r.status === 'unbaselined'
+)
 
 // --- Report -----------------------------------------------------------------
 

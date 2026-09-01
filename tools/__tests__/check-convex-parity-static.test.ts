@@ -77,12 +77,55 @@ describe('check-convex-parity static guard', () => {
     // `netlify.toml` and the workflow — an earlier version removed only the
     // former and passed, because it was asserting a fact about the tree's shape
     // rather than the rule. With `netlify.toml` deleted the workflow is the only
-    // source left, so removing it is now sufficient AND necessary.
+    // source left, so removing it is now sufficient AND necessary, and the
+    // tool's Netlify branch has been removed with it rather than left as
+    // unreachable code that still reads as an active guard.
     await withFileAbsent(WORKFLOW, async () => {
       const { exitCode, stderr } = await runCheck()
       expect(exitCode).toBe(1)
-      expect(stderr).toContain('no build definition carries the Convex deploy guard')
+      expect(stderr).toContain('Convex deploy guard')
+      expect(stderr).toContain(WORKFLOW)
     })
+  })
+
+  test('fails when the guard STEP is deleted but its tokens survive elsewhere', async () => {
+    // The regression test this check was missing, and the reason it needed one.
+    //
+    // The assertion used to be `yaml.includes('CONVEX_DEPLOY_KEY')` and
+    // `yaml.includes('exit 1')` over the WHOLE file. `deploy-cloudflare.yml`
+    // has four `exit 1`s and names the key in several places, so deleting the
+    // entire "Refuse to deploy without a Convex deploy key" step left both
+    // substrings present — the neighbouring Cloudflare-token guard supplies an
+    // `exit 1`, and the build step's `env:` block supplies the key name. The
+    // check printed `✓ convex deploy guard OK` for a workflow with no guard.
+    //
+    // That is the same weakness the tool's own comment describes for comments
+    // satisfying the `convex deploy` assertion — fixed there, missed here. The
+    // deletion below is the exact edit that used to pass.
+    await withFileContents(
+      WORKFLOW,
+      (s) => {
+        const lines = s.split('\n')
+        const start = lines.findIndex((l) =>
+          l.includes('name: Refuse to deploy without a Convex deploy key')
+        )
+        expect(start).toBeGreaterThan(-1)
+        const end = lines.findIndex((l, i) => i > start && l.trimStart().startsWith('- name:'))
+        expect(end).toBeGreaterThan(start)
+        return [...lines.slice(0, start), ...lines.slice(end)].join('\n')
+      },
+      async () => {
+        const mutated = readFileSync(join(ROOT, WORKFLOW), 'utf-8')
+        // The premise: both tokens the old check looked for are still present.
+        // Without this the test would pass for the wrong reason.
+        expect(mutated).toContain('CONVEX_DEPLOY_KEY')
+        expect(mutated).toContain('exit 1')
+
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('Refuse to deploy without a Convex deploy key')
+      }
+    )
   })
 
   test('a workflow that stops running `convex deploy` fails', async () => {

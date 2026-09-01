@@ -3,5 +3,7 @@
   "packages/component-lib": 87,
   "apps/srd": 95,
   "apps/itun": 89,
-  "apps/discord-bot": 95
+  "apps/discord-bot": 95,
+  "apps/su-assets": 81,
+  "packages/observability": 100
 }

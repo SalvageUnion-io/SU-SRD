@@ -6,7 +6,8 @@
   "description": "Dedicated Netlify site serving Salvage Union entity artwork from Netlify Blobs. Bytes live in Blobs, not git.",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage"
   },
   "dependencies": {
     "observability": "workspace:*"

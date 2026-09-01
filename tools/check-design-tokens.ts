@@ -21,6 +21,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { assertScanFloor } from './lib/scanFloor'
+import { assertCoversWorkspaces } from './lib/workspaceCoverage'
 
 const ROOT = join(import.meta.dir, '..')
 
@@ -41,6 +42,8 @@ const SCAN_DIRS = [
   // (see the `0x` arm of raw-color) — 12 of them, tracked in the baseline and
   // burning down.
   'apps/discord-bot/src',
+  'apps/su-assets/src',
+  'packages/observability/src',
 ]
 
 // `.astro` was here until apps/srd moved off Astro. Nothing in the repo emits
@@ -346,6 +349,10 @@ const SCAN_FLOOR = 650
 
 const scannedFiles = SCAN_DIRS.flatMap((dir) => walk(join(ROOT, dir)))
 assertScanFloor('design tokens', scannedFiles.length, SCAN_FLOOR)
+// A workspace never added to SCAN_DIRS only makes the floor go up, so the floor
+// is blind to it. Both workspaces added above scanned clean on the first run —
+// no exemptions needed. See tools/lib/workspaceCoverage.ts.
+assertCoversWorkspaces('design tokens', SCAN_DIRS)
 
 for (const file of scannedFiles) {
   const relPath = relative(ROOT, file)

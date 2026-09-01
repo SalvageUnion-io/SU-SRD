@@ -293,6 +293,27 @@ function main(): void {
 
   const { missing, stale, redundantExemptions, gated } = report
 
+  // A SEPARATELY_REQUIRED workflow that no longer exists is a hole, not a note.
+  // This used to print `← FILE MISSING` inside the advisory scope note and then
+  // exit 0 — a detector that declines to act. Delete `codeql.yml` while
+  // `Analyze (javascript-typescript)` is still a required status context on
+  // `main` and the required check simply never arrives: the PR is unmergeable
+  // with nothing on it saying why, which is the same silent shape #742 hit.
+  const missingWorkflows = SEPARATELY_REQUIRED.filter(
+    ({ workflow }) => !existsSync(join(repoRoot, workflow))
+  )
+  if (missingWorkflows.length > 0) {
+    console.error(`[${LABEL}] FAIL — a separately-required workflow file is gone.`)
+    for (const { context, workflow } of missingWorkflows) {
+      console.error(
+        `  • ${workflow} does not exist, but \`${context}\` is still listed here as a\n` +
+          '    required status context. Either restore the workflow, or remove it from\n' +
+          '    SEPARATELY_REQUIRED in the same change that drops it from the ruleset.'
+      )
+    }
+    process.exit(1)
+  }
+
   if (missing.length === 0 && stale.length === 0 && redundantExemptions.length === 0) {
     console.log(`[${LABEL}] ✓ \`${AGGREGATOR}\` gates all ${gated.length} jobs in ${WORKFLOW}.`)
     for (const [job, reason] of Object.entries(UNGATED_BY_DESIGN)) {

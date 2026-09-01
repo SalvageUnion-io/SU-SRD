@@ -57,12 +57,22 @@ jobs:
           # The updater diffs against the base branch, so it needs real history.
           fetch-depth: 0
 
-      # No `setup-bun` step here on purpose: the action is composite and runs
-      # `oven-sh/setup-bun@v2` itself before regenerating bun.lock. Note it does
-      # NOT pin a version there, so the lockfile is rewritten by whatever Bun is
-      # current rather than by this repo's .bun-version — check the diff on the
-      # first real run, and prefer a `workflow_dispatch` with dry-run: true
-      # before trusting the schedule.
+      # No `setup-bun` step BEFORE this one: the action is composite and runs
+      # `oven-sh/setup-bun@v2` itself before regenerating bun.lock, unpinned, so
+      # anything installed first would just be overridden. The lockfile is
+      # therefore rewritten by whatever Bun is current rather than by this
+      # repo's .bun-version.
+      #
+      # That is not hypothetical any more. It is the most likely explanation for
+      # a `bun.lock` at lockfileVersion 2 while `.bun-version` pinned 1.4.0 —
+      # which made the repo unbootstrappable anywhere the pinned toolchain was
+      # not already present, including a fresh agent container, where
+      # `bun install --frozen-lockfile` hard-fails with "Unknown lockfile
+      # version" and every `bun run` script, both git hooks and the /triage
+      # skill go inert.
+      #
+      # The step after this one is the fix: prove the PINNED Bun can still read
+      # whatever this action produced, before a PR carrying it can be opened.
       - name: Update catalog dependencies
         uses: brandhaug/catalog-update-action@6c6e67170395d9012c38a3dea0fea85df5feb344 # v0.10.0
         with:
@@ -77,3 +87,30 @@ jobs:
           # cannot be merged. To get checks running, either close and reopen the
           # PR, or give the action a GitHub App token (see the action's README)
           # — which is a credential decision, not something to wire in silently.
+
+      # The lockfile this action just rewrote must still be readable by the Bun
+      # this repo pins. `oven-sh/setup-bun@v2` inside the composite installs
+      # whatever is current, and a newer Bun can emit a lockfileVersion the
+      # pinned one cannot parse — at which point `bun install --frozen-lockfile`
+      # fails everywhere, including in CI and in fresh contributor and agent
+      # containers, for a change nobody reviewed.
+      #
+      # `--frozen-lockfile` is the right probe: it does no resolution, so it
+      # asserts exactly one property — the pinned Bun can read this file — and
+      # cannot itself rewrite anything. Runs on dry-run too, where it is a
+      # no-op against the unchanged lockfile and costs seconds.
+      - name: Setup Bun (pinned)
+        uses: ./.github/actions/setup-bun
+
+      - name: The pinned Bun must still be able to read the lockfile
+        run: |
+          set -euo pipefail
+          echo "Pinned Bun: $(bun --version)   .bun-version: $(cat .bun-version)"
+          if ! bun install --frozen-lockfile; then
+            echo "" >&2
+            echo "FATAL: the regenerated bun.lock cannot be read by Bun $(cat .bun-version)." >&2
+            echo "The catalog action installs its own unpinned Bun, which has emitted a" >&2
+            echo "lockfile format the repo's pinned toolchain does not understand." >&2
+            echo "Do NOT merge a PR from this run — it would break install for everyone." >&2
+            exit 1
+          fi

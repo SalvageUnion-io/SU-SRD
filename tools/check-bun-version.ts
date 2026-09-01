@@ -45,6 +45,34 @@ const expected = readFileSync(join(root, '.bun-version'), 'utf-8').trim()
 const failures: string[] = []
 
 // ---------------------------------------------------------------------------
+// 0. The Bun actually running this is the Bun this repo pins.
+//
+// Every other check in this file reconciles one DECLARED version against
+// another. None of them looks at the interpreter, so all of them passed on a
+// container running Bun 1.3.11 against a pinned 1.4.0 — where `bun.lock` is
+// lockfileVersion 2, `bun install --frozen-lockfile` fails outright, and the
+// repo cannot be bootstrapped at all.
+//
+// Worse, two of the commands you would reach for to diagnose that report the
+// error and STILL EXIT 0: `bun why` and `bun pm ls` both print
+// "Error loading lockfile: UnknownLockfileVersion" and succeed. Only
+// `bun audit` fails closed. So a script or an agent shelling out to them gets
+// a clean exit against zero data — which is how CLAUDE.md ended up carrying a
+// frozen `bun why` transcript inside the section that says not to trust prose.
+//
+// This check runs first in `validate:all` precisely so that skew is the first
+// thing reported rather than something inferred three failures later.
+// ---------------------------------------------------------------------------
+
+if (typeof Bun !== 'undefined' && Bun.version !== expected) {
+  failures.push(
+    `the running Bun is ${Bun.version}, but .bun-version pins ${expected}. ` +
+      `Install the pinned version — a mismatched Bun can fail to read bun.lock entirely, ` +
+      `and \`bun why\`/\`bun pm ls\` exit 0 when it does.`
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Surface 1 — bun-types must track .bun-version exactly.
 // ---------------------------------------------------------------------------
 

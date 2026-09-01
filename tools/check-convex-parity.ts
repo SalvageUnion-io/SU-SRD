@@ -56,7 +56,6 @@ import { join } from 'node:path'
 
 const REPO_ROOT = join(import.meta.dir, '..')
 const CONVEX_DIR = join(REPO_ROOT, 'apps/itun/convex')
-const NETLIFY_TOML = join(REPO_ROOT, 'apps/itun/netlify.toml')
 
 /**
  * Where the same guard lives once the build moves into GitHub Actions
@@ -94,24 +93,56 @@ function fail(message: string): void {
  * it is in, and an absent key in production is fatal.
  */
 function checkStatic(): void {
-  const hasNetlify = existsSync(NETLIFY_TOML)
-  const hasWorkflow = existsSync(CF_DEPLOY_WORKFLOW)
-
-  // Neither source present is the one state that must never pass. During the
-  // cutover BOTH may be present, and each is checked on its own terms; after
-  // it, only the workflow remains. "Nothing asserts the guard" is the hole.
-  if (!hasNetlify && !hasWorkflow) {
+  // The Netlify half of this check is gone. ADR-033 P7 completed with no
+  // rollback, `apps/itun/netlify.toml` does not exist, and the `existsSync`
+  // gate meant its ~30 lines were permanently unreachable — dead code that
+  // still read as an active guard, and that knip cannot see because
+  // `tools/**/*.ts` is configured as an entry.
+  if (!existsSync(CF_DEPLOY_WORKFLOW)) {
     fail(
-      `no build definition carries the Convex deploy guard — expected either\n` +
-        `      apps/itun/netlify.toml or .github/workflows/deploy-cloudflare.yml.\n` +
-        `      Without one, a production deploy can ship a client against a backend\n` +
-        `      nobody pushed, exactly as it did from 2026-08-06 to 2026-08-10.`
+      `.github/workflows/deploy-cloudflare.yml is missing, so nothing carries the\n` +
+        `      Convex deploy guard. Without it a production deploy can ship a client\n` +
+        `      against a backend nobody pushed, exactly as it did from 2026-08-06 to\n` +
+        `      2026-08-10.`
     )
     return
   }
 
-  if (hasNetlify) checkNetlifyBuildGuard()
-  if (hasWorkflow) checkWorkflowBuildGuard()
+  checkWorkflowBuildGuard()
+}
+
+/**
+ * One workflow step's text, by its `- name:`.
+ *
+ * WHY THIS EXISTS. The two assertions below used to be `yaml.includes(...)`
+ * over the WHOLE file. `deploy-cloudflare.yml` contains four `exit 1`s and
+ * names CONVEX_DEPLOY_KEY in several places, so deleting the entire "Refuse to
+ * deploy without a Convex deploy key" step still left both substrings present —
+ * the adjacent Cloudflare-token guard supplies an `exit 1`, and the build
+ * step's `env:` block supplies the key name. The check printed
+ * `✓ convex deploy guard OK` for a workflow with no guard in it.
+ *
+ * That is the same weakness the comment below already describes for comments,
+ * fixed there and not here: a guard satisfiable by something OTHER than the
+ * guard is not a guard. Scoping to the step closes it.
+ */
+function stepBlock(yaml: string, name: string): string | null {
+  const lines = yaml.split('\n')
+  const start = lines.findIndex((line) => new RegExp(`^\\s*-\\s*name:\\s*${name}\\s*$`).test(line))
+  if (start === -1) return null
+
+  const indent = (lines[start] ?? '').search(/\S/)
+  const out = [lines[start] as string]
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    if (line.trim() !== '') {
+      const at = line.search(/\S/)
+      if (at <= indent && /^\s*-\s/.test(line)) break
+      if (at < indent) break
+    }
+    out.push(line)
+  }
+  return out.join('\n')
 }
 
 /**
@@ -148,8 +179,22 @@ function checkWorkflowBuildGuard(): void {
     )
   }
 
-  const namesTheKey = yaml.includes('CONVEX_DEPLOY_KEY')
-  const canFail = yaml.includes('exit 1')
+  const GUARD_STEP = 'Refuse to deploy without a Convex deploy key'
+  const guard = stepBlock(yaml, GUARD_STEP)
+
+  if (guard === null) {
+    fail(
+      `.github/workflows/deploy-cloudflare.yml has no \`${GUARD_STEP}\` step. The\n` +
+        `      guard is asserted BY NAME on purpose: a file-wide substring search for\n` +
+        `      \`exit 1\` and \`CONVEX_DEPLOY_KEY\` was satisfied by the neighbouring\n` +
+        `      Cloudflare-token guard and the build step's env block, so deleting this\n` +
+        `      step entirely still reported OK.`
+    )
+    return
+  }
+
+  const namesTheKey = guard.includes('CONVEX_DEPLOY_KEY')
+  const canFail = guard.includes('exit 1')
 
   if (!namesTheKey || !canFail) {
     fail(
@@ -161,39 +206,6 @@ function checkWorkflowBuildGuard(): void {
   }
 
   console.log('  [deploy-cloudflare.yml] production deploy fails when CONVEX_DEPLOY_KEY is absent')
-}
-
-function checkNetlifyBuildGuard(): void {
-  const toml = readFileSync(NETLIFY_TOML, 'utf8')
-  const commandLine = toml.split('\n').find((line) => line.trimStart().startsWith('command ='))
-
-  if (commandLine === undefined) {
-    fail(`apps/itun/netlify.toml has no [build] command`)
-    return
-  }
-
-  if (!commandLine.includes('convex deploy')) {
-    fail(
-      `apps/itun/netlify.toml's build command no longer runs \`convex deploy\`, so the\n` +
-        `      backend would never be pushed by a deploy at all`
-    )
-  }
-
-  const guardsProductionContext =
-    commandLine.includes('"$CONTEXT" = "production"') && commandLine.includes('exit 1')
-  const testsForAbsentKey = commandLine.includes('-z "$CONVEX_DEPLOY_KEY"')
-
-  if (!guardsProductionContext || !testsForAbsentKey) {
-    fail(
-      `apps/itun/netlify.toml no longer fails a production build that has no\n` +
-        `      CONVEX_DEPLOY_KEY. Without that guard an absent key silently takes the\n` +
-        `      Solo branch: the build goes green and ships a client against a backend\n` +
-        `      nobody pushed. Restore the leading guard in the [build] command.`
-    )
-    return
-  }
-
-  console.log('  [netlify.toml] production build fails when CONVEX_DEPLOY_KEY is absent')
 }
 
 // ---------------------------------------------------------------------------

@@ -92,6 +92,20 @@ jobs:
           filters: |
             shared: &shared
               - 'packages/salvageunion-reference/**'
+              # `observability` is a `workspace:*` dependency of ALL FOUR apps
+              # (srd, itun, discord-bot, su-assets), so it belongs here for
+              # exactly the reason salvageunion-reference does. Without it a
+              # change to `packages/observability/**` matched only `code` (via
+              # `packages/**`), leaving web/itun/bot false — so static-checks
+              # and test ran, but all three build jobs skipped, and with them
+              # the srd output-snapshot gate, the routeTree.gen.ts staleness
+              # check and both Playwright tiers.
+              #
+              # That is the #731 shape below, on a different package: the gate
+              # was working, it was never asked. `tools/check-path-filters.ts`
+              # now asserts this relationship from the manifests so the next
+              # shared dependency cannot repeat it.
+              - 'packages/observability/**'
               - 'package.json'
               - 'bun.lock'
               - 'knip.json'
@@ -172,6 +186,29 @@ jobs:
               # app builds — those still gate on their own dir changes.
               - 'tools/**'
               - 'docs/**'
+              # The same argument, one directory up, and it was the sharper
+              # omission. `check-doc-drift.ts` reads root CLAUDE.md, README.md
+              # and CONTRIBUTING.md BY NAME, and scans `.claude/rules`,
+              # `.claude/agents` and `.claude/skills` — yet none of those paths
+              # matched any filter, so `validate:all` skipped on precisely the
+              # pull requests that edit them. The guard for root CLAUDE.md could
+              # not run on a CLAUDE.md-only PR.
+              #
+              # Verified on #942, which touched `.mcp.json` and nothing else:
+              # static-checks passed in 16s (too short for typecheck), test,
+              # coverage and all three builds skipped, `CI Success` went green.
+              # That is the mechanism behind the stale-claims backlog — the
+              # checker was fine, it was simply never invoked on the diffs it
+              # exists to police.
+              #
+              # `.mcp.json` earns its place for the same reason once the MCP
+              # parity check lands: a doc claim about which servers exist can
+              # only drift against this file.
+              - 'CLAUDE.md'
+              - 'README.md'
+              - 'CONTRIBUTING.md'
+              - '.claude/**'
+              - '.mcp.json'
 
   static-checks:
     # SIX jobs merged into one: lint, build-package, knip, typecheck, validate,
