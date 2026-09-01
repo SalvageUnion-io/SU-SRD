@@ -27,7 +27,8 @@ document's title suggests: the **framework**, and with it the TypeScript 6 pin
 > static, React islands" — the major version was incidental to it. `srd` was on
 > **Astro 5** when this was written and ran **Astro 7** when it was superseded
 > (upgrade record in
-> [`plan-docs/upgrade-astro-7.md`](../../plan-docs/upgrade-astro-7.md), merged in
+> `plan-docs/upgrade-astro-7.md` (since deleted — it planned an Astro 7
+> upgrade for a repo with no Astro left), merged in
 > #365). The upgrade changed nothing this ADR decided. The Decision section below
 > is preserved as written apart from that version marker.
 

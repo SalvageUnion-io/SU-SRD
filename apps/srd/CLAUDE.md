@@ -116,9 +116,15 @@ renders exactly one placeholder:
 
 ## Hard rules
 
-1. **No `.css` import may be reachable from an SSR module.** The SSR pass runs
-   under Bun and never goes through Vite, so a stray `import './x.css'` anywhere
-   in the SSR graph breaks the build. **All** css is imported from
+1. **No `.css` import may be reachable from an SSR module.** Note what this does
+   NOT do: it does **not** break the build. Measured — a `.css` import in an SSR
+   module resolves under Bun and returns an object, exit 0, and `ssg/build.ts`'s
+   `ssg-css-stub` plugin makes that deterministic rather than introducing it.
+   That is precisely why the rule matters: a stylesheet imported anywhere else
+   never reaches Vite, so its authored rules never ship, with a green build, a
+   green typecheck and an unchanged output snapshot (which digests `<main>` text,
+   not CSS). `bun run check:srd-css` is what actually enforces it. **All** css is
+   imported from
    `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
    else. `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
    `src/runtime/Island.tsx` must stay stylesheet-free. The same split applies to

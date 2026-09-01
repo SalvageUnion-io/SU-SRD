@@ -36,9 +36,10 @@ Three drivers, all confirmed this round:
    `tracking-widest` / `rounded-[8px]`, local `TpBlock`, hand-rolled rows).
 2. **Resemble the official Starter Set sheets.** A two-column poster of labeled
    regions, single-accent monochrome, current/max vitals — rendered **in our
-   primitives**, not a photocopy of the PDF. (See
-   [`itun-sheet-redesign-plan.md`](./itun-sheet-redesign-plan.md) for the
-   region-for-region gap analysis and the confirmed direction.)
+   primitives**, not a photocopy of the PDF. (The region-for-region gap analysis
+   that confirmed this direction lived in `itun-sheet-redesign-plan.md`, deleted
+   once the redesign shipped; it is in git history if the reasoning is wanted
+   again.)
 3. **Reserve for a user image.** NEW this pass: every sheet must anticipate a
    user-provided image (pilot portrait / mech art / crawler art) — a feature not
    yet built. The poster must look intentional both empty (a dashed

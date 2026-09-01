@@ -1,0 +1,149 @@
+# The half of the dependency audit that the merge gate deliberately does not do.
+#
+# WHY THIS EXISTS. `check:audit` runs `bun audit --audit-level=high` and gates
+# merges. That threshold is a deliberate choice, not an oversight — but it means
+# a MODERATE advisory fails nothing, and nothing in `check`, in CI, or in the
+# pre-push hook ever runs a bare `bun audit`. So the entire moderate band was
+# caught only by someone running it by hand, which is to say: not caught.
+#
+# The five packages below are the ones that band actually lands on. They are
+# transitive, they draw ReDoS-class advisories, and four of them are now held by
+# a floor in `overrides` — which makes a resolution BELOW the floor a hard error
+# instead of the silent step-down `bunfig.toml`'s install cooldown otherwise
+# produces for a caret range.
+#
+# `brace-expansion` is deliberately NOT floored, and that is the interesting
+# one: the tree carries TWO copies at incompatible majors (5.0.9, plus 2.1.4
+# under `filelist/minimatch`). An override forces one version tree-wide, so a
+# floor there would push v5 into a consumer written against v2 — an audit that
+# comes back clean while behaviour degrades, which is precisely the failure
+# `@opentelemetry/core`'s entry in `ci.yml` documents. It is watched here
+# instead.
+#
+# This opens an ISSUE rather than failing anything. A scheduled red X on a
+# branch nobody is looking at is how the nightly e2e went unread for a month.
+
+name: Audit Watch
+
+on:
+  schedule:
+    # Mondays, ahead of the Dependabot and catalog-update batches, so an
+    # advisory is on the board before the PRs that might resolve it arrive.
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: audit-watch
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # `|| true` is correct here and nowhere else in this repo: a bare audit
+      # reporting something is the SIGNAL, not a build failure. The gate that
+      # fails is `check:audit` at --audit-level=high, in `static-checks`.
+      - name: Audit at every severity
+        id: audit
+        run: |
+          set -uo pipefail
+          bun audit > audit.txt 2>&1 || true
+          cat audit.txt
+          if grep -qiE 'no vulnerabilities found' audit.txt; then
+            echo "clean=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "clean=false" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo 'report<<AUDIT_EOF'
+            cat audit.txt
+            echo 'AUDIT_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open or update an issue when something is reported
+        if: steps.audit.outputs.clean == 'false'
+        uses: actions/github-script@v9
+        env:
+          REPORT: ${{ steps.audit.outputs.report }}
+        with:
+          script: |
+            const title = 'bun audit reports an advisory below the merge gate'
+            const body = [
+              'A scheduled `bun audit` (every severity, no `--audit-level`) reported something.',
+              '',
+              'The merge gate runs at `--audit-level=high`, so **this may not be failing any',
+              'PR** — which is the entire reason this job exists.',
+              '',
+              'Watch list, per `docs/architecture/dependency-management.md`: `nanoid`,',
+              '`fast-uri`, `brace-expansion`, `shell-quote`, `filelist`. Four are floored in',
+              '`overrides`; `brace-expansion` cannot be, because the tree holds two copies at',
+              'incompatible majors and a tree-wide override would break the v2 consumer.',
+              '',
+              '```',
+              process.env.REPORT,
+              '```',
+            ].join('\n')
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'audit-watch',
+            })
+
+            // Update in place rather than opening a new issue every Monday.
+            // An 18-comment issue nobody reads is what this is trying not to be.
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body,
+              })
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['audit-watch'],
+              })
+            }
+
+      - name: Close the issue when the tree is clean again
+        if: steps.audit.outputs.clean == 'true'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'audit-watch',
+            })
+            for (const issue of existing.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: 'A scheduled `bun audit` now reports no vulnerabilities. Closing.',
+              })
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed',
+              })
+            }

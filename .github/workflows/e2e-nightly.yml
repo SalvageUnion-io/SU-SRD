@@ -52,7 +52,7 @@ jobs:
 
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/itun
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       - name: Run E2E tests
         working-directory: apps/itun
@@ -204,7 +204,7 @@ jobs:
 
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/itun
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       # ITUN_E2E_EXPECT_AUTH_SEAM is the point of the whole job. With it set the
       # spec THROWS when the seam is absent instead of skipping, so this can
@@ -255,7 +255,7 @@ jobs:
         # Run from the app dir so bunx resolves srd's exact Playwright
         # version and installs the matching browser revision.
         working-directory: apps/srd
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       - name: Run E2E tests
         working-directory: apps/srd
@@ -326,7 +326,7 @@ jobs:
       # own. The scanner is on Playwright now, so it finds Chromium itself.)
       - name: Install Playwright browsers (Chromium)
         working-directory: apps/srd
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install chromium
 
       # Same static-preview approach as e2e-srd's Playwright webServer: the SSG
       # build (`ssg/build.ts` directly, not the `og:generate` script, which

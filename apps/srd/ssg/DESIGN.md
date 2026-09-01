@@ -49,10 +49,21 @@ apps/srd/
 
 ## Hard rules
 
-1. **No `.css` import may be reachable from an SSR module.** The SSR pass runs
-   under Bun and does not go through Vite, so a stray `import './x.css'` breaks
-   the build. ALL css is imported from `src/runtime/styles.entry.ts`, which is a
-   client-bundle entry only. `BaseLayout.tsx` must not import css.
+1. **No `.css` import may be reachable from an SSR module.** ALL css is imported
+   from `src/runtime/styles.entry.ts`, which is a client-bundle entry only.
+   `BaseLayout.tsx` must not import css.
+
+   This line used to say a stray `import './x.css'` **breaks the build**. It does
+   not, and that mattered: measured under this repo's Bun, such an import
+   resolves and returns an object, exit 0 — including a package import. The
+   `ssg-css-stub` plugin in `build.ts` makes the behaviour deterministic; it did
+   not introduce it, and there was never a failure to rely on.
+
+   The real cost is quieter. A stylesheet imported anywhere but the entry never
+   reaches Vite, so its authored rules — selectors, keyframes, `@layer` blocks —
+   never ship, with a green build, a green typecheck, and an unchanged output
+   snapshot (which digests `<main>` text, not CSS). `bun run check:srd-css`
+   is what enforces this rule.
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
    may import from `ssg/` at runtime.
 3. **Relative imports only** (repo rule — never `@/` aliases).

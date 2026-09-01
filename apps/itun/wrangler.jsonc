@@ -61,6 +61,23 @@
   // natively.
   "rules": [{ "type": "Data", "globs": ["**/*.ttf"] }],
 
+  // RETENTION: the period is DECIDED — 365 days — but applying it is an ACCOUNT
+  // action, because R2 lifecycle rules are set on the bucket rather than here,
+  // and `wrangler` cannot express them in this file.
+  //
+  // `apps/itun/src/lib/snapshot/storage.ts` has no TTL or expiry — a snapshot
+  // lives until its owner revokes it, and most never are. Storage therefore only
+  // grows, and it is billable. Nothing surfaces that until a bill does.
+  //
+  // 365 days was chosen (2026-09-01) so that a link shared during a campaign
+  // outlives the campaign, while still bounding storage. It is a product
+  // decision rather than a cleanup: a shared snapshot URL going dead is a real
+  // cost to a player, which is why the number is written down here instead of
+  // being left to whoever next opens the dashboard.
+  //
+  // TO DO, in the Cloudflare dashboard on `su-itun-snapshots`: add a lifecycle
+  // rule expiring objects 365 days after creation. Until that is applied,
+  // nothing expires — this comment records the decision, not its enforcement.
   "r2_buckets": [
     {
       "binding": "SNAPSHOTS",
@@ -91,6 +108,21 @@
   // per Worker: two bindings sharing an id share their counters even across
   // Workers, and this account also runs `randsum-rdn` and `randsum-site`
   // (ADR-033 §6), so the id below is deliberately not the docs' `1001` example.
+  //
+  // The account also carries `optfall` and `optfall-images`, which are NOT
+  // mentioned anywhere in this repo or its ADRs — found by listing the account
+  // during the 2026-09 audit. Worth confirming neither uses `7301` before
+  // trusting these counters, since a collision shares them silently.
+  //
+  // SCOPE, stated because it is easy to over-read this binding: it covers
+  // `POST /api/snapshots` and NOTHING ELSE. Convex is reached by the browser
+  // directly at *.convex.cloud / *.convex.site, so no Convex query or mutation
+  // passes through this Worker and none of them is rate-limited here — including
+  // `invites.preview` and `invites.redeem`, which are public and keyed by an
+  // 8-character code. That is the unstated cost of ADR-033's decision to put
+  // snapshots on R2 rather than in Convex, and it is a documented boundary
+  // rather than an oversight: throttling Convex means fronting it with a Worker,
+  // which partly undoes what ADR-030 chose deliberately.
   "ratelimits": [
     {
       "name": "RATE_LIMITER",
@@ -99,6 +131,21 @@
         "limit": 10,
         "period": 60
       }
+    }
+  ],
+
+  // Answers the OG open question in `src/worker/index.ts`, which asks whether
+  // `renderOgImage` fits the 10 ms CPU budget and has been UNVERIFIED since the
+  // cutover. It was instrumented with a `console.log`, which is only visible to
+  // someone already tailing during a render — so it could never aggregate into
+  // an answer. This dataset can: wallMs percentiles across real traffic.
+  //
+  // The binding is optional in `Env`, so `wrangler dev` and the routing tests
+  // need no dataset and an absent one degrades to no measurement.
+  "analytics_engine_datasets": [
+    {
+      "binding": "OG_METRICS",
+      "dataset": "itun_og_render"
     }
   ],
 

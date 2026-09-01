@@ -24,8 +24,7 @@
 > [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (**governing**;
 > supersedes ADR-001),
 > [architecture/accounts-and-games.md](../architecture/accounts-and-games.md),
-> [game-invites-and-membership-plan.md](./game-invites-and-membership-plan.md)
-> (**Status: BUILT**), and `apps/itun/convex/{games,invites,proposals,mediator}.ts`.
+> and `apps/itun/convex/{games,invites,proposals,mediator}.ts`.
 > Read this document's multiplayer **implementation** notes as historical (the
 > mechanism is Convex, not Supabase/RLS/RPC) while treating the **capability**
 > as delivered. In particular, the inventory and matrix rows struck through
@@ -182,7 +181,7 @@ These are mechanics that players use every session and are central to the game.
 
 ### Tier 3 -- Multiplayer & Campaign Features (historical — superseded, see note at top)
 
-_This entire tier assumed the abandoned Supabase multi-user backend (Postgres campaigns, RLS, invite codes, member roles), so its "DB infrastructure exists" claims no longer hold and the gaps below are preserved only as written history. **The capabilities themselves are no longer deferred — they shipped on Convex** under [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (which supersedes ADR-001): Games, member rosters with mediator/player roles, invite-code join flows and realtime sync are all built. See [architecture/accounts-and-games.md](../architecture/accounts-and-games.md) and [game-invites-and-membership-plan.md](./game-invites-and-membership-plan.md) for the delivered design._
+_This entire tier assumed the abandoned Supabase multi-user backend (Postgres campaigns, RLS, invite codes, member roles), so its "DB infrastructure exists" claims no longer hold and the gaps below are preserved only as written history. **The capabilities themselves are no longer deferred — they shipped on Convex** under [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (which supersedes ADR-001): Games, member rosters with mediator/player roles, invite-code join flows and realtime sync are all built. See [architecture/accounts-and-games.md](../architecture/accounts-and-games.md) for the delivered design._
 
 #### 10. Invite Code Join Flow (UI)
 
