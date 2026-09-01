@@ -48,6 +48,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P6    | ITUN offline, proved rather than asserted                  | yes        | **done**    |
 | P4b   | Remove the mirrors; prune the cache                        | **no**     | **done**    |
 | P7    | `srd` install-triggered offline                            | yes        | **done**    |
+| P8    | Close the migration window — no isolated local-only data    | **no**     | **done**    |
 
 > **P4 and P4b are `done` as of this change, and the route here is worth
 > keeping.** They were marked `done` once before while P4's own body below was
@@ -84,6 +85,18 @@ Update this table as part of each phase's PR. It is the only place that answers
 
 P0–P2 are all reversible and all buy information. P3 and P4 are the one-way
 doors and they are deliberately late.
+
+> **P8 was not in the original plan, and the reason it had to be added is the
+> most useful thing in this document.** Every phase above was marked `done`
+> honestly, and the invariant was still false in production: a user reported a
+> roster that was present signed out and absent signed in. The flip shipped with
+> a guard for existing Solo users — a browser holding a roster kept the durable
+> local backend "until the user takes the claim or exports" — and **nothing in
+> the app could ever set that probe to `absent`**, so the window it opened never
+> closed. A migration whose exit condition no code path can produce is not a
+> migration, and no gate above tested for one: they tested that data could be
+> claimed, never that it *was*. See
+> [ADR-035](../adrs/ADR-035-no-isolated-local-only-data.md).
 
 ---
 
@@ -536,6 +549,13 @@ cover **everything** P0 made mirrorable, including patterns and the log. And
 **declining must be survivable**: today declining leaves a full local roster
 beside an empty account, which after P4 is a roster the app no longer reads.
 
+> **The decline path described below was withdrawn by
+> [ADR-035](../adrs/ADR-035-no-isolated-local-only-data.md), and `ClaimLocalData`
+> is deleted.** It is left in place because P5's gates are still the right
+> assertions about coverage, and because the reasoning that made offering the
+> right call — and why it stopped being — is worth reading in the order it
+> happened. What replaced it is P8. Do not build against this section.
+
 **The decline path is settled: offer the export hard, then stop asking.** A user
 who declines the claim is pushed to download a bundle, and after that the app
 does not raise it again. This is the least-nagging option and it was chosen
@@ -685,6 +705,69 @@ returns on its first line unless `display-mode` says the app is installed.
 
 ---
 
+## P8 — Close the migration window (no isolated local-only data)
+
+**Goal.** No row exists that only one browser can see. Not "can be claimed" —
+*is* in the account, or is on a device that is telling its owner so on every
+screen.
+
+**Why this is a phase and not a bug fix.** Two defects produce the same symptom
+and neither is reachable from the other, so fixing one alone leaves the user
+exactly as stuck. ADR-035 has both in full; in short:
+
+- **The window never closed.** `legacyLocalDataState()` had no code path to
+  `absent`, so the "keep the local backend until they claim" guard was permanent
+  rather than temporary — and `ClaimLocalData`, the only way out, lived on the
+  Account screen, was dismissible, and counted the **entity store** rather than
+  IndexedDB (so once `ShelfSync` had filled that store it read a full account and
+  offered nothing while the local rows sat beside it).
+- **A claimed build could still be invisible.** Migration v13 mapped every
+  non-Default Workspace onto `gameId: <that workspace id>`, which names no Game;
+  `claimLocal` set the row's `gameId` column to `null` but stored the body
+  verbatim, and the client reads the body. Signed out nothing filters and the
+  pile renders; signed in, `Roster` scopes to the container and they vanish.
+
+**Work.**
+
+- `backendForMode` drops the legacy argument entirely. Anonymous under
+  `VITE_REQUIRE_ACCOUNT` is `memory`, with no exemption. Removing the *parameter*
+  rather than the branch is the point: the regression becomes unwritable.
+- `lib/db/legacyLocalData.ts` changes role — probe plus `readLegacyLocalData()`
+  (salvage-tolerant, every kind `claimLocal` accepts) plus
+  `markLegacyLocalDataMigrated()`, which is the close the window never had and
+  what finally arms `mayPrune`.
+- `lib/account/legacyMigration.ts` holds the rule as pure functions, beside
+  `pruneRules.ts` and for the same reason: it decides what is uploaded on
+  somebody's behalf, so the tests must drive the rule rather than a copy of it.
+- `components/account/LegacyLocalData.tsx` mounts at the **root**, not on a
+  screen. Signed out it states the count and offers sign-in or download; signed
+  in it reconciles against `entities.listMine` + `games.listMine` and claims what
+  is isolated. `ClaimLocalData` is deleted.
+- `claimLocal` shelves the bodies it writes, and gains the repeat guard the NPC
+  tray never had — survivable when a human pressed the button once, not when the
+  same call runs on every signed-in load.
+
+**Gate.**
+
+- `backendForMode` takes two arguments. Asserted on the function's arity, not
+  only on its behaviour, so the exemption cannot come back as a default.
+- The stranded-row rule is tested directly: an owned row is not stranded in any
+  container; a row in a Game the account belongs to is not stranded (these are
+  `GameRoster`'s deliberately-cached pre-gens and communal crawler); an unowned
+  shelf row is; **a row in a Game that does not exist is**.
+- A claimed body reads as shelved. This is the one that would have caught defect
+  2, and it is an assertion about the *body*, because that is what the client
+  reads.
+- The reconciliation is idempotent: a second pass against an account that already
+  holds everything sends nothing at all, which is what lets the window close.
+- Migration is never marked complete while a row is stranded — `skipped` or
+  `alreadyPresent` above zero leaves the state `present`, so a browser that
+  cannot fully reconcile never prunes.
+- **No data is deleted by any path in this phase.** The rows stay in IndexedDB
+  throughout; what changes is that something else also has them.
+
+---
+
 ## Resolved (2026-08-19)
 
 The four questions this plan opened with are answered. Recorded here with the
@@ -693,7 +776,10 @@ ADR.
 
 1. **Declining the claim → offer the export hard, then stop asking.** Unblocks
    P5, and is why that phase's gate insists the export be *taken* rather than
-   merely offered.
+   merely offered. **Reversed by ADR-035 at P8**: there is no decline any more,
+   because there is nothing to decline — a device row is moved into the account
+   that owns it. The export it rests on survives and moved to where somebody
+   without an account actually meets it.
 2. **Anonymous users get export to file.** Unblocks P3, and it is what makes a
    Discord-only gate defensible rather than a wall.
 3. **`encounterNpcs` is one table with two containers** — the #871 crawler move
@@ -709,6 +795,12 @@ ADR.
 
 ## Still open
 
-Nothing blocking. The remaining unknowns are inside phases and are named in the
-phase that owns them — most substantially, **which of P1's three routes to
-take**, which is a security-shaped choice and gates the two one-way doors.
+Nothing blocking.
+
+One thing worth carrying forward rather than closing, because P8 is the second
+time it has bitten: **a phase's gate must assert the end state, not the
+mechanism.** P5 proved a roster *could* be claimed and P0's parity test proved a
+Convex table *existed* — both passed for years while the data did not arrive.
+The question to ask of any future gate here is the one ADR-034 already wrote
+down: *if this row is not in Convex, is it lost when the user opens the app on
+their phone?*

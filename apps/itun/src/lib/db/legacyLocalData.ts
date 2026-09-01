@@ -1,37 +1,45 @@
 /**
- * Does this browser already hold a roster from before accounts were required?
+ * The pre-account roster this browser is still holding, and how to get it out.
  *
- * ## Why the flip needs this
+ * ## What this used to be, and why it changed
  *
- * ADR-034 sends an anonymous visitor to the in-memory backend. For somebody
- * arriving fresh that is exactly right. For the years of **existing Solo users**
- * it is a disaster: their pilots are in IndexedDB, the memory store is empty, and
- * the app would stop reading the one place their work lives. They would open ITUN
- * and find nothing — not deleted, but unreachable, which from where they sit is
- * the same thing.
+ * This module used to answer one question for `backendForMode`: *does this
+ * browser hold a roster from before accounts were required?* — and a `present`
+ * answer kept the whole durable IndexedDB backend alive for an anonymous
+ * visitor, indefinitely. That was the migration window, and it was described as
+ * closing "per browser rather than on a date".
  *
- * P5's claim path does not save them either, because the claim card reads the
- * entity store, and in memory mode the entity store is empty. There would be
- * nothing to offer and no way to know there was anything to ask for.
+ * It never closed. Nothing in the app ever set it to `absent`, and the only
+ * path off the device was a card on the Account screen that the player had to
+ * find, could dismiss forever, and which counted the *entity store* rather than
+ * IndexedDB. So a browser that had ever held a build stayed on a second source
+ * of truth for good: a durable local roster, invisible to the account, that
+ * reappeared the moment its owner signed out. That is precisely the state
+ * [ADR-035](../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md) exists
+ * to end.
  *
- * So the flip is conditional: **anonymous goes to memory only in a browser that
- * has no legacy roster.** A browser that has one keeps reading it, and keeps
- * being offered the claim, until the user takes it or exports. That is the
- * migration window, and it closes per browser rather than on a date.
+ * ## What it is now
  *
- * ## Fails to the safe side, deliberately
+ * The probe survives, and its answer is unchanged — but nothing reads it to
+ * *choose a backend* any more. Anonymous is always in-memory (see
+ * `stores/entityBackend.ts`), and this module's job is to say **whether there
+ * is anything left to migrate**, and to hand those rows over so it can be.
  *
- * The probe is asynchronous and `selectBackend()` is not, so there is a window at
- * boot where the answer is not yet known. During it the state is `unknown`, and
- * `unknown` is treated as "there might be a roster" — the backend stays `local`.
+ * `present` therefore now means "this browser has rows that may not be in the
+ * account yet", which is a to-do rather than a mode. `markLegacyLocalDataMigrated`
+ * is what finally makes it `absent` — the close this window never had — and it
+ * is what re-enables cache pruning (`db/pruneRules.ts`).
  *
- * That direction is not arbitrary. Guessing `absent` wrongly sends an existing
- * user's writes to a Map that is thrown away when the tab closes; guessing
- * `present` wrongly gives a brand-new visitor a durable local write they were
- * going to be asked to claim anyway. One of those loses work and the other does
- * not, so the window resolves toward the one that does not.
+ * ## Reads are salvage-tolerant, deliberately
+ *
+ * The rows come back through the ordinary `db.*` stores rather than a raw
+ * `getAll`, so a record written by an older build is repaired on read exactly as
+ * every other reader repairs it. A roster that has been sitting in a browser
+ * since before ADR-030 is the single most likely place for version skew, and
+ * this is the one pass that has to survive it.
  */
 
+import * as db from './index'
 import { openItunDatabase } from './index'
 import { STORE_NAMES } from './stores'
 
@@ -45,13 +53,28 @@ export function legacyLocalDataState(): LegacyProbeState {
 }
 
 /**
+ * Record that this browser's pre-account rows are now in the account.
+ *
+ * The close the migration window never had. Until this is called
+ * `mayPrune` refuses to delete anything, because a local row absent from
+ * `listMine` might be un-uploaded rather than deleted-elsewhere — and once it
+ * is called that ambiguity is gone, so the cache can finally behave like one.
+ *
+ * Called **only** after a claim that stranded nothing. A claim that skipped or
+ * declined even one row leaves the state `present`, which costs nothing but a
+ * disabled prune and is the only answer that cannot delete work.
+ */
+export function markLegacyLocalDataMigrated(): void {
+  state = 'absent'
+}
+
+/**
  * The stores whose contents mean "this browser has a roster".
  *
  * Only the ones a *person* built. `workspaces` is the retired container and
  * `changeLog` is provenance about entities rather than an entity, so neither
- * would justify holding a fresh visitor in the local backend on its own — and a
- * stray log row from a since-deleted pilot is exactly the kind of leftover that
- * would.
+ * would justify a migration pass on its own — and a stray log row from a
+ * since-deleted pilot is exactly the kind of leftover that would.
  */
 const ROSTER_STORES = [
   STORE_NAMES.pilots,
@@ -64,20 +87,19 @@ const ROSTER_STORES = [
  * Look once, at boot, and remember.
  *
  * Idempotent: after the first resolution this returns the cached answer without
- * touching IndexedDB again. The answer is allowed to go stale in one direction
- * only — a browser that gains a roster during the session got it through the
- * local backend, which is the branch `present` already selects.
+ * touching IndexedDB again.
  */
 export async function probeLegacyLocalData(): Promise<LegacyProbeState> {
   if (state !== 'unknown') return state
 
   try {
-    const db = await openItunDatabase()
+    const idb = await openItunDatabase()
     for (const store of ROSTER_STORES) {
       // `count` rather than `getAll`: the question is "is there anything", and
       // reading a whole roster to answer it would parse every record at boot
-      // for no reason.
-      const n = await db.count(store)
+      // for no reason. The read that does parse is `readLegacyLocalData`, and
+      // it only runs when there is something to migrate.
+      const n = await idb.count(store)
       if (n > 0) {
         state = 'present'
         return state
@@ -86,15 +108,56 @@ export async function probeLegacyLocalData(): Promise<LegacyProbeState> {
     state = 'absent'
   } catch (err) {
     // A browser that refuses IndexedDB — private mode, a locked-down profile,
-    // a blocked upgrade — cannot be holding a legacy roster this app can read.
-    // `absent` is both true and the useful answer: it lets an anonymous visitor
-    // work in memory rather than stranding them against a store that will not
-    // open.
+    // a blocked upgrade — cannot be holding a roster this app can read.
+    // `absent` is both true and the useful answer: there is nothing to migrate
+    // and nothing to hold back the cache.
     console.warn('[itun] could not probe for legacy local data; assuming none', err)
     state = 'absent'
   }
 
   return state
+}
+
+/** Everything a pre-account browser can be holding. */
+export type LegacyLocalData = {
+  pilots: unknown[]
+  mechs: unknown[]
+  crawlers: unknown[]
+  softLinks: unknown[]
+  mechPatterns: unknown[]
+  encounterNpcs: unknown[]
+}
+
+/**
+ * Read the whole local roster out of IndexedDB.
+ *
+ * Every kind `claimLocal` accepts, because a partial migration is how the
+ * crawler and the pattern library were dropped from the first version of that
+ * mutation — a player watched half a campaign not arrive.
+ *
+ * A store that will not read yields an empty array rather than failing the
+ * pass: one unreadable object store must not strand the five that are fine.
+ */
+export async function readLegacyLocalData(): Promise<LegacyLocalData> {
+  const read = async (name: string, list: () => Promise<unknown[]>): Promise<unknown[]> => {
+    try {
+      return await list()
+    } catch (err) {
+      console.warn(`[itun] could not read local ${name} while migrating`, err)
+      return []
+    }
+  }
+
+  const [pilots, mechs, crawlers, softLinks, mechPatterns, encounterNpcs] = await Promise.all([
+    read('pilots', () => db.pilots.list()),
+    read('mechs', () => db.mechs.list()),
+    read('crawlers', () => db.crawlers.list()),
+    read('softLinks', () => db.softLinks.list()),
+    read('mechPatterns', () => db.mechPatterns.list()),
+    read('encounterNpcs', () => db.encounterNpcs.list()),
+  ])
+
+  return { pilots, mechs, crawlers, softLinks, mechPatterns, encounterNpcs }
 }
 
 /** Test-only: forget what the probe concluded. */

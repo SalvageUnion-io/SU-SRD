@@ -13,10 +13,32 @@ supersedes ADR-001):
     [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) withdrew
     that guarantee, and every phase of
     [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md) —
-    P0–P7, P4b and the flip — is now done.
+    P0–P8, P4b and the flip — is now done.
     `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`, so in **any
     production-mode build** an anonymous visitor gets the in-memory backend:
     writes never reach IndexedDB and do not survive a reload.
+  - **There is no legacy exemption, and there is no claim card.**
+    [ADR-035](../../docs/adrs/ADR-035-no-isolated-local-only-data.md) removed
+    both. `backendForMode` takes two arguments and consults no probe: a browser
+    holding a pre-account roster gets `memory` like everybody else, and that
+    roster is **migrated** — `LegacyLocalData` (root-mounted, not on the Account
+    screen) offers sign-in-or-download while signed out and reconciles against
+    `entities.listMine` while signed in. `ClaimLocalData` is deleted; do not
+    reintroduce an offer-and-decline path.
+    - Worth knowing *why*, because the shape recurs: the exemption's exit
+      condition (`legacyLocalDataState() === 'absent'`) had no code path that
+      could produce it, so the "migration window" was permanent, and the only
+      way out counted the **entity store** — which for a signed-in player is
+      filled from the server, so it read a full account and offered nothing
+      while the local rows sat beside it. The user-visible symptom was a roster
+      present signed out and absent signed in.
+    - **A container written twice must be written together.** `claimLocal` set
+      the row's `gameId` column to `null` and stored the client body verbatim,
+      and the client reads the **body** — so a build claimed out of a retired
+      Workspace (migration v13 mapped those onto `gameId: <workspace id>`,
+      naming no real Game) arrived in the account and stayed invisible behind
+      `Roster`'s container filter. `shelveBody` in `convex/entities.ts` is the
+      fix; the rule is general.
   - That distinction is not academic. It is why the nightly e2e was red for a
     month: the Playwright `webServer` builds a production bundle, so the suite
     inherited the gate, entities stopped persisting, and twelve specs failed

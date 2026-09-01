@@ -533,6 +533,27 @@ async function appIdTaken(
  * is a real limitation, not a fix; closing it means keying the index on
  * (ownerId, appId), which is a schema change and its own piece of work.
  */
+/**
+ * Rewrite a claimed body so its container agrees with the row it lands in.
+ *
+ * Everything claimed lands on the **shelf** — `gameId: null` in the column — but
+ * the body is the client's own record and carries its own `gameId`, which the
+ * client is what actually reads (`lib/container.ts`). Leaving the two to
+ * disagree is not cosmetic: migration v13 mapped every pre-ADR-030 Workspace
+ * onto `gameId: <that workspace id>`, so a claimed body routinely names a Game
+ * that does not exist. Signed out nothing filters and the pile renders whole;
+ * signed in, `Roster` scopes to the active container and every such build
+ * vanishes — claimed, owned, paid for, and invisible.
+ *
+ * `null` explicitly rather than deleting the key: `containerOf` reads `null` as
+ * "shelved, decided" and `undefined` as "predates the split, fall back to
+ * `workspaceId`", and the fallback is where the phantom Game came from.
+ */
+function shelveBody<T>(body: T): T {
+  if (typeof body !== 'object' || body === null) return body
+  return { ...body, gameId: null }
+}
+
 export const claimLocal = mutation({
   args: {
     pilots: v.array(v.any()),
@@ -595,7 +616,7 @@ export const claimLocal = mutation({
           gameId: null,
           ownerId: userId,
           appId,
-          body: parsed.data,
+          body: shelveBody(parsed.data),
           updatedAt: now,
         })
         bump(table)
@@ -644,7 +665,7 @@ export const claimLocal = mutation({
         gameId: null,
         ownerId: userId,
         appId,
-        body: parsed.data,
+        body: shelveBody(parsed.data),
         updatedAt: now,
       })
       bump('crawlers')
@@ -657,6 +678,29 @@ export const claimLocal = mutation({
      * a tray in a Game is the Mediator's and owned by nobody. Claiming produces
      * the first of those, always: a claim has no Game to put anything in.
      */
+    /*
+     * The tray was the one claimed kind with NO repeat guard at all.
+     *
+     * That was survivable while claiming was a card somebody pressed once. It is
+     * not survivable now that the migration runs by itself on every signed-in
+     * load (ADR-035): an unguarded insert would grow the tray by its own size
+     * every time. `encounterNpcs` has no `appId` column, so identity is the id
+     * inside the body — the same rule the patterns pass below already uses, and
+     * for the same reason.
+     */
+    const ownNpcs =
+      (args.encounterNpcs ?? []).length > 0
+        ? await ctx.db
+            .query('encounterNpcs')
+            .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+            .collect()
+        : []
+    const ownNpcIds = new Set(
+      ownNpcs
+        .map((row) => (row.body as { id?: unknown }).id)
+        .filter((id): id is string => typeof id === 'string')
+    )
+
     for (const body of args.encounterNpcs ?? []) {
       // `PARSERS.encounterNpcs` rather than the schema directly — that map is
       // the single list of tables owing an edge parse, and reaching around it is
@@ -666,10 +710,17 @@ export const claimLocal = mutation({
         skipped += 1
         continue
       }
+      const npcId = (body as { id?: unknown }).id
+      if (typeof npcId === 'string' && ownNpcIds.has(npcId)) {
+        alreadyPresent += 1
+        continue
+      }
+      if (typeof npcId === 'string') ownNpcIds.add(npcId)
+
       await ctx.db.insert('encounterNpcs', {
         gameId: null,
         ownerId: userId,
-        body: parsed.data,
+        body: shelveBody(parsed.data),
       })
       bump('encounterNpcs')
     }

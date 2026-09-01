@@ -106,9 +106,13 @@ Do not reach for it just because it is mounted.
   the only source of truth for every persisted record; IndexedDB is a cache of
   it. A row with no Convex counterpart is invisible on the user's other devices,
   invisible to sync, and lost when browser storage clears.
-  - This is a rule about **new** code. Solo mode still runs today and the phases
-    that remove it have not landed — see
-    [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md).
+  - **This is no longer only a rule about new code.** Every phase has landed —
+    P0–P8, P4b and the flip
+    ([persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md)) —
+    and [ADR-035](../../docs/adrs/ADR-035-no-isolated-local-only-data.md) closed
+    the last exemption: there is no build in which a device is a source of
+    truth except one with the account gate off (CI, `bun run dev`). If you find
+    a row that exists only in IndexedDB, it is a defect, not legacy tolerance.
   - The three stores that used to violate this — `mechPatterns`,
     `encounterNpcs`, and the client Change Log — now mirror on every write
     (P4b). `mechPatterns` and `encounterNpcs` go through the `commit` seam on

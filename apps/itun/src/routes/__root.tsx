@@ -4,6 +4,7 @@ import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { AppHeader, EntityHrefProvider, RecoveryPanel, Toaster } from 'component-lib'
 import { useState } from 'react'
 import { AccountStrip } from '../components/account/AccountStrip'
+import { LegacyLocalData } from '../components/account/LegacyLocalData'
 import { ShelfSync } from '../components/account/ShelfSync'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AnonymousWorkPromoter, UnsavedWorkBanner } from '../components/account/UnsavedWorkBanner'
@@ -94,6 +95,12 @@ function RootComponent() {
               promotion needs to run. */}
           <UnsavedWorkBanner />
           <AnonymousWorkPromoter />
+          {/* The other half of the same gate (ADR-035): a browser holding a
+              pre-account roster. Signed out it says so and offers both doors;
+              signed in it moves those rows into the account by itself. Root, not
+              the Account screen — it is a fact about the browser, and its
+              predecessor went unseen for living on a page nobody had to open. */}
+          <LegacyLocalData />
           {/* Fills the local cache from the server of record. Renders nothing;
               mounted here because a roster is needed on every route, not only
               the one that happens to list it. */}

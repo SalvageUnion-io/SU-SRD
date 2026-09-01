@@ -106,14 +106,14 @@ describe('WritesBlockedOffline', () => {
  * beside `useConnection`.
  */
 describe('a build that requires an account gives an anonymous visitor nothing durable', () => {
-  test('solo becomes memory when the flag is on and the browser is empty', () => {
-    expect(backendForMode('solo', true, 'absent')).toBe('memory')
+  test('solo becomes memory when the flag is on', () => {
+    expect(backendForMode('solo', true)).toBe('memory')
   })
 
   test('solo stays local when the flag is off', () => {
     // `VITE_REQUIRE_ACCOUNT=false` is the escape hatch a deploy would need if
     // the flip turned out to be wrong in a way the tests did not catch.
-    expect(backendForMode('solo', false, 'absent')).toBe('local')
+    expect(backendForMode('solo', false)).toBe('local')
   })
 
   test('the flag changes nothing for a signed-in user', () => {
@@ -121,44 +121,37 @@ describe('a build that requires an account gives an anonymous visitor nothing du
     // diverged, turning the gate on would change where signed-in writes go,
     // which belongs to the demotion and must not ride along with the flip.
     for (const flag of [true, false]) {
-      for (const legacy of ['unknown', 'present', 'absent'] as const) {
-        expect(backendForMode('connected', flag, legacy)).toBe('remote')
-        expect(backendForMode('disconnected', flag, legacy)).toBe('blocked')
-        expect(backendForMode('connecting', flag, legacy)).toBe('blocked')
-      }
+      expect(backendForMode('connected', flag)).toBe('remote')
+      expect(backendForMode('disconnected', flag)).toBe('blocked')
+      expect(backendForMode('connecting', flag)).toBe('blocked')
     }
   })
 })
 
-describe('the legacy-roster guard on the flip', () => {
-  test('an existing roster keeps the local backend, flag or no flag', () => {
-    // The whole point of the guard. Sending an existing Solo user to the memory
-    // backend makes their pilots UNREACHABLE — not deleted, but from where they
-    // sit that is the same thing. P5's claim card cannot rescue them either: it
-    // reads the entity store, which in memory mode is empty, so there would be
-    // nothing to offer and no way to know there was anything to ask for.
-    expect(backendForMode('solo', true, 'present')).toBe('local')
+describe('a pre-account roster no longer buys an exemption (ADR-035)', () => {
+  test('the flag alone decides, whatever this browser is holding', () => {
+    // The exemption this replaces read a probe that NOTHING ever resolved to
+    // `absent`, so it did not open a migration window — it made the durable
+    // local backend permanent for anybody who had ever built anything, and that
+    // is the second source of truth ADR-035 removes. `backendForMode` no longer
+    // takes the probe at all, which is what makes the regression unwritable
+    // rather than merely unwritten.
+    expect(backendForMode('solo', true)).toBe('memory')
+    expect(backendForMode.length).toBe(2)
   })
 
-  test('an UNRESOLVED probe keeps the local backend — the safe side', () => {
-    // The probe is async and `selectBackend()` is not, so there is a window at
-    // boot where the answer is unknown. Guessing 'absent' wrongly sends an
-    // existing user's writes to a Map that dies with the tab; guessing 'present'
-    // wrongly gives a new visitor a durable write they were going to be asked to
-    // claim anyway. Only one of those loses work, so the window resolves toward
-    // the other one.
-    expect(backendForMode('solo', true, 'unknown')).toBe('local')
+  test('their roster is migrated, not abandoned', () => {
+    // Stated here because this is the test somebody will read when they wonder
+    // whether removing the guard stranded existing players. It did not: the rows
+    // stay in IndexedDB, `LegacyLocalData` offers sign-in-or-download while
+    // signed out, and `selectStranded` moves them into the account on sign-in.
+    // See `lib/account/__tests__/legacyMigration.test.ts`.
+    expect(backendForMode('connected', true)).toBe('remote')
   })
 
-  test('omitting the probe argument never picks memory', () => {
-    // A caller that forgets the third argument must not accidentally opt into
-    // the destructive branch, so it defaults to 'unknown' rather than 'absent'.
-    expect(backendForMode('solo', true)).toBe('local')
-  })
-
-  test('selectBackend agrees — the probe has not run in this test process', () => {
-    // End to end through the real wiring rather than the pure function: with no
-    // probe performed, the live selector must also refuse the memory branch.
+  test('selectBackend agrees — this build does not require an account', () => {
+    // End to end through the real wiring rather than the pure function. The test
+    // build has no `VITE_REQUIRE_ACCOUNT`, so the live selector stays `local`.
     expect(selectBackend()).toBe('local')
   })
 })

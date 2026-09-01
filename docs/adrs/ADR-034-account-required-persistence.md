@@ -15,6 +15,14 @@ built against a world that had already shipped away, and `docs/README.md`
 repeated the same claim. Delivery status belongs in the plan document; keep
 this header pointing at it rather than restating a snapshot of it.
 
+**Partially superseded by [ADR-035](ADR-035-no-isolated-local-only-data.md)**,
+which withdraws one consequence recorded below — *"Declining the claim is a
+terminal choice, by design"* — and the *offered, not automatic* rule it rests on.
+The three decisions here are untouched and this ADR remains the governing one for
+all of them; ADR-035 closes the migration window that was still keeping decision
+2 from being true. Read it before reasoning about anything below that involves
+`ClaimLocalData` (deleted), declining, or a browser holding a pre-account roster.
+
 **Partially supersedes [ADR-030](ADR-030-accounts-games-server-of-record.md)** —
 its §1 guarantee that Solo mode ("not signed in, IndexedDB is the source of
 truth") "must keep working forever", and nothing else. **ADR-030 remains the
