@@ -319,7 +319,7 @@ repo):
   paper over that with code — see above for why the code would not work.
 - Events take a minute or two to propagate, and Convex does not expose the
   Sentry SDK for customisation. There is no release tagging to wire up, so
-  Convex errors will not carry a commit SHA the way the Netlify and Render
+  Convex errors will not carry a commit SHA the way the browser and Worker
   surfaces do.
 
 **Status: DELIVERING since 2026-08-12**, confirmed end to end — a forced error
@@ -451,15 +451,17 @@ bunx convex env set SITE_URL            <frontend origin>
 opaque `Missing environment variable SITE_URL` 500 from the OAuth callback
 rather than anything pointing at configuration.
 
-**For the Discord bot** (ADR-030 Phase 6), one more on the Convex deployment
-and two on the Render worker:
+**For the Discord bot** (ADR-030 Phase 6), one more on the Convex deployment and
+two on the bot's Cloudflare Worker (set with `wrangler secret put`; these were
+Render env vars until that account was deleted on 2026-09-01, and were never
+actually set there — see the P5 section of the cutover doc):
 
 ```bash
 # Convex — enables the /bot/* route. UNSET disables the whole surface, so a
 # deployment that has not opted in cannot be talked to by a bot at all.
 bunx convex env set ITUN_BOT_SECRET <a long random string>
 
-# Render (suref-discord-bot) — both, or the bot stays in Solo mode.
+# The bot Worker (su-discord-bot) — both, or the bot stays in Solo mode.
 ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
 ITUN_BOT_SECRET=<the same value>
 ```
