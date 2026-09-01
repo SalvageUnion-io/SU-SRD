@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.4](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.3...itun-v1.17.4) (2026-09-01)
+
+
+### Bug Fixes
+
+* **itun:** close the migration window — no isolated local-only data ([#966](https://github.com/SalvageUnion-io/SU-SRD/issues/966)) ([e3cbcb5](https://github.com/SalvageUnion-io/SU-SRD/commit/e3cbcb54d5b62f29ffbf0a1ca41c3fbcf9016064))
+
 ## [1.17.3](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.2...itun-v1.17.3) (2026-09-01)
 
 
