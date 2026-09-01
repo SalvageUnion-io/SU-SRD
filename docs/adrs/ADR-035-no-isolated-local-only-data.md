@@ -163,6 +163,29 @@ Everything else is isolated, **including a row in a Game that does not exist**.
 That is the second defect above, stated as a rule: a container nobody can reach
 is not a container.
 
+**The client decides half of this and the server decides the other half**, and
+the split is forced rather than chosen. "A Game the account is not in" is
+ambiguous two ways, and they need opposite handling: a phantom Workspace id is
+the caller's own build and must be migrated, while a Game the caller **left** is
+somebody else's — `GameRoster.ensureLocal` adopts a crewmate's pilot into
+IndexedDB the moment you open their sheet, and `rowMayBePruned` never prunes a
+Game row, so that copy outlives the membership.
+
+The client cannot tell those apart and must not guess: shelving the second moves
+another player's character into this account, and for an unclaimed pre-gen —
+which carries no `appId` for the duplicate check to catch — it would actually
+insert it. So `claimLocal` refuses any body naming a Game that genuinely exists
+and reports it as `declined`. The answer never leaves the mutation, which
+returns aggregate counts, so this discloses nothing a non-member could not
+already infer — the same care `games.get` takes when it returns `null` rather
+than distinguishing a deleted Game from one you cannot see.
+
+`declined` is counted apart from `skipped` and `alreadyPresent` deliberately.
+Those two mean "still only on the device" and are what decide whether the
+migration is finished; a declined row is already safe on the server and was
+never this account's to migrate, so counting it with them would hold the window
+open forever — and `mayPrune` off with it — over rows that were never at risk.
+
 ## Consequences
 
 - **The offer is gone, and with it the decline.** Somebody who signs in has their

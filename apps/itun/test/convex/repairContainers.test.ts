@@ -287,3 +287,96 @@ describe('what it must not touch', () => {
     expect(result.skipped).toBe(1)
   })
 })
+
+/**
+ * The claim refuses a row belonging to a Game that exists (ADR-035).
+ *
+ * These live beside the repair tests because they are the same invariant seen
+ * from the other side: a container the caller cannot reach is theirs to migrate,
+ * and a container that genuinely exists is not.
+ *
+ * The case is not hypothetical. `GameRoster.ensureLocal` adopts a crewmate's
+ * pilot into IndexedDB the moment you open their sheet, and `rowMayBePruned`
+ * never prunes a Game row — so the copy outlives your membership. The client
+ * cannot tell that row from a phantom Workspace id, and shelving it would move
+ * somebody else's character into your account.
+ */
+describe('claimLocal and a Game that still exists', () => {
+  test('refuses the row, and reports it apart from the stranded ones', async () => {
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+    const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
+
+    const result = await me.as.mutation(api.entities.claimLocal, {
+      pilots: [pilotBody({ id: 'theirs', gameId })],
+      mechs: [],
+    })
+
+    expect(result.claimed).toBe(0)
+    expect(result.declined).toBe(1)
+    // Counting it as skipped or alreadyPresent would hold the migration window
+    // open forever over a row that was never at risk.
+    expect(result.skipped).toBe(0)
+    expect(result.alreadyPresent).toBe(0)
+  })
+
+  test('an unclaimed pre-gen is refused too — the case with no appId to catch it', async () => {
+    // The genuinely destructive one. A pre-gen carries no `appId`, so
+    // `appIdTaken` finds nothing and the row would have been INSERTED onto the
+    // claimer's shelf rather than merely double-counted.
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+    const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId,
+          ownerId: null,
+          body: pilotBody({ id: 'pregen' }),
+          updatedAt: 1,
+        })
+    )
+
+    const result = await me.as.mutation(api.entities.claimLocal, {
+      pilots: [pilotBody({ id: 'pregen', gameId })],
+      mechs: [],
+    })
+
+    expect(result.declined).toBe(1)
+    const mine = await me.as.query(api.entities.listMine, {})
+    expect(mine.pilots).toHaveLength(0)
+  })
+
+  test('a phantom Workspace id is still migrated — that is the whole point', async () => {
+    // `normalizeId` returns null for a UUID, so this resolves to "no such Game"
+    // rather than throwing, and the row is claimed onto the shelf shelved.
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+
+    const result = await me.as.mutation(api.entities.claimLocal, {
+      pilots: [pilotBody({ id: 'mine', gameId: 'e3f1c9a2-0b47-4d8e-9c31-5a7f2b6d8e04' })],
+      mechs: [],
+    })
+
+    expect(result.claimed).toBe(1)
+    expect(result.declined).toBe(0)
+
+    const mine = await me.as.query(api.entities.listMine, {})
+    expect(gameIdOf(mine.pilots[0] as { body: unknown })).toBeNull()
+  })
+
+  test('a crawler from a Game that exists is refused on the same rule', async () => {
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+    const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
+
+    const result = await me.as.mutation(api.entities.claimLocal, {
+      pilots: [],
+      mechs: [],
+      crawlers: [crawlerBody({ id: 'communal', gameId })],
+    })
+
+    expect(result.claimed).toBe(0)
+    expect(result.declined).toBe(1)
+  })
+})

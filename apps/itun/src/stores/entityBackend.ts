@@ -97,9 +97,9 @@ export type BackendKind = 'local' | 'remote' | 'blocked' | 'memory'
  * **It is now the only condition.** It used to share the decision with a probe
  * for a pre-account roster, and a browser that had one kept the durable local
  * backend indefinitely — the migration window that never closed, and the second
- * source of truth ADR-035 removes. Anonymous is anonymous: the roster is loaded
- * into the anonymous session and promoted on sign-in
- * (`lib/account/legacyMigration.ts`), rather than left on the device.
+ * source of truth ADR-035 removes. Anonymous is anonymous: the rows stay on
+ * disk, `LegacyLocalData` says so and offers a download, and signing in
+ * reconciles them into the account (`lib/account/legacyMigration.ts`).
  *
  * Read once at module scope like every other `import.meta.env` flag here. A
  * build-time switch rather than a runtime one is deliberate: "does this build
@@ -142,9 +142,15 @@ export function backendForMode(mode: ConnectionMode, requireAccount: boolean): B
   // The legacy-roster exemption that used to sit here is gone (ADR-035). It read
   // a probe that nothing ever resolved to `absent`, so it did not open a
   // migration window, it made the durable local backend permanent for anyone who
-  // had ever built anything. The roster is not abandoned by removing it: it is
-  // loaded into the anonymous session and promoted on sign-in, which is the
-  // difference between migrating data and leaving it where it cannot be reached.
+  // had ever built anything. The roster is not abandoned by removing it: the rows
+  // stay in IndexedDB, `LegacyLocalData` tells a signed-out visitor they are
+  // there and offers a download, and signing in reconciles them into the account.
+  //
+  // They are deliberately NOT loaded into the anonymous session. Doing that would
+  // arm `AnonymousWorkPromoter`, which promotes the whole store without knowing
+  // what the account already holds — so a sign-out/sign-in round trip would
+  // re-claim owned rows and report them to the player as builds that could not be
+  // saved. See ADR-035's rejected alternatives.
   if (mode === 'solo' && requireAccount) return 'memory'
   if (mode === 'solo') return 'local'
   if (usesServerOfRecord(mode)) return 'remote'

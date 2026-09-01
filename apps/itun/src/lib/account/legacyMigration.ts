@@ -92,6 +92,20 @@ function servedIds(rows: readonly ServedRow[]): Set<string> {
  * Everything else is stranded: a shelf row the account does not own (it never
  * reached the server), or a row addressed to a Game that does not exist (a
  * Workspace id left by migration v13 — see the module header).
+ *
+ * ## This is half the rule, and the server holds the other half
+ *
+ * "A Game the account is not in" is ambiguous, and irreducibly so from here: it
+ * is either a phantom Workspace id, or a Game the caller **left**. Those need
+ * opposite handling — `GameRoster.ensureLocal` adopts crewmates' builds into
+ * IndexedDB on open and `rowMayBePruned` never prunes a Game row, so those
+ * copies outlive the membership, and shelving one would move another player's
+ * character into this account.
+ *
+ * Only the server can tell them apart, so it does: `claimLocal` refuses any
+ * body naming a Game that genuinely exists and reports it as `declined`. This
+ * predicate is therefore deliberately permissive about Game rows rather than
+ * clever — being wrong here costs a refused row, not a stolen one.
  */
 export function isStranded(
   row: LocalRow,

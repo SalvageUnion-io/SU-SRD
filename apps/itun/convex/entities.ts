@@ -624,6 +624,43 @@ export const repairContainers = mutation({
 })
 
 /**
+ * Does this body name a Game that genuinely exists?
+ *
+ * The claim cannot trust the client's judgement here, and the client cannot
+ * form one. A local row filed under a Game the caller is not a member of is
+ * ambiguous two ways, and the two need opposite handling:
+ *
+ *  - a **phantom** container — a Workspace id that migration v13 wrote as a
+ *    `gameId`, naming a Game that has never existed. This is somebody's own
+ *    pre-account build and it must be migrated.
+ *  - a Game the caller **left**, was removed from, or that was destroyed.
+ *    `GameRoster.ensureLocal` adopts crewmates' pilots and the communal crawler
+ *    into IndexedDB on open, and `rowMayBePruned` never prunes a Game row, so
+ *    those copies outlive the membership. Migrating one would shelve **another
+ *    player's character into the caller's account** — and for an unclaimed
+ *    pre-gen, which carries no `appId` for `appIdTaken` to catch, it would
+ *    actually insert it.
+ *
+ * Only the server can tell them apart, and it can do so without disclosing
+ * anything: the answer never leaves this mutation, which returns aggregate
+ * counts. That is the same reason `games.get` returns `null` rather than
+ * throwing for a non-member — a non-member must not be able to distinguish an
+ * existing Game from a deleted one, and nothing here lets them.
+ *
+ * `normalizeId` rather than a bare `db.get`, because a Workspace UUID is not a
+ * well-formed Convex id and `get` would throw on it — which is precisely the
+ * case that must resolve to "no such Game".
+ */
+async function namesALiveGame(ctx: MutationCtx, body: unknown): Promise<boolean> {
+  if (typeof body !== 'object' || body === null) return false
+  const container = containerOf(body as { gameId?: string | null; workspaceId?: string })
+  if (container.kind !== 'game') return false
+  const gameId = ctx.db.normalizeId('games', container.gameId)
+  if (gameId === null) return false
+  return (await ctx.db.get(gameId)) !== null
+}
+
+/**
  * Rewrite a claimed body so its container agrees with the row it lands in.
  *
  * Everything claimed lands on the **shelf** — `gameId: null` in the column — but
@@ -668,6 +705,16 @@ export const claimLocal = mutation({
     claimed: number
     skipped: number
     alreadyPresent: number
+    /**
+     * Rows refused because they belong to a Game that exists — a crewmate's
+     * build this browser cached and kept after leaving. Reported separately
+     * from `skipped` and `alreadyPresent` on purpose: those two mean "still
+     * only on the device", and a caller uses them to decide whether the
+     * migration is finished. A declined row is not the caller's to migrate at
+     * all, so counting it with them would leave the migration permanently
+     * unfinished over rows that are already safe on the server.
+     */
+    declined: number
     byKind: Record<string, number>
   }> => {
     const userId = await requireUser(ctx)
@@ -675,6 +722,7 @@ export const claimLocal = mutation({
     let claimed = 0
     let skipped = 0
     let alreadyPresent = 0
+    let declined = 0
     const byKind: Record<string, number> = {}
 
     const bump = (kind: string) => {
@@ -692,6 +740,11 @@ export const claimLocal = mutation({
           skipped += 1
           continue
         }
+        if (await namesALiveGame(ctx, body)) {
+          declined += 1
+          continue
+        }
+
         const appId =
           typeof (body as { id?: unknown }).id === 'string'
             ? (body as { id: string }).id
@@ -743,6 +796,10 @@ export const claimLocal = mutation({
       const parsed = CrawlerSchema.safeParse(body)
       if (!parsed.success) {
         skipped += 1
+        continue
+      }
+      if (await namesALiveGame(ctx, body)) {
+        declined += 1
         continue
       }
       const appId =
@@ -913,7 +970,7 @@ export const claimLocal = mutation({
       bump('mechPatterns')
     }
 
-    return { claimed, skipped, alreadyPresent, byKind }
+    return { claimed, skipped, alreadyPresent, declined, byKind }
   },
 })
 

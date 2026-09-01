@@ -54,6 +54,37 @@ import { captureException } from '../../lib/observability'
 import { accountRequired, backendForMode } from '../../stores/entityBackend'
 import { SignInControl } from './SignInControl'
 
+const REPAIR_KEY = 'itun.containersRepaired'
+
+/**
+ * Whether the container repair has already run in this tab.
+ *
+ * `sessionStorage`, not a module flag: the effect below remounts whenever the
+ * backend transitions (the handshake settles, connectivity returns), and a
+ * per-mount ref alone would re-run a `.collect()` over every owned row inside a
+ * write transaction each time. Session-scoped rather than persisted, because a
+ * new session is exactly when a row repaired on another device should be
+ * re-checked here.
+ *
+ * Both accessors swallow: a browser that refuses storage still gets the repair,
+ * just once per mount instead of once per session, which is the safe direction.
+ */
+function repairDoneThisSession(): boolean {
+  try {
+    return sessionStorage.getItem(REPAIR_KEY) !== null
+  } catch {
+    return false
+  }
+}
+
+function markRepairDone(): void {
+  try {
+    sessionStorage.setItem(REPAIR_KEY, new Date().toISOString())
+  } catch {
+    // Nothing to do — the repair itself already succeeded.
+  }
+}
+
 /**
  * The rows this browser is holding, or `null` when it holds none.
  *
@@ -106,12 +137,18 @@ function SignedOutNotice({ rows }: { rows: LegacyRows }) {
   return (
     <div className="border-b-2 border-ink bg-paper px-4 py-3">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
+        {/* Describes the DEVICE, and says no more than it can know. Signed out
+            there is no `listMine` to compare against, so some of these may
+            already be in the account — a returning player's cache, or a row
+            adopted from a Game. "N builds not in your account" would be a count
+            this side of the app cannot compute, and stating it would be wrong
+            for exactly the people most likely to read it. */}
         <Text>
           <strong>
-            {n} {n === 1 ? 'build' : 'builds'} on this device.
+            This device holds {n} {n === 1 ? 'build' : 'builds'}.
           </strong>{' '}
-          Sign in to bring {n === 1 ? 'it' : 'them'} into your account — or download{' '}
-          {n === 1 ? 'it' : 'them'} to keep {n === 1 ? 'it' : 'them'} yourself.
+          Sign in to bring anything missing into your account — or download{' '}
+          {n === 1 ? 'it' : 'them all'} to keep {n === 1 ? 'it' : 'them'} yourself.
         </Text>
         <div className="flex flex-wrap items-center gap-2">
           {/* Both ways out, side by side. Neither is the "cancel". */}
@@ -177,11 +214,26 @@ function SignedInMigration({ rows }: { rows: LegacyRows | null }) {
    * cannot act on.
    */
   useEffect(() => {
-    if (repaired.current) return
+    if (repaired.current || repairDoneThisSession()) return
     repaired.current = true
-    void repairContainers({}).catch((err: unknown) => {
-      captureException(err, { source: 'repairContainers' })
-    })
+    void repairContainers({})
+      .then((result) => {
+        // Marked only on success, so a failed pass retries on the next load
+        // rather than being remembered as done.
+        markRepairDone()
+        if (result.skipped > 0) {
+          // Not shown to the player — see above, nothing is at risk — but a body
+          // the server accepted that this build cannot re-parse is a real schema
+          // disagreement, and silently discarding the count is how it stays
+          // unknown. This is the only signal that it happened.
+          captureException(
+            new Error(`repairContainers skipped ${result.skipped} unparseable row(s)`)
+          )
+        }
+      })
+      .catch((err: unknown) => {
+        captureException(err, { source: 'repairContainers' })
+      })
   }, [repairContainers])
 
   useEffect(() => {
@@ -210,6 +262,13 @@ function SignedInMigration({ rows }: { rows: LegacyRows | null }) {
         // somewhere in the database — possibly by another account, since import
         // keeps ids. Either way the row is still device-only, so the window
         // stays open and pruning stays off.
+        //
+        // `result.declined` is deliberately NOT counted here. Those are rows
+        // belonging to a Game that exists — a crewmate's build this browser
+        // cached and kept after leaving — which the server refused precisely
+        // because they are not this account's to migrate. They are already safe
+        // on the server, so counting them would hold the window open forever
+        // over rows that were never at risk, and `mayPrune` with it.
         const left = result.skipped + result.alreadyPresent
         if (left > 0) {
           setError(

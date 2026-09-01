@@ -69,18 +69,30 @@ export function markLegacyLocalDataMigrated(): void {
 }
 
 /**
- * The stores whose contents mean "this browser has a roster".
+ * The stores whose contents mean "this browser has something left to migrate".
  *
  * Only the ones a *person* built. `workspaces` is the retired container and
  * `changeLog` is provenance about entities rather than an entity, so neither
  * would justify a migration pass on its own — and a stray log row from a
  * since-deleted pilot is exactly the kind of leftover that would.
+ *
+ * **`encounterNpcs` belongs here now, and did not before.** While this probe
+ * only chose a backend, an NPC tray was not a reason to keep one. The question
+ * it answers changed with ADR-035 — `readLegacyLocalData` and `claimLocal` both
+ * cover the tray — so a browser holding nothing but a tray used to probe
+ * `absent` and was never migrated and never warned.
+ *
+ * **`softLinks` is deliberately still out.** A link is wiring between entities
+ * rather than a thing somebody built, so a browser holding only orphaned links
+ * has nothing to migrate — and counting them would hold that browser at
+ * `present` forever, which keeps `mayPrune` off for good over junk.
  */
 const ROSTER_STORES = [
   STORE_NAMES.pilots,
   STORE_NAMES.mechs,
   STORE_NAMES.crawlers,
   STORE_NAMES.mechPatterns,
+  STORE_NAMES.encounterNpcs,
 ] as const
 
 /**
