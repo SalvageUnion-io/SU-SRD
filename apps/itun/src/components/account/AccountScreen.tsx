@@ -5,7 +5,6 @@ import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { ConvexPending } from '../shared/ConvexPending'
-import { ClaimLocalData } from './ClaimLocalData'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -48,9 +47,6 @@ function SignedInAccount() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* First thing on the account page: an existing player's local roster is
-          the most urgent thing to resolve after signing in. */}
-      <ClaimLocalData />
       <Card>
         <div className="flex flex-col gap-3 p-4">
           <PageHeading variant="section" as="h2">

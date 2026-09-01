@@ -16,7 +16,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm building the play surface (the Dashboard)** → [architecture/dashboard.md](architecture/dashboard.md) + [adrs/ADR-015-dashboard-distinct-play-surface.md](adrs/ADR-015-dashboard-distinct-play-surface.md) (through ADR-020)
 
-**I'm working on the snapshot share feature** → [adrs/ADR-004-snapshot-netlify-functions.md](adrs/ADR-004-snapshot-netlify-functions.md)
+**I'm working on sharing a sheet — snapshots, public sheets, or unifying the two** → [adrs/ADR-004-snapshot-netlify-functions.md](adrs/ADR-004-snapshot-netlify-functions.md) (the frozen `/s/:id` snapshot — unauthenticated, id-as-capability) + [adrs/ADR-032-public-read-only-sheets.md](adrs/ADR-032-public-read-only-sheets.md) (the live `/p/:kind/:appId` sheet — owner opt-in, revoked everywhere at once) + [architecture/unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md) (**the plan to combine them** — phases, gates, and the four decisions a future ADR must settle before any one-way phase begins). The two render through one renderer already; what differs is the capability model, so do not treat the merge as a routing change.
 
 **I'm working on accounts, Games, or the Discord bot as a game client** → [adrs/ADR-030-accounts-games-server-of-record.md](adrs/ADR-030-accounts-games-server-of-record.md) (**governing** ADR for identity + ownership) + [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (delivery phases + ops reference) + [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)
 
@@ -32,7 +32,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm working on the move to Cloudflare** → [adrs/ADR-033-cloudflare-hosting.md](adrs/ADR-033-cloudflare-hosting.md) (**the decisions** — read before revisiting any of them, especially R2-over-KV) + [architecture/cloudflare-cutover.md](architecture/cloudflare-cutover.md) (**the executable plan** — phase order, per-phase gates, progress table). Hard cutover, no rollback: **a failed gate halts the phase and is never worked around.** Do not execute from issue #830, which the ADR supersedes.
 
-**I'm changing where player data lives, or anything offline/PWA** → [adrs/ADR-034-account-required-persistence.md](adrs/ADR-034-account-required-persistence.md) (**the decisions** — persistence requires an account, Convex is the only source of truth, IndexedDB is a cache) + [architecture/persistence-and-pwa.md](architecture/persistence-and-pwa.md) (**the executable plan** — phase order, gates, progress, and the inventory of what is not DB-backed yet). Accepted and **delivered**: `persistence-and-pwa.md` marks P0–P7, P4b and the flip all done, and `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`. The one-way doors are behind us — anonymous writes go to the in-memory backend and do not survive a reload. Never add a store that exists only on a device.
+**I'm changing where player data lives, or anything offline/PWA** → [adrs/ADR-034-account-required-persistence.md](adrs/ADR-034-account-required-persistence.md) (**the decisions** — persistence requires an account, Convex is the only source of truth, IndexedDB is a cache) + [adrs/ADR-035-no-isolated-local-only-data.md](adrs/ADR-035-no-isolated-local-only-data.md) (**read both** — ADR-035 closes the migration window ADR-034 left open, and withdraws its terminal-decline consequence) + [architecture/persistence-and-pwa.md](architecture/persistence-and-pwa.md) (**the executable plan** — phase order, gates, progress, and the inventory of what is not DB-backed yet). Accepted and **delivered**: `persistence-and-pwa.md` marks P0–P8, P4b and the flip all done, and `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`. The one-way doors are behind us — anonymous writes go to the in-memory backend and do not survive a reload, and a browser holding a pre-account roster is **migrated** into the account rather than left reading it. Never add a store that exists only on a device.
 
 **I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with `bun --filter srd gate` — `ssg/snapshot.ts` diffs the built output against a committed snapshot and is the acceptance gate, not your reading of the diff. If the change is intentional, `bun --filter srd snapshot:update` and commit the snapshot alongside it.
 
@@ -62,7 +62,8 @@ conventions, then the relevant architecture doc below.
 | [agent-tooling.md](architecture/agent-tooling.md)                     | **Service registry** — MCP servers + auth models, and every Cloudflare/Sentry/Convex identifier        |
 | [cloudflare-cutover.md](architecture/cloudflare-cutover.md)           | **Executable plan** for ADR-033 — phase order, per-phase gates, progress table, cutover runbook        |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
-| [persistence-and-pwa.md](architecture/persistence-and-pwa.md)         | **Executable plan** for ADR-034 — phases, gates, progress, and what is not DB-backed yet               |
+| [persistence-and-pwa.md](architecture/persistence-and-pwa.md)         | **Executable plan** for ADR-034 and ADR-035 — phases, gates, progress, and what is not DB-backed yet   |
+| [unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md)   | **Plan** for unifying the two account-free share surfaces (`/s/:id` frozen, `/p/:kind/:appId` live) — phases, gates, and the open decisions a future ADR must settle |
 
 ### Rules text — extract and grep, no digest
 
@@ -80,7 +81,7 @@ documents as part of the same change.
 
 ### [`adrs/`](adrs/) — Architecture Decision Records
 
-MADR-style records of architecturally significant decisions. **34 ADRs.** Each
+MADR-style records of architecturally significant decisions. **35 ADRs.** Each
 one's own `## Status` block is authoritative — this summary tracks it, so if the
 two ever disagree, believe the ADR.
 
@@ -153,7 +154,8 @@ Read the matching ADR before proposing alternatives.
 | [ADR-031](adrs/ADR-031-srd-vite-ssg.md)                              | `srd` builds on an in-house Vite SSG (`apps/srd/ssg`); supersedes ADR-012 — same decision, different machine                                                                          |
 | [ADR-032](adrs/ADR-032-public-read-only-sheets.md)                   | Public, read-only sheets. Amends ADR-030 §5 (visibility) with one explicit exception, and narrows what ADR-004's snapshots are _for_                                                   |
 | [ADR-033](adrs/ADR-033-cloudflare-hosting.md)                        | Hosting moves to Cloudflare; Netlify + Render retired, hard cutover, snapshots on R2 not KV; amends ADR-004, Convex unchanged                                                          |
-| [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; Convex is the only source of truth and IndexedDB is a cache; both apps are ordinary installable PWAs. **Supersedes ADR-030 §1's Solo guarantee**; amends ADR-002 and ADR-022 |
+| [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; Convex is the only source of truth and IndexedDB is a cache; both apps are ordinary installable PWAs. **Supersedes ADR-030 §1's Solo guarantee**; amends ADR-002 and ADR-022; **partially superseded by ADR-035** |
+| [ADR-035](adrs/ADR-035-no-isolated-local-only-data.md)               | The migration window closes: no legacy exemption on the anonymous backend, the claim runs automatically against `listMine` instead of being offered, and a claimed body is shelved so its container agrees with its row. **Partially supersedes ADR-034**'s terminal-decline consequence |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which

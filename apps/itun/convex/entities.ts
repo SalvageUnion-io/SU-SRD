@@ -1,4 +1,5 @@
 import { v } from 'convex/values'
+import { containerOf, SHELF, sameContainer } from '../src/lib/container'
 import { CrawlerSchema } from '../src/lib/schemas/crawler'
 import type { EntityRef } from '../src/lib/schemas/entity'
 import { EntityRefSchema } from '../src/lib/schemas/entity'
@@ -533,6 +534,153 @@ async function appIdTaken(
  * is a real limitation, not a fix; closing it means keying the index on
  * (ownerId, appId), which is a schema change and its own piece of work.
  */
+/** The three tables whose body carries a container the client reads. */
+const CONTAINED = {
+  pilots: PARSERS.pilots,
+  mechs: PARSERS.mechs,
+  crawlers: CrawlerSchema,
+} as const
+
+/**
+ * Make every owned body agree with the row it is stored in
+ * ([ADR-035](../../../docs/adrs/ADR-035-no-isolated-local-only-data.md)
+ * decision 3).
+ *
+ * ## The rows `claimLocal` cannot reach
+ *
+ * `shelveBody` fixes this on the way in, and `legacyMigration` sends anything
+ * the account does not hold. Neither touches a build that was **already
+ * claimed** under the old card: the account owns it, so it is not stranded and
+ * nothing re-sends it — while its body still names a Workspace that migration
+ * v13 turned into a `gameId` and that has never been a Game. Signed out nothing
+ * filters and it renders; signed in, `Roster` scopes to the active container
+ * and it is gone. Owned, server-backed, and invisible.
+ *
+ * That population is unreachable from the client's side of the migration, which
+ * is why the repair is a mutation over the account rather than a pass over one
+ * browser's IndexedDB. It also fixes rows this device has never held — a build
+ * claimed from a phone, opened on a laptop.
+ *
+ * ## The column is the authority, not membership
+ *
+ * The rule is `body.gameId := row.gameId`, and it is deliberately not "shelve
+ * anything whose Game I am not a member of". The column is what the server
+ * enforces ownership and container against; the body is a client record that
+ * drifted from it. Repairing toward the column needs no membership lookup, is
+ * right for a Game row as well as a shelf row, and cannot move an entity
+ * somewhere it was not already filed.
+ *
+ * Compared through `containerOf` rather than on the raw field, because a
+ * pre-ADR-030 body carries no `gameId` at all and resolves through
+ * `workspaceId` — that record reads as being in a phantom Game too, and a raw
+ * `body.gameId ?? null` check would call it identical to a shelf row and skip
+ * it. Idempotent either way: after the patch the two resolve the same, so a
+ * second run writes nothing.
+ */
+export const repairContainers = mutation({
+  args: {},
+  handler: async (
+    ctx
+  ): Promise<{ repaired: number; skipped: number; byKind: Record<string, number> }> => {
+    const userId = await requireUser(ctx)
+    let repaired = 0
+    let skipped = 0
+    const byKind: Record<string, number> = {}
+
+    for (const table of ['pilots', 'mechs', 'crawlers'] as const) {
+      const rows = await ctx.db
+        .query(table)
+        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .collect()
+
+      for (const row of rows) {
+        const body = row.body as Record<string, unknown> | null
+        if (typeof body !== 'object' || body === null) {
+          skipped += 1
+          continue
+        }
+
+        const declared = row.gameId === null ? SHELF : { kind: 'game' as const, gameId: row.gameId }
+        if (sameContainer(containerOf(body), declared)) continue
+
+        const parsed = CONTAINED[table].safeParse({ ...body, gameId: row.gameId ?? null })
+        if (!parsed.success) {
+          // A body this build cannot re-parse is left exactly as it is. It is
+          // still readable, still owned, and still exportable; refusing to
+          // rewrite it is strictly safer than writing a shape the schema
+          // rejects, and the count comes back so the caller can say so.
+          skipped += 1
+          continue
+        }
+
+        await ctx.db.patch(row._id, { body: parsed.data, updatedAt: Date.now() })
+        repaired += 1
+        byKind[table] = (byKind[table] ?? 0) + 1
+      }
+    }
+
+    return { repaired, skipped, byKind }
+  },
+})
+
+/**
+ * Does this body name a Game that genuinely exists?
+ *
+ * The claim cannot trust the client's judgement here, and the client cannot
+ * form one. A local row filed under a Game the caller is not a member of is
+ * ambiguous two ways, and the two need opposite handling:
+ *
+ *  - a **phantom** container — a Workspace id that migration v13 wrote as a
+ *    `gameId`, naming a Game that has never existed. This is somebody's own
+ *    pre-account build and it must be migrated.
+ *  - a Game the caller **left**, was removed from, or that was destroyed.
+ *    `GameRoster.ensureLocal` adopts crewmates' pilots and the communal crawler
+ *    into IndexedDB on open, and `rowMayBePruned` never prunes a Game row, so
+ *    those copies outlive the membership. Migrating one would shelve **another
+ *    player's character into the caller's account** — and for an unclaimed
+ *    pre-gen, which carries no `appId` for `appIdTaken` to catch, it would
+ *    actually insert it.
+ *
+ * Only the server can tell them apart, and it can do so without disclosing
+ * anything: the answer never leaves this mutation, which returns aggregate
+ * counts. That is the same reason `games.get` returns `null` rather than
+ * throwing for a non-member — a non-member must not be able to distinguish an
+ * existing Game from a deleted one, and nothing here lets them.
+ *
+ * `normalizeId` rather than a bare `db.get`, because a Workspace UUID is not a
+ * well-formed Convex id and `get` would throw on it — which is precisely the
+ * case that must resolve to "no such Game".
+ */
+async function namesALiveGame(ctx: MutationCtx, body: unknown): Promise<boolean> {
+  if (typeof body !== 'object' || body === null) return false
+  const container = containerOf(body as { gameId?: string | null; workspaceId?: string })
+  if (container.kind !== 'game') return false
+  const gameId = ctx.db.normalizeId('games', container.gameId)
+  if (gameId === null) return false
+  return (await ctx.db.get(gameId)) !== null
+}
+
+/**
+ * Rewrite a claimed body so its container agrees with the row it lands in.
+ *
+ * Everything claimed lands on the **shelf** — `gameId: null` in the column — but
+ * the body is the client's own record and carries its own `gameId`, which the
+ * client is what actually reads (`lib/container.ts`). Leaving the two to
+ * disagree is not cosmetic: migration v13 mapped every pre-ADR-030 Workspace
+ * onto `gameId: <that workspace id>`, so a claimed body routinely names a Game
+ * that does not exist. Signed out nothing filters and the pile renders whole;
+ * signed in, `Roster` scopes to the active container and every such build
+ * vanishes — claimed, owned, paid for, and invisible.
+ *
+ * `null` explicitly rather than deleting the key: `containerOf` reads `null` as
+ * "shelved, decided" and `undefined` as "predates the split, fall back to
+ * `workspaceId`", and the fallback is where the phantom Game came from.
+ */
+function shelveBody<T>(body: T): T {
+  if (typeof body !== 'object' || body === null) return body
+  return { ...body, gameId: null }
+}
+
 export const claimLocal = mutation({
   args: {
     pilots: v.array(v.any()),
@@ -557,6 +705,16 @@ export const claimLocal = mutation({
     claimed: number
     skipped: number
     alreadyPresent: number
+    /**
+     * Rows refused because they belong to a Game that exists — a crewmate's
+     * build this browser cached and kept after leaving. Reported separately
+     * from `skipped` and `alreadyPresent` on purpose: those two mean "still
+     * only on the device", and a caller uses them to decide whether the
+     * migration is finished. A declined row is not the caller's to migrate at
+     * all, so counting it with them would leave the migration permanently
+     * unfinished over rows that are already safe on the server.
+     */
+    declined: number
     byKind: Record<string, number>
   }> => {
     const userId = await requireUser(ctx)
@@ -564,6 +722,7 @@ export const claimLocal = mutation({
     let claimed = 0
     let skipped = 0
     let alreadyPresent = 0
+    let declined = 0
     const byKind: Record<string, number> = {}
 
     const bump = (kind: string) => {
@@ -581,6 +740,11 @@ export const claimLocal = mutation({
           skipped += 1
           continue
         }
+        if (await namesALiveGame(ctx, body)) {
+          declined += 1
+          continue
+        }
+
         const appId =
           typeof (body as { id?: unknown }).id === 'string'
             ? (body as { id: string }).id
@@ -595,7 +759,7 @@ export const claimLocal = mutation({
           gameId: null,
           ownerId: userId,
           appId,
-          body: parsed.data,
+          body: shelveBody(parsed.data),
           updatedAt: now,
         })
         bump(table)
@@ -634,6 +798,10 @@ export const claimLocal = mutation({
         skipped += 1
         continue
       }
+      if (await namesALiveGame(ctx, body)) {
+        declined += 1
+        continue
+      }
       const appId =
         typeof (body as { id?: unknown }).id === 'string' ? (body as { id: string }).id : undefined
       if (appId !== undefined && (await appIdTaken(ctx, 'crawlers', appId))) {
@@ -644,7 +812,7 @@ export const claimLocal = mutation({
         gameId: null,
         ownerId: userId,
         appId,
-        body: parsed.data,
+        body: shelveBody(parsed.data),
         updatedAt: now,
       })
       bump('crawlers')
@@ -657,6 +825,29 @@ export const claimLocal = mutation({
      * a tray in a Game is the Mediator's and owned by nobody. Claiming produces
      * the first of those, always: a claim has no Game to put anything in.
      */
+    /*
+     * The tray was the one claimed kind with NO repeat guard at all.
+     *
+     * That was survivable while claiming was a card somebody pressed once. It is
+     * not survivable now that the migration runs by itself on every signed-in
+     * load (ADR-035): an unguarded insert would grow the tray by its own size
+     * every time. `encounterNpcs` has no `appId` column, so identity is the id
+     * inside the body — the same rule the patterns pass below already uses, and
+     * for the same reason.
+     */
+    const ownNpcs =
+      (args.encounterNpcs ?? []).length > 0
+        ? await ctx.db
+            .query('encounterNpcs')
+            .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+            .collect()
+        : []
+    const ownNpcIds = new Set(
+      ownNpcs
+        .map((row) => (row.body as { id?: unknown }).id)
+        .filter((id): id is string => typeof id === 'string')
+    )
+
     for (const body of args.encounterNpcs ?? []) {
       // `PARSERS.encounterNpcs` rather than the schema directly — that map is
       // the single list of tables owing an edge parse, and reaching around it is
@@ -666,10 +857,17 @@ export const claimLocal = mutation({
         skipped += 1
         continue
       }
+      const npcId = (body as { id?: unknown }).id
+      if (typeof npcId === 'string' && ownNpcIds.has(npcId)) {
+        alreadyPresent += 1
+        continue
+      }
+      if (typeof npcId === 'string') ownNpcIds.add(npcId)
+
       await ctx.db.insert('encounterNpcs', {
         gameId: null,
         ownerId: userId,
-        body: parsed.data,
+        body: shelveBody(parsed.data),
       })
       bump('encounterNpcs')
     }
@@ -772,7 +970,7 @@ export const claimLocal = mutation({
       bump('mechPatterns')
     }
 
-    return { claimed, skipped, alreadyPresent, byKind }
+    return { claimed, skipped, alreadyPresent, declined, byKind }
   },
 })
 

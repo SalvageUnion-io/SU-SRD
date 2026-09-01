@@ -7,8 +7,6 @@ import {
   usesServerOfRecord,
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
-import type { LegacyProbeState } from '../lib/db/legacyLocalData'
-import { legacyLocalDataState } from '../lib/db/legacyLocalData'
 import type { EntityRef } from '../lib/schemas/entity'
 import type { SoftLink } from '../lib/schemas/softLink'
 
@@ -21,13 +19,16 @@ import type { SoftLink } from '../lib/schemas/softLink'
  * in-memory cache, its lazy hydration and its broadcast behaviour are all
  * untouched by this file.
  *
- * ## Solo remains the default, structurally
+ * ## There are exactly three places a write can go
  *
- * `selectBackend` returns the **local** backend unless the app is genuinely
- * Connected. Not signed in, no Convex URL compiled in, offline — all resolve to
- * local. That ordering is deliberate: the failure mode of getting it wrong in
- * the other direction is a Solo user's writes silently going nowhere, which is
- * the single worst outcome in this whole migration.
+ * `remote` when the app is genuinely Connected; `memory` when it is anonymous
+ * in a build that requires an account; `local` only in a build that does not
+ * require one (CI, `bun run dev`, a deliberately backend-free deploy). There is
+ * no fourth case and, since
+ * [ADR-035](../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md), no
+ * exemption: a browser holding a pre-account roster no longer keeps the durable
+ * local backend, it gets that roster **migrated** instead — see
+ * `lib/account/legacyMigration.ts`.
  *
  * ## Disconnected does not fall back to local
  *
@@ -93,10 +94,12 @@ export type BackendKind = 'local' | 'remote' | 'blocked' | 'memory'
  *
  * To exercise the gate locally: `VITE_REQUIRE_ACCOUNT=true bun run dev:itun`.
  *
- * **It is not the only condition.** `backendForMode` also asks whether this
- * browser holds a legacy roster, because sending an existing Solo user to the
- * memory backend would make their pilots unreachable — see
- * `lib/db/legacyLocalData.ts` for why that guard exists and which way it fails.
+ * **It is now the only condition.** It used to share the decision with a probe
+ * for a pre-account roster, and a browser that had one kept the durable local
+ * backend indefinitely — the migration window that never closed, and the second
+ * source of truth ADR-035 removes. Anonymous is anonymous: the rows stay on
+ * disk, `LegacyLocalData` says so and offers a download, and signing in
+ * reconciles them into the account (`lib/account/legacyMigration.ts`).
  *
  * Read once at module scope like every other `import.meta.env` flag here. A
  * build-time switch rather than a runtime one is deliberate: "does this build
@@ -130,22 +133,25 @@ function currentMode(): ConnectionMode {
  * `import.meta.env` read that a test cannot vary. The wrapper below supplies the
  * real inputs; this is what the tests drive.
  */
-export function backendForMode(
-  mode: ConnectionMode,
-  requireAccount: boolean,
-  legacy: LegacyProbeState = 'unknown'
-): BackendKind {
-  // Anonymous, in a build that requires an account, in a browser with no roster
-  // of its own: nothing durable. Checked BEFORE the Solo branch, because Solo is
-  // exactly the state this replaces — testing it after would make the flag dead
-  // code.
+export function backendForMode(mode: ConnectionMode, requireAccount: boolean): BackendKind {
+  // Anonymous, in a build that requires an account: nothing durable, with no
+  // exemption for a browser that already holds a roster. Checked BEFORE the Solo
+  // branch, because Solo is exactly the state this replaces — testing it after
+  // would make the flag dead code.
   //
-  // `legacy === 'absent'` rather than `!== 'present'` is the load-bearing part.
-  // While the probe is still running the answer is `unknown`, and an unknown
-  // must not send an existing user's writes to a Map that dies with the tab.
-  // The stricter test resolves that window toward the branch that cannot lose
-  // work; `legacyLocalData.ts` explains why that asymmetry is the right one.
-  if (mode === 'solo' && requireAccount && legacy === 'absent') return 'memory'
+  // The legacy-roster exemption that used to sit here is gone (ADR-035). It read
+  // a probe that nothing ever resolved to `absent`, so it did not open a
+  // migration window, it made the durable local backend permanent for anyone who
+  // had ever built anything. The roster is not abandoned by removing it: the rows
+  // stay in IndexedDB, `LegacyLocalData` tells a signed-out visitor they are
+  // there and offers a download, and signing in reconciles them into the account.
+  //
+  // They are deliberately NOT loaded into the anonymous session. Doing that would
+  // arm `AnonymousWorkPromoter`, which promotes the whole store without knowing
+  // what the account already holds — so a sign-out/sign-in round trip would
+  // re-claim owned rows and report them to the player as builds that could not be
+  // saved. See ADR-035's rejected alternatives.
+  if (mode === 'solo' && requireAccount) return 'memory'
   if (mode === 'solo') return 'local'
   if (usesServerOfRecord(mode)) return 'remote'
   // `connecting` lands here alongside `disconnected`, and deliberately: writing
@@ -155,7 +161,7 @@ export function backendForMode(
 }
 
 export function selectBackend(): BackendKind {
-  return backendForMode(currentMode(), accountRequired, legacyLocalDataState())
+  return backendForMode(currentMode(), accountRequired)
 }
 
 /**
@@ -212,9 +218,8 @@ export class WritesBlockedOffline extends Error {
  *
  * ## No-ops off the server of record
  *
- * Returns immediately unless the backend is `remote`. An anonymous session — in
- * memory, or in the legacy local backend during the migration window — has no
- * server to commit to, and must keep working.
+ * Returns immediately unless the backend is `remote`. An anonymous session has
+ * no server to commit to, and must keep working.
  */
 export async function commitEntityWrite(
   type: EntityRef['type'] | 'softLink',

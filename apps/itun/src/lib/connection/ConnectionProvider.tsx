@@ -65,22 +65,28 @@ function useConnectionState(signedIn: boolean, authSettled: boolean): Connection
   }, [signedIn, online, authSettled])
 
   /**
-   * Ask once, at boot, whether this browser already holds a roster.
+   * Ask once, at boot, whether this browser is still holding a pre-account
+   * roster.
    *
-   * The answer decides whether an anonymous visitor gets the in-memory backend
-   * or keeps reading their existing IndexedDB — see `lib/db/legacyLocalData.ts`.
-   * It lives here because this is already the one place that pushes session
-   * facts down to the stores, and `[]` because the probe caches its own result
-   * and must not re-run per render.
+   * It no longer decides a backend — anonymous is always in-memory since
+   * [ADR-035](../../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md).
+   * What still needs the answer is `ShelfSync`'s prune, which refuses to delete
+   * anything while this reads `unknown`: absence from `listMine` cannot be
+   * trusted to mean "deleted elsewhere" until we know there is nothing waiting
+   * to be migrated. Warming it here means the prune is not held off for the
+   * whole of a session in which nothing else happened to ask.
    *
-   * `setProbed` exists to force the re-render that makes the new answer visible:
-   * `selectBackend()` reads the probe synchronously, so without a render nothing
-   * would notice it had resolved until some unrelated state change happened to
-   * repaint.
+   * It lives in this effect because this is already the one place that pushes
+   * session facts down to the stores, and `[]` because the probe caches its own
+   * result and must not re-run per render.
+   *
+   * The `setProbed` re-render this used to force is gone with the backend
+   * dependency: nothing renders differently the moment the probe resolves.
+   * `LegacyLocalData` awaits the same cached promise itself, which is what makes
+   * the answer visible where it now matters.
    */
-  const [, setProbed] = useState(false)
   useEffect(() => {
-    void probeLegacyLocalData().then(() => setProbed(true))
+    void probeLegacyLocalData()
   }, [])
 
   return useMemo(() => {
