@@ -104,11 +104,15 @@ with the test that enforces them.
 
 1. Edit Zod schemas in `packages/salvageunion-reference/lib/schemas/` or data
    files in `data/`.
-2. Rebuild: `bun run build:package` (compiles TypeScript and regenerates
-   `schemas/*.schema.json` from the Zod sources).
+2. Regenerate: `bun run build:package`. It **does not compile TypeScript** —
+   there is no compile step, as this file says above. It rewrites the committed
+   generated artifacts from the Zod sources: `schemas/*.schema.json`, the docs,
+   `lib/generated/`, and the API report. CI fails on drift.
 3. Changes are immediately available to consuming apps via workspace linking.
 
-`schemas/*.schema.json` and `dist/` are generated — never edit them by hand.
+Those generated artifacts are listed in `bun run check:schemas` — never edit
+them by hand. (There is no `dist/` in any workspace; this line used to claim one
+and contradicted the "no build step" paragraph two sections above.)
 
 ## Deployment
 

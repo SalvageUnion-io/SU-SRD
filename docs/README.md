@@ -28,9 +28,11 @@ conventions, then the relevant architecture doc below.
 
 **I need a site id, service id, org slug, deployment name, or dashboard URL — or an MCP server isn't connecting** → [architecture/agent-tooling.md](architecture/agent-tooling.md) (**the service registry** — read it instead of listing every project on an account)
 
+**I'm adding, bumping or pinning a dependency** → [architecture/dependency-management.md](architecture/dependency-management.md) — the catalog (a dep used by 2+ manifests is declared once), `overrides` (two dedupe pins, neither a security floor), the `bun audit` gate, and `bunfig.toml`'s 3-day install cooldown, which makes a **caret range resolve silently downward** instead of erroring.
+
 **I'm working on the move to Cloudflare** → [adrs/ADR-033-cloudflare-hosting.md](adrs/ADR-033-cloudflare-hosting.md) (**the decisions** — read before revisiting any of them, especially R2-over-KV) + [architecture/cloudflare-cutover.md](architecture/cloudflare-cutover.md) (**the executable plan** — phase order, per-phase gates, progress table). Hard cutover, no rollback: **a failed gate halts the phase and is never worked around.** Do not execute from issue #830, which the ADR supersedes.
 
-**I'm changing where player data lives, or anything offline/PWA** → [adrs/ADR-034-account-required-persistence.md](adrs/ADR-034-account-required-persistence.md) (**the decisions** — persistence requires an account, Convex is the only source of truth, IndexedDB is a cache) + [architecture/persistence-and-pwa.md](architecture/persistence-and-pwa.md) (**the executable plan** — phase order, gates, progress, and the inventory of what is not DB-backed yet). Accepted, **nothing built**: Solo mode still works today and P3/P4 are the one-way doors. Never add a store that exists only on a device.
+**I'm changing where player data lives, or anything offline/PWA** → [adrs/ADR-034-account-required-persistence.md](adrs/ADR-034-account-required-persistence.md) (**the decisions** — persistence requires an account, Convex is the only source of truth, IndexedDB is a cache) + [architecture/persistence-and-pwa.md](architecture/persistence-and-pwa.md) (**the executable plan** — phase order, gates, progress, and the inventory of what is not DB-backed yet). Accepted and **delivered**: `persistence-and-pwa.md` marks P0–P7, P4b and the flip all done, and `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`. The one-way doors are behind us — anonymous writes go to the in-memory backend and do not survive a reload. Never add a store that exists only on a device.
 
 **I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with `bun --filter srd gate` — `ssg/snapshot.ts` diffs the built output against a committed snapshot and is the acceptance gate, not your reading of the diff. If the change is intentional, `bun --filter srd snapshot:update` and commit the snapshot alongside it.
 
@@ -51,6 +53,7 @@ conventions, then the relevant architecture doc below.
 | [display-system.md](architecture/display-system.md)                   | The two card shells (ReferenceEntityCard / Card), size × extent, controls                              |
 | [data-flow.md](architecture/data-flow.md)                             | Reference data + player data hydration; the two persistence domains (IndexedDB / Convex), Zustand      |
 | [package-contracts.md](architecture/package-contracts.md)             | Package APIs, dependency rules, cross-package change checklist                                         |
+| [dependency-management.md](architecture/dependency-management.md)     | Pinning, the catalog, `overrides`, the audit gate and the install cooldown — and why each exists        |
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md)     | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix                                   |
 | [dashboard.md](architecture/dashboard.md)                             | The Dashboard (Guided-Play surface) design — layout, instruments, canvas                               |
 | [combat-loop.md](architecture/combat-loop.md)                         | Action activation, heat checks, conditions — the client-side flow                                      |
@@ -77,7 +80,7 @@ documents as part of the same change.
 
 ### [`adrs/`](adrs/) — Architecture Decision Records
 
-MADR-style records of architecturally significant decisions. **31 ADRs.** Each
+MADR-style records of architecturally significant decisions. **34 ADRs.** Each
 one's own `## Status` block is authoritative — this summary tracks it, so if the
 two ever disagree, believe the ADR.
 
@@ -148,6 +151,7 @@ Read the matching ADR before proposing alternatives.
 | [ADR-029](adrs/ADR-029-contribution-model-and-stat-provenance.md)    | **Proposed** — one contribution model for caps/traits/damage + stat provenance; amends ADR-022's overrides                                                                            |
 | [ADR-030](adrs/ADR-030-accounts-games-server-of-record.md)           | **Governing** — accounts, Games, ownership, and Convex as server of record; supersedes ADR-001, amends ADR-022                                                                        |
 | [ADR-031](adrs/ADR-031-srd-vite-ssg.md)                              | `srd` builds on an in-house Vite SSG (`apps/srd/ssg`); supersedes ADR-012 — same decision, different machine                                                                          |
+| [ADR-032](adrs/ADR-032-public-read-only-sheets.md)                   | Public, read-only sheets. Amends ADR-030 §5 (visibility) with one explicit exception, and narrows what ADR-004's snapshots are _for_                                                   |
 | [ADR-033](adrs/ADR-033-cloudflare-hosting.md)                        | Hosting moves to Cloudflare; Netlify + Render retired, hard cutover, snapshots on R2 not KV; amends ADR-004, Convex unchanged                                                          |
 | [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; Convex is the only source of truth and IndexedDB is a cache; both apps are ordinary installable PWAs. **Supersedes ADR-030 §1's Solo guarantee**; amends ADR-002 and ADR-022 |
 

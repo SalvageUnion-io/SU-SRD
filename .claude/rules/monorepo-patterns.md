@@ -1,57 +1,41 @@
 # Monorepo Patterns
 
-Bun workspace monorepo with multiple apps and shared packages.
+Bun workspace conventions that are **not** stated in the root `CLAUDE.md`.
 
-## Workspace Structure
+> This file used to restate the workspace roster, the dependency graph, the
+> no-build-step note, the `dev:watch` alias and the import conventions — all of
+> which root `CLAUDE.md` already carries, and both load into the same session,
+> so that block cost its context twice. It had also begun to drift: its
+> workspace list omitted the `su-assets` derivative detail `CLAUDE.md` carries.
+>
+> What survives here is the part that lives nowhere else. For everything
+> removed, `CLAUDE.md` is the single source — and for the import rule,
+> `biome.jsonc` is, since it is enforced at `error` rather than merely written
+> down.
 
-- `apps/srd/` - Static SRD reference site. **Not Astro** — an in-house SSG at `apps/srd/ssg` (`build.ts` / `dev.ts` / `render.tsx` / `snapshot.ts`) over Vite, with React 19 islands and Tailwind v4. Routes are `src/pages/**/*.page.tsx` modules registered in `ssg/routes.ts`; islands mount with `createRoot`; `ssg/snapshot.ts` is the output gate (`bun --filter srd gate`; `bun --filter srd snapshot:update` to re-bless, and commit that diff). Contract: [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md)
-- `apps/itun/` - Character builder & game manager (React 19 + Vite, TanStack Router, Tailwind v4). **Two storage modes** ([ADR-030](../../docs/adrs/ADR-030-accounts-games-server-of-record.md), superseding ADR-001): Solo — not signed in, IndexedDB is the truth, no account needed, permanently supported; Connected/Disconnected — signed in, Convex (`apps/itun/convex/`) is the server of record and IndexedDB is a cache, offline is read-only. See `apps/itun/CLAUDE.md`.
-- `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
-- `apps/su-assets/` - Cloudflare Worker (`assets.salvageunion.io`) serving licensed entity artwork from the `su-lp-assets` R2 bucket, with derivatives rendered on demand through Cloudflare Images; `salvageunion-reference` resolves artwork URLs against it at runtime
-- `packages/component-lib/` - Shared React component library (no build step, exports TypeScript source)
-- `packages/observability/` - Sentry wiring shared by the Node surfaces (`/node`) and the browser capture-hint helper (`/browser`)
-- `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
-
-## Bun Workspace Best Practices
+## Bun workspace conventions
 
 Following [Bun workspace conventions](https://bun.com/docs/guides/install/workspaces):
 
-- Root `package.json` is `"private": true` to prevent accidental publishing
-- Each package is self-contained with its own dependencies
-- Workspace dependencies use `workspace:*` protocol (e.g., `"salvageunion-reference": "workspace:*"`)
-- Run `bun install` from root to install dependencies for all workspaces
-- Add dependencies to specific workspaces by `cd`ing into the package directory
+- Root `package.json` is `"private": true` to prevent accidental publishing. So
+  is every workspace — nothing here is published to npm
+  ([ADR-014](../../docs/adrs/ADR-014-json-api-public-interface-npm-retired.md):
+  the dataset's public interface is the served JSON API).
+- Each package is self-contained with its own dependencies.
+- Workspace dependencies use the `workspace:*` protocol
+  (e.g. `"salvageunion-reference": "workspace:*"`).
+- Run `bun install` from the root to install for all workspaces.
+- Add a dependency to a specific workspace by `cd`-ing into that package
+  directory first — but if two or more manifests end up needing it, it belongs
+  in `workspaces.catalog` instead. See
+  [`docs/architecture/dependency-management.md`](../../docs/architecture/dependency-management.md).
+- A `workspace:*` dependency also has to appear in that app's CI path filter, or
+  a change to it silently skips the app's build job. `tools/check-path-filters.ts`
+  asserts this from the manifests, so you will be told rather than bitten.
 
-## Package Management
+## Generated files
 
-- Use `bun` as package manager (not npm/yarn)
-- Root scripts use `bun --filter` to target packages
-- `bun run build:package` only regenerates the package's JSON schemas — apps consume its TypeScript source directly, so no build ordering exists
-- Dev commands: `bun run dev` (srd), `bun run dev:itun` (ITUN), `bun run dev:bot` (Discord bot)
-- `bun run dev:watch` is an **alias of `bun run dev`**, not a watcher — the packages ship TypeScript source, so there is nothing to rebuild on change
-- Type checking: `bun run typecheck` (checks all packages)
-- Linting: `bun run lint` (all packages)
-
-## Workspace Packages
-
-- `salvageunion-reference` exports TypeScript source directly via `lib/index.ts` (no compile step; `bun run build:package` = JSON-schema regeneration only)
-- `component-lib` has no build step - exports TypeScript source directly via `src/index.ts` barrel
-- Both are imported via workspace protocol in consuming apps
-
-## Import Conventions
-
-**Always use relative imports over path aliases:**
-
-```typescript
-// Correct - use relative imports
-import { MyComponent } from '../../components/MyComponent'
-import { useEntityStore } from '../stores/entityStore'
-
-// Never - path aliases hide file structure
-import { MyComponent } from '@/components/MyComponent'
-import { useEntityStore } from '@/stores/entityStore'
-```
-
-## Generated Files
-
-- Generated files (like `routeTree.gen.ts` from TanStack Router, and `schemas/*.schema.json` in `salvageunion-reference`) are ignored in linting and must not be hand-edited
+Generated files — `routeTree.gen.ts` from TanStack Router, `schemas/*.schema.json`
+and `lib/generated/` in `salvageunion-reference` — are lint-ignored and must not
+be hand-edited. `.claude/hooks/protect-generated-files.sh` blocks edits to them,
+and `bun run check:schemas` fails CI on drift.

@@ -42,10 +42,20 @@ recommendation you cannot justify.
    DSN is provisioned, read the new issues since yesterday and treat anything
    affecting more than one user as a candidate for today.
 
-3. **Deploys** — did the last deploy of each site succeed? Use the Netlify MCP
-   (`suindex` → salvageunion.io, `in-the-union-now` → intheunionnow.com) and
-   the Render MCP for `suref-discord-bot`. A site whose last deploy failed is
-   serving stale code and nobody was told.
+3. **Deploys** — did the last deploy succeed? All four surfaces ship from one
+   workflow, `.github/workflows/deploy-cloudflare.yml`, so check that workflow's
+   most recent run rather than four dashboards. Its post-deploy smoke step is
+   the useful part: it asserts the production hostnames, the rotated-chunk 404,
+   `robots.txt` by body, and that CSP and HSTS actually reach the browser.
+   `cloudflare-observability` (MCP) gives Worker errors and logs on top.
+
+   A green deploy with a red smoke step means the code shipped and something
+   about routing, headers or a zone rule did not — that is a finding, not noise.
+
+   This step used to name the Netlify and Render MCP servers, which were deleted
+   with the hosts they reached. A skill is executed rather than read, so that
+   made step 3 unrunnable; `tools/check-doc-drift.ts` now asserts MCP names in
+   docs against `.mcp.json`.
 
 4. **Dependency and security PRs**
 

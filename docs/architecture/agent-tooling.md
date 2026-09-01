@@ -37,13 +37,25 @@ something outside the file.
 
 | Server    | Transport                                        | Auth model                                                         | Reaches                                    |
 | --------- | ------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------ |
-| _(none yet)_ | — | — | **Cloudflare — the actual host. No MCP server is declared; use `wrangler`.** P8 adds `bindings` and `observability`. |
-| `netlify` | stdio — `npx -y @netlify/mcp`                    | Netlify CLI / OAuth on first connect                                | A retired host. Sites still exist, serve no traffic |
+| `cloudflare-bindings` | http — `https://bindings.mcp.cloudflare.com/mcp` | OAuth on first connect | Workers, R2, KV, D1, Hyperdrive on the account that hosts everything |
+| `cloudflare-observability` | http — `https://observability.mcp.cloudflare.com/mcp` | OAuth on first connect | Worker logs, analytics and errors for the four production Workers |
 | `sentry`  | http — `https://mcp.sentry.dev/mcp`              | OAuth on first connect                                              | The `susrd` org's six projects, issues     |
-| `render`  | http — `https://mcp.render.com/mcp`              | OAuth on first connect, or a machine-local API-key header           | A retired host. `render.yaml` is deleted   |
 | `convex`  | stdio — `bunx convex mcp start --project-dir apps/itun` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
-| `github`  | http — `https://api.githubcopilot.com/mcp/`      | **Machine-local PAT header — see below.** Does not work unconfigured | The `SalvageUnion-io/SU-SRD` repo, PRs, CI |
 | `context7` | http — `https://mcp.context7.com/mcp`           | None — keyless on the free tier                                     | Version-pinned docs for this repo's dependencies |
+
+**That is the whole set — five servers, and this table is now asserted against
+`.mcp.json` by `tools/check-doc-drift.ts`.** It had drifted in both directions
+at once, which is why the assertion exists: it claimed *"Cloudflare — the actual
+host. No MCP server is declared; use `wrangler`"* while two Cloudflare servers
+WERE declared, and it carried live rows for `netlify`, `render` and `github`,
+none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and
+`cloudflare-cutover.md` and did not touch this file — and because root prose
+matched no CI path filter at the time, `validate:all` never ran on that PR.
+
+CLAUDE.md sends agents here *instead of* enumerating accounts, so a wrong row
+here is followed rather than checked. There is no `github` MCP server: use the
+`gh` CLI. The `netlify` and `render` servers were deleted with the hosts they
+reached.
 
 **Verify the whole set at once with `claude mcp list`.** A server that reports
 anything other than `✔ Connected` is not a server you can rely on, and "zero
@@ -147,29 +159,32 @@ enabled per zone in the dashboard.
 ## Netlify — retired
 
 Team **SalvageUnion.io** (`salvageunion-io`, `6a3b41d74a67a34e3aae3ede`, Pro) —
-[team dashboard](https://app.netlify.com/teams/salvageunion-io). The account also
-carries unrelated teams (RANDSUM, Binfinite, JRVS Softworks); **an agent must
-target a site by id**, not by picking from a listing.
+[team dashboard](https://app.netlify.com/teams/salvageunion-io).
 
-| Site               | App              | Production URL                   | Site id                                | Dashboard                                                 |
-| ------------------ | ---------------- | -------------------------------- | -------------------------------------- | --------------------------------------------------------- |
-| `suindex`          | `apps/srd`       | `https://salvageunion.io`        | `62482841-12dd-4e35-a4ed-900f357675dc` | [↗](https://app.netlify.com/projects/suindex)             |
-| `in-the-union-now` | `apps/itun`      | `https://intheunionnow.com`      | `801d6f8d-1ad4-42c1-a29d-126b2d69ee69` | [↗](https://app.netlify.com/projects/in-the-union-now)    |
-| `su-assets`        | `apps/su-assets` | `https://assets.salvageunion.io` | `19faf088-1c54-4bae-9312-74d7b0a94cea` | [↗](https://app.netlify.com/projects/su-assets)           |
+**Nothing in this repo reaches Netlify, and no Netlify site serves any traffic.**
+ADR-033 P7 completed 2026-08-31: every production hostname resolves to a
+Cloudflare Worker (see the Cloudflare section above, which is the live one).
+There is no `netlify.toml` anywhere in the tree, no `netlify/` function trees,
+no `@netlify/blobs` dependency, and no `netlify` MCP server. Builds are stopped
+on both repo-linked sites.
 
-**The site name does not match the app directory for `srd`.** `suindex` is
-`apps/srd`. This has misled agents before — it is the single most useful fact in
-this table.
+| Site               | App it used to build | Site id                                |
+| ------------------ | -------------------- | -------------------------------------- |
+| `suindex`          | `apps/srd`           | `62482841-12dd-4e35-a4ed-900f357675dc` |
+| `in-the-union-now` | `apps/itun`          | `801d6f8d-1ad4-42c1-a29d-126b2d69ee69` |
+| `su-assets`        | `apps/su-assets`     | `19faf088-1c54-4bae-9312-74d7b0a94cea` |
 
-Build configuration is per-app in `apps/*/netlify.toml`; `srd` is static with no
-functions, `itun` adds the snapshot Functions + Blobs
-([ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)), and `su-assets` is
-one function over the `lp-assets` Blobs store.
+The ids are kept for one reason: **deleting these sites is the remaining half of
+P8**, and an agent doing that must target a site by id — the account also carries
+unrelated teams (RANDSUM, Binfinite, JRVS Softworks). Note `suindex` is
+`apps/srd`; the name does not match the directory, which has misled agents
+before.
 
-For ITUN specifically, **the production origin is the custom domain, not the
-`.netlify.app` subdomain** — `SITE_URL` and the Discord OAuth redirect must both
-use `https://intheunionnow.com`. See
-[`accounts-and-games.md`](accounts-and-games.md).
+A site still answering on its `.netlify.app` hostname is **decommission debris,
+not an origin**. This section previously carried the live production URLs in a
+"Production URL" column and described build configuration in `apps/*/netlify.toml`
+in the present tense — months after those files were deleted — which is exactly
+the kind of row an agent acts on rather than checks.
 
 ## Render — retired
 
@@ -182,8 +197,8 @@ for unrelated repos (`hermuz`, `randsum-discord-bot`, `gear`), so **the Render
 MCP will refuse to act until you pass a `workspaceId`** — pass the id above, and
 target the service by id.
 
-Blueprint-managed from [`render.yaml`](../../render.yaml) with `autoSync`, so
-**the file is the source of truth for build config** — a change made in the
+It WAS Blueprint-managed from a `render.yaml` with `autoSync`, so that file was
+the source of truth for build config — a change made in the
 dashboard gets reverted on the next sync. `buildFilter` deliberately restricts
 rebuilds to paths the bot actually bundles; the reasoning is in that file and is
 worth reading before widening it.
@@ -254,8 +269,8 @@ Identifiers drift. Each row below can be re-derived, and the check is cheap:
 | Claim                  | How to re-derive                                                                          |
 | ---------------------- | ------------------------------------------------------------------------------------------ |
 | All MCP servers up     | `claude mcp list`                                                                          |
-| Netlify sites + ids    | Netlify MCP `get-projects`, or `netlify sites:list`                                        |
-| Render service id      | Render MCP `list_services` with the workspace id above                                     |
+| Netlify sites + ids    | `netlify sites:list` (retired host — needed only to DELETE them, per ADR-033 P8)            |
+| Render service id      | the Render dashboard (retired host; the service is dormant, not production)                |
 | Sentry org + projects  | Sentry MCP `find_organizations` / `find_projects`                                          |
 | Convex deployments     | `bunx convex mcp start` → `status`, or the Convex dashboard                                |
 | Sentry wiring is live  | `bun run validate:observability` (and `--live` against production, which the tool supports) |

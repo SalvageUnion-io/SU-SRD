@@ -7,18 +7,22 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 supersedes ADR-001):
 
 - **Solo** — not signed in. IndexedDB is the source of truth and nothing is
-  gated. This is the default today, and a build with no `VITE_CONVEX_URL` (CI, a
-  fresh checkout) is permanently Solo — which is why every Playwright e2e
-  currently runs Solo.
-  - **"Forever" no longer holds.**
-    [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) withdraws
-    that guarantee: persistence will require an account, anonymous users get
-    in-memory sheets, and IndexedDB becomes a cache. **Accepted, nothing built**
-    — the description above is still accurate for the code as it stands, so keep
-    Solo working until the phase that removes it lands. What changes *now* is
-    what you may add: **never introduce a store, field or flow that persists only
-    on a device.** Plan and phases:
-    [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md).
+  gated. **This describes a build with the account gate OFF**, which is what CI,
+  a fresh checkout and `bun run dev` get (no `VITE_CONVEX_URL`).
+  - **"Forever" no longer holds, and the flip has HAPPENED.**
+    [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) withdrew
+    that guarantee, and every phase of
+    [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md) —
+    P0–P7, P4b and the flip — is now done.
+    `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`, so in **any
+    production-mode build** an anonymous visitor gets the in-memory backend:
+    writes never reach IndexedDB and do not survive a reload.
+  - That distinction is not academic. It is why the nightly e2e was red for a
+    month: the Playwright `webServer` builds a production bundle, so the suite
+    inherited the gate, entities stopped persisting, and twelve specs failed
+    with what looked like selector drift. `playwright.config.ts` now sets
+    `VITE_REQUIRE_ACCOUNT=false` explicitly for that build.
+  - **Never introduce a store, field or flow that persists only on a device.**
 - **Connected / Disconnected** — signed in. Convex is the source of truth and
   IndexedDB becomes a cache. Offline means **read-only**, not a write queue.
 

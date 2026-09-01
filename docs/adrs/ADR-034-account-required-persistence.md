@@ -2,9 +2,18 @@
 
 ## Status
 
-**Accepted. Nothing is built yet — delivery is phased, and the executable plan
-with its per-phase gates and progress table is
-[architecture/persistence-and-pwa.md](../architecture/persistence-and-pwa.md).**
+**Accepted and delivered.** Every phase in
+[architecture/persistence-and-pwa.md](../architecture/persistence-and-pwa.md) —
+P0 through P7, P4b, and **the flip** — is marked done, and
+`apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`. Anonymous writes
+resolve to the in-memory backend and do not survive a reload.
+
+This header read **"Nothing is built yet"** until 2026-09-01, months after the
+flip. That is the most expensive kind of stale line in this repo: an agent
+sent here to "keep Solo working" or "add offline write queueing" would have
+built against a world that had already shipped away, and `docs/README.md`
+repeated the same claim. Delivery status belongs in the plan document; keep
+this header pointing at it rather than restating a snapshot of it.
 
 **Partially supersedes [ADR-030](ADR-030-accounts-games-server-of-record.md)** —
 its §1 guarantee that Solo mode ("not signed in, IndexedDB is the source of

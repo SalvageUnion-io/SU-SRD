@@ -106,7 +106,9 @@ old standalone `/roll` and `/lookup`) deregister automatically on the next run.
 
 ### Render Deployment
 
-This bot is configured to deploy to Render using the `render.yaml` blueprint at the repo root.
+The bot deploys to **Cloudflare Workers** ([ADR-033](../../docs/adrs/ADR-033-cloudflare-hosting.md)), from `.github/workflows/deploy-cloudflare.yml`, using `apps/discord-bot/wrangler.jsonc`. It runs as an HTTP-interactions Worker, not a gateway process.
+
+Render is retired: the `render.yaml` blueprint that used to drive it was deleted in P8 and the service is dormant. The section below is kept only as a record of the previous deployment.
 
 1. Connect your repository to Render
 2. Render will automatically detect the blueprint

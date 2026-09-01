@@ -31,7 +31,7 @@ This runs `generate:registry` (`tools/generateRegistry.ts`) then `generate:json-
 
 **Auto-generated files (DO NOT EDIT):**
 
-- `schemas/*.schema.json` - Generated from Zod schemas via `tools/generateJsonSchemas.ts`
+- `schemas/*.schema.json` - Generated from Zod schemas via `packages/salvageunion-reference/tools/generateJsonSchemas.ts`
 - `lib/generated/modelFactoryRegistry.generated.ts` and `lib/generated/schemaRegistry.generated.ts` - Generated from `lib/schemas/registry.ts` via `tools/generateRegistry.ts`
 - The static-accessor block inside `lib/index.ts`'s `SalvageUnionReference` class, between the `// GENERATED:BEGIN` / `// GENERATED:END` marker comments — the rest of `lib/index.ts` is hand-written; only that block is generator-injected (see "Adding a New Entity Type" below for why it's injected into hand-written source rather than imported from `lib/generated/`)
 

@@ -485,7 +485,15 @@ export function supersededAdrs(root: string): Map<string, string> {
     const status = nextSection === -1 ? afterHeading : afterHeading.slice(0, nextSection)
     // "Superseded by [ADR-030](...)" — the passive form only. "Supersedes
     // [ADR-023]" and "Partially supersedes [ADR-014]" describe the *other* ADR.
-    const bySomething = status.match(/superseded\s+by\s+\[?ADR-(\d{3})/i)
+    //
+    // "PARTIALLY superseded by" is excluded for the same reason the active
+    // "Partially supersedes" is: it means one clause died and the rest still
+    // governs, so citing the ADR is legitimate. ADR-014 is the live example —
+    // ADR-025 replaced only its CHANGELOG-freeze clause, and
+    // `package-contracts.md` cites it for the JSON-API decision that stands.
+    // Without the exclusion, recording that supersession on both sides (which
+    // the two-sided check now requires) would make every honest citation fail.
+    const bySomething = status.match(/(?<!partially\s)superseded\s+by\s+\[?ADR-(\d{3})/i)
     if (!bySomething) continue
     // biome-ignore lint/style/noNonNullAssertion: guarded by the match above
     superseded.set(`ADR-${idMatch[1]!}`, `ADR-${bySomething[1]!}`)
@@ -1016,6 +1024,336 @@ function checkReferencedScripts(root: string): { ok: string; failures: string[] 
 }
 
 // ---------------------------------------------------------------------------
+// Counts, statuses and negative assertions
+//
+// The seven checks above are all SHAPE checks — a symbol still exists, a path
+// resolves, a script name is real, a version matches. None of them has any
+// notion of a COUNT, a STATUS, or a claim that something was removed, and that
+// is precisely where this repo's documentation rots.
+//
+// The 2026-09 audit re-derived every numeric claim in CLAUDE.md and found the
+// catalog counts, the package count, the test totals and the measured Bun
+// version all wrong, alongside a `docs/README.md` that undercounted the ADRs by
+// three and silently omitted one entirely. A doc with three wrong numbers stops
+// being believed wholesale, including the parts that are right — which is the
+// real cost, since these files are agent input rather than decoration.
+// ---------------------------------------------------------------------------
+
+/** A documented number, and the command-free way to derive the real one. */
+type CountClaim = {
+  doc: string
+  /** Must capture the claimed number in group 1. */
+  pattern: RegExp
+  label: string
+  actual: (root: string) => number
+}
+
+function adrFiles(root: string): string[] {
+  const dir = join(root, 'docs/adrs')
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((f) => /^ADR-\d+.*\.md$/.test(f))
+    .sort()
+}
+
+function adrNumber(file: string): number {
+  return Number.parseInt(file.slice(4, 7), 10)
+}
+
+const COUNT_CLAIMS: CountClaim[] = [
+  {
+    doc: 'CLAUDE.md',
+    pattern: /\*\*(\d+) of them\*\* \(ADR-\d+ through ADR-\d+\)/,
+    label: 'ADR count in CLAUDE.md',
+    actual: (root) => adrFiles(root).length,
+  },
+  {
+    doc: 'CLAUDE.md',
+    pattern: /ADR-\d+ through ADR-(\d+)/,
+    label: 'highest ADR number in CLAUDE.md',
+    actual: (root) => Math.max(0, ...adrFiles(root).map(adrNumber)),
+  },
+  {
+    doc: 'docs/README.md',
+    pattern: /\b(\d+)\s+ADRs\b/,
+    label: 'ADR count in docs/README.md',
+    actual: (root) => adrFiles(root).length,
+  },
+  {
+    doc: 'CLAUDE.md',
+    pattern: /\b(\d+) deps, \d+ references\b/,
+    label: 'catalog entry count in CLAUDE.md',
+    actual: (root) => {
+      const pkg = JSON.parse(read(root, 'package.json')) as {
+        workspaces?: { catalog?: Record<string, string> }
+      }
+      return Object.keys(pkg.workspaces?.catalog ?? {}).length
+    },
+  },
+  {
+    doc: 'CLAUDE.md',
+    pattern: /\b\d+ deps, (\d+) references\b/,
+    label: 'catalog reference count in CLAUDE.md',
+    actual: (root) => {
+      let total = 0
+      for (const rel of ['package.json', ...Object.values(workspaceManifests(root))]) {
+        total += (read(root, rel).match(/"catalog:"/g) ?? []).length
+      }
+      return total
+    },
+  },
+]
+
+export function checkDocumentedCounts(root: string): { ok: string; failures: string[] } {
+  const failures: string[] = []
+  let checked = 0
+
+  for (const claim of COUNT_CLAIMS) {
+    if (!existsSync(join(root, claim.doc))) continue
+    const match = read(root, claim.doc).match(claim.pattern)
+    if (!match?.[1]) continue
+    checked++
+    const claimed = Number.parseInt(match[1].replace(/,/g, ''), 10)
+    const actual = claim.actual(root)
+    if (claimed !== actual) {
+      failures.push(
+        `${claim.label}: the doc says ${claimed}, the tree has ${actual}. ` +
+          `Update ${claim.doc} — a doc that miscounts something this cheap to verify ` +
+          `stops being trusted for the things that are expensive to verify.`
+      )
+    }
+  }
+
+  return { ok: `documented counts match the tree (${checked} claim(s) checked)`, failures }
+}
+
+const NEGATED =
+  /\b(no|not|never|non-existent|nonexistent|deleted|removed|gone|absent|retired|dropped|replaced|superseded|former|formerly|used to|no longer|instead of|rather than|would have|was |were |had )\b|\bdoes not\b|\bdid not\b|\bgitignore(d)?\b|\buntracked\b|→/
+
+/**
+ * Docs must not describe an MCP server that `.mcp.json` does not declare.
+ *
+ * `docs/architecture/agent-tooling.md` is the registry CLAUDE.md explicitly
+ * tells agents to read INSTEAD of enumerating accounts, and it went inverted on
+ * every row that mattered: it claimed no Cloudflare MCP server was declared
+ * (two are) while carrying live rows for `netlify`, `render` and `github`
+ * (none are). `/triage` — a skill, so executed rather than merely read — still
+ * instructed the agent to call the Netlify and Render servers at step 3.
+ *
+ * Two assertions, both narrow enough to avoid punishing historical prose:
+ * a declared server no doc mentions, and a `<Name> MCP` phrase for a server
+ * that is not declared. Saying "Netlify hosted this until P7" stays fine;
+ * saying "use the Netlify MCP" does not.
+ */
+export function checkMcpServerParity(root: string): { ok: string; failures: string[] } {
+  const failures: string[] = []
+  if (!existsSync(join(root, '.mcp.json'))) {
+    return { ok: 'no .mcp.json to reconcile', failures }
+  }
+
+  const declared = Object.keys(
+    (JSON.parse(read(root, '.mcp.json')) as { mcpServers?: Record<string, unknown> }).mcpServers ??
+      {}
+  )
+
+  const registry = 'docs/architecture/agent-tooling.md'
+  if (existsSync(join(root, registry))) {
+    const text = read(root, registry)
+    for (const name of declared) {
+      if (!text.includes(name)) {
+        failures.push(
+          `${registry} never mentions the \`${name}\` MCP server, which .mcp.json declares. ` +
+            `CLAUDE.md sends agents to that file as the registry, so a server missing from it ` +
+            `is a capability agents will not know they have.`
+        )
+      }
+    }
+  }
+
+  // `<Name> MCP` for something not declared. Deliberately not a bare mention:
+  // discussing Netlify or Render as former hosting is legitimate and common.
+  const MCP_PHRASE = /\b([A-Z][A-Za-z0-9-]*)\s+MCP\b/g
+  const ALLOWED_PROSE = new Set([
+    'The',
+    'A',
+    'An',
+    'This',
+    'That',
+    'One',
+    'No',
+    'Remote',
+    'Each',
+    'All',
+    'Both',
+    'Every',
+    'Its',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+  ])
+  for (const doc of liveInstructionDocs(root)) {
+    const lines = read(root, doc).split('\n')
+    for (const [index, line] of lines.entries()) {
+      for (const match of line.matchAll(MCP_PHRASE)) {
+        const name = match[1] as string
+        if (ALLOWED_PROSE.has(name)) continue
+        const key = name.toLowerCase()
+        if (declared.some((d) => d.toLowerCase().startsWith(key))) continue
+        // Same rule as the path check: a doc SAYING a server was deleted is the
+        // opposite of drift. Only an apparent instruction to USE one counts.
+        const context = `${lines[index - 1] ?? ''} ${line} ${lines[index + 1] ?? ''}`.toLowerCase()
+        if (NEGATED.test(context)) continue
+        failures.push(
+          `${doc} refers to a "${name} MCP" server, which .mcp.json does not declare ` +
+            `(declared: ${declared.join(', ')}). An instruction to call a server that is not ` +
+            `configured is unrunnable — and in a skill it is executed, not merely read.`
+        )
+      }
+    }
+  }
+
+  return {
+    ok: `MCP server references match .mcp.json (${declared.length} declared)`,
+    failures,
+  }
+}
+
+/**
+ * Every ADR appears in the routing table, and every routed ADR exists.
+ *
+ * `docs/README.md` is the intent -> doc map an agent reads first. It claimed
+ * "31 ADRs" against a corpus of 34 and omitted ADR-032 (public read-only
+ * sheets) entirely — an Accepted, live ADR amending ADR-030 §5, invisible to
+ * anyone working on sheet visibility.
+ */
+export function checkAdrRoutingTable(root: string): { ok: string; failures: string[] } {
+  const failures: string[] = []
+  const readme = 'docs/README.md'
+  if (!existsSync(join(root, readme))) return { ok: 'no docs/README.md to reconcile', failures }
+
+  const text = read(root, readme)
+  const files = adrFiles(root)
+
+  for (const file of files) {
+    const id = file.slice(0, 7)
+    if (!new RegExp(`\\b${id}\\b`).test(text)) {
+      failures.push(
+        `${readme} never mentions ${id}, which exists at docs/adrs/${file}. ` +
+          `An ADR absent from the routing table is one an agent will not find.`
+      )
+    }
+  }
+
+  const known = new Set(files.map((f) => f.slice(0, 7)))
+  for (const match of text.matchAll(/\bADR-(\d{3})\b/g)) {
+    const id = `ADR-${match[1]}`
+    if (!known.has(id)) {
+      failures.push(`${readme} routes to ${id}, which has no file in docs/adrs/.`)
+    }
+  }
+
+  return { ok: `every ADR is routed from docs/README.md (${files.length} checked)`, failures }
+}
+
+/**
+ * A supersession must be recorded on BOTH ADRs.
+ *
+ * Recorded on only the successor, it is a trap: an agent that opens the
+ * superseded ADR reads a plain "Accepted" and follows a dead decision. Two such
+ * one-sided edges existed — ADR-014 (superseded in part by ADR-025) and ADR-004
+ * (amended by ADR-033, whose mechanism is deleted) — while all four chains
+ * CLAUDE.md names were correctly two-sided.
+ */
+export function checkTwoSidedSupersession(root: string): { ok: string; failures: string[] } {
+  const failures: string[] = []
+  const files = adrFiles(root)
+  let edges = 0
+
+  for (const file of files) {
+    const successor = file.slice(0, 7)
+    const status = statusSection(read(root, join('docs/adrs', file)))
+    for (const match of status.matchAll(/\b(?:partially\s+)?supersedes\s+\[?(ADR-\d{3})/gi)) {
+      const subject = match[1] as string
+      edges++
+      const subjectFile = files.find((f) => f.startsWith(subject))
+      if (!subjectFile) {
+        failures.push(`docs/adrs/${file} says it supersedes ${subject}, which has no file.`)
+        continue
+      }
+      const subjectStatus = statusSection(read(root, join('docs/adrs', subjectFile)))
+      if (!subjectStatus.includes(successor)) {
+        failures.push(
+          `docs/adrs/${subjectFile} does not name ${successor} in its own \`## Status\`, ` +
+            `but ${successor} says it supersedes it. Record the supersession on BOTH sides — ` +
+            `one-sided, the superseded ADR still reads as live to anyone who opens it directly.`
+        )
+      }
+    }
+  }
+
+  return { ok: `supersessions are recorded on both ADRs (${edges} edge(s))`, failures }
+}
+
+/** The `## Status` block of an ADR, up to the next heading. */
+function statusSection(source: string): string {
+  const match = source.match(/^##\s+Status\s*$([\s\S]*?)(?=^##\s)/m)
+  return match?.[1] ?? source.slice(0, 800)
+}
+
+/**
+ * A backticked repo path in a live doc must exist.
+ *
+ * The negative-assertion class: "X was removed" and "see `path/to/thing`" are
+ * both claims about the tree that no shape check reaches. Live docs pointed at
+ * `apps/su-assets/netlify.toml`, `apps/itun/netlify/functions/`, `render.yaml`
+ * and `storageNetlify.ts`, none of which exist — and one of those citations was
+ * an instruction to change two files together.
+ *
+ * Globs are skipped: a path containing `*` is a legitimate way to name a set
+ * of files (a per-app wrangler config, say) rather than a claim about one.
+ */
+export function checkBacktickedPathsExist(root: string): { ok: string; failures: string[] } {
+  const failures: string[] = []
+  const PATHISH =
+    /`((?:apps|packages|tools|docs)\/[A-Za-z0-9_./@-]+|[A-Za-z0-9_-]+\.(?:toml|yaml))`/g
+  let checked = 0
+
+  for (const doc of liveInstructionDocs(root)) {
+    const lines = read(root, doc).split('\n')
+    for (const [index, line] of lines.entries()) {
+      for (const match of line.matchAll(PATHISH)) {
+        const candidate = match[1] as string
+        if (candidate.includes('*') || candidate.endsWith('.')) continue
+        // A doc SAYING a path is gone is the opposite of drift — it is the
+        // repo's own documented style ("no `netlify.toml`", "`docs/rules/` was
+        // planned and never existed"). Flagging those would punish exactly the
+        // prose that keeps this file honest, so the sentence around the
+        // citation has to read as an assertion that the path is live.
+        const context = `${lines[index - 1] ?? ''} ${line} ${lines[index + 1] ?? ''}`.toLowerCase()
+        if (NEGATED.test(context)) continue
+        checked++
+        // Resolve against the repo root AND the doc's own directory: a
+        // package's CLAUDE.md saying `tools/generateDocs.ts` means that
+        // package's tools/, not the repo's.
+        const resolvesAtRoot = existsSync(join(root, candidate))
+        const resolvesBeside = existsSync(join(root, dirname(doc), candidate))
+        if (!resolvesAtRoot && !resolvesBeside) {
+          failures.push(
+            `${doc} cites \`${candidate}\`, which does not exist. ` +
+              `If the reference is historical, say so in the sentence — this check skips a ` +
+              `citation whose context reads as "no longer exists" — and if it is an ` +
+              `instruction, it is unfollowable as written.`
+          )
+        }
+      }
+    }
+  }
+
+  return { ok: `backticked repo paths in live docs resolve (${checked} checked)`, failures }
+}
+
+// ---------------------------------------------------------------------------
 // Runner
 // ---------------------------------------------------------------------------
 
@@ -1027,6 +1365,11 @@ export const CHECKS = [
   checkComponentLibSymbolNames,
   checkFrameworkVersions,
   checkReferencedScripts,
+  checkDocumentedCounts,
+  checkMcpServerParity,
+  checkAdrRoutingTable,
+  checkTwoSidedSupersession,
+  checkBacktickedPathsExist,
 ] as const
 
 export function runChecks(root: string): { failures: string[]; passed: string[] } {
