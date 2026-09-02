@@ -45,9 +45,9 @@ import {
   srdEntityUrl,
   visiblePatterns,
 } from 'salvageunion-reference'
-import { EMBED_LIMIT, stripDanglingLink, truncate } from './format.js'
+import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, stripDanglingLink, truncate } from './format.js'
 
-const NEUTRAL = 0xb7410e
+const NEUTRAL = NEUTRAL_EMBED_COLOR
 
 /**
  * Discord embed limits (per the API): a single embed's total rendered text

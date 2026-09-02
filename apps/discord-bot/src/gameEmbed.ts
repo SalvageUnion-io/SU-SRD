@@ -8,7 +8,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { EMBED_LIMIT, ROLL_COLORS, truncate } from './format.js'
+import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, ROLL_COLORS, truncate } from './format.js'
 import type {
   ChannelResult,
   CrewResult,
@@ -43,7 +43,7 @@ import type {
  */
 
 /** Neutral SU rust. Informational embeds are always this. */
-const NEUTRAL = 0xb7410e
+const NEUTRAL = NEUTRAL_EMBED_COLOR
 
 /**
  * The one sanctioned deviation from rust (see the plan, §7 rule 4).
