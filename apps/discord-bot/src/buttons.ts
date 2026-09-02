@@ -40,15 +40,15 @@ export async function handleButtonInteraction(
       ? buildRollMessage(parsed.payload, roller)
       : parsed.action === 'check'
         ? buildCheckMessage(parsed.payload, roller)
-        : buildTableLookupMessage(parsed.payload, interaction.client.user?.displayAvatarURL())
+        : buildTableLookupMessage(parsed.payload)
 
   if ('error' in message) {
     await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
     return
   }
 
-  // `data` rides along on the V2 payloads so attributeRoll can rebuild; the
-  // lookup path is still an embed message and has none.
+  // `data` rides along on every V2 payload so attributeRoll can rebuild the
+  // container; a lookup is not a roll, so its copy is simply unused.
   const { data, ...payload } = message as typeof message & { data?: ContainerData }
   await interaction.reply(payload)
 

@@ -1,6 +1,6 @@
-import { EmbedBuilder } from '@discordjs/builders'
-import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
-import { MessageFlags } from 'discord-api-types/v10'
+import type { ContainerBuilder } from '@discordjs/builders'
+import type { SlashCommandSubcommandBuilder } from 'discord.js'
+import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
   findEntityBySlug,
@@ -9,8 +9,10 @@ import {
   nameToSlug,
   search,
 } from 'salvageunion-reference'
-import { rollAgainRow } from '../customId.js'
-import { BRAND_NAME } from '../format.js'
+import type { ContainerData } from '../container.js'
+import { toContainer } from '../container.js'
+import { makeCustomId } from '../customId.js'
+import { lookupContainerData } from '../lookupContainer.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 
@@ -21,7 +23,7 @@ type Hit = {
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
 export type LookupMessage =
-  | { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] }
+  | { flags: number; components: [ContainerBuilder]; data: ContainerData }
   | { error: string }
 
 /**
@@ -31,29 +33,34 @@ export type LookupMessage =
  */
 export function buildLookupMessage(
   entity: SURefEntity & { schemaName: SURefEnumSchemaName },
-  schemaName: SURefEnumSchemaName,
-  iconURL?: string
-): { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] } {
-  const data = buildLookupEmbed(entity, schemaName)
-  const embed = new EmbedBuilder()
-    .setTitle(data.title)
-    .setColor(data.color)
-    .setFooter({ text: data.footer })
-    .setTimestamp()
-  if (data.fields.length) embed.addFields(data.fields)
-  if (data.url) embed.setURL(data.url)
-  if (data.description) embed.setDescription(data.description)
-  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
+  schemaName: SURefEnumSchemaName
+): { flags: number; components: [ContainerBuilder]; data: ContainerData } {
+  const data = lookupContainerData(buildLookupEmbed(entity, schemaName), entity)
 
   // A roll-table entity IS a rollable table — offer a one-click roll instead of
   // making the user retype `/su roll table: <name>`. Reuses the same stateless
   // `su:roll:<name>` button the roll results carry.
+  //
+  // Primary, not Secondary: rolling is the action, and this is the one control
+  // on the message. The old row used the ↻ repeat glyph for what is a FIRST
+  // roll, which read as a re-roll of something that never happened.
   const tableName = 'name' in entity && entity.name ? String(entity.name) : null
-  const row =
-    schemaName === 'roll-tables' && tableName
-      ? rollAgainRow('roll', tableName, 'Roll on this table')
-      : null
-  return { embeds: [embed], components: row ? [row] : [] }
+  const rollId = schemaName === 'roll-tables' && tableName ? makeCustomId('roll', tableName) : null
+  if (rollId) {
+    data.blocks.push({
+      kind: 'buttons',
+      buttons: [
+        {
+          kind: 'action',
+          customId: rollId,
+          label: 'Roll on this table',
+          style: ButtonStyle.Primary,
+        },
+      ],
+    })
+  }
+
+  return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
 }
 
 /**
@@ -61,13 +68,13 @@ export function buildLookupMessage(
  * table" button on a `/su roll` result invokes. Resolves the table via its slug
  * (the button carries the exact table name); returns an error if it's gone.
  */
-export function buildTableLookupMessage(tableName: string, iconURL?: string): LookupMessage {
+export function buildTableLookupMessage(tableName: string): LookupMessage {
   const slug = nameToSlug(tableName)
   const entity = slug ? findEntityBySlug('roll-tables', slug) : null
   if (!entity) {
     return { error: `Could not find table: "${tableName}".` }
   }
-  return buildLookupMessage({ ...entity, schemaName: 'roll-tables' }, 'roll-tables', iconURL)
+  return buildLookupMessage({ ...entity, schemaName: 'roll-tables' }, 'roll-tables')
 }
 
 /**
@@ -147,8 +154,7 @@ export const lookupCommand = {
       return
     }
 
-    await interaction.reply(
-      buildLookupMessage(hit.entity, hit.schemaName, interaction.client.user?.displayAvatarURL())
-    )
+    const { data: _data, ...payload } = buildLookupMessage(hit.entity, hit.schemaName)
+    await interaction.reply(payload)
   },
 }
