@@ -37,12 +37,12 @@ describe('buildCheckMessage', () => {
     expect('error' in message).toBe(false)
     if ('error' in message) return
     const text = containerText(message.data)
-    // 2d6+3 ranges 5..15 — whatever it rolled, it is stamped in a plate under
-    // a `##` heading rather than buried in an inline field.
-    const plate = text.match(/## ▌(\d+)▐/)
-    expect(plate).not.toBeNull()
-    expect(Number(plate?.[1])).toBeGreaterThanOrEqual(5)
-    expect(Number(plate?.[1])).toBeLessThanOrEqual(15)
+    // 2d6+3 ranges 5..15 — whatever it rolled, it is the `##` heading rather
+    // than being buried in an inline field.
+    const total = text.match(/## (\d+)/)
+    expect(total).not.toBeNull()
+    expect(Number(total?.[1])).toBeGreaterThanOrEqual(5)
+    expect(Number(total?.[1])).toBeLessThanOrEqual(15)
     // The notation is still echoed — "did it roll what I typed" is a real
     // need, just not a headline-sized one.
     expect(text).toContain('2D6+3')
@@ -88,15 +88,27 @@ describe('buildCheckMessage', () => {
     const message = buildCheckMessage('1d20')
     if ('error' in message) throw new Error('expected a roll, got an error')
     const text = containerText(message.data)
-    expect(text).toContain('Core Mechanic')
     expect(text).toMatch(/NAILED IT|SUCCESS|TOUGH CHOICE|FAILURE|CASCADE FAILURE/)
+  })
+
+  test('the band summary is body copy, not a second line of footer', () => {
+    // It used to render as `-# Core Mechanic · <summary>` above the
+    // attribution. Two lines of small print under every check was the busiest
+    // part of the surface; the summary is real rules text and reads as body.
+    const message = buildCheckMessage('1d20')
+    if ('error' in message) throw new Error('expected a roll, got an error')
+    const small = containerText(message.data)
+      .split('\n')
+      .filter((line) => line.startsWith('-# '))
+    expect(small).toHaveLength(2) // context line + attribution
+    expect(small.at(-1)).toBe('-# Salvage Union Reference · Powered by Randsum.dev')
   })
 
   test('a modified d20 is NOT tiered — Salvage Union reads the die raw', () => {
     // Tiering a modified total would be a rules error dressed as a feature.
     const message = buildCheckMessage('1d20+5')
     if ('error' in message) throw new Error('expected a roll, got an error')
-    expect(containerText(message.data)).not.toContain('Core Mechanic')
+    expect(containerText(message.data)).not.toMatch(/NAILED IT|TOUGH CHOICE|CASCADE FAILURE/)
   })
 })
 

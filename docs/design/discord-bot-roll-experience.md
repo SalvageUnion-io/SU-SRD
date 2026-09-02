@@ -1,6 +1,31 @@
 # Discord bot — beautifying the rolling experience
 
-**Status:** proposal · **Date:** 2026-09-01 · **Surface:** `apps/discord-bot`
+**Status:** shipped, with two sections retracted · **Date:** 2026-09-01 ·
+**Surface:** `apps/discord-bot`
+
+> **Retracted after seeing it rendered (2026-09-02).** Three things this
+> document specifies are **not** in the shipped surface, and the mockups below
+> still draw them:
+>
+> - **The die plate (`▌14▐`) is gone; the die is a bare number.** §5b assumed a
+>   container's accent tints its contents. It does not — `accent_color` paints
+>   the container's left edge only, and a `TextDisplay` is always default
+>   white. So the plate rendered as a white bar with no relationship to the
+>   tier it was meant to carry, on every roll.
+> - **The banner is gone** (§5b and the texture table under it). It fired on
+>   two bands of five, which made the surface change shape with the result —
+>   the opposite of the consistency the rest of this document argues for — and
+>   it was built from the same untinted glyphs.
+> - **The provenance line is gone.** `-# d20 14 · band 11-19 · Core Book p.219`
+>   plus `-# Salvage Union Reference · Powered by Randsum.dev` put two lines of
+>   small print under every roll, and the die it spelled out is now the
+>   headline. One footer line remains: the attribution. `/su check` lost its
+>   `-# Core Mechanic · <summary>` line the same way — the summary is real
+>   rules text, so it moved up into the body rather than being deleted.
+>
+> Everything else — the headline rule, tier gating, quoted labels, the Components
+> V2 move — shipped as written. Read `apps/discord-bot/src/rollContainer.ts`
+> for the current surface; it is the source of truth.
 
 A design review of `/su roll` and `/su check`, with a prioritised change list.
 Every measurement below was executed against this checkout; claims that could

@@ -15,8 +15,9 @@
  *
  * ## The headline rule
  *
- * Three branches, no per-table special-casing, and the `##` slot is never spent
- * on a number that is already on the provenance line:
+ * Three branches, no per-table special-casing. The die leads the headline in
+ * all three — it is the one number a roller looks for, and there is no longer a
+ * provenance line to carry it instead:
  *
  * 1. The entry has a `label` → the label is the headline, the value is the body.
  * 2. No label, value ≤ {@link INLINE_HEADLINE_MAX} → **the value is the
@@ -25,8 +26,21 @@
  *    the word "Roll: 14".
  * 3. No label, longer value → quote the entry's own leading sentence as the
  *    headline when it already reads as a name ({@link deriveLabel}); otherwise
- *    the tier word where one applies, else the die plate alone. The value is
+ *    the tier word where one applies, else the die number alone. The value is
  *    the body either way.
+ *
+ * ## Why there are no block glyphs
+ *
+ * An earlier revision stamped the die into a plate (`▌15▐`) and marked a
+ * natural 1 or 20 with a banner, both built from Unicode Block Elements. Seen
+ * rendered, the plates read as bare white bars: a container's accent colours
+ * its edge, **not** its text, so a TextDisplay is always default-coloured and
+ * the glyphs never picked up the tier. The banner had a second problem — it
+ * fired on two bands out of five, so the surface looked different depending on
+ * what you rolled rather than consistent across every roll.
+ *
+ * The die number now stands on its own in the headline, which is where it was
+ * always meant to be read. Tier is carried by the accent stripe and the word.
  *
  * ## Why the tier word is Core-Mechanic-only
  *
@@ -44,13 +58,12 @@
 
 import type { RollerRollResult } from '@randsum/roller'
 import type { RollOnTableOutcome, SURefRollTable } from 'salvageunion-reference'
-import { getEntitySlug, getPageReference, srdEntityUrl } from 'salvageunion-reference'
+import { getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
 import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container.js'
 import { deriveLabel } from './derivedLabel.js'
 import { NEUTRAL_EMBED_COLOR, ROLL_ATTRIBUTION, ROLL_COLORS, truncate } from './format.js'
-import { diePlate, STATUS_LED, tierBanner } from './ornament.js'
 
 /** Longest value that reads as a headline rather than as body copy. */
 const INLINE_HEADLINE_MAX = 60
@@ -98,18 +111,8 @@ function contextLine(tableName: string, roller?: string): string {
   return roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}`
 }
 
-/** `-# d20 14 · band 11-19 · Workshop Manual p.219` */
-function provenanceLine(table: SURefRollTable, dice: string, band: string): string {
-  const parts = [dice, band]
-  const source = typeof table.source === 'string' ? table.source : undefined
-  const page = getPageReference(table)
-  if (source && typeof page === 'number') parts.push(`${source} p.${page}`)
-  else if (source) parts.push(source)
-  return `-# ${parts.join(' · ')}`
-}
-
 function loggedLine(game: string): string {
-  return `-# ${STATUS_LED} LOGGED TO ${stencil(game)}`
+  return `-# LOGGED TO ${stencil(game)}`
 }
 
 /**
@@ -119,17 +122,17 @@ function loggedLine(game: string): string {
  * word from branch 3.
  */
 function headlineAndBody(
-  plate: string,
+  die: string,
   label: string | undefined,
   value: string,
   band: CoreRollBand | null,
   isCoreMechanic: boolean
 ): { headline: string; body?: string } {
   if (label !== undefined && label.length > 0) {
-    return { headline: `## ${plate} ${stencil(label)}`, body: value || undefined }
+    return { headline: `## ${die} ${stencil(label)}`, body: value || undefined }
   }
   if (value.length > 0 && value.length <= INLINE_HEADLINE_MAX) {
-    return { headline: `## ${plate} ${stencil(value)}` }
+    return { headline: `## ${die} ${stencil(value)}` }
   }
   // The entry's own words, where they already read as a name. Never a
   // truncation and never a paraphrase — see derivedLabel.ts.
@@ -137,10 +140,10 @@ function headlineAndBody(
   if (quoted !== undefined) {
     // The remainder, not the whole value — the quoted sentence has been
     // promoted to the headline and must not be repeated beneath it.
-    return { headline: `## ${plate} ${stencil(quoted.label)}`, body: quoted.rest }
+    return { headline: `## ${die} ${stencil(quoted.label)}`, body: quoted.rest }
   }
   const tier = band !== null && isCoreMechanic ? ` ${stencil(CORE_ROLL_BANDS[band].label)}` : ''
-  return { headline: `## ${plate}${tier}`, body: value || undefined }
+  return { headline: `## ${die}${tier}`, body: value || undefined }
 }
 
 /**
@@ -163,21 +166,13 @@ export function buildRollContainerData(
   const tierRoll = outcome.kind === 'columns' ? outcome.entryRoll : outcome.roll
   const band = tiered ? coreRollBand(tierRoll) : null
 
-  const plate =
-    outcome.kind === 'columns'
-      ? `${diePlate(outcome.columnRoll)}${diePlate(outcome.entryRoll)}`
-      : diePlate(outcome.roll)
-
-  const dice =
-    outcome.kind === 'columns'
-      ? `two d20 · column ${outcome.columnKey} (${outcome.columnRoll})`
-      : `d20 ${outcome.roll}`
-  // "band" is the Core Mechanic's noun for a range of the d20. A columns table
-  // has no bands — the second roll picks an entry — so name it accordingly.
-  const bandKey = outcome.kind === 'columns' ? `entry ${outcome.entryKey}` : `band ${outcome.key}`
+  // Bare numbers. A columns table rolls twice, so both are shown separated by
+  // a middot — the provenance line that used to spell them out is gone.
+  const die =
+    outcome.kind === 'columns' ? `${outcome.columnRoll}·${outcome.entryRoll}` : String(outcome.roll)
 
   const { headline, body } = headlineAndBody(
-    plate,
+    die,
     outcome.label,
     outcome.value,
     band,
@@ -188,14 +183,10 @@ export function buildRollContainerData(
     { kind: 'text', content: contextLine(table.name, context.roller) },
   ]
 
-  const banner = band !== null ? tierBanner(band) : null
-  if (banner !== null) blocks.push({ kind: 'text', content: `-# ${banner}` })
-
   blocks.push({ kind: 'text', content: headline })
   if (body !== undefined) blocks.push({ kind: 'text', content: truncate(body, 1800) })
 
   blocks.push({ kind: 'separator' })
-  blocks.push({ kind: 'text', content: provenanceLine(table, dice, bandKey) })
   blocks.push({ kind: 'text', content: `-# ${ROLL_ATTRIBUTION}` })
   if (context.loggedTo !== undefined) {
     blocks.push({ kind: 'text', content: loggedLine(context.loggedTo) })
@@ -238,11 +229,12 @@ export function buildCheckContainerData(
     { kind: 'text', content: contextLine(notation, context.roller) },
   ]
 
-  const banner = band !== null ? tierBanner(band) : null
-  if (banner !== null) blocks.push({ kind: 'text', content: `-# ${banner}` })
-
   const tier = band !== null ? ` ${stencil(CORE_ROLL_BANDS[band].label)}` : ''
-  blocks.push({ kind: 'text', content: `## ${diePlate(total)}${tier}` })
+  blocks.push({ kind: 'text', content: `## ${total}${tier}` })
+  // The band's own sentence, in the body slot a table roll's value occupies.
+  // It used to sit in the footer above the attribution, which put two lines of
+  // small print under every check and buried real rules text in boilerplate.
+  if (band !== null) blocks.push({ kind: 'text', content: CORE_ROLL_BANDS[band].summary })
 
   // Individual dice as inline code spans: each renders in a monospace box, so
   // the run reads as a row of small plates and wraps naturally at any width —
@@ -258,9 +250,6 @@ export function buildCheckContainerData(
   }
 
   blocks.push({ kind: 'separator' })
-  if (band !== null) {
-    blocks.push({ kind: 'text', content: `-# Core Mechanic · ${CORE_ROLL_BANDS[band].summary}` })
-  }
   blocks.push({ kind: 'text', content: `-# ${ROLL_ATTRIBUTION}` })
 
   if (context.loggedTo !== undefined) {

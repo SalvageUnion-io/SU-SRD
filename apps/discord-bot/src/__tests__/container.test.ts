@@ -13,7 +13,7 @@ const base: ContainerData = {
   accent: 0x4b86a0,
   blocks: [
     { kind: 'text', content: '-# CORE MECHANIC' },
-    { kind: 'text', content: '## ▌20▐ NAILED IT' },
+    { kind: 'text', content: '## 20 NAILED IT' },
     { kind: 'separator' },
     { kind: 'text', content: '-# d20 20 · Core Book p.232' },
     {

@@ -2,7 +2,6 @@ import type { InteractionEditReplyOptions } from 'discord.js'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
-import { STATUS_LED } from '../ornament.js'
 import { report } from '../report.js'
 import { itun } from './itunReply.js'
 
@@ -84,7 +83,7 @@ export async function attributeRoll(
     const buttonsAt = blocks.findIndex((block) => block.kind === 'buttons')
     const line = {
       kind: 'text' as const,
-      content: `-# ${STATUS_LED} LOGGED TO ${recorded.value.game.toUpperCase()}`,
+      content: `-# LOGGED TO ${recorded.value.game.toUpperCase()}`,
     }
     if (buttonsAt === -1) blocks.push(line)
     else blocks.splice(buttonsAt, 0, line)
