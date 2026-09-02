@@ -31,6 +31,7 @@ export type CommandExecuteInteraction = {
     getSubcommandGroup(): string | null
     getString(name: string, required: true): string
     getString(name: string, required?: boolean): string | null
+    getBoolean(name: string): boolean | null
   }
   user: { id: string; displayName?: string }
   channelId: string | null

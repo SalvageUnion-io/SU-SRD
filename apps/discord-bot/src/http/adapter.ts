@@ -140,6 +140,21 @@ function stringOption(
   return found.value
 }
 
+/**
+ * A boolean option, or null when it was not supplied.
+ *
+ * Never throws: unlike `getString`, no handler declares a boolean required — a
+ * flag that must be passed is not a flag.
+ */
+function booleanOption(
+  values: APIApplicationCommandInteractionDataBasicOption[],
+  name: string
+): boolean | null {
+  const found = values.find((o) => o.name === name)
+  if (!found || found.type !== ApplicationCommandOptionType.Boolean) return null
+  return found.value
+}
+
 type AdapterContext = {
   raw: APIInteraction
   applicationId: string
@@ -254,6 +269,7 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
       // handler typed to receive a string.
       getString: ((name: string, required?: boolean) =>
         stringOption(values, name, required)) as CommandExecuteInteraction['options']['getString'],
+      getBoolean: (name: string) => booleanOption(values, name),
     },
     // `user` is top-level in DMs and nested under `member` in a guild. Reading
     // only one of them is how a command works everywhere except where it is

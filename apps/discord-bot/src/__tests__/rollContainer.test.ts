@@ -5,9 +5,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { MessageFlags } from 'discord-api-types/v10'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { buildRollMessage } from '../commands/roll.js'
+import { buildPostedRollMessage, buildRollMessage } from '../commands/roll.js'
 import type { ContainerData } from '../container.js'
 import { NEUTRAL_EMBED_COLOR, ROLL_COLORS } from '../format.js'
 import { buildRollContainerData, isTieredTable, rollTableUrl } from '../rollContainer.js'
@@ -200,5 +201,76 @@ describe('a dramatic table miss is a result, not an error', () => {
     const body = message.data.blocks.map((b) => (b.kind === 'text' ? b.content : '')).join('\n')
     expect(body).not.toContain('NO EFFECT')
     expect(body).toContain('▌20▐')
+  })
+})
+
+describe('private rolls and Post to channel', () => {
+  test('a private roll is ephemeral and offers a Post button', () => {
+    const message = buildRollMessage('Core Mechanic', 'Vex Marrow', () => 14, true)
+    if ('error' in message) throw new Error('expected a roll')
+    expect(message.ephemeral).toBe(true)
+    expect(Number(message.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
+    const row = message.data.blocks.find((b) => b.kind === 'buttons')
+    const labels =
+      row?.kind === 'buttons' ? row.buttons.map((b) => ('label' in b ? b.label : '')) : []
+    expect(labels).toContain('Post to channel')
+  })
+
+  test('a public roll offers no Post button — it is already in the channel', () => {
+    const message = buildRollMessage('Core Mechanic', 'Vex Marrow', () => 14, false)
+    if ('error' in message) throw new Error('expected a roll')
+    expect(message.ephemeral).toBeUndefined()
+    const row = message.data.blocks.find((b) => b.kind === 'buttons')
+    const labels =
+      row?.kind === 'buttons' ? row.buttons.map((b) => ('label' in b ? b.label : '')) : []
+    expect(labels).not.toContain('Post to channel')
+  })
+
+  test('posting replays the SAME result, it does not roll again', () => {
+    // The property the whole encoding exists for. A button that re-rolled
+    // would silently share a different outcome from the one on screen.
+    const priv = buildRollMessage('Core Mechanic', 'Vex Marrow', () => 20, true)
+    if ('error' in priv) throw new Error('expected a roll')
+    const row = priv.data.blocks.find((b) => b.kind === 'buttons')
+    const post =
+      row?.kind === 'buttons'
+        ? row.buttons.find((b) => 'label' in b && b.label === 'Post to channel')
+        : undefined
+    if (post === undefined || post.kind !== 'action') throw new Error('expected a post button')
+
+    const payload = post.customId.replace(/^su:post:/, '')
+    const posted = buildPostedRollMessage(payload, 'Vex Marrow')
+    if ('error' in posted) throw new Error('expected a posted roll')
+
+    expect(text(posted.data)).toContain('▌20▐')
+    expect(text(posted.data)).toContain('NAILED IT')
+    expect(posted.data.accent).toBe(ROLL_COLORS.nailed)
+    // Public, and it carries no Post button of its own.
+    expect(Number(posted.flags) & MessageFlags.Ephemeral).toBe(0)
+    const postedRow = posted.data.blocks.find((b) => b.kind === 'buttons')
+    const postedLabels =
+      postedRow?.kind === 'buttons'
+        ? postedRow.buttons.map((b) => ('label' in b ? b.label : ''))
+        : []
+    expect(postedLabels).not.toContain('Post to channel')
+  })
+
+  test('a columns roll round-trips both dice', () => {
+    const priv = buildRollMessage('Callsign Table', undefined, () => 7, true)
+    if ('error' in priv) throw new Error('expected a roll')
+    const row = priv.data.blocks.find((b) => b.kind === 'buttons')
+    const post =
+      row?.kind === 'buttons'
+        ? row.buttons.find((b) => 'label' in b && b.label === 'Post to channel')
+        : undefined
+    if (post === undefined || post.kind !== 'action') throw new Error('expected a post button')
+    const posted = buildPostedRollMessage(post.customId.replace(/^su:post:/, ''), undefined)
+    if ('error' in posted) throw new Error('expected a posted roll')
+    expect(text(posted.data)).toBe(text(priv.data).replace(/\n?-# .*Post.*/g, ''))
+  })
+
+  test('a malformed post payload errors rather than throwing', () => {
+    expect(buildPostedRollMessage('not-a-payload')).toHaveProperty('error')
+    expect(buildPostedRollMessage('Core Mechanic|99')).toHaveProperty('error')
   })
 })
