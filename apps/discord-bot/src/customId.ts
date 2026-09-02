@@ -34,9 +34,17 @@ const CUSTOM_ID_MAX = 100
  * table (shared by the roll subcommand's result and the lookup embed's
  * "Roll on this table" button); `check` re-rolls a free-form dice notation;
  * `lookup` returns the `/su lookup` embed for a named roll-table (the "See
- * table" button on a roll result).
+ * table" button on a roll result); `post` re-renders a PRIVATE roll publicly.
+ *
+ * `post` is the one action whose payload is a RESULT rather than a request.
+ * Every other button re-rolls, which is correct for them and wrong here: a
+ * "post this to the channel" button that rolled again would share a different
+ * outcome from the one the player just looked at, silently. Encoding the roll
+ * means the shared result is provably the one they saw, and it still needs no
+ * backend — `resultForTable` is pure, so the same table and the same die give
+ * the same entry forever.
  */
-export type ButtonAction = 'roll' | 'check' | 'lookup'
+export type ButtonAction = 'roll' | 'check' | 'lookup' | 'post'
 
 export type ParsedCustomId = { action: ButtonAction; payload: string }
 
@@ -56,7 +64,9 @@ export function parseCustomId(customId: string): ParsedCustomId | null {
   const parts = customId.split(':')
   if (parts.length < 3 || parts[0] !== CUSTOM_ID_NS) return null
   const action = parts[1]
-  if (action !== 'roll' && action !== 'check' && action !== 'lookup') return null
+  if (action !== 'roll' && action !== 'check' && action !== 'lookup' && action !== 'post') {
+    return null
+  }
   return { action, payload: parts.slice(2).join(':') }
 }
 
@@ -84,6 +94,27 @@ export function rollAgainRow(
 ): ActionRowBuilder<ButtonBuilder> | null {
   const button = makeButton(action, payload, `${REROLL_SYMBOL} ${label}`)
   return button ? new ActionRowBuilder<ButtonBuilder>().addComponents(button) : null
+}
+
+/**
+ * Encode a rolled result so it can be re-rendered verbatim: `<table>|<n>` for a
+ * flat roll, `<table>|<column>|<entry>` for a columns table.
+ *
+ * `|` rather than `:` because `parseCustomId` re-joins everything after the
+ * action, and a table name may itself contain a colon.
+ */
+export function encodeRollResult(tableName: string, rolls: number[]): string {
+  return [tableName, ...rolls.map(String)].join('|')
+}
+
+/** The inverse of {@link encodeRollResult}, or null if the payload is malformed. */
+export function decodeRollResult(payload: string): { tableName: string; rolls: number[] } | null {
+  const parts = payload.split('|')
+  const tableName = parts[0]
+  if (tableName === undefined || tableName.length === 0 || parts.length < 2) return null
+  const rolls = parts.slice(1).map(Number)
+  if (rolls.some((n) => !Number.isInteger(n) || n < 1 || n > 20)) return null
+  return { tableName, rolls }
 }
 
 /**

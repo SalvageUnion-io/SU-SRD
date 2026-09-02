@@ -48,6 +48,8 @@ export type FakeExecuteOptions = {
   subcommandGroup?: string | null
   /** Values returned by `getString`, keyed by option name. */
   strings?: Record<string, string | null>
+  /** Values returned by `getBoolean`, keyed by option name. */
+  booleans?: Record<string, boolean>
   channelId?: string | null
   userId?: string
   displayName?: string
@@ -59,6 +61,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
   const followUps: ReplyArg[] = []
   const deferred = { called: false, ephemeral: false }
   const strings = options.strings ?? {}
+  const booleans = options.booleans ?? {}
 
   // Overload-declared to mirror discord.js's required-form getString.
   function getString(name: string, required: true): string
@@ -72,6 +75,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       getSubcommand: () => options.subcommand ?? 'roll',
       getSubcommandGroup: () => options.subcommandGroup ?? null,
       getString,
+      getBoolean: (name: string) => booleans[name] ?? null,
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'chan-1' : options.channelId,

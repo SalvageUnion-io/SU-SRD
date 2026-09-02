@@ -13,7 +13,7 @@ import { MessageFlags } from 'discord-api-types/v10'
 import { buildCheckMessage } from './commands/check.js'
 import type { CommandButtonInteraction } from './commands/interactions.js'
 import { buildTableLookupMessage } from './commands/lookup.js'
-import { buildRollMessage } from './commands/roll.js'
+import { buildPostedRollMessage, buildRollMessage } from './commands/roll.js'
 import { attributeRoll } from './commands/rollAttribution.js'
 import type { ContainerData } from './container.js'
 import { parseCustomId } from './customId.js'
@@ -35,6 +35,25 @@ export async function handleButtonInteraction(
   // the interaction where it matters most: Discord's own "used /su roll" header
   // attributes a component reply far more weakly than a slash command.
   const roller = interaction.user.displayName
+
+  // `post` re-renders a private roll publicly. It replays the ENCODED result
+  // rather than rolling again, so what reaches the channel is provably the
+  // outcome the player was looking at when they pressed the button.
+  if (parsed.action === 'post') {
+    const posted = buildPostedRollMessage(parsed.payload, roller)
+    if ('error' in posted) {
+      await interaction.reply({ content: posted.error, flags: MessageFlags.Ephemeral })
+      return
+    }
+    const { data, ...payload } = posted
+    await interaction.reply(payload)
+    await attributeRoll(interaction, data, `Rolled on ${data.tableName}`, {
+      table: data.tableName,
+      posted: true,
+    })
+    return
+  }
+
   const message =
     parsed.action === 'roll'
       ? buildRollMessage(parsed.payload, roller)

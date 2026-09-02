@@ -5,7 +5,7 @@ import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
-import { makeCustomId } from '../customId.js'
+import { decodeRollResult, encodeRollResult, makeCustomId } from '../customId.js'
 import { noEffectContainer, unknownTableContainer } from '../errorContainer.js'
 import { buildRollContainerData, rollTableUrl } from '../rollContainer.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
@@ -63,7 +63,9 @@ export function buildRollMessage(
   tableName: string,
   roller?: string,
   /** Injectable for tests; production always uses the real d20. */
-  d20: () => number = rollD20
+  d20: () => number = rollD20,
+  /** Render only to the asker, with a button to share the same result. */
+  isPrivate = false
 ): RollMessage {
   // Exact name first, through the model's name index; the case-insensitive
   // scan is only the fallback for a hand-typed name that skipped autocomplete.
@@ -103,6 +105,72 @@ export function buildRollMessage(
   // Primary, which put Discord's loudest, most off-brand colour on the least
   // used control — and it is a Link button now, so it costs no customId at all.
   const rerollId = makeCustomId('roll', table.name)
+  // The RESULT, not the request. A "post this" button that re-rolled would
+  // share a different outcome from the one on screen — silently. See
+  // customId.ts. Omitted when the encoded result overflows the 100-char id,
+  // which is the rule every other button here already follows.
+  const rolls =
+    outcome.kind === 'columns' ? [outcome.columnRoll, outcome.entryRoll] : [outcome.roll]
+  const postId = isPrivate ? makeCustomId('post', encodeRollResult(table.name, rolls)) : null
+
+  data.blocks.push({
+    kind: 'buttons',
+    buttons: [
+      ...(rerollId
+        ? [
+            {
+              kind: 'action' as const,
+              customId: rerollId,
+              label: '↻ Roll again',
+              style: ButtonStyle.Primary,
+            },
+          ]
+        : []),
+      ...(postId ? [{ kind: 'action' as const, customId: postId, label: 'Post to channel' }] : []),
+      { kind: 'link' as const, url: rollTableUrl(table), label: 'See table' },
+    ],
+  })
+
+  return {
+    flags: isPrivate
+      ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+      : MessageFlags.IsComponentsV2,
+    components: [toContainer(data)],
+    data,
+    ...(isPrivate ? { ephemeral: true as const } : {}),
+  }
+}
+
+/**
+ * Re-render a private roll publicly, from the result encoded in its button.
+ *
+ * Replays rather than re-rolls: `resultForTable` is pure, so feeding the same
+ * table the same die gives the same entry forever. That is what makes the
+ * shared result provably the one the player saw — a button that rolled again
+ * would quietly share a different outcome, which is worse than not offering
+ * the button at all.
+ *
+ * Carries no `Post to channel` button of its own; it is already in the channel.
+ */
+export function buildPostedRollMessage(
+  payload: string,
+  roller?: string
+): (RollMessage & { data: ContainerData & { tableName: string } }) | { error: string } {
+  const decoded = decodeRollResult(payload)
+  if (decoded === null) return { error: 'That button is no longer readable.' }
+
+  const table =
+    SalvageUnionReference.RollTables.getByName(decoded.tableName) ??
+    getRollTables().find((t) => t.name.toLowerCase() === decoded.tableName.toLowerCase())
+  if (!table) return { error: `Could not find table: "${decoded.tableName}".` }
+
+  // Replay the recorded dice in order — one for a flat table, two for columns.
+  const queue = [...decoded.rolls]
+  const outcome = rollOnTable(table.table, () => queue.shift() ?? 1)
+  if (!outcome.success) return { error: 'That roll can no longer be rendered.' }
+
+  const data = buildRollContainerData(table, outcome, { roller })
+  const rerollId = makeCustomId('roll', table.name)
   data.blocks.push({
     kind: 'buttons',
     buttons: [
@@ -123,23 +191,33 @@ export function buildRollMessage(
   return {
     flags: MessageFlags.IsComponentsV2,
     components: [toContainer(data)],
-    data,
+    data: { ...data, tableName: table.name },
   }
 }
 
 export const rollCommand = {
   /** Options for the `/su roll` subcommand (registered by su.ts). */
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub
-      .setName('roll')
-      .setDescription('Roll on a Salvage Union table')
-      .addStringOption((option) =>
-        option
-          .setName('table')
-          .setDescription('The table to roll on (defaults to Core Mechanic)')
-          .setRequired(false)
-          .setAutocomplete(true)
-      )
+    return (
+      sub
+        .setName('roll')
+        .setDescription('Roll on a Salvage Union table')
+        .addStringOption((option) =>
+          option
+            .setName('table')
+            .setDescription('The table to roll on (defaults to Core Mechanic)')
+            .setRequired(false)
+            .setAutocomplete(true)
+        )
+        // Mediator rolls behind the screen, and solo prep. Off by default: a die
+        // roll is a social act, and hiding it by default would break the table.
+        .addBooleanOption((option) =>
+          option
+            .setName('private')
+            .setDescription('Show the result only to you, with a button to post it')
+            .setRequired(false)
+        )
+    )
   },
 
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
@@ -155,14 +233,17 @@ export const rollCommand = {
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
-    const message = buildRollMessage(tableName, interaction.user.displayName)
+    const isPrivate = interaction.options.getBoolean?.('private') === true
+    const message = buildRollMessage(tableName, interaction.user.displayName, rollD20, isPrivate)
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
     const { data, ephemeral, ...payload } = message
     await interaction.reply(payload)
-    // An error container is not a roll; nothing to record.
+    // Nothing to record for an error container, and nothing YET for a private
+    // roll — it has not happened at the table until it is posted. The Post to
+    // channel button records it then.
     if (ephemeral === true) return
     // After the reply, never before it: a bound channel adds a footer line, an
     // unbound one costs the roller nothing. See rollAttribution.ts.
