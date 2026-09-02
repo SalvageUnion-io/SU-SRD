@@ -15,8 +15,9 @@
  *
  * ## The headline rule
  *
- * Three branches, no per-table special-casing, and the `##` slot is never spent
- * on a number that is already on the provenance line:
+ * Three branches, no per-table special-casing. The die leads the headline in
+ * all three — it is the one number a roller looks for, and there is no longer a
+ * provenance line to carry it instead:
  *
  * 1. The entry has a `label` → the label is the headline, the value is the body.
  * 2. No label, value ≤ {@link INLINE_HEADLINE_MAX} → **the value is the

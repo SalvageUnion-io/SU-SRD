@@ -115,7 +115,7 @@ export function noEffectContainer(
       { kind: 'text', content: roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}` },
       { kind: 'text', content: `## ${roll} NO EFFECT` },
       { kind: 'separator' },
-      { kind: 'text', content: `-# d20 ${roll} · this table only triggers on a 20` },
+      { kind: 'text', content: '-# this table only triggers on a 20' },
       ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
     ],
   }
