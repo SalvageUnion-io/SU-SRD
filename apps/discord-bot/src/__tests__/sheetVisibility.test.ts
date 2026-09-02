@@ -14,6 +14,7 @@
  * line.
  */
 import { describe, expect, test } from 'bun:test'
+import { MessageFlags } from 'discord-api-types/v10'
 import { commands } from '../commands/index.js'
 import { setItunClientForTests } from '../commands/itunReply.js'
 import { buildSheetEmbed, publicSheetUrl } from '../gameEmbed.js'
@@ -110,9 +111,21 @@ describe('/su sheet visibility', () => {
       // this is what actually decides who sees the reply.
       expect(deferred.ephemeral).toBe(true)
       // The sheet went to the asker...
+      expect(followUps.length).toBeGreaterThan(0)
       expect(edits.length).toBeGreaterThan(0)
-      // ...and NOT to the channel. A follow-up is how a public result is sent.
-      expect(followUps).toHaveLength(0)
+      // ...and NOT to the channel.
+      //
+      // This assertion used to read `followUps` had length 0, on the premise
+      // that a follow-up is how a PUBLIC result is sent. That is no longer
+      // true: a container needs the V2 flag and Discord will not toggle that
+      // onto a deferred placeholder, so BOTH visibilities are follow-ups now
+      // and the flag alone decides who sees them.
+      //
+      // So the rule is asserted directly instead, which is stronger than the
+      // old shape: every message this command emits must carry Ephemeral.
+      for (const followUp of followUps) {
+        expect(Number(followUp.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
+      }
     } finally {
       restore()
     }
@@ -134,7 +147,11 @@ describe('/su sheet visibility', () => {
       await commands.get('su')?.execute(interaction)
 
       expect(deferred.ephemeral).toBe(true)
-      expect(followUps).toHaveLength(0)
+      // Same rule as above: published or not, nothing this command emits may
+      // be visible to anyone but the asker.
+      for (const followUp of followUps) {
+        expect(Number(followUp.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
+      }
     } finally {
       restore()
     }

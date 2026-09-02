@@ -7,13 +7,6 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
 
 /**
- * Author name stamped on every embed (paired with the bot's own avatar as the
- * icon, resolved at runtime). Consistent branding so replies read as one
- * official app rather than ad-hoc bot output.
- */
-export const BRAND_NAME = 'Salvage Union'
-
-/**
  * Attribution carried by every roll surface. Rolls are powered by
  * @randsum/roller, and that credit is not optional — it rode on the old embed
  * footer and now rides on its own subtext line.

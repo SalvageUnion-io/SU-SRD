@@ -73,8 +73,6 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       getSubcommandGroup: () => options.subcommandGroup ?? null,
       getString,
     },
-    // Handlers read `client.user` only for embed branding; no avatar in tests.
-    client: { user: null },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
     reply: (arg: ReplyArg) => {

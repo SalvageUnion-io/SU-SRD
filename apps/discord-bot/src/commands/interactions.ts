@@ -32,7 +32,6 @@ export type CommandExecuteInteraction = {
     getString(name: string, required: true): string
     getString(name: string, required?: boolean): string | null
   }
-  client: { user: { displayAvatarURL(): string } | null }
   user: { id: string; displayName?: string }
   channelId: string | null
   reply(payload: InteractionReplyOptions): Promise<unknown>
@@ -52,7 +51,6 @@ export type CommandExecuteInteraction = {
  */
 export type CommandButtonInteraction = {
   customId: string
-  client: { user: { displayAvatarURL(): string } | null }
   user: { id: string; displayName?: string }
   channelId: string | null
   reply(payload: InteractionReplyOptions): Promise<unknown>
