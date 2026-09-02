@@ -18,13 +18,14 @@ import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
 import { makeCustomId } from '../customId.js'
+import { badNotationContainer } from '../errorContainer.js'
 import { buildCheckContainerData } from '../rollContainer.js'
 import type { CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */
 export type CheckMessage =
-  | { flags: MessageFlags.IsComponentsV2; components: [ContainerBuilder]; data: ContainerData }
+  | { flags: number; components: [ContainerBuilder]; data: ContainerData; ephemeral?: true }
   | { error: string }
 
 /**
@@ -42,8 +43,13 @@ export function buildCheckMessage(notation: string, roller?: string): CheckMessa
     result = roll(notation as DiceNotation)
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'not valid dice notation'
+    // Ephemeral: a typo is the asker's problem, not the channel's.
+    const data = badNotationContainer(notation, reason)
     return {
-      error: `Could not roll \`${notation}\`: ${reason}\nTry standard notation like \`2d6+3\`, \`1d20+5\`, or \`4d6L\`.`,
+      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+      components: [toContainer(data)],
+      data,
+      ephemeral: true,
     }
   }
 
@@ -83,8 +89,10 @@ export const checkCommand = {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data, ...payload } = message
+    const { data, ephemeral, ...payload } = message
     await interaction.reply(payload)
+    // An error container is not a roll; nothing to record.
+    if (ephemeral === true) return
     // See rollAttribution.ts — after the reply, silent on failure.
     await attributeRoll(interaction, data, `Rolled ${notation}`, { notation })
   },
