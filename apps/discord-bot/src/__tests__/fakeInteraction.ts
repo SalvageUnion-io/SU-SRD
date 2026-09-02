@@ -50,6 +50,7 @@ export type FakeExecuteOptions = {
   strings?: Record<string, string | null>
   channelId?: string | null
   userId?: string
+  displayName?: string
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -74,7 +75,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
     },
     // Handlers read `client.user` only for embed branding; no avatar in tests.
     client: { user: null },
-    user: { id: options.userId ?? 'discord-tester' },
+    user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
     reply: (arg: ReplyArg) => {
       replies.push(arg)
@@ -111,6 +112,7 @@ export function fakeAutocomplete(
     focused?: string
     channelId?: string | null
     userId?: string
+    displayName?: string
   } = {}
 ): FakeAutocomplete {
   const responses: { name: string; value: string }[][] = []
@@ -121,7 +123,7 @@ export function fakeAutocomplete(
       getSubcommandGroup: () => options.subcommandGroup ?? null,
       getFocused: () => options.focused ?? '',
     },
-    user: { id: options.userId ?? 'discord-tester' },
+    user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'chan-1' : options.channelId,
     respond: (choices: { name: string; value: string }[]) => {
       responses.push(choices)

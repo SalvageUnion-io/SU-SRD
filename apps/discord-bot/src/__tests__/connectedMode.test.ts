@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
+import { MessageFlags } from 'discord-api-types/v10'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand, sheetCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
@@ -418,8 +419,22 @@ describe('/su dispatch', () => {
   })
 })
 
+/**
+ * The rendered text of a V2 container edit. The Game signal used to live in an
+ * embed footer; it is now its own line in the container, so the assertion moves
+ * with it.
+ */
+function editedText(edit: { components?: readonly unknown[] } | undefined): string {
+  const container = edit?.components?.[0] as { toJSON(): { components: unknown[] } } | undefined
+  if (!container) throw new Error('expected a container on the edit')
+  return container
+    .toJSON()
+    .components.map((c) => (c as { content?: string }).content ?? '')
+    .join('\n')
+}
+
 describe('roll attribution', () => {
-  test('a recorded roll gains a footer saying where it landed', async () => {
+  test('a recorded roll gains a line saying where it landed', async () => {
     connect({ kind: 'ok', value: { ok: true, game: 'Tenacity' } })
     const { interaction, replies, edits } = fakeExecute({
       subcommand: 'roll',
@@ -427,12 +442,13 @@ describe('roll attribution', () => {
     })
     await rollCommand.execute(interaction)
 
-    // The roll itself is replied to FIRST and unchanged; the footer is edited
-    // afterwards, only once the recording actually landed.
+    // The roll itself is replied to FIRST and unchanged; the container is
+    // rebuilt afterwards, only once the recording actually landed.
     expect(replies).toHaveLength(1)
     expect(edits).toHaveLength(1)
-    const embed = edits[0]?.embeds?.[0] as { data: { footer?: { text: string } } }
-    expect(embed.data.footer?.text).toContain('recorded to Tenacity')
+    // The edit must carry the V2 flag: a message created with it keeps it.
+    expect(edits[0]?.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(editedText(edits[0])).toContain('LOGGED TO TENACITY')
   })
 
   test('an unrecorded roll is left exactly as it was', async () => {
@@ -470,8 +486,7 @@ describe('roll attribution', () => {
     connect({ kind: 'ok', value: { ok: true, game: 'Tenacity' } })
     const { handle, edits } = buttonInteractionHandlerFor('su:roll:Core Mechanic')
     await handle()
-    const embed = edits[0]?.embeds?.[0] as { data: { footer?: { text: string } } }
-    expect(embed.data.footer?.text).toContain('recorded to Tenacity')
+    expect(editedText(edits[0])).toContain('LOGGED TO TENACITY')
   })
 
   test('a lookup button is not a roll and records nothing', async () => {

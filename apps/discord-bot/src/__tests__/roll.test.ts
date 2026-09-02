@@ -28,19 +28,17 @@ function mockAutocomplete(focused: string) {
 }
 
 describe('rollCommand.execute', () => {
-  test('a named table replies with an embed titled after the table', async () => {
+  test('a named table replies with a V2 container, publicly', async () => {
     const { interaction, replies } = mockChatInput('Core Mechanic')
     await rollCommand.execute(interaction)
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(reply.embeds).toBeDefined()
-    expect(reply.embeds).toHaveLength(1)
-    const embed = reply.embeds?.[0] as { data: { title?: string } }
-    // The roll embed titles itself with an outcome tier, so just assert an
-    // embed (not an error string) came back and no ephemeral flag was set.
-    expect(embed.data.title).toBeTruthy()
-    expect(reply.flags).toBeUndefined()
+    // V2 is all-in per message: components and the flag, never embeds.
+    expect(reply.components).toHaveLength(1)
+    expect(reply.embeds).toBeUndefined()
+    // Ephemeral is absent; the flag carries IsComponentsV2 alone.
+    expect(reply.flags).toBe(MessageFlags.IsComponentsV2)
   })
 
   test('defaults to Core Mechanic when no table is given', async () => {
@@ -49,14 +47,14 @@ describe('rollCommand.execute', () => {
     expect(replies).toHaveLength(1)
     const reply = replies[0]
     if (!reply) throw new Error('expected a reply')
-    expect(reply.embeds).toHaveLength(1)
+    expect(reply.components).toHaveLength(1)
     expect(reply.content).toBeUndefined()
   })
 
   test('table lookup is case-insensitive', async () => {
     const { interaction, replies } = mockChatInput('core mechanic')
     await rollCommand.execute(interaction)
-    expect(replies[0]?.embeds).toHaveLength(1)
+    expect(replies[0]?.components).toHaveLength(1)
   })
 
   test('an unknown table replies with an ephemeral error, not an embed', async () => {

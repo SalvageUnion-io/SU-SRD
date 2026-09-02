@@ -183,6 +183,22 @@ function toPlainPayload(payload: unknown): unknown {
   return out
 }
 
+/**
+ * What to call the person who rolled, in Discord's own order of preference:
+ * a per-guild nickname, then the account's display name, then the username.
+ *
+ * Naming the roller is why this exists. Discord's own "used /su roll" header
+ * covers a slash command, but a **button** re-roll attributes far more weakly —
+ * and "who got the 20?" is the most-asked question at a busy table.
+ */
+function displayNameOf(raw: {
+  member?: { nick?: string | null; user?: { global_name?: string | null; username?: string } }
+  user?: { global_name?: string | null; username?: string }
+}): string | undefined {
+  const user = raw.member?.user ?? raw.user
+  return raw.member?.nick ?? user?.global_name ?? user?.username ?? undefined
+}
+
 function replyMembers(ctx: AdapterContext) {
   const token = (ctx.raw as { token: string }).token
   const routes = webhookRoutes(ctx.applicationId, token)
@@ -227,8 +243,11 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
   const raw = ctx.raw as {
     data?: { options?: APIApplicationCommandInteractionDataOption[] }
     channel_id?: string | null
-    member?: { user?: { id: string } }
-    user?: { id: string }
+    member?: {
+      nick?: string | null
+      user?: { id: string; global_name?: string | null; username?: string }
+    }
+    user?: { id: string; global_name?: string | null; username?: string }
   }
   const { group, subcommand, values } = resolveOptionPath(raw.data?.options)
   const iconURL = botAvatarURL(ctx.applicationId, ctx.botAvatarHash)
@@ -247,7 +266,7 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     // `user` is top-level in DMs and nested under `member` in a guild. Reading
     // only one of them is how a command works everywhere except where it is
     // actually used.
-    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '' },
+    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
     client: { user: iconURL ? { displayAvatarURL: () => iconURL } : null },
     ...replyMembers(ctx),
@@ -259,14 +278,17 @@ export function makeButtonInteraction(ctx: AdapterContext): CommandButtonInterac
   const raw = ctx.raw as {
     data?: { custom_id?: string }
     channel_id?: string | null
-    member?: { user?: { id: string } }
-    user?: { id: string }
+    member?: {
+      nick?: string | null
+      user?: { id: string; global_name?: string | null; username?: string }
+    }
+    user?: { id: string; global_name?: string | null; username?: string }
   }
   const iconURL = botAvatarURL(ctx.applicationId, ctx.botAvatarHash)
 
   return {
     customId: raw.data?.custom_id ?? '',
-    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '' },
+    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
     client: { user: iconURL ? { displayAvatarURL: () => iconURL } : null },
     ...replyMembers(ctx),
@@ -283,8 +305,11 @@ export function makeAutocompleteInteraction(ctx: AdapterContext): CommandAutocom
   const raw = ctx.raw as {
     data?: { options?: APIApplicationCommandInteractionDataOption[] }
     channel_id?: string | null
-    member?: { user?: { id: string } }
-    user?: { id: string }
+    member?: {
+      nick?: string | null
+      user?: { id: string; global_name?: string | null; username?: string }
+    }
+    user?: { id: string; global_name?: string | null; username?: string }
   }
   const { group, subcommand, values } = resolveOptionPath(raw.data?.options)
   const focused = values.find((o) => (o as { focused?: boolean }).focused === true)
@@ -296,7 +321,7 @@ export function makeAutocompleteInteraction(ctx: AdapterContext): CommandAutocom
       getFocused: () =>
         focused && focused.type === ApplicationCommandOptionType.String ? focused.value : '',
     },
-    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '' },
+    user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
     channelId: raw.channel_id ?? null,
     async respond(choices: CommandChoice[]): Promise<unknown> {
       ctx.sink.send({

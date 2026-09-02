@@ -31,9 +31,9 @@ describe('with no ITUN deployment configured', () => {
     await rollCommand.execute(interaction)
 
     // The exact pre-accounts behaviour: one immediate, public reply carrying
-    // the embed. A deferred roll would be a visibly slower dice bot.
+    // the result. A deferred roll would be a visibly slower dice bot.
     expect(replies).toHaveLength(1)
-    expect(replies[0]?.embeds).toHaveLength(1)
+    expect(replies[0]?.components).toHaveLength(1)
     expect(deferred.called).toBe(false)
     expect(edits).toHaveLength(0)
   })

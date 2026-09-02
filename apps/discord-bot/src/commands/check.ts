@@ -10,19 +10,21 @@
  * rather than crashing.
  */
 
-import { EmbedBuilder } from '@discordjs/builders'
+import type { ContainerBuilder } from '@discordjs/builders'
 import type { DiceNotation, RollerRollResult } from '@randsum/roller'
 import { roll } from '@randsum/roller'
-import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
-import { MessageFlags } from 'discord-api-types/v10'
-import { rollAgainRow } from '../customId.js'
-import { BRAND_NAME, buildCheckEmbedData, ROLL_EMBED_FOOTER } from '../format.js'
+import type { SlashCommandSubcommandBuilder } from 'discord.js'
+import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
+import type { ContainerData } from '../container.js'
+import { toContainer } from '../container.js'
+import { makeCustomId } from '../customId.js'
+import { buildCheckContainerData } from '../rollContainer.js'
 import type { CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */
 export type CheckMessage =
-  | { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[] }
+  | { flags: MessageFlags.IsComponentsV2; components: [ContainerBuilder]; data: ContainerData }
   | { error: string }
 
 /**
@@ -30,7 +32,7 @@ export type CheckMessage =
  * Shared by the slash `/su check` handler and the "Roll again" button router.
  * Randsum owns validity — a throw becomes a clean, user-facing error string.
  */
-export function buildCheckMessage(notation: string, iconURL?: string): CheckMessage {
+export function buildCheckMessage(notation: string, roller?: string): CheckMessage {
   let result: RollerRollResult<unknown>
   try {
     // Randsum's parameter type is the DiceNotation template literal, but the
@@ -45,20 +47,17 @@ export function buildCheckMessage(notation: string, iconURL?: string): CheckMess
     }
   }
 
-  const data = buildCheckEmbedData(notation, result)
-  const embed = new EmbedBuilder()
-    .setTitle(data.title)
-    .setColor(data.color)
-    .addFields(data.fields)
-    .setFooter({ text: ROLL_EMBED_FOOTER })
-    .setTimestamp()
-  if (data.description) {
-    embed.setDescription(data.description)
+  const data = buildCheckContainerData(notation, result, { roller })
+  const rerollId = makeCustomId('check', notation)
+  if (rerollId) {
+    data.blocks.push({
+      kind: 'buttons',
+      buttons: [
+        { kind: 'action', customId: rerollId, label: '↻ Roll again', style: ButtonStyle.Primary },
+      ],
+    })
   }
-  if (iconURL) embed.setAuthor({ name: BRAND_NAME, iconURL })
-
-  const row = rollAgainRow('check', notation, 'Roll again')
-  return { embeds: [embed], components: row ? [row] : [] }
+  return { flags: MessageFlags.IsComponentsV2, components: [toContainer(data)], data }
 }
 
 export const checkCommand = {
@@ -79,13 +78,14 @@ export const checkCommand = {
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const notation = interaction.options.getString('dice', true)
-    const message = buildCheckMessage(notation, interaction.client.user?.displayAvatarURL())
+    const message = buildCheckMessage(notation, interaction.user.displayName)
     if ('error' in message) {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-    await interaction.reply(message)
+    const { data, ...payload } = message
+    await interaction.reply(payload)
     // See rollAttribution.ts — after the reply, silent on failure.
-    await attributeRoll(interaction, message.embeds, `Rolled ${notation}`, { notation })
+    await attributeRoll(interaction, data, `Rolled ${notation}`, { notation })
   },
 }
