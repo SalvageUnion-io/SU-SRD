@@ -101,15 +101,24 @@ const OK_CREW = {
 }
 
 describe('an ephemeral command', () => {
-  test('renders its embed into the deferred reply', async () => {
+  test('renders as an ephemeral follow-up, and resolves the placeholder', async () => {
     connect(OK_ME)
     const { interaction, edits, followUps, deferred } = fakeExecute({ subcommand: 'me' })
     await meCommand.execute(interaction)
 
     expect(deferred.ephemeral).toBe(true)
-    expectContainer(edits[0], { ephemeral: true })
-    // Personal, so it stays with the person who asked.
-    expect(followUps).toHaveLength(0)
+    // A follow-up, not an edit: a container needs the V2 flag, and Discord
+    // refuses to toggle that onto a placeholder created without it.
+    expectContainer(followUps[0], { ephemeral: true })
+    // The placeholder must still become something, or it sits on "thinking…".
+    expect(edits[0]?.content).toBe('Rendered below.')
+    // Personal, so it stays with the person who asked. This used to assert
+    // that no follow-up existed at all, which was the right rule read through
+    // the wrong mechanism — both visibilities are follow-ups now, and the flag
+    // is what keeps this one private.
+    for (const followUp of followUps) {
+      expect(Number(followUp.flags) & MessageFlags.Ephemeral).toBe(MessageFlags.Ephemeral)
+    }
   })
 
   test.each([
@@ -120,9 +129,9 @@ describe('an ephemeral command', () => {
       kind: 'ok',
       value: { ok: true, games: [], pilots: [], mechs: [] },
     })
-    const { interaction, edits } = fakeExecute({ subcommand: name })
+    const { interaction, followUps } = fakeExecute({ subcommand: name })
     await command.execute(interaction)
-    expectContainer(edits[0], { ephemeral: true })
+    expectContainer(followUps[0], { ephemeral: true })
   })
 })
 
@@ -173,12 +182,12 @@ describe('/su sheet', () => {
         body: { callsign: 'Rook', currentHP: 6 },
       },
     })
-    const { interaction, edits } = fakeExecute({
+    const { interaction, followUps } = fakeExecute({
       subcommand: 'sheet',
       strings: { entity: 'pilots:p1' },
     })
     await sheetCommand.execute(interaction)
-    expectContainer(edits[0], { ephemeral: true })
+    expectContainer(followUps[0], { ephemeral: true })
   })
 
   test.each([['just-a-name'], ['pilots:'], ['bogus:p1']])(
@@ -412,12 +421,12 @@ describe('/su dispatch', () => {
         body: { callsign: 'X' },
       },
     })
-    const { interaction, edits } = fakeExecute({
+    const { interaction, followUps } = fakeExecute({
       subcommand: 'sheet',
       strings: { entity: 'pilots:p1' },
     })
     await suCommand.execute(interaction)
-    expectContainer(edits[0], { ephemeral: true })
+    expectContainer(followUps[0], { ephemeral: true })
   })
 
   test('routes sheet autocomplete', async () => {

@@ -158,17 +158,16 @@ export async function respondWithItun<T>(
   switch (result.kind) {
     case 'ok': {
       const rendered = options.render(result.value)
-      if (options.visibility === 'public') {
-        // A follow-up is a NEW message, so the V2 flag is set at creation and
-        // never toggled — the safe half of this path.
-        await interaction.followUp(containerPayload(rendered, false))
-        await interaction.editReply({ content: 'Posted to the channel.' })
-      } else {
-        // An ephemeral result edits the deferred placeholder. See the note on
-        // `respondWithItun` about why this is the one place the V2 migration
-        // depends on unverified behaviour.
-        await interaction.editReply(containerPayload(rendered, true))
-      }
+      const ephemeral = options.visibility !== 'public'
+      // Always a follow-up: a new message carries the V2 flag from creation,
+      // where an edit of the deferred placeholder would be a toggle Discord
+      // refuses. See the note above.
+      await interaction.followUp(containerPayload(rendered, ephemeral))
+      // The placeholder still has to become something, or it sits on
+      // "thinking…" forever. Mirrors the public path's grammar.
+      await interaction.editReply({
+        content: ephemeral ? 'Rendered below.' : 'Posted to the channel.',
+      })
       return
     }
     case 'denied':
