@@ -70,11 +70,11 @@ describe('the headline is never a bare die number', () => {
   })
 
   test('a long unlabelled value is quoted into the headline, not left in the body', () => {
-    // Previously this rendered `## ▌14▐` alone with the whole value beneath.
+    // Previously this rendered `## 14` alone with the whole value beneath.
     // The entry's own leading sentence now carries the headline, and the body
     // picks up from the next one rather than repeating it.
     const data = rollOf('Crawler Damage', 14)
-    expect(headline(data)).toContain('▌14▐')
+    expect(headline(data)).toContain('14')
     expect(headline(data)).toContain('INOPERABLE AND GROUNDED')
     const body = text(data)
       .split('\n')
@@ -99,11 +99,6 @@ describe('tier gating', () => {
     expect(rollOf('Callsign Table', 1).accent).toBe(NEUTRAL_EMBED_COLOR)
   })
 
-  test('an untiered table gets no banner at either extreme', () => {
-    expect(text(rollOf('Callsign Table', 1))).not.toContain('▓▒░')
-    expect(text(rollOf('Callsign Table', 20))).not.toContain('█▓')
-  })
-
   test('a tiered table still takes the ramp', () => {
     expect(rollOf('Core Mechanic', 20).accent).toBe(ROLL_COLORS.nailed)
     expect(rollOf('Core Mechanic', 1).accent).toBe(ROLL_COLORS.cascade)
@@ -124,36 +119,40 @@ describe('the tier word is withheld outside the Core Mechanic', () => {
   })
 })
 
-describe('banners mark the extremes only', () => {
-  test('a natural 1 gets the sawtooth', () => {
-    expect(text(rollOf('Core Mechanic', 1))).toContain('▓▒░▓▒░')
-  })
-
-  test('a natural 20 gets the swell', () => {
-    expect(text(rollOf('Core Mechanic', 20))).toContain('█')
-  })
-
-  test.each([2, 5, 6, 10, 11, 19])('a %i gets no banner', (roll) => {
+describe('every roll renders the same furniture', () => {
+  // The surface used to change shape with the result: a 1 and a 20 grew a
+  // Block-Elements banner the other 18 rolls did not have, so a table looked
+  // like a different bot depending on what came up. It is now one shape.
+  test.each([1, 2, 10, 19, 20])('a %i draws no banner', (roll) => {
     const body = text(rollOf('Core Mechanic', roll))
-    expect(body).not.toContain('▓▒░')
-    expect(body).not.toContain('░░░░▒')
-  })
-})
-
-describe('provenance', () => {
-  test('cites the book — a page reference the embed never carried', () => {
-    expect(text(rollOf('Crawler Damage', 14))).toContain('p.219')
+    expect(body).not.toContain('▓')
+    expect(body).not.toContain('█')
+    expect(body).not.toContain('░')
   })
 
-  test('names the die and the matched band', () => {
-    expect(text(rollOf('Core Mechanic', 14))).toContain('d20 14 · band 11-19')
+  test('the die stands bare in the headline, with no plate around it', () => {
+    // Seen rendered, `▌14▐` read as a white bar: a container's accent colours
+    // its edge, not its text, so the glyphs never picked up the tier.
+    const line = headline(rollOf('Core Mechanic', 14))
+    expect(line).toContain('14')
+    expect(line).not.toContain('▌')
+    expect(line).not.toContain('▐')
   })
 
-  test('a columns roll reports both dice, and calls the second an entry not a band', () => {
-    const body = text(rollOf('Callsign Table', 1))
-    expect(body).toContain('two d20')
-    expect(body).toContain('entry 1')
-    expect(body).not.toContain('band')
+  test('a columns roll shows both dice', () => {
+    expect(headline(rollOf('Callsign Table', 1))).toContain('1·1')
+  })
+
+  test('one footer line, and it is the attribution', () => {
+    // The provenance line — `d20 14 · band 11-19 · Core Book p.219` — is gone;
+    // two lines of small print under every roll was the busiest part of the
+    // surface, and the die it spelled out is already the headline.
+    const small = text(rollOf('Crawler Damage', 14))
+      .split('\n')
+      .filter((line) => line.startsWith('-# '))
+    expect(small).toHaveLength(2) // context line + attribution
+    expect(small.at(-1)).toBe('-# Salvage Union Reference · Powered by Randsum.dev')
+    expect(text(rollOf('Crawler Damage', 14))).not.toContain('p.219')
   })
 })
 
@@ -166,7 +165,7 @@ describe('context', () => {
 
   test('the Game signal is its own line, not appended to attribution boilerplate', () => {
     const body = text(rollOf('Core Mechanic', 14, { loggedTo: 'Tenacity' }))
-    expect(body).toContain('█ LOGGED TO TENACITY')
+    expect(body).toContain('-# LOGGED TO TENACITY')
   })
 
   test('no Game signal when the roll was not recorded', () => {
@@ -200,7 +199,7 @@ describe('a dramatic table miss is a result, not an error', () => {
     if ('error' in message) throw new Error('expected a roll')
     const body = message.data.blocks.map((b) => (b.kind === 'text' ? b.content : '')).join('\n')
     expect(body).not.toContain('NO EFFECT')
-    expect(body).toContain('▌20▐')
+    expect(body).toContain('## 20')
   })
 })
 
@@ -242,7 +241,7 @@ describe('private rolls and Post to channel', () => {
     const posted = buildPostedRollMessage(payload, 'Vex Marrow')
     if ('error' in posted) throw new Error('expected a posted roll')
 
-    expect(text(posted.data)).toContain('▌20▐')
+    expect(text(posted.data)).toContain('## 20')
     expect(text(posted.data)).toContain('NAILED IT')
     expect(posted.data.accent).toBe(ROLL_COLORS.nailed)
     // Public, and it carries no Post button of its own.

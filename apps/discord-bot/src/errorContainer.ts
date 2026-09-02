@@ -22,7 +22,6 @@ import { searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container.js'
 import { makeCustomId } from './customId.js'
 import { NEUTRAL_EMBED_COLOR } from './format.js'
-import { diePlate } from './ornament.js'
 
 /** How many recovery buttons to offer. Three fits one row without crowding. */
 const SUGGESTIONS = 3
@@ -49,7 +48,7 @@ export function unknownTableContainer(query: string, indexed: number): Container
     accent: NEUTRAL_EMBED_COLOR,
     blocks: [
       { kind: 'text', content: '-# NO SUCH TABLE' },
-      { kind: 'text', content: `## ${diePlate('??')} ${query.toUpperCase()}` },
+      { kind: 'text', content: `## ${query.toUpperCase()}` },
       {
         kind: 'text',
         content:
@@ -78,7 +77,7 @@ export function badNotationContainer(notation: string, reason: string): Containe
     accent: NEUTRAL_EMBED_COLOR,
     blocks: [
       { kind: 'text', content: '-# BAD NOTATION' },
-      { kind: 'text', content: `## ${diePlate('??')} \`${notation}\`` },
+      { kind: 'text', content: `## \`${notation}\`` },
       { kind: 'text', content: reason },
       { kind: 'separator' },
       { kind: 'text', content: '-# try one of these, or see randsum.dev for the full grammar' },
@@ -114,7 +113,7 @@ export function noEffectContainer(
     accent: NEUTRAL_EMBED_COLOR,
     blocks: [
       { kind: 'text', content: roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}` },
-      { kind: 'text', content: `## ${diePlate(roll)} NO EFFECT` },
+      { kind: 'text', content: `## ${roll} NO EFFECT` },
       { kind: 'separator' },
       { kind: 'text', content: `-# d20 ${roll} · this table only triggers on a 20` },
       ...(buttons.length > 0 ? [{ kind: 'buttons' as const, buttons }] : []),
