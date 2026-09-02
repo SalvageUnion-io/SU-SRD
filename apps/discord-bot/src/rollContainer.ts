@@ -23,8 +23,10 @@
  *    headline**, and there is no body. This is what rescues an unlabelled
  *    table: "Red Mesa Mutants" becomes the headline rather than body copy under
  *    the word "Roll: 14".
- * 3. No label, longer value → the tier word carries the headline where one
- *    applies, otherwise the die plate stands alone, and the value is the body.
+ * 3. No label, longer value → quote the entry's own leading sentence as the
+ *    headline when it already reads as a name ({@link deriveLabel}); otherwise
+ *    the tier word where one applies, else the die plate alone. The value is
+ *    the body either way.
  *
  * ## Why the tier word is Core-Mechanic-only
  *
@@ -46,6 +48,7 @@ import { getEntitySlug, getPageReference, srdEntityUrl } from 'salvageunion-refe
 import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container.js'
+import { deriveLabel } from './derivedLabel.js'
 import { NEUTRAL_EMBED_COLOR, ROLL_ATTRIBUTION, ROLL_COLORS, truncate } from './format.js'
 import { diePlate, STATUS_LED, tierBanner } from './ornament.js'
 
@@ -127,6 +130,14 @@ function headlineAndBody(
   }
   if (value.length > 0 && value.length <= INLINE_HEADLINE_MAX) {
     return { headline: `## ${plate} ${stencil(value)}` }
+  }
+  // The entry's own words, where they already read as a name. Never a
+  // truncation and never a paraphrase — see derivedLabel.ts.
+  const quoted = deriveLabel(value)
+  if (quoted !== undefined) {
+    // The remainder, not the whole value — the quoted sentence has been
+    // promoted to the headline and must not be repeated beneath it.
+    return { headline: `## ${plate} ${stencil(quoted.label)}`, body: quoted.rest }
   }
   const tier = band !== null && isCoreMechanic ? ` ${stencil(CORE_ROLL_BANDS[band].label)}` : ''
   return { headline: `## ${plate}${tier}`, body: value || undefined }

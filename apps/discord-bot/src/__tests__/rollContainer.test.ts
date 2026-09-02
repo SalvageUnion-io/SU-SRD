@@ -68,10 +68,19 @@ describe('the headline is never a bare die number', () => {
     expect(text(data)).toContain('fatal injury')
   })
 
-  test('a long unlabelled value stays in the body, headline keeps the plate', () => {
+  test('a long unlabelled value is quoted into the headline, not left in the body', () => {
+    // Previously this rendered `## ▌14▐` alone with the whole value beneath.
+    // The entry's own leading sentence now carries the headline, and the body
+    // picks up from the next one rather than repeating it.
     const data = rollOf('Crawler Damage', 14)
     expect(headline(data)).toContain('▌14▐')
-    expect(text(data)).toContain('inoperable and grounded')
+    expect(headline(data)).toContain('INOPERABLE AND GROUNDED')
+    const body = text(data)
+      .split('\n')
+      .filter((line) => !line.startsWith('#') && !line.startsWith('-#'))
+      .join('\n')
+    expect(body).toContain('Its Bays are Intact')
+    expect(body).not.toContain('inoperable and grounded.')
   })
 })
 
