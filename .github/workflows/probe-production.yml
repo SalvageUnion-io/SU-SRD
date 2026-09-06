@@ -8,9 +8,15 @@
 #
 # Trigger it from the "Run workflow" button, or
 #   gh workflow run probe-production.yml
+# It also runs on any pull request that edits this file, which is what makes a
+# workflow_dispatch-only workflow dispatchable in the first place: GitHub does
+# not register a workflow that exists only on a branch until it has run once.
 name: Probe production
 
 on:
+  pull_request:
+    paths:
+      - .github/workflows/probe-production.yml
   workflow_dispatch:
     inputs:
       extra_urls:
