@@ -3,10 +3,10 @@
  *
  * Every validator used to independently `readFileSync` + `JSON.parse` the
  * data files it needed. This module centralizes that so:
- *   - `tools/validate.ts` (the unified runner) can load every `data/*.json`
- *     file exactly once and hand the same in-memory bag to all checks.
- *   - Standalone `validate:*` scripts can still load data themselves (they
- *     run as separate processes either way), without re-deriving the
+ *   - `tools/validate.ts` (the one validation CLI) can load every
+ *     `data/*.json` file exactly once and hand the same in-memory bag to all
+ *     checks.
+ *   - tests and generators can load real data without re-deriving the
  *     `data/` path resolution in each file.
  *
  * `dataDir` is resolved relative to this file's location (not `process.cwd()`)

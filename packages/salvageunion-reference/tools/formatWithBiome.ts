@@ -4,7 +4,7 @@
  * This replaces the `prettier.format(...)` calls the generators used to make.
  * Prettier is gone from the repo (Biome is the single formatter), but the
  * generators still need to format *in-process*, before writing, because their
- * output is committed and gated by `check:schemas` (a `git diff --exit-code`).
+ * output is committed and gated by `tools/check-generated.ts` (it regenerates, then fails on any diff).
  * Emitting unformatted source and letting a later `biome format --write` pass
  * fix it would make that gate fail on a clean tree.
  *

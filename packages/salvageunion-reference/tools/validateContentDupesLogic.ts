@@ -150,9 +150,8 @@ function walk(node: unknown, file: string, recordName: string, out: ContentDupe[
 
 /**
  * Orchestration entry point: given the full data bag (filename -> parsed
- * array), return every intra-record content duplication. Both the standalone
- * CLI (tools/validateContentDupes.ts) and the unified runner
- * (tools/validate.ts) call this so the two can never diverge.
+ * array), return every intra-record content duplication. `tools/validate.ts`
+ * and the tests both call this, so the two can never diverge.
  */
 export function runContentDupeCheck(
   filesByName: Record<string, Record<string, unknown>[]>

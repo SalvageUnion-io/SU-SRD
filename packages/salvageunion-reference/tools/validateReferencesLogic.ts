@@ -3,9 +3,8 @@
  * Checks that system/module/entity references exist in their respective data
  * files, and that `tableName` references resolve to a real roll table.
  *
- * Extracted from tools/validateReferences.ts so both the standalone CLI and
- * the unified runner (tools/validate.ts) share one implementation over a
- * caller-supplied data bag, instead of each re-reading `data/*.json` itself.
+ * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
+ * `--only=references`) and the tests share one implementation.
  */
 
 export type ValidationError = {

@@ -477,8 +477,8 @@ export type OrphanCheckResult = {
  * Orchestration entry point: given the full data bag (filename -> parsed
  * array), run the entire orphan-detection pipeline (referenced-name
  * collection, orphan detection, allowlist partitioning, stale-entry
- * detection). Both the standalone CLI (tools/validateOrphans.ts) and the
- * unified runner (tools/validate.ts) call this so they can never diverge.
+ * detection). `tools/validate.ts` and the tests both call this, so they
+ * can never diverge.
  */
 export function runOrphanCheck(filesByName: Record<string, unknown[]>): OrphanCheckResult {
   const get = (file: string): EntityEntry[] => (filesByName[file] ?? []) as EntityEntry[]

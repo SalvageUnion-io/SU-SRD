@@ -170,11 +170,11 @@ const heavyEquipment: SURefEquipment[] = Equipment.findAll((e) => (e.techLevel ?
 ### Data Validation
 
 ```bash
-# Validate all data against JSON schemas
-bun run validate:all
+# Every data check: IDs, slugs, references, orphans, traits, parity, schemas
+bun run validate
 
-# Validate all IDs are unique UUIDs (including nested objects)
-bun run validate:ids
+# Just some of them — e.g. that every ID is a unique UUID (including nested objects)
+bun run validate -- --only=ids
 ```
 
 ### Other Scripts
@@ -188,21 +188,18 @@ bun run typecheck
 
 # Run tests
 bun test
-
-# Lint code
-bun run lint
-
-# Format code
-bun run format
 ```
+
+Lint and format run from the repo root (`bun run lint`, `bun run format`) —
+Biome covers every workspace in one pass.
 
 ## Contributing
 
 Contributions are welcome! Please:
 
 1. Ensure all data includes page references
-2. Ensure all items have unique UUIDs (run `bun run validate:ids`)
-3. Validate changes with `bun run validate:all`
+2. Ensure all items have unique UUIDs (run `bun run validate -- --only=ids`)
+3. Validate changes with `bun run validate`
 4. Run type checking with `bun run typecheck`
 5. Follow existing data structure patterns
 
@@ -214,7 +211,7 @@ All data items must have a unique UUID v4 identifier in the `id` field. This inc
 - Nested `choices` objects in NPCs and abilities
 - Any other nested objects with an `id` field
 
-Use `bun run validate:ids` to check for invalid or missing UUIDs.
+Use `bun run validate -- --only=ids` to check for invalid or missing UUIDs.
 
 ## License
 

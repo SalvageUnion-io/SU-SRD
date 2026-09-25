@@ -17,8 +17,9 @@ The package ships TypeScript source — there is no compile step.
 `bun run build:package` (from the repo root) regenerates everything generated,
 in order: `generate:registry` (`tools/generateRegistry.ts`), then
 `generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
-registry must come first), then the docs and API-report generators. CI
-(`check:schemas`) fails on drift.
+registry must come first), then the docs and API-report generators.
+`bun run check generated` (`tools/check-generated.ts`, also at pre-push and in
+CI) re-runs them and fails on any drift, including a new untracked file.
 
 **Generated — never hand-edit** (`.claude/hooks/protect-generated-files.sh`
 blocks it):
@@ -129,7 +130,7 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 ## Adding New Data
 
 **Rows in an existing schema need no code:** edit the JSON file in `data/`, then
-`bun run validate:all`. A **new schema** is the next section.
+`bun run check data`. A **new schema** is the next section.
 
 ## Adding a New Entity **Type** (schema)
 
@@ -175,5 +176,7 @@ the generator's output.
 ## Testing & validation
 
 - `bun --filter salvageunion-reference test` — schema compliance and data integrity
-- `bun run validate:all` — IDs, cross-references, action references
-- `bun run validate:ids` — unique-ID check only
+- `bun run check data` (from the root) — every data check: IDs, slugs,
+  cross-references, action references, orphans, traits, parity, schemas
+- `bun run validate -- --only=ids,slugs` (in this package) — just the named
+  checks; `tools/validate.ts` is the one validation CLI

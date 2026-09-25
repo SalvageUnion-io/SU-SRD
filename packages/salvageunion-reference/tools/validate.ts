@@ -3,9 +3,8 @@
 /**
  * Unified validation runner.
  *
- * Replaces chaining 11 separate `bun run validate:*` process invocations
- * (each re-reading and re-parsing the ~1.3MB `data/*.json` corpus on its
- * own) with a single shared data-load pass, fed to all 11 checks:
+ * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
+ * 11 checks (it replaced 11 separate processes, each re-reading the corpus):
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
@@ -19,13 +18,16 @@
  *   - parity           (validateParityLogic.ts)
  *   - double-encoding  (validateParityLogic.ts)
  *
- * Every check's detection logic lives in its own `*Logic.ts` module, and the
- * standalone `bun run validate:*` CLIs (still supported individually) import
- * the exact same functions this runner does — so the two can never diverge.
+ * Every check's detection logic lives in its own `*Logic.ts` module, which is
+ * where its tests live too. This file is the ONLY command-line entry: there
+ * used to be one thin CLI wrapper per check as well — ten files, ~650 lines,
+ * each re-loading the corpus and re-printing its own report format — and ten
+ * of their eleven `validate:*` scripts had no caller. `--only` replaces them.
  *
  * Usage:
- *   bun tools/validate.ts            # run all checks, structured report
- *   bun tools/validate.ts --fix      # apply mechanical fixes first (see below), then run all checks
+ *   bun tools/validate.ts                      # run all checks, structured report
+ *   bun tools/validate.ts --only=ids,slugs     # run just these checks
+ *   bun tools/validate.ts --fix                # apply mechanical fixes first (see below), then run all checks
  *
  * `--fix` is a *mechanical-only* tier: it currently does exactly what
  * `bun run fix:ids` already does (generateMissingIds.ts — fill in missing
@@ -319,8 +321,30 @@ function printReport(diagnostics: Diagnostic[]): void {
   console.log(`\nTotal: ${diagnostics.length} issue(s) across ${grouped.size} check(s)`)
 }
 
+/** The checks named by `--only=a,b`, or all of them. Throws on an unknown id. */
+export function selectChecks(argv: readonly string[]): CheckDefinition[] {
+  const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)
+  if (!only) return CHECKS
+  const ids = only.split(',').filter(Boolean)
+  const unknown = ids.filter((id) => !CHECKS.some((c) => c.id === id))
+  if (unknown.length > 0) {
+    throw new Error(
+      `unknown check(s): ${unknown.join(', ')}. Known: ${CHECKS.map((c) => c.id).join(', ')}`
+    )
+  }
+  return CHECKS.filter((c) => ids.includes(c.id))
+}
+
 function main(): void {
-  const fix = process.argv.slice(2).includes('--fix')
+  const argv = process.argv.slice(2)
+  const fix = argv.includes('--fix')
+  let checks: CheckDefinition[]
+  try {
+    checks = selectChecks(argv)
+  } catch (error) {
+    console.error(`✗ ${(error as Error).message}`)
+    process.exit(2)
+  }
 
   if (fix) {
     console.log('🔧 --fix: applying mechanical fixes (missing/invalid/duplicate IDs)...\n')
@@ -337,7 +361,7 @@ function main(): void {
   const data = loadAllDataFiles()
 
   const allDiagnostics: Diagnostic[] = []
-  for (const check of CHECKS) {
+  for (const check of checks) {
     const diagnostics = check.run(data)
     allDiagnostics.push(...diagnostics)
     const status = diagnostics.length === 0 ? '✅' : '❌'

@@ -14,8 +14,8 @@
  * without a name (meta rows) are skipped — they slug by id, which
  * checkUniqueIds already guarantees unique.
  *
- * Extracted from tools/validateSlugs.ts so both the standalone CLI and the
- * unified runner share one implementation over a caller-supplied data bag.
+ * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
+ * `--only=slugs`) and the tests share one implementation.
  */
 
 import { nameToSlug } from '../lib/slug.js'
