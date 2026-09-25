@@ -452,6 +452,9 @@ describe('convex-guard', () => {
   })
 })
 
+/** A job-level `if:` line as the fixture writes it, `\${{ … }}` and all. */
+const jobIf = (expr: string) => `    if: \${{ ${expr} }}`
+
 describe('deploy-order', () => {
   test('passes when builds precede deploys, deploys precede smoke, smoke precedes record', () => {
     expect(checkDeployOrder(ctx({})).failures).toEqual([])
@@ -525,7 +528,7 @@ describe('deploy-order', () => {
 
   test('a job behind a skippable job with only the implicit success() fails', () => {
     const deploy = DEPLOY_TEXT.replace(
-      "    if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' }}",
+      jobIf("!cancelled() && !failure() && needs.smoke.result == 'success'"),
       "    if: needs.smoke.result == 'success'"
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
@@ -535,8 +538,8 @@ describe('deploy-order', () => {
 
   test('a record that does not require smoke to have succeeded fails', () => {
     const deploy = DEPLOY_TEXT.replace(
-      "    if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' }}",
-      '    if: ${{ !cancelled() && !failure() }}'
+      jobIf("!cancelled() && !failure() && needs.smoke.result == 'success'"),
+      jobIf('!cancelled() && !failure()')
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining("does not require `needs.smoke.result == 'success'`"),
