@@ -1,6 +1,5 @@
 /**
- * `/schema/[schemaId]` — the per-schema listing page. Port of
- * `schema/[schemaId]/index.astro`.
+ * `/schema/[schemaId]` — the per-schema listing page.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
  * `ssg/DESIGN.md`): the entity grid is this page's SEO content, so the island

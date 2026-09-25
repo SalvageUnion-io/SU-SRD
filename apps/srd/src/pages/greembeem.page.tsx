@@ -1,5 +1,5 @@
 /**
- * `/greembeem` — port of `greembeem.astro`.
+ * `/greembeem` — the greembeem easter-egg page.
  *
  * A standalone Wikipedia pastiche. It owns its whole `<html>` document: no
  * `BaseLayout`, no site chrome, no canonical URL, no Open Graph, no islands and
@@ -7,11 +7,9 @@
  * `register` for exactly that reason — see the note on `DocumentPageModule` in
  * `ssg/render.tsx`.
  *
- * **Excluded from the sitemap.** Astro's `@astrojs/sitemap` filter dropped any
- * page whose path contains `/greembeem` (`astro.config.mjs`), and `ssg/sitemap.ts`
- * must reproduce that. Two signals survive this port for whoever builds it: the
- * registry entry in `ssg/routes.ts` is tagged `SITEMAP_EXCLUDED`, and the
- * document below carries `<meta name="robots" content="noindex, nofollow">`.
+ * **Excluded from the sitemap.** The registry entry in `ssg/routes.ts` is
+ * tagged `SITEMAP_EXCLUDED`, `ssg/sitemap.ts` filters any `/greembeem` path,
+ * and the document below carries `<meta name="robots" content="noindex, nofollow">`.
  *
  * The `<style>` and `<script>` are both kept INLINE, verbatim, via
  * `dangerouslySetInnerHTML`:
@@ -27,16 +25,13 @@
  *   `islands.client`, `styles.entry`). Putting it there would mean adding a
  *   third Vite entry and threading the hashed url from the manifest onto a page
  *   that otherwise loads no build assets — build coupling bought for nothing.
- *   Inline also matches what Astro emitted for `is:inline`, so the rendered
- *   output stays like-for-like.
  */
 
 // biome-ignore-all lint/a11y/useValidAnchor: the dead `href="#"` links ARE the page — it is a
 // Wikipedia pastiche whose links deliberately go nowhere, and the inline script below
-// preventDefaults every one of them. Giving them real targets would change the rendered output,
-// which is a deliberate verbatim copy of the Astro original.
+// preventDefaults every one of them. Giving them real targets would change the rendered output.
 // biome-ignore-all lint/a11y/useSemanticElements: `role="button"` on the `[edit]` anchors is
-// verbatim from the Astro original (Wikipedia's own markup shape). Same constraint — and
+// Wikipedia's own markup shape. Same constraint — and
 // `ssg/snapshot.ts` holds both, since either change moves this page's rendered output.
 
 import { readFileSync } from 'node:fs'
@@ -45,8 +40,8 @@ import type { DocumentPageModule } from '../../ssg/render'
 // ---------------------------------------------------------------------------
 // Episode data — read from disk at BUILD time.
 //
-// The Astro version used Vite's `?raw` import. The SSR pass does not go through
-// Vite, so the csv is read directly here instead. This still runs exactly once,
+// The SSR pass does not go through Vite, so there is no `?raw` import; the csv
+// is read directly. This runs exactly once,
 // when `ssg/routes.ts` pulls the module in during the build.
 // ---------------------------------------------------------------------------
 
@@ -142,7 +137,7 @@ function wikiHref(name: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Inline <style> — verbatim from greembeem.astro.
+// Inline <style>
 // ---------------------------------------------------------------------------
 
 const PAGE_CSS = `
@@ -304,7 +299,7 @@ const PAGE_CSS = `
     `
 
 // ---------------------------------------------------------------------------
-// Inline <script> — verbatim from greembeem.astro's `is:inline` block.
+// Inline <script>
 // ---------------------------------------------------------------------------
 
 const PAGE_SCRIPT = `
@@ -360,7 +355,7 @@ const PAGE_SCRIPT = `
       })
     `
 
-/** The toast's presentational styles, 1:1 with the Astro `style` attribute. */
+/** The toast's presentational styles. */
 const TOAST_STYLE = {
   position: 'fixed',
   bottom: '24px',

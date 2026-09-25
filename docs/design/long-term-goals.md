@@ -12,9 +12,10 @@
 > atomic — belonged to an earlier stack that was abandoned. ITUN's on-device
 > layer is IndexedDB
 > ([ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md)), and anonymous cross-device
-> sharing still happens through immutable, unauthenticated snapshots on Netlify
-> Functions + Blobs
-> ([ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)).
+> sharing still happens through immutable, unauthenticated snapshots served by
+> the itun Worker from R2
+> ([ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md), amended by
+> ADR-033).
 >
 > **2. Multi-user Games are NOT deferred — they shipped.** The 2026-07-03 note
 > said there was "no auth and no application backend" and that Games were

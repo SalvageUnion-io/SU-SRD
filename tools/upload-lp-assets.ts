@@ -4,12 +4,7 @@
  * upload-lp-assets — push Salvage Union entity artwork into the `su-lp-assets`
  * R2 bucket that backs https://assets.salvageunion.io.
  *
- * This is the **ingest path**, and for a period after the Cloudflare cutover
- * there was not one: this tool still wrote to the retired Netlify Blobs store
- * while production read from R2, so adding new artwork was impossible by any
- * documented means and running it would have reported success while touching
- * nothing anyone serves. See `export-lp-assets.ts` for the same story on the
- * backup side.
+ * This is the **ingest path**; `export-lp-assets.ts` is the backup side.
  *
  * The artwork is licensed from Leyline Press ("do not redistribute") so the
  * BYTES never live in this public repo — only this tool does. Point it at a

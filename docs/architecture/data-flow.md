@@ -30,8 +30,9 @@ The mode is resolved by one pure function, `resolveConnectionMode()` in
 > **Architecture note (history):** ITUN previously used a hosted Postgres backend
 > with auth and realtime sync; that was removed in favour of a local-first
 > IndexedDB model with no auth and no backend (ADR-001), and the only server-side
-> surface for a while was the stateless snapshot-sharing service (Netlify
-> Functions + Blobs, [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)).
+> surface for a while was the stateless snapshot-sharing service
+> ([ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)), now served by the
+> itun Worker from R2 (ADR-033).
 > ADR-030 then reintroduced a server of record — **Convex**, for accounts, Games,
 > and entity ownership — without displacing Solo. Snapshot sharing is unchanged
 > and remains the account-free way to share a build.
@@ -138,7 +139,7 @@ either all are removed together, or nothing changes (no orphaned links).
 **Location:** `apps/itun/convex/` (schema + 17 function modules) and
 `apps/itun/src/lib/connection/` (client wiring).
 
-For the delivery phases, permission rules, and the Convex/Netlify/Discord
+For the delivery phases, permission rules, and the Convex/Discord
 operational reference, read
 [accounts-and-games.md](accounts-and-games.md) — this section covers only how
 the data reaches the client. Do not duplicate that document here.
@@ -241,10 +242,11 @@ See [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md).
 - **Client:** `src/lib/snapshot/client.ts` — `publishSnapshot(payload)` POSTs to
   `/api/snapshots` and returns `{ id, url }`; `retrieveSnapshot(id)` GETs
   `/api/snapshots/:id`; `probeSnapshotService()` feature-detects the backend.
-- **Backend:** two Netlify Functions (`netlify/functions/snapshot-publish.ts`,
-  `snapshot-retrieve.ts`) backed by **Netlify Blobs**. The store is
-  unauthenticated and anonymous: no PII, a 256 KB payload cap, per-IP rate
-  limiting, and crypto-random 8-char Crockford-base32 IDs.
+- **Backend:** the itun Worker (`src/worker/index.ts`) routes `/api/snapshots`
+  to the handlers in `src/lib/snapshot/handlers.ts`, backed by the
+  `su-itun-snapshots` **R2** bucket. The store is unauthenticated and
+  anonymous: no PII, a 256 KB payload cap, per-IP rate limiting (Cloudflare's
+  Rate Limiting binding), and crypto-random 8-char Crockford-base32 IDs.
 - **Trust boundary:** retrieved payloads are re-validated with Zod
   (`safeParse`) on the client before rendering, so a tampered blob cannot inject
   unexpected shapes.
@@ -284,7 +286,7 @@ read-only rather than forking against the server of record.
 
 ## Cross-References
 
-- [accounts-and-games.md](accounts-and-games.md) — ADR-030 delivery phases + the Convex/Netlify/Discord operational reference
+- [accounts-and-games.md](accounts-and-games.md) — ADR-030 delivery phases + the Convex/Discord operational reference
 - `.claude/rules/itun-data-access.md` — which domain a given read/write belongs to
 - [ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md) — IndexedDB / `idb` / Zod-as-schema persistence
 - [ADR-003](../adrs/ADR-003-zustand-hydration.md) — Zustand store hydration + write-through

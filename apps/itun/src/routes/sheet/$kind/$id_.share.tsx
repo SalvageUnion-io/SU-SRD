@@ -14,14 +14,15 @@
  * `replace: true` keeps the retired URL out of history, so Back goes where the
  * reader came from instead of bouncing off this redirect.
  *
- * ## This is the belt; netlify.toml has the braces
+ * ## This is the belt; the Worker has the braces
  *
- * A 301 in netlify.toml alone would NOT be enough, and that is worth stating
+ * The Worker's 301 (`src/worker/index.ts`, rule 1) alone would NOT be enough,
+ * and that is worth stating
  * because it looks like it should be. The app is a PWA whose service worker
  * registers a `NavigationRoute` bound to a precached `index.html`
  * (`createHandlerBoundToURL("index.html")` in the deployed sw.js), so for anyone
  * who has the app installed or cached, a navigation is answered from the cache
- * and never reaches Netlify. The edge redirect covers first-time loads, crawlers
+ * and never reaches the Worker. The edge redirect covers first-time loads, crawlers
  * and non-SW clients; this route covers everyone else. Both are needed.
  */
 

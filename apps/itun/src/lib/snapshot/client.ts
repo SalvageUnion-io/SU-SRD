@@ -76,29 +76,22 @@ async function fetchWithTimeout(
 /**
  * Statuses that mean the *platform* failed, not the handler.
  *
- * Every snapshot function chooses its own statuses — a Blobs outage is a 503 it
+ * Every snapshot handler chooses its own statuses — a storage outage is a 503 it
  * returns, an unknown id a 404, a wrong method a 405 — so a 502/504 did not come
- * from handler code that ran. It is Netlify failing to run or reach the
- * function. The statuses the handlers *do* choose are therefore absent here:
+ * from handler code that ran. It is the platform failing to run or reach the
+ * handler. The statuses the handlers *do* choose are therefore absent here:
  *
  * - **500** — a real throw the handler caught and reported to Sentry.
- * - **503** — `snapshot-{retrieve,publish,delete}.ts` return this when the
- *   Blobs store itself failed. It is a considered answer about a dependency,
+ * - **503** — the handlers in `handlers.ts` return this when the store itself
+ *   failed. It is a considered answer about a dependency,
  *   not a blip, so retrying 400ms later just asks a store that has already said
  *   it is unavailable the same question twice.
  *
  * **A 502 is not automatically self-clearing, and this retry is not a substitute
- * for looking at one.** Sharing was down for about 24 hours across #788 and
- * #795, from two *stacked* bugs — a misplaced SDK import, then a duplicate zip
- * entry replacing the handler — and both were deterministic module-load
- * failures that no number of retries would have touched. Fixing the first only
- * revealed the second.
- *
- * What a retry does buy is the genuinely transient half — a cold start that
- * missed its window — at a bounded cost. Treat a run of 502s in Sentry as an
- * outage to diagnose, not as noise this smooths over; and note that every local
- * signal stayed green through both of those, because nothing in `bun run check`
- * runs the Functions bundler.
+ * for looking at one.** A deterministic module-load failure answers 502 on every
+ * attempt. What a retry does buy is the genuinely transient half at a bounded
+ * cost. Treat a run of 502s in Sentry as an outage to diagnose, not as noise
+ * this smooths over.
  *
  * A network-level failure is likewise not retried: this wrapper only inspects
  * `.status` and lets a throw propagate. That keeps a genuinely offline client

@@ -31,8 +31,8 @@ type ColophonProps = {
  * here — all three are repo-root markdown documents passed in raw (see
  * `MarkdownSection`), so the two sites always show the same words.
  *
- * The Ko-fi button needs client JS to swap in the widget, so an Astro consumer
- * must hydrate this block rather than render it statically — srd does that via
+ * The Ko-fi button needs client JS to swap in the widget, so a static-site
+ * consumer must hydrate this block rather than render it statically — srd does that via
  * `ColophonIsland`.
  */
 export function Colophon({

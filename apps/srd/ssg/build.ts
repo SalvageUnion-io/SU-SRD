@@ -140,12 +140,12 @@ async function writeEndpoints(): Promise<void> {
 }
 
 /**
- * `sitemap-index.xml` + `sitemap-0.xml`, replacing `@astrojs/sitemap`.
+ * `sitemap-index.xml` + `sitemap-0.xml`.
  *
  * `routes` is collected during the render pass above, from the registrations
  * that declare `sitemap: true` — so a page is in the sitemap because it said so
  * at its registration site, not because its URL happened to survive a regex.
- * `ssg/sitemap.ts` re-applies Astro's URL filter on top as a safety net.
+ * `ssg/sitemap.ts` applies a URL filter on top as a safety net.
  *
  * Dynamic import for the usual reason: it reaches `./render` (and through
  * `src/lib/constants`, the reference package), so it must load AFTER the
@@ -242,7 +242,7 @@ async function main(): Promise<void> {
 
   // The same class of silent catastrophe one level up: a registry that resolves
   // to nothing (a bad glob, an exception swallowed inside resolve()) would emit
-  // an empty dist and still exit 0, and Netlify would happily publish it. The
+  // an empty dist and still exit 0, and the deploy would happily publish it. The
   // floor is deliberately low — it is a smoke alarm, not a budget. The exact
   // page COUNT is held by `ssg/snapshot.ts`, whose file-set check fails on any
   // route dropped from `routes.ts`; this only catches the total collapse, where
@@ -272,7 +272,7 @@ async function main(): Promise<void> {
 
   // `manifest: true` is required — it is how this script learns the hashed
   // entry filenames — but the manifest itself is a BUILD input, not site
-  // content. Astro published no equivalent, and leaving it would ship a 33 KB
+  // content, and leaving it would ship a 33 KB
   // file enumerating every internal chunk to anyone who asks. Everything that
   // reads it has already run by here (readAssets above, and the service worker
   // globs only js/css/woff2/svg, so it was never precached).

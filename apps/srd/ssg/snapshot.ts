@@ -1,30 +1,17 @@
 /**
  * ssg/snapshot.ts — the output gate for the srd static build.
  *
- * Replaces the retired `ssg/parity.ts`. It answers the same question — "did the
- * emitted site change in a way nobody intended?" — against a baseline that
- * CANNOT rot, which is the whole point of the redesign.
- *
- * ## Why this exists, and why it is shaped differently to parity
- *
- * Parity compared `dist` against an archived **Astro-era** build. That baseline
- * was foreign (produced by a stack this repo deleted), ~56 MB, gitignored, and
- * regenerable only by installing ~2,200 Astro-era packages. So it was absent
- * from every checkout, the gate exited 2 wherever it was invoked, and it was
- * never in CI — while nine files still instructed people to run it. See
- * ADR-031's "shelf life" clause.
- *
- * This gate inverts every one of those properties:
+ * It answers one question — "did the emitted site change in a way nobody
+ * intended?" — against a baseline that cannot rot:
  *
  *   - the baseline is **our own output**, so it can always be regenerated;
  *   - it is a ~680 KB **digest**, not a copy of the site, so it is committed and
  *     every checkout has it;
  *   - regenerating is `bun run snapshot:update` — one command, ~3s;
- *   - it runs in **CI**, which parity never did;
+ *   - it runs in **CI**;
  *   - a change to it appears in the PR diff, where a human sees it.
  *
- * The trade is explicit: parity could catch a regression against a
- * known-good ORACLE (Astro's output). This cannot — it only catches
+ * The trade is explicit: there is no known-good ORACLE. It only catches
  * *unintended* change against what we last blessed. A wrong output that is
  * committed as the snapshot is wrong forever. That is the price of a baseline
  * that survives, and it is the right trade, because a gate nobody can run

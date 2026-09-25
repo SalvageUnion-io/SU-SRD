@@ -10,10 +10,6 @@ import { makeAssetHandler } from '../worker'
  * deliberately unchanged, which is what lets the stored derivatives keep serving
  * until someone prunes them — so the first case below is migration safety, not a
  * leftover.
- *
- * Kept separate from `worker.test.ts` because that file states its purpose as
- * holding the port to the Netlify Function's contract, case for case. This
- * behaviour has no Netlify counterpart.
  */
 
 function bucketWith(entries: Record<string, string>): AssetBucket & { asked: string[] } {

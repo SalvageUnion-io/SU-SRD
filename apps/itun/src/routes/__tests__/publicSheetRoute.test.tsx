@@ -7,8 +7,8 @@
  * throws "Could not find Convex client!" and the route renders the root error
  * boundary instead of a page.
  *
- * That build is not a corner case: every Netlify deploy preview and branch
- * deploy is one, as is a fresh checkout, as is this test environment. Which is
+ * That build is not a corner case: CI is one, as is a fresh checkout, as is
+ * this test environment. Which is
  * precisely why rendering the route here is the check that catches it.
  */
 

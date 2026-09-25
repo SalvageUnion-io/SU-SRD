@@ -1,8 +1,8 @@
 /**
- * `/404` — the not-found page. Port of `404.astro`.
+ * `/404` — the not-found page.
  *
- * Emitted as `dist/404.html`, NOT `dist/404/index.html`: Astro special-cases it
- * so the host can serve it directly. See the URL -> file table in
+ * Emitted as `dist/404.html`, NOT `dist/404/index.html`, so the host's
+ * `not_found_handling: "404-page"` can serve it directly. See the URL -> file table in
  * `ssg/DESIGN.md`.
  */
 

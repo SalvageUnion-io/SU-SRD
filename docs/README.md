@@ -190,6 +190,6 @@ conventions:
 `su-lp-assets` R2 bucket, with the bytes deliberately kept out of git.
 `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in
 `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
-See [`apps/su-assets/netlify.toml`](../apps/su-assets/netlify.toml).
+See [`apps/su-assets/wrangler.jsonc`](../apps/su-assets/wrangler.jsonc).
 
 Plus the agent-readable convention digests in [`.claude/rules/`](../.claude/rules/).

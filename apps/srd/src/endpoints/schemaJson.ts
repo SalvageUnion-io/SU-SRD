@@ -1,10 +1,9 @@
 /**
- * `/schema/[schemaId].json` — port of `src/pages/schema/[schemaId].json.ts`.
+ * `/schema/[schemaId].json` — every entity in one schema.
  *
  * Dotted pattern: this emits `dist/schema/chassis.json` as a FILE, never a
  * `chassis.json/index.html` directory. See the URL -> file table in
- * `ssg/DESIGN.md` and the `trailingSlash: 'ignore'` comment in
- * `astro.config.mjs`, which exists for exactly this reason.
+ * `ssg/DESIGN.md`.
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
@@ -24,7 +23,7 @@ type Props = { data: SURefEntity[] }
  * same schemas the HTML surface does. It did not: the catalog carries 27
  * schemas and only 24 get pages, so this route published
  * `/schema/actions.json` (plus catalog-categories and ability-tree-requirements)
- * for schemas with no `/schema/<id>/` listing page to belong to. `api.astro`,
+ * for schemas with no `/schema/<id>/` listing page to belong to. `api.page.tsx`,
  * the page that documents this API, filters them out — so those three were
  * undocumented endpoints — and ITUN's `hasSRDPage` guard read the unfiltered
  * catalog too, which is how "View in SRD" came to link at a 404.

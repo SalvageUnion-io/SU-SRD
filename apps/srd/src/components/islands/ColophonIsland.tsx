@@ -12,12 +12,8 @@ type ColophonIslandProps = {
  *
  * An island rather than a static render because the Ko-fi widget needs client
  * JS: the shared KofiButton loads Ko-fi's script and swaps in `getHTML()` from
- * an effect, and this island re-hydrates across srd's ClientRouter view
- * transitions. The prose still ships in the built HTML — Astro renders the
- * component at build time and only defers hydration.
- *
- * (This replaces the former KofiButtonIsland, which hydrated the button alone
- * back when the support section stood on its own.)
+ * an effect. The prose still ships in the built HTML — the page renders it with
+ * `ssr` and the island mounts over it on the client.
  */
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this renders static

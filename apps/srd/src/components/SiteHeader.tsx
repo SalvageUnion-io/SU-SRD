@@ -7,8 +7,8 @@ import type { ReactNode } from 'react'
  * shared `AppBar`): the SalvageUnion.io brand, the SRD nav (SRD / About /
  * Changelog / Discord / API + outbound Builder cross-link), the "Buy the game"
  * button, and an optional breadcrumb bar with JSON-LD. The interactive search +
- * mobile-nav pieces are slotted (`search` / `mobile`) so the consuming Astro
- * page hydrates them independently.
+ * mobile-nav pieces are slotted (`search` / `mobile`) so the page mounts them as
+ * independent islands.
  */
 
 type BreadcrumbItem = {
@@ -17,13 +17,13 @@ type BreadcrumbItem = {
 }
 
 type SiteHeaderProps = {
-  /** Current pathname, drives the active nav state (e.g. Astro.url.pathname). */
+  /** Current pathname, drives the active nav state. */
   currentPath: string
   /** Destination for the outbound ITUN builder cross-link. */
   itunUrl: string
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbDescription?: string
-  /** Stable `view-transition-name` forwarded to AppBar (Astro ClientRouter). */
+  /** Stable `view-transition-name` forwarded to AppBar (cross-document view transitions). */
   viewTransitionName?: string
   /** Desktop search trigger (srd slots its SearchIsland here). */
   search?: ReactNode

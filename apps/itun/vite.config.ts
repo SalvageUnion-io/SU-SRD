@@ -118,10 +118,7 @@ export default defineConfig({
           // the deploy. Warn instead of the plugin's default throw.
           //
           // This tolerates a FAILING upload, which is different from tolerating
-          // an ABSENT credential. The latter was the actual state from the
-          // Cloudflare cutover onward — Netlify held these as site env vars and
-          // only the deploy credentials were ported — so every production event
-          // was a minified stack. `deploy-cloudflare.yml` now refuses to build
+          // an ABSENT credential: `deploy-cloudflare.yml` refuses to build
           // without all three; this handler covers the blip, not the gap.
           errorHandler: (error) => {
             console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
@@ -194,7 +191,7 @@ export default defineConfig({
   // Without this, vite dev serves those JSON modules as `text/javascript`, which
   // strict browsers reject under import-attribute enforcement ("Failed to fetch
   // dynamically imported module"), breaking all reference-data loading in dev.
-  // Mirrors the srd astro.config optimizeDeps fix (#260).
+  // Mirrors srd's optimizeDeps fix in `apps/srd/ssg/vite.config.ts` (#260).
   //
   // List EVERY imported entry point of salvageunion-reference (main + each
   // subpath), not just '.'. The package's stateful ORM singletons — the
@@ -234,12 +231,6 @@ export default defineConfig({
     //
     // NO REWRITE. The Worker owns `/api/snapshots` and `/api/snapshots/:id`
     // directly, so the path passes through untouched.
-    //
-    // This block used to rewrite to `/.netlify/functions/snapshot-retrieve`
-    // and `snapshot-publish` on port 9999, and the README told you to run
-    // `netlify functions:serve`. Those functions were deleted with the rest of
-    // Netlify in ADR-033 P7, so local snapshot publishing had simply been
-    // broken since — a dev-only path no test covers and no CI job exercises.
     proxy: {
       '/api/snapshots': {
         target: 'http://localhost:8787',

@@ -1,5 +1,5 @@
 /**
- * `/discord` — the Discord bot landing page. Port of `discord.astro`.
+ * `/discord` — the Discord bot landing page.
  */
 
 import { buttonVariants, cn, PageHeading, Panel, Slab } from 'component-lib'

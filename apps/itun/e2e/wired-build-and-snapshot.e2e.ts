@@ -15,7 +15,7 @@ import {
  * **The two halves are two tests on purpose.** They used to be one, and the
  * snapshot half sat behind two `waitFor(...).catch(() => false)` probes with a
  * bare `return`: on every environment CI actually runs, the publish button is
- * absent (a static `vite preview` serves no Netlify Functions), so the round-
+ * absent (a static `vite preview` serves no snapshot API), so the round-
  * trip returned before asserting anything and Playwright reported a **pass**.
  * Ten seconds of waiting, a green tick, and zero coverage of the thing named
  * in the file.
@@ -24,17 +24,17 @@ import {
  *
  *  - the build + wiring test runs everywhere and passes on its own merits;
  *  - the round-trip test is reported as **skipped, with the reason**, unless
- *    `E2E_BASE_URL` points at a deploy that serves the snapshot Functions +
- *    Blobs — and when it does, there is no soft-skip left: a missing Publish
+ *    `E2E_BASE_URL` points at a deploy whose Worker serves the snapshot API —
+ *    and when it does, there is no soft-skip left: a missing Publish
  *    button or a publish that never opens its dialog is a failure, because in
  *    that mode the backend was promised.
  *
  * `E2E_BASE_URL` is what `playwright.config.ts` already builds its external-
  * preview mode around (widened timeouts, no local `webServer`). Nothing sets
  * it today, so the round-trip reads as an honest skip rather than a phantom
- * pass; a nightly job that sets it to a Netlify preview turns it on. Its
- * substitute coverage meanwhile is `src/lib/snapshot/__tests__/snapshot.test.ts`,
- * which drives `makeRetrieveHandler` against injected storage.
+ * pass; a job that sets it to a deployed Worker turns it on. Its substitute
+ * coverage meanwhile is `src/worker/__tests__/routing.test.ts`, which drives
+ * the snapshot API through the Worker against an in-process bucket.
  *
  * IndexedDB persists across page navigations inside one context, so building
  * entities before wiring works without state plumbing. Each test gets a fresh
@@ -45,12 +45,12 @@ import {
 /**
  * Whether this run targets a deployment with the snapshot backend behind it.
  * `playwright.config.ts` treats the same variable as "run against a live
- * deploy", and that deploy is the only place Functions + Blobs exist.
+ * deploy", and that deploy is the only place the snapshot API exists.
  */
 const FUNCTIONS_BACKED = Boolean(process.env.E2E_BASE_URL)
 
 const NO_BACKEND_REASON =
-  'Snapshot publish needs the Netlify Functions backend. Set E2E_BASE_URL to a deploy that serves it (a static `vite preview` cannot).'
+  'Snapshot publish needs the Worker-served snapshot API. Set E2E_BASE_URL to a deploy that serves it (a static `vite preview` cannot).'
 
 test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
   await buildPilot(page, 'Mira Voss', 'Sparks')

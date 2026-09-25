@@ -1,13 +1,12 @@
 /**
  * EntityView — the reference entity, rendered the lightest way it can be.
- * Port of `EntityView.astro`.
  *
  * Most SRD entities are documents: prose, stats and links, with nothing on the
  * card that needs a click handler. Those render to HTML at build time and ship
  * no JS at all — the real `ReferenceEntityCard`, not a simplified stand-in.
  *
  * A minority embed something genuinely interactive (a roll table's Roll button,
- * a disclosure, a nested-entity click target). Those keep the original island:
+ * a disclosure, a nested-entity click target). Those keep an island:
  * a `client="visible"` card gated on a browser-side preload, paired with
  * `StaticEntityContent` so crawlers and no-JS readers still get the text.
  *

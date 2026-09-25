@@ -31,7 +31,7 @@ export function fillPattern(pattern: string, params: Record<string, string>): st
   })
 }
 
-/** Canonical/nav pathname: always a trailing slash (BaseLayout.astro's rule). */
+/** Canonical/nav pathname: always a trailing slash. */
 export function withTrailingSlash(route: string): string {
   return route.endsWith('/') ? route : `${route}/`
 }
@@ -86,7 +86,7 @@ export type RouteRegistration = {
    *
    * Declared at the registration site rather than re-derived from the URL, so
    * "is this page public?" is answered once, next to the page. `ssg/sitemap.ts`
-   * still applies Astro's URL filter on top as a safety net — see its header.
+   * still applies a URL filter on top as a safety net — see its header.
    */
   sitemap: boolean
   resolve: () => ErasedRoute[]
@@ -127,7 +127,7 @@ export function register<Params extends Record<string, string>, Props>(
  * A page that owns its ENTIRE document — `<html>` downwards — instead of
  * returning a `<main>` subtree for `BaseLayout` to wrap.
  *
- * Two Astro pages were written this way and must stay that way: `greembeem`
+ * Two pages are written this way: `greembeem`
  * (a standalone Wikipedia pastiche with its own reset, its own `<style>` and no
  * site chrome) and `og-card` (a build-only screenshot surface). Both are
  * `noindex` and both are excluded from the sitemap, so none of what
@@ -143,7 +143,7 @@ export function register<Params extends Record<string, string>, Props>(
  * open, and `<Island>` throws when it is used outside one.
  */
 export type DocumentPageModule = {
-  /** Astro-style pattern. Document pages are single fixed routes. */
+  /** Route pattern. Document pages are single fixed routes. */
   pattern: string
   /** The whole document tree, `<html>` downwards. */
   document: (ctx: RouteContext<Record<string, string>, undefined>) => ReactNode

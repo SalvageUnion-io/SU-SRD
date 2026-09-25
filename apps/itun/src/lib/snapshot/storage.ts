@@ -1,13 +1,9 @@
 /**
  * SnapshotStorage — thin abstraction over the blob store.
  *
- * Implementations: InMemoryStorage (tests), createR2Storage (Cloudflare),
- * and createNetlifyBlobsStorage — which lives in `storageNetlify.ts` rather
- * than here, because esbuild follows dynamic imports and a Worker importing
- * `createR2Storage` from this file would otherwise bundle `@netlify/blobs`.
- * All three are held to one contract by `__tests__/storageConformance.test.ts`.
- *
- * See ADR-004-snapshot-netlify-functions.md for rationale.
+ * Implementations: InMemoryStorage (tests) and createR2Storage (production),
+ * held to one contract by `__tests__/storageConformance.test.ts`. ADR-033 §3
+ * covers why snapshots live in R2.
  */
 
 export type PutOptions = {
@@ -85,18 +81,16 @@ export type R2BucketLike = {
  *
  * `client.ts` makes the consequence concrete: its retry set is `{502, 504}` and
  * it excludes 404 deliberately, on the grounds that a store "has already said
- * no". True for Blobs and for R2; false for KV. Choosing KV would silently
+ * no". True for R2; false for KV. Choosing KV would silently
  * invalidate that written invariant.
  *
  * Measured against a real bucket before this landed: **20/20 publish →
  * immediate-read round trips returned the written bytes with no delay.**
  *
- * ## `onlyIfNew` is a check-then-set, exactly as the Netlify implementation is
+ * ## `onlyIfNew` is a check-then-set
  *
- * Deliberately identical semantics, so the two are interchangeable and the
- * conformance suite can hold them to one contract. The race it leaves open is
- * the same one the Netlify version documents, and it is already guarded
- * upstream: `generateUniqueId` only proposes ids that do not exist, over a
+ * The same semantics as `InMemoryStorage`, so the conformance suite can hold
+ * both to one contract. The race it leaves open is already guarded upstream: `generateUniqueId` only proposes ids that do not exist, over a
  * 40-bit space.
  *
  * R2 does support a genuinely atomic conditional put, which would close that

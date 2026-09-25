@@ -6,24 +6,12 @@
  * `.bun-version` is the single source of truth for the Bun this repo builds and
  * tests on. This fails `bun run check` whenever a surface disagrees with it.
  *
- * ## What changed when Netlify was deleted, and why this file survived
- *
- * It used to check three `netlify.toml` files, each of which pinned
- * `BUN_VERSION` independently — and they HAD drifted, with CI testing 1.3.10
- * while ITUN production built on 1.3.14. su-assets was worse: it carried no pin
- * at all and silently built on whatever Netlify's default happened to be, which
- * is why "the file exists but carries no pin" fails as `(missing)` rather than
- * being skipped.
- *
- * All three files are now gone. That left this guard asserting one thing — the
- * root `bun-types` devDependency — while printing a cheerful
- * `0 Netlify site(s)`: a check that passes by having nothing left to check,
- * which is the failure mode this repo has shipped before and written down.
- *
- * So it was repointed rather than deleted. The claim its old docstring made —
- * *"builds run in GitHub Actions, which reads `.bun-version` via setup-bun, so
- * CI cannot drift by construction"* — is true only while every workflow
- * actually uses that composite action. That is now the thing asserted.
+ * Builds run in GitHub Actions, which reads `.bun-version` via
+ * `./.github/actions/setup-bun` — so CI cannot drift *only while every workflow
+ * actually uses that composite action*. That is the thing asserted. Pins that
+ * were set independently per surface HAVE drifted before (CI testing 1.3.10
+ * while production built on 1.3.14), and a surface with no pin at all fails as
+ * `(missing)` rather than being skipped.
  *
  * ## The two surfaces
  *
@@ -31,8 +19,7 @@
  *     exactly; `bunfig.toml` even excludes it from `minimumReleaseAge` for that
  *     reason.
  *   - **Every workflow's Bun setup.** A job that pins a version inline instead
- *     of using `./.github/actions/setup-bun` is exactly the drift the old
- *     Netlify check existed to catch, relocated to where builds now happen.
+ *     of using `./.github/actions/setup-bun` is exactly that drift.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'

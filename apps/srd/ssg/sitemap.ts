@@ -1,16 +1,14 @@
 /**
- * sitemap — the replacement for `@astrojs/sitemap`.
+ * sitemap — `sitemap-index.xml` + `sitemap-0.xml`.
  *
- * Emits the SAME two files Astro did, at the dist root:
+ * Emits two files at the dist root:
  *
  *   sitemap-index.xml   one <sitemap> entry per urlset file
  *   sitemap-0.xml       the urlset itself
  *
- * Both are matched against the Astro baseline, so the shape here is copied from
- * it rather than invented: no newlines, no indentation, no `<lastmod>` /
- * `<changefreq>` / `<priority>` (none were configured), and the four extra
- * namespace declarations `sitemap.js` always writes on `<urlset>` even when
- * nothing uses them.
+ * The shape is fixed and held by `ssg/output-snapshot.json`: no newlines, no
+ * indentation, no `<lastmod>` / `<changefreq>` / `<priority>`, and four
+ * namespace declarations on `<urlset>` that nothing uses but crawlers accept.
  *
  * ## Two independent exclusion mechanisms, on purpose
  *
@@ -18,8 +16,8 @@
  *    its registration site whether it belongs in the sitemap (`ssg/routes.ts`),
  *    so the answer lives next to the page instead of being re-derived from the
  *    shape of its URL.
- * 2. `passesAstroSitemapFilter` — a verbatim port of the `filter` in
- *    `astro.config.mjs`. It is redundant with (1) for the pages we know about,
+ * 2. `passesSitemapFilter` — a URL filter. It is redundant with (1) for the
+ *    pages we know about,
  *    and that is the point: it is the safety net that keeps a newly added
  *    `/og-card`-ish or `.og.png` URL out of the sitemap even if whoever adds it
  *    forgets the flag. Deleting it would silently widen the sitemap.
@@ -31,23 +29,22 @@ import { SITE_URL } from '../src/lib/constants'
 import { withTrailingSlash } from './render'
 
 /**
- * `entryLimit` from `@astrojs/sitemap` (its default, never overridden in
- * `astro.config.mjs`). Well above the ~1,036 URLs this site emits, so exactly
+ * URLs per urlset file (the sitemaps.org limit is 50,000). Well above the
+ * ~1,036 URLs this site emits, so exactly
  * one `sitemap-0.xml` is produced — but the index file exists precisely because
  * this can chunk, so the chunking is implemented rather than assumed away.
  */
 const SITEMAP_ENTRY_LIMIT = 45_000
 
 /**
- * The `filter` from `astro.config.mjs`, character for character. Astro handed
- * it the FULL page URL, so this takes the full URL too.
+ * The URL filter. It takes the FULL page URL.
  *
  * - `/image`    — image routes are not pages
  * - `/greembeem`— standalone noindex pastiche document
  * - `.og.png`   — the generated per-entity social images
  * - `/og-card`  — the build-only screenshot surface
  */
-function passesAstroSitemapFilter(page: string): boolean {
+function passesSitemapFilter(page: string): boolean {
   return (
     !page.includes('/image') &&
     !page.includes('/greembeem') &&
@@ -57,12 +54,9 @@ function passesAstroSitemapFilter(page: string): boolean {
 }
 
 /**
- * Baseline ordering. `@astrojs/sitemap`'s output is exactly what a
- * numeric-aware `en` collator produces — verified against the baseline's 1,036
- * URLs, where a plain lexicographic sort disagrees on four of them
- * (`.../30mm-autocannon/` and `.../50-cal-machine-gun/` sort BEFORE
- * `.../120mm-cannon/`). Matching it costs nothing and makes the two files
- * byte-comparable.
+ * URL ordering: a numeric-aware `en` collator, so `.../30mm-autocannon/` and
+ * `.../50-cal-machine-gun/` sort BEFORE `.../120mm-cannon/`, where a plain
+ * lexicographic sort would disagree. The snapshot holds the order.
  */
 const collator = new Intl.Collator('en', { numeric: true })
 
@@ -84,7 +78,7 @@ function sitemapUrls(routes: readonly string[]): string[] {
   const urls = new Set<string>()
   for (const route of routes) {
     const url = new URL(withTrailingSlash(route), SITE_URL).href
-    if (!passesAstroSitemapFilter(url)) continue
+    if (!passesSitemapFilter(url)) continue
     urls.add(url)
   }
   return [...urls].sort((a, b) => collator.compare(a, b))

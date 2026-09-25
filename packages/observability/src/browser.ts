@@ -4,7 +4,7 @@
  * This module imports NO Sentry code, deliberately — not even a type. Each app
  * keeps its own `initBrowserObservability`, and the one line that must stay in
  * the app is the DSN guard: each reads its own `import.meta.env` DSN
- * (`VITE_SENTRY_DSN` / `PUBLIC_SENTRY_DSN`), Vite inlines that statically at
+ * (`VITE_SENTRY_DSN`), Vite inlines that statically at
  * build, and the resulting `if (!dsn) return` is what makes the app's
  * `import('@sentry/browser')` unreachable, so Rollup drops the SDK entirely
  * from a build with no DSN provisioned. Hoisting the guard into a shared

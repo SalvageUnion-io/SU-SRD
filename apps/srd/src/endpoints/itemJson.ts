@@ -1,6 +1,5 @@
 /**
- * `/schema/[schemaId]/item/[itemId].json` — port of
- * `src/pages/schema/[schemaId]/item/[itemId].json.ts`.
+ * `/schema/[schemaId]/item/[itemId].json` — one entity's data.
  *
  * Dotted leaf: emits `dist/schema/chassis/item/aegis.json` as a FILE, sitting
  * beside the `aegis/index.html` directory the HTML route writes.

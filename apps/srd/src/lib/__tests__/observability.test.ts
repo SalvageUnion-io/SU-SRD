@@ -43,27 +43,19 @@ const { captureException, initBrowserObservability } = await import('../observab
 
 afterAll(() => {
   mock.module('@sentry/browser', () => realSentry)
-  process.env.PUBLIC_SENTRY_DSN = ''
-  process.env.PUBLIC_COMMIT_REF = ''
+  process.env.VITE_SENTRY_DSN = ''
+  process.env.VITE_COMMIT_REF = ''
 })
 
 beforeEach(() => {
   sentryCalls.length = 0
 })
 
-/**
- * The frames of a real SRD-4 event, trimmed to what the filter reads.
- *
- * The ordering is the point: Netlify's RUM script is at the BOTTOM of the
- * stack and this site's own bundle is on top, because Sentry's `fetch`
- * instrumentation wraps the call. That is why `denyUrls` — which tests the last
- * usable frame — cannot catch these, and why the filter scans every frame.
- */
 describe('observability', () => {
   // Order matters: these walk one module's state machine, unconfigured first.
 
   test('with no DSN, init loads nothing and capture is a silent no-op', async () => {
-    process.env.PUBLIC_SENTRY_DSN = ''
+    process.env.VITE_SENTRY_DSN = ''
 
     await initBrowserObservability()
     captureException(new Error('unreported'))
@@ -74,8 +66,8 @@ describe('observability', () => {
   })
 
   test('with a DSN, init configures Sentry and captureException forwards to it', async () => {
-    process.env.PUBLIC_SENTRY_DSN = 'https://public@o0.ingest.de.sentry.io/1'
-    process.env.PUBLIC_COMMIT_REF = 'deadbeef'
+    process.env.VITE_SENTRY_DSN = 'https://public@o0.ingest.de.sentry.io/1'
+    process.env.VITE_COMMIT_REF = 'deadbeef'
 
     await initBrowserObservability()
 
@@ -87,7 +79,7 @@ describe('observability', () => {
     // has to stay in step with the sourcemap release name.
     expect(options.release).toBe('deadbeef')
     // Errors only — no tracing. Keeps the CSP surface to the ingest origin
-    // `tools/check-observability.ts` asserts against both netlify.tomls.
+    // `tools/check-observability.ts` asserts against `public/_headers`.
     expect(options.tracesSampleRate).toBe(0)
 
     // Cross-document view transitions reject a promise the browser owns
@@ -109,11 +101,8 @@ describe('observability', () => {
       expect(ignored.some((pattern) => title.includes(pattern))).toBe(true)
     }
 
-    // No `beforeSend`. It existed solely to drop Netlify's RUM beacon failures,
-    // and that beacon was injected BY THE NETLIFY PLATFORM — on Cloudflare it is
-    // never loaded, so the event class it filtered can no longer occur. Asserted
-    // as absent rather than deleted silently: a `beforeSend` reappearing here
-    // would mean something is being dropped, and that should be deliberate.
+    // No `beforeSend`: a hook that drops events should be a deliberate,
+    // reviewed addition, so its appearance fails here.
     expect(options.beforeSend).toBeUndefined()
 
     const boom = new Error('boom')

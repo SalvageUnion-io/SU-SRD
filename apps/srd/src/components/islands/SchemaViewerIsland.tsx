@@ -38,9 +38,9 @@ const PARAM_TREE = 'tree'
 const PARAM_NAME = 'q'
 
 /**
- * Read a single query-param value from the current URL. SSR-safe: during
- * `astro build` this island is server-rendered in Node (no `window`), so guard
- * every location read.
+ * Read a single query-param value from the current URL. SSR-safe: the SSG
+ * renders this island's `ssr` markup under Bun (no `window`), so guard every
+ * location read.
  */
 function readUrlParam(name: string): string {
   if (typeof window === 'undefined') return ''

@@ -1,8 +1,8 @@
 /**
  * Build-time compact search index generator (Node-only — imports gameData.ts,
  * which preloads the full ORM at module load; never import this from a
- * client island). Consumed by `src/pages/search-index.json.ts`, an Astro
- * static endpoint generated once at `astro build` and fetched lazily by
+ * client island). Consumed by `src/endpoints/searchIndexJson.ts`, a static
+ * endpoint generated once at build time and fetched lazily by
  * `useSearchIndex.ts` on first search interaction.
  *
  * Mirrors the field extraction `salvageunion-reference`'s internal

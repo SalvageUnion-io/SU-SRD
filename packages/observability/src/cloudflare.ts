@@ -6,10 +6,7 @@
  * wrangler bundles with esbuild, which resolves workspace packages normally, so
  * this module imports `@sentry/cloudflare` itself and the three Workers get it
  * through one dependency declared in one place — a runtime `dependency` of this
- * package, not a devDependency (audit PK-07). (There used to be a sibling
- * `./node` subpath that took `@sentry/node` as a parameter because Netlify's
- * bundler could not inline it. It was deleted with the Discord bot's Node
- * gateway; nothing of that constraint applies here.)
+ * package, not a devDependency (audit PK-07).
  *
  * `@sentry/cloudflare` is built for workerd: it hooks `fetch`/`scheduled`
  * through a wrapper instead of installing global instrumentation, and needs the
@@ -29,13 +26,8 @@
  * flushing, which a hand-rolled `captureException` in a Worker cannot do —
  * without it the isolate can be torn down before the event leaves.
  *
- * ## What the Workers had before
- *
- * A bare `console.error` in each of the three. Those land in Workers Logs, which
- * nothing alerts on and which retains for days, so every production surface was
- * dark to the alerting this repo believes it has — while
- * `tools/check-observability.ts` gated only the two BROWSER apps' CSP and two
- * now-retired Netlify function directories.
+ * Without it a Worker's errors reach only `console.error`, which lands in
+ * Workers Logs — retained for days and alerted on by nothing.
  *
  * ## Tested
  *

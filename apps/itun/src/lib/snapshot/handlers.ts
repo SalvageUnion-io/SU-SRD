@@ -1,36 +1,10 @@
 /**
  * The three snapshot handlers.
  *
- * ## Why they live here rather than in `src/worker/`
- *
- * They were shared code once, when Netlify Functions and a Cloudflare Worker
- * both served this API. Only the Worker does now, so "transport-neutral
- * factories" overstates it — but they stay factories because the STORAGE is
- * still injected, which is what lets the tests drive every branch without an R2
- * binding. That seam is real; the platform seam was the one that went away.
- *
- * ## What this file lost when the Netlify functions were deleted
- *
- * Two injection points existed purely to work around Netlify's bundler, and
- * both are gone:
- *
- * - **`validatePayload`.** The strict Zod check was INJECTED rather than
- *   imported, because a module-scope import of `payload.ts` pulled Zod into
- *   every Netlify function and their bundler left it as an unresolvable bare
- *   import — a 502 on publish and retrieve, measured, and not fixable by
- *   declaring the dependency. So `handlers.ts` shipped a weaker default
- *   (`isJsonObject`, a shape-only check) and the Worker passed the real one in.
- *   It now imports the real one directly and there is no weaker path to pick.
- *
- * - **`rateLimiter`.** An in-process `RateLimiter{10/min}` was the DEFAULT so
- *   Netlify's behaviour stayed unchanged during the migration, and the Worker
- *   passed `null` to opt out. It counted per instance, which made it
- *   approximate to the point of being decorative (ADR-033 P3). The real control
- *   is Cloudflare's edge-enforced Rate Limiting binding, declared in
- *   `apps/itun/wrangler.jsonc`.
- *
- * A retired host was shaping the live one's code. Deleting it is what allows
- * both of these to become plain, unconditional behaviour.
+ * They are factories over an injected `SnapshotStorage`, which is what lets
+ * the tests drive every branch without an R2 binding; `src/worker/index.ts`
+ * wires them to R2. Rate limiting is not here: it is Cloudflare's
+ * edge-enforced binding, applied by the Worker.
  */
 
 import { generateUniqueId, isValidSnapshotId } from './id'
@@ -95,11 +69,7 @@ export function makePublishHandler(storage: SnapshotStorage) {
     // The renderer's own Zod parse, so an unrenderable snapshot cannot be
     // minted — publishing one would hand its owner a share link they find out
     // is broken from whoever they sent it to.
-    //
-    // Imported directly rather than injected. It used to be a parameter with a
-    // weaker shape-only default, purely because pulling Zod into the Netlify
-    // functions broke their bundler; with those gone there is no host that
-    // cannot afford it, and so no weaker path left to pick by accident.
+
     const check = validateSnapshotPayload(payload)
     if (!check.ok) {
       return new Response(check.reason, { status: 400 })

@@ -22,7 +22,7 @@
  *      (game-data corpus + island loaded a single time) and re-renders each
  *      entity in place via `window.__ogSetEntity` — far faster and lighter than
  *      a navigation per entity, and it avoids the under-load dynamic-import
- *      failures that per-navigation rendering hit on the Netlify builder.
+ *      failures that per-navigation rendering hits.
  *   4. Fit the tile to the canvas: re-flow the card at each candidate masonry
  *      width and keep the one that covers the most of the 1200×630 frame
  *      (`pickTileWidth`). The grid tile is fluid, so every candidate is a real
@@ -34,10 +34,8 @@
  *      matted in the surface the Catalog view puts behind its tiles.
  *
  * WHY THIS IS OPT-IN (read before re-enabling it in a deploy):
- * an earlier version of this script ran on every Netlify build and rendered the
- * full entity card for ~1.5k entities. The PNG cache lived in node_modules, so a
- * cold builder re-rendered all of them and the deploy blew the build limit —
- * every srd deploy failed, and the feature was deleted (#482). It is now:
+ * run unbounded on every build, a cold cache re-renders ~1.5k entity cards and
+ * blows the build's time limit — every srd deploy fails (#482). So it is:
  *   - OFF unless OG_SCREENSHOTS=1 (so no build can regress into that failure),
  *   - bounded by OG_SCREENSHOTS_BUDGET_MS, after which it stops rendering and
  *     leaves the remaining entities on the site-wide default og:image, and
@@ -312,7 +310,7 @@ async function run() {
 
   // Serve the built site IN-PROCESS. `ssg/preview.ts` is the same server
   // `bun run preview` starts, so the URL->file mapping these screenshots are
-  // taken through is the one the e2e suite and Netlify agree on — and being
+  // taken through is the one the e2e suite uses — and being
   // in-process there is no spawn to fail, no binary to resolve and no
   // start-up race to poll for (`Bun.serve` is listening when it returns).
   // Pinned to 127.0.0.1 so it matches the base below exactly (binding

@@ -34,12 +34,6 @@ Without it, publish requests fail with a connection error and the UI's
 feature-detection treats publishing as unavailable; the rest of the app is
 unaffected.
 
-> This section previously told you to run `bunx netlify functions:serve` against
-> `netlify/functions/snapshot-publish.ts` and `snapshot-retrieve.ts` on port
-> 9999. Those files, and every other trace of Netlify, were deleted in ADR-033
-> P7 — so local snapshot publishing had been broken ever since, silently: no
-> test covers the dev proxy and no CI job runs it.
-
 ## Data durability
 
 - **IndexedDB schema**: database `itun-v1`, version pinned in

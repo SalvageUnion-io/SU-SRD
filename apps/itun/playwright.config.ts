@@ -16,10 +16,10 @@ import { defineConfig, devices } from '@playwright/test'
  * or `--project=webkit` against the same suite when investigating cross-
  * engine regressions (covers REQ-NF-15: evergreen browsers only).
  */
-// When E2E_BASE_URL is set (e.g. a Netlify Deploy Preview), run the suite
-// against that live URL — which serves the real Netlify Functions + Blobs, so
-// the snapshot publish→retrieve round-trip is exercised for real. In that mode
-// Playwright must NOT boot a local server. Unset → local dev/preview as before.
+// When E2E_BASE_URL is set (a deployed Worker, e.g. a workers.dev preview), run
+// the suite against that live URL — which serves the real snapshot API, so the
+// publish→retrieve round-trip is exercised for real. In that mode Playwright
+// must NOT boot a local server. Unset → local static preview.
 const externalBaseURL = process.env.E2E_BASE_URL
 
 export default defineConfig({
@@ -34,8 +34,8 @@ export default defineConfig({
   // the first navigation per test takes ~30-60 s on GHA Ubuntu runners.
   // 90 s gives enough headroom without masking real hangs.
   //
-  // Against an external Netlify Deploy Preview (E2E_BASE_URL) every test pays
-  // cold-load costs (preview cold start + real Functions/Blobs round-trips), so
+  // Against an external deploy (E2E_BASE_URL) every test pays cold-load costs
+  // (real network and snapshot API round-trips), so
   // widen the per-test and per-assertion budgets ONLY in that mode. The local
   // static-preview path keeps the tighter budgets so it stays fast and still
   // surfaces real hangs.
@@ -44,8 +44,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  // 2 CI workers (was 1): the suite is fullyParallel and targets a static
-  // preview / Netlify deploy that handles concurrency fine; retries: 2 stays
+  // 2 CI workers: the suite is fullyParallel and targets a static preview or
+  // a deploy that handles concurrency fine; retries: 2 stays
   // as the flake net. Halve back to 1 if flake telemetry regresses.
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',

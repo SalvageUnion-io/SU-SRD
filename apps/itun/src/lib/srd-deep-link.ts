@@ -6,7 +6,7 @@
  *   Item route: /schema/[schemaId]/item/[itemSlug]
  *   Uses slugs (never UUIDs) per CLAUDE.md data convention
  *
- * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].astro
+ * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].page.tsx
  */
 
 import { getEntitySchemas, srdEntityUrl, srdSchemaUrl } from 'salvageunion-reference'

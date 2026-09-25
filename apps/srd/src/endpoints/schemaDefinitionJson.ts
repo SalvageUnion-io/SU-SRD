@@ -1,6 +1,5 @@
 /**
- * `/schema/[schemaId].schema.json` — port of
- * `src/pages/schema/[schemaId].schema.json.ts`.
+ * `/schema/[schemaId].schema.json` — a schema's JSON Schema definition.
  *
  * Dotted pattern: emits `dist/schema/chassis.schema.json` as a FILE. See
  * `ssg/DESIGN.md`'s URL -> file table.
@@ -20,7 +19,7 @@ type Props = { definition: ReturnType<typeof getJsonSchemaDefinition> }
  * same schemas the HTML surface does. It did not: the catalog carries 27
  * schemas and only 24 get pages, so this route published
  * `/schema/actions.json` (plus catalog-categories and ability-tree-requirements)
- * for schemas with no `/schema/<id>/` listing page to belong to. `api.astro`,
+ * for schemas with no `/schema/<id>/` listing page to belong to. `api.page.tsx`,
  * the page that documents this API, filters them out — so those three were
  * undocumented endpoints — and ITUN's `hasSRDPage` guard read the unfiltered
  * catalog too, which is how "View in SRD" came to link at a 404.

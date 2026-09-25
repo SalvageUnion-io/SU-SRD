@@ -89,20 +89,15 @@
   // VITE_COMMIT_REF) is supplied by the GitHub Actions workflow, not here —
   // ADR-033 §4 keeps builds in Actions because srd's build provisions Chromium.
   //
-  // The snapshot rate limiter is deliberately NOT a module-scope counter (P3):
-  // that one counted per isolate, which made it approximate to the point of
-  // being decorative. This is Cloudflare's binding, enforced at the edge.
+  // The snapshot rate limiter is Cloudflare's binding, enforced at the edge —
+  // not a module-scope counter, which would count per isolate and be
+  // decorative. The Worker treats the binding as optional, so removing it fails
+  // nothing at runtime: `/api/snapshots` would simply accept unlimited
+  // unauthenticated POSTs into billable R2 (the 256 KB payload cap bounds bytes
+  // per request, not requests). `src/worker/__tests__/rateLimitBinding.test.ts`
+  // guards it.
   //
-  // It was absent for the whole of P4-P7 while three comments in the Worker
-  // described it as "a real control". The Worker treats the binding as
-  // optional, so nothing failed — `/api/snapshots` simply accepted unlimited
-  // unauthenticated POSTs into billable R2. The claimed fallback (the enforced
-  // 256 KB payload cap) bounds bytes PER REQUEST, not requests, so it does not
-  // bound storage amplification at all.
-  //
-  // 10 per 60s per IP, matching the Netlify limiter this replaces — that is the
-  // number the publish flow was designed around, so parity needs no new
-  // justification and a change would.
+  // 10 per 60s per IP — the number the publish flow was designed around.
   //
   // `period` accepts ONLY 10 or 60. `namespace_id` is unique per ACCOUNT, not
   // per Worker: two bindings sharing an id share their counters even across

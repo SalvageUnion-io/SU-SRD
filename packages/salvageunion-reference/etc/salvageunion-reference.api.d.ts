@@ -404,9 +404,9 @@ export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
  */
 export declare function getAssetUrl(entity: SURefMetaEntity): string | undefined;
 /**
- * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
- * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
- * the site's own canonical/OG tags — is this base plus {@link srdEntityPath},
+ * Origin of the public Salvage Union reference site (`apps/srd`). Every deep
+ * link into the SRD — from ITUN, from the Discord bot, from the site's own
+ * canonical/OG tags — is this base plus {@link srdEntityPath},
  * so the host is named once here rather than retyped per surface.
  */
 export declare const SRD_SITE_URL = "https://salvageunion.io";
@@ -18331,7 +18331,7 @@ export declare function validateRows(schemaId: string, rawData: unknown[]): unkn
  * Disables Zod v4's JIT object parser. The JIT path compiles validators with
  * `new Function`, and a `new Function("")` eval feature-detect (`allowsEval`)
  * runs at schema *construction* time. Both trip a strict `script-src`
- * Content-Security-Policy with no `unsafe-eval` (see apps/srd/netlify.toml),
+ * Content-Security-Policy with no `unsafe-eval` (see apps/srd/public/_headers),
  * surfacing as console CSP violations in the browser. The jitless interpreted
  * parser produces identical results, just slightly slower.
  *

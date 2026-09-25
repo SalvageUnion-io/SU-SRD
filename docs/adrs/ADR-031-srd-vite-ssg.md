@@ -216,6 +216,15 @@ left, and no available version fixed it.
   deploy all still look healthy — the exact silent failure
   `tools/check-observability.ts` exists to catch. Renaming the variables instead
   was rejected because the values are already configured in the Netlify UI.
+  **Amended 2026-09-25 (ADR-033 P8): the override is gone — do not re-add it.**
+  The reason for keeping it died with Netlify: the build env is now set only by
+  `deploy-cloudflare.yml`, so srd moved to Vite's default `VITE_` prefix and reads
+  `VITE_SENTRY_DSN` / `VITE_COMMIT_REF`. Re-adding `envPrefix: 'PUBLIC_'` now
+  causes the very failure it once prevented — `VITE_SENTRY_DSN` stops reaching
+  the bundle and srd's Sentry goes dark with every check green. The workflow
+  still sets the `PUBLIC_` names alongside, solely so a rollback dispatch to a
+  pre-rename commit builds with Sentry on; that shim is removed once the deploy
+  record is past the rename.
 - **The parity gate had a shelf life, and it expired.** Its baseline was an
   archived Astro build, so once that baseline was gone `ssg/parity.ts` was a
   historical record of a clean migration rather than a live gate. That is what

@@ -1,15 +1,14 @@
 /**
- * sitemap — the replacement for `@astrojs/sitemap`.
+ * sitemap — `sitemap-index.xml` + `sitemap-0.xml`.
  *
- * Three things here are copied from the Astro baseline rather than chosen, and
- * each is a silent regression if it drifts:
+ * Three things here are each a silent regression if they drift:
  *
- *   - the URL set: trailing-slashed absolute URLs, minus Astro's four-clause
- *     `filter` from `astro.config.mjs`;
+ *   - the URL set: trailing-slashed absolute URLs, minus the four-clause URL
+ *     filter;
  *   - the ORDER: `Intl.Collator('en', {numeric:true})`, which disagrees with a
- *     plain lexicographic sort on four of the baseline's 1,036 URLs;
+ *     plain lexicographic sort on four of the site's URLs;
  *   - the XML shape: one line, no indentation, and the four unused namespace
- *     declarations `sitemap.js` always writes.
+ *     declarations.
  *
  * Everything is asserted through `writeSitemap` — the module's only export —
  * because that is the whole surface `ssg/build.ts` uses.
@@ -57,10 +56,9 @@ describe('URL selection', () => {
     expect(count).toBe(3)
   })
 
-  it("applies Astro's filter — /image, /greembeem, .og.png and /og-card never appear", async () => {
-    // A verbatim port of the `filter` in astro.config.mjs. It is the safety net
-    // for a page whose registration forgets `sitemap: false`, so it has to bite
-    // on the URL alone.
+  it('applies the URL filter — /image, /greembeem, .og.png and /og-card never appear', async () => {
+    // The safety net for a page whose registration forgets `sitemap: false`, so
+    // it has to bite on the URL alone.
     const { count, urlsets } = await emit([
       '/about',
       '/greembeem',
@@ -86,7 +84,7 @@ describe('URL selection', () => {
   })
 
   it('still emits both files when every route is filtered out', async () => {
-    // An empty `sitemap-0.xml` is what Astro produced, and the index must keep
+    // An empty `sitemap-0.xml` is still emitted, and the index must keep
     // pointing at it — an absent file would 404 for every crawler that follows
     // the index.
     const { count, index, urlsets } = await emit(['/og-card'])
@@ -137,8 +135,8 @@ describe('ordering', () => {
 
 describe('XML shape', () => {
   it('reproduces the urlset preamble byte for byte, unused namespaces included', async () => {
-    // `sitemap.js` always writes news/xhtml/image/video, and nothing here uses
-    // them. They stay because the two files are compared to the baseline.
+    // news/xhtml/image/video are declared and nothing here uses them. They stay
+    // because the output snapshot holds these bytes.
     const { urlsets } = await emit(['/about'])
 
     expect(urlsets['sitemap-0.xml']).toBe(

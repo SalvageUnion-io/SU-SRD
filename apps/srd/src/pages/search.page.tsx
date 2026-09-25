@@ -1,5 +1,5 @@
 /**
- * `/search` — full search results. Port of `search.astro`.
+ * `/search` — full search results.
  *
  * `SearchResultsIsland` was `client:only="react"`, which is `client="only"` +
  * `ssr={false}` here. Per the `<Island>` contract, an `ssr={false}` island is

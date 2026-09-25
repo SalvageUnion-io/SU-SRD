@@ -1,5 +1,5 @@
 /**
- * `/bot/privacy` — Discord bot privacy policy. Port of `bot/privacy.astro`.
+ * `/bot/privacy` — Discord bot privacy policy.
  *
  * A plain static document: no islands, no data, no structured data.
  */

@@ -315,12 +315,12 @@ for rendering) + React 19 islands — see
 - `@tanstack/react-router` — routing (and the snapshot route's loader)
 - `zustand` — write-through entity/container stores (`src/stores/`)
 - `@base-ui/react` — headless UI primitives
-- `@netlify/blobs` — snapshot-sharing Netlify Functions storage
 
-Local-first: there is no auth and no backend other than the
-stateless snapshot-sharing Netlify Functions (see
-[ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)). Player data lives in
-IndexedDB.
+Server surfaces: Convex (`apps/itun/convex/`,
+[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)) for signed-in
+users, and the stateless snapshot API the itun Worker serves from R2 (see
+[ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md), amended by ADR-033).
+IndexedDB is the on-device layer.
 
 ### Tailwind Source Path
 

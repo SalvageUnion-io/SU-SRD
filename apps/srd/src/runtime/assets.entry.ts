@@ -2,9 +2,8 @@
  * assets.entry — the ONLY module in the app that imports a static asset from
  * `src/assets/`.
  *
- * Astro had `astro:assets`, which both emitted the file and handed the page its
- * hashed URL. The in-house SSG splits those two halves, because the SSR pass
- * runs under Bun and never goes through Vite:
+ * Emitting a hashed asset and handing the page its URL are two halves here,
+ * because the SSR pass runs under Bun and never goes through Vite:
  *
  *   1. **Emit** — this file. It is a client-bundle entry (see
  *      `ssg/vite.config.ts`), so importing an asset here makes Vite copy it into

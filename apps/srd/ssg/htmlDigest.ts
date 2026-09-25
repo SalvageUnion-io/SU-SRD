@@ -1,25 +1,15 @@
 /**
  * htmlDigest — tolerant, dependency-free scanning of built HTML.
  *
- * This is the analysis half of the retired `ssg/parity.ts`, recovered rather
- * than rewritten. What rotted about parity was its BASELINE (an unregenerable
- * Astro-era `dist`), not its extraction: every routine below carries a comment
- * describing a real bug that was hit and fixed while diffing 1,039 real pages,
- * and rewriting from scratch would have reintroduced them one at a time.
+ * Every routine below carries a comment describing a real bug that was hit and
+ * fixed while diffing 1,039 real pages; rewriting from scratch would
+ * reintroduce them one at a time.
  *
- * `ssg/snapshot.ts` is the consumer — the gate that replaced parity.
+ * `ssg/snapshot.ts` is the consumer.
  *
  * Deliberately parser-free: `apps/srd` has no HTML-parsing dependency and this
  * runs over ~18 MB of output, so these are hand-rolled scanners tolerant of the
  * malformed-but-legal markup browsers accept.
- *
- * NOT recovered from parity.ts, because both existed only to compare TWO
- * DIFFERENT generators and are meaningless against our own output:
- *   - `stripNonSsrIslands` / `NON_SSR_ISLANDS` — masked Astro server-rendering
- *     island markup the new SSG mounts client-side. Snapshotting our own build
- *     wants that markup captured, not hidden.
- *   - `isBundleAsset`'s Astro arms (`_astro/`), and the whole `--strict-assets`
- *     notion of a tolerated path-set difference.
  */
 
 import { createHash } from 'node:crypto'

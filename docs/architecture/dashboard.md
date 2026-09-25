@@ -371,7 +371,7 @@ non-persisted or session-scoped), never written to `entityStore`.
   **local-first** ([ADR-010] boundary: the shared library never persists —
   ownership lives in ITUN). Store them on the `workspace` record (Rules & Sources
   already live at workspace level per the design record) or a dedicated prefs
-  store; do **not** round-trip them through Netlify ([ADR-004]: snapshots are the
+  store; do **not** round-trip them through the snapshot API ([ADR-004]: snapshots are the
   _only_ server surface, immutable, read-only — Dashboard prefs are not snapshot
   data).
 - **Snapshots** ([ADR-004]) are unaffected: the Dashboard shares the _same_ entity

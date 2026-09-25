@@ -1,22 +1,18 @@
 /**
- * `/about` — the about page. Port of `about.astro`.
+ * `/about` — the about page.
  *
- * Three things carried over from the Astro original:
+ * Three build details worth knowing:
  *
- * 1. The two shared markdown files are still read from disk **at build time**.
+ * 1. The shared markdown files are read from disk **at build time**.
  *    This module only ever runs in the build (and in `ssg/dev.ts`, which is the
  *    same render path), so a `node:fs` read here costs the browser nothing.
  *    The path is resolved from `import.meta.url` rather than `process.cwd()`
  *    so it does not depend on where the build was invoked from.
- * 2. The lightbox behaviour that Astro shipped as `<script is:inline
- *    data-astro-rerun>` is now a plain inline script. `data-astro-rerun` only
- *    ever meant "run me again after a ClientRouter swap"; with real document
- *    navigations the script runs on every page load, so the attribute has no
- *    meaning and is deliberately dropped (same reasoning as `BaseLayout`'s
- *    `js`-class script).
- * 3. The Eldridge Coast map is still a build-emitted, content-hashed asset
- *    rather than an unhashed file in `public/`. `astro:assets` did that; here
- *    the emit and the address are split — `src/runtime/assets.entry.ts` makes
+ * 2. The lightbox is a plain inline script. Every navigation is a real
+ *    document load, so it runs on every page load (same reasoning as
+ *    `BaseLayout`'s `js`-class script).
+ * 3. The Eldridge Coast map is a build-emitted, content-hashed asset rather
+ *    than an unhashed file in `public/`. The emit and the address are split — `src/runtime/assets.entry.ts` makes
  *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of the
  *    build manifest. See `BuiltAssets` in `ssg/types.ts`.
  */
@@ -50,8 +46,7 @@ const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
 
 /**
- * Opens/closes the Eldridge Coast lightbox. Identical behaviour to the Astro
- * original: the map link opens the native `<dialog>`, the close button and a
+ * Opens/closes the Eldridge Coast lightbox: the map link opens the native `<dialog>`, the close button and a
  * backdrop click close it and return focus to the link.
  */
 const MAP_MODAL_SCRIPT = `
@@ -195,7 +190,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                     <p className="font-bold text-lg">#812 Haven</p>
                     <p>of</p>
                     <p className="font-bold text-lg">
-                      {/* biome-ignore lint/a11y/useValidAnchor: kept verbatim from about.astro — the lightbox script preventDefaults this href and opens the <dialog> */}
+                      {/* biome-ignore lint/a11y/useValidAnchor: the lightbox script preventDefaults this href and opens the <dialog> */}
                       <a href="#" id="map-link" className="cursor-pointer">
                         The Eldridge Coast
                       </a>
@@ -362,14 +357,11 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               &times;
             </button>
             <div className="flex flex-col items-stretch gap-4">
-              {/* Astro's `<Image>` transcoded the source PNG into three hashed
-                  webp variants under `_astro/` and emitted a srcset. Vite does
-                  not transcode, so the webp is pre-encoded once at 1800px and
-                  checked in beside the PNG; Vite still hashes and emits it, and
-                  the url comes from the build manifest (see `BuiltAssets`).
-                  One size instead of two: the image only ever appears in a
-                  full-viewport lightbox, so the 1200w variant had no viewport
-                  that selected it. */}
+              {/* Vite does not transcode images, so the webp is pre-encoded
+                  once at 1800px and checked in beside the PNG; Vite still
+                  hashes and emits it, and the url comes from the build
+                  manifest (see `BuiltAssets`). One size: the image only ever
+                  appears in a full-viewport lightbox. */}
               <img
                 src={eldridgeCoastMapUrl}
                 alt={imageAltText}

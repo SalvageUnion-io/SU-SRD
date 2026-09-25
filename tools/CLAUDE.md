@@ -40,6 +40,7 @@ the corpus size, not just the finding count.
 | `run-coverage.ts` | `test:coverage` (CI) | Runs each workspace's coverage and retries when Bun silently writes no `lcov.info`. | — |
 | `coverage-report.ts` | CI coverage job | Aggregates lcov and fails if a workspace drops more than the tolerance below its floor. Raise the floor to lock in a gain. | `coverage-baseline.json` (repo root) |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
+| `smoke-production.sh` | `deploy-cloudflare.yml` (post-deploy) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www redirects, CSP/HSTS reaching the browser, the rotated-chunk 404, artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |
 | `a11y-scan.ts` | `.github/workflows/e2e-nightly.yml` | WCAG 2.1 AA scan (Playwright + axe-core). Fails on a violation not accepted per page. | `a11y-baseline.json` |
 
 ## Local-only and one-off

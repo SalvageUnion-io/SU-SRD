@@ -5,12 +5,9 @@ import { createR2Storage, InMemoryStorage } from '../storage'
 /**
  * One contract, every implementation (ADR-033 §3).
  *
- * `SnapshotStorage` has three methods and, as of the Cloudflare cutover, three
- * implementations: `InMemoryStorage` (tests), Netlify Blobs (production today)
- * and R2 (production after the flip). The handler suite in
- * `netlify/functions/__tests__/snapshot.test.ts` runs entirely against
- * `InMemoryStorage`, which is only sound if the implementations genuinely agree
- * — otherwise the handlers are verified against a stand-in that behaves
+ * `SnapshotStorage` has three methods and two implementations: `InMemoryStorage`
+ * (tests) and R2 (production). Any handler test run against `InMemoryStorage`
+ * is only sound if the implementations genuinely agree — otherwise the handlers are verified against a stand-in that behaves
  * differently from the thing actually deployed.
  *
  * So the contract is asserted once, here, and every implementation is driven

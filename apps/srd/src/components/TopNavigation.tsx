@@ -1,5 +1,5 @@
 /**
- * TopNavigation — the SSG port of `TopNavigation.astro`.
+ * TopNavigation — the site header.
  *
  * Static brand chrome via the shared React `SiteHeader`; the interactive search
  * + mobile nav are slotted in as independently-mounted islands so the shared
@@ -37,8 +37,8 @@ export function TopNavigation({
       itunUrl={ITUN_URL}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
-      // Kept from the Astro version: cross-document view transitions
-      // (`@view-transition { navigation: auto }`) match on this name too.
+      // Cross-document view transitions (`@view-transition { navigation: auto }`)
+      // match on this name.
       viewTransitionName="nav"
       search={<Island name="SearchIsland" client="idle" />}
       mobile={

@@ -43,7 +43,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P5    | Bot on HTTP interactions                 | **reversible** | **LIVE on Cloudflare** (2026-08-19) — Discord validated the endpoint |
 | P6    | Data sync and write freeze               | **no**     | **built, not activated** — bulk sync done (45/45 verified by content); freeze code merged and OFF. Delta never run; reconciled by measurement on 2026-08-31 instead — 43/45 resolve on production, the other 2 exported to disk. See P8 |
 | P7    | Cutover                                  | **no**     | **DONE** — `intheunionnow.com` live 2026-08-19; `salvageunion.io` + `assets.salvageunion.io` live **2026-08-31 03:52:49Z**. Both zones active on Cloudflare; post-flip gate all-pass |
-| P8    | Decommission and tooling cleanup         | **no**     | **mostly done** — the repo is clean of Netlify/Render (config, functions, deps, guards, docs), and the **Render account was deleted 2026-09-01**. Only the Netlify account and its three sites remain |
+| P8    | Decommission and tooling cleanup         | **no**     | **DONE (repo) 2026-09-25** — the repo is clean of Netlify/Render (config, functions, deps, guards, probes, docs); `probe-production.yml` (since deleted) is replaced by the nightly `production-smoke` job. **Render account deleted 2026-09-01.** Deleting the three Netlify sites and the account was decided 2026-09-25 and is the operator's step |
 
 **"Built" is not "activated", and for P6 the difference is the whole point.**
 The write freeze ships as code that is **off** (`SNAPSHOT_WRITES_FROZEN` unset),
@@ -1322,14 +1322,23 @@ Only after P7 has been stable for 24 h.
 > is a worse outcome than a dead link.
 
 - ~~Delete the Render service.~~ **Done 2026-09-01 — the whole account is gone.**
-- Delete the three Netlify sites and that account. **Still outstanding.**
-- `.mcp.json`: remove `netlify` and `render`; add
+- Delete the three Netlify sites and that account. **Decided 2026-09-25: delete
+  now.** An account action for the operator; the site ids are in
+  [`agent-tooling.md`](agent-tooling.md). The repo half of this bullet is done:
+  `.github/workflows/probe-production.yml` was deleted (it probed the
+  `.netlify.app` hostnames), the dead Netlify branches in
+  `tools/check-observability.ts` and `tools/check-convex-parity.ts` were
+  removed, and the post-deploy smoke list moved to `tools/smoke-production.sh`,
+  which `e2e-nightly.yml` now also runs on a schedule.
+- ~~`.mcp.json`: remove `netlify` and `render`; add~~ **Done.**
   `https://bindings.mcp.cloudflare.com/mcp` and
   `https://observability.mcp.cloudflare.com/mcp`. Both authenticate by OAuth on
   first connect, so **`.mcp.json` stays secret-free** — #291 removed `${VAR}`
   placeholders deliberately; do not reintroduce them. Keep `convex`.
-- Add one project skill, `/cloudflare-deploy-verify`, the sibling of
-  `/convex-deploy-verify`. **One, not a suite** — the repository's bar is that a
+- **Not done, and moved out of P8:** add one project skill,
+  `/cloudflare-deploy-verify`, the sibling of `/convex-deploy-verify`. It
+  improves operating Cloudflare, not decommissioning Netlify, so it does not
+  hold the phase open. **One, not a suite** — the repository's bar is that a
   skill encodes a decision procedure or a silent failure mode, never frontmatter
   around a command, and six wrapper skills were deleted for failing that test.
   The four qualifying failure modes are P4's 200-vs-404 trap, P2's module-scope
@@ -1337,21 +1346,23 @@ Only after P7 has been stable for 24 h.
 - ~~Port or delete the LP-asset converter and `tools/upload-lp-assets.ts`.~~
   **Done** — the WebP converter was deleted when Cloudflare Images took over
   derivative rendering; `tools/upload-lp-assets.ts` survives as the R2 uploader.
-- Remove `@netlify/blobs`, then delete both `--ignore` flags from `check:audit`
-  and the CLAUDE.md section documenting them.
-- Update CLAUDE.md, `docs/README.md` and
-  [`agent-tooling.md`](agent-tooling.md) to describe Cloudflare.
+- ~~Remove `@netlify/blobs`, then delete both `--ignore` flags from `check:audit`
+  and the CLAUDE.md section documenting them.~~ **Done.**
+- ~~Update CLAUDE.md, `docs/README.md` and
+  [`agent-tooling.md`](agent-tooling.md) to describe Cloudflare.~~ **Done.**
 
 **Gate**
 
-- [ ] `bun run check` green with every `netlify.toml` removed from the tree. (`check:all`
+- [x] `bun run check` green with every `netlify.toml` removed from the tree. (`check:all`
       is a deprecated alias slated for removal — a gate that invokes a removed
       script fails for the wrong reason.)
 - [ ] `claude mcp list` shows the Cloudflare servers connected — zero tool calls
       means "broken or unused" and the two are indistinguishable from usage data
-      alone.
-- [ ] `bun audit --audit-level=high` passes with **no** `--ignore` flags.
-- [ ] No document still describes Netlify or Render as a host.
+      alone. Per-machine (both authenticate by OAuth), so it is verified on the
+      operator's machine rather than recorded here.
+- [x] `bun audit --audit-level=high` passes with **no** `--ignore` flags.
+- [x] No document still describes Netlify or Render as a host (swept
+      2026-09-25; ADRs keep their history by design).
 
 **30 days after P7:** audit skills by counted invocation — `"skill": "<name>:` in
 the session transcripts — not by intuition; a skill's own prompt injection makes

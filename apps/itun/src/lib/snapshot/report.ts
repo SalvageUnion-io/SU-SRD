@@ -3,20 +3,10 @@
  *
  * ## Why this exists
  *
- * The three snapshot handler factories are shared by two runtimes: Netlify
- * Functions (Node) today, and a Cloudflare Worker (workerd) after ADR-033. They
- * imported `captureException` from `netlify/lib/observability`, which imports
- * `@sentry/node` — and `@sentry/node` drags in OpenTelemetry,
- * `require-in-the-middle` and `node:path`, none of which bundle for workerd.
- *
- * The tempting fix is `nodejs_compat`. That is wrong twice over: it grows the
- * bundle with a Node shim the Worker does not otherwise need, and it makes the
- * *next* accidental Node-only import invisible — the build keeps passing while
- * pulling server code into an edge runtime.
- *
- * So the shared handlers name no transport. Each entrypoint installs a reporter:
- * the Netlify functions install Sentry, the Worker installs its own. Until one
- * does, reporting is a no-op, which is exactly right for tests.
+ * The snapshot handlers name no Sentry SDK, so they stay free of any runtime's
+ * SDK and testable without one. The entrypoint (`src/worker/index.ts`) installs
+ * a reporter; until one does, reporting is a no-op, which is exactly right for
+ * tests.
  *
  * This is the same shape as `apps/discord-bot/src/report.ts`, deliberately —
  * two surfaces with the same problem should not invent two solutions.
@@ -25,7 +15,7 @@
  *
  * Workers forbid async I/O, timers and randomness in global scope — not
  * assignment. Each isolate gets its own copy and installs its own reporter, so
- * there is no cross-request bleed; the same holds for a Node function instance.
+ * there is no cross-request bleed.
  */
 
 export type SnapshotReporter = (error: unknown, context?: Record<string, unknown>) => void

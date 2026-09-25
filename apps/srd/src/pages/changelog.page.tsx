@@ -1,16 +1,15 @@
 /**
- * `/changelog` — the release history. Port of `changelog.astro`.
+ * `/changelog` — the release history.
  *
  * Rendered at BUILD time: the two `CHANGELOG.md` files are read off disk with
  * `node:fs` during the SSR pass and merged via the shared `parseChangelog` /
  * `mergeChangelogs` helpers. This is never a client fetch — the markdown is not
  * shipped to the browser at all, only the rendered entries are.
  *
- * The paths are resolved from `import.meta.url`, not `process.cwd()` as the
- * Astro version did. Astro guaranteed the cwd was the app root; `bun
- * ssg/build.ts` makes no such promise (`ssg/build.ts` itself derives its app
+ * The paths are resolved from `import.meta.url`, not `process.cwd()`: `bun
+ * ssg/build.ts` makes no promise about the cwd (`ssg/build.ts` itself derives its app
  * root the same way), and a wrong cwd would fail the build with an ENOENT far
- * from its cause. The read stays exactly as build-time as it was.
+ * from its cause.
  */
 
 import { readFileSync } from 'node:fs'

@@ -2,8 +2,7 @@
  * The client-bundle Vite config for the in-house SSG.
  *
  * It lives under `ssg/` (and is passed to `build()` explicitly) rather than at
- * the app root as `vite.config.ts`, so it can never be picked up by anything
- * else while the Astro build still exists beside it.
+ * the app root as `vite.config.ts`, so no other tool picks it up implicitly.
  *
  * There is NO server build here: the SSR pass runs under Bun, straight from
  * TypeScript source. Vite only ever produces the browser assets.
@@ -40,11 +39,11 @@ export default defineConfig({
           org: process.env.SENTRY_ORG,
           project: process.env.SENTRY_PROJECT,
           authToken: sentryAuthToken,
-          // Pinned to the same PUBLIC_COMMIT_REF the client tags itself with at
+          // Pinned to the same VITE_COMMIT_REF the client tags itself with at
           // runtime (src/lib/observability.ts). Auto-detecting from git would
           // read CI's shallow clone and could silently mismatch, and a
           // mismatched release is a map that never applies.
-          release: { name: process.env.PUBLIC_COMMIT_REF, inject: false },
+          release: { name: process.env.VITE_COMMIT_REF, inject: false },
           sourcemaps: {
             // Uploaded, then removed: the maps must not ship, and they must be
             // gone before `ssg/pwa.ts` globs dist for the precache manifest.
@@ -62,36 +61,21 @@ export default defineConfig({
         })
       : false,
   ],
-  // Astro exposed `PUBLIC_`-prefixed env to the client bundle; Vite's default is
-  // `VITE_`. Without this override `import.meta.env.PUBLIC_SENTRY_DSN` inlines
-  // as `undefined`, so Sentry initialises with no DSN and silently reports
-  // nothing — while the build, the bundle and the deploy all still look
-  // healthy. That is precisely the failure mode `tools/check-observability.ts`
-  // exists to catch. Renaming the vars instead is a coordinated change to the
-  // repository variables `deploy-cloudflare.yml` reads, so the prefix moves here
-  // rather than to the variable names.
-  envPrefix: 'PUBLIC_',
-  // Carried over from the deleted astro.config.mjs, where it fixed a specific,
-  // nasty dev-only bug: the island deps live under component-lib/node_modules
+  // Fixes a dev-only bug: the island deps live under component-lib/node_modules
   // (@base-ui, sonner, lucide-react, cva, @randsum) and were only DISCOVERED
   // when an island first imported them, so Vite re-ran its dep optimizer
   // mid-navigation and answered in-flight island chunk requests with 504
   // "Outdated Optimize Dep" — cards stuck on their skeletons, with transient
   // stale-React `jsxDEV` errors.
   //
-  // It matters MORE here than it did under Astro. `ssg/dev.ts` runs Vite with
-  // `appType: 'custom'` and this app has no index.html anywhere in the root, so
-  // Vite's default scanner entry (`**/*.html`) matches nothing: without these
-  // explicit entries the optimizer starts from zero and discovers everything
-  // lazily, on the first browser request.
+  // `ssg/dev.ts` runs Vite with `appType: 'custom'` and this app has no
+  // index.html anywhere in the root, so Vite's default scanner entry
+  // (`**/*.html`) matches nothing: without these explicit entries the optimizer
+  // starts from zero and discovers everything lazily, on the first browser
+  // request.
   //
   // Dev-only — `vite build` runs Rollup with no dep optimizer, which is why
   // production was never affected and why this cannot regress the build.
-  //
-  // (astro.config.mjs also set `resolve.conditions: ['development']`. That is
-  // deliberately NOT carried over: neither workspace package declares a
-  // `development` export condition — both resolve straight to source — so it
-  // was inert. Checked, not assumed.)
   optimizeDeps: {
     include: ['salvageunion-reference'],
     entries: ['src/components/islands/**/*.{ts,tsx}'],

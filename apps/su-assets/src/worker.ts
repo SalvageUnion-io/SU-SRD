@@ -1,8 +1,7 @@
 /**
  * Serves Salvage Union entity artwork from R2 (ADR-033).
  *
- * The Cloudflare port of `netlify/functions/asset.ts`. Same URL grammar, same
- * content-type inference, same reporting policy — only the store changes:
+ * One URL grammar, mapped straight onto R2 keys:
  *
  *   https://assets.salvageunion.io/<category>/<file>  ->  R2 key <category>/<file>
  *
@@ -11,8 +10,7 @@
  *
  * ## Why the handler is a factory
  *
- * Identical reasoning to the Netlify version it replaces: injecting the bucket
- * lets the tests drive every branch without a live R2 binding, and injecting the
+ * Injecting the bucket lets the tests drive every branch without a live R2 binding, and injecting the
  * reporter lets them assert *which* outcomes are reported and which deliberately
  * are not. Both are the dependency-injection seam this repo uses instead of
  * `mock.module()`, which is process-global in Bun.
@@ -123,13 +121,9 @@ const COMMON_HEADERS: Record<string, string> = {
 }
 
 /**
- * Byte-for-byte what the Netlify site's `public/robots.txt` served. That file
- * is deleted in the same change: this Worker publishes no assets directory, so
- * it was an orphan asserting a policy nothing applied.
- *
  * This origin serves image bytes and short error strings — there is nothing here
  * a search index should hold, and the artwork is licensed. Disallowing all of it
- * is the intended posture, and was the posture until the cutover.
+ * is the intended posture.
  */
 const ROBOTS_TXT = 'User-agent: *\nDisallow: /\n'
 
@@ -161,16 +155,10 @@ export function makeAssetHandler(
     // `/robots.txt`, ahead of the extension check below — which does not know
     // `.txt` and would answer 404.
     //
-    // The Netlify site published this from `public/`. This Worker has no assets
-    // directory (its config says robots "is served from the Worker rather than
-    // smuggled in as a second mechanism"), but no branch was ever written, so
-    // after the cutover the path fell through to Cloudflare's zone-level managed
-    // robots.txt — which carries content-signal comments and NO `Disallow`
-    // directive at all. A robots.txt with no directives permits everything.
-    //
-    // That silently took this origin from "closed to every crawler" to "open",
-    // and it holds artwork licensed from Leyline Press under
-    // "do not redistribute". Restoring the original body is the whole fix.
+    // This Worker has no assets directory, so without this branch the path
+    // falls through to Cloudflare's zone-level managed robots.txt, which has NO
+    // `Disallow` directive and so permits every crawler — on an origin holding
+    // artwork licensed under "do not redistribute".
     if (pathname === '/robots.txt') {
       return new Response(ROBOTS_TXT, {
         status: 200,
@@ -187,8 +175,7 @@ export function makeAssetHandler(
     const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
 
     // Reject empty keys, path traversal, and dotfiles. R2 keys are flat strings
-    // so `..` has no traversal meaning to the store itself — but the check stays
-    // because the URL grammar is shared with the Netlify version and a request
+    // so `..` has no traversal meaning to the store itself — but a request
     // shaped like an escape attempt should never look like a hit.
     if (!key || key.includes('..') || key.startsWith('.')) {
       return plain('Not found', 404)

@@ -25,12 +25,14 @@
  *          DSN env var,
  *       2. that module's init is actually CALLED from the app entry (an
  *          uncalled init is the same as no init),
- *       3. the app's `netlify.toml` CSP `connect-src` lists the Sentry ingest
- *          origin — so the beacon can never be silently walled off again.
+ *       3. the app's `public/_headers` CSP `connect-src` lists the Sentry
+ *          ingest origin — so the beacon can never be silently walled off again,
+ *       4. each Cloudflare Worker wraps its export with `withObservability` and
+ *          grants `nodejs_als`.
  *
  *   LIVE (`--live`; runs nightly, post-deploy)
  *     The half CI structurally cannot know: whether the DSN is actually
- *     provisioned in the Netlify dashboard. Fetches production, walks every
+ *     present in the deploy environment. Fetches production, walks every
  *     script the HTML references, and asserts the SDK is really in the bytes
  *     being served. This is the check whose absence let the whole stack sit
  *     dark — it is the only one that tests the deployed truth.
@@ -55,7 +57,7 @@ import { join } from 'node:path'
  * default is `us`, and a DSN issued in one region is silently unusable under a
  * CSP written for the other — the beacon is blocked in the browser and the
  * project simply reports nothing, which looks exactly like "no errors". This
- * constant and the two netlify.toml CSPs must agree, and `checkLive` below also
+ * constant and each app's `_headers` CSP must agree, and `checkLive` below also
  * compares them against the host in the DSN actually shipped to production, so
  * a region mismatch fails loudly instead of going quiet.
  */
@@ -76,35 +78,16 @@ type BrowserApp = {
   /** Entry that must CALL the init. */
   entryPath: string
   /**
-   * Candidate files that may carry the CSP, in preference order.
-   *
-   * Two entries, because ADR-033 moves the header from `netlify.toml` to a
-   * `_headers` file served by Workers Static Assets, and the CSP must never be
-   * unasserted in between. The rule is *at least one must exist and carry a
-   * `connect-src`* — every file that DOES exist is checked, so a stale copy
-   * cannot go wrong quietly while a good one carries the pass.
-   */
-  cspSources: string[]
-  /**
    * The app's Workers config, and the `_headers` its Cloudflare deploy serves.
    *
-   * These exist because `cspSources` alone could not catch a real outage. The
-   * rule above is "at least one PRESENT source declares a policy", and a source
-   * that does not exist on disk is filtered out before it is judged — so when
-   * itun went live on Cloudflare with no `public/_headers` at all, this checker
-   * stayed green on the strength of a `netlify.toml` describing a host that had
-   * stopped answering. An absent policy was indistinguishable from a policy
-   * carried elsewhere.
-   *
-   * So the file-level rule is not enough on its own: it validates files, while
-   * the thing that can break is a *host*. When `wrangler.jsonc` declares
-   * `assets`, Cloudflare is serving this app from static assets and `_headers`
-   * is the ONLY way it gets a policy — nothing else in the Worker path adds
-   * one. That makes the file mandatory rather than merely one candidate.
+   * When `wrangler.jsonc` declares `assets`, Cloudflare serves this app from
+   * static assets and `_headers` is the ONLY way it gets a policy — nothing in
+   * the Worker path adds one. So an absent `_headers` is an outage (no CSP, no
+   * HSTS, no X-Frame-Options), not "nothing to check".
    */
   wranglerPath: string
-  /** The `_headers` a Workers Static Assets deploy reads. Must be in `cspSources`. */
-  workersHeadersPath: string
+  /** The `_headers` a Workers Static Assets deploy reads; the app's only CSP source. */
+  headersPath: string
   /** Production origin, for --live. */
   productionUrl: string
 }
@@ -112,15 +95,11 @@ type BrowserApp = {
 const BROWSER_APPS: BrowserApp[] = [
   {
     name: 'srd',
-    dsnEnvVar: 'PUBLIC_SENTRY_DSN',
+    dsnEnvVar: 'VITE_SENTRY_DSN',
     modulePath: 'apps/srd/src/lib/observability.ts',
-    // Was `src/layouts/BaseLayout.astro`, which carried the init as its own
-    // inline module script. With Astro gone there is a single client entry, so
-    // the init lives there — one place instead of one per layout.
     entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    cspSources: ['apps/srd/public/_headers'],
     wranglerPath: 'apps/srd/wrangler.jsonc',
-    workersHeadersPath: 'apps/srd/public/_headers',
+    headersPath: 'apps/srd/public/_headers',
     productionUrl: 'https://salvageunion.io',
   },
   {
@@ -128,9 +107,8 @@ const BROWSER_APPS: BrowserApp[] = [
     dsnEnvVar: 'VITE_SENTRY_DSN',
     modulePath: 'apps/itun/src/lib/observability.ts',
     entryPath: 'apps/itun/src/main.tsx',
-    cspSources: ['apps/itun/public/_headers'],
     wranglerPath: 'apps/itun/wrangler.jsonc',
-    workersHeadersPath: 'apps/itun/public/_headers',
+    headersPath: 'apps/itun/public/_headers',
     productionUrl: 'https://intheunionnow.com',
   },
 ]
@@ -146,11 +124,6 @@ function read(path: string): string | null {
   return existsSync(full) ? readFileSync(full, 'utf8') : null
 }
 
-/**
- * Pulls the `connect-src` directive out of a netlify.toml's CSP header.
- * Returns null when the file declares no CSP at all (which is itself a finding
- * for an app that ships one).
- */
 /**
  * Does this `wrangler.jsonc` declare a static-assets binding?
  *
@@ -176,19 +149,11 @@ function connectSrcOfPolicy(policy: string): string | null {
 }
 
 /**
- * Extract `connect-src` from either config dialect.
- *
- * `netlify.toml` writes the header as TOML — `Content-Security-Policy = "…"` —
- * while a Cloudflare/Netlify `_headers` file writes it as an actual header line,
- * `Content-Security-Policy: …`, indented under a path pattern. Same directive,
- * two spellings, and during the cutover both files exist at once.
- *
- * Matching on `=` or `:` in one expression rather than sniffing the filename
- * keeps this honest about what it read: a `_headers` file that someone pasted
- * TOML into still parses, and a rename cannot silently change the answer.
+ * Extract `connect-src` from a `_headers` file's `Content-Security-Policy:` line.
+ * Returns null when the file declares no CSP at all.
  */
 function connectSrcOf(contents: string): string | null {
-  const policy = contents.match(/Content-Security-Policy\s*[=:]\s*"?([^"\n]*)"?/)?.[1]
+  const policy = contents.match(/Content-Security-Policy\s*:\s*([^\n]*)/)?.[1]
   return policy === undefined ? null : connectSrcOfPolicy(policy)
 }
 
@@ -226,72 +191,42 @@ function checkStatic(app: BrowserApp): void {
     fail(app.name, `${app.entryPath} never calls initBrowserObservability()`)
   }
 
-  // Before the file-level rule: if Cloudflare serves this app from static
-  // assets, `_headers` is the only thing that can carry a policy there, so it
-  // is mandatory rather than one candidate among several.
-  //
-  // This is deliberately a "config present, property missing → fail" rule, the
-  // same shape the other ADR-033 guards already use. It is what the `present`
-  // filter below structurally cannot express: that filter drops a non-existent
-  // source before judging it, so "no file" reads as "not my business" instead
-  // of as the outage it was.
+  // If Cloudflare serves this app from static assets, `_headers` is the only
+  // thing that can carry a policy there, so its absence is an outage.
   const wrangler = read(app.wranglerPath)
-  if (wrangler !== null && declaresStaticAssets(wrangler)) {
-    if (read(app.workersHeadersPath) === null) {
+  const headers = read(app.headersPath)
+  if (headers === null) {
+    if (wrangler !== null && declaresStaticAssets(wrangler)) {
       fail(
         app.name,
         `${app.wranglerPath} declares "assets", so Cloudflare serves this app from ` +
-          `static assets — but ${app.workersHeadersPath} does not exist. The Worker ` +
-          `adds no headers of its own, so the deployed site would ship no CSP, no ` +
-          `HSTS and no X-Frame-Options, however complete netlify.toml looks.`
+          `static assets — but ${app.headersPath} does not exist. The Worker adds no ` +
+          `headers of its own, so the deployed site would ship no CSP, no HSTS and no ` +
+          `X-Frame-Options.`
       )
-      return
+    } else {
+      fail(app.name, `no CSP source found at ${app.headersPath} — the Sentry beacon is unguarded`)
     }
+    return
   }
 
   // The CSP half — the one that would have made a provisioned DSN look
   // healthy while silently dropping every event.
-  const present = app.cspSources.filter((path) => read(path) !== null)
-
-  if (present.length === 0) {
+  const connectSrc = connectSrcOf(headers)
+  if (connectSrc === null) {
     fail(
       app.name,
-      `no CSP source found — looked for ${app.cspSources.join(' and ')}. One of ` +
-        `them must carry the Content-Security-Policy, or the beacon is unguarded.`
+      `${app.headersPath} declares no Content-Security-Policy connect-src — the ` +
+        `Sentry beacon is unguarded`
     )
     return
   }
-
-  // Two separate rules, and conflating them was wrong: a `_headers` file may
-  // exist for reasons that have nothing to do with the CSP (srd's carries CORS
-  // for the JSON endpoints and nothing else), so "present" does not mean "must
-  // declare a policy".
-  //
-  //   - AT LEAST ONE source must declare a CSP `connect-src`.
-  //   - EVERY source that declares one must permit the Sentry origin — so a
-  //     correct file cannot paper over a stale sibling whose CSP has drifted,
-  //     whichever one the live site actually serves.
-  const declaring = present
-    .map((path) => ({ path, connectSrc: connectSrcOf(read(path) ?? '') }))
-    .filter((s): s is { path: string; connectSrc: string } => s.connectSrc !== null)
-
-  if (declaring.length === 0) {
+  if (!connectSrc.includes(SENTRY_INGEST_HOST)) {
     fail(
       app.name,
-      `none of ${present.join(', ')} declares a Content-Security-Policy ` +
-        `connect-src — the Sentry beacon is unguarded`
+      `${app.headersPath}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
+        `events would be blocked in the browser.\n      got: ${connectSrc}`
     )
-    return
-  }
-
-  for (const { path, connectSrc } of declaring) {
-    if (!connectSrc.includes(SENTRY_INGEST_HOST)) {
-      fail(
-        app.name,
-        `${path}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
-          `events would be blocked in the browser.\n      got: ${connectSrc}`
-      )
-    }
   }
 }
 
@@ -449,8 +384,8 @@ async function checkLive(app: BrowserApp): Promise<void> {
   let html: string
   // The CSP as ACTUALLY SERVED. Checking the repo's own constant here would be
   // circular — the whole point of a live probe is to test the deployed truth,
-  // and a CSP can lag a merge, be overridden in the Netlify UI, or come from a
-  // _headers file this repo never sees.
+  // and a CSP can lag a merge or be overridden by a zone-level Transform Rule
+  // this repo never sees.
   let servedCsp: string | null = null
   // Announced BEFORE the first network call, so a stall names the app it stalled
   // on. Previously the whole job could be killed having printed nothing.
@@ -518,8 +453,8 @@ async function checkLive(app: BrowserApp): Promise<void> {
     fail(
       app.name,
       `No Sentry DSN inlined in any of the ${chunks.size} chunk(s) reachable from ${app.productionUrl}.\n` +
-        `      ${app.dsnEnvVar} is almost certainly unset on the Netlify site (or was set after\n` +
-        `      the last successful build), so the SDK was tree-shaken out. Error tracking is\n` +
+        `      ${app.dsnEnvVar} is almost certainly unset in the deploy build environment (or was\n` +
+        `      set after the last successful build), so the SDK was tree-shaken out. Error tracking is\n` +
         `      DARK in production.`
     )
     return
@@ -573,100 +508,14 @@ async function checkLive(app: BrowserApp): Promise<void> {
 }
 
 /**
- * The SERVER surfaces, which fail a different way than the browser ones.
- *
- * Each of these owns a shim that configures `observability/node`, and each must
- * import `@sentry/node` ITSELF and pass it in — the shared package takes the SDK
- * as a parameter and imports it for types only. That is not a style rule, it is
- * a deploy constraint, so it gets a check rather than a comment.
- *
- * Netlify's bundler cannot inline `@sentry/node` (dynamic requires under its
- * OpenTelemetry layer), so it externalises the package and copies it beside the
- * file the import RESOLVED FROM. With the import in `packages/observability`,
- * the copy landed in `packages/observability/node_modules/` while the bundled
- * function was emitted at `apps/itun/netlify/functions/*.mjs` — and Node
- * resolves from the emitted file upward, never reaching `packages/`. Every
- * snapshot Function then died at module load:
- *
- *     Cannot find package '@sentry/node' imported from
- *     /var/task/apps/itun/netlify/functions/snapshot-publish.mjs
- *
- * Publish, retrieve and delete all 502'd — sharing entirely down — from a
- * one-line package.json edit. Typecheck, tests, lint and knip were all green,
- * because every one of them resolves modules the way the REPO is laid out, not
- * the way the deployed artifact is. Nothing but a deploy could see it.
- *
- * So: the import must live in the app, and the app must declare the dependency.
- * A missing declaration is the same outage by a different route — it is what
- * removes the `node_modules` entry the bundler copies from.
- */
-type ServerSurface = {
-  name: string
-  /** The shim that calls `createObservability`, relative to repo root. */
-  modulePath: string
-  /** The manifest that must declare `@sentry/node`. */
-  manifestPath: string
-  /**
-   * True when Netlify's Functions bundler (zip-it-and-ship-it) builds this
-   * surface, which constrains HOW it may import the shared package. See
-   * `checkServerSurface`. The Discord bot is bundled by `bun build` and is
-   * unaffected.
-   */
-  netlifyBundled: boolean
-}
-
-/**
- * EMPTY, and retired rather than merely unpopulated.
- *
- * This list held exactly one surface: the Discord bot's `src/observability.ts`,
- * the shim for the dormant Node gateway. That gateway is deleted — the bot has
- * served from a Cloudflare Worker since 2026-08-19 (ADR-033 P5) and the Worker
- * reports through `observability/cloudflare`, which `WORKER_SURFACES` covers.
- *
- * The rule this enforced is worth recording even though nothing is subject to
- * it now, because the incident behind it was expensive: a server surface had to
- * import `@sentry/node` ITSELF and pass it in, because Netlify's Functions
- * bundler externalised the package and copied it beside the file the import
- * RESOLVED FROM. With the import in `packages/observability`, the copy landed in
- * `packages/observability/node_modules/` while the function was emitted under
- * `apps/itun/netlify/functions/` — and Node resolves upward from the emitted
- * file, never reaching `packages/`. Every snapshot Function died at module load,
- * sharing entirely down, from a one-line package.json edit that typecheck,
- * tests, lint and knip all passed.
- *
- * Both halves of that are now gone: the Netlify Functions with ADR-033 P7, and
- * `observability/node` with the gateway. The list and `checkServerSurface` are
- * kept armed and empty on purpose — if a Node surface is ever added back, add a
- * row here rather than rediscovering the constraint from a 502.
- */
-const SERVER_SURFACES: ServerSurface[] = []
-
-/**
- * `checkFunctionDirs` lived here and is RETIRED, not ported.
- *
- * It enforced that nothing sat in a Netlify functions directory unless it was a
- * function — a rule with a real incident behind it: `_observability.ts` was
- * deployed as a public endpoint on two sites, answering
- * `Runtime.HandlerNotFound` because a leading underscore was believed to
- * exclude it.
- *
- * ADR-033 predicted this retirement and its reason: a Worker declares ONE entry
- * point, so "every file in a directory is a public endpoint" is not a failure
- * class that can occur any more. The directories it watched are deleted.
- */
-
-/**
  * The Cloudflare Workers surfaces.
  *
  * These are the three that actually serve production after ADR-033, and until
  * they were wired NONE of them reported to Sentry — each installed a bare
  * `console.error`, which lands in Workers Logs, which nothing alerts on.
  *
- * That gap survived because this checker had no notion of a Worker: it gated the
- * two BROWSER apps' CSP and two Netlify function directories, so it stayed green
- * across the entire cutover while every surface serving traffic went dark. The
- * lesson is the one this repo keeps relearning — a guard that does not know
- * about a surface cannot fail for it.
+ * A guard that does not know about a surface cannot fail for it — which is why
+ * every production Worker is listed here.
  *
  * Two things are asserted per Worker, and both are needed:
  *
@@ -746,81 +595,12 @@ function checkWorkerSurface(surface: WorkerSurface): void {
   }
 }
 
-const SHARED_WIRING_BY_PATH = /from '(\.\.\/)+packages\/observability\/src\/node'/
-const SHARED_WIRING_BY_NAME = /from 'observability\/node'/
-
-/** A VALUE import of the SDK — `import type` is erased and would not resolve. */
-const SDK_VALUE_IMPORT = /^\s*import \* as Sentry from '@sentry\/node'$/m
-
-function checkServerSurface(surface: ServerSurface): void {
-  const module = read(surface.modulePath)
-  if (module === null) {
-    fail(surface.name, `no observability module at ${surface.modulePath}`)
-    return
-  }
-
-  if (!SDK_VALUE_IMPORT.test(module)) {
-    fail(
-      surface.name,
-      `${surface.modulePath} does not value-import the SDK.\n` +
-        `      Expected: import * as Sentry from '@sentry/node'\n` +
-        '      The shared package takes it as a parameter on purpose; importing it there\n' +
-        '      instead makes the deployed Netlify Function unable to resolve it (502 at\n' +
-        '      module load). See the header of packages/observability/src/node.ts.'
-    )
-  }
-
-  const manifest = read(surface.manifestPath)
-  if (manifest === null) {
-    fail(surface.name, `no manifest at ${surface.manifestPath}`)
-    return
-  }
-
-  if (surface.netlifyBundled && SHARED_WIRING_BY_NAME.test(module)) {
-    fail(
-      surface.name,
-      `${surface.modulePath} imports the shared wiring by package name.\n` +
-        "      Netlify's Functions bundler then emits it as a shared chunk that COLLIDES\n" +
-        "      with the function's own output filename, and the zip ships two files at\n" +
-        '      one path — the handler loses, and every endpoint 502s with\n' +
-        '      "D.handler is not a function". Import the source by relative path:\n' +
-        "      import { createObservability } from '../../../../packages/observability/src/node'"
-    )
-  } else if (surface.netlifyBundled && !SHARED_WIRING_BY_PATH.test(module)) {
-    fail(
-      surface.name,
-      `${surface.modulePath} does not import the shared wiring from\n` +
-        '      packages/observability/src/node by relative path. See the header there.'
-    )
-  }
-
-  const { dependencies } = JSON.parse(manifest) as { dependencies?: Record<string, string> }
-  if (!dependencies?.['@sentry/node']) {
-    fail(
-      surface.name,
-      `${surface.manifestPath} does not list @sentry/node in "dependencies".\n` +
-        "      It is what puts the package under this app's node_modules, which is where\n" +
-        '      the bundler copies it from. devDependencies is not enough: the Netlify\n' +
-        '      build sets NODE_ENV=production, so it must not depend on dev installs.'
-    )
-  }
-}
-
-/**
- * `checkSharedPackage` lived here and is RETIRED with its subject.
- *
- * It asserted that `packages/observability/src/node.ts` imported the SDK for
- * TYPES only — the exact edit that once took production down, asserted from
- * both ends. That file is deleted along with the Node gateway that was its only
- * consumer, so there is no longer a shared server module to constrain.
- */
-
 const live = process.argv.includes('--live')
 
 console.log(
   live
     ? 'Probing production for the Sentry SDK…'
-    : 'Checking observability wiring (module → entry → CSP, and the server surfaces)…'
+    : 'Checking observability wiring (module → entry → CSP, and the Workers)…'
 )
 
 for (const app of BROWSER_APPS) {
@@ -830,7 +610,6 @@ for (const app of BROWSER_APPS) {
 
 // Static-only: this is repo layout, and the live probe reads deployed bytes.
 if (!live) {
-  for (const surface of SERVER_SURFACES) checkServerSurface(surface)
   for (const surface of WORKER_SURFACES) checkWorkerSurface(surface)
 }
 

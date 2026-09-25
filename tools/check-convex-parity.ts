@@ -4,7 +4,7 @@
  * backend are deployed by two different mechanisms and can silently diverge.
  *
  * ITUN ships one artifact from two halves. The client is a static bundle
- * Netlify builds and publishes; the backend is schema + functions that
+ * `deploy-cloudflare.yml` builds and publishes with wrangler; the backend is schema + functions that
  * `convex deploy` pushes to a Convex deployment. Both come from the same
  * commit, but only by convention — nothing structurally ties them, and when
  * they came apart nothing noticed:
@@ -18,7 +18,7 @@
  *   saved. 39 failures in one evening.
  *
  * What made it invisible is worth stating plainly, because it is the thing
- * this tool exists to change: **nothing failed.** Netlify was green, the site
+ * this tool exists to change: **nothing failed.** The build was green, the site
  * served the current commit, and the only trace was a Convex deployment log
  * stream nobody tails. A green build is not evidence that the backend moved.
  *
@@ -26,8 +26,9 @@
  *
  *   STATIC (default; runs in `validate:all`, so every PR)
  *     Cheap, hermetic, no network, no credentials. Asserts the one thing the
- *     repo can own by itself: that `apps/itun/netlify.toml` still refuses a
- *     production build with no `CONVEX_DEPLOY_KEY`. That guard is what turns
+ *     repo can own by itself: that `.github/workflows/deploy-cloudflare.yml`
+ *     still runs `convex deploy` and refuses a production deploy with no
+ *     `CONVEX_DEPLOY_KEY`. That guard is what turns
  *     the original failure from silent into fatal, and a guard nothing checks
  *     is a guard that gets deleted in a cleanup six months from now.
  *
@@ -57,13 +58,7 @@ import { join } from 'node:path'
 const REPO_ROOT = join(import.meta.dir, '..')
 const CONVEX_DIR = join(REPO_ROOT, 'apps/itun/convex')
 
-/**
- * Where the same guard lives once the build moves into GitHub Actions
- * (ADR-033 §4). Named here BEFORE that workflow exists, deliberately: the
- * property this tool protects must not have a window in which nothing asserts
- * it, so the path is fixed in advance and the workflow has to satisfy it rather
- * than this check being retrofitted afterwards.
- */
+/** The workflow that deploys ITUN, and so must carry the Convex deploy guard. */
 const CF_DEPLOY_WORKFLOW = join(REPO_ROOT, '.github/workflows/deploy-cloudflare.yml')
 
 /**
@@ -79,7 +74,7 @@ function fail(message: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// Static: the netlify.toml guard is still there
+// Static: the deploy workflow's Convex guard is still there
 // ---------------------------------------------------------------------------
 
 /**
@@ -93,11 +88,6 @@ function fail(message: string): void {
  * it is in, and an absent key in production is fatal.
  */
 function checkStatic(): void {
-  // The Netlify half of this check is gone. ADR-033 P7 completed with no
-  // rollback, `apps/itun/netlify.toml` does not exist, and the `existsSync`
-  // gate meant its ~30 lines were permanently unreachable — dead code that
-  // still read as an active guard, and that knip cannot see because
-  // `tools/**/*.ts` is configured as an entry.
   if (!existsSync(CF_DEPLOY_WORKFLOW)) {
     fail(
       `.github/workflows/deploy-cloudflare.yml is missing, so nothing carries the\n` +
@@ -146,11 +136,11 @@ function stepBlock(yaml: string, name: string): string | null {
 }
 
 /**
- * The GitHub Actions form of the same three properties.
+ * The guard's properties, asserted on the deploy workflow.
  *
- * Asserted on properties rather than an exact step, for the reason the Netlify
- * version documents at length: a workflow will be edited again, and a brittle
- * equality trains people to update the expectation without reading it.
+ * Asserted on properties rather than an exact step: a workflow will be edited
+ * again, and a brittle equality trains people to update the expectation without
+ * reading it.
  */
 function checkWorkflowBuildGuard(): void {
   // Comments are stripped BEFORE any of these checks, and that is not tidiness.
