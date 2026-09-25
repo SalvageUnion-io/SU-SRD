@@ -290,7 +290,7 @@ read-only rather than forking against the server of record.
 ## Cross-References
 
 - [accounts-and-games.md](accounts-and-games.md) — ADR-030 delivery phases + the Convex/Netlify/Discord operational reference
-- `.claude/rules/tanstack-query-hooks.md` — which domain a given read/write belongs to
+- `.claude/rules/itun-data-access.md` — which domain a given read/write belongs to
 - [ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md) — IndexedDB / `idb` / Zod-as-schema persistence
 - [ADR-003](../adrs/ADR-003-zustand-hydration.md) — Zustand store hydration + write-through
 - [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md) — Snapshot backend rationale

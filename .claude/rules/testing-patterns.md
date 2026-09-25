@@ -165,8 +165,9 @@ against a live clock. Both populations now use the same factories, and
 **Package test:**
 
 ```typescript
-test('model finds item by id', () => {
-  const item = SalvageUnionReference.Chassis.find((x) => x.id === 'test-id')
+test('model finds item by slug', () => {
+  // Indexed lookup — never `.find((x) => x.id === …)` (see the package's CLAUDE.md).
+  const item = SalvageUnionReference.Chassis.getBySlug('mule')
   expect(item).toBeDefined()
 })
 ```
@@ -175,12 +176,9 @@ test('model finds item by id', () => {
 
 ```typescript
 test('renders pilot name', () => {
-  const queryClient = new QueryClient()
-  render(
-    <QueryClientProvider client={queryClient}>
-      <PilotComponent id="test-id" />
-    </QueryClientProvider>
-  )
+  // No provider wrapper: player data comes from the Zustand store, and the
+  // preloads already set up happy-dom, cleanup and the reference dataset.
+  render(<PilotComponent pilot={pilotFixture({ id: 'p1', name: 'Pilot Name' })} />)
   expect(screen.getByText('Pilot Name')).toBeInTheDocument()
 })
 ```

@@ -66,9 +66,9 @@ apps/srd/
    is what enforces this rule.
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
    may import from `ssg/` at runtime.
-3. **Relative imports only** (repo rule — never `@/` aliases).
-4. **`type` over `interface`**; `import type` for type-only imports; no `any`.
-5. Output paths must match Astro's exactly (see "URL -> file" below).
+3. Code style (relative imports, `import type`, no `any`, …) is Biome's —
+   `biome.jsonc` is the authority, not this list.
+4. Output paths must match Astro's exactly (see "URL -> file" below).
    `ssg/__tests__/outputPath.test.ts` is the judge, not your reading of the code.
 
 ## types.ts — the contract

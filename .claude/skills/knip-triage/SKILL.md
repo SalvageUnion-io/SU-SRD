@@ -40,13 +40,16 @@ _entry_ files are reported too — which is exactly where a workspace-internal
 package's whole public API lives. Without it, knip stays green while an entire
 export surface rots.
 
-Four workspaces opt out per-workspace with `includeEntryExports: false`, because
-their entry file legitimately **is** the public surface:
+Two workspaces opt out per-workspace with `includeEntryExports: false`, because
+their entry files are framework contracts nothing imports:
 
-- `packages/component-lib` — the barrel is the library API
 - `apps/srd` — `*.page.tsx` route + endpoint modules, consumed by `ssg/routes.ts`
   and `ssg/endpoints.ts`
 - `apps/su-assets` — platform handlers
+
+`packages/component-lib` deliberately opts **in**: its barrel is the library's
+public API, so an unused re-export there is exactly the rot this setting exists
+to catch.
 
 If a flagged export is in one of those, check whether it is genuinely reachable
 before assuming the config is wrong.

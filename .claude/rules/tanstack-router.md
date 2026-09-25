@@ -1,65 +1,25 @@
 ---
 paths:
-  - 'apps/*/src/routes/**'
+  - 'apps/itun/src/routes/**'
 ---
 
-# TanStack Router
+# TanStack Router (ITUN)
 
-TanStack Router patterns for file-based routing.
-
-## File-Based Routing
-
-- Routes are file-based in `src/routes/` with default exports for route components
-- Route tree is auto-generated to `routeTree.gen.ts` (don't edit)
-- Use `createRoute()` or `createFileRoute()` from `@tanstack/react-router`
-
-## Route Definition
-
-- Define `beforeLoad` for data prefetching
-- Use `loader` for route-level data fetching
-- Use `component` for the route component
-
-## Navigation
-
-- Use `useNavigate()` hook for programmatic navigation
-- Use `Link` component from `@tanstack/react-router` for links
-
-## Query Parameters
-
-Use `useSearch()` for query params (with `strict: false` for optional params):
-
-```typescript
-const search = useSearch({ strict: false })
-const pattern = (search as { pattern?: string }).pattern
-```
-
-## Data Loading Strategy
-
-ITUN is local-first (no server). Use route `loader`/`beforeLoad` for
-load-time preparation and guards, and read persistent entity data from the
-Zustand stores in components (not via fetch). Reserve TanStack Query for genuinely
-async work like snapshot retrieval (see `.claude/rules/tanstack-query-hooks.md`).
-
-- Use `beforeLoad` for route guards / load-time setup, not network fetches
-- Read persistent data from `entityStore`/`workspaceStore` in components
-- Pass any prefetched/derived data via route context
-
-## Route Context
-
-Access route context via `useRouteContext()`:
-
-```typescript
-const { pilotId } = useRouteContext({ from: '/pilots/$id' })
-```
-
-## Import Conventions
-
-Always use relative imports:
-
-```typescript
-// Correct
-import('../../../components/PilotWizard')
-
-// Never
-import('@/components/PilotWizard')
-```
+- File-based routes in `apps/itun/src/routes/`; `src/routeTree.gen.ts` is
+  generated — never hand-edit it.
+- A route module exports **`Route = createFileRoute('/path')({ … })`** and
+  names its component as a local function (`component: NewPilotRoute`). No
+  route uses a default export; don't start.
+- `validateSearch` parses search params into a typed shape, read with
+  `Route.useSearch()` — not `useSearch({ strict: false })` plus a cast.
+- `beforeLoad` for guards and redirects (`throw redirect({ … })`), `loader`
+  for load-time preparation such as `SalvageUnionReference.preload([...])` or
+  snapshot retrieval. Neither reads player entities: those come from the
+  stores in the component (see `itun-data-access.md`).
+- Crash handling is global. Reporting happens once, in the `createRoot` hooks
+  `main.tsx` installs (`reactRootErrorHandlers` in `src/lib/observability.ts`),
+  which React calls for every error any boundary catches. The error components
+  (`RouteErrorComponent` as the router's `defaultErrorComponent`, and
+  `RootErrorComponent`, in `src/components/shared/RouteErrors.tsx`) only
+  render. A per-route `errorComponent` must likewise only render — never call
+  `captureException` from one, or every crash is reported twice.

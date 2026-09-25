@@ -191,7 +191,7 @@ remains the Mediator's hidden instances (§1).
 
 ## 5. Phases
 
-Each phase is one PR, stacked (see `.claude/rules/stacked-prs.md`; at three or
+Each phase is one PR, stacked (see the `/stacked-pr` skill, `.claude/skills/stacked-pr/`; at three or
 more layers, use `gh stack`).
 
 | # | Phase | Contents | Gate |

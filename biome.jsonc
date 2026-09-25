@@ -175,9 +175,9 @@
         "noAssignInExpressions": "warn"
       },
       "style": {
-        // `.claude/rules/typescript-style.md`: "Prefer `type` over `interface`
-        // for object types (unless extending)". That convention was asserted in
-        // prose and enforced by nothing, so it held only where a reviewer
+        // House rule: "Prefer `type` over `interface` for object types (unless
+        // extending)". That convention was once asserted in a rules doc and
+        // enforced by nothing, so it held only where a reviewer
         // happened to look. Note the explicit `style: "type"` option — Biome's
         // DEFAULT for this rule is the opposite direction ("interface"), which
         // would flag ~613 correct `type X = { … }` declarations instead.
@@ -189,13 +189,13 @@
           "level": "error",
           "options": { "style": "type" }
         },
-        // `.claude/rules/typescript-style.md`: "Import types with `import type`
-        // syntax". Same story as the rule above — asserted in prose, enforced
-        // by nothing, so BOTH shapes survived: 225 files use a separate
+        // House rule: "Import types with `import type` syntax". Same story as
+        // the rule above — asserted in prose, enforced by nothing, so BOTH
+        // shapes survived: 225 files use a separate
         // `import type { … }` statement alongside a value import from the same
         // specifier, while ~100 sites inline `{ type X, Y }`. Neither is wrong;
         // having both for the same job is. `separatedType` is the majority
-        // form and the one the rules doc's wording implies.
+        // form and the one the old rules doc's wording implied.
         "useImportType": {
           "level": "error",
           "options": { "style": "separatedType" }

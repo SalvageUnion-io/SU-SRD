@@ -30,6 +30,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { assertScanFloor } from './lib/scanFloor'
+import { tailwindUtilitiesIn } from './lib/tailwindClasses'
 import { assertCoversWorkspaces } from './lib/workspaceCoverage'
 
 const ROOT = join(import.meta.dir, '..')
@@ -407,6 +408,63 @@ function scanUnboundComponents(): Violation[] {
   return out
 }
 
+// ── Rules 5 + 6: the #802 migration ratchets ──────────────────────────────────
+//
+// The repo runs four styling systems at once — Tailwind utilities, the `.su-*`
+// package stylesheet, `theme.css`, and the Dashboard's `.pc-*` scope — and the
+// plan (docs/design-system/tailwind-removal.md) ends at one: `tokens.ts` plus
+// `index.css`. Until the last phase lands, these two rules make the count of
+// the retiring systems a number that can only go DOWN. They are the whole
+// enforcement story for "new code does not add to the migration": neither
+// system errors when it grows, so without a ratchet the backlog would refill as
+// fast as the phases drain it.
+
+/**
+ * UI source a Tailwind class could live in. Tests are excluded because they
+ * assert on class names rather than style with them; stories are INCLUDED,
+ * because a Ladle group is only migrated when none of its files carries a
+ * Tailwind class (the plan's per-group exit criterion).
+ */
+const UI_SOURCE_DIRS = ['packages/component-lib/src', 'apps/itun/src', 'apps/srd/src'] as const
+const uiSourceFiles = UI_SOURCE_DIRS.flatMap((d) => walk(join(ROOT, d), ['.tsx', '.ts'])).filter(
+  (f) => !/\.test\.tsx?$/.test(f) && !/[\\/]__tests__[\\/]/.test(f)
+)
+assertScanFloor('styling ownership (UI source)', uiSourceFiles.length, 500)
+
+function scanTailwindFiles(): Violation[] {
+  const out: Violation[] = []
+  for (const file of uiSourceFiles) {
+    const found = tailwindUtilitiesIn(read(file))
+    if (found.length === 0) continue
+    out.push({
+      file: rel(file),
+      line: 1,
+      detail: `${found.length} Tailwind utilit${found.length === 1 ? 'y' : 'ies'} (e.g. ${found.slice(0, 3).join(' ')})`,
+    })
+  }
+  return out
+}
+
+/** One violation per distinct `.pc-*` class the Dashboard stylesheets DEFINE. */
+function scanPcDefinitions(): Violation[] {
+  const seen = new Set<string>()
+  const out: Violation[] = []
+  for (const file of PC_CSS_FILES) {
+    const relPath = rel(file)
+    stripCssComments(read(file))
+      .split('\n')
+      .forEach((line, i) => {
+        for (const m of line.matchAll(/\.(pc-[a-z0-9-]+)/g)) {
+          const name = m[1] as string
+          if (seen.has(name)) continue
+          seen.add(name)
+          out.push({ file: relPath, line: i + 1, detail: `.${name}` })
+        }
+      })
+  }
+  return out
+}
+
 // ── rule table ────────────────────────────────────────────────────────────────
 
 /**
@@ -519,6 +577,18 @@ const RULES: Rule[] = [
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, and it must not outrank Tailwind while both are live (#799, epic #802)',
     fix: "Each app entry stylesheet must (a) import 'component-lib/styles/index.css' and (b) import it into a cascade layer declared BEFORE Tailwind's `utilities` — the shape is `@layer theme, base, su-base, components, utilities;` at the top and `@import 'component-lib/styles/index.css' layer(su-base);` beside the theme.css import.",
     scan: scanPackageStylesheetImport,
+  },
+  {
+    id: 'tailwind-utility-file',
+    rule: 'tailwind-removal plan §ratchet — the number of UI source files carrying a Tailwind utility only goes down (#802)',
+    fix: 'Style the new or edited code with the split rule instead: a style object from `tokens.ts` for static properties, a `.su-*` class in component-lib/src/styles/index.css for anything stateful or responsive. See docs/design-system/tailwind-removal.md. If you REMOVED Tailwind from a file, lower the baseline with --update-baseline.',
+    scan: scanTailwindFiles,
+  },
+  {
+    id: 'pc-class-defined',
+    rule: 'tailwind-removal plan §ratchet — the Dashboard `.pc-*` scope only shrinks (#802, phase 5)',
+    fix: 'Do not add a `.pc-*` class. Dashboard styling that needs a new rule goes into a `.su-*` class in component-lib/src/styles/index.css (phase 5 folds the `.pc-*` scope into it). If you removed one, lower the baseline with --update-baseline.',
+    scan: scanPcDefinitions,
   },
 ]
 

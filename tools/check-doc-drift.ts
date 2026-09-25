@@ -23,8 +23,8 @@
  *      salvageunion-reference must deep-equal the package's actual
  *      `package.json#exports` map.
  *   2. Every `lib/generated/*.generated.ts` file path referenced in
- *      docs/architecture/package-contracts.md, the package's own CLAUDE.md,
- *      and .claude/rules/package-development.md must exist on disk — catches
+ *      docs/architecture/package-contracts.md and the package's own CLAUDE.md
+ *      must exist on disk — catches
  *      the registry-codegen docs drifting from the actual generated-file
  *      layout (e.g. a generated file getting renamed/split/removed without
  *      the docs following).
@@ -351,7 +351,6 @@ export function checkGeneratedFileReferences(root: string): CheckResult {
   const docsToScan = [
     'docs/architecture/package-contracts.md',
     'packages/salvageunion-reference/CLAUDE.md',
-    '.claude/rules/package-development.md',
   ]
 
   const pattern = /lib\/generated\/[A-Za-z0-9_-]+\.generated\.ts/g

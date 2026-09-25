@@ -263,7 +263,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 
 **Location:** `apps/srd/`
 **Framework:** in-house SSG at `apps/srd/ssg` (Vite 8 for the client bundle, React 19
-for rendering) + React 19 islands. **Not Astro** — see
+for rendering) + React 19 islands — see
 [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
 
 ### Build surface

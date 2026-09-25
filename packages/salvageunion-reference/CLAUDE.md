@@ -7,31 +7,33 @@ goes through `lib/zod.ts` for CSP-safe (jitless) parsing
 ([ADR-013](../../docs/adrs/ADR-013-csp-zod-jitless.md)). Pure rules math lives
 here too ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)).
 
-## Build & JSON Schema Generation
+**Data first.** When encoding any game data, model it here first — Zod schema,
+JSON data, resolution logic — before building UI or consumers elsewhere. This
+package is the single source of truth for game data.
 
-Building the package regenerates JSON Schema files from Zod schemas (the package ships TypeScript source — no compile step):
+## Build & generated files
 
-```bash
-bun run build:package   # from repo root
-```
+The package ships TypeScript source — there is no compile step.
+`bun run build:package` (from the repo root) regenerates everything generated,
+in order: `generate:registry` (`tools/generateRegistry.ts`), then
+`generate:json-schemas` (which imports the generated `zodSchemaMap`, so the
+registry must come first), then the docs and API-report generators. CI
+(`check:schemas`) fails on drift.
 
-This runs `generate:json-schemas` (which converts Zod schemas in `lib/schemas/` to JSON Schema files in `schemas/`).
+**Generated — never hand-edit** (`.claude/hooks/protect-generated-files.sh`
+blocks it):
 
-### Auto-Generated Files (DO NOT EDIT)
+- `schemas/*.schema.json` and the `schemas/index.json` catalog entries
+- `lib/generated/modelFactoryRegistry.generated.ts` and
+  `lib/generated/schemaRegistry.generated.ts`, from the manifest in
+  `lib/schemas/registry.ts`
+- the static-accessor block inside `lib/index.ts` between
+  `// GENERATED:BEGIN` / `// GENERATED:END` (the rest of the file is
+  hand-written)
 
-- `schemas/*.schema.json` - Generated from Zod schemas via `tools/generateJsonSchemas.ts`
-
-To change JSON Schema output, edit the Zod schemas in `lib/schemas/` and rebuild.
-
-### Manually Editable Files
-
-All TypeScript source in `lib/` is hand-written and safe to edit directly:
-
-- `lib/schemas/` - Zod schema definitions (entities, enums, objects, common)
-- `lib/index.ts` - Main entry point and model definitions
-- `lib/types/index.ts` - Type re-exports for backward compatibility
-- `lib/BaseModel.ts`, `lib/ModelFactory.ts` - ORM infrastructure
-- `lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`, `lib/contentBlockHelpers.ts`
+Everything else in `lib/` is hand-written: `lib/schemas/` (Zod), `lib/index.ts`,
+`lib/BaseModel.ts`, `lib/ModelFactory.ts`, `lib/LazyModel.ts`, `lib/naming.ts`,
+`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`, `lib/types/index.ts`.
 
 ### Two re-export barrels — edit the module, not the barrel
 
@@ -74,11 +76,11 @@ wearing a predicate's clothes — use `resolveRef(SomeModel, ref)`.
 
 ## Package Structure
 
-- `lib/` - TypeScript source (all hand-written)
-- `lib/schemas/` - Zod schema definitions
+- `lib/` - TypeScript source (hand-written except `lib/generated/`)
+- `lib/schemas/` - Zod schemas, plus `registry.ts`, the manifest that drives codegen
 - `data/` - JSON data files
-- `schemas/` - JSON Schema files (generated from Zod schemas)
-- `tools/` - Validation and generation scripts
+- `schemas/` - JSON Schema files (generated)
+- `tools/` - validation and generation scripts
 
 ## Model Access Pattern
 
@@ -100,12 +102,8 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding New Data
 
-1. Add JSON file to `data/`
-2. Add Zod schema to `lib/schemas/entities.ts`
-3. Add schema to the map in `tools/generateJsonSchemas.ts`
-4. Add model to `lib/index.ts`
-5. Run `bun run build:package` to regenerate JSON schemas
-6. Run `bun test` to verify
+**Rows in an existing schema need no code:** edit the JSON file in `data/`, then
+`bun run validate:all`. A **new schema** is the next section.
 
 ## Adding a New Entity **Type** (schema)
 
@@ -113,14 +111,11 @@ Adding a whole new schema (not just rows in an existing file) needs two
 hand-authored pieces — the Zod schema itself and the SURefEntity/SURefMetaEntity
 type-union edits — plus **one** manifest entry in `lib/schemas/registry.ts`.
 
-The `schemas/index.json` catalog entry used to be a third hand-authored piece.
-It is now **generated**: `tools/generateDocs.ts` derives `itemCount`,
-`requiredFields`, `title` and `displayName` from the data file and the JSON
-Schema, and `build:package` runs it. Write the prose in the Zod schema's
-`.describe()` — it flows Zod → `schemas/<id>.schema.json` → `schemas/index.json`.
-Only the `meta` flag is carried over from the existing entry. (Hand-maintaining
-it had left 5 of 27 `itemCount`s and 25 of 27 `requiredFields` lists wrong, and
-`apps/srd`'s public API page renders those counts.)
+The `schemas/index.json` catalog entry is **generated** by
+`tools/generateDocs.ts` (`itemCount`, `requiredFields`, `title`,
+`displayName`). Write the prose in the Zod schema's `.describe()` — it flows
+Zod → `schemas/<id>.schema.json` → `schemas/index.json`. Only the `meta` flag is
+carried over from the existing entry.
 
 Everything else (ModelFactory's
 `dataLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
@@ -135,17 +130,13 @@ the 3 manual steps plus the manifest entry, derived from the live registry —
 it does not edit files, it tells you precisely what to add and where:
 
 ```bash
-bun run scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
-# e.g. bun run scaffold:entity power-cores "Power Core" "Power Cores"
+bun --filter salvageunion-reference scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
+# e.g. … scaffold:entity power-cores "Power Core" "Power Cores"
 ```
 
 See the header of `tools/scaffold-entity.ts` for full usage.
 
-The generated files (`lib/generated/*.generated.ts`, and the marker-injected
-static-accessor block inside `lib/index.ts` between the
-`// GENERATED:BEGIN` / `// GENERATED:END` comments) are committed,
-human-reviewable, and covered by the same `bun run build:package` drift check
-as `schemas/*.schema.json` — never hand-edit them. `LazyModel` is generated
+`LazyModel` is generated
 into the class body (not a runtime base class / mixin) specifically so every
 static property stays a true _own_ property of `SalvageUnionReference`, which
 `lib/index.test.ts` depends on via `Object.getOwnPropertyNames`.
@@ -155,7 +146,8 @@ generated registry still covers the same schema-id key set — it isn't
 weakened by this generator, it's a second, structurally-different check on
 the generator's output.
 
-## Validation
+## Testing & validation
 
-- `bun run validate:all` - Check IDs, cross-references, action references
-- `bun run validate:ids` - Unique ID check only
+- `bun --filter salvageunion-reference test` — schema compliance and data integrity
+- `bun run validate:all` — IDs, cross-references, action references
+- `bun run validate:ids` — unique-ID check only

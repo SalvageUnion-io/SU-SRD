@@ -4,7 +4,7 @@ SEO applies to `srd` (the static reference site). Accessibility patterns are sha
 
 ## SEO (srd)
 
-> **`srd` is built by an in-house SSG, not Astro.** Everything below describes
+> Everything below describes
 > `apps/srd/ssg` (`build.ts` / `dev.ts` / `render.tsx`), route modules at
 > `src/pages/**/*.page.tsx`, and endpoint modules at `src/endpoints/*.ts`. The
 > contract is [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
