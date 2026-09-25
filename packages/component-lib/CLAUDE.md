@@ -7,285 +7,39 @@ Shared React component library consumed by both `srd` and `itun`.
 - **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/adrs/ADR-011-component-lib-source-no-build.md))
 - **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md))
 - Vite in consuming apps handles `.ts/.tsx` compilation
-- Uses Tailwind + `cn()` utility for styling — **being removed** in favour of tokens + style objects + one stylesheet (see [Styling](#styling) below, and epic #802)
+- Styling: tokens + style objects + one stylesheet, with Tailwind being removed — see [Styling](#styling)
 
 ## Styling
 
-Tailwind is on its way out of this repo (#802). The pattern replacing it is three
-files, and every component migrated from here on lands on them:
+Tailwind is being removed (#802). **The plan, the phases and every piece of
+evidence behind the rules below live in
+[`docs/design-system/tailwind-removal.md`](../../docs/design-system/tailwind-removal.md)**
+— read it before migrating a component. What an editor of this package needs:
 
-| File | Role |
-| --- | --- |
-| [`src/design/tokens.ts`](src/design/tokens.ts) | The typed token scale — colour, space, font size, weight, tracking, radius, border width. Plain `as const` objects, no dependency. |
-| [`src/styles/index.css`](src/styles/index.css) | The base stylesheet every web consumer loads (ITUN also loads `dashboard.css`, the Dashboard-only `.pc-*` rules, from its dashboard route). Emits the scale as `--su-*` custom properties, binds the page ground and body face, and carries every rule a style object cannot express. |
-
-Both halves of the pattern are load-bearing. The token scale is the visible half;
-the stylesheet is the half that is easy to miss, and
-dropping it would be a functional regression rather than a styling change.
-
-### The split rule
-
-**The split is per-PROPERTY, not per-component.** Decide it one CSS property at
-a time, never one component at a time:
-
-- **Style object** — a property with **no** stateful or responsive variant
-  anywhere on that element: padding, border-radius, font, most layout.
-- **Stylesheet class** — a property that has **any** stateful or conditional
-  variant (`:hover`, `:focus`, `:focus-visible`, `:disabled`, `@media`,
-  pseudo-elements, sibling/child selectors) — **including its resting value.**
-- A component routinely uses both, splitting down the middle of its own style:
-  a Button's `padding` is an object, its `background-color` a class, because
-  only the second one changes on hover.
-
-#### Why the resting value has to come along
-
-Not a preference — a cascade fact, and the reason is what stops someone
-"simplifying" this back. **An inline `style=` declaration outranks any author
-stylesheet rule regardless of selector specificity or state**, because it sits
-higher in the cascade origin order. `:hover` cannot beat it and no amount of
-selector weight fixes that. So splitting one property across the two mechanisms
-is not merely inelegant, it is **silently broken**: the resting value wins
-forever, the stateful one never fires, nothing errors, and the only symptom is a
-hover that does nothing.
-
-Measured on a real page rather than argued from specificity — two identical
-elements, one hovered at a time:
-
-| resting `background-color` | computed value while hovered |
-| --- | --- |
-| inline `style=` | `rgb(0, 128, 0)` — the hover **did not apply** |
-| in the class | `rgb(255, 0, 0)` — the hover applied |
-
-Specificity intuition is exactly where this goes wrong, which is why the check is
-a measurement and not an argument.
-
-#### The capability half
-
-The other half of the rule is a plain capability boundary: an inline `style={}`
-object has no way to express a single item on the stateful list. Measured across
-the three UI workspaces, the codebase depends on ~403 Tailwind variant usages —
-215 responsive (`sm:`/`md:`/`lg:`/`xl:`), 120 `hover:`, 15 `focus-visible:`, 12
-`disabled:`, 9 `focus:`, 5 structural. A migration to style objects alone would
-silently drop every one of them.
-
-#### Consequence: the stylesheet is bigger than it looks
-
-Because a stateful property brings its resting value with it, `src/styles/index.css`
-carries considerably more than "the bits an object cannot express". Within
-component-lib alone there are ~127 stateful usages (81 `hover:`, 14 `disabled:`,
-12 `focus:`, 11 `active:`, 9 `focus-visible:`), and each one drags its resting
-`background-color` / `border-color` / `color` into the stylesheet with it. That
-growth is the rule working, not scope creep.
-
-#### `src/design/styles.ts` was removed, and #813 is why it is worth knowing
-
-L1 (#798) shipped a `styles.ts` of 21 `CSSProperties` objects ahead of any
-consumer. It never acquired one: measured before deletion, 20 had no consumer
-anywhere and the 21st (`buttonBase`) was reached only by two of the other twenty.
-It has been deleted rather than carried into L2 (#799).
-
-This section previously read "nothing consumes the two objects yet, so they are
-left in place rather than churned", and that sentence was cited as the governing
-decision — so it is replaced rather than dropped, to avoid a reader finding the
-old wording and reinstating the file.
-
-The defect it recorded is the reason deleting beat keeping. `buttonPrimary` /
-`buttonSecondary` put `backgroundColor` inline, and `index.css` paired them with
-`.su-button:hover { filter: brightness(0.94) }`. That renders only because
-`filter` is a **different property** from `background-color`, so it sidesteps
-the collision above instead of resolving it, and it does not generalise: the
-real `Button` swaps to a NAMED colour per variant (`hover:bg-ink-8`,
-`hover:bg-rust-hi`, `hover:border-rust-hi`), which a brightness filter re-tones
-rather than ports.
-
-**The rule that outlives the file:** a button's colours belong in a
-`.su-btn--*` class, resting value included. When L2 migrates a component,
-introduce the style object it needs alongside that component — do not restore a
-speculative set designed before its call sites were understood.
-
-### The one exemption: class-string exports are stylesheet-only
-
-The split rule governs **components** — things this library renders. A handful of
-exports are not components but **class strings**, and for those there is no
-element for a style object to attach to, so *all* of their styling lives in
-`src/styles/index.css`. Geometry and type included, not just the stateful half.
-
-The members, and anything built on them:
-
-| export | shape |
-| --- | --- |
-| `buttonVariants` | `(opts) => string` — the `.btn` recipe |
-| `capsLabel` | `(opts) => string` — the condensed-caps label recipe |
-| `FOCUS_RING`, `FOCUS_RING_ON_TONE`, `FOCUS_WITHIN`, `INPUT_FOCUS` | the focus vocabulary |
-| `DISABLED` | the disabled treatment |
-| `SELECTION_RING`, `SELECTION_RING_INK_DOUBLE` | the selection rings |
-
-This is the rule's **boundary, not an escape from it.** These exports exist
-precisely so a consuming app can style an element the library never renders —
-`buttonVariants`' own doc comment puts it as *"a design system the consuming apps
-cannot import is one they will re-invent"*, and both apps use it on `<a>`
-elements. A function that returns a string cannot return a style object without
-changing its signature, and its signature is public API. So they were always
-going to be stylesheet-only the moment Tailwind left: a class name is the only
-thing they can carry.
-
-Two consequences to hold onto:
-
-- **The `.su-*` names are public API.** Apps compose them with `cn()`, so they
-  end up in app-side code and cannot be churned cheaply. Name a new one
-  deliberately the first time.
-- **Do not let the exemption leak.** A component this library *renders* still
-  follows the per-property split, even when it is convenient to move everything
-  into a class. The exemption is for exports whose contract is literally a class
-  string — nothing else.
-
-(The pattern is ported from `binfinite-app`, whose component library has zero
-`:hover` and zero `@media` because it is React-Native-first and RN has neither —
-so its style objects were never asked to carry interaction or viewport state.
-Here they would be, and they cannot. That is the one thing that must not be lost
-in translation, and it is why the stylesheet is not optional.)
-
-### Checking a focus style: `.focus()` will lie to you
-
-**`:focus-visible` does not match programmatic focus.** Calling `el.focus()` — or
-`.focus()` from a devtools console, or `userEvent`/`fireEvent.focus` in a test —
-moves focus without satisfying the browser's keyboard heuristic, so
-`:focus-visible` stays unmatched and `getComputedStyle(el).boxShadow` reports
-`none`. Every focus ring in this package is on `:focus-visible` (that is the
-point — a button shows its ring to the keyboard, not to the mouse), so **a
-working ring reads as a missing one** under that check.
-
-That is the dangerous direction: it makes a correct feature look broken, which
-invites someone to "fix" it until it really is. Verified on the real thing —
-`el.focus()` gave `boxShadow: none` on a Button whose ring was fine, while a real
-**Tab** press gave `matchesFocusVisible: true` and a computed `boxShadow`.
-
-(That measurement was originally recorded against the ring's old value,
-`rgba(168, 82, 34, 0.25) 0 0 0 3px`. The ring has since changed — see
-`--focus-ring-shadow` — so the *value* is not restated here: a literal in this
-doc is a second copy that goes stale the next time the ring moves, and the point
-of the section is the `:focus-visible` trap, which is unaffected.)
-
-So to check a focus style: send a real key press (a browser driver's Tab key), or
-assert `el.matches(':focus-visible')` alongside the computed value, so a false
-negative is distinguishable from a real one.
-
-#### The worse half: the two rungs disagree under the same check
-
-**Only the `:focus-visible` rungs are affected. The `:focus` rungs respond to
-`.focus()` perfectly well.**
-
-| rung | selector | responds to `el.focus()`? |
-| --- | --- | --- |
-| `.su-focus-ring` | `:focus-visible` | **no** |
-| `.su-focus-ring-on-tone` | `:focus-visible` | **no** |
-| `.su-button` | `:focus-visible` | **no** |
-| `.su-input-focus` | `:focus` | yes |
-| `.su-input` | `:focus` | yes |
-| `.su-focus-within` | `:focus-within` | yes |
-
-That split is worse than the original trap, and it is the reason this is a
-section rather than a footnote. Spot-check a handful of components with
-`.focus()` and the results are *internally inconsistent*: inputs light up,
-buttons do not. The natural reading is "the focus treatment is applied
-unevenly — some components got it, some were missed", and someone then goes
-looking for the components that were "missed". Every one of them is correct;
-the check is the variable.
-
-The failure mode is not "I could not verify this". It is **"I verified it and
-concluded something false"**, which is the one that produces work. If two focus
-rungs ever appear to disagree, confirm the selector each one uses before
-concluding anything about the components.
-
-### Checking cascade layers: assert on the DECLARATION, never on block position
-
-**Layer order is set by the first `@layer` declaration, not by where the blocks
-land in the file.** So checking a cascade by finding the `@layer name { … }`
-blocks and comparing their byte offsets measures the wrong thing — and it does
-not fail honestly, because it is right in one environment and wrong in another.
-
-Measured both ways on this repo's own wiring, which imports the package
-stylesheet into `su-base` (see `apps/*/src/**.css`):
-
-| | block order | actual cascade |
-| --- | --- | --- |
-| production build | `base` → `su-base` → `utilities` | correct |
-| Vite dev | `base` → `utilities` → … → `su-base` | **also correct** |
-
-Dev emits `su-base`'s block ~86 KB after the utilities block, so an
-offset-comparing script reports the cascade inverted. It is not: both outputs
-carry `@layer theme, base, su-base, components, utilities;` ahead of Tailwind's
-own declaration, and that line decides. Confirmed by injecting an
-`<h2 class="text-2xl">` into the running dev app and reading **24px** rather than
-the inherited 14px — Tailwind's utility still outranks the `su-base` heading
-reset, exactly as in the build.
-
-So verify a layer question one of two ways, and never by block position:
-
-- **the declaration** — find the bare `@layer a, b, c;` and read the order off
-  it. This is what `check:styling`'s `package-stylesheet-import` rule asserts.
-- **a computed value** — render the real thing and read
-  `getComputedStyle(el)`, which cannot be fooled by emission order at all.
-
-The reason this one is worth writing down: the offset method was *decisive* on
-the production bundle and *false* in dev, which makes it far harder to distrust
-than a method that is simply wrong. A scratch tool that agrees with you once
-earns credibility it has not got.
-
-### Migration status (#799, epic #802)
-
-Migrating by Ladle group, one PR per group: **Foundations ✅ → Atoms → Containers
-→ Compositions.** A group is done when no file in it carries a Tailwind class.
-
-### While both systems are live
-
-`src/styles/theme.css` is still the source of record and Tailwind still works
-untouched: the token scale is a re-shaping of the values already in that file,
-not a re-design. The `--su-*` namespace exists so the two can coexist in one
-build until Tailwind is dropped.
-
-**`src/styles/ladle.css` must import `index.css` into `layer(su-base)`, and this
-is load-bearing.** `index.css` is written to be loaded alone once Tailwind
-leaves, so its base block is unlayered — and unlayered CSS beats layered CSS
-whatever the source order, while Tailwind v4 puts its utilities in
-`@layer utilities`. A plain `@import` therefore inverts the cascade for every
-rule the two share: measured on the real build, `h1,…,h6 { font-size: inherit }`
-landed past the end of the utilities layer and outranked every `text-*` utility,
-collapsing the type on every heading in the catalog. Ladle is the only surface
-with this problem, because it is the only one that renders both systems at once;
-an app imports `index.css` directly, unlayered, as designed.
-
-**Two rungs the token scale was missing, and ~17 more it still is.** `ink15` /
-`ink10` were added because `border-ink/15` and `border-ink/10` are in live use
-and had nowhere exact to land. That is not a one-off: Tailwind's `/NN` opacity
-modifier is an OPEN mechanism and `tokens.ts` is a CLOSED set. **34 alpha usages
-across 17 non-story files still have no matching rung**, in 17 distinct
-spellings — `ink/5`, `ink/35`, `ink/55`, `ink/60`, `ink/70`, `paper/10`,
-`paper/15`, `paper/40`, `paper/55`, `paper/70`, `paper/80`, `paper/85`,
-`paper/95`, `rust/25`, `caution/25`, `status-bad/25`, `wk-faint/80`. Rounding one
-to a neighbouring rung is a re-tone, and a raw `rgb(… / .NN)` at the call site is
-a `check:tokens` `raw-color` violation, so adding rungs is the only legal move —
-but which rungs the system should own enlarges the closed colour set and is a
-design call, not a port. Tracked on #799.
-
-**The Atoms layer is blocked on four of them**: `paper/70` (Stat), `ink/55` +
-`ink/70` (VitalGauge), `status-bad/25` (InlineEditField).
-Containers needs seven more, Compositions the rest.
-
-`rust/25` (Toggle) was the fifth and is **no longer a blocker**: Toggle's focus
-ring was a 25% wash measuring 1.42:1 against a required 3:1, so it moved to the
-offset ring alongside every other rung and the alpha usage went with it. The
-`rust25` rung still exists — `RosterSkeleton`'s ghost fill is a genuine wash —
-but no *focus* treatment depends on an alpha rung any more.
-
-**A catalog-only rule goes in `src/stories/_stories.css`, not `index.css`.** The
-split rule sends anything stateful or responsive to a stylesheet class, but
-`index.css` is the base stylesheet every *consumer* loads — story-page layout ships in
-no app. The underscore is the same story-scaffolding marker as `_harness.tsx`.
-
-The scale therefore exists twice — once as TypeScript, once as custom properties
-— because neither form can serve the other's job. `src/design/tokens.parity.test.ts`
-fails if they disagree, so **edit both or neither**.
+- **Target pattern:** [`src/design/tokens.ts`](src/design/tokens.ts) (typed
+  scale) + [`src/styles/index.css`](src/styles/index.css) (the one stylesheet
+  every consumer loads; `--su-*` properties and `.su-*` classes). ITUN also
+  loads `styles/dashboard.css` (the Dashboard `.pc-*` rules) from its dashboard
+  route; nothing else may.
+- **The split is per-PROPERTY.** A property with no stateful or responsive
+  variant on that element → style object. A property with **any** (`:hover`,
+  `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)
+  → a `.su-*` class, **resting value included** — an inline `style=` beats every
+  stylesheet rule, so a split property's hover silently never fires.
+- **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
+  `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
+  `.su-*` names are public API. The exemption does not extend to components.
+- **Edit `tokens.ts` and the `--su-*` properties together** —
+  `src/design/tokens.parity.test.ts` fails if they disagree.
+- **Do not add Tailwind or `.pc-*` classes.** `bun run check:styling` ratchets
+  both counts downward (`tailwind-utility-file`, `pc-class-defined`); if you
+  removed some, lower the baseline with `--update-baseline` in the same PR.
+- `src/styles/ladle.css` must import `index.css` into `layer(su-base)` — load-
+  bearing while both systems are live. Catalog-only CSS goes in
+  `src/stories/_stories.css`, not `index.css`.
+- **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a
+  real key press. Checking layer order by block position lies: read the
+  `@layer` declaration. Details in the plan, §6.
 
 ## Contents
 
@@ -345,6 +99,5 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
 ## Conventions
 
 - Named exports only (via `src/index.ts` barrel)
-- Use `cn()` for conditional Tailwind class merging — on surfaces still on Tailwind. New and migrated styling follows the [split rule](#the-split-rule) instead.
+- New and migrated styling follows the split rule in [Styling](#styling); `cn()` remains only on surfaces still on Tailwind.
 - Keep components data-source agnostic
-- Use `type` over `interface` for props

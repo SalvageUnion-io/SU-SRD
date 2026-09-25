@@ -36,7 +36,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm changing where player data lives, or anything offline/PWA** → [adrs/ADR-034-account-required-persistence.md](adrs/ADR-034-account-required-persistence.md) (**the decisions** — persistence requires an account, Convex is the only source of truth, IndexedDB is a cache) + [adrs/ADR-035-no-isolated-local-only-data.md](adrs/ADR-035-no-isolated-local-only-data.md) (**read both** — ADR-035 closes the migration window ADR-034 left open, and withdraws its terminal-decline consequence) + [architecture/persistence-and-pwa.md](architecture/persistence-and-pwa.md) (**the executable plan** — phase order, gates, progress, and the inventory of what is not DB-backed yet). Accepted and **delivered**: `persistence-and-pwa.md` marks P0–P8, P4b and the flip all done, and `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`. The one-way doors are behind us — anonymous writes go to the in-memory backend and do not survive a reload, and a browser holding a pre-account roster is **migrated** into the account rather than left reading it. Never add a store that exists only on a device.
 
-**I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract** — srd is built by an in-house SSG, **not Astro**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with `bun --filter srd gate` — `ssg/snapshot.ts` diffs the built output against a committed snapshot and is the acceptance gate, not your reading of the diff. If the change is intentional, `bun --filter srd snapshot:update` and commit the snapshot alongside it.
+**I'm touching how the SRD site is built, routed, or rendered** → [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md) (**the contract**) + [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md). Verify with the `/srd-gate` skill (`bun --filter srd gate`).
 
 ## Directory Map
 
@@ -46,6 +46,7 @@ conventions, then the relevant architecture doc below.
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                                               |
 | [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                                            |
+| [tailwind-removal.md](design-system/tailwind-removal.md)                         | **Funded plan (#802)** — the phased removal of Tailwind and the Dashboard `.pc-*` scope, its ratchets, and the styling rules (split rule, cascade/focus verification traps) every phase applies                    |
 | [style-unification-pass.md](design-system/style-unification-pass.md)             | **Completed — historical record.** The pass as it ran: the layer ladder, per-primitive rules, the Ladle conversion procedure, the migration work-list. Not a work-list; §2's governing laws are the part still live |
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
@@ -178,7 +179,7 @@ Read the matching ADR before proposing alternatives.
 Each app and shared package has its own `CLAUDE.md` with stack-specific
 conventions:
 
-- [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (in-house SSG at `apps/srd/ssg` + React islands; **not Astro**)
+- [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (in-house SSG at `apps/srd/ssg` + React islands)
 - [`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md) — Character builder + game manager (React; Solo on IndexedDB, Connected on Convex)
 - [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
