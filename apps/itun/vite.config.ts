@@ -64,6 +64,12 @@ export default defineConfig({
       includeAssets: ['favicon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // `validateData-*.js` (Zod's entity schemas) exists only for
+        // `preload(…, { validate: true })`, which the app never calls — see
+        // salvageunion-reference's ModelFactory (audit PK-04). Keep it out of
+        // the install. The first entry restates workbox's own default, which
+        // setting `globIgnores` replaces; workbox already skips `swDest`.
+        globIgnores: ['**/node_modules/**/*', '**/validateData-*.js'],
       },
       manifest: {
         name: 'ITUN — In The Union Now',

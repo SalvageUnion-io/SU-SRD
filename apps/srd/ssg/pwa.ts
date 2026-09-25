@@ -83,6 +83,12 @@ export async function writeServiceWorker(distDir: string): Promise<void> {
     // The app shell — island JS incl. the per-schema data chunks, css, fonts,
     // icons. Deliberately NOT html or images.
     globPatterns: ['**/*.{js,css,woff2,svg}'],
+    // `validateData-*.js` is Zod plus every entity schema (~100 KB), emitted
+    // only because `preload()` can dynamic-import it for `{ validate: true }`.
+    // Nothing in srd asks for that (audit PK-04), so precaching it would make
+    // every PWA install download code no page runs. The first entry restates
+    // workbox's own default, which setting `globIgnores` replaces.
+    globIgnores: ['**/node_modules/**/*', '**/validateData-*.js'],
     navigateFallback: null,
     runtimeCaching: [
       {

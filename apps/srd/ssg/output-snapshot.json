@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "counts": {"files":2051,"html":1039,"digested":905,"presenceOnly":107},
+  "counts": {"files":2052,"html":1039,"digested":905,"presenceOnly":108},
   "appendOnly": ["changelog/index.html"],
   "files": [
     "404.html",
@@ -99,6 +99,7 @@
     "assets/traits-[hash].js",
     "assets/useGameData-[hash].js",
     "assets/useSearchIndex-[hash].js",
+    "assets/validateData-[hash].js",
     "assets/vehicles-[hash].js",
     "bot/privacy/index.html",
     "bot/terms/index.html",
@@ -2058,7 +2059,7 @@
   "html": {
     "404.html": {"title":"404 - Page Not Found - Salvage Union System Reference Document","description":"The page you are looking for could not be found.","canonical":"https://salvageunion.io/404/","robots":"noindex, nofollow","social":"b00dffd626d2754c","jsonLd":[],"main":"5b49c90631bd1e9e","mainChars":240},
     "about/index.html": {"title":"About - Salvage Union System Reference Document","description":"About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press. Community-built reference tool.","canonical":"https://salvageunion.io/about/","robots":null,"social":"09d0388a8c9d28ef","jsonLd":["AboutPage"],"main":"73b5293aca132326","mainChars":2703},
-    "api/index.html": {"title":"API Reference - Salvage Union System Reference Document","description":"Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.","canonical":"https://salvageunion.io/api/","robots":null,"social":"13362a06cf46ff69","jsonLd":["TechArticle"],"main":"84588b98ee50842a","mainChars":4142},
+    "api/index.html": {"title":"API Reference - Salvage Union System Reference Document","description":"Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.","canonical":"https://salvageunion.io/api/","robots":null,"social":"13362a06cf46ff69","jsonLd":["TechArticle"],"main":"b2275b10c4494cfb","mainChars":4142},
     "bot/privacy/index.html": {"title":"Discord Bot Privacy Policy - Salvage Union SRD","description":"Privacy Policy for the Salvage Union Discord bot. The Bot is stateless and stores no personal data.","canonical":"https://salvageunion.io/bot/privacy/","robots":null,"social":"9ba014c5704d5752","jsonLd":[],"main":"51ed95071225978f","mainChars":1302},
     "bot/terms/index.html": {"title":"Discord Bot Terms of Service - Salvage Union SRD","description":"Terms of Service for the Salvage Union Discord bot — an unofficial, community reference tool for the Salvage Union TTRPG.","canonical":"https://salvageunion.io/bot/terms/","robots":null,"social":"9c22fe23842c2259","jsonLd":[],"main":"0d64a3ee25eb34ea","mainChars":1103},
     "changelog/index.html": {"title":"Changelog - Salvage Union System Reference Document","description":"Major changes to salvageunion.io and its companion tools over time.","canonical":"https://salvageunion.io/changelog/","robots":null,"social":"014a7ce6c0bb204a","jsonLd":["WebPage","BreadcrumbList"],"main":"dd6aa2f17b95009d","mainChars":29314},
