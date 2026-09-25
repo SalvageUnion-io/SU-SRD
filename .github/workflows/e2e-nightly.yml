@@ -1,8 +1,7 @@
 name: E2E (nightly)
 
 # Browser end-to-end suites run here on a daily schedule against `main`, NOT as
-# per-PR gates. They are slow and (for the Netlify deploy-preview variant)
-# flaky against cold previews, so gating every PR on them stalled merges. This
+# per-PR gates. They are slow, so gating every PR on them stalled merges. This
 # job keeps full e2e coverage — it just runs it once a day against the merged
 # main branch instead. They do not block PR merges.
 #
@@ -14,6 +13,10 @@ name: E2E (nightly)
 # The `a11y-srd` job also lives here (rather than in ci.yml) because this
 # workflow already builds and serves hermetic static bundles for Playwright, so
 # the scan gets its server for free. It is ADVISORY — see the job's own notes.
+#
+# `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
+# (tools/smoke-production.sh) against the live hostnames, so drift between
+# deploys opens the same tracking issue.
 #
 # Trigger manually any time via the "Run workflow" button (workflow_dispatch).
 
@@ -339,8 +342,6 @@ jobs:
       # Same static-preview approach as e2e-srd's Playwright webServer: the SSG
       # build (`ssg/build.ts` directly, not the `og:generate` script, which
       # chains the slow OG-screenshot pass) served by `ssg/preview.ts` on 4321.
-      # Was `bunx --bun astro build` / `astro preview`; srd no longer installs
-      # Astro, so those commands would fail outright rather than degrade.
       - name: Build srd static bundle
         working-directory: apps/srd
         run: bun ssg/build.ts
@@ -424,7 +425,7 @@ jobs:
   # ---------------------------------------------------------------------------
   observability-probe:
     # The one observability check CI structurally CANNOT do on a PR: whether the
-    # Sentry DSN is actually provisioned on the Netlify sites. The repo can only
+    # Sentry DSN actually reached the production builds. The repo can only
     # prove the wiring (tools/check-observability.ts, run in `validate:all` on
     # every PR); whether the deploy env carries the DSN is invisible until you
     # look at what production actually serves. This fetches both sites and
@@ -467,8 +468,8 @@ jobs:
 
   convex-parity:
     # The other thing CI structurally cannot do on a PR: know what is actually
-    # deployed. ITUN ships from two mechanisms — Netlify publishes the client,
-    # `convex deploy` pushes the backend — and only convention ties them to the
+    # deployed. ITUN ships from two mechanisms — wrangler publishes the client,
+    # `convex deploy` pushes the backend — and only the deploy job ties them to the
     # same commit. When they came apart, nothing was red: the site served the
     # current commit and the backend was four days stale, so the published
     # bundle called `entities:upsertSoftLink` against a deployment that had no
@@ -476,8 +477,8 @@ jobs:
     # writes died on the pre-#705 `byAppId`, and the UI rendered all of it as
     # saved. The only trace was a Convex log stream nobody tails.
     #
-    # The static half of this check (the netlify.toml guard that now makes an
-    # absent CONVEX_DEPLOY_KEY fatal in production) runs on every PR via
+    # The static half of this check (the deploy-cloudflare.yml guard that makes
+    # an absent CONVEX_DEPLOY_KEY fatal in production) runs on every PR via
     # `validate:all`. This is the half that needs the deployment itself.
     #
     # Gated on the CONVEX_PARITY_PROBE repo variable for the same reason
@@ -505,6 +506,22 @@ jobs:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
         run: bun run validate:convex-parity:live
 
+  production-smoke:
+    # The post-deploy smoke list from deploy-cloudflare.yml, re-run daily. A
+    # deploy only proves production answered at the moment it shipped; a DNS
+    # record, a Redirect Rule or a rotated bot token can break it between
+    # deploys with nothing in the repo changing.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Smoke every production surface
+        run: bash tools/smoke-production.sh
+
   # ONE notifier, computed from `needs` rather than restated in two inverted
   # `if:` expressions. The two-job version drifted twice: convex-parity and
   # e2e-itun-signin were each added to `needs:` and to one condition but not
@@ -520,7 +537,7 @@ jobs:
   # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
   # run, which is a human action rather than a regression.
   notify:
-    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd]
+    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd, production-smoke]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
@@ -535,7 +552,7 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
-            const ALWAYS_RUNS = new Set(['e2e-itun', 'e2e-srd', 'e2e-itun-signin'])
+            const ALWAYS_RUNS = new Set(['e2e-itun', 'e2e-srd', 'e2e-itun-signin', 'production-smoke'])
             const label = 'nightly-e2e-failure'
             const { owner, repo } = context.repo
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`

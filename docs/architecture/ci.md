@@ -195,3 +195,9 @@ The part that interacts with CI:
 - A dispatched `sha` reaches the script through `env:`, never `${{ }}` inside
   `run:`, and it is stamped into both apps' commit ref instead of the tip of
   `main`.
+- **The post-deploy smoke list is `tools/smoke-production.sh`**, not inline
+  YAML, so `e2e-nightly.yml`'s `production-smoke` job runs the same checks
+  daily. A deploy proves production answered when it shipped; the nightly run
+  catches drift between deploys (DNS, Redirect Rules, a rotated bot token).
+  There is no separate manual probe workflow: `probe-production.yml` was
+  deleted with ADR-033 P8.

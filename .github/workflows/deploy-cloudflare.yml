@@ -242,8 +242,7 @@ jobs:
       # ---------------------------------------------------------------------
       #
       # An absent CONVEX_DEPLOY_KEY must be fatal, loudly, before any artifact
-      # exists. This is the Actions form of the guard `apps/itun/netlify.toml`
-      # carried, and it exists for a measured reason: production ran a four-day
+      # exists, for a measured reason: production ran a four-day
       # stale backend from 2026-08-06 to 2026-08-10 because an absent key
       # silently took a Solo-build branch. The site served the current commit,
       # the backend was four days behind, every soft-link write failed, and
@@ -276,23 +275,23 @@ jobs:
       # working one while reporting zero errors. `check-observability.ts` exists
       # because both apps once sat in production that way.
       #
-      # Moving the build from Netlify to Actions is exactly when that can happen
-      # again, and it nearly did: the DSNs lived as Netlify SITE env vars and are
-      # not in this repo, so the first Cloudflare builds shipped with the SDK
-      # tree-shaken out. Measured, not guessed — production's bundle carried the
-      # DSN and the Workers build carried no Sentry reference at all.
-      #
       # They are repository VARIABLES rather than secrets on purpose: a DSN is
       # public by construction, sitting in a bundle anyone can download. Storing
       # a public value as a secret hides which values genuinely need protecting.
+      #
+      # Both apps read `VITE_SENTRY_DSN` at build time, but they report to
+      # different Sentry projects, so srd's DSN lives in its own repository
+      # variable, `SRD_SENTRY_DSN`. `PUBLIC_SENTRY_DSN` is the variable's former
+      # name (srd's old Astro-era env prefix) and is read only as a fallback until
+      # the variable is renamed in the repository settings; drop the `||` then.
       - name: Refuse to build a browser app with no Sentry DSN
         env:
-          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          SRD_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
         run: |
           missing=0
-          if [ -z "$PUBLIC_SENTRY_DSN" ]; then
-            echo "FATAL: PUBLIC_SENTRY_DSN is not set — srd would ship with error tracking silently off." >&2
+          if [ -z "$SRD_SENTRY_DSN" ]; then
+            echo "FATAL: SRD_SENTRY_DSN is not set — srd would ship with error tracking silently off." >&2
             missing=1
           fi
           if [ -z "$VITE_SENTRY_DSN" ]; then
@@ -318,13 +317,6 @@ jobs:
       # every deploy since P7: the repository has exactly four secrets and none
       # of them is a Sentry one. srd had no upload at all until the 2026-09-25
       # audit (AP-20); it now takes the same token and org.
-      #
-      # This is a migration regression, not an old gap. Netlify held the build
-      # credentials as SITE env vars (the cutover doc says so: "Netlify holds its
-      # own build credentials and this repository holds no deploy credentials at
-      # all"), and moving builds into Actions ported the deploy half and not this
-      # one. The stale "should not fail the Netlify build" comment still sitting
-      # in vite.config.ts is the fingerprint.
       #
       # It FAILS rather than warns, deliberately and in line with ADR-033 §7. A
       # warning is what the previous state effectively was, and it went unread
@@ -395,8 +387,8 @@ jobs:
       - name: Build srd
         if: steps.surfaces.outputs.srd == 'true'
         env:
-          PUBLIC_COMMIT_REF: ${{ steps.target.outputs.sha }}
-          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          VITE_COMMIT_REF: ${{ steps.target.outputs.sha }}
+          VITE_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
           # Source-map upload (apps/srd/ssg/vite.config.ts). Same token and org
           # as itun; the PROJECT is srd's own, and is written literally rather
           # than read from `vars.SENTRY_PROJECT`, which names itun's. A project
@@ -412,7 +404,7 @@ jobs:
       #
       # The snapshot is blessed against a build with NO Sentry DSN, which is what
       # `bun run gate` produces locally and what CI's `build-srd` job runs on
-      # every PR. This job builds WITH `PUBLIC_SENTRY_DSN`, because production
+      # every PR. This job builds WITH srd's `VITE_SENTRY_DSN`, because production
       # must ship Sentry. Measured — the DSN changes the emitted chunk set:
       #
       #   with a DSN:     assets/prod-[hash].js, assets/rolldown-runtime-[hash].js
@@ -484,21 +476,13 @@ jobs:
         run: bun run deploy
 
       # ---------------------------------------------------------------------
-      # discord-bot — the Worker, not the Render gateway process.
+      # discord-bot
       # ---------------------------------------------------------------------
       #
-      # Deploying this does NOT move the bot. Discord routes to a Worker only
-      # once the Interactions Endpoint URL is set on the application, which is a
-      # P7 step done by hand — so this is safe to run on every merge, and has to
-      # be, because Render is being retired and this is the only path left.
+      # Discord's Interactions Endpoint URL points at this Worker, so every merge
+      # that touches the bot ships it here; there is no other deploy path.
       #
-      # It was deployed by hand during P5, which was fine for a measurement and
-      # is not fine as a steady state: a bot whose only deploy path is somebody
-      # remembering to run wrangler is a bot that silently stops tracking main.
-      #
-      # No build step — wrangler bundles `src/http/worker.ts` directly. The
-      # `build` script in this workspace targets the Node/gateway entry that
-      # Render runs, and that is what goes away, not this.
+      # No build step — wrangler bundles `src/http/worker.ts` directly.
       #
       # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
       # and are NOT touched by a deploy, so this cannot clobber them.
@@ -518,94 +502,11 @@ jobs:
       # line of config away from silently reintroducing #759, where a missing
       # hashed chunk answered `200 text/html` and the `immutable` header pinned
       # that HTML into the HTTP cache for a year.
+      # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
+      # the same checks on a schedule, catching a regression that happens
+      # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
       - name: Smoke the deployed surfaces
-        run: |
-          set -euo pipefail
-          fail=0
-          check() {
-            local url="$1" want="$2" label="$3"
-            local got
-            got=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url" || echo 000)
-            if [ "$got" = "$want" ]; then
-              echo "  ok   $label ($got)"
-            else
-              echo "  FAIL $label — wanted $want, got $got" >&2
-              fail=1
-            fi
-          }
-          # The PRODUCTION hostnames, not workers.dev.
-          #
-          # Every check here used to target `*.alxjrvs.workers.dev`. That was
-          # correct before P7 — those URLs were the only way to reach these
-          # Workers — and became the wrong target the moment the nameservers
-          # flipped. A broken route binding, a DNS record that did not get
-          # created, or a custom domain detached from its Worker all pass a
-          # workers.dev smoke test while production is down.
-          #
-          # One workers.dev check is kept below, deliberately: if the custom
-          # domains fail and it passes, the Worker deployed fine and the routing
-          # layer is what broke, which is a different fix.
-          # A header the browser never receives is a header that does not exist,
-          # and `_headers` is not a promise that it arrives. Cloudflare's static
-          # -assets docs are explicit: custom headers from `_headers` are NOT
-          # applied to responses generated by Worker code, and they name
-          # `assets.run_worker_first` — which itun sets — as a configuration that
-          # triggers exactly that. itun's Worker proxies everything through
-          # `env.ASSETS.fetch()` and sets no headers of its own on that path, so
-          # whether the CSP survives is a property of the platform, not of this
-          # repo, and cannot be established by reading the config.
-          #
-          # So assert it against production. This runs AFTER the deploy, so a
-          # failure reports rather than blocks — which is the right shape: it
-          # cannot wedge a release, and it cannot silently stay wrong either.
-          check_header() {
-            local url="$1" header="$2" label="$3"
-            if curl -sSI --max-time 20 "$url" | grep -qi "^${header}:"; then
-              echo "  ok   $label"
-            else
-              echo "  FAIL $label — no '${header}' in response headers" >&2
-              fail=1
-            fi
-          }
-          check https://salvageunion.io/ 200 "srd home"
-          check https://salvageunion.io/nope-does-not-exist/ 404 "srd 404"
-          check https://www.salvageunion.io/ 301 "srd www redirect"
-          # The itun counterpart, which was missing. srd's www attachment is
-          # deliberately fail-safe — it SERVES the site if the Redirect Rule is
-          # absent — so a missing rule here does not error, it quietly stands up
-          # a second origin serving the same app on a second hostname. Only an
-          # explicit assertion distinguishes that from a working redirect.
-          check https://www.intheunionnow.com/ 301 "itun www redirect"
-          check https://intheunionnow.com/ 200 "itun shell"
-          check_header https://salvageunion.io/ content-security-policy "srd CSP reaches the browser"
-          check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
-          check_header https://intheunionnow.com/ content-security-policy "itun CSP reaches the browser"
-          check_header https://intheunionnow.com/ strict-transport-security "itun HSTS reaches the browser"
-          check https://intheunionnow.com/assets/index-DEADBEEF.js 404 "itun rotated chunk 404 (#759)"
-          check https://assets.salvageunion.io/chassis/mule.webp 200 "artwork"
-          # BODY, not status. The broken state returned 200 too — Cloudflare's
-          # zone-level managed robots.txt, which carries no `Disallow` at all —
-          # so a status check here would pass on exactly the regression it is
-          # meant to catch: the licensed-artwork origin silently going from
-          # closed to open to every crawler.
-          robots=$(curl -fsS --max-time 15 https://assets.salvageunion.io/robots.txt || true)
-          if printf '%s' "$robots" | grep -q '^Disallow: /$'; then
-            echo "  ok   artwork origin disallows crawlers"
-          else
-            echo "  FAIL artwork origin robots.txt has no 'Disallow: /'" >&2
-            fail=1
-          fi
-          # The one workers.dev check, isolating "did the Worker deploy" from
-          # "did routing survive". See the note above.
-          check https://su-srd.alxjrvs.workers.dev/ 200 "srd reachable on workers.dev"
-          # /health answers 200 only when Discord itself accepted the bot token
-          # (it calls /users/@me rather than checking a variable is non-empty),
-          # 503 when the token is rejected or absent, 502 when Discord is
-          # unreachable. A bad token is otherwise invisible until the first real
-          # interaction — which, given the bot cutover is atomic across every
-          # server, is the worst possible moment to find out.
-          check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted by Discord"
-          exit "$fail"
+        run: bash tools/smoke-production.sh
 
   # ---------------------------------------------------------------------------
   # The deploy record — what the next run diffs against.

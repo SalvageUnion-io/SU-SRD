@@ -1,7 +1,7 @@
 /**
  * observability — optional browser Sentry error tracking for srd.
  *
- * Entirely env-gated: when `PUBLIC_SENTRY_DSN` is unset (local dev, tests, and
+ * Entirely env-gated: when `VITE_SENTRY_DSN` is unset (local dev, tests, and
  * any build without the var provisioned) this is a no-op and no Sentry code
  * runs or ships. Because the DSN is read from `import.meta.env` — which Vite
  * statically inlines at build — an unset DSN makes the `@sentry/browser`
@@ -10,11 +10,9 @@
  * options, idempotency, the capture verbs) is `createBrowserObservability` in
  * `observability/browser`, shared with ITUN (audit AP-12).
  *
- * No DSN is ever committed. `deploy-cloudflare.yml` supplies it from the
- * `PUBLIC_SENTRY_DSN` repository variable, with `PUBLIC_COMMIT_REF` set to the
- * deployed SHA. The `PUBLIC_` prefix is Astro-era naming kept deliberately: it
- * works only because `ssg/vite.config.ts` sets `envPrefix: 'PUBLIC_'`, and
- * renaming it is a coordinated change to those variables, not a drive-by.
+ * No DSN is ever committed. `deploy-cloudflare.yml` supplies it as
+ * `VITE_SENTRY_DSN` from the `SRD_SENTRY_DSN` repository variable, with
+ * `VITE_COMMIT_REF` set to the deployed SHA.
  *
  * CSP note: the browser SDK POSTs events to the ingest host encoded in the
  * DSN, so that origin must be in `connect-src` in `public/_headers` —
@@ -66,12 +64,12 @@ const IGNORED_ERRORS = [
 const observability = createBrowserObservability({ ignoreErrors: IGNORED_ERRORS })
 
 /**
- * Initializes browser Sentry when `PUBLIC_SENTRY_DSN` is configured.
+ * Initializes browser Sentry when `VITE_SENTRY_DSN` is configured.
  * Idempotent and safe to call once on every page load. Resolves immediately
  * (no-op) when the DSN is absent.
  */
 export async function initBrowserObservability(): Promise<void> {
-  const dsn = import.meta.env.PUBLIC_SENTRY_DSN
+  const dsn = import.meta.env.VITE_SENTRY_DSN
   // Keep this guard HERE, ahead of the import below: it is what Vite folds to
   // make `@sentry/browser` unreachable in a DSN-less build.
   if (!dsn) return
@@ -79,7 +77,7 @@ export async function initBrowserObservability(): Promise<void> {
   await observability.init(() => import('@sentry/browser'), {
     dsn,
     environment: import.meta.env.MODE,
-    release: import.meta.env.PUBLIC_COMMIT_REF,
+    release: import.meta.env.VITE_COMMIT_REF,
   })
 }
 
