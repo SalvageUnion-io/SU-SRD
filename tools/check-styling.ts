@@ -23,7 +23,9 @@
  *   bun tools/check-styling.ts --only=tokens        # one set (comma-separate for more)
  *   bun tools/check-styling.ts --update-baseline    # lower the ratchets to today's counts
  *   bun tools/check-styling.ts --update-baseline --allow-increase
- *                                                   # ONLY in the commit that makes a rule stricter
+ *                                                   # ONLY in a commit that makes a rule stricter,
+ *                                                   # or that splits files without adding a
+ *                                                   # utility (see tools/lib/ruleEngine.ts)
  *   bun tools/check-styling.ts --report             # print every finding; never fails
  */
 
@@ -90,9 +92,10 @@ function main(argv: readonly string[]): void {
       console.error('✗ refusing to RAISE a ratchet baseline:')
       for (const r of raised) console.error(`    ${r}`)
       console.error(
-        '\n  A baseline only goes down. The one exception is the commit that makes a rule\n' +
-          '  STRICTER, which counts literals that were always there — pass --allow-increase\n' +
-          '  there, and write the reason into the rule set.'
+        '\n  A baseline only goes down. The two exceptions are the commit that makes a rule\n' +
+          '  STRICTER (it counts literals that were always there) and a pure FILE SPLIT (a\n' +
+          '  per-file count rises with no literal written) — pass --allow-increase there,\n' +
+          '  and write the reason and the evidence into the rule set.'
       )
       process.exit(1)
     }

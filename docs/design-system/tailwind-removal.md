@@ -49,7 +49,7 @@ pre-push and in CI) make the retiring systems a number that can only go **down**
 
 | Rule | Counts | Baseline |
 | --- | --- | --- |
-| `tailwind-utility-file` | UI source files (stories included, tests excluded) with ≥ 1 Tailwind utility — in a class-list context, or as a class string held elsewhere | 329 |
+| `tailwind-utility-file` | UI source files (stories included, tests excluded) with ≥ 1 Tailwind utility — in a class-list context, or as a class string held elsewhere | 343 |
 | `pc-class-defined` | distinct `.pc-*` classes defined by the Dashboard stylesheets | 129 |
 
 The `tokens` rule set (`tools/rules/designTokens.ts`) ratchets the same way on
@@ -68,6 +68,13 @@ moves **to** — never counts, nor does a lone bare token (`'hidden'`) or a lone
 CSS keyword / header name that shares a utility's shape (`'flex-start'`,
 `'content-type'`). It is still a heuristic, so it is **not** the final
 oracle — the built CSS is (see P6's exit).
+
+**A pure file split is the one other way the file count may rise.** The rule
+counts files, so splitting a Tailwind-carrying file raises it without a utility
+being written. Audits PK-08 / AP-16 did this once (326 → 343, raised with
+`--allow-increase`), with the utility total over every touched file falling
+773 → 767; the record is in `tools/rules/stylingOwnership.ts`. A split that
+cannot show its utility total did not rise is drift.
 
 **Every phase PR lowers the baselines** with
 `bun tools/check-styling.ts --update-baseline` and commits the JSON. A PR that

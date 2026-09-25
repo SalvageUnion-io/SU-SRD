@@ -7,6 +7,9 @@
  * primary one it sits under.
  */
 
+import type { SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { getBooklet, getPageReference, getSource } from 'salvageunion-reference'
+
 /**
  * A secondary printing of an entity — the book (and, for a multi-booklet product
  * like the Starter Set, the booklet code) that reprinted it, and the page.
@@ -57,4 +60,49 @@ function isAdditionalSource(value: unknown): value is AdditionalSource {
 export function resolveAdditionalSources(value: unknown): AdditionalSource[] {
   if (!Array.isArray(value)) return []
   return value.filter(isAdditionalSource)
+}
+
+/** What the identity footer attributes: one record's provenance, never a mix. */
+export type FooterProvenance = {
+  source: string | undefined
+  booklet: string | undefined
+  page: number | undefined
+  additionalSources: AdditionalSource[]
+}
+
+/**
+ * FOOTER PROVENANCE — a pattern carries its OWN source/booklet/page, often a
+ * different book than its chassis (e.g. an Acid Spitter sourced from another
+ * book than the Mule's Workshop Manual). On a pattern card the `entity` IS the
+ * chassis, so use the pattern's provenance. Booklet + page are meaningful only
+ * relative to a source, so provenance falls back as ONE unit: only when the
+ * pattern omits its own `source` do we borrow the chassis's source/booklet/page
+ * — never mix a pattern's source with the chassis's page.
+ *
+ * REPRINTS ride with that same unit: `additionalSources` records which OTHER
+ * books an entity was reprinted in (the Starter Set condensations, the
+ * expansion re-listings). It is provenance, so it belongs to whichever record
+ * the footer is attributing — the pattern's own when the pattern carries a
+ * source, the chassis's otherwise — never a mix of the two.
+ */
+export function resolveFooterProvenance(
+  entity: SURefMetaEntity,
+  pattern: SURefObjectPattern | undefined
+): FooterProvenance {
+  if (pattern?.source) {
+    return {
+      source: pattern.source,
+      booklet: pattern.booklet,
+      page: pattern.page,
+      additionalSources: resolveAdditionalSources(pattern.additionalSources),
+    }
+  }
+  return {
+    source: getSource(entity),
+    booklet: getBooklet(entity),
+    page: getPageReference(entity),
+    additionalSources: resolveAdditionalSources(
+      'additionalSources' in entity ? entity.additionalSources : undefined
+    ),
+  }
 }

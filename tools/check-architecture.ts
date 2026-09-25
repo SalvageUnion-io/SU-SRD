@@ -130,26 +130,26 @@ const POOL_FIELD = /^current[A-Z]/
 /**
  * Function-body ratchet for `packages/component-lib`.
  *
- * `ReferenceEntityCard.tsx` is 2,479 lines and the most-churned source file in
- * the repo — 24 commits in three months — because ONE function inside it is
- * ~1,870 lines with 45 props and four exits. Six independent workstreams edit
- * that single body, so every change has blast radius across all six render
- * regions and parallel work conflicts on one file.
+ * `ReferenceEntityCard.tsx` was 2,479 lines and the most-churned source file in
+ * the repo — 24 commits in three months — because ONE function inside it was
+ * ~1,870 lines with 45 props and four exits. Six independent workstreams edited
+ * that single body, so every change had blast radius across all six render
+ * regions and parallel work conflicted on one file.
  *
- * This does NOT decompose it. It stops it growing, which is the part a tool can
- * do: the cap is seeded at today's largest body, so the file can only get
- * smaller. Decomposition wants a human and a visual review — the srd snapshot
- * gate digests `<main>` TEXT, not markup, and says so explicitly, so a
- * class-level regression in this renderer would pass every gate in the repo.
+ * The cap was seeded at that body's size (1,823) so it could only shrink. Audit
+ * PK-08 then decomposed it: the pure cell/stat, body, chrome and nested-section
+ * rules moved to their own modules and every body section became its own
+ * component, taking `ReferenceEntityCardInner` to 856 lines — the orchestrator
+ * that decides what a card carries, with no section's markup left inline. The
+ * srd output gate and a whole-site HTML diff showed the rendered DOM unchanged.
  *
- * Seeded at 1,823 — the exact size of `ReferenceEntityCardInner` today, so ONE
- * more line in it fails CI. The next largest body in the package is 364 lines,
- * so this constrains exactly the one function that needs constraining and
- * nothing else.
+ * The cap sits at that new size, so ONE more line in the card body fails CI.
+ * The next largest body in the package is 366 lines (`EntitySearcher`), so this
+ * still constrains exactly the one function that needs constraining.
  *
  * Lower the number when a seam lands. Never raise it.
  */
-const COMPONENT_LIB_FUNCTION_CAP = 1823
+const COMPONENT_LIB_FUNCTION_CAP = 856
 
 function isFunctionLike(node: ts.Node): boolean {
   return (

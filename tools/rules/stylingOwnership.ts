@@ -17,6 +17,16 @@
  * parsing) rather than per-line regexes, so each rule has its own scan function.
  * Four rules are `zero` (any finding fails); the two #802 migration counts are
  * `ratchet` rules against `tools/styling-baseline.json`.
+ *
+ * ONE UPWARD REBASELINE of `tailwind-utility-file` is on record, and it wrote no
+ * Tailwind. The rule counts FILES, so splitting one Tailwind-carrying file into
+ * several raises it by construction. Audits PK-08 and AP-16 (2026-09-25) split
+ * `ReferenceEntityCard.tsx` into per-section components and gave each Active
+ * Item band its own file: 326 -> 343 files, while the utility TOTAL across every
+ * file those commits touched FELL, 773 -> 767 (the split deduplicated repeated
+ * class lists). Raised with `--allow-increase`. A split may do this only with
+ * that evidence in hand — the utility total over the touched files must not
+ * rise — and the new files migrate with their parents' phase of the plan.
  */
 
 import { readFileSync } from 'node:fs'
