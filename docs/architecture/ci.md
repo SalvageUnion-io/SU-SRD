@@ -192,6 +192,29 @@ The deploy workflow's own comments carry its guard rationale (provenance check,
 credential guards, Sentry, the srd snapshot it deliberately does not re-run).
 The part that interacts with CI:
 
+- **Shape: `plan` -> `build-srd` / `build-itun` -> `deploy-*` -> `smoke` ->
+  `record`** (audit CI-12). `plan` resolves the commit, the deploy set, every
+  credential guard and a dry-run bundle of every Worker. The two builds run in
+  parallel and each uploads the exact `dist` it produced; the four `deploy-*`
+  jobs run in parallel, ship those artifacts unrebuilt, and none starts until
+  **every** build is green, so a failed itun build no longer leaves srd on the
+  new commit. It used to be one serial 30-minute job. `bun run check workflows`
+  (`deploy-order`) asserts the three orderings.
+- **The artifacts are built in the deploy, not taken from CI's run.** Neither
+  CI build is a production artifact: srd's is built with no Sentry DSN because
+  the output snapshot is blessed against that build, and itun's is a Solo
+  client with no `VITE_CONVEX_URL`. And CI path-filters per commit while the
+  deploy ships per last recorded deploy, so a surface can need deploying on a
+  commit where CI skipped its build. Build once, in the deploy, and ship that.
+- **A failed `deploy-*` job does not stop the others** — they run in parallel
+  once every build is green. It fails the run, so `smoke` and `record` are
+  skipped and the next run re-deploys every surface since the last record.
+- **itun's backend is pushed in `build-itun`**, because the canonical Convex URL
+  the client is compiled against only comes from a real `convex deploy --cmd`.
+  So the backend can lead the served client for a while — the safe direction,
+  and one the backend must already tolerate for every tab still running the
+  previous client.
+
 - **The base is the last successful deploy, not `HEAD^`.** After every green
   run the `record` job moves the lightweight tag `deployed/cloudflare` to the
   commit that shipped; the next run tree-diffs against it. Dropped queue

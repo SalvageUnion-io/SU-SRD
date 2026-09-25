@@ -23,9 +23,14 @@ describe('smoke-production wiring', () => {
   test('the deploy workflow runs the script after deploying', () => {
     // From the workflow's own commit, so a rollback to a tree that predates the
     // script still smokes and still moves the deploy record.
-    const deploy = workflow('deploy-cloudflare.yml')
-    expect(deploy).toContain('git show "$WORKFLOW_SHA:tools/smoke-production.sh"')
-    expect(deploy).toMatch(/WORKFLOW_SHA: \$\{\{ github\.workflow_sha \}\}/)
+    const deploy = Bun.YAML.parse(workflow('deploy-cloudflare.yml')) as {
+      jobs: Record<string, { steps: { uses?: string; run?: string; with?: { ref?: string } }[] }>
+    }
+    const smoke = deploy.jobs.smoke
+    expect(smoke).toBeDefined()
+    const checkout = smoke?.steps.find((step) => step.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.ref).toMatch(/^\$\{\{ github\.workflow_sha \}\}$/)
+    expect(smoke?.steps.some((step) => step.run === 'bash tools/smoke-production.sh')).toBe(true)
   })
 
   test('the nightly workflow runs it and its notifier treats it as always-run', () => {
