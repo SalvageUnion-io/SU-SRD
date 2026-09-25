@@ -1,6 +1,6 @@
 # The half of the dependency audit that the merge gate deliberately does not do.
 #
-# WHY THIS EXISTS. `check:audit` runs `bun audit --audit-level=high` and gates
+# WHY THIS EXISTS. The `audit` check (tools/check.ts) runs `bun audit --audit-level=high` and gates
 # merges. That threshold is a deliberate choice, not an oversight — but it means
 # a MODERATE advisory fails nothing, and nothing in `check`, in CI, or in the
 # pre-push hook ever runs a bare `bun audit`. So the entire moderate band was
@@ -55,7 +55,7 @@ jobs:
 
       # `|| true` is correct here and nowhere else in this repo: a bare audit
       # reporting something is the SIGNAL, not a build failure. The gate that
-      # fails is `check:audit` at --audit-level=high, in `static-checks`.
+      # fails is the `audit` check at --audit-level=high, in `static-checks`.
       - name: Audit at every severity
         id: audit
         run: |

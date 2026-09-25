@@ -5,8 +5,8 @@
 # lever left for them:
 #
 #   1. "Do not hand-edit generated files." `.claude/hooks/protect-generated-files.sh`
-#      stops an AGENT, and `bun run check:schemas` fails CI on drift for the
-#      reference package — but nothing stops a human editing a generated file in
+#      stops an AGENT, and `bun run check generated` fails CI on drift for the
+#      reference package and the route tree — but nothing stops a human editing a generated file in
 #      a way that happens to be self-consistent.
 #
 #   2. "Never re-bless the srd output snapshot without reading the diff."
@@ -23,7 +23,8 @@
 # The output gate's baseline. See rule 2 above.
 /apps/srd/ssg/output-snapshot.json                 @alxjrvs
 
-# Generated artifacts, all of them diffed by `bun run check:schemas`.
+# Generated artifacts. All but convex/_generated are diffed by tools/check-generated.ts;
+# that one is checked by tools/check-convex-codegen.ts.
 /packages/salvageunion-reference/schemas/          @alxjrvs
 /packages/salvageunion-reference/docs/             @alxjrvs
 /packages/salvageunion-reference/lib/generated/    @alxjrvs
@@ -34,8 +35,7 @@
 # editing one is how you make a failing check pass without fixing anything.
 /coverage-baseline.json                            @alxjrvs
 /tools/a11y-baseline.json                          @alxjrvs
-/tools/design-tokens-baseline.json                 @alxjrvs
-/tools/styling-ownership-baseline.json             @alxjrvs
+/tools/styling-baseline.json                       @alxjrvs
 
 # Credentials, deploy machinery and the agent-facing instruction surface.
 /.github/workflows/deploy-cloudflare.yml           @alxjrvs
