@@ -89,6 +89,12 @@ describe('enforce-bun.sh', () => {
     ['run through command', `command ${PM} install`],
     ['after a quoted apostrophe on the same line', `echo "it's"; ${PM} install; echo 'x'`],
     ['on a later line of a multi-line command', `echo start\n${PM} install`],
+    // A command substitution inside double quotes is code: it runs.
+    ['in a quoted command substitution', `ls "$(${PM} root -g)"`],
+    ['in a quoted substitution in an assignment', `export PATH="$(${PM} bin):$PATH"`],
+    ['through a quoted which', `"$(which ${PM})" install`],
+    // An apostrophe in a comment must not open a quote that hides later lines.
+    ['after a comment containing an apostrophe', `echo hi # don't do this\n${PM} install`],
   ])('blocks %s', async (_label, command) => {
     expect(await bash(command)).toBe(BLOCK)
   })
@@ -110,6 +116,8 @@ describe('enforce-bun.sh', () => {
     ['an rg alternation', `rg "(${PM}|${PM2})" docs`],
     ['a lookup through which', `which ${PM}`],
     ['a lookup through command -v', `command -v ${PM}`],
+    ['a mention in a trailing comment', `rm -f package-lock.json # left by ${PM}`],
+    ['a quoted substitution that is harmless', `git commit -m "fix: $(date) ${PM} note"`],
     // How agents actually write commits and PR bodies: multi-line quoted text
     // and heredocs. Stripping quotes one line at a time blocked all of these.
     [
