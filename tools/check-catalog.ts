@@ -149,7 +149,9 @@ for (const name of Object.keys(catalog)) {
 if (problems.length > 0) {
   console.error('\n✗ catalog is no longer the single source of truth for these versions:\n')
   console.error(problems.join('\n\n'))
-  console.error('\n  See CLAUDE.md, "Shared versions live in the catalog".')
+  console.error(
+    '\n  See docs/architecture/dependency-management.md, "Shared versions live in the catalog".'
+  )
   process.exit(1)
 }
 

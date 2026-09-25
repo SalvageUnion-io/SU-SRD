@@ -8,28 +8,28 @@ at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
 ## Stack
 
 - **Runtime:** Bun
-- **Library:** Discord.js v14
+- **Library:** `@discordjs/builders` (Components V2), `discord-api-types`;
+  Discord.js v14 for command types and deployment
 - **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
 
-## There is no Node gateway any more
+## Runtime
 
-The bot runs as an HTTP-interactions Worker (`src/http/worker.ts`), deployed by
-`wrangler.jsonc`. The Node gateway — `src/index.ts`, `src/events/`,
-`src/observability.ts` — is **deleted**, along with the `dist/` bundle, the
-`build`/`start` scripts and the `@sentry/node` dependency.
-
-That section used to explain why `--sourcemap=linked` plus
-`node --enable-source-maps` were both mandatory: a 2 MB bundle otherwise gave
-Sentry frames at an offset in `dist/index.js` naming no real file. It was true,
-and it is now moot — nothing bundles for Node, and the Worker reports through
-`observability/cloudflare` with its own release wiring. It also pointed at
-`render.yaml`'s `startCommand` for the runtime half, which was deleted in
-ADR-033 P8 along with the Render account.
+The bot is an **HTTP-interactions Cloudflare Worker** (`src/http/worker.ts`,
+deployed by `wrangler.jsonc`). There is no Node gateway, no `dist/` bundle and
+no `build`/`start` script; the Worker reports to Sentry through
+`observability/cloudflare`. `discord.js` itself is used only for slash-command
+**types** and by `deploy-commands.ts`; replies are built with
+`@discordjs/builders` + `discord-api-types`.
 
 ## Structure
 
-- `src/http/worker.ts` - THE entry point (Cloudflare Worker, HTTP interactions)
-- `src/commands/` - Slash command definitions
+- `src/http/` - THE entry point (`worker.ts`), request verification, and the
+  adapter from raw interactions to the narrow types in `src/commands/interactions.ts`
+- `src/commands/` - Slash command definitions and handlers
+- `src/buttons.ts` + `src/customId.ts` - stateless button routing (`su:<action>:<payload>`)
+- `src/container.ts` - the Components V2 seam: pure `ContainerData` → `ContainerBuilder`
+- `src/rollContainer.ts`, `src/lookupContainer.ts`, `src/gameContainer.ts`,
+  `src/errorContainer.ts` - one container builder per surface
 - `src/config.ts` - Configuration, now read only by `deploy-commands.ts`
 - `src/deploy-commands.ts` - Command deployment script (run from source)
 
@@ -51,7 +51,8 @@ against a linked account and a real membership. See
 [discord-bot-game-client.md](../../docs/architecture/discord-bot-game-client.md).
 
 - `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types
-- `src/gameEmbed.ts` — pure `data → EmbedData` builders, no discord.js
+- `src/gameEmbed.ts` — pure `data → EmbedData` builders, no discord.js, mapped
+  onto a container by `src/gameContainer.ts`
 - `src/commands/itunReply.ts` — the shared defer / three-mode / ephemerality spine
 
 **Three modes, mirroring the app's.** `ITUN_CONVEX_SITE_URL` +
@@ -71,11 +72,13 @@ does not exist.
 and cannot compute max HP/SP/Heat, so `gameEmbed.ts` derives them via
 `salvageunion-reference/rules` ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)).
 
-**`/su sheet` is the live sheet folded into an embed.** The mapping is
-deliberate and one-to-one — identity band → description, vitals rail → inline
+**`/su sheet` is the live sheet folded into a message.** `gameEmbed.ts` maps it
+one-to-one onto `EmbedData` — identity band → description, vitals rail → inline
 fields, section slab → one full-width field with the slab's count in the field
-*name*, `ReferenceEntityCard` → one linked line, sheet accent → colour strip,
-image seat → thumbnail. Two consequences worth knowing before editing it:
+*name*, `ReferenceEntityCard` → one linked line, sheet accent → accent colour,
+image seat → thumbnail — and `gameContainer.ts` turns that into V2 blocks
+(inline fields merge into one rail, the thumbnail pins beside the identity
+band). Two consequences worth knowing before editing it:
 
 - **Slugs are resolved, not printed.** Bodies store `classRef: 'salvager'` and
   `systems: ['armour-plating']`; the bot has the whole dataset in memory, so
@@ -109,11 +112,12 @@ build into the channel with no shareable page behind it and every link on it
 is the owner's act; posting it to this channel is not the asker's to make on
 their behalf. `src/__tests__/sheetVisibility.test.ts` holds both halves.
 
-**Embed limits are enforced in `toEmbed`, not in the builders.** One choke point
-means a new builder cannot forget, and the builders stay pure `data → EmbedData`.
-`format.ts` owns `EMBED_LIMIT`, `stripDanglingLink` and `enforceEmbedLimits`,
-shared with `lookupEmbed.ts` — which sheds *description* where a sheet sheds
-*fields*, because that is where each keeps its content.
+**Every reply is a Components V2 container.** With `MessageFlags.IsComponentsV2`
+Discord rejects `content` and `embeds` outright, so nothing sends `embeds:`.
+The `EmbedData` / `LookupEmbed` builders survive as pure, tested *content*;
+the container adapters own presentation. **Limits are enforced once, in
+`toContainer`** (`enforceContainerLimits`, budgets in `V2_LIMIT`) — a different
+budget from `EMBED_LIMIT`, and not applied twice.
 
 ## Conventions
 
@@ -126,6 +130,7 @@ shared with `lookupEmbed.ts` — which sheds *description* where a sheet sheds
   `src/commands/interactions.ts`, never on discord.js's interaction classes. Add
   a member there only when a handler genuinely reads it, and update the shared
   fakes in `src/__tests__/fakeInteraction.ts` — never cast in a test
-- Events live in `src/events/` with one file per event
+- Every message is built as `ContainerData` and rendered by `toContainer`;
+  a new surface gets a `*Container.ts` builder, not an embed
 - Bot token and guild IDs come from environment variables. `src/config.ts` reads
   them at module scope, so tests preload `test/env.ts` via `bunfig.toml`

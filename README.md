@@ -130,7 +130,8 @@ Built on **[the Butter Stack](https://alxjrvs.github.io/butter/)** — Bun · Un
 
 - **Bun** for all package management (not npm/yarn); single `bun.lock` at root.
 - Workspace packages reference each other via the `workspace:*` protocol.
-- Relative imports only (no `@/` path aliases); `type` over `interface`; named
-  exports. See [CLAUDE.md](CLAUDE.md) and `.claude/rules/` for the full set.
-- Pre-commit (Lefthook): lint --fix + format. Pre-push: typecheck, test,
-  validate:all, knip.
+- Code conventions (relative imports, `type` over `interface`, named exports,
+  no `any`) are Biome rules — see [`biome.jsonc`](biome.jsonc); `bun run lint`
+  is the authority.
+- Pre-commit (Lefthook): `biome check --write` on staged files. Pre-push:
+  typecheck, test, lint, validate:all, knip, schema/token/styling checks.

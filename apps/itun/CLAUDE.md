@@ -2,61 +2,31 @@
 
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
-**Two storage modes matter when you touch data**
-([ADR-030](../../docs/adrs/ADR-030-accounts-games-server-of-record.md), which
-supersedes ADR-001):
+**Storage modes — read before touching data.** This file owns them;
+[ADR-030](../../docs/adrs/ADR-030-accounts-games-server-of-record.md),
+[ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) and
+[ADR-035](../../docs/adrs/ADR-035-no-isolated-local-only-data.md) record why.
 
-- **Solo** — not signed in. IndexedDB is the source of truth and nothing is
-  gated. **This describes a build with the account gate OFF**, which is what CI,
-  a fresh checkout and `bun run dev` get (no `VITE_CONVEX_URL`).
-  - **"Forever" no longer holds, and the flip has HAPPENED.**
-    [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) withdrew
-    that guarantee, and every phase of
-    [persistence-and-pwa.md](../../docs/architecture/persistence-and-pwa.md) —
-    P0–P8, P4b and the flip — is now done.
-    `apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`, so in **any
-    production-mode build** an anonymous visitor gets the in-memory backend:
-    writes never reach IndexedDB and do not survive a reload.
-  - **There is no legacy exemption, and there is no claim card.**
-    [ADR-035](../../docs/adrs/ADR-035-no-isolated-local-only-data.md) removed
-    both. `backendForMode` takes two arguments and consults no probe: a browser
-    holding a pre-account roster gets `memory` like everybody else, and that
-    roster is **migrated** — `LegacyLocalData` (root-mounted, not on the Account
-    screen) offers sign-in-or-download while signed out and reconciles against
-    `entities.listMine` while signed in. `ClaimLocalData` is deleted; do not
-    reintroduce an offer-and-decline path.
-    - Worth knowing *why*, because the shape recurs: the exemption's exit
-      condition (`legacyLocalDataState() === 'absent'`) had no code path that
-      could produce it, so the "migration window" was permanent, and the only
-      way out counted the **entity store** — which for a signed-in player is
-      filled from the server, so it read a full account and offered nothing
-      while the local rows sat beside it. The user-visible symptom was a roster
-      present signed out and absent signed in.
-    - **A container written twice must be written together.** `claimLocal` set
-      the row's `gameId` column to `null` and stored the client body verbatim,
-      and the client reads the **body** — so a build claimed out of a retired
-      Workspace (migration v13 mapped those onto `gameId: <workspace id>`,
-      naming no real Game) arrived in the account and stayed invisible behind
-      `Roster`'s container filter. `shelveBody` in `convex/entities.ts` is the
-      fix; the rule is general.
-    - **A build already claimed under the old card is repaired, not re-sent.**
-      It is owned, so `isStranded` skips it and no client pass reaches it —
-      `entities.repairContainers` applies `body.gameId := row.gameId` to the
-      account once per signed-in session. Toward the **column**, never toward
-      the shelf: "shelve anything whose Game I am not in" would move a live
-      campaign build. It is not gated on local rows existing, because those
-      entities may sit on a device that never held them.
-  - That distinction is not academic. It is why the nightly e2e was red for a
-    month: the Playwright `webServer` builds a production bundle, so the suite
-    inherited the gate, entities stopped persisting, and twelve specs failed
-    with what looked like selector drift. `playwright.config.ts` now sets
-    `VITE_REQUIRE_ACCOUNT=false` explicitly for that build.
-  - **Never introduce a store, field or flow that persists only on a device.**
-- **Connected / Disconnected** — signed in. Convex is the source of truth and
-  IndexedDB becomes a cache. Offline means **read-only**, not a write queue.
+| Mode | When | Source of truth |
+| --- | --- | --- |
+| **Solo** | not signed in, account gate **off** (no `VITE_CONVEX_URL`: CI, a fresh checkout, `bun run dev`) | IndexedDB; nothing gated |
+| **memory** | not signed in, any production-mode build (`.env.production` sets `VITE_REQUIRE_ACCOUNT=true`) | nothing — writes do not survive a reload |
+| **Connected** | signed in, online | Convex; IndexedDB is a cache |
+| **Disconnected** | signed in, offline | read-only — not a write queue |
 
-Resolve the mode through `src/lib/connection/` — never by reading
-`navigator.onLine` or an auth flag directly.
+- Resolve the mode through `src/lib/connection/` — never `navigator.onLine` or
+  an auth flag.
+- **Never introduce a store, field or flow that persists only on a device.**
+- There is no legacy exemption and no claim card. A pre-account roster is
+  **migrated** by the root-mounted `LegacyLocalData` (sign-in-or-download while
+  signed out, reconciled against `entities.listMine` while signed in).
+  `ClaimLocalData` is deleted; do not reintroduce an offer-and-decline path.
+- **A container written twice must be written together** — the row's `gameId`
+  column and the body's `gameId` (`shelveBody` in `convex/entities.ts`;
+  `entities.repairContainers` repairs old rows toward the column).
+- The Playwright `webServer` builds a production bundle, so
+  `playwright.config.ts` sets `VITE_REQUIRE_ACCOUNT=false` for it. Remove that
+  and entities stop persisting in e2e.
 
 **Two account-free ways to share, and they are not interchangeable
 ([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)):**
@@ -78,25 +48,22 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - React 19 + Vite, TypeScript.
 - **TanStack Router** — file-based routes in `src/routes/`; the route tree is
   generated to `src/routeTree.gen.ts` (do not hand-edit).
-- **TanStack Query** — mounted, but **currently unused**: no component calls
-  `useQuery`/`useMutation` from `@tanstack/react-query`, and the only two
-  importers are the client module and the root provider. Snapshot retrieval runs
-  in a TanStack Router loader instead, so the "(snapshots)" this line used to
-  claim was already false. Available for genuinely async, non-Convex, cacheable
-  work — but **never** the persistence cache (see below), and do not reach for it
-  just because it is mounted.
+- **TanStack Query** — mounted, **unused**; see
+  `.claude/rules/itun-data-access.md`.
 - **Zustand** stores for persistent client state (`src/stores/`).
-- **Base UI + Tailwind v4** — UI primitives come from `component-lib` (`ui/`, `chrome/`, `base/`), NOT from an app-local `src/components/ui/`; there is no such directory. SU brand
-  theme in `src/index.css` (`@theme` block) + `component-lib` theme.
+- **Base UI** primitives from `component-lib` (`ui/`, `chrome/`, `base/`) —
+  there is no app-local `src/components/ui/`. Styling is the `component-lib`
+  theme; Tailwind is being removed
+  ([plan](../../docs/design-system/tailwind-removal.md)).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable,
   offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
   `skipWaiting` + `clientsClaim` (an assignment in the plugin, not a default, so
   the `workbox` block cannot override it), which activated a new worker under a
   live page and ran `cleanupOutdatedCaches()` — deleting the precache that page
-  was still resolving code-split chunks against. Share links wore it worst; see
-  the header comments in `vite.config.ts`, `src/lib/sw/register.ts` and
-  `src/lib/chunkRecovery.ts`, plus the `/assets/*` → 404 rule in `netlify.toml`
-  that stops a rotated-away chunk coming back as `200 text/html`.
+  was still resolving code-split chunks against. See the header comments in
+  `vite.config.ts`, `src/lib/sw/register.ts` and `src/lib/chunkRecovery.ts`,
+  plus the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`) that stops a
+  rotated-away chunk coming back as `200 text/html`.
 
 ## Persistence (read before touching data)
 
@@ -134,7 +101,7 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   update in-memory state; cross-tab writes invalidate via broadcast
   ([ADR-003](../../docs/adrs/ADR-003-zustand-hydration.md)).
 - Route persistent entity state through the store, **never** through TanStack
-  Query (see `.claude/rules/tanstack-query-hooks.md`).
+  Query (see `.claude/rules/itun-data-access.md`).
 
 ## Combat / rules
 
@@ -158,43 +125,26 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   `src/components/sheet/MechSheet.tsx`)
   ([ADR-007](../../docs/adrs/ADR-007-automation-boundary.md),
   [ADR-009](../../docs/adrs/ADR-009-condition-model-destroyed-color.md)).
-- Sheet-side play-control panels (`HeatCheckControl`, `TakeDamageControl`,
-  `SalvageControl`, `CraftingControl`, `DowntimeControl`, `ScrapMechControl`)
-  were **removed** in the poster redesign — see the header comments in
-  `MechSheet.tsx` / `CrawlerSheet.tsx`. Don't reintroduce them; the one surviving
-  sheet-local control is `CrawlerEconomyControl.tsx`. (`MediatorRollControl.tsx`
-  was the other, in the `/encounter` tray — that whole surface was unreachable
-  from anywhere in the app and has been deleted.)
+- The sheet-side play-control panels were removed in the poster redesign; play
+  actions stay on the Dashboard. The one sheet-local control is
+  `CrawlerEconomyControl.tsx`.
 - Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).
 
 ## Conventions
 
-- Relative imports only (no `@/`); `type` over `interface`; named exports
-  (route components may default-export for TanStack Router).
 - Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
   ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
 - Backup nudge (`src/lib/backupNudge.ts`) tracks un-exported writes — the
   local-first analogue of durability.
 - **Do not add a Sentry SDK to `convex/`.** The browser bundle
-  (`src/lib/observability.ts`) and the Netlify Functions
-  (`netlify/lib/observability.ts` — in `lib/`, not `functions/`, because
-  everything top-level in a functions directory is deployed as a public
-  endpoint) each own one; Convex instead uses its
-  first-party Exception Reporting integration, enabled in the Convex dashboard
-  with no application code. **Delivering since 2026-08-12**, verified end to end
-  rather than assumed: a forced error appeared in `convex logs` and then in
-  Sentry as `ITUN-CONVEX-1`, the first event that project had ever received.
-  It also forwards `ArgumentValidationError`, not only handler throws.
-  Before that it had been recorded as "enabled" on 2026-08-05 while the DSN
-  had never actually been pasted into the dashboard, and it sat silent for a
-  week — through 39 real mutation failures. **A quiet Sentry project is not
-  evidence of a healthy backend**; re-verify by forcing an error and comparing
-  against `bunx convex logs --deployment alex-jarvis:suref-itun:prod`, which
-  remains the ground truth. Queries and
-  mutations run in a deterministic runtime with no `fetch`, so an in-function SDK
-  could not report from them at all — rationale and the enable-it runbook are in
-  [docs/architecture/accounts-and-games.md](../../docs/architecture/accounts-and-games.md)
+  (`src/lib/observability.ts`) and the Worker (`src/worker/index.ts`, via
+  `observability/cloudflare`) each own one; Convex uses its first-party
+  Exception Reporting integration (a dashboard toggle, no code — queries and
+  mutations have no `fetch`). **A quiet Sentry project is not evidence of a
+  healthy backend:** re-verify by forcing an error and comparing against
+  `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook in
+  [accounts-and-games.md](../../docs/architecture/accounts-and-games.md)
   ("Convex error reporting — a dashboard toggle, not code").
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
@@ -225,16 +175,10 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   `appIdTaken` before any insert. `convex/maintenance.ts` repairs rows already
   in that state (`dedupeAppIds`, dry-run by default).
 
-  The **lookups themselves no longer throw** on a duplicate. `byAppId` /
-  `crawlerByAppId` resolve to the oldest match and `console.warn`, because
-  mirrored writes are fire-and-forget: a throw here is invisible to the player,
-  so it does not fail the write, it just stops the write from ever reaching the
-  server while every surface keeps rendering it as saved. That is how an
-  evening of play went missing. A duplicate is a repair job — it is not a reason
-  to refuse the write that would have kept client and server in step. The
-  warning is the tripwire, and it fires without taking the player's data with
-  it. Resolving to the *oldest* is deliberate: it is the row `dedupeAppIds`
-  keeps, so a write that lands before the repair runs is not discarded by it.
+  The lookups (`byAppId` / `crawlerByAppId`) do **not** throw on a duplicate:
+  they resolve to the oldest row (the one `dedupeAppIds` keeps) and
+  `console.warn`, because a throw in a fire-and-forget mirrored write silently
+  stops the write reaching the server.
 - **A copy gets a new UUID; a move keeps its own.** These pull in opposite
   directions, so both matter:
   - **Copy → new id.** Importing a bundle (`mergeImport`) and seeding the

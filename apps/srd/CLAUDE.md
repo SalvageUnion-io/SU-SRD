@@ -4,14 +4,11 @@ Static SRD reference site for Salvage Union game data. Read-only — choices ren
 ephemerally/non-editably
 ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
 
-> **This app is no longer built with Astro.** It was migrated onto an in-house
-> static-site generator built on Vite, living at
-> [`ssg/`](ssg/). There are no `.astro` files, no `astro.config.mjs`, no
-> `astro check`, no `client:*` directives and no file-based routing anywhere in
-> this app — if you find yourself looking for one, it has not existed since the
-> migration. [ADR-012](../../docs/adrs/ADR-012-srd-astro-static.md) records the
-> **superseded** Astro decision; the live contract is
-> [`ssg/DESIGN.md`](ssg/DESIGN.md). **Read that first.**
+> **srd is not an Astro app** — it runs on an in-house static-site generator in
+> [`ssg/`](ssg/) ([ADR-031](../../docs/adrs/ADR-031-srd-vite-ssg.md), superseding
+> ADR-012). No `.astro` files, no `astro.config.mjs`, no `client:*` directives,
+> no file-based routing. The contract is [`ssg/DESIGN.md`](ssg/DESIGN.md) —
+> **read it first.** This file is the one place that states this; others point here.
 
 ## Stack
 
@@ -19,17 +16,12 @@ ephemerally/non-editably
   client bundle. No framework runtime ships to the browser beyond React.
 - **Output:** Static HTML (no server runtime, no SSR at request time, no auth,
   no backend)
-- **UI:** Tailwind v4 with theme from `component-lib` package
+- **UI:** `component-lib` components and theme (Tailwind v4 while
+  [#802](../../docs/design-system/tailwind-removal.md) runs)
 - **Components:** Shared components from `component-lib`; React islands for
   interactivity
 - **Game data:** `salvageunion-reference` workspace package
-- **Tooling:** **Biome** for lint/format (`bun run lint`, `bun run format`) and
-  **TypeScript 7** for `bun run typecheck` — srd's old `typescript@6.0.3` pin is
-  gone, it now uses the repo's TS 7. (The _root_ `typescript-classic` alias
-  deliberately remains, but for exactly ONE consumer now:
-  `tools/check-architecture.ts`, which needs the classic compiler API that TS 7
-  does not expose. `generateApiReport.ts` moved to TS 7 — it only ever needed
-  the `tsc` binary. Astro was never a consumer of either.)
+- **Tooling:** Biome (`bun run lint`) and TypeScript 7 (`bun run typecheck`).
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`; no Worker
   script — `srd` is fully static, so every request is an asset lookup)
 
@@ -133,92 +125,16 @@ renders exactly one placeholder:
    `RouteContext.builtAssets`.
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
    may import from `ssg/` at runtime.
-3. Relative imports only (never `@/` aliases); `type` over `interface`;
-   `import type` for type-only imports; no `any`.
 
-## Verification — `ssg/snapshot.ts` is the output gate
+## Verification — the output gate
 
-```bash
-cd apps/srd
-bun run gate          # = bun ssg/build.ts && bun ssg/snapshot.ts
-```
-
-It compares the built `dist` against `ssg/output-snapshot.json`, a committed
-~680 KB digest of the site, and **runs in CI** (in the `build-srd` job, which is
-path-filtered on anything that can change srd's output — `apps/srd/**`,
-`packages/component-lib/**`, `packages/salvageunion-reference/**`).
-
-### If your change alters the output on purpose
-
-```bash
-bun run snapshot:update   # re-bless, then COMMIT the snapshot with your change
-```
-
-The snapshot is one line per page, so "23 pages changed" is literally 23 changed
-lines in the diff. **That diff is the deliverable** — it is the complete,
-reviewable statement of what your change did to the site. Re-blessing without
-reading it defeats the entire mechanism.
-
-### What it covers
-
-- the exact emitted **file set**, both directions — this is what holds the page
-  count at 1,039; drop a route from `routes.ts` and it fails here
-- per page: `<title>`, description, canonical, robots as **plaintext** (so the
-  diff reads), plus a digest of every `og:*` / `twitter:*` tag
-- per page: the ordered list of JSON-LD `@type`s
-- per page: a digest of `<main>`'s normalized visible text, plus its length
-- all 899 JSON endpoints, canonicalized then digested (so key reordering is not
-  a false positive)
-- `llms.txt`, both sitemaps, `_headers`, the webmanifest
-
-Deliberately **not** covered:
-
-- **bundle bytes** (`assets/**`, `sw.js`) and binary assets. Their names are
-  content-addressed and their content changes on every dependency bump, so
-  digesting them would make the snapshot churn and the gate would get switched
-  off. Hashed filenames are normalized to `-[hash]`, so the file SET is still
-  asserted.
-- **markup and attributes inside `<main>`** — the digest is of visible TEXT.
-  A change that alters only attributes passes. Verified concretely: the
-  `CardImage` regression that hid every piece of entity artwork behind
-  `style="opacity:0"` (#717) does **not** fail this gate. Hashing full markup
-  would catch it and would also fire on every Tailwind class change, which here
-  is constant. **Visual regressions are not this gate's job** — look at the page.
-
-Parity did not cover any of these either.
-
-### It bites
-
-26 tests in `ssg/__tests__/snapshot.test.ts`. Most inject a defect and assert it
-is reported — dropped route, changed title/description/canonical, removed `og:`
-tag, dropped JSON-LD block, altered `<main>` text, altered JSON endpoint,
-reflowed `llms.txt`. It was also run against **eight defects injected into the
-real 1,039-page build** and caught all eight.
-
-Four of them cover `run()` rather than `compare()`, because **the exit code is
-the gate**: CI never reads findings, it reads a process exit code, and a
-comparator that finds a difference paired with a runner that returns 0 anyway
-blocks nothing. They assert matches → 0, drifted → 1, no-build-to-check → 2
-(never 0 — a missing `dist` must not read as "nothing changed"), and that
-`--update` re-blesses so the next run passes.
-
-### `/changelog` is compared for insertion, not equality
-
-It renders from the two `CHANGELOG.md` files release-please **prepends** to, so
-under equality every release PR would fail this gate and need a regeneration to
-land — a release deadlock. Its full `<main>` text is stored and compared with
-`isInsertionOf`: every character previously emitted must still be present, in
-order, with growth confined to one contiguous insertion. Deleting, reordering or
-rewording an old entry still FAILS, and everything else on that page (its title,
-metadata, JSON-LD) is still compared normally. The gate prints the exemption on
-every run.
-
-### What it cannot do
-
-Parity compared against a foreign **oracle** (Astro's own output), so it could
-catch output that was wrong from the start. This compares against what we last
-blessed, so **a wrong output that gets committed as the snapshot is wrong
-forever.** That is the price of a baseline that survives; read the diff.
+`bun run gate` (build, `ssg/checkPageExamples.ts`, then `ssg/snapshot.ts`) diffs the built
+`dist` against the committed `ssg/output-snapshot.json`, and runs in CI's
+`build-srd` job. **Use the `/srd-gate` skill** (`.claude/skills/srd-gate/`): it
+owns the procedure — read the diff, then `bun run snapshot:update` and commit
+the snapshot with the change — plus what the gate does and does not cover and
+the `/changelog` insertion exemption. `ssg/__tests__/snapshot.test.ts` is its
+own test suite, including the exit-code contract (0 match, 1 drift, 2 no build).
 
 ## Key Directories
 
