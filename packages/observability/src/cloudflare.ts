@@ -42,7 +42,8 @@
  * `__tests__/cloudflare.test.ts` drives the real SDK with `fetch` (its workerd
  * transport) replaced, so it asserts what actually leaves the Worker: with a
  * DSN, escaped and handled errors, `scheduled` throws and cron check-ins are
- * sent with the release, environment and server name; with none, nothing is.
+ * sent with the release, environment and server name, and a request body never
+ * is; with no DSN, nothing is sent at all.
  *
  * `console.error` is kept alongside Sentry rather than replaced: Workers Logs is
  * where you look during a `wrangler tail`, and losing that would trade one blind
@@ -114,10 +115,20 @@ export function withObservability<E extends ObservabilityEnv>(
       // answered is "did it throw", not "where did the time go" — and a Free
       // plan's 10 ms CPU budget is not the place to spend on span overhead.
       tracesSampleRate: 0,
+      // No PII by default (cookies, IPs, user identity).
+      sendDefaultPii: false,
       // Do not send request bodies. The snapshot publish body is a player's
       // sheet, and the Discord interaction body is a signed payload including
       // user content; neither belongs in an error report.
-      sendDefaultPii: false,
+      //
+      // `sendDefaultPii: false` does NOT achieve this. The SDK's default
+      // HttpServer integration captures any textual request body (up to
+      // `'medium'`, ~10 KB) regardless of that flag. Supplying our own
+      // instance replaces the default one by name — the SDK dedupes
+      // integrations and a user-supplied one wins — so this is the only
+      // HttpServer integration that runs. The test posts a JSON body with an
+      // explicit content-type and asserts it never reaches an envelope.
+      integrations: [Sentry.httpServerIntegration({ maxRequestBodySize: 'none' })],
     }),
     handler
   ) as ExportedHandler<E>

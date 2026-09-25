@@ -27,19 +27,18 @@
 @import '../packages/component-lib/src/styles/index.css' layer(su-base);
 
 /*
- * The dashboard stylesheets. These are NOT reachable from `index.css` — each is
- * a side-effect `import './x.css'` inside its own component, which Vite injects
- * for the apps. The design-sync converter compiles `.css` imports to empty (its
- * contract is that styles ship via the stylesheet, not the bundle), so without
- * these three lines every dashboard component renders unstyled: the Dial, the
- * rail, the Active Item band and the whole `.pc-*` instrument vocabulary.
+ * The dashboard stylesheet bundle. It is NOT reachable from `index.css`: it is a
+ * separate package export (`component-lib/styles/dashboard.css`) that ITUN
+ * imports where it renders the dashboard (audit PK-01), so a consumer that
+ * draws no dashboard never ships it. Without this line every dashboard
+ * component renders unstyled here: the Dial, the rail, the Active Item band and
+ * the whole `.pc-*` instrument vocabulary. Importing the bundle rather than its
+ * three parts keeps their order identical to the app's.
  *
- * Unlayered, and last, deliberately — that is exactly how a side-effect import
- * lands in the apps, and the `.pc-*` rules are written expecting to win.
+ * Unlayered, and last, deliberately — that is how it lands in ITUN, and the
+ * `.pc-*` rules are written expecting to win.
  */
-@import '../packages/component-lib/src/components/dashboard/DashboardCanvas.css';
-@import '../packages/component-lib/src/components/dashboard/DashboardGrid.css';
-@import '../packages/component-lib/src/components/dashboard/instruments.css';
+@import '../packages/component-lib/src/styles/dashboard.css';
 
 @source '../packages/component-lib/src';
 @source '../apps/itun/src';

@@ -50,12 +50,12 @@ export default defineConfig({
             // gone before `ssg/pwa.ts` globs dist for the precache manifest.
             filesToDeleteAfterUpload: [`${outDir}/**/*.map`],
           },
+          // No plugin usage telemetry to Sentry from CI builds.
+          telemetry: false,
           // A failing upload (expired token, Sentry blip) degrades to "no maps
           // this deploy" rather than failing it. An ABSENT credential is a
           // different thing, and `deploy-cloudflare.yml` refuses to build
           // without one; this covers the blip, not the gap.
-          // No plugin usage telemetry to Sentry from CI builds.
-          telemetry: false,
           errorHandler: (error) => {
             console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
           },

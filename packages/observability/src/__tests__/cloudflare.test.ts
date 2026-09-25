@@ -80,7 +80,14 @@ describe('withObservability', () => {
 
     const outcome = await Promise.resolve(
       worker.fetch(
-        new Request('https://worker.test/publish', { method: 'POST', body: 'player-sheet' }),
+        new Request('https://worker.test/publish', {
+          method: 'POST',
+          // An explicit textual content-type: the SDK only captures a body it
+          // considers text, and plain Bun (unlike workerd) sets none on a
+          // string body — without this the assertion below passes vacuously.
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ sheet: 'player-sheet' }),
+        }),
         { SENTRY_DSN: DSN, COMMIT_REF: 'abc123' },
         ctx
       )
@@ -106,8 +113,10 @@ describe('withObservability', () => {
     expect(event.environment).toBe('production')
     // Three Workers report into one account; the server name is what says which.
     expect(event.server_name).toBe('test-worker')
-    // `sendDefaultPii: false` — a request body is a player's sheet or a signed
-    // Discord payload and must never ride along in a report.
+    // `maxRequestBodySize: 'none'` — a request body is a player's sheet or a
+    // signed Discord payload and must never ride along in a report.
+    // (`sendDefaultPii: false` does NOT control this; the HttpServer
+    // integration captures bodies by default.)
     expect(JSON.stringify(sent)).not.toContain('player-sheet')
   })
 
