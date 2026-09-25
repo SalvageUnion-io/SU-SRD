@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.9.3](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.2...srd-v2.9.3) (2026-09-25)
+
+
+### Bug Fixes
+
+* **itun:** pilot max HP/AP follows crawler tech level ([#982](https://github.com/SalvageUnion-io/SU-SRD/issues/982)) ([15691d9](https://github.com/SalvageUnion-io/SU-SRD/commit/15691d9b61770878231c327131870b80aa3fb534))
+
 ## [2.9.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.1...srd-v2.9.2) (2026-09-01)
 
 
