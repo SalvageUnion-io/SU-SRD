@@ -29,7 +29,6 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
-import { SnapshotPageInner } from '../../../routes/s/$id'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import {
@@ -41,6 +40,7 @@ import { must } from '../../__tests__/must'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
+import { SnapshotPageInner } from '../SnapshotPage'
 
 // ---------------------------------------------------------------------------
 // Preload salvageunion-reference once — MechSheet resolves chassis refs

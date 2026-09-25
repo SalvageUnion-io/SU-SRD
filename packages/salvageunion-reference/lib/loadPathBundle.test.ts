@@ -25,7 +25,7 @@ async function bundle() {
     splitting: true,
     minify: false,
   })
-  if (!result.success) throw new AggregateError(result.logs, 'bundle failed')
+  if (!result.success) throw new Error(`bundle failed:\n${result.logs.join('\n')}`)
   const byName = new Map<string, string>()
   const entries: string[] = []
   for (const output of result.outputs) {
