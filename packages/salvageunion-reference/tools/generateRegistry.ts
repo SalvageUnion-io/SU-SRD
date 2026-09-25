@@ -136,8 +136,8 @@ ${zodImports}
 /**
  * Zod schema map — the entity schemas keyed by schema id.
  *
- * The \`validate:schemas\` tool and \`generate:json-schemas\` import this
- * directly, so data is validated against the exact schemas the runtime would
+ * The \`schemas\` data check (tools/validate.ts) and \`generate:json-schemas\`
+ * import this directly, so data is validated against the exact schemas the runtime would
  * use rather than a parallel literal that could drift. At runtime only
  * \`lib/validateData.ts\` imports it, and ModelFactory reaches that module
  * through a dynamic \`import()\` when a caller passes \`{ validate: true }\` to

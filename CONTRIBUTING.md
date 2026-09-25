@@ -10,7 +10,7 @@ Discord dice bot (`apps/discord-bot`), and two shared packages
 - **[Bun](https://bun.com)** — pinned to the version in [`.bun-version`](.bun-version)
   (currently `1.4.0`). Install with `curl -fsSL https://bun.sh/install | bash`
   or `brew install oven-sh/bun/bun`, then `bun upgrade --to <version>` if needed.
-  CI enforces this pin via `bun tools/check-bun-version.ts` (part of `validate:all`).
+  CI enforces this pin via the `workflows` check (`bun run check workflows`).
 - Node is **not** required for the apps — Bun runs everything.
 
 ## First-time setup
@@ -27,7 +27,8 @@ hooks — if `bun install` succeeds, your hooks are installed.
 ## Git hooks (Lefthook)
 
 - **pre-commit** — `biome check --write` on staged files (parallel). Biome is the only formatter; Markdown and YAML are not formatted by tooling (Biome cannot parse them yet), so keep those tidy by hand.
-- **pre-push** — `typecheck`, `test`, `validate:all`, `knip` (parallel).
+- **pre-push** — `bun tools/check.ts --profile=pre-push` (every gate except the test
+  suite, the srd build and the network ones) and `test`, in parallel.
 
 Typecheck runs on **push**, not commit (a full fan-out across five workspaces is
 too slow per commit). Lean on the TypeScript LSP in your editor between commits.
@@ -40,13 +41,13 @@ Run the full local gate — it mirrors the CI merge gate:
 bun run check
 ```
 
-This runs, in order: schema-drift check (`build:package` + `git diff`), Biome
-(`biome ci .` — lint, format and import order), typecheck, then tests, data
-validation, knip, `bun audit`, the design guards, the CI-aggregator guard,
-workflow lint (actionlint + zizmor) and the srd output gate. If
-`check` is green, CI's `CI Success` gate should be too. `check:all` is a
-deprecated alias for the same script, kept for one release cycle so existing
-muscle memory and scripts keep working — new callers use `check`. The app builds
+This runs `tools/check.ts`: generated-file drift first (it regenerates, then
+diffs), then every other gate in parallel — Biome (`biome ci .`), typecheck,
+tests, data validation, doc drift, knip, `bun audit`, the styling and workflow
+guards, actionlint + zizmor and the srd output gate — and ends in a pass/fail
+table. Every check runs even when another fails. `bun run check --list` names
+them all; `bun run check <id> …` runs just those. If `check` is green, CI's
+`CI Success` gate should be too — CI runs the same registry. The app builds
 (`build:web`, `build:itun`) run only in CI/deploy; run them locally
 if you touched build config.
 
@@ -57,7 +58,7 @@ bun run dev            # build:package + srd dev server
 bun run dev:itun       # build:package + ITUN dev server
 
 bun --filter srd test          # test one workspace
-bun run typecheck:itun               # typecheck one workspace
+bun --filter itun typecheck     # typecheck one workspace
 ```
 
 > **Prefer `bun run test` or `bun --filter <pkg> test`.** A bare `bun test` at
@@ -86,7 +87,7 @@ by Zod schemas in `lib/schemas/`. After editing data or schemas:
 
 ```bash
 bun run build:package   # regenerate JSON schemas from Zod
-bun run validate:all    # unique IDs, cross-references, action references
+bun run check data      # unique IDs, cross-references, action references, …
 ```
 
 Never reformat JSON data files with automated formatters (`json.dump` etc.) —

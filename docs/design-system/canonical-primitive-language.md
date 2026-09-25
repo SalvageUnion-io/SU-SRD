@@ -208,19 +208,20 @@ screenshots gate anything with a visible delta.
    disappears.
 5. **Containers** — Modal, Tooltip (SeamStamp title), Toast, EmptyState,
    Skeleton, Tabs, Divider, SlotGrid, InlineRef, Icons to the same discipline.
-6. **Guardrails** — ✅ **BUILT** as `bun run check:tokens`
-   (`tools/check-design-tokens.ts`), wired into `check` and pre-push.
-   Seven rules, each citing the ruleset section it enforces: shadow tokens, raw
-   hex/rgb, gradients, arbitrary tracking, arbitrary border widths, arbitrary
-   font sizes, pure white. Sanctioned literals live in an `EXEMPTIONS` table
+6. **Guardrails** — ✅ **BUILT** as the `tokens` rule set of
+   `bun run check styling` (`tools/rules/designTokens.ts`), wired into `check`,
+   pre-push and CI. Eight rules, each citing the ruleset section it enforces:
+   shadow tokens, raw hex/rgb, gradients, arbitrary tracking, arbitrary border
+   widths, arbitrary radii, arbitrary font sizes, pure white. Sanctioned literals live in an `EXEMPTIONS` table
    that requires a written reason (Slab's dashed leader, the `theme.css`
    definitions themselves, the Foundations specimen pages).
 
-   **It ratchets.** `shadow-tokens` and `pure-white` are at 0 and fully
-   enforced; the other five carry a checked-in baseline
-   (`tools/design-tokens-baseline.json`) of pre-existing violations, so new ones
-   fail immediately while the backlog burns down and can never grow. Lower the
-   baseline with `bun run check:tokens --update-baseline`.
+   **It ratchets.** Six rules are `zero` rules, fully enforced with no
+   baseline; `raw-color` and `arbitrary-font-size` still carry a checked-in
+   baseline (`tools/styling-baseline.json`) of pre-existing violations, so new
+   ones fail immediately while the backlog burns down. The ratchet is strict in
+   both directions: an improvement that is not recorded fails too, so lower the
+   baseline in the same commit with `bun tools/check-styling.ts --update-baseline`.
 
    This check is **not redundant with typecheck**. These are Tailwind v4
    `@theme` tokens: a deleted or misspelled token does not fail compilation, the

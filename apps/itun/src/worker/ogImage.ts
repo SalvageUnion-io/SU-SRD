@@ -22,7 +22,7 @@
  * Measured during this work — a card with text came back byte-identical to a
  * card with none.
  *
- * `@fontsource` ships only `.woff` and `.woff2`, so `tools/woff-to-ttf.ts`
+ * `@fontsource` ships only `.woff` and `.woff2`, so `apps/itun/scripts/woff-to-ttf.ts`
  * unwraps the installed `.woff` into the TTFs imported below. Same font, same
  * licence (OFL-1.1), same dependency — a different container.
  */

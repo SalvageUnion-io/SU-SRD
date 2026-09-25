@@ -62,8 +62,8 @@ apps/srd/
    The real cost is quieter. A stylesheet imported anywhere but the entry never
    reaches Vite, so its authored rules — selectors, keyframes, `@layer` blocks —
    never ship, with a green build, a green typecheck, and an unchanged output
-   snapshot (which digests `<main>` text, not CSS). `bun run check:srd-css`
-   is what enforces this rule.
+   snapshot (which digests `<main>` text, not CSS). `bun run check styling`
+   (its `srd-css` rule set) is what enforces this rule.
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
    may import from `ssg/` at runtime.
 3. Code style (relative imports, `import type`, no `any`, …) is Biome's —

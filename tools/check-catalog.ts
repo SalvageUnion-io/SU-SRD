@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Catalog ratchet — `bun run check:catalog`.
+ * Catalog ratchet — `bun run check catalog`.
  *
  * `workspaces.catalog` in the root manifest is this repo's single source of
  * truth for the version of any dependency more than one workspace uses: declare
@@ -30,7 +30,7 @@
  * never resolves). No package is in both today — `@vitejs/plugin-react-swc` was
  * the last one and its override was removed in #787 — so that hazard is dormant
  * rather than absent. Also not checked: runtime version pins like
- * `.bun-version`, which `tools/check-bun-version.ts` already reconciles across
+ * `.bun-version`, which `tools/check-workflows.ts` already reconciles across
  * CI and every deploy target.
  */
 

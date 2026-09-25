@@ -30,8 +30,15 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
-    typecheck:
-      run: bun run typecheck
+    checks:
+      # Every gate except the test suite, from the ONE registry in
+      # tools/check.ts — the same list `bun run check` and CI's static-checks
+      # job run, with a different profile. Do not add a gate here: add it to
+      # that registry, and every path picks it up. (This file used to keep its
+      # own list of eight commands, and it had quietly never run the
+      # CI-aggregator gate.) `pre-push` = the fast profile plus generated-file
+      # drift, the likeliest avoidable CI bounce.
+      run: bun tools/check.ts --profile=pre-push
 
     test:
       # Runs only the test files the push can affect, via Bun's `--changed`,
@@ -76,44 +83,3 @@ pre-push:
         else
           bun --filter "*" test --changed="$base" && bun test ./tools --changed="$base"
         fi
-
-    lint:
-      # Pre-commit lints STAGED FILES ONLY, so a lint error can still reach the
-      # remote two ways it never sees: a merge/rebase conflict resolution, and
-      # anything committed with `--no-verify`. A full-tree lint is 0.45s — far
-      # cheaper than a CI round-trip to learn the same thing.
-      #
-      # `check:biome` (`biome ci .`), not `lint`: it is exactly what CI runs,
-      # so import order and formatting are caught here too, not only lint rules.
-      run: bun run check:biome
-
-    schemas:
-      # The likeliest avoidable CI bounce: `salvageunion-reference`'s generated
-      # artifacts (registry, JSON schemas, API report) are committed, and CI
-      # fails on drift. Nothing checked that locally, so the failure was only
-      # ever discoverable after a push. 2.4s here, minutes there.
-      run: bun run check:schemas
-
-    validate:
-      run: bun run validate:all
-
-    knip:
-      run: bun run knip
-
-    design-tokens:
-      # Guards the closed colour set / token scales (ruleset §3–§4). Belongs on
-      # pre-push rather than pre-commit for the same reason as typecheck — but
-      # it is load-bearing here in a way lint is not: these are Tailwind v4
-      # `@theme` tokens, so an off-system or deleted token does NOT fail
-      # typecheck. The utility simply stops being generated and the element
-      # renders unstyled. This check is the only mechanical backstop for that.
-      run: bun run check:tokens
-
-    styling-ownership:
-      # Guards the source-of-truth property: component-lib owns all shared
-      # styling. Catches app-local `@theme` tokens, dead app CSS, and breaks in
-      # the dashboard `pc-*` class contract (used-but-undefined / defined-but-
-      # unused). Like design-tokens, none of these fail typecheck — a stray app
-      # token or a className referencing an undefined class renders unstyled with
-      # no compiler error. Ratchets downward from a committed baseline.
-      run: bun run check:styling

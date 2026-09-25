@@ -3,10 +3,8 @@
  * Checks that all action names referenced in data files exist in
  * actions.json (both `actions[]` and `chassisAbilities[]` fields).
  *
- * Extracted from tools/validateActionReferences.ts so both the standalone
- * CLI and the unified runner (tools/validate.ts) share one implementation
- * over a caller-supplied data bag, instead of each re-reading `data/*.json`
- * itself.
+ * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
+ * `--only=actions`) and the tests share one implementation.
  */
 
 export type ActionReferenceError = {

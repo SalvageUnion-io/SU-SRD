@@ -12,7 +12,7 @@
  *
  * Exported as `fixMissingIds()` so it can be invoked in-process — e.g. by
  * `tools/validate.ts --fix`, the unified runner's mechanical-fix tier — in
- * addition to running standalone via `bun run fix:ids`.
+ * addition to running standalone via `bun run fix:ids` (in this package).
  *
  * NOTE: this still rewrites each modified file with
  * `JSON.stringify(data, null, 2)`, which reformats the whole file (the exact
@@ -508,7 +508,9 @@ export function fixMissingIds(): FixMissingIdsSummary {
     console.log(`Choice IDs deduplicated: ${totalChoiceIdsDeduplicated}`)
     console.log(`Total changes: ${totalChanges}`)
     console.log('\n✅ All missing and invalid IDs have been generated and fixed!')
-    console.log('\n💡 Run `bun run validate:ids` to verify all IDs are now valid and unique.')
+    console.log(
+      '\n💡 Run `bun tools/validate.ts --only=ids` to verify all IDs are now valid and unique.'
+    )
   }
 
   return { filesModified, totalChanges, fileResults }

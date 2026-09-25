@@ -45,7 +45,7 @@ const baseUrl = SITE_URL
 /**
  * Built inside `page()`, never at module scope.
  *
- * `validate:architecture` forbids a module-scope `SalvageUnionReference` call:
+ * the `architecture` check forbids a module-scope `SalvageUnionReference` call:
  * it would execute at import time, before the build's `preload()` bootstrap,
  * and throw "Schema not loaded". `page()` runs after that bootstrap.
  */

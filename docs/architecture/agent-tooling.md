@@ -50,7 +50,7 @@ host. No MCP server is declared; use `wrangler`"* while two Cloudflare servers
 WERE declared, and it carried live rows for `netlify`, `render` and `github`,
 none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and
 `cloudflare-cutover.md` and did not touch this file — and because root prose
-matched no CI path filter at the time, `validate:all` never ran on that PR.
+matched no CI path filter at the time, the doc-drift check never ran on that PR.
 
 CLAUDE.md sends agents here *instead of* enumerating accounts, so a wrong row
 here is followed rather than checked. There is no declared `github` server: use
@@ -246,7 +246,7 @@ env-gate the SDK on a DSN, so with no DSN Vite tree-shakes Sentry out and the
 build looks identical to a working one; and even with a DSN, a `connect-src`
 that omits the ingest origin blocks every event while still looking healthy.
 [`tools/check-observability.ts`](../../tools/check-observability.ts) checks both
-halves together (`bun run validate:observability`, wired into `validate:all`)
+halves together (`bun run check observability`, part of every `bun run check`)
 and pins the ingest host as `https://*.ingest.de.sentry.io`. **If you change the
 CSP or the Sentry region, change both in lockstep.**
 
@@ -292,7 +292,7 @@ Identifiers drift. Each row below can be re-derived, and the check is cheap:
 | Netlify sites + ids    | `netlify sites:list` (retired host — needed only to DELETE them, per ADR-033 P8)            |
 | Sentry org + projects  | Sentry MCP `find_organizations` / `find_projects`                                          |
 | Convex deployments     | `bunx convex mcp start` → `status`, or the Convex dashboard                                |
-| Sentry wiring is live  | `bun run validate:observability` (and `--live` against production, which the tool supports) |
+| Sentry wiring is live  | `bun run check observability` (and `bun run check:observability:live` against production) |
 
 If a re-derivation disagrees with this file, **believe the platform and fix this
 file** — a stale identifier here is worse than no identifier, because an agent

@@ -5,9 +5,8 @@
  * zodSchemaMap ModelFactory uses at runtime, so schema drift is caught here
  * before it surfaces as a runtime error.
  *
- * Extracted from tools/validateSchemas.ts so both the standalone CLI and the
- * unified runner (tools/validate.ts) share one implementation over a
- * caller-supplied data bag, instead of each re-reading `data/*.json` itself.
+ * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
+ * `--only=schemas`) and the tests share one implementation.
  */
 
 import type { z } from '../lib/zod.js'

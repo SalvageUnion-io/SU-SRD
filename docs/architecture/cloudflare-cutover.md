@@ -157,7 +157,7 @@ longer exists anywhere in the tree; this phase is complete.)
 
 - `tools/check-observability.ts` — CSP `connect-src` per browser app. It also
   carries a `netlifyBundled` flag per surface and a hardcoded `FUNCTION_DIRS`.
-- `tools/check-bun-version.ts` — the `BUN_VERSION` pin.
+- `tools/check-bun-version.ts` (since retired into `tools/check-workflows.ts`) — the `BUN_VERSION` pin.
 - `tools/check-convex-parity.ts` — asserts the build command refuses to ship
   without `CONVEX_DEPLOY_KEY`. That command moves into Actions, making this the
   sharpest of the three.
@@ -166,13 +166,14 @@ longer exists anywhere in the tree; this phase is complete.)
 point, so the failure class it guards ceases to exist. Delete it deliberately,
 with the reason recorded in the diff.
 
-`tools/check-ci-aggregator.ts` (#812) fails when a job is missing from the
-`quality-checks` aggregate's `needs:`. It will fire as jobs change. That is
+`tools/check-ci-aggregator.ts` (since retired into `tools/check-workflows.ts`;
+#812) fails when a job is missing from the `quality-checks` aggregate's
+`needs:`. It will fire as jobs change. That is
 correct; do not suppress it.
 
 **Gate — met 2026-08-18**
 
-- [x] `bun run check:all` green. *Gate wording amended:* it asked for a
+- [x] `bun run check` (then spelled `check:all`) green. *Gate wording amended:* it asked for a
       `wrangler.jsonc` to be present, which was the wrong test — the guards do not
       read one. Each guard instead resolves its property from whichever source
       exists, and the tests below drive it from the Cloudflare source with the
@@ -1353,8 +1354,8 @@ Only after P7 has been stable for 24 h.
 
 **Gate**
 
-- [x] `bun run check` green with every `netlify.toml` removed from the tree. (`check:all`
-      is a deprecated alias slated for removal — a gate that invokes a removed
+- [x] `bun run check` green with every `netlify.toml` removed from the tree. (`check:all`,
+      the old alias, has since been removed — a gate that invokes a removed
       script fails for the wrong reason.)
 - [ ] `claude mcp list` shows the Cloudflare servers connected — zero tool calls
       means "broken or unused" and the two are indistinguishable from usage data

@@ -20,7 +20,7 @@
   accounts-and-games, package-contracts, seo-accessibility, dashboard)
 - Shared theme: `packages/component-lib/src/styles/theme.css` — **the single
   home for every design token.** Apps may not define one
-  (`tools/check-styling-ownership.ts` fails the build at pre-push).
+  (`tools/check-styling.ts` fails the build at pre-push).
 - Game data: `packages/salvageunion-reference/` (ORM-like API)
 - ITUN app: `apps/itun/` (React 19 + Vite + TanStack Router + Tailwind v4,
   Base UI primitives via component-lib). SRD site: `apps/srd/` — **not Astro**;

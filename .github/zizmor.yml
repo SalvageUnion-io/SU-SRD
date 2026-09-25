@@ -1,7 +1,7 @@
-# zizmor configuration — read by `tools/lint-workflows.sh` (`bun run
-# lint:workflows`), which runs in CI's static-checks job.
+# zizmor configuration — read by `tools/lint-workflows.sh` (the `actionlint`
+# check in tools/check.ts), which runs in CI's static-checks job.
 rules:
-  # The same line `tools/check-action-pinning.ts` draws: GitHub's own actions
+  # The same line `tools/check-workflows.ts` (pinning) draws: GitHub's own actions
   # may ride a major tag, everything third-party is SHA-pinned. zizmor's
   # default would demand SHAs for `actions/*` too, and a rule that flags every
   # `actions/checkout@v7` in the repo gets switched off.
@@ -21,7 +21,7 @@ rules:
 
   # Suggests the `$/` self-repository syntax for local actions. Every
   # `./.github/actions/setup-bun` reference would change, and the two repo
-  # guards that parse workflows (check-action-pinning, the Dependabot
+  # guards that parse workflows (check-workflows' pinning, the Dependabot
   # `directories:` glob) are written against `./`. Advisory-only upstream.
   self-repository:
     disable: true

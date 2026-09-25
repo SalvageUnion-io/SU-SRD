@@ -2,7 +2,7 @@
 # lint-workflows — actionlint + zizmor over .github/, each pinned to an exact
 # version AND verified against a recorded sha256 before it runs.
 #
-#   bun run lint:workflows
+#   bun run check actionlint
 #
 # actionlint catches what YAML validity does not: bad expressions, unknown
 # `needs:` / output references, and (via shellcheck, when it is on PATH —
@@ -11,8 +11,8 @@
 # and dangerous triggers. Its config is `.github/zizmor.yml`.
 #
 # WHY A SCRIPT AND NOT `go run` / `pipx run`: this repo refuses to execute a
-# fetched tool it cannot pin (tools/check-action-pinning.ts). A version string
-# alone is a pointer; the hash below is the artifact. Both tools are fetched
+# fetched tool it cannot pin (tools/check-workflows.ts, pinning). A version
+# string alone is a pointer; the hash below is the artifact. Both tools are fetched
 # once per version into a user cache and reused, so a local re-run is instant.
 #
 # BUMPING: change the version, then replace every hash for that tool from the

@@ -3,9 +3,8 @@
 /**
  * Unified validation runner.
  *
- * Replaces chaining 11 separate `bun run validate:*` process invocations
- * (each re-reading and re-parsing the ~1.3MB `data/*.json` corpus on its
- * own) with a single shared data-load pass, fed to all 11 checks:
+ * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
+ * 11 checks (it replaced 11 separate processes, each re-reading the corpus):
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
@@ -19,13 +18,16 @@
  *   - parity           (validateParityLogic.ts)
  *   - double-encoding  (validateParityLogic.ts)
  *
- * Every check's detection logic lives in its own `*Logic.ts` module, and the
- * standalone `bun run validate:*` CLIs (still supported individually) import
- * the exact same functions this runner does — so the two can never diverge.
+ * Every check's detection logic lives in its own `*Logic.ts` module, which is
+ * where its tests live too. This file is the ONLY command-line entry: there
+ * used to be one thin CLI wrapper per check as well — ten files, ~650 lines,
+ * each re-loading the corpus and re-printing its own report format — and ten
+ * of their eleven `validate:*` scripts had no caller. `--only` replaces them.
  *
  * Usage:
- *   bun tools/validate.ts            # run all checks, structured report
- *   bun tools/validate.ts --fix      # apply mechanical fixes first (see below), then run all checks
+ *   bun tools/validate.ts                      # run all checks, structured report
+ *   bun tools/validate.ts --only=ids,slugs     # run just these checks
+ *   bun tools/validate.ts --fix                # apply mechanical fixes first (see below), then run all checks
  *
  * `--fix` is a *mechanical-only* tier: it currently does exactly what
  * `bun run fix:ids` already does (generateMissingIds.ts — fill in missing
@@ -42,6 +44,8 @@ import { checkAllFiles } from './checkUniqueIdsLogic.js'
 import { fixMissingIds } from './generateMissingIds.js'
 import type { DataBag } from './loadData.js'
 import { loadAllDataFiles } from './loadData.js'
+import type { CheckId } from './selectChecks.js'
+import { CHECK_IDS, selectChecks } from './selectChecks.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runContentDupeCheck } from './validateContentDupesLogic.js'
@@ -278,24 +282,27 @@ function schemasCheck(data: DataBag): Diagnostic[] {
 // ─── runner ──────────────────────────────────────────────────────────────
 
 type CheckDefinition = {
-  id: string
+  id: CheckId
   label: string
   run: (data: DataBag) => Diagnostic[]
 }
 
-const CHECKS: CheckDefinition[] = [
-  { id: 'ids', label: 'Unique IDs', run: idsCheck },
-  { id: 'slugs', label: 'Slug uniqueness', run: slugsCheck },
-  { id: 'references', label: 'Cross-references', run: referencesCheck },
-  { id: 'actions', label: 'Action references', run: actionReferencesCheck },
-  { id: 'action-backrefs', label: 'Namesake action back-references', run: actionBackrefsCheck },
-  { id: 'orphans', label: 'Orphan detection', run: orphansCheck },
-  { id: 'content-dupes', label: 'Duplicated record content', run: contentDupesCheck },
-  { id: 'traits', label: 'Trait data', run: traitsCheck },
-  { id: 'parity', label: 'Rules parity', run: parityCheck },
-  { id: 'double-encoding', label: 'One concept, one encoding', run: doubleEncodingCheck },
-  { id: 'schemas', label: 'Zod schema validation', run: schemasCheck },
-]
+// A Record, so a check id added to CHECK_IDS without an entry here fails typecheck.
+const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
+  ids: { label: 'Unique IDs', run: idsCheck },
+  slugs: { label: 'Slug uniqueness', run: slugsCheck },
+  references: { label: 'Cross-references', run: referencesCheck },
+  actions: { label: 'Action references', run: actionReferencesCheck },
+  'action-backrefs': { label: 'Namesake action back-references', run: actionBackrefsCheck },
+  orphans: { label: 'Orphan detection', run: orphansCheck },
+  'content-dupes': { label: 'Duplicated record content', run: contentDupesCheck },
+  traits: { label: 'Trait data', run: traitsCheck },
+  parity: { label: 'Rules parity', run: parityCheck },
+  'double-encoding': { label: 'One concept, one encoding', run: doubleEncodingCheck },
+  schemas: { label: 'Zod schema validation', run: schemasCheck },
+}
+
+const CHECKS: CheckDefinition[] = CHECK_IDS.map((id) => ({ id, ...CHECK_TABLE[id] }))
 
 function printReport(diagnostics: Diagnostic[]): void {
   console.log(`\n${'='.repeat(80)}`)
@@ -320,7 +327,15 @@ function printReport(diagnostics: Diagnostic[]): void {
 }
 
 function main(): void {
-  const fix = process.argv.slice(2).includes('--fix')
+  const argv = process.argv.slice(2)
+  const fix = argv.includes('--fix')
+  let checks: CheckDefinition[]
+  try {
+    checks = selectChecks(CHECKS, argv)
+  } catch (error) {
+    console.error(`✗ ${(error as Error).message}`)
+    process.exit(2)
+  }
 
   if (fix) {
     console.log('🔧 --fix: applying mechanical fixes (missing/invalid/duplicate IDs)...\n')
@@ -337,7 +352,7 @@ function main(): void {
   const data = loadAllDataFiles()
 
   const allDiagnostics: Diagnostic[] = []
-  for (const check of CHECKS) {
+  for (const check of checks) {
     const diagnostics = check.run(data)
     allDiagnostics.push(...diagnostics)
     const status = diagnostics.length === 0 ? '✅' : '❌'

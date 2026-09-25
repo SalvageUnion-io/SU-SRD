@@ -60,7 +60,7 @@ Three drivers, all confirmed this round:
   command.
 
 **Invariants:** read-only-first; real data everywhere; green at every checkpoint
-(typecheck + lint + tests + `validate:all`); prefer data-shape changes over
+(typecheck + lint + tests + `bun run check data`); prefer data-shape changes over
 renderer special-cases; the SRD reference site is untouched (ITUN-only shell).
 
 ### Dependency-graph constraint (why the "before" is a reproduction)

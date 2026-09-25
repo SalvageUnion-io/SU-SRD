@@ -11,7 +11,7 @@
  * ## The trusted load path (audit PK-04)
  *
  * The data files are committed, and CI validates every one of them against
- * its Zod schema (`validate:schemas`) and proves that a Zod parse returns each
+ * its Zod schema (the `schemas` data check) and proves that a Zod parse returns each
  * file UNCHANGED (`lib/dataCanonical.test.ts`: no defaults left to fill, no
  * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
  * therefore pure repetition — and it was most of the cost: ~87% of a

@@ -21,7 +21,7 @@
  *   bun tools/edit-data.ts set chassis.json --name "Mule" --field page --value 101
  *
  * Writes the result back to data/<file> in place. Does NOT run
- * `validate:all` automatically — run it after editing.
+ * the data checks automatically — run `bun run check data` after editing.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'

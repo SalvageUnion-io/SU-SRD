@@ -42,6 +42,7 @@ jobs:
       web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
       bot: ${{ steps.filter.outputs.bot || steps.all.outputs.all }}
       assets: ${{ steps.filter.outputs.assets || steps.all.outputs.all }}
+      ladle: ${{ steps.filter.outputs.ladle || steps.all.outputs.all }}
       code: ${{ steps.filter.outputs.code || steps.all.outputs.all }}
       docs: ${{ steps.filter.outputs.docs || steps.all.outputs.all }}
     steps:
@@ -65,7 +66,7 @@ jobs:
             shared: &shared
               - 'packages/salvageunion-reference/**'
               # a `workspace:*` dependency of all four apps; asserted from the
-              # manifests by tools/check-path-filters.ts
+              # manifests by tools/check-workflows.ts (path-filters)
               - 'packages/observability/**'
               - 'package.json'
               - 'bun.lock'
@@ -97,6 +98,9 @@ jobs:
             bot:
               - *shared
               - 'apps/discord-bot/**'
+            ladle:
+              - *shared
+              - 'packages/component-lib/**'
             assets:
               - *shared
               - 'apps/su-assets/**'
@@ -120,7 +124,7 @@ jobs:
 
   static-checks:
     # No job-level `if:` — this job is an input to `CI Success` and must always
-    # report. The first block is unconditional; later steps gate per step.
+    # report. Its one step always runs; each check gates itself by area.
     needs: [changes]
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -133,70 +137,23 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # Lint, format AND import order in one pass. `biome lint` + `biome
-      # format` never ran the organizeImports assist, so it went unenforced.
-      - name: Biome (lint + format + imports)
-        run: bun run check:biome
-
-      - name: Design token check
-        run: bun run check:tokens
-
-      - name: Styling ownership check
-        run: bun run check:styling
-
-      # `CI Success` must `needs:` every job in this file.
-      - name: CI aggregator gate check
-        run: bun run check:ci-aggregator
-
-      # actionlint (expressions, job graph, shellcheck on `run:`) and zizmor
-      # (template injection, credential persistence, pinning). Both pinned
-      # and hash-verified by the script.
-      - name: Lint workflows (actionlint + zizmor)
-        run: bun run lint:workflows
-
-      - name: Regenerate generated artifacts
-        if: needs.changes.outputs.code == 'true'
-        run: bun run build:package
-
-      # `git diff` misses NEW files, so untracked output is checked too.
-      - name: Verify generated files are up to date
-        if: needs.changes.outputs.code == 'true'
+      # Every gate except the test suite and the srd build (their own jobs
+      # below), from the ONE registry in tools/check.ts — the same list
+      # `bun run check` and pre-push run. Add a gate THERE, never as a step
+      # here. The areas decide which checks a diff needs: always-on checks
+      # (Biome, workflows, styling, actionlint/zizmor) run on every PR; repo
+      # invariants (doc drift, data, …) on code OR docs; typecheck, knip,
+      # generated-file drift and the audit on code only. Every check runs even
+      # after one fails, and the log ends in a pass/fail table.
+      - name: Run checks
+        env:
+          CODE: ${{ needs.changes.outputs.code }}
+          DOCS: ${{ needs.changes.outputs.docs }}
         run: |
-          paths=(packages/salvageunion-reference/schemas packages/salvageunion-reference/docs packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc .vscode/settings.json)
-          stale=0
-          if ! git diff --exit-code -- "${paths[@]}"; then stale=1; fi
-          untracked="$(git ls-files --others --exclude-standard -- "${paths[@]}")"
-          if [ -n "$untracked" ]; then
-            echo "::error::Generated files exist that are not committed:" >&2
-            echo "$untracked" >&2
-            stale=1
-          fi
-          if [ "$stale" -ne 0 ]; then
-            echo "::error::Committed generated files are stale. Run 'bun run build:package' and commit the result." >&2
-            exit 1
-          fi
-
-      - name: Typecheck
-        if: needs.changes.outputs.code == 'true'
-        run: bun run typecheck
-
-      - name: Knip
-        if: needs.changes.outputs.code == 'true'
-        run: bun run knip
-
-      # Data validation plus the repo-level gates — architecture, doc drift,
-      # observability, Convex parity, catalog, pinning, path filters. Runs on
-      # docs-only changes too: doc drift exists to police exactly those.
-      - name: Validate data and repo invariants
-        if: needs.changes.outputs.code == 'true' || needs.changes.outputs.docs == 'true'
-        run: bun run validate:all
-
-      # `bun run check:audit`, never a bare `bun audit`: one command, one
-      # source of truth. The `overrides` record is in
-      # docs/architecture/dependency-management.md.
-      - name: Audit dependencies
-        if: needs.changes.outputs.code == 'true'
-        run: bun run check:audit
+          areas=""
+          if [ "$CODE" = "true" ]; then areas="code"; fi
+          if [ "$DOCS" = "true" ]; then areas="${areas:+$areas,}docs"; fi
+          bun tools/check.ts --profile=ci --areas="$areas"
 
   # THE test gate. One instrumented run of every workspace (with the #818
   # reporter-flake retry in run-coverage.ts), the coverage ratchet, and the
@@ -278,6 +235,32 @@ jobs:
         working-directory: apps/srd
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
 
+      # WCAG 2.1 AA on the pages in tools/a11y-baseline.json, against the
+      # dist built above. Blocks on any violation the baseline does not accept,
+      # and on a baseline entry that no longer fires. It used to run only
+      # nightly, so a regression merged green and surfaced the next morning.
+      - name: Accessibility scan (axe-core)
+        run: |
+          set -euo pipefail
+          (cd apps/srd && bun ssg/preview.ts --port 4399) &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do
+            if curl -sfo /dev/null http://localhost:4399/; then break; fi
+            sleep 1
+          done
+          bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json http://localhost:4399 \
+            > a11y-report.json
+
+      - name: Upload a11y report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-report-srd
+          path: a11y-report.json
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
@@ -306,14 +289,6 @@ jobs:
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
         run: bun --filter itun worker:bundle --outdir /tmp/itun-worker
-
-      - name: Check routeTree.gen.ts is not stale
-        run: |
-          if ! git diff --exit-code -- apps/itun/src/routeTree.gen.ts; then
-            echo "::error::apps/itun/src/routeTree.gen.ts is stale — the itun build regenerated it." \
-              "Run 'bun --filter itun build' and commit the result."
-            exit 1
-          fi
 
       - name: Cache Playwright browsers
         uses: actions/cache@v6
@@ -390,6 +365,26 @@ jobs:
           } >&2
           exit 1
 
+  # The Ladle stories are component-lib's visual catalogue and the review
+  # surface for the component-refresh loop. Nothing built them on a PR, so a
+  # story that no longer compiled merged green and broke `bun run ladle`.
+  build-ladle:
+    needs: [changes]
+    if: needs.changes.outputs.ladle == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Build the Ladle stories
+        run: bun --filter component-lib ladle:build
+
   build-su-assets:
     needs: [changes]
     if: needs.changes.outputs.assets == 'true'
@@ -410,7 +405,7 @@ jobs:
   # ---------------------------------------------------------------------------
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
-  # tools/check-ci-aggregator.ts enforces it. CodeQL is required separately
+  # tools/check-workflows.ts (aggregator) enforces it. CodeQL is required separately
   # (ci.md, "The aggregate gate").
   # ---------------------------------------------------------------------------
   quality-checks:
@@ -424,6 +419,7 @@ jobs:
       - build-itun
       - build-discord-bot
       - build-su-assets
+      - build-ladle
       - pr-title
     runs-on: ubuntu-latest
     timeout-minutes: 15

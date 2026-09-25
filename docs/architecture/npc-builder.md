@@ -130,7 +130,7 @@ pilots/mechs/crawlers that the change must mirror:
 | Change log | `ChangeLogEntityTypeSchema` gains `'npc'` |
 | Public sheet | `/p/:kind/:appId` accepts `npc` if `publicRead` applies (ADR-032) |
 
-`tools/check-convex-codegen.ts`, `bun run check:schemas` and the export/import
+`tools/check-convex-codegen.ts`, `bun run check generated` and the export/import
 round-trip tests are the guards that will say when one of these was missed.
 
 ---
@@ -196,7 +196,7 @@ more layers, use `gh stack`).
 
 | # | Phase | Contents | Gate |
 | --- | --- | --- | --- |
-| 1 | Entity | §3.1 schema, §3.3 persistence end to end (IndexedDB, Convex table + parser, sync, export/import, change log). No UI. | Round-trip tests: create → Convex → export → import; `check:schemas`, `check-convex-codegen` green |
+| 1 | Entity | §3.1 schema, §3.3 persistence end to end (IndexedDB, Convex table + parser, sync, export/import, change log). No UI. | Round-trip tests: create → Convex → export → import; `check generated`, `check-convex-codegen` green |
 | 2 | Sheet + roster | §4.2, §4.3, Blank create via `BlankCreateDialog` | An NPC can be created blank, edited, moved to a Game, and read back |
 | 3 | Wizard | §4.1 | Every template kind pre-fills correctly (test per kind) |
 | 4 | Assignment | §3.2 soft link, crawler bay card rendering, link/unlink controls | Unlinking restores the inline crew byte-for-byte |

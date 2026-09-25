@@ -53,8 +53,8 @@ component-lib affects srd and itun. Each app group is `shared` + its own paths.
 `CI Success` treats a skipped job as a pass, which is what makes the filters the
 only thing between a diff and an unbuilt merge — so:
 
-- **`tools/check-path-filters.ts` asserts every app's `workspace:*` dependency
-  is covered by that app's group.** `packages/observability` was once missing
+- **`tools/check-workflows.ts` (its `path-filters` half) asserts every app's
+  `workspace:*` dependency is covered by that app's group.** `packages/observability` was once missing
   from `shared`, so a change to it ran checks but skipped all three builds (and
   with them the srd snapshot gate, the routeTree staleness check and both
   Playwright tiers).
@@ -67,8 +67,9 @@ only thing between a diff and an unbuilt merge — so:
 - **`code` vs `docs`** (audit CI-11). `code` is source, tools and the Claude hook
   scripts (the hook tests in `tools/__tests__/` exercise `.claude/hooks/**`).
   `docs` is `docs/**`, root `CLAUDE.md` / `README.md` / `CONTRIBUTING.md`,
-  `.claude/**` and `.mcp.json`. A docs-only PR runs `validate:all` — doc drift
-  and architecture checks read exactly those files, and before they were in any
+  `.claude/**` and `.mcp.json`. A docs-only PR runs the repo-invariant checks — doc
+  drift, architecture, data and the rest the `code`/`docs` areas select —
+  which read exactly those files, and before they were in any
   filter a CLAUDE.md-only PR could not run the CLAUDE.md guard (#942) — but not
   the test suite, the typecheck or the audit, which nothing in those files can
   affect. That was ~140 runner-seconds per docs PR.
@@ -79,21 +80,34 @@ Six jobs merged into one (they spent 134 s in `Setup Bun` between them to do
 23 s of work). No job-level `if:`: it is an input to `CI Success` and must always
 report.
 
-- **Unconditional steps**: Biome (`bun run check:biome` = `biome ci .`, which is
-  lint, format *and* the organizeImports assist — the separate `biome lint` /
-  `biome format` passes never enforced import order), the design-token and
-  styling-ownership guards (they used to live only in the bypassable pre-push
-  hook), the CI-aggregator guard, and `bun run lint:workflows`.
-- **`lint:workflows`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
+It has ONE step: `bun tools/check.ts --profile=ci --areas=<code,docs>`. The
+list of checks is the registry in `tools/check.ts` — the same one `bun run
+check` and pre-push read — so a gate cannot exist in one path and not another
+(pre-push used to skip the CI-aggregator guard, and `validate:all` was an
+`&&` chain in which the first failure hid every later result). Every check runs
+even after one fails, and the step log ends in a pass/fail table. Each check
+declares which areas make it relevant:
+
+- **Always**: Biome (`biome ci .` — lint, format *and* the organizeImports
+  assist), `workflows` (aggregate gate, path filters, SHA pinning, Bun version,
+  Convex deploy guard), `styling` (design tokens, styling ownership, srd
+  stylesheet entry) and `actionlint`.
+- **`actionlint`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
   each pinned to an exact version and verified against a recorded sha256 before
   it runs. zizmor's config is `.github/zizmor.yml`; its pinning policy is the
-  same first-party line `tools/check-action-pinning.ts` draws. Every checkout
+  same first-party line `tools/check-workflows.ts` draws. Every checkout
   sets `persist-credentials: false` except `catalog-update.yml`, whose action
   pushes with it.
-- **`code`-gated**: regenerate + drift-check the reference package's generated
-  files (untracked output counts — `git diff` alone missed new schemas),
-  typecheck, knip, and the dependency audit.
-- **`code` or `docs`**: `validate:all`.
+- **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
+  drift — reference package artifacts and `routeTree.gen.ts`), typecheck, knip,
+  and the dependency audit.
+- **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
+  `architecture`, `observability`, `convex-codegen`, `convex-callers`,
+  `catalog`, `worker-env`.
+
+The test suite and the srd build are in the registry too (`bun run check` runs
+them) but not in the `ci` profile: they are the `coverage` and `build-srd`
+jobs.
 
 ## The test gate — `coverage`
 
@@ -113,7 +127,7 @@ test files without instrumentation.
 
 ## Build jobs
 
-All four `needs: [changes]` only (audit CI-02). They consume no artifact from
+All five `needs: [changes]` only (audit CI-02). They consume no artifact from
 `static-checks` or the tests, and `CI Success` already fails the PR if any of
 those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
 
@@ -122,14 +136,21 @@ those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
   failure attribution survives and the Playwright tier serves the same `dist`).
   The PR-blocking browser tier (smoke + bundle budget) is folded in rather than
   a separate job, because a separate job cost a second full build. Add a spec
-  to the run line, not a job. Full browser suites run nightly
+  to the run line, not a job. Then the axe-core accessibility scan runs against
+  the same `dist`, over the pages in `tools/a11y-baseline.json`; it blocks on a
+  violation the baseline does not accept and on a stale entry. (It used to run
+  only nightly, so a regression merged green.) Full browser suites run nightly
   (`e2e-nightly.yml`).
 - **`build-itun`** builds, bundles the Worker with `bun --filter itun
   worker:bundle` (the build emits assets only; `wrangler.jsonc`'s `main` was
-  otherwise never bundled before deploy), checks `routeTree.gen.ts` is not
-  stale, and runs the same browser tier.
+  otherwise never bundled before deploy), and runs the same browser tier.
+  `routeTree.gen.ts` staleness is the `generated` check in `static-checks`,
+  which regenerates it without a build.
 - **`build-discord-bot`** and **`build-su-assets`** bundle the Worker that
   actually deploys. The bot has no build script.
+- **`build-ladle`** builds component-lib's Ladle stories when component-lib (or
+  anything `shared`) changes. Nothing built them on a PR before, so a story
+  that no longer compiled merged green.
 
 wrangler is a catalogued devDependency of all four Worker apps (audit CI-09), so
 every bundle and deploy runs the version `bun.lock` resolved — audited, behind
@@ -154,8 +175,8 @@ check (the same name across the fleet's repos). It fails on any `failure` or
 `cancelled` result and passes on `skipped`.
 
 **Every job must be in its `needs:`** — a job missing from that list still runs
-and goes red but cannot block a merge. `tools/check-ci-aggregator.ts` diffs the
-two lists on every PR.
+and goes red but cannot block a merge. `tools/check-workflows.ts` (its `aggregator`
+half) diffs the two lists on every PR.
 
 `needs:` cannot reach other workflows, so CodeQL is required as its own status
 context (`Analyze (javascript-typescript)`). That is why `codeql.yml` has no

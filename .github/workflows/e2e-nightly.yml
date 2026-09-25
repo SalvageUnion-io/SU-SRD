@@ -357,21 +357,11 @@ jobs:
             sleep 2
           done
           curl -sfo /dev/null http://localhost:4321/
-          # The page list must match `tools/a11y-baseline.json` exactly: a page
-          # in the baseline but not scanned is reported as a stale entry, which
-          # is what stops the list and the baseline drifting apart.
+          # The pages scanned are the baseline's own keys — one list, shared
+          # with the PR-blocking scan in ci.yml's build-srd job.
           bun tools/a11y-scan.ts \
             --baseline tools/a11y-baseline.json \
             http://localhost:4321 \
-            / \
-            /about/ \
-            /api/ \
-            /discord/ \
-            /search/ \
-            /schema/chassis/ \
-            /schema/chassis/item/aegis/ \
-            /schema/roll-tables/item/ai-personality/ \
-            /schema/guides/item/activating-and-shutting-down-a-mech/ \
             > a11y-report.json
 
       - name: Summarise violations
@@ -426,7 +416,7 @@ jobs:
   observability-probe:
     # The one observability check CI structurally CANNOT do on a PR: whether the
     # Sentry DSN actually reached the production builds. The repo can only
-    # prove the wiring (tools/check-observability.ts, run in `validate:all` on
+    # prove the wiring (tools/check-observability.ts, run by `bun run check` on
     # every PR); whether the deploy env carries the DSN is invisible until you
     # look at what production actually serves. This fetches both sites and
     # asserts the SDK is really in the bytes being sent to users.
@@ -464,7 +454,7 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Probe production for the Sentry SDK
-        run: bun run validate:observability:live
+        run: bun run check:observability:live
 
   convex-parity:
     # The other thing CI structurally cannot do on a PR: know what is actually
@@ -479,7 +469,7 @@ jobs:
     #
     # The static half of this check (the deploy-cloudflare.yml guard that makes
     # an absent CONVEX_DEPLOY_KEY fatal in production) runs on every PR via
-    # `validate:all`. This is the half that needs the deployment itself.
+    # `check-workflows.ts` (convex-guard). This is the half that needs the deployment.
     #
     # Gated on the CONVEX_PARITY_PROBE repo variable for the same reason
     # observability-probe is: an alarm that rings nightly for a credential that
@@ -504,7 +494,7 @@ jobs:
           # With the key present the Convex CLI resolves its own target, so no
           # deployment name is passed and none can be wrong.
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: bun run validate:convex-parity:live
+        run: bun run check:convex-parity:live
 
   production-smoke:
     # The post-deploy smoke list from deploy-cloudflare.yml, re-run daily. A

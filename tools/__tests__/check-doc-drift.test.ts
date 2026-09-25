@@ -5,7 +5,7 @@
  * dead things on purpose.
  *
  * Every case runs against a throwaway fixture tree, never the real repo — the
- * repo's own state is what `bun run validate:doc-drift` asserts.
+ * repo's own state is what `bun run check doc-drift` asserts.
  */
 
 import { afterAll, describe, expect, it } from 'bun:test'
@@ -567,6 +567,20 @@ describe('checkReferencedScripts', () => {
     const { failures } = checkReferencedScripts(root)
     expect(failures).toHaveLength(1)
     expect(failures[0]).toContain('bun run verify')
+  })
+
+  it('checks the ids after `bun run check` against the tools/check.ts registry', () => {
+    const root = fixture({
+      'package.json': JSON.stringify({ scripts: { check: 'x' } }),
+      '.claude/workflows/w.js':
+        'const s = \'run "bun run check styling data" then "bun run check tokens"; `bun run check` alone\'\n',
+      'CLAUDE.md':
+        'Run bun run check before you push.\n\n```bash\nbun run check data   # one check\nbun run check nope\n```\n',
+    })
+    const { failures } = checkReferencedScripts(root)
+    expect(failures).toHaveLength(2)
+    expect(failures.some((f) => f.includes('`tokens` is not a check id'))).toBe(true)
+    expect(failures.some((f) => f.includes('`nope` is not a check id'))).toBe(true)
   })
 })
 

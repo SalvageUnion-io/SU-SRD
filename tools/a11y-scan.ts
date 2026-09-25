@@ -2,7 +2,15 @@
  * Accessibility audit script using axe-core + Playwright.
  * Scans pages of a running dev server and reports WCAG 2.1 AA violations.
  *
- * Usage: bun tools/a11y-scan.ts <base-url> <page1> <page2> ...
+ * Usage:
+ *   bun tools/a11y-scan.ts <base-url> <page1> <page2> ...
+ *   bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>
+ *
+ * With `--baseline` and no pages, the pages scanned are exactly the baseline's
+ * keys. That is how both callers run it — the PR-blocking step in CI's
+ * `build-srd` job and the nightly — so the page list lives in ONE place (the
+ * baseline) rather than being restated in each workflow, and cannot drift from
+ * it: a page in the baseline but not scanned would otherwise be reported stale.
  *
  * Uses Playwright rather than puppeteer-core so the repo has ONE browser
  * automation stack. puppeteer-core ships no browser, so this script previously
@@ -184,7 +192,11 @@ async function main() {
   const positional =
     baselineFlag === -1 ? argv : [...argv.slice(0, baselineFlag), ...argv.slice(baselineFlag + 2)]
 
-  const [baseUrl, ...pages] = positional
+  const [baseUrl, ...listed] = positional
+  const baseline = baselinePath
+    ? (JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline)
+    : null
+  const pages = listed.length > 0 ? listed : Object.keys(baseline?.pages ?? {})
   if (!baseUrl || pages.length === 0) {
     console.error(
       'Usage: bun tools/a11y-scan.ts [--baseline <file>] <base-url> <page1> <page2> ...'
@@ -245,9 +257,8 @@ async function main() {
   // Output JSON results
   console.log(JSON.stringify(allResults, null, 2))
 
-  if (!baselinePath) return
+  if (!baseline) return
 
-  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline
   const { regressions, stale } = diffAgainstBaseline(allResults, baseline)
 
   for (const line of regressions) console.error(`NEW VIOLATION  ${line}`)

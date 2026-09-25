@@ -138,7 +138,7 @@ components awaiting rework. Story titles set the namespace (`title: 'Composition
 4. **Delete** the legacy component + its old story. No dual-catalog window, no
    deprecated aliases.
 5. **Verify green** before pushing: `bun run typecheck` · `bun run test` ·
-   `bun run validate:all` · `bun run knip` (these are the pre-push hooks). One
+   `bun run check:fast` (what the pre-push hook runs, less the suite). One
    primitive per commit; land on the 466 branch (`worktree-entity-card-capture`).
 
 ## 5. Migration work-list + order (real consumer footprints)

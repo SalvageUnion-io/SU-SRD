@@ -28,7 +28,7 @@ conventions, then the relevant architecture doc below.
 
 **I need a site id, service id, org slug, deployment name, or dashboard URL — or an MCP server isn't connecting** → [architecture/agent-tooling.md](architecture/agent-tooling.md) (**the service registry** — read it instead of listing every project on an account)
 
-**I'm changing CI, a workflow, or how deploys pick what to ship** → [architecture/ci.md](architecture/ci.md) — why the path filters, the single test gate, the aggregate `CI Success` check and the `deployed/cloudflare` deploy record are shaped the way they are; `bun run lint:workflows` runs actionlint + zizmor locally.
+**I'm changing CI, a workflow, or how deploys pick what to ship** → [architecture/ci.md](architecture/ci.md) — why the path filters, the single test gate, the aggregate `CI Success` check and the `deployed/cloudflare` deploy record are shaped the way they are; `bun run check workflows actionlint` runs the workflow guards and actionlint + zizmor locally.
 
 **I'm adding, bumping or pinning a dependency** → [architecture/dependency-management.md](architecture/dependency-management.md) — the catalog (a dep used by 2+ manifests is declared once), `overrides` (one dedupe pin and four security floors), the `bun audit` gate, and `bunfig.toml`'s 3-day install cooldown, which makes a **caret range resolve silently downward** instead of erroring.
 

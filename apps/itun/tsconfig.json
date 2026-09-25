@@ -32,7 +32,9 @@
     "test/**/*",
     "convex/**/*",
     "e2e/**/*",
+    "scripts/**/*",
     "vite.config.ts",
+    "routeTree.config.ts",
     "playwright.config.ts"
   ]
 }

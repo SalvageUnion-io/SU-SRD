@@ -163,7 +163,7 @@ function parseSchemaFile(schemaFile: string): SchemaInfo | null {
  * the catalog, and no caller touches `getSchemaCatalog().version`. What it did
  * do was couple a GENERATED artifact to a version release-please bumps in
  * `package.json` alone: every release PR therefore arrived with a stale
- * `version` here, `check:schemas` regenerated it, saw the mismatch, and failed.
+ * `version` here, the generated-file drift check regenerated it, saw the mismatch, and failed.
  * Release PRs were unmergeable by construction (#786).
  *
  * release-please's `extra-files` is the usual fix for a file that carries a

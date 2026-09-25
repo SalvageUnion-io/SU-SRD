@@ -22,28 +22,20 @@
  * served the current commit, and the only trace was a Convex deployment log
  * stream nobody tails. A green build is not evidence that the backend moved.
  *
- * Two halves, checked at the two different places they break:
+ * This is the LIVE half: the thing CI structurally cannot know, namely what is
+ * actually deployed. It asks the deployment for its function list and asserts
+ * every function this repo defines is present on it. That is the direction
+ * that matters — a backend BEHIND the client is what breaks players, because
+ * the client calls things that are not there. It runs nightly.
  *
- *   STATIC (default; runs in `validate:all`, so every PR)
- *     Cheap, hermetic, no network, no credentials. Asserts the one thing the
- *     repo can own by itself: that `.github/workflows/deploy-cloudflare.yml`
- *     still runs `convex deploy` and refuses a production deploy with no
- *     `CONVEX_DEPLOY_KEY`. That guard is what turns
- *     the original failure from silent into fatal, and a guard nothing checks
- *     is a guard that gets deleted in a cleanup six months from now.
+ * The STATIC half — that `.github/workflows/deploy-cloudflare.yml` still runs
+ * `convex deploy` and refuses a production deploy with no `CONVEX_DEPLOY_KEY` —
+ * is hermetic, so it runs on every PR as the `convex-guard` check in
+ * `tools/check-workflows.ts`.
  *
- *   LIVE (`--live`; runs nightly)
- *     The half CI structurally cannot know: what is actually deployed. Asks
- *     the deployment for its function list and asserts every function this
- *     repo defines is present on it. This is the direction that matters — a
- *     backend BEHIND the client is what breaks players, because the client
- *     calls things that are not there.
+ * Usage: bun run check:convex-parity:live
  *
- * Usage:
- *   bun tools/check-convex-parity.ts           # static guard (CI, every PR)
- *   bun tools/check-convex-parity.ts --live    # deployed truth (nightly)
- *
- * Live mode needs credentials, and takes them either way round:
+ * It needs credentials, and takes them either way round:
  *   - `CONVEX_DEPLOY_KEY` set (CI) — `convex function-spec` targets that key's
  *     own deployment, so no name is needed and none can be wrong.
  *   - otherwise (a laptop) the Convex CLI's own device credentials, against
@@ -52,14 +44,11 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const REPO_ROOT = join(import.meta.dir, '..')
 const CONVEX_DIR = join(REPO_ROOT, 'apps/itun/convex')
-
-/** The workflow that deploys ITUN, and so must carry the Convex deploy guard. */
-const CF_DEPLOY_WORKFLOW = join(REPO_ROOT, '.github/workflows/deploy-cloudflare.yml')
 
 /**
  * The deployment whose staleness costs something. Overridable because this is
@@ -71,131 +60,6 @@ const DEFAULT_DEPLOYMENT = process.env.CONVEX_PARITY_DEPLOYMENT ?? 'alex-jarvis:
 const failures: string[] = []
 function fail(message: string): void {
   failures.push(`  ✗ ${message}`)
-}
-
-// ---------------------------------------------------------------------------
-// Static: the deploy workflow's Convex guard is still there
-// ---------------------------------------------------------------------------
-
-/**
- * Assert the production build cannot fall back to a Solo build.
- *
- * Deliberately three separate assertions rather than one match of the whole
- * command string. The command is a shell one-liner that will be edited again,
- * and a single brittle equality would fail on every unrelated edit — which
- * trains people to update the expectation without reading it. These three ask
- * for the *properties* instead: it deploys the backend, it knows what context
- * it is in, and an absent key in production is fatal.
- */
-function checkStatic(): void {
-  if (!existsSync(CF_DEPLOY_WORKFLOW)) {
-    fail(
-      `.github/workflows/deploy-cloudflare.yml is missing, so nothing carries the\n` +
-        `      Convex deploy guard. Without it a production deploy can ship a client\n` +
-        `      against a backend nobody pushed, exactly as it did from 2026-08-06 to\n` +
-        `      2026-08-10.`
-    )
-    return
-  }
-
-  checkWorkflowBuildGuard()
-}
-
-/**
- * One workflow step's text, by its `- name:`.
- *
- * WHY THIS EXISTS. The two assertions below used to be `yaml.includes(...)`
- * over the WHOLE file. `deploy-cloudflare.yml` contains four `exit 1`s and
- * names CONVEX_DEPLOY_KEY in several places, so deleting the entire "Refuse to
- * deploy without a Convex deploy key" step still left both substrings present —
- * the adjacent Cloudflare-token guard supplies an `exit 1`, and the build
- * step's `env:` block supplies the key name. The check printed
- * `✓ convex deploy guard OK` for a workflow with no guard in it.
- *
- * That is the same weakness the comment below already describes for comments,
- * fixed there and not here: a guard satisfiable by something OTHER than the
- * guard is not a guard. Scoping to the step closes it.
- */
-function stepBlock(yaml: string, name: string): string | null {
-  const lines = yaml.split('\n')
-  const start = lines.findIndex((line) => new RegExp(`^\\s*-\\s*name:\\s*${name}\\s*$`).test(line))
-  if (start === -1) return null
-
-  const indent = (lines[start] ?? '').search(/\S/)
-  const out = [lines[start] as string]
-  for (let i = start + 1; i < lines.length; i++) {
-    const line = lines[i] ?? ''
-    if (line.trim() !== '') {
-      const at = line.search(/\S/)
-      if (at <= indent && /^\s*-\s/.test(line)) break
-      if (at < indent) break
-    }
-    out.push(line)
-  }
-  return out.join('\n')
-}
-
-/**
- * The guard's properties, asserted on the deploy workflow.
- *
- * Asserted on properties rather than an exact step: a workflow will be edited
- * again, and a brittle equality trains people to update the expectation without
- * reading it.
- */
-function checkWorkflowBuildGuard(): void {
-  // Comments are stripped BEFORE any of these checks, and that is not tidiness.
-  // The first version of this function matched the raw file, so the workflow's
-  // own explanatory comment — "`convex deploy --cmd` pushes schema and
-  // functions…" — satisfied the `convex deploy` assertion all by itself.
-  // Deleting the actual command still passed.
-  //
-  // A guard that can be satisfied by prose about the guard is not a guard. This
-  // was caught by the test that deletes the command from the real workflow;
-  // without that test the weakness would have shipped looking green.
-  //
-  // Line-level stripping rather than a YAML parse: the checks below are all
-  // "does this token appear in something executable", and a full parse would be
-  // a second dependency for a tool that has to stay cheap enough to run on
-  // every PR.
-  const yaml = readFileSync(CF_DEPLOY_WORKFLOW, 'utf8')
-    .split('\n')
-    .filter((line) => !/^\s*#/.test(line))
-    .join('\n')
-
-  if (!yaml.includes('convex deploy')) {
-    fail(
-      `.github/workflows/deploy-cloudflare.yml no longer runs \`convex deploy\`, so\n` +
-        `      the backend would never be pushed by a deploy at all`
-    )
-  }
-
-  const GUARD_STEP = 'Refuse to deploy without a Convex deploy key'
-  const guard = stepBlock(yaml, GUARD_STEP)
-
-  if (guard === null) {
-    fail(
-      `.github/workflows/deploy-cloudflare.yml has no \`${GUARD_STEP}\` step. The\n` +
-        `      guard is asserted BY NAME on purpose: a file-wide substring search for\n` +
-        `      \`exit 1\` and \`CONVEX_DEPLOY_KEY\` was satisfied by the neighbouring\n` +
-        `      Cloudflare-token guard and the build step's env block, so deleting this\n` +
-        `      step entirely still reported OK.`
-    )
-    return
-  }
-
-  const namesTheKey = guard.includes('CONVEX_DEPLOY_KEY')
-  const canFail = guard.includes('exit 1')
-
-  if (!namesTheKey || !canFail) {
-    fail(
-      `.github/workflows/deploy-cloudflare.yml no longer fails a production deploy\n` +
-        `      that has no CONVEX_DEPLOY_KEY. Without that guard an absent key ships a\n` +
-        `      current client against a stale backend and nothing goes red.`
-    )
-    return
-  }
-
-  console.log('  [deploy-cloudflare.yml] production deploy fails when CONVEX_DEPLOY_KEY is absent')
 }
 
 // ---------------------------------------------------------------------------
@@ -332,20 +196,12 @@ function checkLive(): void {
 
 // ---------------------------------------------------------------------------
 
-const live = process.argv.includes('--live')
-
-console.log(
-  live
-    ? 'Checking what the Convex deployment actually serves…'
-    : 'Checking the Convex production-deploy guard…'
-)
-
-if (live) checkLive()
-else checkStatic()
+console.log('Checking what the Convex deployment actually serves…')
+checkLive()
 
 if (failures.length > 0) {
-  console.error(`\n✗ convex ${live ? 'parity' : 'deploy guard'} failed:\n${failures.join('\n')}\n`)
+  console.error(`\n✗ convex parity failed:\n${failures.join('\n')}\n`)
   process.exit(1)
 }
 
-console.log(`✓ convex ${live ? 'parity' : 'deploy guard'} OK`)
+console.log('✓ convex parity OK')

@@ -71,7 +71,7 @@ describe('findMissingActionBackrefs', () => {
 
 describe('real dataset invariant', () => {
   // The convention must hold 100% in the committed data — the same guarantee the
-  // validate:action-backrefs CLI enforces at merge time, asserted here so a bad
+  // `action-backrefs` data check enforces at merge time, asserted here so a bad
   // edit fails `bun test` too.
   const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'data')
   const load = (f: string) => JSON.parse(readFileSync(join(dataDir, `${f}.json`), 'utf-8'))

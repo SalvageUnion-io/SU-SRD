@@ -63,7 +63,7 @@ Inside an app:
 
 - No build step - exports TypeScript source directly
 - Styling: tokens + `.su-*` classes, Tailwind being removed — see
-  `docs/design-system/tailwind-removal.md`; `check:styling` rejects new Tailwind files
+  `docs/design-system/tailwind-removal.md`; `bun run check styling` rejects new Tailwind files
 - Two card shells, not a layered stack: `ReferenceEntityCard` for SRD game data
   and `Card` for everything else. See
   [`display-system.md`](display-system.md) and
@@ -75,7 +75,7 @@ Inside an app:
 **All design tokens live in `packages/component-lib/src/styles/theme.css`.** An
 app must not declare an `@theme` block or define a `--color-*` / `--text-*` /
 `--tracking-*` / `--bw-*` / `--radius-*` / `--font-*` / `--shadow-*` token.
-`tools/check-styling-ownership.ts` (rule `app-theme`) fails on it, and it runs
+`tools/check-styling.ts` (rule `styling/app-theme`) fails on it, and it runs
 in `check` and at **pre-push** via lefthook — so a violation surfaces late,
 after the code is written.
 

@@ -9,7 +9,7 @@ import { color } from '../design/tokens'
  * The ring shipped for months as `rust/25` — a 25%-alpha wash that composited
  * to 1.42:1 against paper and 1.27:1 against `ink-deep`, where WCAG 2.4.11 and
  * 1.4.11 both require 3:1. Every existing check was green throughout: it
- * typechecks, it lints, `check:tokens` passes (an alpha rung is a legal token),
+ * typechecks, it lints, `bun run check styling` passes (an alpha rung is a legal token),
  * and the parity guard only asks whether the two halves of the scale agree —
  * not whether the value they agree on can be seen.
  *

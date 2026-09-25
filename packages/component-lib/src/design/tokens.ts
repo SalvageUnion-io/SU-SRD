@@ -166,8 +166,8 @@ export const tracking = {
  *
  * Tailwind's own `rounded` / `rounded-md` / `rounded-xl` rungs are deliberately
  * NOT carried across, unlike the inherited type rungs above. The radius ladder
- * is a *closed* role vocabulary with a guard behind it (`check:tokens`,
- * `arbitrary-radius`), so their ~40 call sites are drift the ladder already
+ * is a *closed* role vocabulary with a guard behind it (`tokens/arbitrary-radius`
+ * in `bun run check styling`), so their ~40 call sites are drift the ladder already
  * has a word for — 4px is `card`, 6px is exactly `panel`. Migrating them means
  * naming the role, which is the point of the ladder.
  */

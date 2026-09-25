@@ -28,13 +28,13 @@
  * the inflated data padded to a 4-byte boundary. Offsets are recomputed because
  * the record size differs from WOFF's.
  *
- * Usage:  bun tools/woff-to-ttf.ts <in.woff> <out.ttf>
+ * Usage:  bun apps/itun/scripts/woff-to-ttf.ts <in.woff> <out.ttf>
  */
 import { inflateSync } from 'node:zlib'
 
 const [input, output] = process.argv.slice(2)
 if (!input || !output) {
-  console.error('Usage: bun tools/woff-to-ttf.ts <in.woff> <out.ttf>')
+  console.error('Usage: bun apps/itun/scripts/woff-to-ttf.ts <in.woff> <out.ttf>')
   process.exit(1)
 }
 
@@ -101,4 +101,5 @@ for (const [i, table] of tables.entries()) {
 }
 
 await Bun.write(output, out)
+// biome-ignore lint/suspicious/noConsole: build-time CLI — the summary line is its output
 console.log(`${input} -> ${output}  (${numTables} tables, ${bytes.byteLength} -> ${total} bytes)`)

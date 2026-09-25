@@ -115,9 +115,8 @@ export function findMissingActionBackrefs(
 /**
  * Orchestration entry point: given the full data bag (filename -> parsed
  * array), build the `actions` / `entitiesBySource` inputs from
- * ACTION_SOURCE_FILES and run findMissingActionBackrefs. Both the standalone
- * CLI (tools/validateActionBackrefs.ts) and the unified runner
- * (tools/validate.ts) call this so they can never diverge on which files feed
+ * ACTION_SOURCE_FILES and run findMissingActionBackrefs. `tools/validate.ts`
+ * and the tests both call this, so they can never diverge on which files feed
  * the check.
  */
 export function runActionBackrefCheck(filesByName: Record<string, unknown[]>): BackrefViolation[] {

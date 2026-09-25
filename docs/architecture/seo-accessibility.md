@@ -150,7 +150,7 @@ expose them through `getStaticPaths()` on their `PageModule`:
   pages — a test pins the "every item page has a parent listing" invariant
   (`src/lib/__tests__/staticPaths.test.ts`)
 - Slug-based routing: `/schema/{schemaId}/item/{slug}/` (never UUIDs);
-  per-file slug uniqueness is enforced by the package's `validate:slugs`
+  per-file slug uniqueness is enforced by the package's `slugs` data check
 - Trait/keyword mentions in static fallback content are auto-linked via
   `staticLinks.ts` so crawlers see real anchors without JS
 

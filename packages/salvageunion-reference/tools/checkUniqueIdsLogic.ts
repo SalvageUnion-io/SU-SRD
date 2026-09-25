@@ -6,9 +6,8 @@
  * 2. All IDs are unique within each file
  * 3. All IDs are unique across all files
  *
- * Extracted from tools/checkUniqueIds.ts so both the standalone CLI and the
- * unified runner (tools/validate.ts) share one implementation over a
- * caller-supplied data bag, instead of each re-reading `data/*.json` itself.
+ * Pure over a caller-supplied data bag, so `tools/validate.ts` (the one CLI,
+ * `--only=ids`) and the tests share one implementation.
  */
 
 // UUID v4 regex pattern
