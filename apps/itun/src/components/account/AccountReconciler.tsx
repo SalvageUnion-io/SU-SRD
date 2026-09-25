@@ -33,7 +33,10 @@
  * sent (ADR-035 — no offer, no decline). Both report through one error line
  * with one "Try again", which retries whatever did not land: session work is
  * filtered against `listMine` on a retry too, because `claimLocal` reports a
- * row the first pass already saved as `alreadyPresent`.
+ * row the first pass already saved as `alreadyPresent`. A partial pass also
+ * takes the rows that DID land out of the capture at once, using the
+ * `strandedIds` the server returns, so a retry never depends on `listMine`
+ * alone to know what was saved.
  *
  * The in-flight flags and the error line live in the always-mounted parent,
  * not in the signed-in half. That half unmounts whenever the backend leaves
@@ -56,7 +59,8 @@
  * send them — perhaps to a different account — on the next sign-in, where
  * `claimLocal` answers `alreadyPresent` and the error line never clears. Every
  * id the caches hold while signed in is recorded as the account's
- * (`accountIds`), as is every row a pass saves, and the capture excludes them.
+ * (`accountIds`), as is every row a pass saves — including the rows that
+ * landed in a partial pass — and the capture excludes them.
  * The one exception is a capture still being sent: a failed upload stays this
  * tab's work, and is still named after a sign-out.
  */
@@ -314,11 +318,16 @@ function SignedInReconciler({
     setPromotionState('pending')
 
     void reconcile(claimLocal, work, { adopt: true })
-      .then(({ stranded }) => {
-        // A pass that landed in full is a fact about the account whatever has
-        // happened since: its rows are the account's now and must not be
-        // captured again after a sign-out — nor sent to the next account.
-        if (stranded === 0) settle(work)
+      .then(({ stranded, strandedIds }) => {
+        // What landed is a fact about the account whatever has happened since:
+        // those rows are the account's now and must not be captured again
+        // after a sign-out — nor sent to the next account. That holds for a
+        // PARTIAL pass too, so settle exactly the rows that landed: everything
+        // except what the server named as stranded. Settling only a full pass
+        // left a partial pass's saved rows in the capture, resent on every
+        // retry (and answered `alreadyPresent`, so the error line never
+        // cleared) and sent to whichever account signed in next.
+        settle(stranded === 0 ? work : withoutIds(work, new Set(strandedIds)))
         if (!current()) return
         if (stranded > 0) {
           setPromotionState('failed')

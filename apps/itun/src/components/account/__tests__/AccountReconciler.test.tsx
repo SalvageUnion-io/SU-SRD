@@ -21,8 +21,21 @@ import { pilotFixture } from '../../__tests__/fixtures'
 
 let authed = false
 
-type ClaimResult = { claimed: number; skipped: number; alreadyPresent: number; declined: number }
-let claimResult: ClaimResult = { claimed: 0, skipped: 0, alreadyPresent: 0, declined: 0 }
+type ClaimResult = {
+  claimed: number
+  skipped: number
+  alreadyPresent: number
+  declined: number
+  strandedIds: string[]
+}
+const NOTHING_CLAIMED: ClaimResult = {
+  claimed: 0,
+  skipped: 0,
+  alreadyPresent: 0,
+  declined: 0,
+  strandedIds: [],
+}
+let claimResult: ClaimResult = { ...NOTHING_CLAIMED }
 /**
  * When set, `claimLocal` answers the way the server does instead of returning
  * `claimResult`: an id it already holds is `alreadyPresent` (`appIdTaken`
@@ -36,11 +49,15 @@ let gate: Promise<void> | null = null
 const mutations: { name: string; args: Record<string, unknown> }[] = []
 
 function serverClaim(args: Record<string, unknown>, s: NonNullable<typeof server>): ClaimResult {
-  const result: ClaimResult = { claimed: 0, skipped: 0, alreadyPresent: 0, declined: 0 }
+  const result: ClaimResult = { ...NOTHING_CLAIMED, strandedIds: [] }
   for (const row of (args.pilots as { id: string }[] | undefined) ?? []) {
-    if (s.owned.has(row.id)) result.alreadyPresent += 1
-    else if (s.unparseable.has(row.id)) result.skipped += 1
-    else {
+    if (s.owned.has(row.id)) {
+      result.alreadyPresent += 1
+      result.strandedIds.push(row.id)
+    } else if (s.unparseable.has(row.id)) {
+      result.skipped += 1
+      result.strandedIds.push(row.id)
+    } else {
       s.owned.add(row.id)
       result.claimed += 1
     }
@@ -111,7 +128,7 @@ const EMPTY_ROSTER = {
 
 beforeEach(async () => {
   authed = false
-  claimResult = { claimed: 0, skipped: 0, alreadyPresent: 0, declined: 0 }
+  claimResult = { ...NOTHING_CLAIMED }
   server = null
   gate = null
   mutations.length = 0
@@ -180,7 +197,7 @@ describe('signed out', () => {
 describe('signing in', () => {
   test('sends this tab’s work once the backend flips, and reports nothing on success', async () => {
     await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    claimResult = { claimed: 1, skipped: 0, alreadyPresent: 0, declined: 0 }
+    claimResult = { ...NOTHING_CLAIMED, claimed: 1 }
     const view = render(<Tree />)
     expect(claims()).toHaveLength(0)
 
@@ -232,6 +249,50 @@ describe('signing in', () => {
     expect(resent?.map((p) => p.id)).toEqual(['tab-2'])
     await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
     expect(promotionState()).toBe('idle')
+  })
+
+  test('after a partial save, Try again leaves out what landed even before the account reloads', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
+    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
+    const view = render(<Tree />)
+    await signIn(view)
+    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
+
+    // `listMine` still answers empty: the capture itself must already know
+    // tab-1 landed, from the ids the server named as stranded.
+    server.unparseable.clear()
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+    await waitFor(() => expect(claims()).toHaveLength(2))
+    const resent = claims()[1]?.args.pilots as { id: string }[] | undefined
+    expect(resent?.map((p) => p.id)).toEqual(['tab-2'])
+    await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
+  })
+
+  test('the rows a partial save landed are not sent to the next account', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
+    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
+    const view = render(<Tree />)
+    await signIn(view)
+    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
+
+    // Sign out: tab-1 is account A's now; only tab-2 is still this tab's work.
+    authed = false
+    view.rerender(<Tree />)
+    await waitFor(() => expect(screen.getByText(/1 build not saved/i)).toBeTruthy())
+
+    // Sign in to account B, which owns nothing and accepts everything.
+    server = { owned: new Set(), unparseable: new Set() }
+    authed = true
+    view.rerender(<Tree />)
+
+    await waitFor(() => expect(claims()).toHaveLength(2))
+    const sent = claims()[1]?.args.pilots as { id: string }[] | undefined
+    expect(sent?.map((p) => p.id)).toEqual(['tab-2'])
+    await waitFor(() => expect(promotionState()).toBe('idle'))
+    expect(screen.queryByText(/could not be saved/i)).toBeNull()
   })
 
   test('a retry that fails again reports only the rows still missing', async () => {

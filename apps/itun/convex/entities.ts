@@ -649,6 +649,25 @@ export const claimLocal = mutation({
      * unfinished over rows that are already safe on the server.
      */
     declined: number
+    /**
+     * The app ids of the rows counted in `skipped` or `alreadyPresent` — the
+     * rows that did NOT land, named so a caller can tell them apart from the
+     * ones that did.
+     *
+     * The counts alone cannot do that, and a caller that needs to record what
+     * a PARTIAL pass saved was left with two wrong choices: record nothing
+     * (the landed rows stay "unsaved", are resent on retry and come back
+     * `alreadyPresent` forever, and after a sign-out go to the NEXT account
+     * too) or record everything (the refused rows are wrongly marked saved).
+     *
+     * Additive: the counts are unchanged. A refused row with no string `id`
+     * cannot be named, so it is simply absent here — which is why a caller
+     * must treat any row whose id is not in the set AND that it cannot
+     * identify as not saved, rather than reading absence as success. The
+     * client's `withoutIds` already does, because it never excludes an
+     * id-less row.
+     */
+    strandedIds: string[]
     byKind: Record<string, number>
   }> => {
     const userId = await requireUser(ctx)
@@ -657,7 +676,22 @@ export const claimLocal = mutation({
     let skipped = 0
     let alreadyPresent = 0
     let declined = 0
+    const strandedIds: string[] = []
     const byKind: Record<string, number> = {}
+
+    /** Record a row that did not land, by the same id rule the client uses. */
+    const strand = (body: unknown) => {
+      const id = (body as { id?: unknown } | null)?.id
+      if (typeof id === 'string') strandedIds.push(id)
+    }
+    const skip = (body: unknown) => {
+      skipped += 1
+      strand(body)
+    }
+    const present = (body: unknown) => {
+      alreadyPresent += 1
+      strand(body)
+    }
 
     const bump = (kind: string) => {
       byKind[kind] = (byKind[kind] ?? 0) + 1
@@ -671,7 +705,7 @@ export const claimLocal = mutation({
       for (const body of rows) {
         const parsed = PARSERS[table].safeParse(body)
         if (!parsed.success) {
-          skipped += 1
+          skip(body)
           continue
         }
         if (await namesALiveGame(ctx, body)) {
@@ -685,7 +719,7 @@ export const claimLocal = mutation({
             : undefined
 
         if (appId !== undefined && (await appIdTaken(ctx, table, appId))) {
-          alreadyPresent += 1
+          present(body)
           continue
         }
 
@@ -729,7 +763,7 @@ export const claimLocal = mutation({
     for (const body of args.crawlers ?? []) {
       const parsed = PARSERS.crawlers.safeParse(body)
       if (!parsed.success) {
-        skipped += 1
+        skip(body)
         continue
       }
       if (await namesALiveGame(ctx, body)) {
@@ -739,7 +773,7 @@ export const claimLocal = mutation({
       const appId =
         typeof (body as { id?: unknown }).id === 'string' ? (body as { id: string }).id : undefined
       if (appId !== undefined && (await appIdTaken(ctx, 'crawlers', appId))) {
-        alreadyPresent += 1
+        present(body)
         continue
       }
       await ctx.db.insert('crawlers', {
@@ -788,12 +822,12 @@ export const claimLocal = mutation({
       // how a table ends up validated two different ways.
       const parsed = PARSERS.encounterNpcs.safeParse(body)
       if (!parsed.success) {
-        skipped += 1
+        skip(body)
         continue
       }
       const npcId = (body as { id?: unknown }).id
       if (typeof npcId === 'string' && ownNpcIds.has(npcId)) {
-        alreadyPresent += 1
+        present(body)
         continue
       }
       if (typeof npcId === 'string') ownNpcIds.add(npcId)
@@ -828,7 +862,7 @@ export const claimLocal = mutation({
         !isEntityRefType(l.to.type) ||
         !isSoftLinkType(l.type)
       ) {
-        skipped += 1
+        skip(link)
         continue
       }
       /*
@@ -849,7 +883,7 @@ export const claimLocal = mutation({
       const linkType = l.type
 
       if ((await findSoftLink(ctx, from.id, to.id, linkType)) !== null) {
-        alreadyPresent += 1
+        present(link)
         continue
       }
 
@@ -888,12 +922,12 @@ export const claimLocal = mutation({
       // `v.any()` column in the schema nothing ever validated.
       const parsed = PARSERS.mechPatterns.safeParse(body)
       if (!parsed.success) {
-        skipped += 1
+        skip(body)
         continue
       }
       const patternId = (body as { id?: unknown }).id
       if (typeof patternId === 'string' && ownPatternIds.has(patternId)) {
-        alreadyPresent += 1
+        present(body)
         continue
       }
       if (typeof patternId === 'string') ownPatternIds.add(patternId)
@@ -907,7 +941,7 @@ export const claimLocal = mutation({
       bump('mechPatterns')
     }
 
-    return { claimed, skipped, alreadyPresent, declined, byKind }
+    return { claimed, skipped, alreadyPresent, declined, strandedIds, byKind }
   },
 })
 

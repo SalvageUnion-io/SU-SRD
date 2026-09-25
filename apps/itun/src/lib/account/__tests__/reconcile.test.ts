@@ -17,6 +17,8 @@ import {
   countWork,
   reconcile,
   strandedCount,
+  withoutIds,
+  workIds,
 } from '../reconcile'
 
 const EMPTY: LocalWork = {
@@ -29,11 +31,17 @@ const EMPTY: LocalWork = {
 }
 
 /** A claimLocal stand-in that records what it was handed. */
-function recordingClaim(result = { claimed: 0, skipped: 0, alreadyPresent: 0 }) {
+function recordingClaim(
+  result: { claimed: number; skipped: number; alreadyPresent: number; strandedIds?: string[] } = {
+    claimed: 0,
+    skipped: 0,
+    alreadyPresent: 0,
+  }
+) {
   const calls: Record<string, unknown>[] = []
   const fn = async (args: Record<string, unknown>) => {
     calls.push(args)
-    return { ...result, declined: 0, byKind: {} }
+    return { strandedIds: [], ...result, declined: 0, byKind: {} }
   }
   return { fn, calls }
 }
@@ -114,7 +122,7 @@ describe('reconcile', () => {
       { adopt: true }
     )
 
-    expect(result).toEqual({ claimed: 1, stranded: 0 })
+    expect(result).toEqual({ claimed: 1, stranded: 0, strandedIds: [] })
   })
 
   test('adopt: true caches session work under its own id', async () => {
@@ -157,9 +165,44 @@ describe('reconcile', () => {
   })
 
   test('a resolved-but-partial result reports what did not land', async () => {
-    const claim = recordingClaim({ claimed: 2, skipped: 1, alreadyPresent: 1 })
+    const claim = recordingClaim({
+      claimed: 2,
+      skipped: 1,
+      alreadyPresent: 1,
+      strandedIds: ['p3', 'p4'],
+    })
     const result = await reconcile(claim.fn as never, EMPTY, { adopt: false })
-    expect(result).toEqual({ claimed: 2, stranded: 2 })
+    expect(result).toEqual({ claimed: 2, stranded: 2, strandedIds: ['p3', 'p4'] })
+  })
+
+  test('the landed rows of a partial result are the work minus its stranded ids', async () => {
+    const work = { ...EMPTY, pilots: [{ id: 'p1' }, { id: 'p2' }, { noId: true }] }
+    const claim = recordingClaim({ claimed: 1, skipped: 2, alreadyPresent: 0, strandedIds: ['p2'] })
+    const { strandedIds } = await reconcile(claim.fn as never, work, { adopt: false })
+
+    const landed = withoutIds(work, new Set(strandedIds))
+    // p1 landed and is recorded; p2 was refused. The id-less row was refused
+    // too and the server could not name it — it stays out of what gets
+    // recorded, because `workIds` cannot record a row with no id.
+    expect([...workIds(landed)]).toEqual(['p1'])
+    const stillPending = withoutIds(work, workIds(landed))
+    expect(stillPending.pilots).toEqual([{ id: 'p2' }, { noId: true }])
+  })
+
+  test('a server that does not name stranded rows leaves every row unconfirmed', async () => {
+    const work = { ...EMPTY, pilots: [{ id: 'p1' }, { id: 'p2' }] }
+    const legacy = async () => ({
+      claimed: 1,
+      skipped: 1,
+      alreadyPresent: 0,
+      declined: 0,
+      byKind: {},
+    })
+    const { strandedIds } = await reconcile(legacy as never, work, { adopt: false })
+
+    // Reading a missing field as "nothing stranded" would mark p2 as saved.
+    expect(new Set(strandedIds)).toEqual(new Set(['p1', 'p2']))
+    expect(countWork(withoutIds(work, new Set(strandedIds)))).toBe(0)
   })
 })
 

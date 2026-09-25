@@ -199,6 +199,16 @@ export type ReconcileResult = {
    * the server.
    */
   stranded: number
+  /**
+   * The ids of the rows counted in `stranded`, as the server named them.
+   *
+   * What lets a caller record a PARTIAL pass: the rows that landed are
+   * `withoutIds(work, new Set(strandedIds))`. A stranded row with no string id
+   * cannot be named here, and is still safe: `withoutIds` never excludes an
+   * id-less row and `workIds` never records one, so such a row is never marked
+   * as the account's and stays in any pending capture — treated as not saved.
+   */
+  strandedIds: string[]
 }
 
 /** The arithmetic above, pinned on its own because it is the whole guard. */
@@ -233,7 +243,16 @@ export async function reconcile(
 
   if (options.adopt) await adoptLocally(work)
 
-  return { claimed: result.claimed, stranded: strandedCount(result) }
+  return {
+    claimed: result.claimed,
+    stranded: strandedCount(result),
+    // A server older than `strandedIds` names nothing, and reading that as
+    // "nothing stranded" would mark refused rows as saved. Treat every row as
+    // unconfirmed instead: the caller settles nothing, as it did before.
+    strandedIds: Array.isArray((result as { strandedIds?: unknown }).strandedIds)
+      ? result.strandedIds
+      : [...workIds(work)],
+  }
 }
 
 /**
