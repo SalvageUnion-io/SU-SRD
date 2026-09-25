@@ -12,9 +12,9 @@ when met cold. This is a decision procedure, not a command wrapper: the commands
 are three lines, and picking the wrong one either reopens a merged PR or leaves
 a layer reporting fourteen files when it changed three.
 
-Full reasoning, with the incident that produced it, is in
-[`.claude/rules/stacked-prs.md`](../../rules/stacked-prs.md). Read it if
-anything below surprises you.
+The `gh stack` details (measured `sync` output, `submit`/`merge`, the benign
+local-`main` warning) and the rules for two agents sharing one stack are in
+[`reference.md`](reference.md).
 
 ## 1. Record the parent's tip BEFORE you touch anything
 

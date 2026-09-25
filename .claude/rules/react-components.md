@@ -10,9 +10,8 @@ React component patterns using functional components and TypeScript.
 ## Component Structure
 
 - Use functional components with TypeScript
-- Define props types at the top of the file (use `type` over `interface`)
-- Use named exports for components (not default exports)
-- Exception: Route components in `src/routes/` can use default exports for TanStack Router
+- Define props types at the top of the file
+- Named exports (Biome's `noDefaultExport`; route modules export `Route`, see `tanstack-router.md`)
 
 ## Component Organization
 
@@ -34,7 +33,7 @@ Inside an app:
 
 ## UI Frameworks
 
-**srd** uses React 19 rendered by an in-house SSG (`apps/srd/ssg`), not Astro:
+**srd** uses React 19 rendered by an in-house SSG (`apps/srd/ssg`; contract in `apps/srd/CLAUDE.md`):
 
 - Shared components imported from `component-lib` package
 - Tailwind v4 with theme from component-lib
@@ -42,7 +41,7 @@ Inside an app:
 - Interactive components are islands: `<Island name="X" client="idle" …/>` emits
   a placeholder, and `src/runtime/islands.client.ts` mounts it with
   **`createRoot`, never `hydrateRoot`**. Client strategies are `load`, `idle`,
-  `visible`, `only`. There are no `client:*` directives — those were Astro's.
+  `visible`, `only`.
 - **No `.css` import may be reachable from an SSR module** — all css goes through
   `src/runtime/styles.entry.ts`. See `apps/srd/ssg/DESIGN.md`.
 
@@ -54,7 +53,7 @@ Inside an app:
   `class-variance-authority` and `sonner`. The repo does **not** depend on
   Radix.
 - Data access follows the two-domain seam in
-  [`tanstack-query-hooks.md`](tanstack-query-hooks.md): Zustand stores for
+  [`itun-data-access.md`](itun-data-access.md): Zustand stores for
   player entities, Convex hooks for accounts/Games/ownership. React Context is
   fine and is used (`ConnectionProvider`, `EntityHrefProvider`) — prefer props
   where props suffice, not as an absolute ban.
@@ -63,7 +62,8 @@ Inside an app:
 **component-lib** (shared components):
 
 - No build step - exports TypeScript source directly
-- Uses Tailwind + `cn()` utility for styling
+- Styling: tokens + `.su-*` classes, Tailwind being removed — see
+  `docs/design-system/tailwind-removal.md`; `check:styling` rejects new Tailwind files
 - Two card shells, not a layered stack: `ReferenceEntityCard` for SRD game data
   and `Card` for everything else. See
   [`display-system.md`](display-system.md) and
@@ -107,17 +107,5 @@ type MyComponentProps = {
 
 export function MyComponent({ id, isEditable = false }: MyComponentProps) {
   // ...
-}
-```
-
-**Route component (default export allowed):**
-
-```typescript
-export const Route = createFileRoute('/my-route')({
-  component: MyRoute,
-})
-
-export default function MyRoute() {
-  return <div>Route content</div>
 }
 ```

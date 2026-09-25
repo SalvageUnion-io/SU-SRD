@@ -137,7 +137,7 @@ const impl = await agent(
     '   repo .prettierrc, so format explicitly).',
     `5. Commit on a new branch named fix/itun-<short-slug>${stacked ? ` cut from origin/${baseBranch} (see above)` : ''}. Use a conventional-commit message and the`,
     '   Co-Authored-By / Claude-Session trailers required by CLAUDE.md.',
-    `6. Push the branch and open a PR with "gh pr create --base ${baseBranch}". If ${baseBranch} is not main, this is a STACKED PR: read .claude/rules/stacked-prs.md before doing anything to it later. When the layer beneath yours squash-merges, the fix is `git rebase --onto` from the recorded parent tip, never `gh pr update-branch` (which fails on the duplicated commit) and never a bare `--force` (which on this repo can resurrect an already-merged branch). The PR body MUST: restate`,
+    `6. Push the branch and open a PR with "gh pr create --base ${baseBranch}". If ${baseBranch} is not main, this is a STACKED PR: follow the /stacked-pr skill (.claude/skills/stacked-pr/SKILL.md) before doing anything to it later. When the layer beneath yours squash-merges, the fix is `git rebase --onto` from the recorded parent tip, never `gh pr update-branch` (which fails on the duplicated commit) and never a bare `--force` (which on this repo can resurrect an already-merged branch). The PR body MUST: restate`,
     '   the feedback, name the UX area changed, cite the SURules reference(s), summarize the fix, and list',
     `   which checks passed.${stacked ? ` Note at the top that this PR is STACKED on "${baseBranch}" and should merge after it.` : ''}`,
     '   End the body with the "Generated with Claude Code" footer from CLAUDE.md.',

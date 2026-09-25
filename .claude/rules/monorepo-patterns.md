@@ -1,17 +1,13 @@
+---
+paths:
+  - '**/package.json'
+  - 'bunfig.toml'
+  - 'knip.json'
+---
+
 # Monorepo Patterns
 
 Bun workspace conventions that are **not** stated in the root `CLAUDE.md`.
-
-> This file used to restate the workspace roster, the dependency graph, the
-> no-build-step note, the `dev:watch` alias and the import conventions — all of
-> which root `CLAUDE.md` already carries, and both load into the same session,
-> so that block cost its context twice. It had also begun to drift: its
-> workspace list omitted the `su-assets` derivative detail `CLAUDE.md` carries.
->
-> What survives here is the part that lives nowhere else. For everything
-> removed, `CLAUDE.md` is the single source — and for the import rule,
-> `biome.jsonc` is, since it is enforced at `error` rather than merely written
-> down.
 
 ## Bun workspace conventions
 
