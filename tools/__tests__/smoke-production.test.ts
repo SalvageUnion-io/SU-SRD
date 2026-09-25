@@ -25,7 +25,7 @@ describe('smoke-production wiring', () => {
     // script still smokes and still moves the deploy record.
     const deploy = workflow('deploy-cloudflare.yml')
     expect(deploy).toContain('git show "$WORKFLOW_SHA:tools/smoke-production.sh"')
-    expect(deploy).toContain('WORKFLOW_SHA: ${{ github.workflow_sha }}')
+    expect(deploy).toMatch(/WORKFLOW_SHA: \$\{\{ github\.workflow_sha \}\}/)
   })
 
   test('the nightly workflow runs it and its notifier treats it as always-run', () => {
