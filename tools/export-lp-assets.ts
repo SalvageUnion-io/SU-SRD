@@ -11,16 +11,8 @@
  * do not redistribute"). It therefore lives ONLY in object storage — never in
  * this public repo — and it serves two production domains.
  *
- * ADR-033 made restoring this tooling **P1, the first phase of the whole
- * cutover**, because the store then "had no backup, no export path and no ingest
- * path". P1 delivered that against Netlify Blobs. P3–P7 then moved production to
- * R2 and left every artwork tool pointed at the old store, which reconstituted
- * the identical hazard one platform over — the previous version of this file
- * predicted exactly that in its own comment ("after the cutover R2 becomes the
- * only copy, which is the same single-point-of-failure relocated rather than
- * fixed") and was not itself moved.
- *
- * This version targets R2, so the prediction stops being true.
+ * R2 is otherwise the ONLY copy — a single point of failure. This tool is the
+ * backup path (ADR-033 P1); `upload-lp-assets.ts` is the ingest path.
  *
  * ## What "verified" means here
  *
@@ -168,9 +160,8 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  // The verification copies are held in memory rather than on disk, so unlike
-  // the Netlify-era version there is no `.verify` directory for an operator to
-  // forget to delete before archiving a backup of licensed material.
+  // Verification copies are held in memory, so no second copy of licensed
+  // material is left on disk; a stale `.verify` directory is removed if present.
   rmSync(join(outDir, '.verify'), { recursive: true, force: true })
 
   const manifestPath = join(outDir, 'manifest.json')

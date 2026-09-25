@@ -12,10 +12,9 @@ import { join } from 'node:path'
  * stale, every soft-link write failed, and the UI rendered all of it as saved.
  * Nothing was red.
  *
- * ADR-033 moves the build from `netlify.toml` into GitHub Actions, so the guard
- * now accepts either source. The hazard in that change is a window where
- * NEITHER carries the assertion and the check passes anyway — which is exactly
- * what the third test below forbids.
+ * The guard lives in `.github/workflows/deploy-cloudflare.yml`. The hazard is a
+ * tree where nothing carries the assertion and the check passes anyway — which
+ * is exactly what the second test below forbids.
  *
  * The `--live` half is not exercised here; it needs a real deployment and a
  * CONVEX_DEPLOY_KEY, and runs nightly.
@@ -65,21 +64,11 @@ describe('check-convex-parity static guard', () => {
   test('passes on the tree as committed', async () => {
     const { exitCode, stdout } = await runCheck()
     expect(exitCode).toBe(0)
-    // `[deploy-cloudflare.yml]`, not `[netlify.toml]`. The Netlify half of this
-    // guard is gone with the file it read; the workflow half is now the whole
-    // of it, which is what makes the assertion below load-bearing rather than
-    // one of two redundant sources.
     expect(stdout).toContain('[deploy-cloudflare.yml]')
   })
 
   test('fails when NO build definition carries the guard', async () => {
-    // The one state that must never pass. This used to require removing BOTH
-    // `netlify.toml` and the workflow — an earlier version removed only the
-    // former and passed, because it was asserting a fact about the tree's shape
-    // rather than the rule. With `netlify.toml` deleted the workflow is the only
-    // source left, so removing it is now sufficient AND necessary, and the
-    // tool's Netlify branch has been removed with it rather than left as
-    // unreachable code that still reads as an active guard.
+    // The one state that must never pass.
     await withFileAbsent(WORKFLOW, async () => {
       const { exitCode, stderr } = await runCheck()
       expect(exitCode).toBe(1)

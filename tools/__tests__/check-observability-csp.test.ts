@@ -7,20 +7,9 @@ import { join } from 'node:path'
  *
  * This is the check whose absence let a fully-built Sentry stack sit dark in
  * production: a `connect-src` missing the ingest origin blocks every event in
- * the browser while the app looks completely healthy. ADR-033 moves that header
- * out of `netlify.toml` and into a `_headers` file, so the check now reads
- * either dialect — and the risk of that change is that "reads either" quietly
- * becomes "requires neither".
- *
- * These assert the two rules separately, because conflating them is the actual
- * bug this test caught during the port:
- *
- *   - AT LEAST ONE source must declare a CSP connect-src.
- *   - EVERY source that declares one must permit the Sentry origin.
- *
- * The second rule is what stops a correct `_headers` file papering over a stale
- * `netlify.toml` while both are live during the cutover. A source that declares
- * no CSP at all is fine — srd's `_headers` legitimately carries only CORS.
+ * the browser while the app looks completely healthy. Each app's
+ * `public/_headers` is its only CSP source, so it must exist, declare a
+ * `connect-src`, and permit the Sentry origin.
  */
 
 const ROOT = join(import.meta.dir, '..', '..')
@@ -64,31 +53,25 @@ async function withFileAbsent(relPath: string, fn: () => Promise<void>) {
   }
 }
 
-describe('check-observability CSP source resolution', () => {
+describe('check-observability CSP', () => {
   test('passes on the tree as committed', async () => {
     const { exitCode } = await runCheck()
     expect(exitCode).toBe(0)
   })
 
-  test('fails when NO source declares a CSP at all', async () => {
-    // One source to neutralise now, not two. This test used to blank BOTH
-    // itun's `netlify.toml` and its `_headers`, because either alone would let
-    // the run pass on the other and prove nothing. With the toml deleted,
-    // `_headers` IS the only source — which makes the check stricter, not
-    // weaker: there is no longer a second file that could paper over a stale
-    // sibling.
+  test('fails when _headers declares no CSP at all', async () => {
     await withFileContents(
       'apps/itun/public/_headers',
       (s) => s.replace(/Content-Security-Policy/g, 'X-Retired-Policy'),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain('declares a Content-Security-Policy')
+        expect(stderr).toContain('declares no Content-Security-Policy')
       }
     )
   })
 
-  test('a _headers CSP that omits Sentry still fails — the dialect is not an escape hatch', async () => {
+  test('a CSP that omits the Sentry origin fails', async () => {
     await withFileContents(
       'apps/itun/public/_headers',
       (s) => s.replace(SENTRY_HOST, 'https://example.invalid'),
@@ -100,24 +83,12 @@ describe('check-observability CSP source resolution', () => {
     )
   })
 
-  test('a source that declares no CSP is skipped, not failed', async () => {
-    // The rule is "at least one source declares a policy, and every source that
-    // does must permit Sentry" — not "every source declares one". A `_headers`
-    // file may legitimately exist for other reasons.
-    //
-    // This used to blank srd's CSP and rely on its `netlify.toml` still carrying
-    // one. With the toml deleted there is no second source to fall back to, so
-    // it asserts the other half of the rule instead: itun, whose `_headers`
-    // still declares a policy, keeps the run green while srd's is neutralised —
-    // which is exactly "a present source with no CSP is not itself a failure",
-    // now expressed as a failure of srd alone rather than of the whole run.
+  test('a failure names only the app whose CSP is missing', async () => {
     await withFileContents(
       'apps/srd/public/_headers',
       (s) => s.replace(/^\s*Content-Security-Policy:.*$/m, '  X-Retired-Policy: none'),
       async () => {
         const { exitCode, stderr } = await runCheck()
-        // srd now has NO source declaring a policy, so it fails — and the
-        // message names that app rather than complaining about a missing file.
         expect(exitCode).toBe(1)
         expect(stderr).toContain('[srd]')
         // itun is untouched and must not be implicated.
@@ -126,17 +97,6 @@ describe('check-observability CSP source resolution', () => {
     )
   })
 })
-
-/*
- * `check-observability functions-directory retirement` lived here and is
- * DELETED along with `checkFunctionDirs` itself.
- *
- * It enforced that nothing sat in a Netlify functions directory unless it was a
- * function — a rule with a real incident behind it. ADR-033 predicted its
- * retirement and the reason: a Worker declares ONE entry point, so "every file
- * in a directory is a public endpoint" is not a failure class that can occur
- * any more. The directories it watched no longer exist.
- */
 
 describe('check-observability Workers static-assets headers', () => {
   test('fails when an app whose wrangler declares assets has no _headers', async () => {
@@ -169,16 +129,10 @@ describe('check-observability Workers static-assets headers', () => {
       async () => {
         await withFileAbsent('apps/itun/public/_headers', async () => {
           const { stderr } = await runCheck()
-          // The claim is narrow and stays narrow: the ASSETS rule does not fire
-          // for a wrangler config that declares no assets.
+          // The ASSETS rule does not fire for a config that declares no assets;
+          // the missing CSP source still fails under its own rule.
           expect(stderr).not.toContain('apps/itun/public/_headers does not exist')
-          // The exit code is deliberately NOT asserted. With `netlify.toml`
-          // deleted, `_headers` is itun's only CSP source, so removing it trips
-          // the CSP rule as well — a different rule, correctly firing. Asserting
-          // exit 0 here would force this test to depend on that unrelated
-          // failure never happening, which is how a narrow test quietly becomes
-          // a broad one.
-          expect(stderr).toContain('[itun]')
+          expect(stderr).toContain('no CSP source found at apps/itun/public/_headers')
         })
       }
     )

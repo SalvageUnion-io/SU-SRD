@@ -5,12 +5,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * `check-bun-version` — the post-Netlify shape.
- *
- * It used to check three `netlify.toml` files. With those deleted it was
- * asserting one thing (root `bun-types`) while printing `0 Netlify site(s)` —
- * passing by having nothing left to check. It is now repointed at the surface
- * where builds actually happen: every workflow's Bun setup.
+ * `check-bun-version` — root `bun-types` and every workflow's Bun setup agree
+ * with `.bun-version`, and the check refuses to pass by having nothing to
+ * check.
  *
  * ## Why these run the real script in a shadow root
  *
@@ -103,9 +100,8 @@ describe('check-bun-version', () => {
   })
 
   test('refuses to pass by absence when there are no workflows at all', async () => {
-    // The failure this rewrite exists to prevent. Silence must not read as
-    // success — that is precisely what the Netlify-shaped version did once its
-    // three files were deleted.
+    // Silence must not read as success: a check that passes by having nothing
+    // left to check is the failure this guards against.
     const { code, out } = await run({
       '.bun-version': '1.4.0\n',
       'package.json': PKG,
