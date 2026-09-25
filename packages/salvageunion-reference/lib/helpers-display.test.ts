@@ -15,6 +15,7 @@ import {
 } from './helpers.js'
 import type { SURefEntity } from './index.js'
 import { SalvageUnionReference } from './index.js'
+import { entityFixture, malformed } from './testing.js'
 
 /**
  * The read layer both apps go through: schema lookup, grant resolution, facet
@@ -126,29 +127,31 @@ describe('activation currency', () => {
 
 describe('facets', () => {
   test('tech levels come back unique and in game order: numbers, then B, then N', () => {
-    const entities = [
-      { id: 'a', techLevel: 3 },
-      { id: 'b', techLevel: 1 },
-      { id: 'c', techLevel: 'N' },
-      { id: 'd', techLevel: 'B' },
-      { id: 'e', techLevel: 1 },
-      { id: 'f' },
-    ] as unknown as SURefEntity[]
+    const entities: SURefEntity[] = [
+      entityFixture('systems', { id: 'a', techLevel: 3 }),
+      entityFixture('systems', { id: 'b', techLevel: 1 }),
+      entityFixture('systems', { id: 'c', techLevel: 'N' }),
+      entityFixture('systems', { id: 'd', techLevel: 'B' }),
+      entityFixture('systems', { id: 'e', techLevel: 1 }),
+      entityFixture('abilities', { id: 'f' }),
+    ]
     expect(getUniqueTechLevels(entities)).toEqual([1, 3, 'B', 'N'])
   })
 
   test('no tech levels at all yields an empty list', () => {
-    expect(getUniqueTechLevels([{ id: 'a' } as unknown as SURefEntity])).toEqual([])
+    expect(getUniqueTechLevels([entityFixture('abilities', { id: 'a' })])).toEqual([])
   })
 
   test('the Workshop Manual sorts first, the rest alphabetically', () => {
     // The core book is what every other source is read against, so it leads
     // the facet regardless of alphabet.
-    const entities = [
+    // Sources outside the SourceSchema enum, so the alphabetical rule is
+    // exercised on names that cannot collide with a real book.
+    const entities = malformed<SURefEntity[]>([
       { id: 'a', source: 'Zephyr Expansion' },
       { id: 'b', source: 'Salvage Union Workshop Manual' },
       { id: 'c', source: 'Alpha Expansion' },
-    ] as unknown as SURefEntity[]
+    ])
     expect(getUniqueSources(entities)).toEqual([
       'Salvage Union Workshop Manual',
       'Alpha Expansion',
@@ -157,21 +160,21 @@ describe('facets', () => {
   })
 
   test('without the core book the rest are simply alphabetical', () => {
-    const entities = [
+    const entities = malformed<SURefEntity[]>([
       { id: 'a', source: 'Zephyr' },
       { id: 'b', source: 'Alpha' },
-    ] as unknown as SURefEntity[]
+    ])
     expect(getUniqueSources(entities)).toEqual(['Alpha', 'Zephyr'])
   })
 
   test('trees are unique, sorted, and entities without one are skipped', () => {
-    const entities = [
-      { id: 'a', tree: 'Gunner' },
-      { id: 'b', tree: 'Ace' },
-      { id: 'c', tree: 'Gunner' },
-      { id: 'd' },
-    ] as unknown as SURefEntity[]
-    expect(getUniqueTrees(entities)).toEqual(['Ace', 'Gunner'])
+    const entities: SURefEntity[] = [
+      entityFixture('abilities', { id: 'a', tree: 'Forging' }),
+      entityFixture('abilities', { id: 'b', tree: 'Electronics' }),
+      entityFixture('abilities', { id: 'c', tree: 'Forging' }),
+      entityFixture('systems', { id: 'd' }),
+    ]
+    expect(getUniqueTrees(entities)).toEqual(['Electronics', 'Forging'])
   })
 
   test('the real ability set produces real, sorted trees', () => {
@@ -194,7 +197,7 @@ describe('display data', () => {
   })
 
   test('a nameless entity falls back to its id rather than to blank', () => {
-    const data = getReferenceEntityData({ id: 'orphan' } as unknown as SURefEntity)
+    const data = getReferenceEntityData(malformed<SURefEntity>({ id: 'orphan' }))
     expect(data.name).toBe('orphan')
     expect(data.description).toBeUndefined()
     expect(data.techLevel).toBeUndefined()
@@ -214,28 +217,32 @@ describe('the static summary the SRD indexes on', () => {
   })
 
   test('paragraph blocks are collected and non-paragraph blocks are not', () => {
-    const summary = extractStaticEntitySummary({
-      id: 'x',
-      name: 'X',
-      content: [
-        { type: 'paragraph', value: 'first' },
-        { value: 'untyped counts as prose' },
-        { type: 'table', value: 'not prose' },
-        { type: 'paragraph', value: 42 },
-        null,
-      ],
-    } as unknown as SURefEntity)
+    const summary = extractStaticEntitySummary(
+      malformed<SURefEntity>({
+        id: 'x',
+        name: 'X',
+        content: [
+          { type: 'paragraph', value: 'first' },
+          { value: 'untyped counts as prose' },
+          { type: 'table', value: 'not prose' },
+          { type: 'paragraph', value: 42 },
+          null,
+        ],
+      })
+    )
 
     expect(summary.contentParagraphs).toEqual(['first', 'untyped counts as prose'])
   })
 
   test('range and damage are flattened into readable values', () => {
-    const summary = extractStaticEntitySummary({
-      id: 'w',
-      name: 'W',
-      range: ['Close', 'Medium'],
-      damage: { amount: 3, damageType: 'Kinetic' },
-    } as unknown as SURefEntity)
+    const summary = extractStaticEntitySummary(
+      malformed<SURefEntity>({
+        id: 'w',
+        name: 'W',
+        range: ['Close', 'Medium'],
+        damage: { amount: 3, damageType: 'Kinetic' },
+      })
+    )
 
     const byLabel = Object.fromEntries(summary.stats.map((s) => [s.label, s.value]))
     expect(byLabel.Range).toBe('Close, Medium')
@@ -243,11 +250,13 @@ describe('the static summary the SRD indexes on', () => {
   })
 
   test('trait names are collected, and malformed traits are skipped', () => {
-    const summary = extractStaticEntitySummary({
-      id: 't',
-      name: 'T',
-      traits: [{ type: 'reliable' }, { value: 'no type' }, null, 'bare string'],
-    } as unknown as SURefEntity)
+    const summary = extractStaticEntitySummary(
+      malformed<SURefEntity>({
+        id: 't',
+        name: 'T',
+        traits: [{ type: 'reliable' }, { value: 'no type' }, null, 'bare string'],
+      })
+    )
     expect(summary.traits).toEqual(['reliable'])
   })
 
@@ -272,16 +281,18 @@ describe('the static summary the SRD indexes on', () => {
   })
 
   test('a malformed step is skipped rather than producing a nameless section', () => {
-    const summary = extractStaticEntitySummary({
-      id: 'g',
-      name: 'G',
-      steps: [
-        { name: 'One', content: [{ type: 'paragraph', value: 'do this' }] },
-        { content: [{ type: 'paragraph', value: 'nameless' }] },
-        null,
-        { name: 'Three' },
-      ],
-    } as unknown as SURefEntity)
+    const summary = extractStaticEntitySummary(
+      malformed<SURefEntity>({
+        id: 'g',
+        name: 'G',
+        steps: [
+          { name: 'One', content: [{ type: 'paragraph', value: 'do this' }] },
+          { content: [{ type: 'paragraph', value: 'nameless' }] },
+          null,
+          { name: 'Three' },
+        ],
+      })
+    )
 
     expect(summary.sections).toEqual([
       { name: 'One', paragraphs: ['do this'] },
@@ -291,7 +302,7 @@ describe('the static summary the SRD indexes on', () => {
 
   test('an entity with nothing to say yields empty collections, never undefined', () => {
     // Consumers map over all four without guarding.
-    const summary = extractStaticEntitySummary({ id: 'bare' } as unknown as SURefEntity)
+    const summary = extractStaticEntitySummary(malformed<SURefEntity>({ id: 'bare' }))
     expect(summary.name).toBe('bare')
     expect(summary.contentParagraphs).toEqual([])
     expect(summary.stats).toEqual([])

@@ -49,7 +49,8 @@ pre-push:
       #
       # CRITICAL: `--changed` DOES NOT CROSS WORKSPACE BOUNDARIES, so it cannot
       # be used alone here. Measured: edit
-      # packages/salvageunion-reference/lib/utilities.ts and
+      # packages/salvageunion-reference/lib/utilities.ts (since split into
+      # per-concern modules) and
       # `bun --filter salvageunion-reference test --changed` correctly selects
       # 27/49 — while `bun --filter component-lib test --changed` reports "no
       # test files are affected" and runs ZERO, even though component-lib

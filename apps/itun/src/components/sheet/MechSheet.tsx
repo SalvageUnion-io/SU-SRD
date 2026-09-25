@@ -67,6 +67,7 @@ import {
 } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
@@ -158,11 +159,13 @@ export function MechSheet({
         </p>
       )
     }
+    // Keyed by occurrence, not index: removing one item must not remount (and
+    // hand local state to) the items after it. See occurrenceKeys.
+    const keys = occurrenceKeys(slugs)
     return (
       <MasonryColumns maxColumns={3}>
         {slugs.map((slug, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module slug may be installed more than once, so the slug alone is not unique; install order is stable
-          <EntityGridRow key={`${slug}-${index}`}>
+          <EntityGridRow key={keys[index]}>
             <MechItemCard
               slug={slug}
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}

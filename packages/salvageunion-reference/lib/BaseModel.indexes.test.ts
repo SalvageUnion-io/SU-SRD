@@ -18,6 +18,7 @@ import type { ModelWithMetadata } from './BaseModel.js'
 import { BaseModel } from './BaseModel.js'
 import { SalvageUnionReference, SchemaToModelMap } from './index.js'
 import { nameToSlug } from './nameToSlug.js'
+import { malformed } from './testing.js'
 
 type Row = { id?: string; name?: string }
 
@@ -90,7 +91,7 @@ describe('BaseModel name/slug indexes', () => {
     const model = new BaseModel(
       [
         { id: 'a' },
-        { id: 'b', name: 42 as unknown as string },
+        { id: 'b', name: malformed<string>(42) },
         { id: 'c', name: '' },
         { id: 'd', name: 'Real' },
       ],

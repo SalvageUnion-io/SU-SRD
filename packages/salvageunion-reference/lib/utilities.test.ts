@@ -3,20 +3,15 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-// Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from './index.js'
-import { getEntitySlug } from './slug.js'
+import { extractActions, getChassisAbilities } from './actionResolution.js'
+import { getAssetUrl, SRD_SITE_URL, srdEntityPath, srdEntityUrl } from './assets.js'
 import {
-  extractActions,
-  getAssetUrl,
   getCargoCapacity,
-  getChassisAbilities,
   getEnergyPoints,
   getHeatCapacity,
   getHitPoints,
   getModuleSlots,
   getPageReference,
-  getPatterns,
   getSalvageValue,
   getSlotsRequired,
   getStructurePoints,
@@ -25,14 +20,11 @@ import {
   getTechLevelNumber,
   getUpgradeCost,
   getUpkeepCost,
-  isHiddenPattern,
-  normalizePatternName,
-  resolveFormationMember,
-  SRD_SITE_URL,
-  srdEntityPath,
-  srdEntityUrl,
-  visiblePatterns,
-} from './utilities.js'
+} from './entityFields.js'
+// Import SalvageUnionReference - use lazy getter to avoid initialization issues
+import type { SalvageUnionReference as SURefType } from './index.js'
+import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from './patterns.js'
+import { getEntitySlug } from './slug.js'
 
 let SalvageUnionReference: typeof SURefType
 
@@ -608,21 +600,24 @@ describe('normalizePatternName', () => {
     }
   })
 
-  it('still matches real formation members through the normalized comparison', () => {
-    // resolveFormationMember is the production caller: it compares a faction's
-    // declared pattern against chassis pattern names via normalizePatternName.
+  it('still matches every real formation pattern through the normalized comparison', () => {
+    // Faction formations name a chassis pattern the way the book prints it, and
+    // the consumers (itun's MechChassisStep / partnerGrants) find it with
+    // exactly this comparison. Every declared pattern must resolve.
     let checked = 0
     for (const faction of getReference().Factions.all()) {
       const formation = faction.formation
       if (!Array.isArray(formation)) continue
       for (const member of formation) {
         if (!member || typeof member !== 'object' || typeof member.pattern !== 'string') continue
-        const resolved = resolveFormationMember(member)
-        if (!resolved?.pattern) continue
+        if ((member.schema ?? 'chassis') !== 'chassis') continue
+        const chassis = getReference().getByNameIn('chassis', member.chassis)
+        if (!chassis) continue
+        const wanted = normalizePatternName(member.pattern)
+        const pattern = getPatterns(chassis)?.find((p) => normalizePatternName(p.name) === wanted)
+        if (!pattern) continue
         checked++
-        expect(normalizePatternName(resolved.pattern.name)).toBe(
-          normalizePatternName(member.pattern)
-        )
+        expect(normalizePatternName(pattern.name)).toBe(wanted)
       }
     }
     expect(checked).toBeGreaterThan(0)

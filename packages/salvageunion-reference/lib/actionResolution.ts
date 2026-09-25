@@ -3,30 +3,26 @@
  * answer may come from an entity's SELF-ACTION rather than the entity itself.
  *
  * The dataset stores an entity's actions as NAMES; the combat facets
- * (activationCost / actionType / range / damage) and the trait, table, option
- * and choice payloads live on the resolved action, not on the entity. Every
+ * (actionType / range / damage) and the trait and choice payloads live on the
+ * resolved action, not on the entity. Every
  * function here therefore has a resolution step — which is exactly what
  * separates it from the plain readers in `entityFields.ts`.
  *
- * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
- * there (and from the package barrel), so this is an internal home, not a new
- * public surface.
+ * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
+ * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
 import { getGrants } from './entityFields.js'
 import { getModel } from './helpers.js'
-import { SalvageUnionReference } from './index.js'
 import { getDataMaps } from './ModelFactory.js'
 import type {
   SURefEntity,
   SURefMetaAction,
   SURefMetaEntity,
-  SURefObjectActionOptions,
   SURefObjectChoice,
   SURefObjectSystemModule,
-  SURefObjectTable,
   SURefObjectTrait,
-} from './types/index.js'
+} from './schemas/index.js'
 
 // Cached action map - built once since action data is static
 let _actionMap: Map<string, SURefMetaAction> | null = null
@@ -218,23 +214,10 @@ function selfActionField<T>(
   return undefined
 }
 
-const isNumberOrString = (v: unknown): v is number | string =>
-  typeof v === 'number' || typeof v === 'string'
 const isString = (v: unknown): v is string => typeof v === 'string'
 const isStringArray = (v: unknown): v is string[] => Array.isArray(v)
 type DamageValue = { damageType: string; amount: number | string }
 const isDamage = (v: unknown): v is DamageValue => v !== null && typeof v === 'object'
-
-/**
- * Get activation cost from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract activation cost from
- * @returns The activation cost or undefined if not present
- */
-
-export function getActivationCost(entity: SURefMetaEntity): number | string | undefined {
-  return selfActionField(entity, 'activationCost', isNumberOrString)
-}
 
 /**
  * Get action type from an entity (self-action fallback).
@@ -283,86 +266,6 @@ export function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefin
     Array.isArray(matchingAction.traits)
   ) {
     return matchingAction.traits
-  }
-
-  return undefined
-}
-
-/**
- * Get table from an entity
- * Checks base level, nested action property, and tableName references
- * @param entity - The entity to extract table from
- * @returns The table object or undefined if not present
- */
-
-export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined {
-  // Check base level first
-  if ('table' in entity && entity.table !== null && typeof entity.table === 'object') {
-    return entity.table
-  }
-
-  // Check for tableName reference (O(1) via the RollTables name index; this
-  // used to be a linear `.find((rt) => rt.name === …)` over the whole catalog)
-  if ('tableName' in entity && typeof entity.tableName === 'string') {
-    const rollTable = SalvageUnionReference.RollTables.getByName(entity.tableName)
-    if (rollTable?.table) {
-      return rollTable.table
-    }
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'table' in matchingAction &&
-    matchingAction.table !== null &&
-    typeof matchingAction.table === 'object'
-  ) {
-    return matchingAction.table
-  }
-
-  // Check for tableName in matching action
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'tableName' in matchingAction &&
-    typeof matchingAction.tableName === 'string'
-  ) {
-    const rollTable = SalvageUnionReference.RollTables.getByName(matchingAction.tableName)
-    if (rollTable?.table) {
-      return rollTable.table
-    }
-  }
-
-  return undefined
-}
-
-/**
- * Get options from an entity
- * Checks both base level and nested action property
- * @param entity - The entity to extract options from
- * @returns The options array or undefined if not present
- */
-
-export function getOptions(entity: SURefMetaEntity): SURefObjectActionOptions | undefined {
-  // Check base level first
-  if ('options' in entity && Array.isArray(entity.options)) {
-    return entity.options
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'options' in matchingAction &&
-    Array.isArray(matchingAction.options)
-  ) {
-    return matchingAction.options
   }
 
   return undefined

@@ -39,7 +39,7 @@ export const SystemModuleSchema = StatsSchema.extend({
         'Same vocabulary as a choice option’s `effects`, declared directly on ' +
         'the record for grants that are not a choice. Named `appliedEffects`, not ' +
         '`effects`: that key is already taken on meta entities with a different ' +
-        '`{ label, value }` shape (see getEffects), and one field name meaning two ' +
+        '`{ label, value }` shape, and one field name meaning two ' +
         'things is how a schema rots.'
     )
     .optional(),

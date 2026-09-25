@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { render, renderHook, screen } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import { entityFixture } from 'salvageunion-reference/testing'
 import type { PatternOverrideData } from '../../referenceEntityTypes'
 import { useChassisPatternConfig } from '../useChassisPatternConfig'
 
@@ -14,9 +14,7 @@ import { useChassisPatternConfig } from '../useChassisPatternConfig'
 describe('useChassisPatternConfig legal starting badge', () => {
   // Synthetic chassis: one pattern explicitly tagged, one not. Resolution is by
   // pattern name against this chassis's own patterns, so the dataset is irrelevant.
-  // (Double-cast kept: the synthetic patterns lack SURefObjectPattern's other
-  // fields and the chassis lacks source/page, so no single cast is comparable.)
-  const chassis = {
+  const chassis = entityFixture('chassis', {
     id: 'test-chassis',
     name: 'Testudo',
     techLevel: 1,
@@ -25,7 +23,7 @@ describe('useChassisPatternConfig legal starting badge', () => {
       { name: 'Tagged Pattern', legalStarting: true, systems: [], modules: [] },
       { name: 'Untagged Pattern', systems: [], modules: [] },
     ],
-  } as unknown as SURefEntity
+  })
 
   const override = (name: string): PatternOverrideData => ({ name, systems: [], modules: [] })
 

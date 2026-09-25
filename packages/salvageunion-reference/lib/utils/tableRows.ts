@@ -1,4 +1,4 @@
-import type { SURefObjectTable } from '../types/index.js'
+import type { SURefObjectTable } from '../schemas/index.js'
 
 /**
  * One row of a roll table, flattened out of the nine-variant bucket union.

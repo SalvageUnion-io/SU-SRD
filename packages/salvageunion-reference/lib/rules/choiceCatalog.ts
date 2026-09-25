@@ -19,7 +19,7 @@
  * (and `actions`, for a `damageType` filter) to be preloaded.
  */
 import { SalvageUnionReference } from '../index.js'
-import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice } from '../types/index.js'
+import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice } from '../schemas/index.js'
 
 type DamageType = 'HP' | 'SP'
 

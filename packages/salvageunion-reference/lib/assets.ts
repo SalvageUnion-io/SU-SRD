@@ -8,13 +8,12 @@
  * the grammar belongs with the dataset rather than being retyped by every
  * surface that links out.
  *
- * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
- * there (and from the package barrel), so this is an internal home, not a new
- * public surface.
+ * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
+ * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
+import type { SURefMetaEntity } from './schemas/index.js'
 import { getEntitySlug } from './slug.js'
-import type { SURefMetaEntity } from './types/index.js'
 
 /**
  * Base URL of the artwork CDN — the `su-assets` Cloudflare Worker, backed by the

@@ -2,7 +2,7 @@
 /**
  * generateRegistry — codegen for the schema registration mechanism.
  *
- * Reads the single manifest (lib/schemas/registry.ts) and emits three
+ * Reads the single manifest (lib/schemas/registry.ts) and emits four
  * committed, human-reviewable generated files:
  *
  *   - lib/generated/modelFactoryRegistry.generated.ts
@@ -15,6 +15,13 @@
  *       own module so the runtime loader reaches it (via lib/validateData.ts)
  *       only through a dynamic `import()` when validation is asked for, and bundlers leave the
  *       entity schemas out of the client chunks (audit PK-04).
+ *
+ *   - lib/generated/entityTypes.generated.ts
+ *       the SURef* entity type aliases (`z.infer` of each registry schema)
+ *       and the SURefEntity / SURefMetaEntity unions, whose membership comes
+ *       from each entry's `entity` / `excludeFromEntityUnion` flags. Type-only: it imports the
+ *       schemas with `import type`, so it adds nothing to any bundle. The
+ *       lib/schemas barrel re-exports it.
  *
  *   - lib/generated/schemaRegistry.generated.ts
  *       the SchemaToEntityMap type, the LazyModel instances (inlined
@@ -70,7 +77,58 @@ function validateRegistry(entries: RegistryEntry[]): void {
       throw new Error(`Duplicate registry entry id "${entry.id}".`)
     }
     seenIds.add(entry.id)
+    if (entry.entity === false && entry.excludeFromEntityUnion) {
+      throw new Error(
+        `Registry entry "${entry.id}" sets both entity: false and excludeFromEntityUnion — a ` +
+          'non-entity schema is in neither union already, so the flag would mean nothing.'
+      )
+    }
+    if (!/^SURef[A-Z]\w*$/.test(entry.typeName)) {
+      throw new Error(`Registry entry "${entry.id}" typeName must be SURef-prefixed PascalCase.`)
+    }
   }
+}
+
+// ---------------------------------------------------------------------------
+// lib/generated/entityTypes.generated.ts
+// ---------------------------------------------------------------------------
+
+/** Registry entries in the SURefMetaEntity union: every entity schema. */
+function metaEntityMembers(entries: RegistryEntry[]): RegistryEntry[] {
+  return entries.filter((e) => e.entity !== false)
+}
+
+/** Registry entries in the narrower SURefEntity union: entities that are not rules metadata. */
+function entityMembers(entries: RegistryEntry[]): RegistryEntry[] {
+  return metaEntityMembers(entries).filter((e) => !e.excludeFromEntityUnion)
+}
+
+function generateEntityTypes(entries: RegistryEntry[]): string {
+  const zodImports = entries.map((e) => `  ${e.zodExportName},`).join('\n')
+  const aliases = entries
+    .map((e) => `export type ${e.typeName} = z.infer<typeof ${e.zodExportName}>`)
+    .join('\n')
+  const union = (members: RegistryEntry[]) => members.map((e) => `  | ${e.typeName}`).join('\n')
+
+  return (
+    GENERATED_HEADER +
+    `import type { z } from '../zod.js'
+import type {
+${zodImports}
+} from '../schemas/entities.js'
+
+// One alias per registry entry: the entity type is the schema's inferred type.
+${aliases}
+
+/** Every reference entity (registry entries without \`excludeFromEntityUnion\` or \`entity: false\`). */
+export type SURefEntity =
+${union(entityMembers(entries))}
+
+/** SURefEntity plus the rules-metadata schemas (registry entries with \`excludeFromEntityUnion\`). */
+export type SURefMetaEntity =
+${union(metaEntityMembers(entries))}
+`
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -183,7 +241,7 @@ function generateSchemaRegistry(entries: RegistryEntry[]): string {
     `import { LazyModel } from '../LazyModel.js'
 import type {
 ${typeImports}
-} from '../types/index.js'
+} from '../schemas/index.js'
 
 // Type mapping from schema names to entity types (includes entity schemas and meta schemas)
 export type SchemaToEntityMap = {
@@ -264,13 +322,14 @@ async function main() {
   const modelFactoryOut = join(generatedDir, 'modelFactoryRegistry.generated.ts')
   const schemaRegistryOut = join(generatedDir, 'schemaRegistry.generated.ts')
   const zodSchemaMapOut = join(generatedDir, 'zodSchemaMap.generated.ts')
+  const entityTypesOut = join(generatedDir, 'entityTypes.generated.ts')
 
   console.log('Generating registry files from lib/schemas/registry.ts...\n')
 
   // lib/generated/** is biome-ignored (same treatment as routeTree.gen.ts) so
   // it's never a format:check/lint requirement, but running it through the
   // formatter anyway keeps the committed, human-reviewable output pleasant to
-  // review. Because Biome would return an ignored path untouched, these three go
+  // review. Because Biome would return an ignored path untouched, these go
   // through the synthetic TS_FORMAT_PATH rather than their own paths.
   const formatGenerated = (source: string) => formatWithBiome(source, TS_FORMAT_PATH)
 
@@ -279,6 +338,9 @@ async function main() {
 
   writeFileSync(zodSchemaMapOut, formatGenerated(generateZodSchemaMap(registry)))
   console.log('✓ Generated lib/generated/zodSchemaMap.generated.ts')
+
+  writeFileSync(entityTypesOut, formatGenerated(generateEntityTypes(registry)))
+  console.log('✓ Generated lib/generated/entityTypes.generated.ts')
 
   writeFileSync(schemaRegistryOut, formatGenerated(generateSchemaRegistry(registry)))
   console.log('✓ Generated lib/generated/schemaRegistry.generated.ts')
@@ -296,4 +358,4 @@ async function main() {
   console.log(`\n✓ Registry generation complete (${registry.length} schemas).`)
 }
 
-main()
+if (import.meta.main) await main()

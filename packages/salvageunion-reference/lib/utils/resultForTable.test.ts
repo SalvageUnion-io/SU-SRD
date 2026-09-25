@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import type { SURefObjectTable, SURefRollTable } from '../index.js'
+import { malformed } from '../testing.js'
 import { isColumnsTable, resultForColumnsTable, resultForTable } from './resultForTable.js'
 
 const mockStandardTable: SURefRollTable = {
@@ -292,17 +293,15 @@ describe('resultForTable', () => {
         source: 'Salvage Union Workshop Manual' as const,
         name: 'Test Old',
         section: 'test',
-        // Irreducible cast: this fixture deliberately uses the OLD persisted
-        // string format ('Label: Value'), which the current schema type cannot
-        // represent (entries are `{ value, label? }` objects). resultForTable
-        // still handles it at runtime for backward compatibility — that is the
-        // behavior under test. A single `as` will not compile (string vs object
-        // entries have no overlap), so the double-cast stays.
-        table: {
+        // Deliberately the OLD persisted string format ('Label: Value'), which
+        // the current schema type cannot represent (entries are
+        // `{ value, label? }` objects). resultForTable still handles it at
+        // runtime for backward compatibility — that is the behavior under test.
+        table: malformed<SURefObjectTable>({
           '1': 'Label: Value with colon',
           '20': 'Just a value',
           type: 'standard',
-        } as unknown as SURefObjectTable,
+        }),
         page: 1,
       }
 

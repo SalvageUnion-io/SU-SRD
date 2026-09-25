@@ -3,7 +3,7 @@
  * Generated-file drift — `bun run check generated`.
  *
  * Several committed files are machine output: the reference package's JSON
- * schemas, docs, registry and API report (`bun run build:package`), the VS Code
+ * schemas, catalog, registry and API report (`bun run build:package`), the VS Code
  * schema map, and ITUN's `src/routeTree.gen.ts`. Each is regenerated here and
  * then compared with what is committed. A stale one fails.
  *
@@ -38,7 +38,6 @@ const ROOT = join(import.meta.dir, '..')
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
   'packages/salvageunion-reference/schemas',
-  'packages/salvageunion-reference/docs',
   'packages/salvageunion-reference/lib/generated',
   'packages/salvageunion-reference/lib/index.ts',
   'packages/salvageunion-reference/etc',

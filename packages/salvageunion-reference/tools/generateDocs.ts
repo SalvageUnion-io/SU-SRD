@@ -12,8 +12,6 @@ import path from 'node:path'
  * correct by luck, because the package dir happens to be the right base for
  * them. Anchoring removes the luck, and is what let this generator be wired
  * into `build:package` (see that script) without depending on the caller's cwd.
- *
- * `generateSchemaDocs.ts`, its sibling, was already `__dirname`-anchored.
  */
 const PACKAGE_DIR = path.join(import.meta.dir, '..')
 const REPO_ROOT = path.join(PACKAGE_DIR, '..', '..')

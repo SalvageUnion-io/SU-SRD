@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { getAllJsonSchemaDefinitions, getJsonSchemaDefinition } from './schemaDefinitions.js'
+import { getJsonSchemaDefinition } from './schemaDefinitions.js'
+import { registry } from './schemas/registry.js'
 
 describe('getJsonSchemaDefinition', () => {
   it('returns a JSON Schema object for a known schema ID', () => {
@@ -15,13 +16,10 @@ describe('getJsonSchemaDefinition', () => {
   })
 })
 
-describe('getAllJsonSchemaDefinitions', () => {
-  it('returns a map with all 27 schema IDs as keys', () => {
-    const all = getAllJsonSchemaDefinitions()
-    expect(Object.keys(all).length).toBe(27)
-    expect(all.chassis).toBeDefined()
-    expect(all.abilities).toBeDefined()
-    expect(all['roll-tables']).toBeDefined()
-    expect(all['bio-titans']).toBeDefined()
+describe('schema definition coverage', () => {
+  it('has a JSON Schema for every registry schema id', () => {
+    for (const { id } of registry) {
+      expect(getJsonSchemaDefinition(id), `missing JSON Schema for "${id}"`).toBeDefined()
+    }
   })
 })

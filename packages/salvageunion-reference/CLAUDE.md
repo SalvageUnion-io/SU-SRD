@@ -26,7 +26,10 @@ blocks it):
 
 - `schemas/*.schema.json` and the `schemas/index.json` catalog entries
 - `lib/generated/modelFactoryRegistry.generated.ts`,
-  `lib/generated/zodSchemaMap.generated.ts` and
+  `lib/generated/zodSchemaMap.generated.ts`,
+  `lib/generated/entityTypes.generated.ts` (every `SURef*` entity type and the
+  `SURefEntity` / `SURefMetaEntity` unions — membership comes from each
+  registry entry's `entity` / `excludeFromEntityUnion` flag) and
   `lib/generated/schemaRegistry.generated.ts`, from the manifest in
   `lib/schemas/registry.ts`
 - the static-accessor block inside `lib/index.ts` between
@@ -35,24 +38,30 @@ blocks it):
 
 Everything else in `lib/` is hand-written: `lib/schemas/` (Zod), `lib/index.ts`,
 `lib/BaseModel.ts`, `lib/ModelFactory.ts`, `lib/LazyModel.ts`, `lib/naming.ts`,
-`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`, `lib/types/index.ts`.
+`lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`. (`lib/types/index.ts` was deleted: it
+re-exported `lib/schemas/index.ts` and existed only as an indirection — import
+types from `lib/schemas/index.ts`.)
 
-### Two re-export barrels — edit the module, not the barrel
+### The public barrels are explicit lists
 
-`lib/utilities.ts` and `lib/schemas/objects.ts` are **pure re-export barrels**.
-They exist so no consumer import breaks; put new code in the module that owns
-the responsibility, not in the barrel.
+`lib/index.ts` and `lib/rules/index.ts` re-export **by name**, and list only
+names that something outside the package imports. There is no `export *` on
+either (the one exception is the generated entity-type family). Package-internal
+code imports from the module that owns the function — `entityFields.ts`,
+`actionResolution.ts`, `entityGuards.ts`, `patterns.ts`, `assets.ts`,
+`traitText.ts`, `inventorySlots.ts`, `helpers.ts` — never through the barrel.
+`lib/utilities.ts` was deleted — it was a wildcard barrel over those seven modules.
 
-- `lib/utilities.ts` → `entityFields.ts` (plain property readers),
-  `actionResolution.ts` (the action map + every self-action fallback getter),
-  `entityGuards.ts`, `patterns.ts`, `assets.ts`, `traitText.ts`,
-  `inventorySlots.ts`.
-- `lib/schemas/objects.ts` → `lib/schemas/objects/*.ts`, one file per schema
-  family (`primitives`, `content`, `tables`, `sources`, `contributions`,
-  `effects`, `systemModule`, `choices`, `npc`, `patterns`, `actions`,
-  `entityBase`, `references`, `crawlerMutations`, `guides`). Its re-export list
-  is **explicit on purpose** — a submodule may export a helper its siblings
-  need without that helper joining the package's public surface.
+To expose a new name, add it to the barrel's list in the same change as its
+first outside consumer. The API report makes that addition visible in review.
+
+`lib/schemas/objects.ts` → `lib/schemas/objects/*.ts` is still a re-export
+barrel, one file per schema family (`primitives`, `content`, `tables`,
+`sources`, `contributions`, `effects`, `systemModule`, `choices`, `npc`,
+`patterns`, `actions`, `entityBase`, `references`, `crawlerMutations`,
+`guides`). Its re-export list is **explicit on purpose** — a submodule may
+export a helper its siblings need without that helper joining the package's
+public surface.
 
 ### Loading is trusted — keep the data parse-stable
 
@@ -134,9 +143,10 @@ some other field (`findAll((e) => e.techLevel === 3)`), not an identity lookup.
 
 ## Adding a New Entity **Type** (schema)
 
-Adding a whole new schema (not just rows in an existing file) needs two
-hand-authored pieces — the Zod schema itself and the SURefEntity/SURefMetaEntity
-type-union edits — plus **one** manifest entry in `lib/schemas/registry.ts`.
+Adding a whole new schema (not just rows in an existing file) needs one
+hand-authored piece — the Zod schema itself — plus **one** manifest entry in
+`lib/schemas/registry.ts`. The `SURef*` type and its SURefEntity /
+SURefMetaEntity union membership are generated from that entry.
 
 The `schemas/index.json` catalog entry is **generated** by
 `tools/generateDocs.ts` (`itemCount`, `requiredFields`, `title`,
@@ -147,13 +157,14 @@ carried over from the existing entry.
 Everything else (ModelFactory's
 `dataLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
 `index.ts`'s `LazyModel` instances / `lazyModelMap` / `SchemaToEntityMap` /
-`SCHEMA_REGISTRY`, and the `SalvageUnionReference` static accessors) is
+`SCHEMA_REGISTRY`, the `SURef*` entity types and unions, and the
+`SalvageUnionReference` static accessors) is
 generated from that manifest by `tools/generateRegistry.ts` — run via
 `bun run build:package` (it runs before `generate:json-schemas`, since that
 tool transitively imports the generated `zodSchemaMap`).
 
 Run the scaffold generator to print an exact, ready-to-paste checklist for
-the 3 manual steps plus the manifest entry, derived from the live registry —
+the manual steps plus the manifest entry, derived from the live registry —
 it does not edit files, it tells you precisely what to add and where:
 
 ```bash

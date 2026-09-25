@@ -15,7 +15,22 @@
  */
 
 import { SalvageUnionReference } from '../index.js'
-import { nameToSlug } from '../slug.js'
+import { nameToSlug } from '../nameToSlug.js'
+import type {
+  SURefChassis,
+  SURefCrawler,
+  SURefCrawlerBay,
+  SURefModule,
+  SURefSystem,
+} from '../schemas/index.js'
+
+/**
+ * A resolved row: the entity plus the `schemaName` `BaseModel` stamps on it.
+ * The resolvers below declare it rather than letting TypeScript infer it, so
+ * their emitted declarations name the entity type instead of spelling out its
+ * whole structure.
+ */
+type Resolved<T> = (T & { schemaName: string }) | null
 
 type RefEntity = { id: string; name?: string }
 
@@ -63,17 +78,17 @@ export function resolveRef<T extends RefEntity>(model: ModelLike<T>, ref: string
 }
 
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
-export function resolveChassisRef(ref: string) {
+export function resolveChassisRef(ref: string): Resolved<SURefChassis> {
   return resolveRef(SalvageUnionReference.Chassis, ref)
 }
 
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
-export function resolveSystemRef(ref: string) {
+export function resolveSystemRef(ref: string): Resolved<SURefSystem> {
   return resolveRef(SalvageUnionReference.Systems, ref)
 }
 
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
-export function resolveModuleRef(ref: string) {
+export function resolveModuleRef(ref: string): Resolved<SURefModule> {
   return resolveRef(SalvageUnionReference.Modules, ref)
 }
 
@@ -81,7 +96,7 @@ export function resolveModuleRef(ref: string) {
  * Resolve an installed system-or-module ref — systems win a (theoretical)
  * cross-schema name collision, matching the historical lookup order.
  */
-export function resolveInstalledRef(ref: string) {
+export function resolveInstalledRef(ref: string): Resolved<SURefSystem | SURefModule> {
   return resolveSystemRef(ref) ?? resolveModuleRef(ref)
 }
 
@@ -99,21 +114,11 @@ export function resolveInstalledRef(ref: string) {
  * Resolving through here is slug-tolerant in advance, and indexed rather than
  * a linear scan.
  */
-export function resolveCrawlerRef(ref: string) {
+export function resolveCrawlerRef(ref: string): Resolved<SURefCrawler> {
   return resolveRef(SalvageUnionReference.Crawlers, ref)
 }
 
 /** Resolve a crawler-bay ref (slug; legacy name/id tolerated). See `resolveCrawlerRef`. */
-export function resolveCrawlerBayRef(ref: string) {
+export function resolveCrawlerBayRef(ref: string): Resolved<SURefCrawlerBay> {
   return resolveRef(SalvageUnionReference.CrawlerBays, ref)
-}
-
-/** Resolve an action ref (slug; legacy name/id tolerated). */
-export function resolveActionRef(ref: string) {
-  return resolveRef(SalvageUnionReference.Actions, ref)
-}
-
-/** Resolve a pilot `classRef` (slug; legacy name/id tolerated). */
-export function resolveClassRef(ref: string) {
-  return resolveRef(SalvageUnionReference.Classes, ref)
 }

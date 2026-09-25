@@ -13,8 +13,18 @@
  * zodSchemaMap directly, so it is covered transitively.
  */
 import { describe, expect, test } from 'bun:test'
+import type { SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
 import { zodSchemaMap } from './generated/zodSchemaMap.generated.js'
 import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from './ModelFactory.js'
+import type {
+  SURefCatalogCategory,
+  SURefEntity,
+  SURefMetaAbilityTreeRequirement,
+  SURefMetaAction,
+  SURefMetaCrawlerTechLevel,
+  SURefMetaEntity,
+} from './schemas/index.js'
+import { registry } from './schemas/registry.js'
 
 function sorted(keys: Iterable<string>): string[] {
   return [...keys].sort()
@@ -41,5 +51,47 @@ describe('schema registry consistency', () => {
       expect(names?.singular, `schemaDisplayNames missing "${id}"`).toBeTruthy()
       expect(names?.plural, `schemaDisplayNames missing plural for "${id}"`).toBeTruthy()
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// The SURef* entity types and unions are GENERATED from the registry (audit
+// PK-10). These pin the generated unions to the registry's flags, so a flag
+// edited without regenerating — or a generator bug — fails here rather than
+// silently widening or narrowing every consumer's types.
+// ---------------------------------------------------------------------------
+
+/** Exact type equality (not mutual assignability, which unions can fake). */
+type Equal<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+
+type MetaOnly = SURefMetaAbilityTreeRequirement | SURefMetaAction | SURefMetaCrawlerTechLevel
+
+describe('generated entity unions', () => {
+  test('SURefMetaEntity is every registry type except the non-entity catalog', () => {
+    const exact: Equal<
+      SchemaToEntityMap[keyof SchemaToEntityMap],
+      SURefMetaEntity | SURefCatalogCategory
+    > = true
+    expect(exact).toBe(true)
+  })
+
+  test('SURefEntity is SURefMetaEntity minus the excludeFromEntityUnion schemas', () => {
+    const exact: Equal<SURefEntity | MetaOnly, SURefMetaEntity> = true
+    expect(exact).toBe(true)
+  })
+
+  test('the flags that drive the unions are set where the type names say they are', () => {
+    // SURefMeta* is the naming convention for the rules-metadata schemas; the
+    // flag is what the generator actually reads. They must agree.
+    for (const entry of registry) {
+      expect(
+        entry.typeName.startsWith('SURefMeta'),
+        `"${entry.id}": typeName and excludeFromEntityUnion disagree`
+      ).toBe(entry.excludeFromEntityUnion === true)
+    }
+    expect(registry.filter((e) => e.entity === false).map((e) => e.id)).toEqual([
+      'catalog-categories',
+    ])
   })
 })

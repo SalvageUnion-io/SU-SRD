@@ -2,15 +2,15 @@
  * Search functionality for Salvage Union data
  */
 
+import { extractActions } from './actionResolution.js'
 import { getDataMaps, getSchemaCatalog } from './ModelFactory.js'
+import type { SURefEntity, SURefEnumSchemaName } from './schemas/index.js'
 import {
   matchSearchTokens,
   scoreSearchMatch,
   searchNameWords,
   tokenizeSearchQuery,
 } from './searchRanking.js'
-import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
-import { extractActions } from './utilities.js'
 
 /** Lazily-built membership set: the non-meta schema catalog ids. */
 let indexableSchemaNames: ReadonlySet<string> | null = null

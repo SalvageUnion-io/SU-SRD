@@ -32,6 +32,7 @@ import type { ReferenceEntityControl, StatItem } from 'component-lib'
 import { Field, MasonryColumns, ReferenceEntityCard, summarizeBreakdown } from 'component-lib'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
+import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
 import { replacePartner } from '../../lib/partnerLookup'
 import {
@@ -215,6 +216,8 @@ export function PartnerCard({
     const slugs = kind === 'system' ? partner.systems : partner.modules
     if (slugs.length === 0) return null
     const conditions = conditionsFor(kind)
+    // Keyed by occurrence, not index — see occurrenceKeys.
+    const keys = occurrenceKeys(slugs)
     return (
       <div className="flex flex-col gap-2">
         <h4 className="font-cond text-caption font-bold uppercase tracking-caps text-wk-muted">
@@ -225,8 +228,7 @@ export function PartnerCard({
         <MasonryColumns maxColumns={1}>
           {slugs.map((slug, index) => (
             <MechItemCard
-              // biome-ignore lint/suspicious/noArrayIndexKey: the same slug may be installed twice, so slug alone is not unique; install order is stable
-              key={`${slug}-${index}`}
+              key={keys[index]}
               slug={slug}
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
               condition={conditions[slug] ?? 'intact'}

@@ -8,12 +8,11 @@
  * that has to RESOLVE something (an action name, a self-action fallback, a
  * pattern) lives in `actionResolution.ts` or `patterns.ts` instead.
  *
- * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
- * there (and from the package barrel), so this is an internal home, not a new
- * public surface.
+ * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
+ * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
-import type { SURefMetaEntity, SURefObjectGrant } from './types/index.js'
+import type { SURefMetaEntity, SURefObjectGrant } from './schemas/index.js'
 
 // ============================================================================
 // PROPERTY EXTRACTORS
@@ -312,27 +311,6 @@ export function getDescription(entity: SURefMetaEntity): string | undefined {
   // Only return description for abilities
   if ('description' in entity && typeof entity.description === 'string') {
     return entity.description
-  }
-
-  return undefined
-}
-
-/**
- * Get effects from an entity
- * Note: Effects only exist at base level, not in actions
- * @param entity - The entity to extract from
- * @returns The effects array or undefined if not present
- */
-
-export function getEffects(entity: SURefMetaEntity):
-  | Array<{
-      label?: string
-      value: string
-    }>
-  | undefined {
-  // Check base level only (effects don't exist in actions)
-  if ('effects' in entity && Array.isArray(entity.effects)) {
-    return entity.effects
   }
 
   return undefined

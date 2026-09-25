@@ -1,20 +1,12 @@
 /**
- * Mech patterns and faction formations: reading a chassis's patterns, the
- * hidden-pattern rule that every render surface funnels through, pattern-name
- * normalisation, and resolving a formation member to its entity.
+ * Mech patterns: reading a chassis's patterns, the hidden-pattern rule that
+ * every render surface funnels through, and pattern-name normalisation.
  *
- * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
- * there (and from the package barrel), so this is an internal home, not a new
- * public surface.
+ * Split out of the old `lib/utilities.ts` grab bag. The package barrel
+ * (`lib/index.ts`) re-exports the names consumers use, by name.
  */
 
-import { SalvageUnionReference } from './index.js'
-import type {
-  SURefEntity,
-  SURefMetaEntity,
-  SURefObjectFormationMech,
-  SURefObjectPattern,
-} from './types/index.js'
+import type { SURefMetaEntity, SURefObjectPattern } from './schemas/index.js'
 
 /**
  * Extract patterns from an entity
@@ -80,41 +72,4 @@ export function normalizePatternName(patternName: string): string {
 
   // No whitespace before the literal (e.g. "IronPattern") -> no match.
   return cut === suffixStart ? patternName : patternName.slice(0, cut)
-}
-
-/**
- * Resolve a formation member to its entity, supporting chassis+pattern and standalone entity types.
- * For chassis: resolves chassis and optionally its pattern.
- * For other schemas (vehicles, drones, squads, npcs): resolves by name.
- * @param member - The formation member from faction data
- * @returns The resolved entity (with optional pattern for chassis), or undefined
- */
-
-export function resolveFormationMember(
-  member: SURefObjectFormationMech
-): { entity: SURefEntity; pattern?: SURefObjectPattern } | undefined {
-  const schemaName = member.schema ?? 'chassis'
-
-  if (schemaName === 'chassis') {
-    const chassis = SalvageUnionReference.getByNameIn('chassis', member.chassis)
-    if (!chassis) return undefined
-
-    if (member.pattern) {
-      const patterns = getPatterns(chassis)
-      if (patterns) {
-        const normalizedInput = normalizePatternName(member.pattern)
-        const pattern = patterns.find((p) => normalizePatternName(p.name) === normalizedInput)
-        if (pattern) return { entity: chassis, pattern }
-      }
-    }
-
-    // Chassis found but pattern missing or not matched — still return the chassis
-    return { entity: chassis }
-  }
-
-  // Non-chassis entity types: look up by name in the given schema. `schemaName`
-  // is data-driven, so this is the case `getByNameIn` exists for — the name
-  // index answers it without scanning the schema.
-  const found = SalvageUnionReference.getByNameIn(schemaName, member.chassis)
-  return found ? { entity: found } : undefined
 }

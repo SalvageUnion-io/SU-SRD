@@ -23,25 +23,19 @@
       "types": "./lib/schemaDefinitions.ts",
       "default": "./lib/schemaDefinitions.ts"
     },
-    "./data/*": {
-      "import": "./data/*.json",
-      "default": "./data/*.json"
-    },
-    "./schemas/*": {
-      "import": "./schemas/*.json",
-      "default": "./schemas/*.json"
-    },
-    "./package.json": "./package.json"
+    "./testing": {
+      "types": "./lib/testing.ts",
+      "default": "./lib/testing.ts"
+    }
   },
   "sideEffects": [
     "./lib/zod.ts"
   ],
   "scripts": {
-    "build": "bun run generate:registry && bun run generate:json-schemas && bun run docs && bun run docs:schemas && bun run generate:api-report",
+    "build": "bun run generate:registry && bun run generate:json-schemas && bun run docs && bun run generate:api-report",
     "fix:ids": "bun tools/generateMissingIds.ts",
     "scaffold:entity": "bun tools/scaffold-entity.ts",
     "docs": "bun tools/generateDocs.ts",
-    "docs:schemas": "bun tools/generateSchemaDocs.ts",
     "generate:registry": "bun tools/generateRegistry.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
     "generate:api-report": "bun tools/generateApiReport.ts",

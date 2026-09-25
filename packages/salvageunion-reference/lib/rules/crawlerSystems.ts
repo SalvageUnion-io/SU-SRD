@@ -11,7 +11,7 @@
  * actions deals damage (the action has a `damage` payload).
  */
 import { SalvageUnionReference } from '../index.js'
-import type { SURefSystem } from '../types/index.js'
+import type { SURefSystem } from '../schemas/index.js'
 
 /**
  * True when `system` is a Weapons System — i.e. at least one of its resolved
