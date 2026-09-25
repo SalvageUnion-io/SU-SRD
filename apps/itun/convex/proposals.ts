@@ -262,7 +262,8 @@ export const alerts = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
-    const limit = Math.min(Math.max(Math.floor(args.limit ?? 20), 0), MAX_ALERTS)
+    const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20
+    const limit = Math.min(Math.max(requested, 0), MAX_ALERTS)
     const rows = await ctx.db
       .query('changeLog')
       .withIndex('by_game_field', (q) => q.eq('gameId', args.gameId).eq('field', 'alert'))

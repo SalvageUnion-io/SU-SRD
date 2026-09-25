@@ -41,7 +41,7 @@ In brief, grouped:
 | Containers   | **Game** (shared) and **Shelf** (personal). One entity, one container. **Move** sets `gameId`; **copy** mints a new unrelated `COPY OF …`. |
 | Roles        | Base role Player \| Mediator, plus an orthogonal **Organizer** flag. Organizer ⇒ no content authority. |
 | Cross-player | **Propose → player confirms.** Never a direct write, never force-applied.                              |
-| Ownership    | Nullable. Mediator assigns (today only through an invite's `grants`); owners release; **players self-claim what nobody holds**. |
+| Ownership    | Nullable. Owners (or the Mediator) release; **players self-claim what nobody holds**. No one can place a character with a particular person today. |
 | Crawler      | Communal to edit; **the table runner raises and scraps one**. A Game may hold several.                 |
 | Joining      | A Game takes a player's pilots and mechs **once it has a crawler**. The table runner is exempt.        |
 | Visibility   | Live vitals for all; read-only sheet drill-in (decided, not built); Mediator NPCs hidden.              |
@@ -88,7 +88,8 @@ Everything structural, nothing live. The Dashboard stays single-player, which is
 what de-risks the rest.
 
 - Convex project, schema, Discord OAuth ✅ (see `apps/itun/convex/`)
-- Games: create, rename, delete, invite code, join
+- Games: create, delete, invite code, join (`games.rename` was removed on
+  2026-09-25 — see *Known gaps*)
 - `Workspace` → `Game` + `Shelf` split; nullable `gameId`. **The client cutover
   has now landed too**: the Workspace switcher, list, and assign controls are
   deleted, the Roster/Encounter surfaces resolve through `lib/container.ts`, the
@@ -118,8 +119,10 @@ Not delivered, although this phase once listed them: a voluntary **Organizer
 transfer**, a **read-only crewmate drill-in**, and a Mediator **assign** /
 **reassign** of a character to a particular person, plus a **leave Game**. Each
 existed as a public function with no client caller and was removed on
-2026-09-25 — see *Known gaps* below. A Mediator hands a character to someone
-today through an invite's `grants`, or by releasing it for them to claim.
+2026-09-25 — see *Known gaps* below. Nobody can place a character with a
+particular person today: the Mediator (or its owner) releases it, and then any
+member of the Game can claim it. `invites.create` does accept `grants`, but it
+is Organizer-only and the one client caller (`InvitePanel`) never sends them.
 
 **Exit:** the capability matrix is enforced in Convex, proven by tests that a
 Player cannot write a crewmate's pilot and that an Organizer gains nothing over
@@ -405,7 +408,8 @@ that string is the redacted one.
 #### Repairing duplicated app ids
 
 `convex/maintenance.ts` holds operator-only repairs, reachable through
-`bunx convex run` and not from any client. The one that exists today undoes the
+`bunx convex run` and not from any client: `dedupeAppIds` (below) and two
+backfills, `backfillGameSummaries` and `backfillBodyAppIds`. `dedupeAppIds` undoes the
 damage described under "Claiming twice" in `convex/entities.ts`: rows sharing an
 `appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
 write for that entity, permanently and silently.

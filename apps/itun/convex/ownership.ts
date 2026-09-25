@@ -34,8 +34,10 @@ import { NotAuthorized, requireMember, requireUser } from './model/permissions'
  * There is no table-runner `assign` (placing an entity with a *particular*
  * person) and no `leaveGame`. Both existed as public mutations that no client
  * ever called; they were removed rather than left as reachable, untested-in-
- * product surface. An invite carrying `grants` is how a Mediator hands a
- * character to a specific person today (`invites.ts`).
+ * product surface. Nobody can place a character with a particular person
+ * today: it is released (by its owner or the Mediator) and any member claims
+ * it. `invites.create` accepts `grants`, but it is Organizer-only and no client
+ * sends them.
  */
 
 const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))

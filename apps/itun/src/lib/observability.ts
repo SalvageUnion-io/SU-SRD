@@ -97,6 +97,10 @@ export function captureException(
  * holds it back — the same error then surfaces in the error boundary that
  * `reactRootErrorHandlers` reports from. A WeakSet, so a reported error is
  * still collectable; primitives cannot be tracked and are always sent.
+ *
+ * The set is global, so the side effect is deliberate: code that reports the
+ * *same* error object twice (once per retry, say) sends one event, not two.
+ * Wrap or re-create the error if each attempt should be its own event.
  */
 const reported = new WeakSet<object>()
 

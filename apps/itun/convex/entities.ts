@@ -43,7 +43,8 @@ import { entityRefType, softLinkType } from './schema'
  * ## What you may read, and what you may write
  *
  * Reading is per-Game: any member sees every pilot and mech in it, which is
- * what makes crew vitals and read-only drill-in possible (D12).
+ * what makes crew vitals possible and would let a read-only drill-in be
+ * built (D12 — decided, not built).
  *
  * Writing is per-*entity*: only the owner writes their own pilot, and nobody
  * writes a crewmate's. A Mediator wanting to change someone else's sheet goes
