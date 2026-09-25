@@ -95,6 +95,36 @@ describe('the state it exposes', () => {
   })
 })
 
+describe('concurrent and stale probes', () => {
+  test('two callers at boot share one probe', async () => {
+    // `ConnectionProvider` and `AccountReconciler` both ask on mount.
+    const first = probeLegacyLocalData()
+    const second = probeLegacyLocalData()
+    expect(second).toBe(first)
+    expect(await first).toBe('absent')
+  })
+
+  test('a probe started before a reset cannot write over the fresh answer', async () => {
+    // Started against an empty browser, then overtaken: the reset, a roster
+    // arriving, and a new probe. The old run must not land its stale `absent`
+    // on top — that is what arms the prune against a roster nobody migrated.
+    const stale = probeLegacyLocalData()
+    _resetLegacyProbe()
+    await db.pilots.put(pilotFixture({ id: 'late' }))
+
+    await stale
+    expect(await probeLegacyLocalData()).toBe('present')
+    expect(legacyLocalDataState()).toBe('present')
+  })
+
+  test('a migration finished mid-probe is not reopened by the probe', async () => {
+    await db.pilots.put(pilotFixture({ id: 'racing' }))
+    const running = probeLegacyLocalData()
+    markLegacyLocalDataMigrated()
+    expect(await running).toBe('absent')
+  })
+})
+
 describe('reading the roster out', () => {
   test('returns every kind a claim accepts', async () => {
     // A partial read is how the first `claimLocal` dropped the crawler and the

@@ -9,24 +9,31 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 | Mode | When | Source of truth |
 | --- | --- | --- |
-| **Solo** | not signed in, account gate **off** (no `VITE_CONVEX_URL`: CI, a fresh checkout, `bun run dev`) | IndexedDB; nothing gated |
-| **memory** | not signed in, any production-mode build (`.env.production` sets `VITE_REQUIRE_ACCOUNT=true`) | nothing — writes do not survive a reload |
+| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: the in-memory backend; writes do not survive a reload |
 | **Connected** | signed in, online | Convex; IndexedDB is a cache |
 | **Disconnected** | signed in, offline | read-only — not a write queue |
 
 - Resolve the mode through `src/lib/connection/` — never `navigator.onLine` or
   an auth flag.
 - **Never introduce a store, field or flow that persists only on a device.**
-- There is no legacy exemption and no claim card. A pre-account roster is
-  **migrated** by the root-mounted `LegacyLocalData` (sign-in-or-download while
-  signed out, reconciled against `entities.listMine` while signed in).
-  `ClaimLocalData` is deleted; do not reintroduce an offer-and-decline path.
+- **There is no durable anonymous backend.** `selectBackend()` is
+  `memory | remote | blocked`; the old `local` backend and its
+  `VITE_REQUIRE_ACCOUNT` flag are retired. A unit test that needs durability
+  calls `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an
+  e2e spec signs in through `e2e/fixtures.ts`.
+- **One local → account reconciler.** `AccountReconciler` (root-mounted, over
+  `src/lib/account/reconcile.ts`) owns the signed-out banner and download, the
+  upload of this tab's anonymous work on sign-in, the migration of a pre-account
+  roster still in IndexedDB (reconciled against `entities.listMine`), and mounts
+  `ShelfSync`. Do not add a second surface that uploads local work; there is no
+  legacy exemption, no claim card, and no offer-and-decline path.
 - **A container written twice must be written together** — the row's `gameId`
   column and the body's `gameId` (`shelveBody` in `convex/entities.ts`;
   `entities.repairContainers` repairs old rows toward the column).
-- The Playwright `webServer` builds a production bundle, so
-  `playwright.config.ts` sets `VITE_REQUIRE_ACCOUNT=false` for it. Remove that
-  and entities stop persisting in e2e.
+- **e2e durability specs need an account.** Without `VITE_CONVEX_URL` +
+  `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
+  SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
+  runs them for real. See `e2e/fixtures.ts`.
 
 **Two account-free ways to share, and they are not interchangeable
 ([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)):**
@@ -94,12 +101,14 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   shared **Game** or the owner's personal **Shelf** — encoded as one nullable
   `gameId` and resolved through `src/lib/container.ts`, never by reading
   `workspaceId` (deprecated, kept only as a pre-ADR-030 fallback). Filter with
-  `containerOf` + `sameContainer`, and only when `mode === 'connected'`: a Solo
-  user has no Games, so their surfaces render the whole pile unfiltered.
-- **Lazy auto-hydration:** first `list(type)` loads from IndexedDB; later reads
+  `containerOf` + `sameContainer`, and only when `mode === 'connected'`: an
+  anonymous user has no Games, so their surfaces render the whole pile unfiltered.
+- **Lazy auto-hydration:** first `list(type)` loads from the current backend
+  (the IndexedDB cache signed in, the in-memory store anonymous); later reads
   are synchronous.
-- **Write-through:** `update`/`create`/`delete` persist to IndexedDB first, then
-  update in-memory state; cross-tab writes invalidate via broadcast
+- **Write-through:** `update`/`create`/`delete` commit to Convex first when
+  signed in, then the backend, then in-memory state; cross-tab writes
+  invalidate via broadcast (never for the anonymous backend)
   ([ADR-003](../../docs/adrs/ADR-003-zustand-hydration.md)).
 - Route persistent entity state through the store, **never** through a
   separate query cache (see `.claude/rules/itun-data-access.md`).
@@ -136,8 +145,7 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
   ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
-- Backup nudge (`src/lib/backupNudge.ts`) tracks un-exported writes — the
-  local-first analogue of durability.
+- Backup nudge (`src/lib/backupNudge.ts`) tracks un-exported writes.
 - **Do not add a Sentry SDK to `convex/`.** The browser bundle
   (`src/lib/observability.ts`) and the Worker (`src/worker/index.ts`, via
   `observability/cloudflare`) each own one; Convex uses its first-party

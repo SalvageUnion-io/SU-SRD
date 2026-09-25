@@ -25,10 +25,15 @@ import {
   EMPTY_SCRAP_POOL,
   seedDefaultCrawlerBays,
 } from '../../../lib/wizard/crawlerFormState'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { must } from '../../__tests__/must'
 import { CrawlerBuilder } from '../CrawlerBuilder'
+
+// These assert durability — a write surviving a rehydrate or a direct read of
+// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+withSignedInBackend()
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data

@@ -72,6 +72,25 @@ type MakeMemoryStoreOptions = {
 }
 
 /**
+ * Every Map a memory store holds rows in, so a test can empty them all.
+ *
+ * Anonymous is the default backend in the test build (no Convex URL, and no
+ * `local` backend to fall back to), and the stores built at module scope in
+ * `entityStore`, `patternStore` and `encounterStore` live for the whole Bun
+ * process — so without this, rows one test file wrote anonymously would still
+ * be there for every file after it.
+ */
+const ALL_ROWS = new Set<Map<string, unknown>>()
+
+/**
+ * Empty every memory store. Test-only; `_resetDbSingleton` calls it, so a test
+ * that already resets the IndexedDB side resets the anonymous side with it.
+ */
+export function _clearMemoryStores(): void {
+  for (const rows of ALL_ROWS) rows.clear()
+}
+
+/**
  * Build an in-memory store for one entity type.
  *
  * The `Map` is closed over rather than module-global, so each store owns its own
@@ -84,6 +103,7 @@ export function makeMemoryStore<T extends EntityBase>(
 ): MemoryEntityStore<T> {
   const { hasUpdatedAt = false } = options
   const rows = new Map<string, T>()
+  ALL_ROWS.add(rows as Map<string, unknown>)
 
   async function list(): Promise<T[]> {
     // Sorted newest-first, like the IDB store — surfaces read this order and a

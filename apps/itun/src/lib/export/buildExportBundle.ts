@@ -1,6 +1,7 @@
+import { useEncounterStore } from '../../stores/encounterStore'
+import { usePatternStore } from '../../stores/patternStore'
 import type { EntityType } from '../../stores/types'
 import { recordExport } from '../backupNudge'
-import * as db from '../db/index'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
@@ -16,7 +17,7 @@ type ExportStore = {
 
 /**
  * Minimal pattern source for export. Patterns are not in entityStore — they
- * are read straight from the db layer; tests may pass a double.
+ * live in their own store; tests may pass a double.
  */
 type ExportPatternStore = {
   list: () => Promise<MechPattern[]>
@@ -32,6 +33,26 @@ type ExportEncounterNpcStore = {
 }
 
 /**
+ * Read a collection store through whichever backend is live right now.
+ *
+ * `rehydrate`, not the IndexedDB table: the defaults used to be
+ * `db.mechPatterns` / `db.encounterNpcs`, which is the right source only for a
+ * signed-in player. An anonymous visitor's patterns live in the memory backend,
+ * so their "Download all" — the one way out ADR-034 promises somebody who will
+ * not make an account — silently left every saved pattern behind.
+ */
+function fromStore<T>(store: {
+  getState: () => { rehydrate: () => Promise<void>; list: () => T[] }
+}): { list: () => Promise<T[]> } {
+  return {
+    async list() {
+      await store.getState().rehydrate()
+      return store.getState().list()
+    },
+  }
+}
+
+/**
  * buildExportBundle — full backup of all entities and softLinks.
  *
  * Hydrates every store type first so the caller does not need to pre-hydrate.
@@ -39,8 +60,8 @@ type ExportEncounterNpcStore = {
  */
 export async function buildExportBundle(
   entityStore: ExportStore,
-  patternStore: ExportPatternStore = db.mechPatterns,
-  encounterNpcStore: ExportEncounterNpcStore = db.encounterNpcs
+  patternStore: ExportPatternStore = fromStore<MechPattern>(usePatternStore),
+  encounterNpcStore: ExportEncounterNpcStore = fromStore<EncounterNpc>(useEncounterStore)
 ): Promise<ExportBundle> {
   const [mechPatterns, encounterNpcs] = await Promise.all([
     patternStore.list(),

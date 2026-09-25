@@ -300,8 +300,8 @@ export function MediatorScreen({ gameId }: { gameId: string }) {
         <Card>
           <div className="p-4">
             <Text>
-              Running a table needs a connected account. This build is playing solo, so there is no
-              game to mediate.
+              Running a table needs a connected account. You are not signed in, or not connected
+              right now, so there is no game to mediate.
             </Text>
           </div>
         </Card>

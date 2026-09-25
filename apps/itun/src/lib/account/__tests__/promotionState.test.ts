@@ -1,9 +1,9 @@
 /**
- * The signal that stops `ShelfSync` deleting work `UnsavedWorkBanner` failed to
+ * The signal that stops `ShelfSync` deleting work `AccountReconciler` failed to
  * upload.
  *
- * Small, but the module is deliberately process-global — two root-mounted
- * siblings have to agree and neither owns the other — so what is worth pinning
+ * Small, but the module is deliberately process-global — the prune reads it
+ * after an await no render reaches — so what is worth pinning
  * is its lifecycle, not its arithmetic.
  */
 

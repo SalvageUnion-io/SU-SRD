@@ -258,8 +258,8 @@ function GamesBody() {
       <div className="flex flex-col gap-3 p-4">
         <Text>Games let several people share one crawler, with a Mediator running the table.</Text>
         <Text variant="hint" className="text-left">
-          You are playing solo. Everything you build stays on this device and needs no account —
-          sign in only if you want to play with other people.
+          You are not signed in. Sign in to play with other people — and to keep what you build,
+          which until then lives only in this tab.
         </Text>
         <div>
           <SignInControl />
@@ -280,7 +280,7 @@ export function GamesScreen() {
           <div className="p-4">
             <Text>
               This build has no account service configured, so shared games are unavailable and
-              everything is saved on this device.
+              nothing you build here is kept beyond this tab.
             </Text>
           </div>
         </Card>

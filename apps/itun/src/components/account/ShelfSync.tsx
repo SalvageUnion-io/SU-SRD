@@ -201,6 +201,11 @@ function ConnectedShelfSync() {
   return null
 }
 
+/**
+ * Mounted by `AccountReconciler`'s signed-in half, not at the root on its own:
+ * the download direction and the upload direction share the prune guard, and
+ * one owner for both is what keeps them from disagreeing.
+ */
 export function ShelfSync() {
   // Never call a Convex hook unconditionally: a build with no `VITE_CONVEX_URL`
   // mounts no provider at all. Gating the whole subtree is the established

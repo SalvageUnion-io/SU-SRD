@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
+import { CONNECTION_MODES } from '../../lib/connection/connectionMode'
 import {
   backendForMode,
   requireWritableBackend,
@@ -8,69 +9,109 @@ import {
 } from '../entityBackend'
 
 /**
- * Backend selection (ADR-030 §1).
+ * Backend selection (ADR-030 §1, ADR-034 decision 1).
  *
- * The asymmetry in these tests is intentional. Choosing `remote` when the
- * answer should be `local` costs a Solo user their writes — silently, because
- * there is no server listening for them. Choosing `local` when the answer is
- * `remote` merely delays a sync. So the cases below lean hardest on proving
- * that **local is the default and every uncertain state resolves to it**.
+ * Two durable-or-not answers and one refusal: `memory` for anybody not signed
+ * in, `remote` for a Connected session, `blocked` while Disconnected or still
+ * settling the auth handshake. The `local` backend — durable IndexedDB for an
+ * anonymous visitor in a build with the account gate off — is retired, and the
+ * tests below pin that it cannot come back through any combination of inputs.
  *
- * The test build has no `VITE_CONVEX_URL`, so `convexClient` is null and every
- * outcome here is `local` regardless of auth state — which is itself the
- * property worth pinning, because that is the configuration CI and every
- * unmigrated contributor runs in.
+ * The test build has no `VITE_CONVEX_URL`, so `convexClient` is null. That is
+ * the configuration CI and a fresh checkout run in, and it is now anonymous and
+ * in-memory whatever the auth state claims.
  */
 
 afterEach(() => {
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
-describe('a build with no Convex URL is always local', () => {
+describe('a build with no Convex URL is always anonymous, and anonymous is memory', () => {
   test('signed out', () => {
     setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('local')
+    expect(selectBackend()).toBe('memory')
   })
 
   test('even when the auth state claims signed in', () => {
     // There is no client to talk to, so "signed in" cannot be true in any
     // meaningful sense. Resolving to remote here would strand every write.
     setEntityBackendAuthState({ signedIn: true, online: true })
-    expect(selectBackend()).toBe('local')
+    expect(selectBackend()).toBe('memory')
   })
 
   test('even when offline', () => {
     setEntityBackendAuthState({ signedIn: true, online: false })
-    expect(selectBackend()).toBe('local')
+    expect(selectBackend()).toBe('memory')
   })
 })
 
-describe('an unsettled auth handshake cannot make a Solo build blocked', () => {
-  test('still local, and still writable', () => {
-    // This is the guard on the handshake fix. `authSettled: false` is what
-    // ConnectionProvider pushes for the first few hundred ms of a signed-in
-    // load — but with no Convex URL there is no handshake to wait for, and
-    // blocking here would break CI and every unmigrated contributor.
+describe('an unsettled auth handshake cannot block a build with no auth layer', () => {
+  test('still memory, and still writable', () => {
+    // `authSettled: false` is what ConnectionProvider pushes for the first few
+    // hundred ms of a signed-in load — but with no Convex URL there is no
+    // handshake to wait for, and blocking here would make every anonymous
+    // write in CI throw.
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
-    expect(selectBackend()).toBe('local')
-    expect(requireWritableBackend()).toBe('local')
+    expect(selectBackend()).toBe('memory')
+    expect(requireWritableBackend()).toBe('memory')
   })
 
   test('an omitted authSettled is treated as settled', () => {
-    // Back-compat for any caller predating the field: absence must not mean
-    // "blocked", because the absent case is a build with no auth layer at all.
     setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('local')
+    expect(selectBackend()).toBe('memory')
   })
 })
 
-describe('writes are never blocked in a Solo build', () => {
-  test('requireWritableBackend returns local rather than throwing', () => {
+describe('an anonymous write is never refused', () => {
+  test('requireWritableBackend returns memory rather than throwing, even offline', () => {
+    // Offline + signed out is Solo, not Disconnected. The account is required
+    // to KEEP work, never to do it (ADR-034 decision 1).
     setEntityBackendAuthState({ signedIn: false, online: false, authSettled: true })
-    // Offline + signed out is Solo, not Disconnected. A person who never
-    // signed in has nothing to be disconnected FROM, and refusing their write
-    // would break the app for the majority of users.
-    expect(requireWritableBackend()).toBe('local')
+    expect(requireWritableBackend()).toBe('memory')
+  })
+})
+
+describe('the signed-in backend the durability tests run on', () => {
+  test('a configured, settled, online, signed-in session is remote', () => {
+    // What `withSignedInBackend()` pushes. If this stopped resolving to
+    // `remote`, every durability test would quietly start asserting against
+    // the memory backend instead.
+    setEntityBackendAuthState({
+      signedIn: true,
+      online: true,
+      authSettled: true,
+      convexConfigured: true,
+    })
+    expect(selectBackend()).toBe('remote')
+    expect(requireWritableBackend()).toBe('remote')
+  })
+
+  test('the same session offline is blocked, with the offline reason', () => {
+    setEntityBackendAuthState({
+      signedIn: true,
+      online: false,
+      authSettled: true,
+      convexConfigured: true,
+    })
+    expect(selectBackend()).toBe('blocked')
+    expect(() => requireWritableBackend()).toThrow(WritesBlockedOffline)
+  })
+
+  test('mid-handshake is blocked with the settling reason', () => {
+    setEntityBackendAuthState({
+      signedIn: false,
+      online: true,
+      authSettled: false,
+      convexConfigured: true,
+    })
+    let caught: unknown = null
+    try {
+      requireWritableBackend()
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeInstanceOf(WritesBlockedOffline)
+    expect((caught as WritesBlockedOffline).reason).toBe('settling')
   })
 })
 
@@ -97,61 +138,32 @@ describe('WritesBlockedOffline', () => {
   })
 })
 
-/**
- * The anonymous backend (ADR-034 decision 1, plan phase P2).
- *
- * Driven through `backendForMode` rather than `selectBackend`, because the
- * account-required switch is a build-time `import.meta.env` read that a test
- * cannot vary — the same reason `resolveConnectionMode` is a pure function
- * beside `useConnection`.
- */
-describe('a build that requires an account gives an anonymous visitor nothing durable', () => {
-  test('solo becomes memory when the flag is on', () => {
-    expect(backendForMode('solo', true)).toBe('memory')
+describe('backendForMode — the whole rule', () => {
+  test('every mode maps to exactly one of the three backends', () => {
+    expect(backendForMode('solo')).toBe('memory')
+    expect(backendForMode('connected')).toBe('remote')
+    expect(backendForMode('disconnected')).toBe('blocked')
+    expect(backendForMode('connecting')).toBe('blocked')
   })
 
-  test('solo stays local when the flag is off', () => {
-    // `VITE_REQUIRE_ACCOUNT=false` is the escape hatch a deploy would need if
-    // the flip turned out to be wrong in a way the tests did not catch.
-    expect(backendForMode('solo', false)).toBe('local')
-  })
-
-  test('the flag changes nothing for a signed-in user', () => {
-    // Requiring an account has no opinion about somebody who has one. If these
-    // diverged, turning the gate on would change where signed-in writes go,
-    // which belongs to the demotion and must not ride along with the flip.
-    for (const flag of [true, false]) {
-      expect(backendForMode('connected', flag)).toBe('remote')
-      expect(backendForMode('disconnected', flag)).toBe('blocked')
-      expect(backendForMode('connecting', flag)).toBe('blocked')
+  test('there is no input that yields a durable anonymous backend', () => {
+    // The rule takes the mode and nothing else. The build flag
+    // (`VITE_REQUIRE_ACCOUNT`) and the legacy-roster probe it once also read are
+    // both gone, which makes a `local` comeback unwritable rather than merely
+    // unwritten: there is no argument left to pass it through.
+    expect(backendForMode.length).toBe(1)
+    for (const mode of CONNECTION_MODES) {
+      expect(['remote', 'blocked', 'memory']).toContain(backendForMode(mode))
     }
   })
-})
 
-describe('a pre-account roster no longer buys an exemption (ADR-035)', () => {
-  test('the flag alone decides, whatever this browser is holding', () => {
-    // The exemption this replaces read a probe that NOTHING ever resolved to
-    // `absent`, so it did not open a migration window — it made the durable
-    // local backend permanent for anybody who had ever built anything, and that
-    // is the second source of truth ADR-035 removes. `backendForMode` no longer
-    // takes the probe at all, which is what makes the regression unwritable
-    // rather than merely unwritten.
-    expect(backendForMode('solo', true)).toBe('memory')
-    expect(backendForMode.length).toBe(2)
-  })
-
-  test('their roster is migrated, not abandoned', () => {
+  test('a pre-account roster is migrated, not served', () => {
     // Stated here because this is the test somebody will read when they wonder
-    // whether removing the guard stranded existing players. It did not: the rows
-    // stay in IndexedDB, `LegacyLocalData` offers sign-in-or-download while
-    // signed out, and `selectStranded` moves them into the account on sign-in.
+    // whether retiring `local` stranded existing players. It did not: the rows
+    // stay in IndexedDB, `AccountReconciler` offers sign-in-or-download while
+    // signed out, and moves them into the account on sign-in.
     // See `lib/account/__tests__/legacyMigration.test.ts`.
-    expect(backendForMode('connected', true)).toBe('remote')
-  })
-
-  test('selectBackend agrees — this build does not require an account', () => {
-    // End to end through the real wiring rather than the pure function. The test
-    // build has no `VITE_REQUIRE_ACCOUNT`, so the live selector stays `local`.
-    expect(selectBackend()).toBe('local')
+    expect(backendForMode('solo')).toBe('memory')
+    expect(backendForMode('connected')).toBe('remote')
   })
 })

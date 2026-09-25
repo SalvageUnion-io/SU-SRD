@@ -101,9 +101,23 @@ const ROSTER_STORES = [
  * Idempotent: after the first resolution this returns the cached answer without
  * touching IndexedDB again.
  */
-export async function probeLegacyLocalData(): Promise<LegacyProbeState> {
-  if (state !== 'unknown') return state
+export function probeLegacyLocalData(): Promise<LegacyProbeState> {
+  if (state !== 'unknown') return Promise.resolve(state)
+  // Two callers ask at boot (`ConnectionProvider` and `AccountReconciler`);
+  // sharing the in-flight probe means one set of counts, not two.
+  inFlight ??= runProbe(generation)
+  return inFlight
+}
 
+/**
+ * Bumped by `_resetLegacyProbe`, so a probe still running from before a reset
+ * cannot write its (now stale) answer over the fresh state.
+ */
+let generation = 0
+let inFlight: Promise<LegacyProbeState> | null = null
+
+async function runProbe(started: number): Promise<LegacyProbeState> {
+  let answer: LegacyProbeState = 'absent'
   try {
     const idb = await openItunDatabase()
     for (const store of ROSTER_STORES) {
@@ -113,20 +127,23 @@ export async function probeLegacyLocalData(): Promise<LegacyProbeState> {
       // it only runs when there is something to migrate.
       const n = await idb.count(store)
       if (n > 0) {
-        state = 'present'
-        return state
+        answer = 'present'
+        break
       }
     }
-    state = 'absent'
   } catch (err) {
     // A browser that refuses IndexedDB — private mode, a locked-down profile,
     // a blocked upgrade — cannot be holding a roster this app can read.
     // `absent` is both true and the useful answer: there is nothing to migrate
     // and nothing to hold back the cache.
     console.warn('[itun] could not probe for legacy local data; assuming none', err)
-    state = 'absent'
   }
 
+  if (started !== generation) return state
+  inFlight = null
+  // `markLegacyLocalDataMigrated` may have run while this was counting; an
+  // answer it already settled is not reopened by a slower probe.
+  if (state === 'unknown') state = answer
   return state
 }
 
@@ -175,4 +192,6 @@ export async function readLegacyLocalData(): Promise<LegacyLocalData> {
 /** Test-only: forget what the probe concluded. */
 export function _resetLegacyProbe(): void {
   state = 'unknown'
+  generation += 1
+  inFlight = null
 }

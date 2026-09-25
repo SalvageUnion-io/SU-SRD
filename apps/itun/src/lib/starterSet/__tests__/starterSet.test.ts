@@ -16,6 +16,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import {
@@ -40,6 +41,10 @@ import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
 import { copyStarterSetToRoster, isStarterSetSeeded } from '../seedStarterSet'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
+
+// These assert durability — a write surviving a rehydrate or a direct read of
+// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+withSignedInBackend()
 
 /** True when some reference entity of `all` slugifies to `slug`. */
 function slugExists(all: ReadonlyArray<{ name: string }>, slug: string): boolean {

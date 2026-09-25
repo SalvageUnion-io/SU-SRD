@@ -70,15 +70,18 @@ const GAMES = [
 ]
 
 describe('what the account page is when there is no account', () => {
-  test('solo says the data is safe here and offers the way in', () => {
+  test('signed out says nothing is kept yet and offers the way in', () => {
     authed = false
     withQueries({})
     wrap()
 
-    // Solo is a supported way to use the app, not a degraded one — the copy
-    // has to say so rather than nagging.
-    expect(screen.getByText(/You are playing solo/i)).toBeTruthy()
-    expect(screen.getByText(/needs no account/i)).toBeTruthy()
+    // Building without an account is supported; keeping work without one is
+    // not (ADR-034). The copy has to say both, plainly.
+    expect(screen.getByText(/You are not signed in/i)).toBeTruthy()
+    // It must not promise durability it cannot deliver: an anonymous build is
+    // in memory only (ADR-034), so "saved on this device" would be a lie.
+    expect(screen.getByText(/nothing is kept/i)).toBeTruthy()
+    expect(screen.queryByText(/saved on this device/i)).toBeNull()
   })
 
   test('disconnected explains it rather than showing a broken profile form', () => {

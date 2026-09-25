@@ -46,7 +46,7 @@ In brief, grouped:
 | Joining      | A Game takes a player's pilots and mechs **once it has a crawler**. The table runner is exempt.        |
 | Visibility   | Live vitals for all; read-only sheet drill-in (decided, not built); Mediator NPCs hidden.              |
 | Surfaces     | New Mediator surface absorbs `/encounter`; a **"Crew" dial item** on the player Dashboard.             |
-| Anonymous    | Solo stays first-class and needs no account, forever.                                                  |
+| Anonymous    | Needs no account to build — but nothing anonymous persists (ADR-034; the durable `local` backend is retired). |
 
 ---
 
@@ -58,12 +58,15 @@ against intuition.
 
 | Mode             | Who                | Truth        | Reads                 | Writes      | Games  |
 | ---------------- | ------------------ | ------------ | --------------------- | ----------- | ------ |
-| **Solo**         | not signed in      | IndexedDB    | local                 | local       | none   |
+| **Solo**         | not signed in      | nothing      | in-memory backend     | in-memory   | none   |
 | **Connected**    | signed in, online  | Convex       | reactive subscription | to Convex   | full   |
 | **Disconnected** | signed in, offline | Convex, gone | cache                 | **blocked** | frozen |
 
-**Solo is not Disconnected.** Someone who never signs in never sees a banner and
-never loses a write.
+**Solo is not Disconnected.** Someone who never signs in never has a write
+refused — but their writes live in memory only and are gone on reload
+([ADR-034](../adrs/ADR-034-account-required-persistence.md)). This row read
+"IndexedDB / local" until 2026-09-25, when the last durable anonymous backend
+(`local`, reachable only in builds without `VITE_REQUIRE_ACCOUNT`) was retired.
 
 ---
 

@@ -223,29 +223,17 @@ function page(): PageResult {
                 In The Union Now
               </a>
               {/*
-                "no-account" is the one claim on this page that could not be
-                settled from the repo, so it is left as-is deliberately rather
-                than edited on a guess.
+                "no-account" is now settled from the repo, and it means "usable
+                without one", which is true.
 
-                What is known: ADR-034 withdrew ADR-030 §1's "Solo mode works
-                forever" guarantee, and `persistence-and-pwa.md` marks **the
-                flip** — account required in production — as *done*. But the
-                flip is `VITE_REQUIRE_ACCOUNT`, an environment variable set on
-                the deployment and not in this repo, so its live value is not
-                readable from here. That same document's own header records P4
-                and P4b being marked `done` while the code disagreed, which is
-                reason enough not to treat a table cell as the answer.
-
-                What keeps the sentence defensible either way is
-                `entityBackend.ts`, which states the actual rule: *"the account
-                is required to keep work, never to do it."* You can build
-                without an account under either setting; what an account buys is
-                persistence across sessions.
-
-                Before changing this line, confirm the deployed
-                VITE_REQUIRE_ACCOUNT and decide whether "no-account" should mean
-                "usable without one" (still true) or "keeps your work without
-                one" (may not be).
+                There is no longer a deployment flag to check: the anonymous
+                durable backend (`local`) and `VITE_REQUIRE_ACCOUNT` were both
+                retired, so in every build an anonymous visitor builds in memory
+                and an account is what keeps the work. `entityBackend.ts` states
+                the rule: *"the account is required to keep work, never to do
+                it."* So "no-account" must never be read as "keeps your work
+                without one" — if this line is ever reworded, it must not claim
+                that.
               */}
               , the no-account character builder &amp; game manager — sheets can be shared into
               Discord as snapshot links.

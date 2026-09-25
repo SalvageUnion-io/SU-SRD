@@ -110,7 +110,7 @@ export function isStarterSetSeeded(): boolean {
  *   - signed in, the rows were shelf records the server had never seen, so
  *     `ShelfSync` correctly read them as "deleted elsewhere" and **pruned the
  *     Starter Set away** on the next sync;
- *   - anonymous under `VITE_REQUIRE_ACCOUNT` it wrote durably to disk while
+ *   - anonymous it wrote durably to disk while
  *     `rehydrate` read the in-memory store, so the copy simply never appeared;
  *   - Disconnected it wrote regardless, which read-only is supposed to forbid.
  *

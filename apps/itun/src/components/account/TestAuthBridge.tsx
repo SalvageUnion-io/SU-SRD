@@ -22,7 +22,7 @@
  *
  * Gated on `VITE_TEST_AUTH === 'true'`, a **build-time** flag, so a production
  * bundle does not contain the registration at all — Vite folds the constant and
- * drops the branch. `apps/itun/.env.production` does not set it, and
+ * drops the branch. No committed env file sets it, and
  * `__tests__/TestAuthBridge.test.tsx` asserts the default is off.
  *
  * It is also useless without its server half: `ITUN_TEST_AUTH` must be set on

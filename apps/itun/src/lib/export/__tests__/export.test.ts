@@ -13,12 +13,17 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../db/index'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildEntityExport, buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
+
+// These assert durability — a write surviving a rehydrate or a direct read of
+// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+withSignedInBackend()
 
 // ---------------------------------------------------------------------------
 // Test fixtures

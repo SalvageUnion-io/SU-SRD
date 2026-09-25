@@ -49,6 +49,7 @@ Update this table as part of each phase's PR. It is the only place that answers
 | P4b   | Remove the mirrors; prune the cache                        | **no**     | **done**    |
 | P7    | `srd` install-triggered offline                            | yes        | **done**    |
 | P8    | Close the migration window — no isolated local-only data    | **no**     | **done**    |
+| P9    | Retire `local` and the flag; one local → account reconciler | **no**     | **done**    |
 
 > **P4 and P4b are `done` as of this change, and the route here is worth
 > keeping.** They were marked `done` once before while P4's own body below was
@@ -730,7 +731,8 @@ exactly as stuck. ADR-035 has both in full; in short:
 **Work.**
 
 - `backendForMode` drops the legacy argument entirely. Anonymous under
-  `VITE_REQUIRE_ACCOUNT` is `memory`, with no exemption. Removing the *parameter*
+  `VITE_REQUIRE_ACCOUNT` is `memory`, with no exemption (and since P9 there is no
+  flag either — anonymous is `memory` in every build). Removing the *parameter*
   rather than the branch is the point: the regression becomes unwritable.
 - `lib/db/legacyLocalData.ts` changes role — probe plus `readLegacyLocalData()`
   (salvage-tolerant, every kind `claimLocal` accepts) plus
@@ -755,8 +757,8 @@ exactly as stuck. ADR-035 has both in full; in short:
 
 **Gate.**
 
-- `backendForMode` takes two arguments. Asserted on the function's arity, not
-  only on its behaviour, so the exemption cannot come back as a default.
+- `backendForMode` takes two arguments (one since P9). Asserted on the function's
+  arity, not only on its behaviour, so the exemption cannot come back as a default.
 - The stranded-row rule is tested directly: an owned row is not stranded in any
   container; a row in a Game the account belongs to is not stranded (these are
   `GameRoster`'s deliberately-cached pre-gens and communal crawler); an unowned
@@ -777,6 +779,44 @@ exactly as stuck. ADR-035 has both in full; in short:
   cannot fully reconcile never prunes.
 - **No data is deleted by any path in this phase.** The rows stay in IndexedDB
   throughout; what changes is that something else also has them.
+
+---
+
+## P9 — Retire the anonymous `local` backend (2026-09-25, audit AP-08/AP-09)
+
+**Why.** After the flip, `local` — durable IndexedDB for an anonymous visitor —
+was reachable only in a build without `VITE_REQUIRE_ACCOUNT`: CI, `bun run dev`,
+and the e2e suite, whose Playwright config forced the flag off. So the one
+storage mode no player could reach was the one the suite spent its whole run
+proving, and the durable path players actually use (signed in) was covered by a
+single nightly spec.
+
+**Work.**
+
+- `BackendKind` is `remote | blocked | memory`. `backendForMode(mode)` takes the
+  mode and nothing else; the flag, `accountRequired` and
+  `apps/itun/.env.production` are deleted. Anonymous is `memory` in every build.
+- Unit tests that assert durability run on the signed-in backend through
+  `src/stores/__tests__/signedInBackend.ts` (`convexConfigured: true` with no
+  client, so every server commit is a no-op); anonymous tests reset the memory
+  stores through `_resetDbSingleton`.
+- e2e: `apps/itun/e2e/fixtures.ts` signs every durable spec up with a fresh
+  account through `TestAuthBridge`; the nightly `e2e-itun` job runs the full
+  suite against a throwaway self-hosted Convex backend (it absorbed
+  `e2e-itun-signin`). Anonymous specs opt out with
+  `test.use({ account: 'anonymous' })`.
+- `UnsavedWorkBanner`, `AnonymousWorkPromoter`, `promoteAnonymousWork` and
+  `LegacyLocalData` are replaced by one `AccountReconciler` (UI) over
+  `lib/account/reconcile.ts` (rule): one signed-out banner and one download for
+  both this tab's work and this device's rows; one upload path, one reading of a
+  partial result, one retry. `ShelfSync` is mounted by it.
+- An anonymous "Download all" now reads patterns and NPCs from the backend the
+  session is on; it used to read the IndexedDB tables and drop them.
+
+**Gate.** `backendForMode.length === 1` and no mode yields a durable anonymous
+backend (`entityBackend.test.ts`); component tests for `AccountReconciler`,
+`container/` and `export/`. The signed-in e2e run is nightly-only, because it
+needs the Convex container; it is the evidence this phase still owes.
 
 ---
 

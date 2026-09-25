@@ -4,9 +4,14 @@
 
 **Accepted and delivered.** Every phase in
 [architecture/persistence-and-pwa.md](../architecture/persistence-and-pwa.md) —
-P0 through P7, P4b, and **the flip** — is marked done, and
-`apps/itun/.env.production` sets `VITE_REQUIRE_ACCOUNT=true`. Anonymous writes
-resolve to the in-memory backend and do not survive a reload.
+P0 through P7, P4b, and **the flip** — is marked done. Anonymous writes resolve
+to the in-memory backend and do not survive a reload, **in every build**: since
+2026-09-25 (audit AP-08) there is no `VITE_REQUIRE_ACCOUNT` flag and no `local`
+backend. The flag used to be `true` only in `apps/itun/.env.production`, which
+left CI, `bun run dev` and the e2e suite on a durable anonymous IndexedDB
+backend no player could reach; the e2e suite now signs in through
+`TestAuthBridge` instead. Where this ADR describes Solo as IndexedDB-backed, read
+it as history.
 
 This header read **"Nothing is built yet"** until 2026-09-01, months after the
 flip. That is the most expensive kind of stale line in this repo: an agent

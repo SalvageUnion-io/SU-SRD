@@ -53,8 +53,13 @@ describe('savedWorkCopy says what an error does to the work, per backend', () =>
     expect(savedWorkCopy('memory')).not.toMatch(/stored locally/i)
   })
 
-  test('only a build with the account gate off stores in the browser', () => {
-    expect(savedWorkCopy('local')).toMatch(/stored in this browser/i)
+  test('no backend ever claims the work is stored in this browser', () => {
+    // The `local` backend (and its "stored in this browser" copy) is retired:
+    // no player's work lives only on the device any more, so no panel may say
+    // it does.
+    for (const backend of ['remote', 'blocked', 'memory', null] as const) {
+      expect(savedWorkCopy(backend)).not.toMatch(/in this browser/i)
+    }
   })
 })
 
