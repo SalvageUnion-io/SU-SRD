@@ -416,7 +416,7 @@ that string is the redacted one.
 `convex/maintenance.ts` holds operator-only repairs, reachable through
 `bunx convex run` and not from any client: `dedupeAppIds` (below) and two
 backfills, `backfillGameSummaries` and `backfillBodyAppIds`. `dedupeAppIds` undoes the
-damage described under "Claiming twice" in `convex/entities.ts`: rows sharing an
+damage described under "Claiming twice" in `convex/claim.ts`: rows sharing an
 `appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
 write for that entity, permanently and silently.
 

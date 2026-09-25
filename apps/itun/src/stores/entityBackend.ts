@@ -291,7 +291,7 @@ export async function commitChangeLog(
   if (selectBackend() !== 'remote' || convexClient === null) return
   if (entries.length === 0) return
 
-  await convexClient.mutation(api.entities.appendChangeLog, {
+  await convexClient.mutation(api.changeLog.appendChangeLog, {
     entries: entries.map((e) => ({
       ...e,
       gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
@@ -315,10 +315,10 @@ export async function commitPatternWrite(
   if (selectBackend() !== 'remote' || convexClient === null) return
 
   if (op.kind === 'delete') {
-    await convexClient.mutation(api.entities.removeMechPattern, { patternId: op.id })
+    await convexClient.mutation(api.shelf.removeMechPattern, { patternId: op.id })
     return
   }
-  await convexClient.mutation(api.entities.upsertMechPattern, { body: op.record })
+  await convexClient.mutation(api.shelf.upsertMechPattern, { body: op.record })
 }
 
 /**
@@ -334,10 +334,10 @@ export async function commitNpcWrite(
   if (selectBackend() !== 'remote' || convexClient === null) return
 
   if (op.kind === 'delete') {
-    await convexClient.mutation(api.entities.removeEncounterNpc, { npcId: op.id })
+    await convexClient.mutation(api.shelf.removeEncounterNpc, { npcId: op.id })
     return
   }
-  await convexClient.mutation(api.entities.upsertEncounterNpc, { body: op.record })
+  await convexClient.mutation(api.shelf.upsertEncounterNpc, { body: op.record })
 }
 
 export async function commitSoftLink(

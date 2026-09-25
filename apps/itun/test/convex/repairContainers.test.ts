@@ -1,5 +1,5 @@
 /**
- * `entities.repairContainers` — the rows the migration cannot reach (ADR-035).
+ * `claim.repairContainers` — the rows the migration cannot reach (ADR-035).
  *
  * `shelveBody` fixes a body on the way in and `legacyMigration` sends what the
  * account does not hold. Neither touches a build that was **already claimed**
@@ -112,7 +112,7 @@ describe('a claimed build whose body names a Game that does not exist', () => {
         })
     )
 
-    const result = await me.as.mutation(api.entities.repairContainers, {})
+    const result = await me.as.mutation(api.claim.repairContainers, {})
     expect(result.repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
@@ -136,7 +136,7 @@ describe('a claimed build whose body names a Game that does not exist', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(1)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBeNull()
@@ -155,7 +155,7 @@ describe('a claimed build whose body names a Game that does not exist', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(1)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBeNull()
@@ -176,7 +176,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(0)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
   })
 
   test('running it twice repairs once — it converges rather than churning', async () => {
@@ -195,8 +195,8 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(1)
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(0)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
   })
 
   test('a build genuinely IN a Game keeps that Game', async () => {
@@ -216,7 +216,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(1)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBe(gameId)
@@ -236,7 +236,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(0)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBe('ws-abc')
@@ -260,7 +260,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.entities.repairContainers, {})).repaired).toBe(0)
+    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBe('ws-abc')
@@ -282,7 +282,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    const result = await me.as.mutation(api.entities.repairContainers, {})
+    const result = await me.as.mutation(api.claim.repairContainers, {})
     expect(result.repaired).toBe(0)
     expect(result.skipped).toBe(1)
   })
@@ -307,7 +307,7 @@ describe('claimLocal and a Game that still exists', () => {
     const me = await makeUser(t, 'Me')
     const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
 
-    const result = await me.as.mutation(api.entities.claimLocal, {
+    const result = await me.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody({ id: 'theirs', gameId })],
       mechs: [],
     })
@@ -337,7 +337,7 @@ describe('claimLocal and a Game that still exists', () => {
         })
     )
 
-    const result = await me.as.mutation(api.entities.claimLocal, {
+    const result = await me.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody({ id: 'pregen', gameId })],
       mechs: [],
     })
@@ -353,7 +353,7 @@ describe('claimLocal and a Game that still exists', () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
 
-    const result = await me.as.mutation(api.entities.claimLocal, {
+    const result = await me.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody({ id: 'mine', gameId: 'e3f1c9a2-0b47-4d8e-9c31-5a7f2b6d8e04' })],
       mechs: [],
     })
@@ -370,7 +370,7 @@ describe('claimLocal and a Game that still exists', () => {
     const me = await makeUser(t, 'Me')
     const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
 
-    const result = await me.as.mutation(api.entities.claimLocal, {
+    const result = await me.as.mutation(api.claim.claimLocal, {
       pilots: [],
       mechs: [],
       crawlers: [crawlerBody({ id: 'communal', gameId })],

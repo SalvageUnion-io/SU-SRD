@@ -233,7 +233,7 @@ describe('dedupeAppIds', () => {
   test('a clean deployment reports nothing to do', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await u.as.mutation(api.claim.claimLocal, { pilots: [pilotBody()], mechs: [] })
 
     const report = await t.action(internal.maintenance.dedupeAppIds, {})
     expect(report.duplicatedAppIds).toBe(0)

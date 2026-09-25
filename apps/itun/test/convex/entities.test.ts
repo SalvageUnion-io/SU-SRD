@@ -373,7 +373,7 @@ describe('claiming local data on first sign-in', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody(), pilotBody({ id: 'p2' })],
       mechs: [],
     })
@@ -389,7 +389,7 @@ describe('claiming local data on first sign-in', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody(), { totally: 'broken' }, pilotBody({ id: 'p3' })],
       mechs: [],
     })
@@ -451,7 +451,7 @@ describe('claiming local data on first sign-in', () => {
 
   test('an anonymous caller cannot claim', async () => {
     const t = testConvex()
-    await expect(t.mutation(api.entities.claimLocal, { pilots: [], mechs: [] })).rejects.toThrow(
+    await expect(t.mutation(api.claim.claimLocal, { pilots: [], mechs: [] })).rejects.toThrow(
       /not signed in/i
     )
   })
@@ -462,7 +462,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
     const t = testConvex()
     const u = await makeUser(t, 'Returning player')
 
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody()],
       mechs: [],
       crawlers: [
@@ -500,7 +500,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    await u.as.mutation(api.entities.claimLocal, {
+    await u.as.mutation(api.claim.claimLocal, {
       pilots: [],
       mechs: [],
       encounterNpcs: [{ name: 'Ambush' }],
@@ -520,7 +520,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [],
       mechs: [],
       // `name` is the one field every reader of this table uses, so a body
@@ -536,7 +536,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
   test("a claimed crawler lands on the claimer's shelf, like everything else", async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    await u.as.mutation(api.entities.claimLocal, {
+    await u.as.mutation(api.claim.claimLocal, {
       pilots: [],
       mechs: [],
       crawlers: [
@@ -570,7 +570,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
   test('the local id is preserved as appId so later edits find the row', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await u.as.mutation(api.claim.claimLocal, { pilots: [pilotBody()], mechs: [] })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     // Without this, the very first edit after a claim could not address its row.
@@ -580,7 +580,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
   test('a malformed pattern is skipped rather than stored unread', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [],
       mechs: [],
       mechPatterns: [patternBody(), { id: 'pat2', name: 'no chassis' }],
@@ -595,7 +595,7 @@ describe('claiming a legacy roster carries the whole thing', () => {
   test('a malformed crawler is skipped without costing the rest of the roster', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody()],
       mechs: [],
       crawlers: [{ nonsense: true }],
@@ -624,7 +624,7 @@ describe('refusals say why', () => {
     const owner = await makeUser(t, 'Owner')
     const stranger = await makeUser(t, 'Stranger')
 
-    await owner.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await owner.as.mutation(api.claim.claimLocal, { pilots: [pilotBody()], mechs: [] })
     const pilotId = await t.run(async (ctx) => (await ctx.db.query('pilots').first())?._id)
 
     expect(pilotId).toBeDefined()
@@ -670,8 +670,8 @@ describe('claiming twice is a no-op, not a second copy', () => {
     const u = await makeUser(t, 'A')
     const roster = { pilots: [pilotBody(), pilotBody({ id: 'p2' })], mechs: [mechBody()] }
 
-    const first = await u.as.mutation(api.entities.claimLocal, roster)
-    const second = await u.as.mutation(api.entities.claimLocal, roster)
+    const first = await u.as.mutation(api.claim.claimLocal, roster)
+    const second = await u.as.mutation(api.claim.claimLocal, roster)
 
     expect(first.claimed).toBe(3)
     expect(second.claimed).toBe(0)
@@ -691,8 +691,8 @@ describe('claiming twice is a no-op, not a second copy', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
-    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await u.as.mutation(api.claim.claimLocal, { pilots: [pilotBody()], mechs: [] })
+    await u.as.mutation(api.claim.claimLocal, { pilots: [pilotBody()], mechs: [] })
 
     // Before the guard this threw `unique() query returned more than one
     // result from table pilots`, redacted to an opaque "Server Error" on the
@@ -716,8 +716,8 @@ describe('claiming twice is a no-op, not a second copy', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    await u.as.mutation(api.entities.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
-    await u.as.mutation(api.entities.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
+    await u.as.mutation(api.claim.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
+    await u.as.mutation(api.claim.claimLocal, { pilots: [], mechs: [], crawlers: [crawler] })
 
     // Two regressions in one assertion, and the second is now structural rather
     // than guarded. Claiming twice must not duplicate the crawler — that check
@@ -750,8 +750,8 @@ describe('claiming twice is a no-op, not a second copy', () => {
       mechPatterns: [patternBody()],
     }
 
-    await u.as.mutation(api.entities.claimLocal, roster)
-    const second = await u.as.mutation(api.entities.claimLocal, roster)
+    await u.as.mutation(api.claim.claimLocal, roster)
+    const second = await u.as.mutation(api.claim.claimLocal, roster)
 
     expect(second.claimed).toBe(0)
     const links = await t.run(async (ctx) => await ctx.db.query('softLinks').collect())
@@ -774,8 +774,8 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    await u.as.mutation(api.entities.upsertMechPattern, { body: patternBody() })
-    await u.as.mutation(api.entities.upsertMechPattern, {
+    await u.as.mutation(api.shelf.upsertMechPattern, { body: patternBody() })
+    await u.as.mutation(api.shelf.upsertMechPattern, {
       body: patternBody({ name: 'Mule, revised' }),
     })
 
@@ -784,7 +784,7 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
     expect(rows[0]?.appId).toBe('pat1')
     expect((rows[0]?.body as { name: string } | undefined)?.name).toBe('Mule, revised')
 
-    await u.as.mutation(api.entities.removeMechPattern, { patternId: 'pat1' })
+    await u.as.mutation(api.shelf.removeMechPattern, { patternId: 'pat1' })
     expect(await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())).toEqual([])
   })
 
@@ -800,7 +800,7 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
         })
     )
 
-    await u.as.mutation(api.entities.upsertMechPattern, {
+    await u.as.mutation(api.shelf.upsertMechPattern, {
       body: patternBody({ name: 'Found it' }),
     })
 
@@ -814,12 +814,12 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
     const them = await makeUser(t, 'Them')
-    await them.as.mutation(api.entities.upsertMechPattern, { body: patternBody() })
+    await them.as.mutation(api.shelf.upsertMechPattern, { body: patternBody() })
 
     // Export/import copies a build between people keeping its id, so two
     // owners legitimately share one. Scoping by owner is what keeps them apart.
-    await me.as.mutation(api.entities.removeMechPattern, { patternId: 'pat1' })
-    await me.as.mutation(api.entities.upsertMechPattern, { body: patternBody({ name: 'Mine' }) })
+    await me.as.mutation(api.shelf.removeMechPattern, { patternId: 'pat1' })
+    await me.as.mutation(api.shelf.upsertMechPattern, { body: patternBody({ name: 'Mine' }) })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
     expect(rows).toHaveLength(2)
@@ -831,8 +831,8 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
-    await u.as.mutation(api.entities.upsertEncounterNpc, { body: { id: 'npc1', name: 'Wretch' } })
-    await u.as.mutation(api.entities.upsertEncounterNpc, {
+    await u.as.mutation(api.shelf.upsertEncounterNpc, { body: { id: 'npc1', name: 'Wretch' } })
+    await u.as.mutation(api.shelf.upsertEncounterNpc, {
       body: { id: 'npc1', name: 'Wretch, wounded' },
     })
 
@@ -840,7 +840,7 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0]?.appId).toBe('npc1')
 
-    await u.as.mutation(api.entities.removeEncounterNpc, { npcId: 'npc1' })
+    await u.as.mutation(api.shelf.removeEncounterNpc, { npcId: 'npc1' })
     expect(await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())).toEqual([])
   })
 })

@@ -748,7 +748,7 @@ exactly as stuck. ADR-035 has both in full; in short:
 - `claimLocal` shelves the bodies it writes, and gains the repeat guard the NPC
   tray never had — survivable when a human pressed the button once, not when the
   same call runs on every signed-in load.
-- `entities.repairContainers` fixes the population neither of those reaches: a
+- `claim.repairContainers` fixes the population neither of those reaches: a
   build **already claimed** under the old card is owned, so it is not stranded
   and nothing re-sends it, while its body still names a Workspace id. It runs
   once per signed-in session, repairs toward the row's own `gameId` column, and

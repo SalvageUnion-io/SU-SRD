@@ -276,8 +276,8 @@ function SignedInReconciler({
   const { sessionWork, accountIds, running, epoch, failure, setFailure } = state
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
-  const claimLocal = useMutation(api.entities.claimLocal)
-  const repairContainers = useMutation(api.entities.repairContainers)
+  const claimLocal = useMutation(api.claim.claimLocal)
+  const repairContainers = useMutation(api.claim.repairContainers)
 
   /** One device pass per mount: a live query re-emits, the reconciliation must not. */
   const deviceRan = useRef(false)

@@ -160,7 +160,7 @@ export type ServedRoster = {
  * it living in a test file.
  *
  * Every entity that comes back is already {@link shelve}d, because a claim lands
- * on the shelf by definition (`entities.claimLocal`) and the body has to agree
+ * on the shelf by definition (`claim.claimLocal`) and the body has to agree
  * with the row it is stored in — a body that still names a Game is how a claimed
  * build arrives in the account and stays invisible anyway.
  */

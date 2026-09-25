@@ -12,6 +12,8 @@ import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as botClient from "../botClient.js";
 import type * as botHttp from "../botHttp.js";
+import type * as changeLog from "../changeLog.js";
+import type * as claim from "../claim.js";
 import type * as crew from "../crew.js";
 import type * as downtime from "../downtime.js";
 import type * as entities from "../entities.js";
@@ -26,6 +28,7 @@ import type * as model_permissions from "../model/permissions.js";
 import type * as ownership from "../ownership.js";
 import type * as proposals from "../proposals.js";
 import type * as publicSheet from "../publicSheet.js";
+import type * as shelf from "../shelf.js";
 import type * as templates from "../templates.js";
 
 import type {
@@ -39,6 +42,8 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   botClient: typeof botClient;
   botHttp: typeof botHttp;
+  changeLog: typeof changeLog;
+  claim: typeof claim;
   crew: typeof crew;
   downtime: typeof downtime;
   entities: typeof entities;
@@ -53,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   ownership: typeof ownership;
   proposals: typeof proposals;
   publicSheet: typeof publicSheet;
+  shelf: typeof shelf;
   templates: typeof templates;
 }>;
 

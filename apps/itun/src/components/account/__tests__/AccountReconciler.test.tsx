@@ -72,7 +72,7 @@ const convexMocks = await installConvexMocks({
     useMutation: (ref: unknown) => async (args: Record<string, unknown>) => {
       const name = getFunctionName(ref as never)
       mutations.push({ name, args })
-      if (name === 'entities:repairContainers') return { repaired: 0, skipped: 0 }
+      if (name === 'claim:repairContainers') return { repaired: 0, skipped: 0 }
       if (gate !== null) await gate
       const result = server === null ? claimResult : serverClaim(args, server)
       return { ...result, byKind: {} }
@@ -109,7 +109,7 @@ async function signIn(view: { rerender: (ui: ReactElement) => void }): Promise<v
 }
 
 function claims() {
-  return mutations.filter((m) => m.name === 'entities:claimLocal')
+  return mutations.filter((m) => m.name === 'claim:claimLocal')
 }
 
 const Tree = () => (
@@ -392,7 +392,7 @@ describe('signing in', () => {
     authed = true
     view.rerender(<Tree />)
     await waitFor(() =>
-      expect(mutations.some((m) => m.name === 'entities:repairContainers')).toBe(true)
+      expect(mutations.some((m) => m.name === 'claim:repairContainers')).toBe(true)
     )
     expect(claims()).toHaveLength(0)
     expect(promotionState()).toBe('idle')
@@ -441,9 +441,7 @@ describe('signing in', () => {
     authed = true
     view.rerender(<Tree />)
     await waitFor(() =>
-      expect(
-        mutations.filter((m) => m.name === 'entities:repairContainers').length
-      ).toBeGreaterThan(0)
+      expect(mutations.filter((m) => m.name === 'claim:repairContainers').length).toBeGreaterThan(0)
     )
     expect(claims()).toHaveLength(1)
     expect(screen.queryByText(/could not be saved/i)).toBeNull()
@@ -474,7 +472,7 @@ describe('signing in', () => {
     render(<Tree />)
 
     await waitFor(() =>
-      expect(mutations.some((m) => m.name === 'entities:repairContainers')).toBe(true)
+      expect(mutations.some((m) => m.name === 'claim:repairContainers')).toBe(true)
     )
     expect(claims()).toHaveLength(0)
   })
