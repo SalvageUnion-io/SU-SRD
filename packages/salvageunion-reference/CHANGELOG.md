@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.12.0...salvageunion-reference-v2.12.1) (2026-09-25)
+
+
+### Bug Fixes
+
+* **itun:** pilot max HP/AP follows crawler tech level ([#982](https://github.com/SalvageUnion-io/SU-SRD/issues/982)) ([15691d9](https://github.com/SalvageUnion-io/SU-SRD/commit/15691d9b61770878231c327131870b80aa3fb534))
+
 ## [2.12.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.11.4...salvageunion-reference-v2.12.0) (2026-08-31)
 
 
