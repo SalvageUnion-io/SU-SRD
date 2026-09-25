@@ -64,7 +64,7 @@ jobs:
           persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4.37.9
+        uses: github/codeql-action/init@v4.38.0
         with:
           # Single identifier covers both JS and TS.
           languages: javascript-typescript
@@ -82,6 +82,6 @@ jobs:
               - '**/routeTree.gen.ts'
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4.37.9
+        uses: github/codeql-action/analyze@v4.38.0
         with:
           category: '/language:javascript-typescript'

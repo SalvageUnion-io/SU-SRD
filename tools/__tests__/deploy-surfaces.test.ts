@@ -115,8 +115,14 @@ describe('deploy-surfaces — script against a real git history', () => {
   const root = mkdtempSync(join(tmpdir(), 'deploy-surfaces-'))
   afterAll(() => rmSync(root, { recursive: true, force: true }))
 
+  // Git hooks (lefthook's pre-push runs this suite) export GIT_DIR and
+  // friends. Inherited, they point every command below at the REAL repo:
+  // `git init --bare` then re-initialises it as bare. Strip them.
+  const cleanEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
+  )
   const run = (cwd: string, args: string[]) => {
-    const proc = Bun.spawnSync(args, { cwd, stdout: 'pipe', stderr: 'pipe' })
+    const proc = Bun.spawnSync(args, { cwd, stdout: 'pipe', stderr: 'pipe', env: cleanEnv })
     if (proc.exitCode !== 0) throw new Error(`${args.join(' ')}: ${proc.stderr.toString()}`)
     return proc.stdout.toString().trim()
   }
@@ -166,7 +172,7 @@ describe('deploy-surfaces — script against a real git history', () => {
       cwd: work,
       stdout: 'pipe',
       stderr: 'pipe',
-      env: { ...process.env, GITHUB_OUTPUT: out },
+      env: { ...cleanEnv, GITHUB_OUTPUT: out },
     })
     expect(proc.exitCode).toBe(0)
     return Object.fromEntries(
