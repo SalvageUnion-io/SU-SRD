@@ -1,6 +1,6 @@
 ---
 name: convex-deploy-verify
-description: Configure and verify an ITUN Convex deployment end-to-end without signing in — the three required env vars, the bot credential, and the curl probe that tells the three failure modes apart
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot reports "not connected" or `unauthorized`, or when a Convex tool says "No CONVEX_DEPLOYMENT set". Covers the three required env vars, the bot credential, and the curl probe that tells the failure modes apart.
 allowed-tools: Bash, Read
 ---
 

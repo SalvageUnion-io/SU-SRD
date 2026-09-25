@@ -1,6 +1,6 @@
 ---
 name: knip-triage
-description: Resolve a knip dead-code failure correctly — delete by default, and use @public / @knipignore only in the two cases that justify them
+description: Use when `bun run knip` (or the pre-push/CI knip step) reports "Unused files", "Unused exports", "Unused exported types" or "Unused dependencies". Delete by default; @public / @knipignore only in the two cases that justify them.
 allowed-tools: Bash, Read, Edit, Grep
 ---
 

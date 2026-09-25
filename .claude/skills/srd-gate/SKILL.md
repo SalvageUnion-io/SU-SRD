@@ -1,6 +1,6 @@
 ---
 name: srd-gate
-description: Change srd's output safely — run the gate, READ the snapshot diff, and only then re-bless it
+description: Use when a change may alter apps/srd output, when `bun --filter srd gate` exits 1 with "SNAPSHOT FAILED — N difference(s)", or before running `snapshot:update`. Read the snapshot diff, and only then re-bless it.
 allowed-tools: Bash, Read, Grep
 ---
 
