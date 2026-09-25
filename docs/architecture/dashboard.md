@@ -51,9 +51,10 @@ Dashboard (spend EP, take SP damage) is immediately visible on the live sheet in
 another tab (the multi-tab broadcast in `src/lib/db/broadcast.ts`), and vice
 versa. **There is one source of truth; the Dashboard is a second lens on it.**
 
-Local-first is preserved end to end ([ADR-001] — superseded by [ADR-030], which
-leaves anonymous Solo play fully local — and [ADR-003]): the Dashboard adds no
-backend, no auth, no RPC. It is a client of `entityStore`/`workspaceStore` and
+The Dashboard adds no backend of its own ([ADR-003]; ADR-001's local-first
+stance is superseded by [ADR-030] and ADR-034 — signed-in state writes through
+to Convex, anonymous Solo state lives in memory and is not persisted): no auth,
+no RPC of its own. It is a client of `entityStore`/`workspaceStore` and
 the pure rules functions, exactly like the sheet.
 
 ---

@@ -37,6 +37,8 @@ import { usePatternStore } from '../../stores/patternStore'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
+import type { ServedRoster } from './legacyMigration'
+import { servedIds } from './legacyMigration'
 
 /** Everything that can be held outside the account, from either source. */
 export type LocalWork = {
@@ -83,6 +85,52 @@ export function captureSessionWork(): LocalWork {
     softLinks: entities.list('softLink'),
     mechPatterns: usePatternStore.getState().list(),
     encounterNpcs: useEncounterStore.getState().list(),
+  }
+}
+
+/**
+ * The part of this session's work the account does not hold yet.
+ *
+ * What makes "Try again" a retry rather than a resend. `claimLocal` answers a
+ * row whose app id is already taken with `alreadyPresent` — including a row
+ * the caller's OWN first pass just saved — so resending the whole capture after
+ * a partial save reports every row that landed as a failure, and the error line
+ * can never clear. Filtering against `entities.listMine`, the way device rows
+ * are, sends only what is still missing.
+ *
+ * Soft links follow the rows they wire, as in `selectStranded`: a link between
+ * two saved rows is itself a repeat and would come back `alreadyPresent`.
+ */
+export function unsavedWork(work: LocalWork, served: ServedRoster): LocalWork {
+  const missing = (rows: readonly unknown[], owned: ReadonlySet<string>): unknown[] =>
+    rows.filter((row) => {
+      const id = (row as { id?: unknown } | null)?.id
+      return typeof id !== 'string' || !owned.has(id)
+    })
+
+  const pilots = missing(work.pilots, servedIds(served.pilots))
+  const mechs = missing(work.mechs, servedIds(served.mechs))
+  const crawlers = missing(work.crawlers, servedIds(served.crawlers))
+  const moving = new Set(
+    [...pilots, ...mechs, ...crawlers]
+      .map((row) => (row as { id?: unknown } | null)?.id)
+      .filter((id): id is string => typeof id === 'string')
+  )
+  const softLinks = work.softLinks.filter((link) => {
+    const l = link as { from?: { id?: unknown }; to?: { id?: unknown } }
+    return (
+      (typeof l.from?.id === 'string' && moving.has(l.from.id)) ||
+      (typeof l.to?.id === 'string' && moving.has(l.to.id))
+    )
+  })
+
+  return {
+    pilots,
+    mechs,
+    crawlers,
+    softLinks,
+    mechPatterns: missing(work.mechPatterns, servedIds(served.mechPatterns)),
+    encounterNpcs: missing(work.encounterNpcs, servedIds(served.encounterNpcs)),
   }
 }
 

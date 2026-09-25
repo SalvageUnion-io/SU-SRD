@@ -18,7 +18,7 @@
  * The account gate (ADR-034 decision 1), at the moment it means something: a
  * visitor with nothing built is told nothing; once there is work, one banner
  * names what would be lost — this tab's builds, and any rows this device still
- * holds from before accounts — with one "Download all" covering both and the
+ * holds — with one "Download all" covering both and the
  * sign-in beside it. Sign-in is Discord and nothing else, so the download is
  * what keeps this from being a hard wall for somebody without Discord.
  *
@@ -31,7 +31,15 @@
  * Session work is sent the moment the backend flips to `remote`. Device rows
  * are compared against `entities.listMine` first and only what is missing is
  * sent (ADR-035 — no offer, no decline). Both report through one error line
- * with one "Try again", which retries whatever did not land.
+ * with one "Try again", which retries whatever did not land: session work is
+ * filtered against `listMine` on a retry too, because `claimLocal` reports a
+ * row the first pass already saved as `alreadyPresent`.
+ *
+ * The in-flight flags and the error line live in the always-mounted parent,
+ * not in the signed-in half. That half unmounts whenever the backend leaves
+ * `remote` (connectivity dropping mid-upload), and a flag owned by the mount
+ * would let the next mount send the same rows while the first call is still
+ * queued — the second to land then reports every row as `alreadyPresent`.
  *
  * ## The consent line
  *
@@ -45,7 +53,7 @@
 
 import { Button, Text, toast } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-import type { RefObject } from 'react'
+import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import {
@@ -55,7 +63,7 @@ import {
 } from '../../lib/account/legacyMigration'
 import { setPromotionState } from '../../lib/account/promotionState'
 import type { LocalWork } from '../../lib/account/reconcile'
-import { combineBundles, countWork, reconcile } from '../../lib/account/reconcile'
+import { combineBundles, countWork, reconcile, unsavedWork } from '../../lib/account/reconcile'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
@@ -127,6 +135,16 @@ function useSessionWork(): LocalWork {
   )
 }
 
+/** The sign-in / download sentence, naming only what is on screen. */
+function closingLine(session: number, onDevice: number): string {
+  const download = session + onDevice === 1 ? 'it' : 'them all'
+  if (onDevice === 0) {
+    return `Sign in to keep ${session === 1 ? 'it' : 'them'} in your account — or download ${download}.`
+  }
+  const save = session > 0 ? 'save this tab’s work and ' : ''
+  return `Sign in to ${save}bring anything missing into your account — or download ${download}.`
+}
+
 /** The signed-out banner. One statement, one download, one sign-in. */
 function AnonymousNotice({ session, device }: { session: number; device: DeviceRows | null }) {
   const [busy, setBusy] = useState(false)
@@ -160,19 +178,19 @@ function AnonymousNotice({ session, device }: { session: number; device: DeviceR
               only — closing it loses the lot.{' '}
             </>
           )}
-          {/* Describes the DEVICE, and says no more than it can know: signed
-              out there is no `listMine` to compare against, so some of these
-              may already be in an account. */}
+          {/* Describes the DEVICE, and says no more than it can know. Signed
+              out there is no `listMine` to compare against, and the probe
+              reports `present` for any non-empty store — a returning player's
+              own account cache included — so this names neither provenance
+              ("from before accounts") nor a count missing from an account. */}
           {onDevice > 0 && (
             <>
               <strong>
-                This device {session > 0 ? 'also ' : ''}holds {builds(onDevice)}
+                This device {session > 0 ? 'also ' : ''}holds {builds(onDevice)}.
               </strong>{' '}
-              from before accounts.{' '}
             </>
           )}
-          Sign in to keep {session + onDevice === 1 ? 'it' : 'them'} in your account — or download{' '}
-          {session + onDevice === 1 ? 'it' : 'them all'}.
+          {closingLine(session, onDevice)}
         </Text>
         <div className="flex flex-wrap items-center gap-2">
           {/* Both ways out, side by side. Neither is the "cancel". */}
@@ -189,6 +207,18 @@ function AnonymousNotice({ session, device }: { session: number; device: DeviceR
 type Failure = { session: string | null; device: string | null }
 const NO_FAILURE: Failure = { session: null, device: null }
 
+/**
+ * What must outlive a mount of the signed-in half. See the header: owned by the
+ * always-mounted parent so a remount neither re-sends in-flight work nor loses
+ * the error line a pass finished writing while nothing was mounted.
+ */
+type ReconcileState = {
+  sessionWork: RefObject<LocalWork | null>
+  running: RefObject<{ session: boolean; device: boolean }>
+  failure: Failure
+  setFailure: Dispatch<SetStateAction<Failure>>
+}
+
 const STILL_HERE = 'They are still on this device — download a copy before clearing this browser.'
 
 /** Why a whole call failed, in words a player can act on. */
@@ -203,32 +233,36 @@ function failureMessage(err: unknown, fallback: string): string {
  * Convex hook here has a provider and every write it starts can land.
  */
 function SignedInReconciler({
-  sessionWork,
+  state,
   device,
 }: {
-  sessionWork: RefObject<LocalWork | null>
+  state: ReconcileState
   device: DeviceRows | null
 }) {
+  const { sessionWork, running, failure, setFailure } = state
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
   const claimLocal = useMutation(api.entities.claimLocal)
   const repairContainers = useMutation(api.entities.repairContainers)
 
-  const [failure, setFailure] = useState<Failure>(NO_FAILURE)
-  /** Stops a re-render mid-pass starting a second one. */
-  const sessionRunning = useRef(false)
   /** One device pass per mount: a live query re-emits, the reconciliation must not. */
   const deviceRan = useRef(false)
 
   const runSession = useCallback(() => {
-    if (sessionRunning.current) return
-    const work = sessionWork.current
+    if (running.current.session) return
+    const captured = sessionWork.current
+    // Filtered once the account has loaded — always so on a "Try again", and
+    // usually not on the first pass, which must not wait on it (every id in a
+    // fresh capture is new, so there is nothing to filter).
+    const work = captured === null || mine === undefined ? captured : unsavedWork(captured, mine)
     if (work === null || countWork(work) === 0) {
+      sessionWork.current = null
       setPromotionState('idle')
+      setFailure((f) => ({ ...f, session: null }))
       return
     }
 
-    sessionRunning.current = true
+    running.current.session = true
     // Announced BEFORE the await. `ShelfSync` prunes local shelf rows the
     // server did not return, and until this lands these rows are exactly that.
     setPromotionState('pending')
@@ -257,15 +291,16 @@ function SignedInReconciler({
         }))
       })
       .finally(() => {
-        sessionRunning.current = false
+        running.current.session = false
       })
-  }, [claimLocal, sessionWork])
+  }, [claimLocal, mine, running, sessionWork, setFailure])
 
   const runDevice = useCallback(() => {
     // Nothing on this device, or the account is still loading. `undefined` is
     // Convex's in-flight value, not an empty result — running against it would
     // read every local row as stranded and re-upload the lot.
     if (device === null || mine === undefined || games === undefined) return
+    if (running.current.device) return
 
     const work = selectStranded(device, mine, new Set(games.map((g) => g._id)))
     if (countStranded(work) === 0 && work.softLinks.length === 0) {
@@ -275,6 +310,7 @@ function SignedInReconciler({
       return
     }
 
+    running.current.device = true
     void reconcile(claimLocal, work, { adopt: false })
       .then(({ stranded }) => {
         if (stranded > 0) {
@@ -296,7 +332,10 @@ function SignedInReconciler({
           ),
         }))
       })
-  }, [claimLocal, device, mine, games])
+      .finally(() => {
+        running.current.device = false
+      })
+  }, [claimLocal, device, mine, games, running, setFailure])
 
   // Session work goes the moment the backend is `remote` — it needs no
   // comparison (every id is fresh), and a sign-in that was pressed to save
@@ -304,20 +343,24 @@ function SignedInReconciler({
   //
   // Once per mount, through a ref rather than the dependency list: the effect
   // must not re-run because a hook handed back a new function identity, and a
-  // second pass after a failure is the "Try again" button's job, not a render's.
+  // second pass after a failure is the "Try again" button's job, not a render's
+  // — which is also why a remount that finds a failure already on screen does
+  // not start one.
   const sessionStarted = useRef(false)
   useEffect(() => {
     if (sessionStarted.current) return
     sessionStarted.current = true
+    if (failure.session !== null) return
     runSession()
-  }, [runSession])
+  }, [runSession, failure.session])
 
   useEffect(() => {
     if (deviceRan.current) return
     if (device === null || mine === undefined || games === undefined) return
     deviceRan.current = true
+    if (failure.device !== null) return
     runDevice()
-  }, [device, mine, games, runDevice])
+  }, [device, mine, games, runDevice, failure.device])
 
   /**
    * Repair bodies whose container disagrees with the row they are stored in.
@@ -428,6 +471,8 @@ export function AccountReconciler() {
 
   /** This tab's anonymous work, as of the last anonymous render. See the header. */
   const sessionWork = useRef<LocalWork | null>(null)
+  const running = useRef({ session: false, device: false })
+  const [failure, setFailure] = useState<Failure>(NO_FAILURE)
   useEffect(() => {
     if (backend !== 'memory') return
     sessionWork.current = countWork(session) > 0 ? session : null
@@ -442,5 +487,7 @@ export function AccountReconciler() {
   // `blocked` is Disconnected or mid-handshake: no writes, so no reconciling —
   // and a build with no Convex URL mounts no provider for the hooks below.
   if (backend !== 'remote' || !isConvexConfigured) return null
-  return <SignedInReconciler sessionWork={sessionWork} device={device} />
+  return (
+    <SignedInReconciler state={{ sessionWork, running, failure, setFailure }} device={device} />
+  )
 }

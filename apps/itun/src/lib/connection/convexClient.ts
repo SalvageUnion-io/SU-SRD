@@ -7,8 +7,8 @@ import { ConvexReactClient } from 'convex/react'
  * file is gitignored, so a checkout that has never run it — CI, a fresh
  * contributor, a deliberately backend-free deploy — compiles with the variable
  * undefined. That is a **supported build**, not a misconfiguration: it runs in
- * Solo mode, which is the same fully-local app that existed before accounts
- * (ADR-030 §1).
+ * Solo mode on the in-memory backend (ADR-034 — nothing persists without an
+ * account).
  *
  * Constructing the client eagerly at module scope would throw in exactly those
  * builds and take the whole app down, so the URL is checked first and the

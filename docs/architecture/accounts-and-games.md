@@ -24,8 +24,11 @@ After this work: Discord-authenticated accounts, **Games** as the shared
 container, **Shelves** as the personal one, entity ownership, a distinct Mediator
 surface, and a Dashboard that synchronizes a table.
 
-What does **not** change: anonymous Solo play, snapshot sharing, `apps/srd`, the
-ADR-021 enforcement modes, and the locked Dashboard canvas.
+What does **not** change: snapshot sharing, `apps/srd`, the ADR-021 enforcement
+modes, and the locked Dashboard canvas. Anonymous Solo play **did** change, later:
+ADR-034 and ADR-035 retired the durable anonymous backend, so Solo now runs on
+the in-memory backend in every build and nothing it builds survives a reload
+without an account.
 
 ---
 

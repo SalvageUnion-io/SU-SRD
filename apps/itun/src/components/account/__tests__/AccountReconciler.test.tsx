@@ -23,7 +23,30 @@ let authed = false
 
 type ClaimResult = { claimed: number; skipped: number; alreadyPresent: number; declined: number }
 let claimResult: ClaimResult = { claimed: 0, skipped: 0, alreadyPresent: 0, declined: 0 }
+/**
+ * When set, `claimLocal` answers the way the server does instead of returning
+ * `claimResult`: an id it already holds is `alreadyPresent` (`appIdTaken`
+ * matches the caller's own rows too), an id in `unparseable` is `skipped`, and
+ * anything else is claimed and remembered. A retry test against a canned result
+ * passes for a resend the server would reject.
+ */
+let server: { owned: Set<string>; unparseable: Set<string> } | null = null
+/** Holds `claimLocal` open until released, to overlap a call with a remount. */
+let gate: Promise<void> | null = null
 const mutations: { name: string; args: Record<string, unknown> }[] = []
+
+function serverClaim(args: Record<string, unknown>, s: NonNullable<typeof server>): ClaimResult {
+  const result: ClaimResult = { claimed: 0, skipped: 0, alreadyPresent: 0, declined: 0 }
+  for (const row of (args.pilots as { id: string }[] | undefined) ?? []) {
+    if (s.owned.has(row.id)) result.alreadyPresent += 1
+    else if (s.unparseable.has(row.id)) result.skipped += 1
+    else {
+      s.owned.add(row.id)
+      result.claimed += 1
+    }
+  }
+  return result
+}
 
 const convexMocks = await installConvexMocks({
   authReact: true,
@@ -33,7 +56,9 @@ const convexMocks = await installConvexMocks({
       const name = getFunctionName(ref as never)
       mutations.push({ name, args })
       if (name === 'entities:repairContainers') return { repaired: 0, skipped: 0 }
-      return { ...claimResult, byKind: {} }
+      if (gate !== null) await gate
+      const result = server === null ? claimResult : serverClaim(args, server)
+      return { ...result, byKind: {} }
     },
   },
 })
@@ -87,6 +112,8 @@ const EMPTY_ROSTER = {
 beforeEach(async () => {
   authed = false
   claimResult = { claimed: 0, skipped: 0, alreadyPresent: 0, declined: 0 }
+  server = null
+  gate = null
   mutations.length = 0
   _resetLegacyProbe()
   db._resetDbSingleton()
@@ -137,6 +164,17 @@ describe('signed out', () => {
     await waitFor(() => expect(screen.getByText(/This device also holds 1 build/i)).toBeTruthy())
     expect(screen.getAllByRole('button', { name: 'Download all' })).toHaveLength(1)
   })
+
+  test('the device rows are not called pre-account builds', async () => {
+    // The probe reports `present` for ANY non-empty store — a returning
+    // player's own account cache included — so the copy may not claim more.
+    await db.pilots.put(pilotFixture({ id: 'disk-1' }))
+    const { container } = render(<Tree />)
+
+    await waitFor(() => expect(screen.getByText(/This device holds 1 build\./i)).toBeTruthy())
+    expect(container.textContent).not.toMatch(/before accounts/i)
+    expect(container.textContent).toMatch(/bring anything missing into your account/i)
+  })
 })
 
 describe('signing in', () => {
@@ -167,9 +205,10 @@ describe('signing in', () => {
     expect(claims()).toHaveLength(0)
   })
 
-  test('a resolved-but-partial save is shown, and Try again retries it', async () => {
+  test('a resolved-but-partial save is shown, and Try again sends only what did not land', async () => {
     await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    claimResult = { claimed: 0, skipped: 1, alreadyPresent: 0, declined: 0 }
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
+    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
     const view = render(<Tree />)
 
     await signIn(view)
@@ -178,11 +217,70 @@ describe('signing in', () => {
     // The prune must not read the un-saved row as "deleted elsewhere".
     expect(promotionState()).toBe('failed')
 
-    claimResult = { claimed: 1, skipped: 0, alreadyPresent: 0, declined: 0 }
+    // The account now serves what the first pass saved, as `listMine` would.
+    setQueryAnswers({
+      'entities:listMine': { ...EMPTY_ROSTER, pilots: [{ appId: 'tab-1', body: { id: 'tab-1' } }] },
+      'games:listMine': [],
+    })
+    view.rerender(<Tree />)
+    server.unparseable.clear()
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
     await waitFor(() => expect(claims()).toHaveLength(2))
+    // Resending tab-1 would come back `alreadyPresent` and never clear.
+    const resent = claims()[1]?.args.pilots as { id: string }[] | undefined
+    expect(resent?.map((p) => p.id)).toEqual(['tab-2'])
     await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
+    expect(promotionState()).toBe('idle')
+  })
+
+  test('a retry that fails again reports only the rows still missing', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
+    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
+    const view = render(<Tree />)
+    await signIn(view)
+    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
+
+    setQueryAnswers({
+      'entities:listMine': { ...EMPTY_ROSTER, pilots: [{ appId: 'tab-1', body: { id: 'tab-1' } }] },
+      'games:listMine': [],
+    })
+    view.rerender(<Tree />)
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+    await waitFor(() => expect(claims()).toHaveLength(2))
+    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
+    expect(screen.queryByText(/2 builds could not be saved/i)).toBeNull()
+  })
+
+  test('a remount while the upload is in flight does not send it twice', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    server = { owned: new Set(), unparseable: new Set() }
+    let release: () => void = () => {}
+    gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const view = render(<Tree />)
+    await signIn(view)
+    await waitFor(() => expect(claims()).toHaveLength(1))
+
+    // Connectivity drops mid-upload (the signed-in half unmounts on `blocked`)
+    // and comes back while Convex still has the first call queued.
+    await act(async () => {
+      window.dispatchEvent(new Event('offline'))
+    })
+    await act(async () => {
+      window.dispatchEvent(new Event('online'))
+    })
+    await act(async () => {
+      release()
+      await gate
+    })
+
+    await waitFor(() => expect(promotionState()).toBe('idle'))
+    expect(claims()).toHaveLength(1)
+    expect(screen.queryByText(/could not be saved/i)).toBeNull()
   })
 
   test('device rows missing from the account are sent, on the shelf', async () => {

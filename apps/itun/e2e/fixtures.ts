@@ -53,7 +53,8 @@ const TEST_SIGN_IN_GLOBAL = '__itunTestSignIn'
 
 /** A fresh account per test — a reused one would inherit the last run's roster. */
 export function uniqueCredentials(): { email: string; password: string } {
-  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  // `crypto.randomUUID()`, not `Math.random()`: this stamp is part of a password.
+  const stamp = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
   return { email: `e2e-${stamp}@example.invalid`, password: `pw-${stamp}-Aa1!` }
 }
 

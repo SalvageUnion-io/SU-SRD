@@ -2,13 +2,14 @@
 
 ITUN is a shared living character sheet, not a game engine. During play it lets a
 player spend resources, track heat, run heat checks, and record equipment
-conditions on their own mech. It is **local-first**
+conditions on their own mech. The combat loop itself is **client-side**
 ([ADR-001](../adrs/ADR-001-local-first-no-backend.md), superseded by
-[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) — which keeps
-anonymous Solo play fully local, so everything below still holds for it):
-all state lives in the player's IndexedDB and is mutated client-side through the
-Zustand stores ([ADR-003](../adrs/ADR-003-zustand-hydration.md)). There is no
-backend, no RPC, and no turn enforcement. There **is** an append-only
+[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) and
+[ADR-034](../adrs/ADR-034-account-required-persistence.md)): state is mutated
+through the Zustand stores ([ADR-003](../adrs/ADR-003-zustand-hydration.md)),
+which write through to Convex when signed in (IndexedDB is its cache) and to
+the in-memory backend when anonymous — Solo play is not persisted. There are no
+combat RPCs and no turn enforcement. There **is** an append-only
 `changeLog` provenance store ([ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md)) —
 it records what happened; it is not an undo/redo system.
 

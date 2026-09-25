@@ -229,9 +229,9 @@ function page(): PageResult {
                 There is no longer a deployment flag to check: the anonymous
                 durable backend (`local`) and `VITE_REQUIRE_ACCOUNT` were both
                 retired, so in every build an anonymous visitor builds in memory
-                and an account is what keeps the work. `entityBackend.ts` states
-                the rule: *"the account is required to keep work, never to do
-                it."* So "no-account" must never be read as "keeps your work
+                and an account is what keeps the work. `requireWritableBackend`
+                in `entityBackend.ts` states the rule: the account is required
+                to *keep* work, never to do it. So "no-account" must never be read as "keeps your work
                 without one" — if this line is ever reworded, it must not claim
                 that.
               */}
