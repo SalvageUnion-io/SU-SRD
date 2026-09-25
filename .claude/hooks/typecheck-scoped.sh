@@ -45,6 +45,8 @@ esac
 # Resolve the checkout that owns the file (NOT $CLAUDE_PROJECT_DIR, which in a
 # worktree session points at the main checkout) and run from its root: the
 # `bun run` / `bun --filter` calls below only resolve from there.
+# A GIT_DIR inherited from a git hook would override `-C` and name the wrong repo.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
 DIR=$(cd "$(dirname "$FILE_PATH")" 2>/dev/null && pwd -P) || exit 0
 ROOT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null) || exit 0
 ROOT=$(cd "$ROOT" && pwd -P)

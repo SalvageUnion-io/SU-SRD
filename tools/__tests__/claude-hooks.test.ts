@@ -140,6 +140,12 @@ describe('typecheck-scoped.sh', () => {
 
   // A throwaway git repo whose `typecheck:tools` script is a stub, so the
   // exit-code path and the root resolution are tested without running tsc.
+  // Git hooks (lefthook's pre-push runs this suite) export GIT_DIR and friends,
+  // which would point `git init` and the hook's `rev-parse` at the outer repo.
+  const cleanEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
+  )
+
   async function fixture(script: string): Promise<{ dir: string; file: string }> {
     const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
     mkdirSync(join(dir, 'tools'))
@@ -149,13 +155,14 @@ describe('typecheck-scoped.sh', () => {
       JSON.stringify({ scripts: { 'typecheck:tools': script } })
     )
     writeFileSync(join(dir, 'tools', 'x.ts'), 'export {}\n')
-    await Bun.spawn(['git', 'init', '-q', dir]).exited
+    await Bun.spawn(['git', 'init', '-q', dir], { env: cleanEnv }).exited
     return { dir, file: join(dir, 'tools', 'x.ts') }
   }
 
   async function runFrom(cwd: string, file_path: string) {
     const proc = Bun.spawn([join(HOOKS, 'typecheck-scoped.sh')], {
       cwd,
+      env: cleanEnv,
       stdin: new TextEncoder().encode(JSON.stringify({ tool_input: { file_path } })),
       stdout: 'pipe',
       stderr: 'pipe',
