@@ -111,7 +111,7 @@ describe('container parity — every local store can reach the server', () => {
       softLinks: { fn: 'commitSoftLink', consumer: 'entityStore.ts' },
       mechPatterns: { fn: 'commitPatternWrite', consumer: 'patternStore.ts' },
       encounterNpcs: { fn: 'commitNpcWrite', consumer: 'encounterStore.ts' },
-      changeLog: { fn: 'commitChangeLog', consumer: 'entityStore.ts' },
+      changeLog: { fn: 'commitChangeLog', consumer: 'entityChangeLog.ts' },
     }
 
     const undeclared = Object.entries(WRITERS)

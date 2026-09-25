@@ -39,7 +39,6 @@
 
 import { useRouter } from '@tanstack/react-router'
 import {
-  Badge,
   Button,
   buttonVariants,
   cn,
@@ -53,15 +52,13 @@ import {
 import { useMutation, useQuery } from 'convex/react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { useState } from 'react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
-import { resolveClassName } from '../../lib/classRef'
 import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
-import type { OwnerChip } from '../../lib/ownership/ownerChip'
+import { rosterRowStats } from '../../lib/games/rosterRowStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -69,6 +66,7 @@ import { setActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { OwnerSeal } from './OwnerSeal'
 
 type GameRosterProps = {
   gameId: string
@@ -117,148 +115,6 @@ const TONE_TEXT: Record<RosterKind, string> = {
   pilot: 'text-sheet-pilot-deep',
   mech: 'text-sheet-mech-deep',
   crawler: 'text-sheet-crawler-deep',
-}
-
-/**
- * Everything the row states as `label | value`, all of it in the header band.
- *
- * There is no second place for these any more: a stat is a stat whether it is a
- * number or a name, so `CLASS | Salvager` sits in the band beside `SP | 12`
- * rather than in a separate register below it. The body is left to the verbs.
- *
- * **HP and AP are deliberately absent.** A roster answers "what have I got",
- * not "how hurt is it": live vitals belong to the sheet and the Dashboard, and
- * a number that changes every round is stale on a listing the moment it renders.
- * Absent numbers are omitted, never zeroed.
- */
-function statsFor(row: RosterRow): Array<{ label: string; value: string | number }> {
-  const num = (key: string): number | undefined => {
-    const value = row.body[key]
-    return typeof value === 'number' ? value : undefined
-  }
-  const out: Array<{ label: string; value: string | number }> = []
-
-  if (row.kind === 'pilot') {
-    // What the pilot IS — the class leads, the callsign names them.
-    const className = resolveClassName(String(row.body.classRef ?? ''))
-    if (className) out.push({ label: 'Class', value: className })
-    const callsign = row.body.callsign
-    if (typeof callsign === 'string' && callsign.length > 0 && callsign !== row.name) {
-      out.push({ label: 'Callsign', value: callsign })
-    }
-  }
-  if (row.kind === 'mech') {
-    // The chassis leads: it is what the mech IS, where SP and Heat are how it
-    // is doing. Rendered as `CHASSIS | Iron Mongrel` rather than a bare chip,
-    // so the name arrives labelled.
-    const chassis = row.body.chassisRef
-    if (typeof chassis === 'string' && chassis.length > 0) {
-      const resolved = chassisOf(chassis)
-      out.push({ label: 'Chassis', value: resolved.name })
-      // TL is its own stat rather than a suffix on the chassis value: two facts
-      // crammed into one value box is the thing `Stat` exists to stop.
-      if (resolved.techLevel != null) out.push({ label: 'TL', value: resolved.techLevel })
-    }
-    if (num('currentSP') !== undefined) out.push({ label: 'SP', value: num('currentSP') as number })
-    if (num('currentHeat') !== undefined) {
-      out.push({ label: 'Heat', value: num('currentHeat') as number })
-    }
-  }
-  if (row.kind === 'crawler') {
-    const tl = String(row.body.techLevel ?? '').replace(/[^0-9]/g, '')
-    if (tl) out.push({ label: 'TL', value: tl })
-    const bays = Array.isArray(row.body.crawlerBays) ? row.body.crawlerBays.length : 0
-    out.push({ label: 'Bays', value: bays })
-  }
-  return out
-}
-
-/**
- * A mech's chassis, resolved. The stored value is a SLUG, and printing the slug
- * is the surface admitting it never looked the chassis up — the home Roster has
- * always resolved it, and this said "iron-mongrel" where that said "Iron
- * Mongrel".
- */
-function chassisOf(chassisRef: string): { name: string; techLevel?: number } {
-  // `resolveChassisRef` throws when the Chassis model is not preloaded (test
-  // and snapshot contexts), so this falls back rather than taking the screen
-  // down with it — the same guard the Roster's `mechChassisMeta` uses.
-  try {
-    const chassis = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
-    return chassis ?? { name: chassisRef }
-  } catch {
-    return { name: chassisRef }
-  }
-}
-
-/**
- * The ownership seal: one stamp in the row's top-right corner saying who holds
- * this character — `UNCLAIMED`, `YOU`, or a crewmate's name.
- *
- * ## One mark, three states
- *
- * Ownership is one fact, so it gets one mark. The surface previously said it
- * two ways at once: an owner chip in the caption for held characters, and a
- * separate UNCLAIMED stamp among the buttons for free ones — two vocabularies
- * for a single field, in two different places, so scanning a column meant
- * checking both. A seal that is always present and always in the same corner
- * can be read down a list without reading anything else.
- *
- * Stamped rather than chipped for the reason documents are stamped: it is a
- * mark applied ON the record about its status, not a property of the character
- * itself.
- *
- * ## Why UNCLAIMED is the pressable one
- *
- * An unclaimed pre-gen is an *offer*, so the thing that announces it is also
- * the thing you press. The other two states are statements of fact with nothing
- * to do — pressing "MARA" should not do anything, and it does not.
- *
- * It opens a confirm rather than claiming outright: taking a character is a
- * commitment at the table, and the modal is where the surface says what happens
- * next (it becomes yours, and it lands in this browser).
- */
-function OwnerSeal({
-  owner,
-  claimable,
-  disabled,
-  onClaim,
-}: {
-  owner: OwnerChip
-  claimable: boolean
-  disabled: boolean
-  onClaim: () => void
-}) {
-  // The default stamp plate: ink ground, paper text, at the smallest rung —
-  // a plate riveted across the row's top border, subordinate to the name it
-  // sits beside. It was `inverse` (paper ground, ink text) at `compact`, which
-  // read as another chip floating near the corner rather than as a mark
-  // stamped ON the record.
-  const stamp = (
-    <Badge shape="stamp" size="mini" className="tracking-caps-wide">
-      {owner.label}
-    </Badge>
-  )
-
-  if (!claimable) {
-    // Inert: a fact about the row, not a control.
-    return stamp
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onClaim}
-      disabled={disabled}
-      aria-label={`${owner.label} — pick this up`}
-      className={cn(
-        'cursor-pointer border-0 bg-transparent p-0',
-        'transition-transform duration-200 hover:-translate-y-px disabled:cursor-default disabled:opacity-50'
-      )}
-    >
-      {stamp}
-    </button>
-  )
 }
 
 export function GameRoster({ gameId, gameName }: GameRosterProps) {
@@ -501,7 +357,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                         <EntityRow
                           entityType={row.kind}
                           name={row.name}
-                          stats={statsFor(row)}
+                          stats={rosterRowStats(row)}
                           linkAs={AppLink}
                           /* Every row is a door now. View goes to the frozen
                              crew sheet (`GameEntitySheet`) for EVERY row,

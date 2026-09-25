@@ -126,7 +126,8 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
-  `ActionsDeck.tsx` / `ActiveItemBand.tsx` as one write-through
+  `ActionsDeck.tsx` and the Active Item bands (`MechBand.tsx`,
+  `PilotBand.tsx`, `CrawlerBand.tsx`) as one write-through
   ([ADR-008](../../docs/adrs/ADR-008-sequential-mutations.md),
   [ADR-021](../../docs/adrs/ADR-021-itun-surface-taxonomy.md)).
 - Non-destructive heat-check outcomes auto-apply; destructive condition changes
