@@ -91,6 +91,17 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
   - This is a guard assertion, not a convention, because it had already drifted four ways: `Containers/Modal` pointed at `ModalShell`, `Atoms/Activation Cost` at `ActivationCostBox`, `Containers/Toast` at `Toaster`, `Compositions/Live Sheet` at `LiveSheetPoster` — labels that read correctly but match nothing in the code. Where the **symbol** carried a banned implementation suffix it was renamed (`ChangelogView` → `Changelog`, `ActivationCostBox` → `ActivationCost`); where the symbol was fine the **title** was corrected to match it.
 - **Stories render on a global paper canvas.** `.ladle/components.tsx` frames every story on `bg-paper` (+ mono, padding), so a story does **not** need its own outer `bg-paper` wrapper. Shared caption/frame helpers that would otherwise be copy-pasted across story files live in `src/stories/_harness.tsx` (e.g. `Caption`) — import them instead of re-declaring a local copy.
 
+## Design sync (`.design-sync/`, repo root)
+
+The library is also published to claude.ai/design as a design system. That
+pipeline lives in `.design-sync/` at the **repo root**, not in this package:
+`config.json` drives the converter, `conventions.md` becomes the published
+README, and `previews/` holds hand-ported previews (the Ladle stories cannot be
+loaded there because they read reference data at module top level). Read
+`.design-sync/NOTES.md` before changing any of it. A new public component does
+not need a preview to pass any gate here, but a renamed or deleted one leaves a
+stale preview behind — grep `.design-sync/previews/` when you rename.
+
 ## Testing
 
 - Own `bunfig.toml` with happy-dom preload
