@@ -4,6 +4,7 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 
 // Sourcemap upload is entirely env-gated on SENTRY_AUTH_TOKEN, mirroring the
 // discipline of src/lib/observability.ts: absent locally and in CI (no token
@@ -17,19 +18,7 @@ const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    TanStackRouterVite({
-      routesDirectory: './src/routes',
-      generatedRouteTree: './src/routeTree.gen.ts',
-      // Split each route's component out of the entry bundle so a visitor
-      // pays only for the route they land on. Without this every route
-      // (roster, the three wizards, both sheets, dashboard, encounter,
-      // snapshot viewer) is linked into one ~1.2 MB entry chunk, and the
-      // per-route JS budget in e2e/bundle-budget.e2e.ts is what keeps it
-      // that way. Route *definitions* (path, loader, params) stay eager so
-      // matching still happens synchronously; only the component/pending/
-      // error boundaries move behind a dynamic import.
-      autoCodeSplitting: true,
-    }),
+    TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
     tailwindcss(),
     // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
     // explicit `jsxRuntime: 'automatic'` the Babel plugin needed is gone — it

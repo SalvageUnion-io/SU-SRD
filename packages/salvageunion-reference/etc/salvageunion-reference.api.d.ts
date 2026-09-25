@@ -160,7 +160,7 @@ export declare class LazyModel<T> extends BaseModel<T> {
  * ## The trusted load path (audit PK-04)
  *
  * The data files are committed, and CI validates every one of them against
- * its Zod schema (`validate:schemas`) and proves that a Zod parse returns each
+ * its Zod schema (the `schemas` data check) and proves that a Zod parse returns each
  * file UNCHANGED (`lib/dataCanonical.test.ts`: no defaults left to fill, no
  * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
  * therefore pure repetition — and it was most of the cost: ~87% of a
@@ -924,8 +924,8 @@ import type { z } from '../zod.js';
 /**
  * Zod schema map — the entity schemas keyed by schema id.
  *
- * The `validate:schemas` tool and `generate:json-schemas` import this
- * directly, so data is validated against the exact schemas the runtime would
+ * The `schemas` data check (tools/validate.ts) and `generate:json-schemas`
+ * import this directly, so data is validated against the exact schemas the runtime would
  * use rather than a parallel literal that could drift. At runtime only
  * `lib/validateData.ts` imports it, and ModelFactory reaches that module
  * through a dynamic `import()` when a caller passes `{ validate: true }` to
