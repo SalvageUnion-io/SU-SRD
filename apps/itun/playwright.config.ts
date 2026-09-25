@@ -92,26 +92,15 @@ export default defineConfig({
         // meant a second `vite build` AND a second `tsc --noEmit` (itun's
         // `build` is both) on every PR. The nightly workflow has no build step,
         // so the fallback stays.
-        // VITE_REQUIRE_ACCOUNT=false, EXPLICITLY, and this line is the whole
-        // reason the nightly was red for a month.
-        //
-        // `apps/itun/.env.production` turns the ADR-034 account gate on, and
-        // Vite loads that file for any `mode=production` build — which this is.
-        // So an anonymous run resolved `backendForMode('solo', true, 'absent')`
-        // to the MEMORY backend: nothing reached IndexedDB, the roster dropped
-        // each entity on its next hydrate, and all 12 specs that build an entity
-        // and read it back failed. The failure reads as a missing selector, so
-        // it looks like UI drift rather than a storage mode.
-        //
-        // That file's own comment reasons about `bun test`, `bun run dev` and a
-        // fresh checkout, and never considered that the e2e suite builds a
-        // production bundle. ADR-034 P1 predicted this exact blast radius and
-        // its gate — "the full e2e suite passes with VITE_CONVEX_URL unset" —
-        // was marked done without being met.
-        //
-        // A process env var beats a .env file in Vite, so this restores what the
-        // suite is written to assert. The account-required shape is covered
-        // separately by the `e2e-itun-signin` job.
+        // No storage flag. This command used to force VITE_REQUIRE_ACCOUNT=false,
+        // which kept the anonymous `local` backend (durable IndexedDB) alive
+        // for the suite alone — so for months the specs proved a storage mode
+        // no player could reach. Both are retired: an anonymous visitor is
+        // in-memory everywhere, and every spec that needs a build to survive a
+        // reload signs in through `e2e/fixtures.ts`. A build with no Convex URL
+        // and no `VITE_TEST_AUTH` therefore SKIPS those specs, by design; the
+        // nightly `e2e-itun` job provisions a throwaway Convex backend and runs
+        // them for real.
         //
         // `scripts/preview.ts`, NOT `vite preview`. The latter loads the whole
         // Vite config — React plugin, PWA plugin, TanStack Router's filesystem
@@ -124,7 +113,7 @@ export default defineConfig({
         // starts in milliseconds. It reproduces the Worker's own routing rules
         // — see its header.
         command: process.env.CI
-          ? '[ -d apps/itun/dist ] || VITE_REQUIRE_ACCOUNT=false bun --filter itun build; bun apps/itun/scripts/preview.ts --port 5173'
+          ? '[ -d apps/itun/dist ] || bun --filter itun build; bun apps/itun/scripts/preview.ts --port 5173'
           : 'bun run dev:itun',
         cwd: '../..',
         url: 'http://localhost:5173',

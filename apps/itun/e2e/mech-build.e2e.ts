@@ -1,4 +1,3 @@
-import { expect, test } from '@playwright/test'
 import {
   advanceUntilVisible,
   fillIdentity,
@@ -6,6 +5,7 @@ import {
   pickByName,
   waitForReady,
 } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Mech-only build — steps through the Mech Workshop wizard and submits, then

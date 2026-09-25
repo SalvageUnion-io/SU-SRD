@@ -1,5 +1,8 @@
-import { expect, test } from '@playwright/test'
 import { waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
+
+// Anonymous on purpose: this spec is about what a first-time visitor sees.
+test.use({ account: 'anonymous' })
 
 /**
  * Smoke test — proves the Playwright harness works against the dev server

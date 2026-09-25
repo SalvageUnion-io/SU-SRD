@@ -18,7 +18,7 @@ import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from '../testAuthSeam'
 
 describe('the seam is off unless a build asks for it', () => {
   test('the flag defaults to off', () => {
-    // `VITE_TEST_AUTH` is unset here, in CI, and in `.env.production`. If this
+    // `VITE_TEST_AUTH` is unset here, in CI, and in every committed env file. If this
     // ever reads true, a production bundle is carrying an auth bypass.
     expect(testAuthBridgeEnabled).toBe(false)
   })
@@ -45,9 +45,11 @@ describe('the global name is shared, not retyped', () => {
     // hand-off spec into a permanent no-op.
     expect(TEST_SIGN_IN_GLOBAL).toBe('__itunTestSignIn')
 
-    const spec = await Bun.file(
-      new URL('../../../../e2e/signin-save.e2e.ts', import.meta.url).pathname
+    // `fixtures.ts` is what signs in every durable e2e spec, and it carries
+    // its own copy of the name because Playwright code cannot import app source.
+    const fixtures = await Bun.file(
+      new URL('../../../../e2e/fixtures.ts', import.meta.url).pathname
     ).text()
-    expect(spec).toContain(TEST_SIGN_IN_GLOBAL)
+    expect(fixtures).toContain(`'${TEST_SIGN_IN_GLOBAL}'`)
   })
 })

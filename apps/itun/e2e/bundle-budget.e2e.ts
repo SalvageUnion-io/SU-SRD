@@ -1,5 +1,8 @@
-import { expect, test } from '@playwright/test'
 import { waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
+
+// Anonymous on purpose: bundle bytes do not depend on who is signed in.
+test.use({ account: 'anonymous' })
 
 /**
  * Bundle-size budget suite — ITUN's counterpart to

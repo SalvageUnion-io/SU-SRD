@@ -1,5 +1,8 @@
-import { expect, test } from '@playwright/test'
 import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
+
+// Anonymous on purpose: wizard panes render the same signed in or not.
+test.use({ account: 'anonymous' })
 
 /**
  * Display verification — confirms that the right *information* renders on

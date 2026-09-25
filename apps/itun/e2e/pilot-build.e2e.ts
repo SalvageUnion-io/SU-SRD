@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
 import { advanceUntilVisible, clickNext, pickByName, waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Pilot wizard happy path — create a pilot, then EDIT it (add a second ability
