@@ -13,7 +13,7 @@
 
 ## Project Structure
 
-- Monorepo at `~/Code/SU-SRD/` (workspace root; use repo-relative paths in notes)
+- Use repo-relative paths in notes; the checkout location differs per machine.
 - Design canon: `docs/design-system/ruleset.md` — the authoritative laws. Build
   order in `canonical-primitive-language.md`.
 - Architecture docs: `docs/architecture/` (display-system, data-flow,
@@ -27,12 +27,12 @@
   an in-house SSG at `apps/srd/ssg` over Vite, with React islands mounted via
   `createRoot`. Contract: `apps/srd/ssg/DESIGN.md`.
 
-## Discord bot embed surface
+## Discord bot surface
 
-See [discord-bot-embeds.md](discord-bot-embeds.md) — where the embed builders
-live, the nine `table.type` shapes in `roll-tables.json` and which of them break
-the current roll embed, and the Discord markdown facts (headers/subtext render
-in embed *descriptions*, not usefully in fields) any embed redesign rests on.
+Every bot reply is a Components V2 container, not an embed — the embed-era notes
+were deleted when #970–#977 moved the bot onto containers. Start from
+`.claude/rules/discord-bot.md` and `apps/discord-bot/CLAUDE.md`, then read the
+`*Container.ts` builders in `apps/discord-bot/src/`.
 
 ## Dataviz Idioms (pips/tracks/roll readouts)
 
@@ -110,8 +110,8 @@ than a hypothetical. See `docs/architecture/accounts-and-games.md`.
 
 ## Accessibility Patterns
 
-- `eslint-plugin-jsx-a11y` in the lint configs; `tools/a11y-scan.ts`
-  (puppeteer + axe-core) for runtime scanning.
+- Biome's `a11y` lint group (in `biome.jsonc`) for static checks;
+  `tools/a11y-scan.ts` (Playwright + axe-core) for runtime scanning.
 - Clickable cards: `role="button"` + `tabIndex={0}` + Enter/Space keydown.
 - Search: ARIA combobox with `aria-activedescendant`.
 - Mobile touch targets: 44x44px min via `@media (pointer: coarse)`.
