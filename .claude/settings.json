@@ -60,7 +60,6 @@
       "Bash(git branch -D*)",
       "Bash(git push * --delete*)",
       "Bash(git push * :*)",
-      "Bash(bun * deploy-commands*)",
       "Bash(bun x wrangler deploy*)",
       "Bash(bunx wrangler@* deploy*)",
       "Bash(bunx wrangler@* delete*)",
@@ -75,7 +74,14 @@
       "Bash(git switch -f*)",
       "Bash(git switch * -f*)",
       "Bash(git push * -d *)",
-      "Bash(git push * --no-verify*)"
+      "Bash(git push * --no-verify*)",
+      "Bash(git switch --force*)",
+      "Bash(git switch * --force*)",
+      "Bash(bun *deploy-commands*)",
+      "Bash(bun run wrangler *)",
+      "Bash(bun x wrangler@* deploy*)",
+      "Bash(gh api *-XDELETE*)",
+      "Bash(gh run rerun*)"
     ],
     "deny": [
       "Bash(npm *)",

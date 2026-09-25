@@ -22,20 +22,25 @@
 #   * `echo x | npm install` — a single pipe, which the old comment claimed to
 #     cover ("piped or chained") and did not.
 #
-# HOW IT DECIDES. Quoted strings are blanked first, then the command is split
-# into segments at every separator (`;` `&` `|` `(` `)` `{` `}` backtick `$(`
-# and newline). A segment is blocked when any bare word in it IS a package
-# manager name, so wrappers of every shape are covered without keeping a list:
-# `sudo -E <pm>`, `timeout 60 <pm>`, `if <pm> ...`, `! <pm>`, `FOO="a b" <pm>`.
+# HOW IT DECIDES. The whole command (all lines at once) is scanned with a
+# small quote-state machine: heredoc bodies and everything inside single or
+# double quotes is dropped. What is left is split into segments at every
+# separator (`;` `&` `|` `(` `)` `{` `}` backtick `$(` and newline). A segment
+# is blocked when any bare word in it IS a package manager name (a trailing
+# `@version` is ignored), so wrappers of every shape are covered without
+# keeping a list: `sudo -E <pm>`, `timeout 60 <pm>`, `if <pm> ...`, `! <pm>`,
+# `FOO="a b" <pm>`, `bunx <pm>@10`.
 #
-# Two things are deliberately allowed, because the previous any-whitespace
+# Two things are deliberately allowed, because the earlier any-whitespace
 # pattern blocked the prose this repo writes about the rule itself:
-#   * a word inside quotes: commit messages, `rg "<pm> run"`, PR bodies;
-#   * a segment whose command only READS text (grep, rg, git, ls, cat, echo...),
-#     so `grep -rn <pm> docs` runs.
+#   * anything quoted or inside a heredoc, including multi-line commit
+#     messages and `gh pr create --body "..."`, which is how agents write them;
+#   * a segment whose command only READS or LOOKS UP text (grep, rg, git, gh,
+#     ls, cat, echo, which, type...), so `grep -rn <pm> docs` runs.
 #
 # WHAT THIS DELIBERATELY DOES NOT CATCH, and why that is fine.
-# A token inside a quoted string — `bash -c "<pm> install"` — still passes. It
+# A token inside a quoted string — `bash -c "<pm> install"`, or a command
+# substitution inside double quotes — still passes. It
 # is not chased, for two reasons. Nobody types that by accident: it is a
 # deliberate evasion, and a deliberate evader can equally split the token across
 # a concatenation, which no regex closes. And extending the character class to
@@ -61,13 +66,51 @@ if [ -z "$COMMAND" ]; then
 fi
 
 PMS=' npm yarn pnpm '
-# Commands that only mention text: a package-manager word after one of these is
-# an argument, not something being run.
-READERS=' grep egrep fgrep rg ag git ls cat head tail less more echo printf sed awk wc jq diff cut sort uniq tr tee '
+# Commands that only mention or look up text: a package-manager word after one
+# of these is an argument, not something being run.
+READERS=' grep egrep fgrep rg ag git gh ls cat head tail less more echo printf sed awk wc jq diff cut sort uniq tr tee which type whereis '
+
+# Drop heredoc bodies and quoted text across the WHOLE command, then emit one
+# segment per line. Line-at-a-time stripping is not enough: a commit message
+# or PR body is a multi-line quoted string.
+SEGMENTS=$(printf '%s\n' "$COMMAND" | awk -v q="'" '
+  {
+    if (hd != "") { t = $0; sub(/^[ \t]+/, "", t); if (t == hd) hd = ""; next }
+    line = $0
+    # A heredoc opener (not a <<< here-string): keep the command, drop the body.
+    if (match(line, "<<-?[ \t]*[\"" q "]?[A-Za-z_][A-Za-z0-9_]*[\"" q "]?") &&
+        substr(line, RSTART + 2, 1) != "<" && (RSTART == 1 || substr(line, RSTART - 1, 1) != "<")) {
+      w = substr(line, RSTART, RLENGTH)
+      sub(/^<<-?[ \t]*/, "", w); gsub(/["\047]/, "", w)
+      hd = w
+      line = substr(line, 1, RSTART - 1) " " substr(line, RSTART + RLENGTH)
+    }
+    buf = buf line "\n"
+  }
+  END {
+    out = ""; st = 0; n = length(buf)
+    for (i = 1; i <= n; i++) {
+      c = substr(buf, i, 1)
+      if (st == 0) {
+        if (c == q) { st = 1; out = out " "; continue }
+        if (c == "\"") { st = 2; out = out " "; continue }
+        if (c == "\\") { i++; out = out " "; continue }
+        out = out c
+      } else if (st == 1) {
+        if (c == q) st = 0
+      } else {
+        if (c == "\\") { i++; continue }
+        if (c == "\"") st = 0
+      }
+    }
+    # A lookup whose OUTPUT is executed (`$(which x) install`) runs x: rename
+    # the lookup so it is not treated as a read-only command below.
+    gsub(/(\$\(|`)[ \t]*(which|type -p|command -v)[ \t]/, "$(lookup-then-run ", out)
+    gsub(/\$\(|[;&|(){}`]/, "\n", out)
+    print out
+  }')
 
 blocked=false
-# Blank quoted strings (single-quoted, then double-quoted with escapes).
-STRIPPED=$(printf '%s' "$COMMAND" | sed -E "s/'[^']*'/''/g; s/\"([^\"\\\\]|\\\\.)*\"/\"\"/g")
 while IFS= read -r segment; do
   read -ra words <<<"$segment" || true
   first=""
@@ -76,14 +119,17 @@ while IFS= read -r segment; do
     if [ -z "$first" ] && [[ "$w" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then continue; fi
     [ -z "$first" ] && first="${w##*/}"
     [[ "$READERS" == *" $first "* ]] && break
+    # `command -v <pm>` is a lookup; plain `command <pm>` runs it.
+    if [ "$first" = command ] && [[ "$w" == -[vV] ]]; then break; fi
     # A bare name anywhere in the segment, or a path to one as the command.
     base="${w##*/}"
-    if [[ "$PMS" == *" $base "* ]] && { [ "$w" = "$base" ] || [ "$first" = "$base" ]; }; then
+    base="${base%%@*}"
+    if [[ "$PMS" == *" $base "* ]] && { [ "${w%%@*}" = "$base" ] || [ "$first" = "${w##*/}" ]; }; then
       blocked=true
       break 2
     fi
   done
-done < <(printf '%s\n' "$STRIPPED" | awk '{ gsub(/\$\(|[;&|(){}`]/, "\n"); print }')
+done <<<"$SEGMENTS"
 
 if $blocked; then
   echo "BLOCKED: this project uses bun, not npm/yarn/pnpm." >&2

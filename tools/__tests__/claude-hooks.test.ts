@@ -85,6 +85,10 @@ describe('enforce-bun.sh', () => {
     ['behind bun x', `bun x ${PM} install`],
     ['as an absolute path', `/usr/bin/${PM} install`],
     ['found through which', `$(which ${PM}) install`],
+    ['versioned behind bunx', `bunx ${PM}@10 install`],
+    ['run through command', `command ${PM} install`],
+    ['after a quoted apostrophe on the same line', `echo "it's"; ${PM} install; echo 'x'`],
+    ['on a later line of a multi-line command', `echo start\n${PM} install`],
   ])('blocks %s', async (_label, command) => {
     expect(await bash(command)).toBe(BLOCK)
   })
@@ -104,6 +108,19 @@ describe('enforce-bun.sh', () => {
     ['a cd into a directory named for it', `cd node_modules/${PM2}`],
     ['a quoted mention after a separator', `git commit -m "a; ${PM} is banned"`],
     ['an rg alternation', `rg "(${PM}|${PM2})" docs`],
+    ['a lookup through which', `which ${PM}`],
+    ['a lookup through command -v', `command -v ${PM}`],
+    // How agents actually write commits and PR bodies: multi-line quoted text
+    // and heredocs. Stripping quotes one line at a time blocked all of these.
+    [
+      'a heredoc commit message',
+      `git commit -m "$(cat <<'EOF'\ndocs: explain why\n\n${PM} install; ${PM2} add are banned\nEOF\n)"`,
+    ],
+    [
+      'a multi-line double-quoted PR body',
+      `gh pr create --title x --body "line one\n${PM} install\nline three"`,
+    ],
+    ['a multi-line single-quoted message', `git commit -m 'first\n| ${PM} ci\nlast'`],
   ])('allows %s', async (_label, command) => {
     expect(await bash(command)).toBe(ALLOW)
   })
