@@ -1,6 +1,5 @@
-import type { ContainerBuilder } from '@discordjs/builders'
+import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { roll as rollDie } from '@randsum/roller'
-import type { SlashCommandSubcommandBuilder } from 'discord.js'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { ContainerData } from '../container.js'

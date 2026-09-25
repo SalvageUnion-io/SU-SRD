@@ -1,4 +1,4 @@
-import type { SlashCommandSubcommandBuilder } from 'discord.js'
+import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
 import { buildCrewEmbed, buildSheetEmbed } from '../gameEmbed.js'
 import type { EntityBody } from '../itun/types.js'

@@ -106,8 +106,8 @@
       // via knip's wrangler plugin, and `src/deploy-commands.ts` from the
       // package.json scripts, so neither is listed. If the wrangler plugin
       // ever stops applying (wrangler removed from this manifest), knip will
-      // report the whole HTTP-interactions transport — and `@discordjs/rest`,
-      // which only it uses — as dead code; restore the entry then.
+      // report the whole HTTP-interactions transport as dead code; restore the
+      // entry then.
       "project": ["src/**/*.ts"]
     }
   }

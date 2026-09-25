@@ -598,8 +598,9 @@ not checkable from source.)*
 
 ## 7. Platform capabilities — verified against the pinned versions
 
-Pinned: `discord.js` 14.27.0, `@discordjs/builders` 1.14.1, `@discordjs/rest`
-2.6.3, `discord-api-types` 0.38.53. Deps live at
+Pinned: `@discordjs/builders` 1.14.1, `@discordjs/rest` 2.6.3,
+`discord-api-types` 0.38.53. (`discord.js` 14.27.0 was also pinned when this was
+written; it was dropped from the bot in the 2026-09-25 audit, AP-14.) Deps live at
 `apps/discord-bot/node_modules/`, not hoisted to the root.
 
 | Capability | Status | Works over this Worker as built? |
@@ -619,7 +620,7 @@ Pinned: `discord.js` 14.27.0, `@discordjs/builders` 1.14.1, `@discordjs/rest`
 | Edit-in-place (`UpdateMessage = 7`) | ✅ available, unused | ❌ no `update()` on the contract |
 | File attachments (generated dice images) | ✅ at REST layer | ❌ **adapter destroys binary** |
 | Polls on `editReply` | ❌ not in the PATCH body type | — |
-| `discord.js` as a **value** import | ❌ never — needs `node:child_process` etc. | type-only imports are fine |
+| `discord.js` as a **value** import | ❌ never — needs `node:child_process` etc. | no longer a dependency at all |
 
 Two results measured by executing the bot's own adapter code:
 

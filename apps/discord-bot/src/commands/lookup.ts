@@ -1,5 +1,4 @@
-import type { ContainerBuilder } from '@discordjs/builders'
-import type { SlashCommandSubcommandBuilder } from 'discord.js'
+import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {

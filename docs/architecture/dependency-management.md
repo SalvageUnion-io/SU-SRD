@@ -66,12 +66,11 @@ cannot.
 
 ## The `overrides` block
 
-`package.json` cannot carry comments, so this is the record. **Five entries:
-one dedupe pin and four security floors.**
+`package.json` cannot carry comments, so this is the record. **Four entries,
+all security floors.**
 
 | Entry | Kind | Why |
 | --- | --- | --- |
-| `@discordjs/rest: ^2.6.3` | dedupe pin | `discord.js@14.27.0` → `@discordjs/ws@1.2.3` → `@discordjs/rest@2.6.1`, which pins `undici` at exactly 6.24.1 — HIGH `GHSA-vxpw-j846-p89q` (`< 6.27.0`). 2.6.3 asks `undici ^6.27.0` and is inside `ws`'s own `^2.5.1`, so pinning it is a dedupe rather than a forced upgrade, and `undici` floats clear unaided. |
 | `fast-uri: >=3.1.6 <4` | floor | ReDoS class; `ajv` asks `^3.0.1`, so a caret step-down could land an in-advisory 3.x. |
 | `filelist: >=1.0.6` | floor | `jake` asks `^1.0.4`, which a caret step-down could satisfy with a release below the floor. |
 | `nanoid: >=3.3.18` | floor | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17`, a caret that only happens to resolve high enough. |
@@ -86,12 +85,17 @@ list but cannot be floored: the tree holds two copies at incompatible majors
 (`minimatch@10` wants `^5`, the `filelist@1` → `minimatch@5` chain wants `^2`),
 and a tree-wide override would break one of them.
 
-**`@discordjs/rest` is security-load-bearing even though it is a dedupe.**
-Removal condition: when a `discord.js` release ships a `ws` that pulls
-`rest >= 2.6.3` itself, delete it — check with `bun why undici`; if it resolves
-`>= 6.27.0` unaided, the entry is dead. Also delete it if `discord.js` moves to
-a `@discordjs/rest` major, because an override is tree-wide and unconditional
-and would silently clamp a `rest@^3` back to 2.6.x.
+**`@discordjs/rest` is gone too, and by its own removal condition.** It was a
+dedupe pin: `discord.js@14.27.0` → `@discordjs/ws@1.2.3` → `@discordjs/rest@2.6.1`
+held `undici` at exactly 6.24.1 (HIGH `GHSA-vxpw-j846-p89q`, `< 6.27.0`), and
+overriding `rest` to `^2.6.3` deduped that copy onto one asking `undici ^6.27.0`.
+The 2026-09-25 audit (AP-14) dropped `discord.js` from the bot altogether — it
+was a value import only in `deploy-commands.ts`, which now uses `@discordjs/rest`
+directly — so `@discordjs/ws` and its stale `rest` left the lockfile, the bot's
+own `@discordjs/rest@2.6.3` is the only copy, and `bun why undici` resolves
+`6.28.0` through it unaided. An override with nothing left to redirect is only a
+tree-wide clamp waiting to bite the next major, so it was deleted rather than
+kept "for safety".
 
 **`@opentelemetry/core` is gone, and the reason is worth keeping.** It was a
 dedupe pin for `@netlify/otel`, which held a second OTel core inside its own
@@ -228,7 +232,7 @@ Two behaviours, measured on the pinned Bun (`.bun-version`) — know which one y
   No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
   did nothing — check the publish date before concluding the fix is broken.
   An `overrides` floor is the loud alternative: resolving below one errors
-  instead of silently stepping down. **Four of the five `overrides` entries are
+  instead of silently stepping down. **All four `overrides` entries are
   such floors** (`fast-uri`, `filelist`, `nanoid`, `shell-quote`; see "The
   `overrides` block"). `brace-expansion` is the one watched package that cannot
   be floored, so it is the one a caret step-down can still reach silently.

@@ -1,8 +1,8 @@
-import type { InteractionEditReplyOptions } from 'discord.js'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { ContainerData } from '../container.js'
 import { toContainer } from '../container.js'
 import { report } from '../report.js'
+import type { EditReplyPayload } from './interactions.js'
 import { itun } from './itunReply.js'
 
 /**
@@ -53,7 +53,7 @@ import { itun } from './itunReply.js'
 export type AttributableInteraction = {
   user: { id: string }
   channelId: string | null
-  editReply(payload: InteractionEditReplyOptions): Promise<unknown>
+  editReply(payload: EditReplyPayload): Promise<unknown>
 }
 
 /**

@@ -1,10 +1,11 @@
-import { REST, Routes } from 'discord.js'
+import { REST } from '@discordjs/rest'
+import { Routes } from 'discord-api-types/v10'
 import { commands } from './commands/index.js'
 import { config } from './config.js'
 
 const commandData = Array.from(commands.values()).map((cmd) => cmd.data.toJSON())
 
-const rest = new REST().setToken(config.discordToken)
+const rest = new REST({ version: '10' }).setToken(config.discordToken)
 
 async function deployCommands(): Promise<void> {
   try {
