@@ -1049,7 +1049,10 @@ export function checkReferencedScripts(root: string): { ok: string; failures: st
     }
 
     // `bun run check data doc-drift` — the words after `check` are registry ids.
-    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[\s`'"]|$)/g)) {
+    // Only where the command visibly ends: a closing backtick or quote, or the
+    // end of a code-block line (optionally before a `#` comment). Prose such as
+    // "bun run check before you push" is not read as ids.
+    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
       for (const id of (m[1] ?? '').trim().split(' ')) {
         checked++
         if (!CHECK_IDS.includes(id)) {

@@ -126,4 +126,16 @@ describe('runChecks', () => {
     })
     expect(order).toEqual(['gen', 'later'])
   })
+
+  test('a command that cannot be spawned fails its check without losing the others', async () => {
+    const results = await runChecks(
+      [spec('missing', 0, { cmd: ['no-such-binary-su-srd'] }), spec('ok', 0)],
+      { root: '.', jobs: 2 }
+    )
+    expect(results.map((r) => [r.id, r.code])).toEqual([
+      ['missing', 127],
+      ['ok', 0],
+    ])
+    expect(results[0]?.output).toContain('could not spawn')
+  })
 })

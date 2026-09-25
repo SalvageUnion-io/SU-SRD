@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { z } from '../lib/zod.js'
 import { checkAllFiles, checkFile, validateUUID } from './checkUniqueIdsLogic.js'
-import { selectChecks } from './validate.js'
+import { CHECK_IDS, selectChecks } from './selectChecks.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { findReferenceErrors } from './validateReferencesLogic.js'
 import {
@@ -112,6 +112,54 @@ describe('references', () => {
     expect(errors.map((e) => e.referencedName)).toEqual(['Ghost', 'Laser'])
     expect(errors[1]?.message).toContain('no source.schema')
   })
+
+  test('a drone inside a chassis pattern must name real systems and modules', () => {
+    const errors = findReferenceErrors({
+      ...base,
+      'chassis.json': [
+        {
+          name: 'Mule',
+          patterns: [
+            {
+              name: 'P',
+              drones: [{ name: 'Bee', systems: ['Laser', 'Ghost'], modules: ['Nope'] }],
+            },
+          ],
+        },
+      ],
+    })
+    expect(errors.map((e) => e.field)).toEqual([
+      'patterns.P.drones.Bee.systems',
+      'patterns.P.drones.Bee.modules',
+    ])
+  })
+
+  test('nested choices and equipment action choices are checked too', () => {
+    const catalog = (entities: string[]) => ({
+      kind: 'catalog',
+      entities,
+      schema: ['systems'],
+    })
+    const errors = findReferenceErrors({
+      ...base,
+      'actions.json': [
+        {
+          name: 'Pick',
+          choices: [{ id: 'c1', choices: [{ id: 'c2', source: catalog(['Ghost']) }] }],
+        },
+      ],
+      'equipment.json': [
+        {
+          name: 'Kit',
+          actions: [{ name: 'Use', choices: [{ id: 'c3', source: catalog(['Nope']) }] }],
+        },
+      ],
+    })
+    expect(errors.map((e) => [e.file, e.referencedName])).toEqual([
+      ['actions.json', 'Ghost'],
+      ['equipment.json', 'Nope'],
+    ])
+  })
 })
 
 describe('actions', () => {
@@ -159,9 +207,11 @@ describe('schemas', () => {
 })
 
 describe('validate.ts --only', () => {
+  const checks = CHECK_IDS.map((id) => ({ id }))
+
   test('selects the named checks, all of them by default, and rejects an unknown id', () => {
-    expect(selectChecks([]).length).toBe(11)
-    expect(selectChecks(['--only=ids,slugs']).map((c) => c.id)).toEqual(['ids', 'slugs'])
-    expect(() => selectChecks(['--only=nope'])).toThrow('unknown check(s): nope')
+    expect(selectChecks(checks, []).length).toBe(11)
+    expect(selectChecks(checks, ['--only=ids,slugs']).map((c) => c.id)).toEqual(['ids', 'slugs'])
+    expect(() => selectChecks(checks, ['--only=nope'])).toThrow('unknown check(s): nope')
   })
 })

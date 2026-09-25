@@ -26,7 +26,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
   in `workspaces.catalog` instead. See
   [`docs/architecture/dependency-management.md`](../../docs/architecture/dependency-management.md).
 - A `workspace:*` dependency also has to appear in that app's CI path filter, or
-  a change to it silently skips the app's build job. the `workflows` check
+  a change to it silently skips the app's build job. The `workflows` check
   (`tools/check-workflows.ts`, its `path-filters` half) asserts this from the manifests, so you will be told rather than bitten.
 
 ## Generated files

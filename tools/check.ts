@@ -272,13 +272,25 @@ export type CheckResult = { id: string; code: number; seconds: number; output: s
 
 async function runOne(spec: CheckSpec, root: string): Promise<CheckResult> {
   const started = performance.now()
-  const proc = Bun.spawn(spec.cmd, {
-    cwd: join(root, spec.cwd ?? '.'),
-    stdin: 'ignore',
-    stdout: 'pipe',
-    stderr: 'pipe',
-    env: { ...process.env, FORCE_COLOR: '0' },
-  })
+  let proc: Bun.Subprocess<'ignore', 'pipe', 'pipe'>
+  try {
+    proc = Bun.spawn(spec.cmd, {
+      cwd: join(root, spec.cwd ?? '.'),
+      stdin: 'ignore',
+      stdout: 'pipe',
+      stderr: 'pipe',
+      env: { ...process.env, FORCE_COLOR: '0' },
+    })
+  } catch (error) {
+    // A command that cannot be spawned (missing binary, bad cwd) is a failed
+    // check, not a crash that loses every other result — 127 as a shell would.
+    return {
+      id: spec.id,
+      code: 127,
+      seconds: (performance.now() - started) / 1000,
+      output: `could not spawn \`${spec.cmd.join(' ')}\`: ${(error as Error).message}`,
+    }
+  }
   const [out, err, code] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),

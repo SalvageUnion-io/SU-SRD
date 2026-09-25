@@ -44,6 +44,8 @@ import { checkAllFiles } from './checkUniqueIdsLogic.js'
 import { fixMissingIds } from './generateMissingIds.js'
 import type { DataBag } from './loadData.js'
 import { loadAllDataFiles } from './loadData.js'
+import type { CheckId } from './selectChecks.js'
+import { CHECK_IDS, selectChecks } from './selectChecks.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runContentDupeCheck } from './validateContentDupesLogic.js'
@@ -280,24 +282,27 @@ function schemasCheck(data: DataBag): Diagnostic[] {
 // ─── runner ──────────────────────────────────────────────────────────────
 
 type CheckDefinition = {
-  id: string
+  id: CheckId
   label: string
   run: (data: DataBag) => Diagnostic[]
 }
 
-const CHECKS: CheckDefinition[] = [
-  { id: 'ids', label: 'Unique IDs', run: idsCheck },
-  { id: 'slugs', label: 'Slug uniqueness', run: slugsCheck },
-  { id: 'references', label: 'Cross-references', run: referencesCheck },
-  { id: 'actions', label: 'Action references', run: actionReferencesCheck },
-  { id: 'action-backrefs', label: 'Namesake action back-references', run: actionBackrefsCheck },
-  { id: 'orphans', label: 'Orphan detection', run: orphansCheck },
-  { id: 'content-dupes', label: 'Duplicated record content', run: contentDupesCheck },
-  { id: 'traits', label: 'Trait data', run: traitsCheck },
-  { id: 'parity', label: 'Rules parity', run: parityCheck },
-  { id: 'double-encoding', label: 'One concept, one encoding', run: doubleEncodingCheck },
-  { id: 'schemas', label: 'Zod schema validation', run: schemasCheck },
-]
+// A Record, so a check id added to CHECK_IDS without an entry here fails typecheck.
+const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
+  ids: { label: 'Unique IDs', run: idsCheck },
+  slugs: { label: 'Slug uniqueness', run: slugsCheck },
+  references: { label: 'Cross-references', run: referencesCheck },
+  actions: { label: 'Action references', run: actionReferencesCheck },
+  'action-backrefs': { label: 'Namesake action back-references', run: actionBackrefsCheck },
+  orphans: { label: 'Orphan detection', run: orphansCheck },
+  'content-dupes': { label: 'Duplicated record content', run: contentDupesCheck },
+  traits: { label: 'Trait data', run: traitsCheck },
+  parity: { label: 'Rules parity', run: parityCheck },
+  'double-encoding': { label: 'One concept, one encoding', run: doubleEncodingCheck },
+  schemas: { label: 'Zod schema validation', run: schemasCheck },
+}
+
+const CHECKS: CheckDefinition[] = CHECK_IDS.map((id) => ({ id, ...CHECK_TABLE[id] }))
 
 function printReport(diagnostics: Diagnostic[]): void {
   console.log(`\n${'='.repeat(80)}`)
@@ -321,26 +326,12 @@ function printReport(diagnostics: Diagnostic[]): void {
   console.log(`\nTotal: ${diagnostics.length} issue(s) across ${grouped.size} check(s)`)
 }
 
-/** The checks named by `--only=a,b`, or all of them. Throws on an unknown id. */
-export function selectChecks(argv: readonly string[]): CheckDefinition[] {
-  const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)
-  if (!only) return CHECKS
-  const ids = only.split(',').filter(Boolean)
-  const unknown = ids.filter((id) => !CHECKS.some((c) => c.id === id))
-  if (unknown.length > 0) {
-    throw new Error(
-      `unknown check(s): ${unknown.join(', ')}. Known: ${CHECKS.map((c) => c.id).join(', ')}`
-    )
-  }
-  return CHECKS.filter((c) => ids.includes(c.id))
-}
-
 function main(): void {
   const argv = process.argv.slice(2)
   const fix = argv.includes('--fix')
   let checks: CheckDefinition[]
   try {
-    checks = selectChecks(argv)
+    checks = selectChecks(CHECKS, argv)
   } catch (error) {
     console.error(`✗ ${(error as Error).message}`)
     process.exit(2)
