@@ -72,6 +72,8 @@ describe('enforce-bun.sh', () => {
     ['after an env assignment', `x=1 ${PM} install`],
     ['after a single pipe', `echo hi | ${PM} install`],
     ['bare, with no arguments', PM],
+    ['in a command substitution', `echo $(${PM} bin)`],
+    ['behind env', `env CI=1 ${PM} test`],
   ])('blocks %s', async (_label, command) => {
     expect(await bash(command)).toBe(BLOCK)
   })
@@ -81,6 +83,13 @@ describe('enforce-bun.sh', () => {
     ['bunx for a real one-off', 'bunx wrangler deploy --dry-run'],
     ['a bun script', 'bun run test'],
     ['an unrelated command', 'ls node_modules'],
+    // Mentions that are not in command position. The any-whitespace pattern
+    // blocked all of these, which made commit messages, greps and PR bodies
+    // about the rule itself unrunnable.
+    ['a commit message that mentions it', `git commit -m "docs: say ${PM} is banned"`],
+    ['a grep for it', `grep -rn ${PM} docs`],
+    ['an rg for a phrase', `rg -n "${PM} run" apps`],
+    ['a path containing it', `ls node_modules/${PM2}`],
   ])('allows %s', async (_label, command) => {
     expect(await bash(command)).toBe(ALLOW)
   })
@@ -95,6 +104,24 @@ describe('enforce-bun.sh', () => {
 
   test('an empty command is allowed rather than erroring', async () => {
     expect(await runHook('enforce-bun.sh', { tool_input: {} })).toBe(ALLOW)
+  })
+})
+
+describe('typecheck-scoped.sh', () => {
+  const typecheck = (file_path: string) =>
+    runHook('typecheck-scoped.sh', { tool_input: { file_path } })
+
+  test.each([
+    ['markdown', 'docs/README.md'],
+    ['json', 'package.json'],
+    ['css', 'apps/srd/src/styles/global.css'],
+    ['a root-level ts config file', 'knip.config.ts'],
+  ])('is a silent no-op for %s', async (_label, file) => {
+    expect(await typecheck(file)).toBe(ALLOW)
+  })
+
+  test('an empty payload is allowed rather than erroring', async () => {
+    expect(await runHook('typecheck-scoped.sh', { tool_input: {} })).toBe(ALLOW)
   })
 })
 

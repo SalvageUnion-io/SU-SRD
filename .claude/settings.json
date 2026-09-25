@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(bun *)",
@@ -10,11 +11,54 @@
       "Bash(git add *)",
       "Bash(git branch*)",
       "Bash(git show*)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git commit *)",
+      "Bash(git push*)",
+      "Bash(git rebase *)",
+      "Bash(git merge *)",
+      "Bash(git merge-base *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git rev-parse *)",
+      "Bash(git worktree add *)",
+      "Bash(git worktree list*)",
+      "Bash(rg *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(jq *)",
       "Bash(ls *)",
       "Bash(ls)",
       "Bash(mkdir *)",
       "Bash(chmod *)",
       "Bash(gh *)"
+    ],
+    "ask": [
+      "Bash(bunx wrangler deploy*)",
+      "Bash(bunx wrangler delete*)",
+      "Bash(bunx wrangler secret *)",
+      "Bash(bunx wrangler r2 object delete*)",
+      "Bash(bunx wrangler r2 bucket delete*)",
+      "Bash(bunx convex deploy*)",
+      "Bash(bunx convex env set*)",
+      "Bash(bunx convex env remove*)",
+      "Bash(bunx convex import*)",
+      "Bash(bun run deploy-commands*)",
+      "Bash(gh pr merge*)",
+      "Bash(gh repo delete*)",
+      "Bash(gh release delete*)",
+      "Bash(gh secret *)",
+      "Bash(gh variable *)",
+      "Bash(gh api * -X DELETE*)",
+      "Bash(gh api * --method DELETE*)",
+      "Bash(git branch -D*)",
+      "Bash(git push * --delete*)",
+      "Bash(git push * :*)"
     ],
     "deny": [
       "Bash(npm *)",
@@ -25,16 +69,20 @@
       "Bash(git push --force *)",
       "Bash(git push --force)",
       "Bash(git push -f *)",
+      "Bash(git push * --force)",
+      "Bash(git push * --force *)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push * +*)",
       "Bash(git reset --hard*)",
       "Bash(git worktree remove*)",
-      "Bash(rm -rf *)"
+      "Bash(rm -rf *)",
+      "Read(./apps/srd/ssg/output-snapshot.json)"
     ]
   },
   "sandbox": {
     "network": {
-      "allowUnixSockets": [
-        "~/.cache/chrome-a11y"
-      ]
+      "allowUnixSockets": ["~/.cache/chrome-a11y"]
     }
   },
   "hooks": {
@@ -78,7 +126,8 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
-            "statusMessage": "Preparing the repo toolchain..."
+            "statusMessage": "Preparing the repo toolchain...",
+            "timeout": 600
           }
         ]
       }

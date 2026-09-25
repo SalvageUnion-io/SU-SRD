@@ -22,9 +22,16 @@
 #   * `echo x | npm install` — a single pipe, which the old comment claimed to
 #     cover ("piped or chained") and did not.
 #
-# The pattern below matches the token after ANY shell metacharacter or
-# whitespace, or at the start of the string, and no longer requires a trailing
-# space — so a bare `npm` is caught too.
+# The pattern below matches the token only in COMMAND POSITION: at the start of
+# the string or after a command separator (`;` `&` `|` `(` `{` or backtick/`$(`),
+# optionally behind env assignments and wrapper words (sudo, bunx, env, xargs,
+# exec, time, nohup, command, and the shell keywords do/then/else). It no longer
+# requires a trailing space, so a bare `npm` is caught too.
+#
+# Command position, not "after any whitespace": the earlier any-whitespace form
+# blocked every commit message, grep, rg and PR body that merely MENTIONED a
+# package manager (`git commit -m "docs: say <pm> is banned"`, `grep -rn <pm>
+# docs`), which is exactly the prose this repo writes about the rule.
 #
 # WHAT THIS DELIBERATELY DOES NOT CATCH, and why that is fine.
 # A token inside a quoted string — `bash -c "<pm> install"` — still passes. It
@@ -52,9 +59,9 @@ if [ -z "$COMMAND" ]; then
   exit 0
 fi
 
-# `(^|[;&|(){}<>`$]|\s)` — start of string, a shell metacharacter, or any
-# whitespace. `($|\s)` — end of string or whitespace, so bare `npm` matches.
-if echo "$COMMAND" | grep -qE '(^|[;&|(){}<>`$]|[[:space:]])(npm|yarn|pnpm)($|[[:space:]])'; then
+SEP='(^|[;&|({`]|\$\()'
+PREFIX='(([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|sudo|bunx|env|xargs|exec|time|nohup|command|do|then|else)[[:space:]]+)*'
+if echo "$COMMAND" | grep -qE "${SEP}[[:space:]]*${PREFIX}(npm|yarn|pnpm)(\$|[[:space:];&|)])"; then
   echo "BLOCKED: this project uses bun, not npm/yarn/pnpm." >&2
   echo "" >&2
   echo "  install        -> bun install" >&2

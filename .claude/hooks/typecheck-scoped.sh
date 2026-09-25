@@ -20,9 +20,13 @@
 # caught, because the consuming workspace is typechecked the moment you edit a
 # file in it, and CI still runs the full matrix on the PR.
 #
-# Never exits non-zero: a typecheck failure here is INFORMATION for the agent,
-# not a gate. Exiting 2 would reject an edit that is legitimately mid-refactor
-# and half-typed, which is a normal state to be in between two Edit calls.
+# HOW THE RESULT REACHES THE AGENT. For a PostToolUse hook, stdout on exit 0 is
+# shown only in transcript mode — it never enters the model's context. This hook
+# used to print the tsc tail to stdout and always exit 0, so it cost seconds per
+# edit to produce output nobody saw. Now: silent on success; on failure, the tail
+# goes to stderr with exit 2, which Claude Code feeds back to the model. Exit 2
+# does NOT undo the edit (PostToolUse runs after it has happened) — it is a
+# message, so a half-typed mid-refactor state is reported, not rejected.
 
 INPUT=$(cat)
 
@@ -32,10 +36,9 @@ if [ -z "$FILE_PATH" ]; then
   exit 0
 fi
 
-# Only TypeScript-bearing sources can change a type. Astro files carry a
-# TypeScript frontmatter block, so they count; .md/.json/.yml/.css do not.
+# Only TypeScript sources can change a type; .md/.json/.yml/.css cannot.
 case "$FILE_PATH" in
-  *.ts | *.tsx | *.mts | *.cts | *.astro) : ;;
+  *.ts | *.tsx | *.mts | *.cts) : ;;
   *) exit 0 ;;
 esac
 
@@ -49,12 +52,25 @@ case "$FILE_PATH" in
   *apps/itun/*)                       WORKSPACE="itun" ;;
   *apps/discord-bot/*)                WORKSPACE="discord-bot" ;;
   *apps/su-assets/*)                  WORKSPACE="su-assets" ;;
-  # tools/, scripts and repo-root config belong to no workspace. The root
-  # tsconfig does not typecheck them as a project, and the full matrix would
-  # cost 7 s to prove nothing about the edited file — leave them to CI.
+  # tools/ is typechecked as its own project (tsconfig.tools.json).
+  *tools/*)                           WORKSPACE="tools" ;;
+  # Repo-root config belongs to no project — leave it to CI.
   *) exit 0 ;;
 esac
 
-bun --filter "$WORKSPACE" typecheck 2>&1 | tail -20
+if [ "$WORKSPACE" = "tools" ]; then
+  OUTPUT=$(bun run typecheck:tools 2>&1)
+else
+  OUTPUT=$(bun --filter "$WORKSPACE" typecheck 2>&1)
+fi
+STATUS=$?
+
+if [ "$STATUS" -ne 0 ]; then
+  {
+    echo "Typecheck failed in $WORKSPACE after editing $FILE_PATH:"
+    echo "$OUTPUT" | tail -20
+  } >&2
+  exit 2
+fi
 
 exit 0
