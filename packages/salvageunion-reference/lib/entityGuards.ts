@@ -10,9 +10,8 @@
  * `schemaName` stamped at load time. They were deleted rather than fixed; the
  * discriminant to use if the need returns is `entity.schemaName === 'systems'`.
  *
- * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
- * there (and from the package barrel), so this is an internal home, not a new
- * public surface.
+ * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
+ * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
 import type {
@@ -22,7 +21,7 @@ import type {
   SURefKeyword,
   SURefMetaEntity,
   SURefObjectAdvancedClass,
-} from './types/index.js'
+} from './schemas/index.js'
 
 // ============================================================================
 // TYPE GUARDS - Data shape

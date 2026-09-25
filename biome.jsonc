@@ -255,13 +255,15 @@
               // in the tree today — this keeps it that way rather than cleaning
               // it up later.
               //
-              // `salvageunion-reference/data/*` and `/schemas/*` are NOT listed:
-              // both are declared subpath exports in that package's manifest, as
-              // are `/rules`, `/zod` and `/schema-definitions`. Only `lib/**` is
-              // internal.
+              // The package's declared subpath exports are `/rules`, `/zod`,
+              // `/schema-definitions` and `/testing` (test code only). The old
+              // `/data/*` and `/schemas/*` subpaths were dropped from its
+              // manifest — nothing imported them — so they no longer resolve;
+              // raw data goes through `getDataMaps()` and JSON Schema documents
+              // through `/schema-definitions`.
               {
                 "group": ["salvageunion-reference/lib/**"],
-                "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', '/schema-definitions', '/data/*', '/schemas/*') — never a path inside the package."
+                "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', '/schema-definitions', or '/testing' from test code) — never a path inside the package."
               },
               {
                 "group": ["component-lib/src/**"],

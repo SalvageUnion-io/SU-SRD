@@ -2,9 +2,10 @@
  * Trait-reference markup in rules text: `[[TraitName]]` and
  * `[[[TraitName] (param)]]`.
  *
- * Pure string work — nothing here touches entities or the ORM. Split out of the
- * old `lib/utilities.ts` grab bag; still re-exported from there (and from the
- * package barrel), so this is an internal home, not a new public surface.
+ * Pure string work — nothing here touches entities or the ORM.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
+ * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
 /**

@@ -22,6 +22,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { malformed } from 'salvageunion-reference/testing'
 import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
 
 const guides = SalvageUnionReference.Guides.all()
@@ -34,8 +35,8 @@ describe('guide tone — the card matches the index tile', () => {
 
   test('every shipped guide resolves to the token its tone names', () => {
     for (const guide of guides) {
-      const tone = resolveDomainTone('guides', guide as unknown as SURefMetaEntity)
-      expect(tone.bgColor).toBe(entityGuideToneColor(guide as unknown as SURefMetaEntity))
+      const tone = resolveDomainTone('guides', guide)
+      expect(tone.bgColor).toBe(entityGuideToneColor(guide))
     }
   })
 
@@ -43,7 +44,7 @@ describe('guide tone — the card matches the index tile', () => {
     // The whole point of the rename: a hex here means the dataset has grown a
     // second palette again.
     for (const guide of guides) {
-      const tone = resolveDomainTone('guides', guide as unknown as SURefMetaEntity)
+      const tone = resolveDomainTone('guides', guide)
       expect(tone.bgColor).toMatch(/^var\(--color-[a-z-]+\)$/)
     }
   })
@@ -53,26 +54,22 @@ describe('guide tone — the card matches the index tile', () => {
     // className and `bgColor` on an inline style. Leaving a stale domain class
     // on `bg` would paint the glossary ink underneath the authored hue.
     for (const guide of guides) {
-      const tone = resolveDomainTone('guides', guide as unknown as SURefMetaEntity)
+      const tone = resolveDomainTone('guides', guide)
       expect(tone.bg).toBeUndefined()
     }
   })
 
   test('guides still belong to the glossary domain (tone changed, grouping did not)', () => {
     const [guide] = guides
-    expect(guide).toBeDefined()
-    const tone = resolveDomainTone('guides', guide as unknown as SURefMetaEntity)
+    if (!guide) throw new Error('the dataset ships no guides')
+    const tone = resolveDomainTone('guides', guide)
     expect(tone.domain).toBe('glossary')
   })
 
   test('more than one distinct hue is in play', () => {
     // A guard against a regression that resolved every guide to one colour —
     // which would still pass the per-guide equality test if the hues collapsed.
-    const hues = new Set(
-      guides.map(
-        (guide) => resolveDomainTone('guides', guide as unknown as SURefMetaEntity).bgColor
-      )
-    )
+    const hues = new Set(guides.map((guide) => resolveDomainTone('guides', guide).bgColor))
     expect(hues.size).toBeGreaterThan(1)
   })
 })
@@ -82,16 +79,14 @@ describe('guide tone — no other domain is disturbed', () => {
     // The schema validates the name against a closed enum, so this is a runtime
     // guard, not an expected branch. An unrecognised name must not produce a
     // transparent header band.
-    const tone = resolveDomainTone('guides', {
-      guideTone: 'nonsense',
-    } as unknown as SURefMetaEntity)
+    const tone = resolveDomainTone('guides', malformed<SURefMetaEntity>({ guideTone: 'nonsense' }))
     expect(tone.bgColor).toBeUndefined()
     expect(tone.bg).toBe('bg-ink-2')
   })
 
   test('the remaining glossary schemas still resolve to ink', () => {
     for (const schemaName of ['traits', 'keywords', 'distances'] as SURefEnumSchemaName[]) {
-      const tone = resolveDomainTone(schemaName, {} as SURefMetaEntity)
+      const tone = resolveDomainTone(schemaName, malformed<SURefMetaEntity>({}))
       expect(tone.bg).toBe('bg-ink-2')
       expect(tone.bgColor).toBeUndefined()
     }
@@ -99,16 +94,16 @@ describe('guide tone — no other domain is disturbed', () => {
 
   test('gear still rides the tech-level ramp', () => {
     const system = SalvageUnionReference.Systems.all().find((s) => typeof s.techLevel === 'number')
-    expect(system).toBeDefined()
-    const tone = resolveDomainTone('systems', system as unknown as SURefMetaEntity)
+    if (!system) throw new Error('no system with a numeric tech level')
+    const tone = resolveDomainTone('systems', system)
     expect(tone.bg).toMatch(/^bg-tl-/)
     expect(tone.bgColor).toBeUndefined()
   })
 
   test('a mech still resolves to the mech domain hue', () => {
     const [chassis] = SalvageUnionReference.Chassis.all()
-    expect(chassis).toBeDefined()
-    const tone = resolveDomainTone('chassis', chassis as unknown as SURefMetaEntity)
+    if (!chassis) throw new Error('the dataset ships no chassis')
+    const tone = resolveDomainTone('chassis', chassis)
     expect(tone.bg).toBe('bg-mech')
     expect(tone.bgColor).toBeUndefined()
   })

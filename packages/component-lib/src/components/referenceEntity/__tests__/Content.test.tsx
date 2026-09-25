@@ -10,6 +10,7 @@
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import { malformed } from 'salvageunion-reference/testing'
 import { Content } from '../Content'
 
 const blocks = (...items: unknown[]) => items as SURefObjectContentBlock[]
@@ -19,8 +20,7 @@ describe('Content — empty inputs', () => {
     expect(render(<Content body={[]} />).container.innerHTML).toBe('')
     cleanup()
     expect(
-      render(<Content body={undefined as unknown as SURefObjectContentBlock[]} />).container
-        .innerHTML
+      render(<Content body={malformed<SURefObjectContentBlock[]>(undefined)} />).container.innerHTML
     ).toBe('')
   })
 

@@ -65,7 +65,3 @@ const SCHEMA_DEFINITIONS: Record<string, Record<string, unknown>> = {
 export function getJsonSchemaDefinition(schemaId: string): Record<string, unknown> | undefined {
   return SCHEMA_DEFINITIONS[schemaId]
 }
-
-export function getAllJsonSchemaDefinitions(): Record<string, Record<string, unknown>> {
-  return SCHEMA_DEFINITIONS
-}

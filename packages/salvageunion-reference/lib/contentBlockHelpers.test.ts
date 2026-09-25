@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { resolveDataValueForTechLevel } from './contentBlockHelpers.js'
-import type { SURefObjectDataValue } from './types/index.js'
+import type { SURefObjectDataValue } from './schemas/index.js'
 
 const damage: SURefObjectDataValue = {
   label: 'Damage',

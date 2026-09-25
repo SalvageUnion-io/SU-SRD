@@ -1,44 +1,23 @@
 /**
- * Schema index - exports all Zod schemas and inferred TypeScript types
+ * Schema index - exports all Zod schemas and inferred TypeScript types.
+ *
+ * The per-entity SURef* aliases and the SURefEntity / SURefMetaEntity unions
+ * are GENERATED from lib/schemas/registry.ts (tools/generateRegistry.ts) into
+ * lib/generated/entityTypes.generated.ts and re-exported here. They used to be
+ * hand-written in this file — 27 aliases plus two unions whose membership had
+ * to be kept in step with the registry by hand. Only the object-level aliases
+ * (SURefObject*), which have no registry entry, are still written below.
  */
 
 import type { z } from '../zod.js'
 
+export type * from '../generated/entityTypes.generated.js'
 export * from './common.js'
 export * from './entities.js'
 // Re-export all schemas
 export * from './enums.js'
 export * from './objects.js'
 
-import type {
-  AbilitySchema,
-  AbilityTreeRequirementSchema,
-  BioTitanSchema,
-  CatalogCategorySchema,
-  ChassisSchema,
-  ClassSchema,
-  CrawlerBaySchema,
-  CrawlerSchema,
-  CrawlerTechLevelSchema,
-  CreatureSchema,
-  DistanceSchema,
-  DroneSchema,
-  EquipmentSchema,
-  FactionSchema,
-  GuideSchema,
-  KeywordSchema,
-  MeldSchema,
-  MetaActionSchema,
-  ModuleSchema,
-  NPCSchema,
-  RollTableSchema,
-  SourceEntitySchema,
-  SquadSchema,
-  SystemSchema,
-  TechLevelEntitySchema,
-  TraitEntitySchema,
-  VehicleSchema,
-} from './entities.js'
 // Import schemas for type inference
 import type { SchemaNameSchema } from './enums.js'
 import type {
@@ -48,7 +27,6 @@ import type {
   ContentSchema,
   DamageSchema,
   DataValueSchema,
-  FormationMechSchema,
   GrantSchema,
   GuideStepSchema,
   PatternSchema,
@@ -79,90 +57,5 @@ export type SURefObjectPattern = z.infer<typeof PatternSchema>
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
-export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>
 export type SURefObjectGrant = z.infer<typeof GrantSchema>
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>
-export type SURefObjectActionOptions = Array<{ label: string; value: string }>
-
-// Entity types
-export type SURefAbility = z.infer<typeof AbilitySchema>
-export type SURefMetaAbilityTreeRequirement = z.infer<typeof AbilityTreeRequirementSchema>
-export type SURefMetaAction = z.infer<typeof MetaActionSchema>
-export type SURefBioTitan = z.infer<typeof BioTitanSchema>
-export type SURefChassis = z.infer<typeof ChassisSchema>
-export type SURefClass = z.infer<typeof ClassSchema>
-export type SURefCrawlerBay = z.infer<typeof CrawlerBaySchema>
-export type SURefMetaCrawlerTechLevel = z.infer<typeof CrawlerTechLevelSchema>
-export type SURefCrawler = z.infer<typeof CrawlerSchema>
-export type SURefCreature = z.infer<typeof CreatureSchema>
-export type SURefDistance = z.infer<typeof DistanceSchema>
-export type SURefDrone = z.infer<typeof DroneSchema>
-export type SURefEquipment = z.infer<typeof EquipmentSchema>
-export type SURefFaction = z.infer<typeof FactionSchema>
-export type SURefKeyword = z.infer<typeof KeywordSchema>
-export type SURefMeld = z.infer<typeof MeldSchema>
-export type SURefModule = z.infer<typeof ModuleSchema>
-export type SURefNPC = z.infer<typeof NPCSchema>
-export type SURefRollTable = z.infer<typeof RollTableSchema>
-export type SURefSquad = z.infer<typeof SquadSchema>
-export type SURefSystem = z.infer<typeof SystemSchema>
-export type SURefTrait = z.infer<typeof TraitEntitySchema>
-export type SURefVehicle = z.infer<typeof VehicleSchema>
-export type SURefGuide = z.infer<typeof GuideSchema>
-export type SURefSource = z.infer<typeof SourceEntitySchema>
-export type SURefTechLevel = z.infer<typeof TechLevelEntitySchema>
-export type SURefCatalogCategory = z.infer<typeof CatalogCategorySchema>
-
-// Union types
-export type SURefEntity =
-  | SURefAbility
-  | SURefChassis
-  | SURefClass
-  | SURefCrawler
-  | SURefCrawlerBay
-  | SURefCreature
-  | SURefDistance
-  | SURefDrone
-  | SURefEquipment
-  | SURefFaction
-  | SURefGuide
-  | SURefKeyword
-  | SURefMeld
-  | SURefModule
-  | SURefNPC
-  | SURefRollTable
-  | SURefSource
-  | SURefSquad
-  | SURefSystem
-  | SURefTechLevel
-  | SURefBioTitan
-  | SURefTrait
-  | SURefVehicle
-
-export type SURefMetaEntity =
-  | SURefAbility
-  | SURefChassis
-  | SURefClass
-  | SURefCrawler
-  | SURefCrawlerBay
-  | SURefCreature
-  | SURefDistance
-  | SURefDrone
-  | SURefEquipment
-  | SURefFaction
-  | SURefKeyword
-  | SURefMeld
-  | SURefMetaAbilityTreeRequirement
-  | SURefMetaAction
-  | SURefMetaCrawlerTechLevel
-  | SURefGuide
-  | SURefSource
-  | SURefTechLevel
-  | SURefBioTitan
-  | SURefModule
-  | SURefNPC
-  | SURefRollTable
-  | SURefSquad
-  | SURefSystem
-  | SURefTrait
-  | SURefVehicle

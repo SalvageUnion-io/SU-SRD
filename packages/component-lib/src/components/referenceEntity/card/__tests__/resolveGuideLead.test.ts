@@ -15,10 +15,10 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { entityFixture, malformed } from 'salvageunion-reference/testing'
 import { resolveGuideLead } from '../resolveGuideLead'
 
 const guides = SalvageUnionReference.Guides.all()
-const asEntity = (guide: unknown) => guide as unknown as SURefMetaEntity
 
 /** Every paragraph string anywhere in a guide — its own content and its steps. */
 const everyParagraph = (guide: (typeof guides)[number]): string[] =>
@@ -39,7 +39,7 @@ describe('resolveGuideLead — every guide gets an introduction', () => {
 
   test('resolves a non-empty lead for EVERY shipped guide', () => {
     for (const guide of guides) {
-      const lead = resolveGuideLead(asEntity(guide))
+      const lead = resolveGuideLead(guide)
       expect(lead, `no lead for "${guide.name}"`).toBeTruthy()
       expect(lead?.trim().length).toBeGreaterThan(0)
     }
@@ -48,7 +48,7 @@ describe('resolveGuideLead — every guide gets an introduction', () => {
   test('a guide with NO top-level content still gets one, from its steps', () => {
     const stepOnly = guides.filter((g) => (g.content ?? []).length === 0)
     for (const guide of stepOnly) {
-      const lead = resolveGuideLead(asEntity(guide))
+      const lead = resolveGuideLead(guide)
       expect(lead, `no step-derived lead for "${guide.name}"`).toBeTruthy()
     }
   })
@@ -57,7 +57,7 @@ describe('resolveGuideLead — every guide gets an introduction', () => {
 describe('resolveGuideLead — it selects, it never authors', () => {
   test('the lead is a paragraph that exists verbatim in the guide', () => {
     for (const guide of guides) {
-      const lead = resolveGuideLead(asEntity(guide))
+      const lead = resolveGuideLead(guide)
       // `firstParagraphText` runs the block through `parseContentBlockString`,
       // which substitutes chassis names; compare on a normalised prefix so the
       // assertion still means "this text came from the data, unrewritten".
@@ -74,7 +74,7 @@ describe('resolveGuideLead — it selects, it never authors', () => {
         (b) => (b?.type ?? 'paragraph') === 'paragraph' && typeof b?.value === 'string'
       )
       if (!ownFirst) continue
-      const lead = resolveGuideLead(asEntity(guide))
+      const lead = resolveGuideLead(guide)
       expect(String(lead).slice(0, 40)).toBe(String(ownFirst.value).slice(0, 40))
     }
   })
@@ -85,7 +85,7 @@ describe('resolveGuideLead — it selects, it never authors', () => {
     const safety = guides.find((g) => g.name === 'Safety Protocols')
     if (!safety) throw new Error('"Safety Protocols" is not in the reference set')
     const allProse = everyParagraph(safety).join(' ')
-    const lead = resolveGuideLead(asEntity(safety))
+    const lead = resolveGuideLead(safety)
     expect(String(lead).length).toBeLessThan(allProse.length / 2)
   })
 })
@@ -99,20 +99,18 @@ describe('resolveGuideLead — nothing else is touched', () => {
       SalvageUnionReference.Traits.all()[0],
     ]
     for (const entity of others) {
-      expect(entity).toBeDefined()
-      expect(resolveGuideLead(asEntity(entity))).toBeUndefined()
+      if (!entity) throw new Error('a schema in this list shipped no rows')
+      expect(resolveGuideLead(entity)).toBeUndefined()
     }
   })
 
   test('is defensive about malformed input', () => {
-    expect(resolveGuideLead(undefined as unknown as SURefMetaEntity)).toBeUndefined()
-    expect(resolveGuideLead(null as unknown as SURefMetaEntity)).toBeUndefined()
-    expect(resolveGuideLead({} as SURefMetaEntity)).toBeUndefined()
-    expect(resolveGuideLead({ steps: 'nope' } as unknown as SURefMetaEntity)).toBeUndefined()
+    expect(resolveGuideLead(malformed<SURefMetaEntity>(undefined))).toBeUndefined()
+    expect(resolveGuideLead(malformed<SURefMetaEntity>(null))).toBeUndefined()
+    expect(resolveGuideLead(malformed<SURefMetaEntity>({}))).toBeUndefined()
+    expect(resolveGuideLead(malformed<SURefMetaEntity>({ steps: 'nope' }))).toBeUndefined()
     // A guide-shaped record with no prose anywhere falls through to the card's
     // ordinary body rather than rendering an empty paragraph.
-    expect(
-      resolveGuideLead({ steps: [], content: [] } as unknown as SURefMetaEntity)
-    ).toBeUndefined()
+    expect(resolveGuideLead(entityFixture('guides', { steps: [], content: [] }))).toBeUndefined()
   })
 })

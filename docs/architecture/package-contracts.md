@@ -59,15 +59,10 @@ full rationale.
     "types": "./lib/schemaDefinitions.ts",
     "default": "./lib/schemaDefinitions.ts"
   },
-  "./data/*": {
-    "import": "./data/*.json",
-    "default": "./data/*.json"
-  },
-  "./schemas/*": {
-    "import": "./schemas/*.json",
-    "default": "./schemas/*.json"
-  },
-  "./package.json": "./package.json"
+  "./testing": {
+    "types": "./lib/testing.ts",
+    "default": "./lib/testing.ts"
+  }
 }
 ```
 
@@ -77,10 +72,14 @@ entry point ([ADR-006](../adrs/ADR-006-pure-rules-logic.md)). `./zod` is the
 canonical Zod re-export ([ADR-013](../adrs/ADR-013-csp-zod-jitless.md)) — every
 other package/app must import `z` from here, never from `zod` directly.
 `./schema-definitions` exposes the generated JSON Schema documents
-(`getJsonSchemaDefinition` / `getAllJsonSchemaDefinitions`) behind their own
+(`getJsonSchemaDefinition`) behind their own
 subpath so the ~783 KB schema corpus is never pulled into an app bundle through
 the main barrel — only the srd `/schema/[id].schema.json` build route imports it
-(enforced by `noRestrictedImports` in the root `biome.jsonc`).
+(enforced by `noRestrictedImports` in the root `biome.jsonc`). `./testing` is
+**test code only**: `entityFixture(schema, fields)` builds a well-formed entity
+whose overrides are type-checked against that schema, and `malformed<T>(value)`
+names a deliberately invalid input. Use them instead of `as unknown as SURef*`
+in tests.
 
 `tools/check-doc-drift.ts` (`bun run check doc-drift`) fails CI if this block
 ever falls out of sync with `packages/salvageunion-reference/package.json`'s
@@ -98,20 +97,28 @@ to fix by hand.
 **Reference strings:**
 `.parseRef()`, `.getByRef()`
 
-**Metadata (standalone exports from `lib/utilities.ts`, re-exported via the barrel — NOT `SalvageUnionReference` methods):**
+**Metadata (standalone exports from `lib/entityFields.ts`, re-exported by name from the barrel — NOT `SalvageUnionReference` methods):**
 `getTechLevel(entity)`, `getTechLevelNumber(entity)`, `getSalvageValue(entity)`
 
 **Search:**
 `.search()`, `.searchIn()`, `.getSuggestions()`
 
 **Type exports:**
-All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefCommon*`), object types (`SURefObject*`), `SchemaToEntityMap`, `EntitySchemaNames` (runtime Set).
+Every entity type (`SURef*`) and the `SURefEntity` / `SURefMetaEntity` unions — generated from `lib/schemas/registry.ts` into `lib/generated/entityTypes.generated.ts` — plus `SURefEnumSchemaName`, the object types (`SURefObject*`) something outside the package imports, `SchemaToEntityMap` and `EntitySchemaNames` (runtime Set).
+
+**The barrel is an explicit list.** `lib/index.ts` and `lib/rules/index.ts`
+re-export every name individually, and only names with a consumer outside the
+package are listed — no `export *`. The Zod schemas are **not** on the main
+barrel — nothing outside the package imported them; the JSON Schema documents
+are `./schema-definitions`. To expose a new name, add it
+to the list; the API report (`etc/salvageunion-reference.api.d.ts`) then shows
+the addition in review.
 
 **Utility exports (representative — `lib/index.ts` is the source of truth):**
-`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `getParagraphString`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `isColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `BaseModel`, `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
+`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
 
 **Choice-resolver types:**
-`ChoiceSelections` (`Record<string, string[]>`), `ResolvedChoiceView` (`{ datavalues, traits, prompts }`), `ChoicePrompt`
+`ChoiceSelections` (`Record<string, string[]>`). `ResolvedChoiceView` and `ChoicePrompt` are package-internal — nothing outside the package named them, so they are not on the barrel.
 
 ### Dependencies
 

@@ -61,11 +61,9 @@
  *   ability can also carry a `.drone` reference, resolved via
  *   `SalvageUnionReference.findIn('drones', ...)`
  *   (referenceEntity/card/resolveNestedEntities.ts). `factions` formation entries
- *   resolve to a full entity via `resolveFormationMember`
- *   (utilities.ts) — `member.schema` is one of a fixed, documented set
- *   (`chassis` default, or `vehicles`/`drones`/`squads`/`npcs`), each then
- *   run through `useChassisPatternConfig` too (ReferenceEntityFormation.tsx)
- *   — same bundle, not just `chassis` + `factions` themselves.
+ *   name members whose `member.schema` is one of a fixed, documented set
+ *   (`chassis` default, or `vehicles`/`drones`/`squads`/`npcs`) — kept in the
+ *   same bundle rather than just `chassis` + `factions` themselves.
  * - `guides` steps reference an arbitrary schema chosen in the guide's own
  *   JSON data (`step.schema[0]`, resolved via
  *   `SalvageUnionReference.findAllIn(schemaName, ...)` in

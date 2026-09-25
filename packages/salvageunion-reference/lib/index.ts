@@ -22,41 +22,122 @@ import {
   resetLoadStateForTesting,
   toPascalCase,
 } from './ModelFactory.js'
-import { invalidateSearchIndex } from './search.js'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
   SURefMetaAction,
   SURefMetaEntity,
-} from './types/index.js'
+} from './schemas/index.js'
+import { invalidateSearchIndex } from './search.js'
 
-export { BaseModel, type ModelWithMetadata } from './BaseModel.js'
-// Export content block helpers
+// ---------------------------------------------------------------------------
+// Public API — every name below is re-exported EXPLICITLY, and each one has a
+// consumer outside this package (srd, itun, component-lib or the Discord bot).
+//
+// This used to be three `export *` lines (helpers, the `utilities.ts` barrel
+// over seven modules, and every schema type) plus a scatter of named ones: 247
+// names, 133 of which nothing outside the package imported — internal helpers,
+// every Zod schema (re-exported type-only, so usable only as `typeof`), and
+// test-only getters. A wildcard makes the surface whatever the modules happen
+// to export; a list makes adding a name a reviewable decision. To expose
+// something new, add it here. Package-internal code imports from the concrete
+// module, never from this barrel's re-exports.
+// ---------------------------------------------------------------------------
+
+export {
+  extractVisibleActions,
+  getChassisAbilities,
+  getChoices,
+  getTraits,
+} from './actionResolution.js'
+export {
+  getAssetUrl,
+  SRD_SITE_URL,
+  srdEntityPath,
+  srdEntityUrl,
+  srdSchemaPath,
+  srdSchemaUrl,
+} from './assets.js'
 export {
   parseContentBlockString,
   replaceChassisPlaceholder,
   resolveDataValueForTechLevel,
 } from './contentBlockHelpers.js'
-// Export helper functions for common operations
-export * from './helpers.js'
 export {
-  type EnhancedSchemaMetadata,
-  getDataMaps,
-  getSchemaCatalog,
-  type LoadOptions,
-} from './ModelFactory.js'
-// Export the granted-equipment choice resolver (pure view computation)
+  getBioSalvageValue,
+  getBlackMarket,
+  getBooklet,
+  getCargoCapacity,
+  getEnergyPoints,
+  getHeatCapacity,
+  getHitPoints,
+  getModuleSlots,
+  getName,
+  getPageReference,
+  getReferenceEntityName,
+  getSalvageValue,
+  getSlotsRequired,
+  getSource,
+  getStructurePoints,
+  getSystemSlots,
+  getTechLevel,
+  getTechLevelNumber,
+  getTree,
+  getUpgradeCost,
+  getUpkeepCost,
+} from './entityFields.js'
 export {
-  type ChoicePrompt,
-  type ChoiceSelections,
-  type ResolvedChoiceView,
-  resolveChoiceView,
-} from './resolveChoiceView.js'
-export { type D20Roller, type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
+  isAbility,
+  isBaseAdvancedClass,
+  isCoreClass,
+  isEntityData,
+  isKeyword,
+} from './entityGuards.js'
+// Every SURef* entity type and the SURefEntity / SURefMetaEntity unions,
+// generated from lib/schemas/registry.ts. Exported as a family rather than
+// name by name: they are 1:1 with SchemaToEntityMap (below), so each is already
+// reachable as `SchemaToEntityMap['<id>']`, and a new registry entry should not
+// need a barrel edit to get its type.
+export type * from './generated/entityTypes.generated.js'
+export {
+  byTechLevelThenName,
+  extractStaticEntitySummary,
+  getDisplayName,
+  getEntitySchemas,
+  getHybridClasses,
+  getModel,
+  getReferenceEntityData,
+  getUniqueSources,
+  getUniqueTechLevels,
+  getUniqueTrees,
+  resolveActivationCurrency,
+  resolveGrantedEntities,
+  type StaticEntitySummary,
+  techLevelRank,
+} from './helpers.js'
+export { getInventorySlots } from './inventorySlots.js'
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js'
+export { nameToSlug } from './nameToSlug.js'
+export { getPatterns, normalizePatternName, visiblePatterns } from './patterns.js'
+export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView.js'
+export { type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
+export type {
+  SURefEnumSchemaName,
+  SURefObjectBonusPerTechLevel,
+  SURefObjectChoice,
+  SURefObjectContent,
+  SURefObjectContentBlock,
+  SURefObjectDamage,
+  SURefObjectDataValue,
+  SURefObjectGuideStep,
+  SURefObjectPattern,
+  SURefObjectPatternSystemModule,
+  SURefObjectTable,
+  SURefObjectTableContent,
+  SURefObjectTrait,
+} from './schemas/index.js'
 export {
   extractContentText,
-  getSuggestions,
-  invalidateSearchIndex,
   // Search primitives. Public because every consumer that needs them today had
   // forked them instead (discord-bot + component-lib forked `isSchemaName`).
   // One implementation, one behaviour.
@@ -71,24 +152,13 @@ export {
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,
-  type SearchMatchFacts,
-  type SearchQuery,
   scoreSearchMatch,
   searchNameWords,
   tokenizeSearchQuery,
 } from './searchRanking.js'
-// Export slug utilities
-export { findEntityBySlug, getEntitySlug, nameToSlug } from './slug.js'
-// Export utility functions (type guards and property extractors)
-export * from './utilities.js'
-export {
-  type ColumnsTableRollResult,
-  isColumnsTable,
-  resultForColumnsTable,
-  resultForTable,
-  type TableRollResult,
-} from './utils/resultForTable.js'
-export { type TableRow, tableRows } from './utils/tableRows.js'
+export { findEntityBySlug, getEntitySlug } from './slug.js'
+export { parseTraitReferences, replaceTraitReferences } from './traitText.js'
+export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
 
 import type { SearchOptions, SearchResult } from './search.js'
 import {
@@ -114,7 +184,6 @@ import {
  */
 const lazyModelsById: Record<string, LazyModel<unknown> | undefined> = lazyModelMap
 
-export type * from './types/index.js'
 export type { EntitySchemaName, SchemaToEntityMap }
 
 // Runtime set of entity schema names (derived from registry, excludes non-entity metadata schemas)

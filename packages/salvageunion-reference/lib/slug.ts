@@ -7,11 +7,8 @@
  */
 
 import { getLoadedModelBySchemaId } from './ModelFactory.js'
-import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
-
-export { nameToSlug } from './nameToSlug.js'
-
 import { nameToSlug } from './nameToSlug.js'
+import type { SURefEntity, SURefEnumSchemaName } from './schemas/index.js'
 
 /**
  * Finds an entity in a schema by its slug

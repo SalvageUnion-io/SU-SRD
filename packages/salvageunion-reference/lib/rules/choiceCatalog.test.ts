@@ -5,7 +5,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
-import type { SURefObjectChoice } from '../types/index.js'
+import type { SURefObjectChoice } from '../schemas/index.js'
 import { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js'
 import { isWeaponSystem } from './crawlerSystems.js'
 

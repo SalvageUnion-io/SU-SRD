@@ -11,6 +11,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { entityFixture } from 'salvageunion-reference/testing'
 import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
 import { PatternEquipmentItem } from '../pattern/PatternEquipmentItem'
 import { useDetailModal } from '../useDetailModal'
@@ -76,7 +77,7 @@ describe('useDetailModal — modal mode (no link provider)', () => {
   })
 
   test('an entity with no schemaName gets no modal — the card could not route it', () => {
-    render(<Harness data={{ name: 'Orphan' } as unknown as SURefEntity} />)
+    render(<Harness data={entityFixture('chassis', { name: 'Orphan' })} />)
     fireEvent.click(screen.getByLabelText('View details'))
     expect(screen.queryByRole('dialog')).toBeNull()
   })

@@ -218,8 +218,6 @@ narrative choices stay player-driven.
   `lib/rules/crawlerEconomy.ts` (p.218-223), mounted by `SheetCrawler.tsx`:
   Upkeep + Deterioration roll, Upgrade, Scrap exchange, Trading Bay
   availability.
-- **Mediator tables** — `encounter/MediatorRollControl.tsx` over
-  `lib/rules/mediatorTables.ts`.
 - Per-card activation and repair on `MechItemCard.tsx` / `MechSheet.tsx`
   (`setItemUses`, `repairItem`, `cycleItemCondition`).
 
@@ -231,6 +229,10 @@ comments) and not re-homed:
 - `lib/rules/salvage.ts` (pp.244-248) — `SalvageControl` deleted.
 - `lib/rules/crafting.ts` (p.222/p.244) — `CraftingControl` deleted.
 - `lib/rules/scrapMech.ts` (p.248) — `ScrapMechControl` deleted.
+- `salvageunion-reference`'s `lib/rules/mediatorTables.ts` (Reaction / Morale /
+  Retreat, Workshop Manual p.268) — `encounter/MediatorRollControl.tsx` deleted.
+  Because nothing imports it, its names are not on the `salvageunion-reference/rules`
+  barrel; add them back when a surface does.
 
 **Surfaces that no longer exist** — do not reference them: `HeatCheckControl`,
 `TakeDamageControl`, `PilotTakeDamageControl`, `SalvageControl`,

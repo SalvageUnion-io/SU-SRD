@@ -9,6 +9,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { entityFixture } from 'salvageunion-reference/testing'
 import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
 import { actionCells, bonusCells, buildHeaderStats, resolveTechScaling } from '../cardCells'
 import { resolveCardColors, resolveCardInteraction, resolveHeaderHint } from '../cardChrome'
@@ -46,7 +47,7 @@ describe('cardCells', () => {
   })
 
   test('the host scaling level wins, floored at the entity base', () => {
-    const entity = { content: [] } as unknown as SURefMetaEntity
+    const entity = entityFixture('systems', { content: [] })
     const scalable = [{ id: 'c', constraints: { scalesWithField: 'techLevel' } }] as never
     expect(resolveTechScaling(entity, 2, scalable, { techLevel: 4 })).toMatchObject({
       effTechLevel: 4,
@@ -200,11 +201,13 @@ describe('cardChrome', () => {
   })
 
   test("the titanic meta-action's intro becomes the hint and leaves the rest as body", () => {
-    const entity = {
-      schemaName: 'actions',
-      name: 'Titanic Actions',
-      content: [paragraph('Intro.'), paragraph('Option one.')],
-    } as unknown as SURefMetaEntity
+    const entity = Object.assign(
+      entityFixture('actions', {
+        name: 'Titanic Actions',
+        content: [paragraph('Intro.'), paragraph('Option one.')],
+      }),
+      { schemaName: 'actions' }
+    )
     expect(
       resolveHeaderHint(entity, { isTitanicMeta: true, patternListingContent: undefined })
     ).toEqual({ hintText: 'Intro.', titanicBodyContent: [paragraph('Option one.')] })

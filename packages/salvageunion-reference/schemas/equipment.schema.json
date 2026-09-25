@@ -783,7 +783,7 @@
                       ],
                       "description": "A single mechanical effect applied when a choice option is selected"
                     },
-                    "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
+                    "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape, and one field name meaning two things is how a schema rots."
                   },
                   "actions": {
                     "type": "array",
@@ -1309,7 +1309,7 @@
                               ],
                               "description": "A single mechanical effect applied when a choice option is selected"
                             },
-                            "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
+                            "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape, and one field name meaning two things is how a schema rots."
                           },
                           "actions": {
                             "type": "array",

@@ -2,7 +2,7 @@
  * Helper functions for working with content blocks in entity data
  */
 
-import type { SURefObjectContentBlock, SURefObjectDataValue } from './types/index.js'
+import type { SURefObjectContentBlock, SURefObjectDataValue } from './schemas/index.js'
 
 /**
  * Replace [(CHASSIS)] placeholder with actual chassis name, prefixed with "The"

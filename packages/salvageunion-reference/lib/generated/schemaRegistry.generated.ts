@@ -32,7 +32,7 @@ import type {
   SURefSource,
   SURefTechLevel,
   SURefCatalogCategory,
-} from '../types/index.js'
+} from '../schemas/index.js'
 
 // Type mapping from schema names to entity types (includes entity schemas and meta schemas)
 export type SchemaToEntityMap = {

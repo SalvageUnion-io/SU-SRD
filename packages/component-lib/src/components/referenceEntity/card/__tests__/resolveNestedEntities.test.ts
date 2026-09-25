@@ -10,6 +10,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { malformed } from 'salvageunion-reference/testing'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
@@ -43,25 +44,30 @@ describe('resolveNestedEntities', () => {
     // this branch only fires for the object-shaped form the type permits (and
     // that `resolveChassisDrone`, which goes through `getChassisAbilities`,
     // handles for real chassis — see the drone-loadout suite below).
-    const groups = resolveNestedEntities({
-      chassisAbilities: [
-        'some-ability-id',
-        { name: 'Controller', drone: 'Sestra Drone' },
-        { name: 'No drone here' },
-        null,
-      ],
-    } as unknown as SURefMetaEntity)
+    // `null` is not a legal entry; it is here to prove the reader skips it.
+    const groups = resolveNestedEntities(
+      malformed<SURefMetaEntity>({
+        chassisAbilities: [
+          'some-ability-id',
+          { name: 'Controller', drone: 'Sestra Drone' },
+          { name: 'No drone here' },
+          null,
+        ],
+      })
+    )
     expect(names(group(groups, 'Drones')?.entities ?? [])).toEqual(['Sestra Drone'])
   })
 
   test('the same drone named by two abilities is listed once', () => {
-    const groups = resolveNestedEntities({
-      chassisAbilities: [
-        { drone: 'Sestra Drone' },
-        { drone: 'Sestra Drone' },
-        { drone: 'No Such Drone' },
-      ],
-    } as unknown as SURefMetaEntity)
+    const groups = resolveNestedEntities(
+      malformed<SURefMetaEntity>({
+        chassisAbilities: [
+          { drone: 'Sestra Drone' },
+          { drone: 'Sestra Drone' },
+          { drone: 'No Such Drone' },
+        ],
+      })
+    )
     expect(group(groups, 'Drones')?.entities).toHaveLength(1)
   })
 
@@ -263,23 +269,27 @@ describe('drone loadouts', () => {
 
   test('resolvePatternDrones returns empty for a pattern with no drones', () => {
     expect(resolvePatternDrones(pattern('Mule', 'Hauler'))).toEqual([])
-    expect(resolvePatternDrones({ name: 'Fake' } as SURefObjectPattern)).toEqual([])
+    expect(resolvePatternDrones({ name: 'Fake', systems: [], modules: [] })).toEqual([])
   })
 
   test('resolvePatternDrones skips configs whose stat block does not exist', () => {
     expect(
       resolvePatternDrones({
         name: 'Fake',
+        systems: [],
+        modules: [],
         drones: [{ name: 'No Such Drone', systems: [], modules: [] }],
-      } as unknown as SURefObjectPattern)
+      })
     ).toEqual([])
   })
 
   test('resolvePatternDrones resolves through `ref` when the instance name is not a stat block', () => {
     const loadouts = resolvePatternDrones({
       name: 'Fake',
+      systems: [],
+      modules: [],
       drones: [{ name: 'Shield Drone', ref: 'Big Brother Drone', systems: [], modules: [] }],
-    } as unknown as SURefObjectPattern)
+    })
     expect(loadouts).toHaveLength(1)
     expect((loadouts[0]?.drone as { name?: string })?.name).toBe('Big Brother Drone')
     expect(loadouts[0]?.instanceName).toBe('Shield Drone')
@@ -296,10 +306,7 @@ describe('drone loadouts', () => {
   test('resolveDroneOwnLoadout tolerates missing / non-array loadout fields', () => {
     expect(resolveDroneOwnLoadout({} as SURefMetaEntity)).toEqual({ systems: [], modules: [] })
     expect(
-      resolveDroneOwnLoadout({
-        systems: 'Green Laser',
-        modules: null,
-      } as unknown as SURefMetaEntity)
+      resolveDroneOwnLoadout(malformed<SURefMetaEntity>({ systems: 'Green Laser', modules: null }))
     ).toEqual({ systems: [], modules: [] })
   })
 })

@@ -3,17 +3,17 @@
  * type) the salvageunion-reference package exposes.
  *
  * Adding a new schema type means:
- *   1. Writing the Zod schema in lib/schemas/entities.ts and inferring its
- *      type + adding it to the SURefEntity/SURefMetaEntity unions in
- *      lib/schemas/index.ts AND lib/types/index.ts (hand-authored — these
- *      need human judgment about which unions a schema belongs in).
+ *   1. Writing the Zod schema in lib/schemas/entities.ts (exported from the
+ *      lib/schemas barrel).
  *   2. Adding the data file (data/<id>.json) and a catalog entry in
  *      schemas/index.json (hand-authored — prose description, required
  *      fields).
  *   3. Adding ONE entry to the array below.
  *   4. Running `bun run build:package`.
  *
- * Everything else — ModelFactory's dataLoaders /
+ * Everything else — the SURef* entity type aliases and the SURefEntity /
+ * SURefMetaEntity unions (membership decided by `entity` / `excludeFromEntityUnion` below),
+ * ModelFactory's dataLoaders /
  * zodSchemaMap / schemaDisplayNames, index.ts's LazyModel instances /
  * lazyModelMap / SchemaToEntityMap / SCHEMA_REGISTRY / static accessors — is
  * generated from this manifest by tools/generateRegistry.ts into
@@ -31,9 +31,9 @@
 export type RegistryEntry = {
   /** kebab-case schema id, e.g. "power-cores" — the data/schema filename stem */
   id: string
-  /** Exported SURef* type name from lib/schemas/index.ts, e.g. "SURefChassis" */
+  /** SURef* type name to generate, e.g. "SURefChassis" — `z.infer` of `zodExportName` */
   typeName: string
-  /** Exported Zod schema variable name from lib/schemas/index.ts, e.g. "ChassisSchema" */
+  /** Exported Zod schema variable name from lib/schemas/entities.ts, e.g. "ChassisSchema" */
   zodExportName: string
   /** Singular display name, e.g. "Chassis" */
   singular: string
@@ -41,11 +41,19 @@ export type RegistryEntry = {
   plural: string
   /**
    * Set to `false` for non-entity metadata schemas (e.g. catalog-categories):
-   * excluded from EntitySchemaNames and (by convention, hand-enforced in the
-   * type unions) the SURefEntity union. Defaults to an entity schema (`true`)
+   * excluded from EntitySchemaNames and from BOTH generated unions
+   * (SURefEntity and SURefMetaEntity). Defaults to an entity schema (`true`)
    * when omitted.
    */
   entity?: boolean
+  /**
+   * Set to `true` for the rules-metadata schemas (actions, ability-tree
+   * requirements, crawler tech levels): they are entities, so they stay in
+   * SURefMetaEntity and EntitySchemaNames, but they are left out of the
+   * narrower SURefEntity union. (Unrelated to the `meta` flag on
+   * schemas/index.json catalog entries, which is a different set.)
+   */
+  excludeFromEntityUnion?: boolean
 }
 
 export const registry: RegistryEntry[] = [
@@ -62,6 +70,7 @@ export const registry: RegistryEntry[] = [
     zodExportName: 'AbilityTreeRequirementSchema',
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
+    excludeFromEntityUnion: true,
   },
   {
     id: 'actions',
@@ -69,6 +78,7 @@ export const registry: RegistryEntry[] = [
     zodExportName: 'MetaActionSchema',
     singular: 'Action',
     plural: 'Actions',
+    excludeFromEntityUnion: true,
   },
   {
     id: 'chassis',
@@ -97,6 +107,7 @@ export const registry: RegistryEntry[] = [
     zodExportName: 'CrawlerTechLevelSchema',
     singular: 'Crawler Tech Level',
     plural: 'Crawler Tech Levels',
+    excludeFromEntityUnion: true,
   },
   {
     id: 'crawlers',

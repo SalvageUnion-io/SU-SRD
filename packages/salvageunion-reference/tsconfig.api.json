@@ -5,9 +5,16 @@
     "emitDeclarationOnly": true,
     "noEmit": false,
     "skipLibCheck": true,
+    "removeComments": true,
     "outDir": ".api-dts"
   },
-  "//": "The four code entry points declared in package.json#exports. NOT lib/**/*.ts: the report is a PUBLIC-API gate, so its program is rooted at what consumers can import and reaches only what those roots pull in. A module no entry point imports has no public surface to gate.",
-  "files": ["lib/index.ts", "lib/rules/index.ts", "lib/zod.ts", "lib/schemaDefinitions.ts"],
+  "//": "The code entry points declared in package.json#exports. NOT lib/**/*.ts: the report is a PUBLIC-API gate, so its program is rooted at what consumers can import and reaches only what those roots pull in. A module no entry point imports has no public surface to gate.",
+  "files": [
+    "lib/index.ts",
+    "lib/rules/index.ts",
+    "lib/zod.ts",
+    "lib/schemaDefinitions.ts",
+    "lib/testing.ts"
+  ],
   "exclude": ["node_modules", "dist", ".api-dts", "**/*.test.ts", "**/*.template.ts"]
 }

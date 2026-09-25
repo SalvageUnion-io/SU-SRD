@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { nameToSlug } from './slug.js'
+import { nameToSlug } from './nameToSlug.js'
 
 /**
  * Regression coverage for CodeQL alert js/polynomial-redos on `nameToSlug`.

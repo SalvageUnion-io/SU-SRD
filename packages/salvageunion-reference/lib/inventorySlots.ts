@@ -11,12 +11,12 @@
  * (`apps/itun/src/components/sheet/pilotInventory.ts`) imports it from the main
  * barrel today.
  *
- * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
- * there (and from the package barrel).
+ * Split out of the old `lib/utilities.ts` grab bag (deleted). The package
+ * barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
 import { getTraits } from './actionResolution.js'
-import type { SURefMetaEntity } from './types/index.js'
+import type { SURefMetaEntity } from './schemas/index.js'
 
 /**
  * Get the number of inventory slots an equipment entity occupies.

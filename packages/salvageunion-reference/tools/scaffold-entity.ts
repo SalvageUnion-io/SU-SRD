@@ -5,12 +5,12 @@
  * Registering a schema is now ONE manifest entry (lib/schemas/registry.ts) —
  * tools/generateRegistry.ts generates dataLoaders /
  * zodSchemaMap / schemaDisplayNames / LazyModel instances / lazyModelMap /
- * SchemaToEntityMap / SCHEMA_REGISTRY / the static accessors from it. What's
- * left genuinely needs human authorship — the Zod schema itself, deciding
- * which type unions it belongs in, and the schemas/index.json catalog prose —
- * so this script still doesn't edit files (getting a codemod right across
- * hand-written + union-type sites is risky), it just prints an ordered,
- * ready-to-paste checklist for those remaining manual steps.
+ * SchemaToEntityMap / SCHEMA_REGISTRY / the static accessors, and the SURef*
+ * entity type plus its SURefEntity / SURefMetaEntity union membership, from
+ * it. What's left genuinely needs human authorship — the Zod schema itself and
+ * the schemas/index.json catalog prose — so this script still doesn't edit
+ * files, it just prints an ordered, ready-to-paste checklist for those
+ * remaining manual steps.
  *
  * Usage:
  *   bun run scaffold:entity <schema-id> [Singular] [Plural] [--non-entity]
@@ -103,7 +103,7 @@ line(`  schema id .......... ${id}`)
 line(`  model property ..... SalvageUnionReference.${modelProp}  (derived from id, not stored)`)
 line(`  display (singular) . ${singular}`)
 line(`  display (plural) ... ${plural}`)
-line(`  suggested type ..... ${typeName}   (you name it in the Zod schema)`)
+line(`  suggested type ..... ${typeName}   (generated from the registry entry)`)
 line(`  suggested Zod var .. ${zodVar}`)
 line(`  data file .......... ${dataFile}`)
 line(`  json schema ........ ${schemaFile}  (generated — do not hand-edit)`)
@@ -113,29 +113,28 @@ line(`Registry currently holds ${existingIds.size} schemas; this makes ${existin
 line()
 line('Only 3 hand-authored steps now — everything else (dataLoaders,')
 line('zodSchemaMap, schemaDisplayNames, LazyModel instances,')
-line('lazyModelMap, SchemaToEntityMap, SCHEMA_REGISTRY, and the')
+line('lazyModelMap, SchemaToEntityMap, SCHEMA_REGISTRY, the SURef* type alias,')
+line('its SURefEntity / SURefMetaEntity union membership, and the')
 line('SalvageUnionReference static accessor) is generated from the manifest entry')
 line('in step 3 by tools/generateRegistry.ts. lib/registryConsistency.test.ts')
 line('still independently checks the generated output — run it at the end.')
 line()
 
-line('1. Zod schema + inferred type — lib/schemas/entities.ts')
+line('1. Zod schema — lib/schemas/entities.ts')
 line(`     export const ${zodVar} = BaseEntitySchema.extend({ /* fields */ })`)
-line('   Then lib/schemas/index.ts:')
-line(`     - import ${zodVar} into the schema import block`)
-line(`     - export type ${typeName} = z.infer<typeof ${zodVar}>`)
+line(`   Do NOT write the ${typeName} type or touch the SURefEntity /`)
+line('   SURefMetaEntity unions: both are generated from the registry entry in')
+line('   step 3 (lib/generated/entityTypes.generated.ts).')
 if (!nonEntity) {
-  line(`     - add "| ${typeName}" to the SURefEntity AND SURefMetaEntity unions`)
-  line('       in BOTH of these files (the unions are declared twice — the')
-  line('       lib/types/index.ts copy shadows and is the package-public one):')
-  line('         - lib/schemas/index.ts')
-  line('         - lib/types/index.ts')
+  line('   A rules-metadata schema (like actions) that should stay out of the')
+  line('   narrower SURefEntity union gets `excludeFromEntityUnion: true` AND a')
+  line('   typeName starting `SURefMeta` — registryConsistency.test.ts requires')
+  line('   the flag and the prefix to agree; add the type to its MetaOnly union.')
 } else {
-  line(`     - do NOT add ${typeName} to the SURefEntity / SURefMetaEntity unions`)
-  line('       (non-entity schema) in lib/schemas/index.ts or lib/types/index.ts')
+  line('   A non-entity schema must also be added to the hard-coded list in')
+  line("   registryConsistency.test.ts (currently ['catalog-categories']) and to")
+  line('   its SURefMetaEntity | SURefCatalogCategory equality check.')
 }
-line('   These need human judgment (which unions a schema belongs in), so the')
-line('   generator deliberately does not touch them.')
 line()
 
 line(`2. Data file — create ${dataFile}`)

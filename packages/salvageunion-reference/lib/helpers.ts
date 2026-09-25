@@ -3,19 +3,12 @@
  * These functions provide convenient access patterns used by consuming applications
  */
 
+import { getActionType, getDamage, getRange, getTraits } from './actionResolution.js'
+import { getAssetUrl } from './assets.js'
 import type { ModelWithMetadata } from './BaseModel.js'
-import { lazyModelMap } from './generated/schemaRegistry.generated.js'
-import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
-import type { EnhancedSchemaMetadata } from './ModelFactory.js'
-import { getSchemaCatalog } from './ModelFactory.js'
-import { getEntitySlug } from './slug.js'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './types/index.js'
 import {
-  getActionType,
-  getAssetUrl,
   getCargoCapacity,
   getContent,
-  getDamage,
   getDescription,
   getEnergyPoints,
   getHeatCapacity,
@@ -23,16 +16,20 @@ import {
   getModuleSlots,
   getName,
   getPageReference,
-  getRange,
   getSalvageValue,
   getSlotsRequired,
   getSource,
   getStructurePoints,
   getSystemSlots,
   getTechLevel,
-  getTraits,
   getTree,
-} from './utilities.js'
+} from './entityFields.js'
+import { lazyModelMap } from './generated/schemaRegistry.generated.js'
+import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
+import type { EnhancedSchemaMetadata } from './ModelFactory.js'
+import { getSchemaCatalog } from './ModelFactory.js'
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass } from './schemas/index.js'
+import { getEntitySlug } from './slug.js'
 import { isColumnsTable } from './utils/resultForTable.js'
 import type { TableRow } from './utils/tableRows.js'
 import { tableRows } from './utils/tableRows.js'
