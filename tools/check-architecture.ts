@@ -102,7 +102,7 @@ const EXCLUDE_PATTERNS: RegExp[] = [
 // anti-pattern this check guards against.
 const LIFECYCLE_EXEMPT = new Set(['preload', 'isLoaded'])
 
-type Violation = { file: string; line: number; snippet: string; rule: RuleId }
+export type Violation = { file: string; line: number; snippet: string; rule: RuleId }
 
 type RuleId = 'module-scope-orm' | 'inline-pool-default' | 'oversized-function'
 
@@ -186,8 +186,13 @@ function isSalvageUnionReferenceAccessorCallee(callee: ts.Expression): boolean {
   return false
 }
 
-function checkFile(filePath: string): Violation[] {
-  const text = readFileSync(filePath, 'utf-8')
+/**
+ * Every violation in one source text. `relPath` is repo-relative: it decides the
+ * reported path, the parse mode (`.tsx`) and whether the component-lib size
+ * ratchet applies. Pure, so the rules can be tested against fixture source.
+ */
+export function checkSource(relPath: string, text: string): Violation[] {
+  const filePath = relPath
   const sourceFile = ts.createSourceFile(
     filePath,
     text,
@@ -202,7 +207,7 @@ function checkFile(filePath: string): Violation[] {
       if (isSalvageUnionReferenceAccessorCallee(node.expression)) {
         const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
         violations.push({
-          file: relative(root, filePath),
+          file: relPath,
           line: line + 1,
           snippet: node.getText(sourceFile).replace(/\s+/g, ' ').slice(0, 100),
           rule: 'module-scope-orm',
@@ -211,7 +216,7 @@ function checkFile(filePath: string): Violation[] {
     }
 
     // An oversized function body in component-lib.
-    if (RATCHET_SCOPE.test(relative(root, filePath))) {
+    if (RATCHET_SCOPE.test(relPath)) {
       const fn = node as ts.FunctionLikeDeclaration
       const isFn =
         ts.isFunctionDeclaration(node) ||
@@ -226,7 +231,7 @@ function checkFile(filePath: string): Violation[] {
         const length = endLine - startLine + 1
         if (length > COMPONENT_LIB_FUNCTION_CAP) {
           violations.push({
-            file: relative(root, filePath),
+            file: relPath,
             line: startLine + 1,
             snippet: `${(node as ts.FunctionDeclaration).name?.getText(sourceFile) ?? '<anonymous>'} — ${length} lines (cap ${COMPONENT_LIB_FUNCTION_CAP})`,
             rule: 'oversized-function',
@@ -250,7 +255,7 @@ function checkFile(filePath: string): Violation[] {
     ) {
       const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
       violations.push({
-        file: relative(root, filePath),
+        file: relPath,
         line: line + 1,
         snippet: node.getText(sourceFile).replace(/\s+/g, ' ').slice(0, 100),
         rule: 'inline-pool-default',
@@ -263,6 +268,10 @@ function checkFile(filePath: string): Violation[] {
 
   visit(sourceFile, false)
   return violations
+}
+
+function checkFile(filePath: string): Violation[] {
+  return checkSource(relative(root, filePath), readFileSync(filePath, 'utf-8'))
 }
 
 async function collectFiles(): Promise<string[]> {
@@ -342,4 +351,4 @@ async function main() {
   )
 }
 
-main()
+if (import.meta.main) main()
