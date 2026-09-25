@@ -67,7 +67,9 @@ one would return it unchanged. Two consequences:
   `lib/validateData.ts` or `lib/zod.ts` from the runtime graph.** `ModelFactory`
   reaches `validateData.ts` (which holds the schema map) through a dynamic
   `import()` only when a caller passes `{ validate: true }`; a static import
-  puts Zod and every entity schema back in both client bundles, and
+  puts Zod and every entity schema back in both client bundles (srd then
+  ships Zod again; itun keeps a Zod chunk regardless for its own
+  `src/lib/schemas`, but regains every entity schema), and
   `lib/loadPathBundle.test.ts` fails. Tools and tests may import them directly.
   Keep the dynamic boundary at `validateData.ts`, not at `zod.ts`: a
   dynamically imported namespace cannot be tree-shaken, and `import('./zod.js')`

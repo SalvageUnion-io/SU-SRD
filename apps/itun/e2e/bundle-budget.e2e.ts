@@ -52,14 +52,25 @@ import { waitForReady } from './_helpers'
  * tree into the entry; `vite.config.ts` gained named `codeSplitting` groups
  * (react, vendor, zod, reference, component-lib) for the initial graph; and
  * the reference package's trusted load path dropped Zod's entity schemas and
- * locales from the client. Measured from the Vite manifest (eager entry
- * closure + route chunk closure, identical data corpus on both sides), the
- * app JS each route pulls fell by: roster −202 KB, pilot wizard −199 KB,
- * dashboard −199 KB, live sheet −44 KB. Each ceiling below dropped by that
- * saving plus its 20% margin, so the headroom the original numbers had is
- * unchanged and the saving cannot be quietly spent. The largest-chunk
- * tripwire moved from 800 KB to 450 KB: the biggest chunk is now the
- * `actions` data chunk (~363 KB), not a ~615 KB app chunk.
+ * locales from itun's client. App JS per route fell by roughly: roster
+ * −202 KB, pilot wizard −199 KB, dashboard −199 KB, live sheet −44 KB.
+ *
+ * The ceilings were then re-derived from scratch, not by subtracting that
+ * saving from the old numbers (which had drifted to ~39% headroom). Measured
+ * by this suite in CI on the AP-11 head, each ceiling ≈ measured × 1.2:
+ *
+ *   route      measured      ceiling
+ *   roster     1,961,545 B   2,360,000 B
+ *   wizard     1,962,337 B   2,360,000 B
+ *   dashboard  1,972,449 B   2,370,000 B
+ *   sheet      2,090,713 B   2,510,000 B
+ *
+ * Bringing the whole ~200 KB back (roster → ~2.16 MB) still fits under 20%,
+ * so this does not catch a revert of AP-11 on its own — `routeExports.test.ts`
+ * and the `Sheet-` forbidden-chunk check below do. What the margin catches is
+ * growth beyond ~400 KB. The largest-chunk tripwire moved from 800 KB to
+ * 450 KB: the biggest chunk is now the `actions` data chunk (~363 KB), not a
+ * ~615 KB app chunk.
  */
 
 type JsTotals = { count: number; bytes: number; names: string[]; largest: number }
@@ -121,7 +132,7 @@ function report(label: string, totals: JsTotals, ceiling: number): void {
 
 test.describe('bundle-size budget', () => {
   test('roster stays under budget and route components are split out', async ({ page }) => {
-    const CEILING = 2_760_000
+    const CEILING = 2_360_000
     const totals = await captureJsTotals(page, '/')
     report('/ (roster)', totals, CEILING)
 
@@ -156,7 +167,7 @@ test.describe('bundle-size budget', () => {
     // measures the chooser's chunk and reports it under the wizard's name — a
     // budget that would sit green while the thing it claims to guard grew
     // unwatched. `mode=guided` is what mounts PilotWizard (NewEntityScreen.tsx).
-    const CEILING = 2_760_000
+    const CEILING = 2_360_000
     const totals = await captureJsTotals(page, '/pilots/new?mode=guided')
     report('/pilots/new?mode=guided (wizard)', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
@@ -167,7 +178,7 @@ test.describe('bundle-size budget', () => {
     // state (src/components/sheet/Sheet.tsx) *after* downloading the whole
     // route chunk, so this measures the route's real JS cost without paying
     // for a full wizard run to seed IndexedDB first.
-    const CEILING = 2_900_000
+    const CEILING = 2_510_000
     const totals = await captureJsTotals(page, '/sheet/pilot/budget-probe')
     report('/sheet/pilot/:id', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
@@ -177,7 +188,7 @@ test.describe('bundle-size budget', () => {
     // Same unknown-id probe as the sheet test — Dashboard.tsx renders
     // "Mech not found" only after its chunk (instruments, dial, display) has
     // loaded, so the byte count is the route's true cost.
-    const CEILING = 2_760_000
+    const CEILING = 2_370_000
     const totals = await captureJsTotals(page, '/dashboard/budget-probe')
     report('/dashboard/:id', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)

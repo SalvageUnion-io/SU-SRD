@@ -36,10 +36,16 @@ export type LoadOptions = {
   /**
    * Re-validate each loaded file against its Zod schema. Off by default: the
    * committed data is validated in CI and proven parse-stable, so the trusted
-   * path returns exactly what a validating load would. Turn it on for data you
-   * have not validated yourself (a hand-edited checkout mid-change, a tool
-   * that wants the loud failure). The first validating load fetches the
-   * schema module, so it is async in the same way the data is.
+   * path returns the same keys and values a validating load would. Key ORDER
+   * differs: a trusted row keeps the data file's order, a parsed row takes the
+   * schema's. Turn it on for data you have not validated yourself (a
+   * hand-edited checkout mid-change, a tool that wants the loud failure). The
+   * first validating load fetches the schema module, so it is async in the
+   * same way the data is.
+   *
+   * It applies only to schemas this call actually loads. A schema that is
+   * already loaded (by an earlier trusted `preload()`) is skipped, so
+   * `{ validate: true }` validates nothing for it.
    */
   validate?: boolean
 }

@@ -2,7 +2,8 @@
  * The trusted load path keeps Zod out of the static bundle graph (audit PK-04).
  *
  * `preload()` only reaches the entity schemas through a dynamic `import()` of
- * `lib/generated/zodSchemaMap.generated.ts`, so a bundler can leave Zod and
+ * `lib/validateData.ts` (which imports `lib/generated/zodSchemaMap.generated.ts`
+ * statically), so a bundler can leave Zod and
  * every schema out of the chunks a trusted load needs. A single static import
  * of that module — or of `lib/zod.ts`, or a value import from `lib/schemas/` —
  * anywhere in the runtime graph silently undoes that, and nothing else would

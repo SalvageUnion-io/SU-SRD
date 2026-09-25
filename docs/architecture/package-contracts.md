@@ -135,7 +135,7 @@ All JSON data files (~1.1 MB total) are loaded via dynamic `import()` at runtime
 3. After each schema loads, the `LazyModel` receives a "backing" model via `_install()`. All subsequent data-access calls delegate to the backing model.
 4. Before `preload()`, any data-access call throws a descriptive error.
 
-The Zod entity schemas are **not** on this path. A load is trusted by default: CI validates every committed file (`validate:schemas`) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. `preload(ids, { validate: true })` restores the parse and reaches the schemas (`lib/generated/zodSchemaMap.generated.ts`) through a dynamic `import()`, so a bundler never links them into a chunk the trusted path needs. Types are unaffected — they are inferred from the schemas at compile time.
+The Zod entity schemas are **not** on this path. A load is trusted by default: CI validates every committed file (`validate:schemas`) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. `preload(ids, { validate: true })` restores the parse and reaches the schemas through a dynamic `import()` of `lib/validateData.ts` (which holds `lib/generated/zodSchemaMap.generated.ts` behind it), so a bundler never links them into a chunk the trusted path needs. Types are unaffected — they are inferred from the schemas at compile time.
 
 ### preload() API
 

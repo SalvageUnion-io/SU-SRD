@@ -31,7 +31,9 @@ describe('committed data is parse-stable', () => {
     const raw = await loader()
     const parsed = z.array(schema).parse(raw)
     // toStrictEqual: an `undefined`-valued key a default would add, or a key
-    // a strip would drop, both count as a difference.
+    // a strip would drop, both count as a difference. It does NOT compare key
+    // order, and the two orders differ (file order vs schema order) — so
+    // "unchanged" here means same keys and values, not byte-identical.
     expect(parsed).toStrictEqual(raw)
   })
 })
