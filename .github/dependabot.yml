@@ -28,6 +28,11 @@
 # `.github/workflows/catalog-update.yml` covers those deps instead; everything
 # below still owns per-workspace deps and GitHub Actions.
 #
+# RENOVATE IS ON TRIAL for the catalog (`renovate.json`, dashboard-approval
+# only, so it opens nothing unasked). If it proves out it replaces this file and
+# catalog-update.yml together; the switch-over steps are in
+# docs/architecture/dependency-management.md, "Renovate trial".
+#
 # #12522 FAILS CLOSED, so watch for it rather than fearing it: deleting the
 # catalog makes every `catalog:` reference unresolvable, so
 # `bun install --frozen-lockfile` fails in CI and the PR cannot merge. If a
