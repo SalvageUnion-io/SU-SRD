@@ -31,8 +31,11 @@ export function isBlockedUpgrade(error: unknown): boolean {
 export function savedWorkCopy(backend: BackendKind | null): string {
   switch (backend) {
     case 'remote':
-    case 'blocked':
       return 'Everything saved to your account is stored on the server and is not affected.'
+    case 'blocked':
+      // `blocked` is also the `connecting` state, before anyone knows whether
+      // this visitor is signed in — so it cannot say "your account".
+      return 'Anything saved to an account is stored on the server and is not affected.'
     case 'local':
       return 'Your saved data is stored in this browser and is not affected.'
     case 'memory':

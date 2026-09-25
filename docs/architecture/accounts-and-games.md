@@ -41,10 +41,10 @@ In brief, grouped:
 | Containers   | **Game** (shared) and **Shelf** (personal). One entity, one container. **Move** sets `gameId`; **copy** mints a new unrelated `COPY OF …`. |
 | Roles        | Base role Player \| Mediator, plus an orthogonal **Organizer** flag. Organizer ⇒ no content authority. |
 | Cross-player | **Propose → player confirms.** Never a direct write, never force-applied.                              |
-| Ownership    | Nullable. Mediator assigns; owners release; **players self-claim what nobody holds**.                  |
+| Ownership    | Nullable. Mediator assigns (today only through an invite's `grants`); owners release; **players self-claim what nobody holds**. |
 | Crawler      | Communal to edit; **the table runner raises and scraps one**. A Game may hold several.                 |
 | Joining      | A Game takes a player's pilots and mechs **once it has a crawler**. The table runner is exempt.        |
-| Visibility   | Live vitals for all; read-only sheet drill-in; Mediator NPCs hidden.                                   |
+| Visibility   | Live vitals for all; read-only sheet drill-in (decided, not built); Mediator NPCs hidden.              |
 | Surfaces     | New Mediator surface absorbs `/encounter`; a **"Crew" dial item** on the player Dashboard.             |
 | Anonymous    | Solo stays first-class and needs no account, forever.                                                  |
 
@@ -109,9 +109,17 @@ fully deleted.
 
 ### Phase 2 — Roles & visibility ✅
 
-Capabilities on membership, Organizer transfer, Mediator assignment,
-**server-side** authorization on every mutation, read-only crewmate drill-in,
-ownership assign/release/reassign, owner chips.
+Capabilities on membership, Mediator assignment (`games.setMediator`),
+**server-side** authorization on every mutation, ownership claim/release
+(`ownership.claim` / `release`), owner chips. The Organizer flag passes on only
+when its holder deletes their account (`account.deleteAccount`).
+
+Not delivered, although this phase once listed them: a voluntary **Organizer
+transfer**, a **read-only crewmate drill-in**, and a Mediator **assign** /
+**reassign** of a character to a particular person, plus a **leave Game**. Each
+existed as a public function with no client caller and was removed on
+2026-09-25 — see *Known gaps* below. A Mediator hands a character to someone
+today through an invite's `grants`, or by releasing it for them to claim.
 
 **Exit:** the capability matrix is enforced in Convex, proven by tests that a
 Player cannot write a crewmate's pilot and that an Organizer gains nothing over
@@ -452,6 +460,7 @@ bunx convex run maintenance:backfillBodyAppIds --prod
 Both are idempotent. A row written straight to a table from the Convex
 dashboard bypasses the triggers; `backfillGameSummaries` is also the repair
 for that.
+
 ### Netlify
 
 | Site               | Serves                           | Notes                                                                                                                                        |

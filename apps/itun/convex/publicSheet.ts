@@ -215,9 +215,8 @@ async function assertMayPublish(
   if (row.ownerId === userId) return
   if (row.ownerId === null) {
     // **Unclaimed blocks publishing, never UN-publishing.** Mirroring
-    // `assertMayWrite` here was wrong in one direction: `ownership.release` and
-    // the leave-Game sweep both null an `ownerId` on a row that is still in the
-    // Game, so a published sheet whose owner walks away would have become
+    // `assertMayWrite` here was wrong in one direction: `ownership.release`
+    // nulls an `ownerId` on a row that is still in the Game, so a published sheet whose owner walks away would have become
     // permanently un-revocable — still served to anonymous readers, with "Stop
     // sharing" refusing for as long as nobody reassigned it. That directly
     // falsifies what ADR-032 §6 and the panel copy both promise. Withdrawal is

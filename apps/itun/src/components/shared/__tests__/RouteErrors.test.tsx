@@ -37,8 +37,13 @@ afterEach(() => {
 describe('savedWorkCopy says what an error does to the work, per backend', () => {
   test('a signed-in player is told their account holds it', () => {
     expect(savedWorkCopy('remote')).toMatch(/saved to your account/i)
-    // Offline while signed in is still the account's data, just unreachable.
-    expect(savedWorkCopy('blocked')).toMatch(/saved to your account/i)
+  })
+
+  test('offline or still connecting names the account without assuming one', () => {
+    // `blocked` covers `connecting`, before sign-in has resolved, so an
+    // anonymous visitor can land here too — "your account" would be a guess.
+    expect(savedWorkCopy('blocked')).toMatch(/saved to an account/i)
+    expect(savedWorkCopy('blocked')).not.toMatch(/your account/i)
   })
 
   test('an anonymous visitor is told the truth: a reload loses unsaved builds', () => {

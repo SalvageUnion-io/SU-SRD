@@ -26,6 +26,11 @@
  * router in `http.ts` rather than through `api`, nor `auth.ts`, whose exports
  * are produced by `convexAuth()` and called by the auth library by name.
  *
+ * Known limit: a public function is recognised by its builder's NAME —
+ * `query(`, `mutation(` or `action(` directly after `export const x =`. One
+ * built through a differently named custom builder would be missed, so keep
+ * public builders under those three names (as `model/entities` does).
+ *
  * If a public function is genuinely meant to be called from outside this repo,
  * list it in `ALLOWED_WITHOUT_CALLER` with the reason. That list is empty on
  * purpose.
@@ -70,8 +75,18 @@ export function publicFunctionsIn(source: string): string[] {
     .filter((name): name is string => name !== undefined)
 }
 
-/** Every `module:name` a caller's source references. */
-export function referencesIn(source: string): Set<string> {
+/**
+ * `source` with its comments blanked, so a function named only in a doc
+ * comment ("see `api.games.rename`") does not count as calling it. Line
+ * comments need a non-`:` before the `//` so a URL inside a string survives.
+ */
+export function withoutComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1')
+}
+
+/** Every `module:name` a caller's source references, outside comments. */
+export function referencesIn(raw: string): Set<string> {
+  const source = withoutComments(raw)
   const refs = new Set<string>()
   for (const m of source.matchAll(/\bapi\.(\w+)\.(\w+)/g)) refs.add(`${m[1]}:${m[2]}`)
   for (const m of source.matchAll(/makeFunctionReference(?:<[^>]*>)?\(\s*['"](\w+):(\w+)['"]/g)) {

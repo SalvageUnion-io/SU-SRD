@@ -36,6 +36,16 @@ describe('referencesIn', () => {
       'games:listMine',
     ])
   })
+
+  test('a mention in a comment is not a call', () => {
+    const source = [
+      '/** Replaces `api.games.rename`, which is gone. */',
+      '// api.crew.readEntity used to live here',
+      "const url = 'https://example.com' // api.ownership.assign",
+      'const q = useQuery(api.games.get)',
+    ].join('\n')
+    expect([...referencesIn(source)]).toEqual(['games:get'])
+  })
 })
 
 describe('uncalled', () => {
