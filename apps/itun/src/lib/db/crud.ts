@@ -1,5 +1,6 @@
 import type { IDBPDatabase } from 'idb'
 import type { z } from 'salvageunion-reference/zod'
+import { isRecord } from '../isRecord'
 
 /**
  * Minimal shape every entity managed by the CRUD wrapper must have.
@@ -66,6 +67,14 @@ type MakeStoreOptions<T extends EntityBase> = {
    * Writes always validate against the strict `schema`.
    */
   salvageSchema?: z.ZodType<T>
+  /**
+   * A known-legacy rewrite applied to every raw record BEFORE either parse, on
+   * reads and on `put`: fields the schema has deliberately dropped are removed
+   * (or lifted to their replacement) silently, since they are expected rather
+   * than drift. Salvage stays for what nobody anticipated. Pilots pass
+   * `normalizeLegacyPilotRecord`.
+   */
+  normalize?: (raw: Record<string, unknown>) => Record<string, unknown>
 }
 
 /**
@@ -90,14 +99,20 @@ export function makeStore<T extends EntityBase>(
   storeName: string,
   options: MakeStoreOptions<T> = {}
 ): EntityStore<T> {
-  const { hasUpdatedAt = false, salvageSchema } = options
+  const { hasUpdatedAt = false, salvageSchema, normalize } = options
+
+  /** Apply the store's legacy rewrite, if it has one, to a raw record. */
+  function normalized(raw: unknown): unknown {
+    return normalize && isRecord(raw) ? normalize(raw) : raw
+  }
 
   /**
    * Parse a raw record for the read path. Returns null when the record cannot
    * be made valid even by the salvage schema — callers skip it (list) or
    * report it missing (get) rather than throwing.
    */
-  function salvageRead(raw: unknown, context: string): T | null {
+  function salvageRead(input: unknown, context: string): T | null {
+    const raw = normalized(input)
     const strict = schema.safeParse(raw)
     if (strict.success) return strict.data
 
@@ -216,7 +231,7 @@ export function makeStore<T extends EntityBase>(
    */
   async function put(record: T): Promise<T> {
     const db = await getDb()
-    const strict = schema.safeParse(record)
+    const strict = schema.safeParse(normalized(record))
     const parsed = strict.success ? strict.data : salvageRead(record, `id="${record.id}"`)
     if (parsed === null) {
       throw new Error(

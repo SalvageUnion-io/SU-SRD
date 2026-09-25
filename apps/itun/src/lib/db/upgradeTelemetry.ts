@@ -3,7 +3,7 @@
  *
  * ## The question this answers
  *
- * `migrations/` carries ten record rewrites (v3–v15). The v3–v12 half exists
+ * `migrations/` carries eleven record rewrites (v3–v16). The v3–v12 half exists
  * only for a browser that last opened ITUN before the v13 container migration
  * (ADR-030) — a database old enough to still hold Workspaces, pre-slug mech
  * refs and string cargo. Those files, and the `workspaceId` fallbacks and

@@ -4,7 +4,7 @@ import { CrawlerSchema } from '../../src/lib/schemas/crawler'
 import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import { MechPatternSchema } from '../../src/lib/schemas/pattern'
-import { PilotSchema } from '../../src/lib/schemas/pilot'
+import { StoredPilotSchema } from '../../src/lib/schemas/pilot'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import {
@@ -67,7 +67,10 @@ const EncounterNpcBodySchema = EncounterNpcSchema.partial().extend({
 
 /** Every table whose `v.any()` body is validated at the edge, and by what. */
 export const PARSERS = {
-  pilots: PilotSchema,
+  // Behind the legacy normaliser: a pilot row stored before a field was
+  // removed from the schema (`equipmentLoadouts`, `rollResults`) must still
+  // validate when it is read back and re-parsed, not reject every write to it.
+  pilots: StoredPilotSchema,
   mechs: MechSchema,
   crawlers: CrawlerSchema,
   encounterNpcs: EncounterNpcBodySchema,

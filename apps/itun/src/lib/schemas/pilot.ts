@@ -1,4 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
+import { partnersFromLoadouts } from '../db/migrations/11-equipment-loadouts-to-partners'
+import { isRecord } from '../isRecord'
 import { ItemConditionMapSchema } from './mech'
 import { PartnerInstanceSchema } from './partner'
 
@@ -232,60 +234,12 @@ export const PilotSchema = z
     equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
 
     /**
-     * @deprecated Superseded by `partners` (ADR-027). Nothing reads or writes
-     * this any more — the v11 migration lifts each entry into a
-     * `PartnerInstance` with its own id, which is what fixed the bug described
-     * below (two of one drone sharing a single slug-keyed entry).
-     *
-     * The field is RETAINED rather than deleted for two reasons, both concrete:
-     * `PilotSchema` is `.strict()`, so a migrated record that still carries the
-     * key would fail to parse the moment the field disappears; and keeping it
-     * means the migration stays reversible from a pre-v11 export. Removing it
-     * needs a follow-up migration that deletes the key from every stored pilot
-     * FIRST — which is a separate, irreversible change and does not belong in
-     * the same release as the feature that replaced it.
-     *
-     * ---
-     * Per-equipment installed loadout for drone/companion equipment that carries
-     * its own systemSlots/moduleSlots (Survey Drone, Mecha Companion,
-     * Auto-Turret). Keyed by equipment slug → the systems/modules installed on
-     * that instance; refs are system/module slugs (same convention as
-     * mech.systems/modules). Edited through the same "Add System/Module" picker
-     * mechs use, with the same per-item condition/uses tracking scoped to this
-     * instance: `systemConditions`/`moduleConditions` keyed by the item slug
-     * (Intact/Damaged/Destroyed) and `itemUses` (uses remaining, absent = full)
-     * — the pilot-equipment analogue of mech.systemConditions/moduleConditions/
-     * itemUses. Additive-optional — absent reads as no loadout; no DB migration
-     * needed (same tactic as equipmentChoices/equipmentConditions). Keyed by slug
-     * so two of the same drone slug on one pilot would share an entry — an
-     * accepted limitation identical to equipmentChoices.
-     */
-    equipmentLoadouts: z
-      .record(
-        z.string(),
-        z
-          .object({
-            systems: z.array(z.string()).default([]),
-            modules: z.array(z.string()).default([]),
-
-            /** Per-installed-system condition (slug → Intact/Damaged/Destroyed). */
-            systemConditions: ItemConditionMapSchema.optional(),
-
-            /** Per-installed-module condition (slug → Intact/Damaged/Destroyed). */
-            moduleConditions: ItemConditionMapSchema.optional(),
-
-            /** Uses remaining per installed item slug (absent = full, rules B13). */
-            itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
-          })
-          .strict()
-      )
-      .optional(),
-
-    /**
      * Statted Drones / Companions this pilot's abilities grant (Auto-Turret,
      * Survey Drone, Mecha Companion). Each carries its own id, so Mecha
      * Packmaster's TWO Mecha Companions are two distinct partners rather than
-     * one shared entry — the bug `equipmentLoadouts` could not express.
+     * one shared entry — the bug the retired slug-keyed `equipmentLoadouts`
+     * field could not express (v11 lifted it into this array; see
+     * `normalizeLegacyPilotRecord` for what happens to a record still carrying it).
      * Additive-optional; absent reads as none.
      */
     partners: z.array(PartnerInstanceSchema).optional(),
@@ -406,17 +360,47 @@ export const PilotSchema = z
 export type Pilot = z.infer<typeof PilotSchema>
 
 /**
- * Pilots persisted (or exported/published) before the vestigial `rollResults`
- * field was removed still carry it — and the strict PilotSchema would reject
- * them. Drop the field before parsing. Mirrors normalizeLegacyCargoRecord;
- * the v4 IndexedDB migration applies the same rewrite on local records.
+ * Drop the fields a strict `PilotSchema` no longer knows from a pilot that was
+ * persisted, exported or published before they were removed.
+ *
+ * - `rollResults` — vestigial, always `[]`, never read. The v4 IndexedDB
+ *   migration applies the same rewrite to local records.
+ * - `equipmentLoadouts` — the slug-keyed drone/companion loadouts that
+ *   `partners` replaced (ADR-027). v11 lifted each entry into a
+ *   `PartnerInstance` with its own id but left the key in place, so every
+ *   pilot that went through it still carries one; v16 deletes it from local
+ *   records. A record that never went through v11 (a pre-v11 export being
+ *   imported) is lifted here the same way first, so its loadouts survive as
+ *   partners rather than being dropped. A record that already has `partners`
+ *   keeps them untouched.
+ *
+ * Mirrors normalizeLegacyCargoRecord. Every place a pilot body arrives from
+ * storage or the network runs through this — the IndexedDB store, import,
+ * snapshots and public sheets (`frozenEntity`), and the Convex edge parse
+ * (`StoredPilotSchema`) — so a row written before a removal is healed on read
+ * rather than rejected by the strict schema.
  */
-
 export function normalizeLegacyPilotRecord(
   record: Record<string, unknown>
 ): Record<string, unknown> {
-  if (!('rollResults' in record)) return record
+  if (!('rollResults' in record) && !('equipmentLoadouts' in record)) return record
   const rest = { ...record }
   delete rest.rollResults
+  if ('equipmentLoadouts' in rest) {
+    const lifted = partnersFromLoadouts(rest)
+    delete rest.equipmentLoadouts
+    if (lifted) rest.partners = lifted
+  }
   return rest
 }
+
+/**
+ * `PilotSchema` behind `normalizeLegacyPilotRecord`: the parser for a pilot
+ * body that comes out of storage rather than out of this build — the Convex
+ * edge parse, above all, where a row stored before a field was removed must
+ * still validate.
+ */
+export const StoredPilotSchema = z.preprocess(
+  (raw) => (isRecord(raw) ? normalizeLegacyPilotRecord(raw) : raw),
+  PilotSchema
+)

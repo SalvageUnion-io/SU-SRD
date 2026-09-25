@@ -54,7 +54,7 @@ Example: `3-cargo-to-cargo-lots.ts`
 
 ## Retiring v3–v12 (audit AP-19) — measure first
 
-Ten record rewrites (v3–v15) run from `runMigrations`, and the v3–v12 half
+Eleven record rewrites (v3–v16) run from `runMigrations`, and the v3–v12 half
 exists only for a browser that last opened ITUN before the v13 container
 migration. That half, plus the `workspaceId` fallbacks and `@deprecated` schema
 fields that keep its output readable, is the cost of a population nobody could
@@ -73,6 +73,10 @@ quarter (90 days), the tail is gone. Then, in one change:
    open reads the old stores read-only and offers them as a download (the
    `buildLegacyExportBundle` shape) instead of rewriting them in place.
 2. Delete `3-…` through `12-…` and their fixture tests; keep v13+ untouched.
+   One export outlives its file: `partnersFromLoadouts` (v11) is also what
+   `normalizeLegacyPilotRecord` uses to lift a pre-v11 import's
+   `equipmentLoadouts` into `partners`, so move it beside that normaliser
+   rather than deleting it with the migration.
 3. Remove the `workspaceId` fallback in `containerOf` and the `@deprecated`
    schema fields that only a pre-v13 row could still carry.
 4. Delete the telemetry itself — a signal with nothing left to decide is noise.

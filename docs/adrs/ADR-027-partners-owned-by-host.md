@@ -103,6 +103,11 @@ A partner is a **`PartnerInstance` owned by its host** — an additive-optional
   and keeping it leaves the v11 migration reversible from a pre-v11 export.
   Removing it needs a follow-up migration that strips the key from stored pilots
   first — a separate, irreversible change.
+  **Since removed (audit AP-18, 2026-09):** the field is gone from `PilotSchema`;
+  `normalizeLegacyPilotRecord` strips the key at every pilot entry point (the
+  IndexedDB store, import, snapshots, and the Convex edge parse via
+  `StoredPilotSchema`), lifting a never-migrated loadout into `partners` first so
+  a pre-v11 export still imports; IndexedDB v16 deletes it from local rows.
 - **Carrier→carrier handoff is not built.** The rules permit mech→allied-mech
   transfer and ITUN could not express it before partners either. It needs a
   target picker and an N-node reducer, so it is left visibly unbuilt rather than
