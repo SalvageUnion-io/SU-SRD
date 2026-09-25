@@ -5,6 +5,10 @@
  * SVG output (not canvas): deterministic under happy-dom tests and crisp at
  * any DPI. The tile is forced white with an encoder quiet zone — QR readers
  * need dark-on-light regardless of app theme.
+ *
+ * Lives in ITUN, not component-lib: ITUN is its only renderer, and keeping it
+ * in the library meant the library's manifest declared `qrcode` for one app's
+ * sake (audit PK-07). Covered by `__tests__/ShareStatusDialog.test.tsx`.
  */
 
 import QRCode from 'qrcode'

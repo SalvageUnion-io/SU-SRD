@@ -278,7 +278,10 @@ responsibility**, not all in the app:
   `DialConfig`, `DisplayPanel`, `ActionsDeck`, `DowntimeWizard`. Internal to that
   directory (not barrel-exported): `DashboardGauge`, `SrdExplorer`,
   `TablePickerOverlay`. These are legacy-tier (bespoke dark-world CSS in `DashboardCanvas.css` /
-  `DashboardGrid.css` / `instruments.css`, not yet on the canon tokens).
+  `DashboardGrid.css` / `instruments.css`, not yet on the canon tokens). The components
+  import **no** CSS: the three files ship bundled as the package export
+  `component-lib/styles/dashboard.css`, imported once by ITUN's `Dashboard.tsx`. A
+  component-side `import './x.css'` rode the barrel into srd's stylesheet (audit PK-01).
 - **Store-wired containers** live in `apps/itun/src/components/dashboard/` and
   fill those shells with entity/rules state. Full tree in §6.
 - The segmented "instrument gauge" (`vbar`/`segGauge`/`gcells` in the mockup)

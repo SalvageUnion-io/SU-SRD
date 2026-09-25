@@ -28,6 +28,11 @@
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { reportError, withObservability } from 'observability/cloudflare'
+import {
+  BASE_SECURITY_HEADERS,
+  edgeCache,
+  IMMUTABLE_CACHE_CONTROL,
+} from 'observability/worker-http'
 
 /** The slice of an R2 bucket binding this Worker uses. */
 export type AssetBucket = {
@@ -61,33 +66,6 @@ const ALLOWED_WIDTHS = new Set([440, 880])
 
 /** The slice of workerd's ExecutionContext this Worker uses. */
 export type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
-
-/**
- * The edge cache, or null where there isn't one.
- *
- * Two separate problems, resolved together so the call sites read as one idea —
- * the same shape as `edgeCache()` in `apps/itun/src/worker/index.ts`, which is
- * where this pattern was already proven:
- *
- *   - **Types.** `caches.default` is a Cloudflare extension to `CacheStorage`
- *     that the standard lib knows nothing about.
- *   - **Runtime.** Under `bun test` there is no `caches` global at all, and
- *     reading through it throws a ReferenceError. Returning null instead keeps
- *     "there is no cache here" from being indistinguishable from a real failure.
- *
- * ## Why this is needed at all
- *
- * `cache-control: immutable` only spares a browser that has ALREADY fetched the
- * byte. Cloudflare does not edge-cache a Worker's own response — that requires
- * an explicit `caches.default.put` — so before this, every artwork request from
- * every cold client worldwide cost one Worker invocation plus one billable R2
- * read. Measured on production: artwork responses carried no `cf-cache-status`
- * header at all, while srd's static assets on the same account returned `HIT`.
- */
-function edgeCache(): Cache | null {
-  if (typeof caches === 'undefined') return null
-  return (caches as CacheStorage & { default?: Cache }).default ?? null
-}
 
 /** `chassis/mule-440.webp` -> `{ masterKey: 'chassis/mule.webp', width: 440 }`. */
 function parseDerivative(key: string): { masterKey: string; width: number } | null {
@@ -137,14 +115,11 @@ const COMMON_HEADERS: Record<string, string> = {
   // path, so every object is one we uploaded. That is a fact about today's
   // deployment, not a property of the Worker, which is exactly the kind of
   // assumption worth not depending on.
+  //
+  // The other six are shared with itun's Worker (`observability/worker-http`).
+  ...BASE_SECURITY_HEADERS,
   'content-security-policy': "default-src 'none'; sandbox",
   'access-control-allow-origin': '*',
-  'x-content-type-options': 'nosniff',
-  'x-frame-options': 'DENY',
-  'referrer-policy': 'strict-origin-when-cross-origin',
-  'permissions-policy': 'geolocation=(), microphone=(), camera=()',
-  'strict-transport-security': 'max-age=63072000; includeSubDomains; preload',
-  'x-dns-prefetch-control': 'on',
 }
 
 /**
@@ -345,7 +320,7 @@ function imageResponse(body: ReadableStream, contentType: string): Response {
     headers: {
       ...COMMON_HEADERS,
       'content-type': contentType,
-      'cache-control': 'public, max-age=31536000, immutable',
+      'cache-control': IMMUTABLE_CACHE_CONTROL,
     },
   })
 }

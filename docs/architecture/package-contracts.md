@@ -191,6 +191,7 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 {
   ".": "./src/index.ts",
   "./design/tokens": "./src/design/tokens.ts",
+  "./styles/dashboard.css": "./src/styles/dashboard.css",
   "./styles/index.css": "./src/styles/index.css",
   "./styles/theme.css": "./src/styles/theme.css"
 }
@@ -234,7 +235,7 @@ read `src/index.ts` for anything load-bearing:
 - **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
 - **Shared components** — `Card`, `AppBar`, `Footer`, `FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, … (the former `FilterChip` is gone: the interactive chip is now `Badge as="button"`, with the call site owning pressed state)
 - **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
-- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
+- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`, `CrawlerEconFrame`, `ConditionsEditor`, … (the snapshot QR tile moved to ITUN with its `qrcode` dependency)
 - **Wizard steps** (`src/components/wizard/`) — `ClassAbilityStep`, `CrawlerTypeSelectStep`, `EquipmentStep`, …
 - **Changelog** — `parseChangelog`, `mergeChangelogs`, `Changelog`
 - **Utilities** — the single `cn()` (its tailwind-merge config knows the custom utilities; never re-wrap `twMerge` with the default config)
@@ -245,8 +246,9 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 
 ### Dependencies
 
-- **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom`, `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`
-- **Direct dependency**: `qrcode`
+- **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom` only — one instance per app
+- **Dependencies** (declared by the library itself, catalogued where shared): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
+- **Stylesheets are exports, never side-effect imports**: `component-lib/styles/index.css`, `theme.css`, and `dashboard.css` (the `.pc-*` dashboard bundle, imported only by ITUN). No shipping library module imports `.css` — `bun run check:srd-css` enforces it (audit PK-01)
 - **No backend/data-source dependency** — fully data-source agnostic
 
 ### Design Principles

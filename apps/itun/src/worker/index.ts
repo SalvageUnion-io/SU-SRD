@@ -64,6 +64,11 @@
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { reportError, withObservability } from 'observability/cloudflare'
 import {
+  BASE_SECURITY_HEADERS,
+  edgeCache,
+  IMMUTABLE_CACHE_CONTROL,
+} from 'observability/worker-http'
+import {
   makeDeleteHandler,
   makePublishHandler,
   makeRetrieveHandler,
@@ -155,26 +160,6 @@ async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | nul
   } catch {
     return null
   }
-}
-
-/**
- * The edge cache, or null where there isn't one.
- *
- * Two separate problems, both resolved here so the call site reads as one idea:
- *
- *   - **Types.** `caches.default` is a Cloudflare extension to `CacheStorage`,
- *     and this app's tsconfig loads the DOM lib — it is a browser app that
- *     happens to contain a Worker — so the standard type wins and knows nothing
- *     about `default`.
- *   - **Runtime.** Under `bun test` there is no `caches` global at all, and
- *     reading through it throws a ReferenceError that `ogImage`'s catch would
- *     swallow into a fallback. That would make "the renderer is broken" and
- *     "there is no cache here" produce the same 302, which is exactly the kind
- *     of collapse that hides a real failure.
- */
-function edgeCache(): Cache | null {
-  if (typeof caches === 'undefined') return null
-  return (caches as CacheStorage & { default?: Cache }).default ?? null
 }
 
 /**
@@ -293,7 +278,7 @@ async function ogImage(
       headers: {
         'content-type': 'image/png',
         // Immutable: a snapshot never changes, and its id is content-addressed.
-        'cache-control': 'public, max-age=31536000, immutable',
+        'cache-control': IMMUTABLE_CACHE_CONTROL,
       },
     })
     // `waitUntil`, not `await`: awaiting serializes the cache write into every
@@ -356,12 +341,8 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
  * holds the CSP's Sentry ingest origin to the same value in both.
  */
 const SECURITY_HEADERS: Record<string, string> = {
-  'x-frame-options': 'DENY',
-  'x-content-type-options': 'nosniff',
-  'referrer-policy': 'strict-origin-when-cross-origin',
-  'permissions-policy': 'geolocation=(), microphone=(), camera=()',
-  'strict-transport-security': 'max-age=63072000; includeSubDomains; preload',
-  'x-dns-prefetch-control': 'on',
+  // The six every Worker-served origin sends — shared with su-assets.
+  ...BASE_SECURITY_HEADERS,
   'content-security-policy':
     "default-src 'self'; script-src 'self' https://storage.ko-fi.com; " +
     "style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; " +

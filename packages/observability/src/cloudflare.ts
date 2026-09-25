@@ -1,18 +1,20 @@
 /**
  * Sentry wiring for the Cloudflare Workers surfaces.
  *
- * ## Why this is separate from `./node`
+ * ## Why it imports the SDK directly
  *
- * `./node` takes the SDK as a parameter because Netlify's bundler cannot inline
- * `@sentry/node` — see that file's header. None of that applies here: wrangler
- * bundles with esbuild, which resolves workspace packages normally, so this
- * module imports `@sentry/cloudflare` directly and the Workers get it through
- * one dependency declared in one place.
+ * wrangler bundles with esbuild, which resolves workspace packages normally, so
+ * this module imports `@sentry/cloudflare` itself and the three Workers get it
+ * through one dependency declared in one place — a runtime `dependency` of this
+ * package, not a devDependency (audit PK-07). (There used to be a sibling
+ * `./node` subpath that took `@sentry/node` as a parameter because Netlify's
+ * bundler could not inline it. It was deleted with the Discord bot's Node
+ * gateway; nothing of that constraint applies here.)
  *
- * The runtimes are also genuinely different. `@sentry/node` pulls an
- * OpenTelemetry layer that workerd cannot run; `@sentry/cloudflare` is built for
- * workerd and hooks `fetch`/`scheduled` through a wrapper instead of installing
- * global instrumentation.
+ * `@sentry/cloudflare` is built for workerd: it hooks `fetch`/`scheduled`
+ * through a wrapper instead of installing global instrumentation, and needs the
+ * `nodejs_als` compatibility flag, which `tools/check-observability.ts`
+ * asserts for every Worker.
  *
  * ## Why a wrapper and not `Sentry.init()`
  *
@@ -34,6 +36,14 @@
  * dark to the alerting this repo believes it has — while
  * `tools/check-observability.ts` gated only the two BROWSER apps' CSP and two
  * now-retired Netlify function directories.
+ *
+ * ## Tested
+ *
+ * `__tests__/cloudflare.test.ts` drives the real SDK with `fetch` (its workerd
+ * transport) replaced, so it asserts what actually leaves the Worker: with a
+ * DSN, escaped and handled errors, `scheduled` throws and cron check-ins are
+ * sent with the release, environment and server name, and a request body never
+ * is; with no DSN, nothing is sent at all.
  *
  * `console.error` is kept alongside Sentry rather than replaced: Workers Logs is
  * where you look during a `wrangler tail`, and losing that would trade one blind
@@ -105,10 +115,20 @@ export function withObservability<E extends ObservabilityEnv>(
       // answered is "did it throw", not "where did the time go" — and a Free
       // plan's 10 ms CPU budget is not the place to spend on span overhead.
       tracesSampleRate: 0,
+      // No PII by default (cookies, IPs, user identity).
+      sendDefaultPii: false,
       // Do not send request bodies. The snapshot publish body is a player's
       // sheet, and the Discord interaction body is a signed payload including
       // user content; neither belongs in an error report.
-      sendDefaultPii: false,
+      //
+      // `sendDefaultPii: false` does NOT achieve this. The SDK's default
+      // HttpServer integration captures any textual request body (up to
+      // `'medium'`, ~10 KB) regardless of that flag. Supplying our own
+      // instance replaces the default one by name — the SDK dedupes
+      // integrations and a user-supplied one wins — so this is the only
+      // HttpServer integration that runs. The test posts a JSON body with an
+      // explicit content-type and asserts it never reaches an envelope.
+      integrations: [Sentry.httpServerIntegration({ maxRequestBodySize: 'none' })],
     }),
     handler
   ) as ExportedHandler<E>

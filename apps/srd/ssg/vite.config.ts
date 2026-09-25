@@ -10,25 +10,66 @@
  */
 
 import { fileURLToPath } from 'node:url'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
+const outDir = fileURLToPath(new URL('../dist', import.meta.url))
+
+// Sourcemap upload, mirroring `apps/itun/vite.config.ts` (audit AP-20). srd's
+// client bundle is ~500 KB minified, so without maps every production Sentry
+// event is a stack of mangled frames in `assets/islands-<hash>.js` — counted,
+// and not actionable. Inert unless `SENTRY_AUTH_TOKEN` is set, so local builds,
+// CI's `build-srd` job and the output gate never emit or upload a map (the
+// gate's emitted-file set is blessed against exactly that build).
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
 
 export default defineConfig({
   root: appRoot,
   base: '/',
   publicDir: fileURLToPath(new URL('../public', import.meta.url)),
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // Must run last (Sentry's own requirement — it needs the final Rollup output
+    // to attach debug ids and upload the maps).
+    sentryAuthToken
+      ? sentryVitePlugin({
+          org: process.env.SENTRY_ORG,
+          project: process.env.SENTRY_PROJECT,
+          authToken: sentryAuthToken,
+          // Pinned to the same PUBLIC_COMMIT_REF the client tags itself with at
+          // runtime (src/lib/observability.ts). Auto-detecting from git would
+          // read CI's shallow clone and could silently mismatch, and a
+          // mismatched release is a map that never applies.
+          release: { name: process.env.PUBLIC_COMMIT_REF, inject: false },
+          sourcemaps: {
+            // Uploaded, then removed: the maps must not ship, and they must be
+            // gone before `ssg/pwa.ts` globs dist for the precache manifest.
+            filesToDeleteAfterUpload: [`${outDir}/**/*.map`],
+          },
+          // No plugin usage telemetry to Sentry from CI builds.
+          telemetry: false,
+          // A failing upload (expired token, Sentry blip) degrades to "no maps
+          // this deploy" rather than failing it. An ABSENT credential is a
+          // different thing, and `deploy-cloudflare.yml` refuses to build
+          // without one; this covers the blip, not the gap.
+          errorHandler: (error) => {
+            console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
+          },
+        })
+      : false,
+  ],
   // Astro exposed `PUBLIC_`-prefixed env to the client bundle; Vite's default is
   // `VITE_`. Without this override `import.meta.env.PUBLIC_SENTRY_DSN` inlines
   // as `undefined`, so Sentry initialises with no DSN and silently reports
   // nothing — while the build, the bundle and the deploy all still look
   // healthy. That is precisely the failure mode `tools/check-observability.ts`
-  // exists to catch. Renaming the vars instead would break the values already
-  // configured in the Netlify UI, so the prefix moves here rather than to the
-  // variable names.
+  // exists to catch. Renaming the vars instead is a coordinated change to the
+  // repository variables `deploy-cloudflare.yml` reads, so the prefix moves here
+  // rather than to the variable names.
   envPrefix: 'PUBLIC_',
   // Carried over from the deleted astro.config.mjs, where it fixed a specific,
   // nasty dev-only bug: the island deps live under component-lib/node_modules
@@ -56,7 +97,12 @@ export default defineConfig({
     entries: ['src/components/islands/**/*.{ts,tsx}'],
   },
   build: {
-    outDir: fileURLToPath(new URL('../dist', import.meta.url)),
+    outDir,
+    // Only when uploading. 'hidden' rather than itun's `true`: the maps are
+    // deleted after upload, so a `//# sourceMappingURL` comment would point
+    // every browser's devtools at a 404. The plugin's injected debug ids are
+    // what Sentry matches on, not that comment.
+    sourcemap: sentryAuthToken ? 'hidden' : false,
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {

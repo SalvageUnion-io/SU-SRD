@@ -11,6 +11,11 @@
  */
 
 import { buttonVariants, DashboardCanvas, DashboardGrid, Dial, RailBar } from 'component-lib'
+// The dashboard's `.pc-*` stylesheet. component-lib's dashboard components
+// import no CSS themselves — that rode the barrel into srd (audit PK-01) — so
+// the one app that renders a dashboard loads it here, and it lands in this
+// route's chunk rather than in every page's stylesheet.
+import 'component-lib/styles/dashboard.css'
 import { useCallback, useMemo } from 'react'
 import { containerOf } from '../../lib/container'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'

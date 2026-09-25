@@ -24,6 +24,13 @@
 @import './styles/print.css';
 
 @source '../../../packages/component-lib/src';
+/* ...but not its stories and tests, which ship nowhere (audit PK-05): every
+   class-shaped token Tailwind finds under an `@source` becomes a utility in
+   this app's stylesheet. */
+@source not '../../../packages/component-lib/src/**/*.stories.tsx';
+@source not '../../../packages/component-lib/src/**/*.test.{ts,tsx}';
+@source not '../../../packages/component-lib/src/**/__tests__';
+@source not '../../../packages/component-lib/src/stories';
 
 /*
  * (Removed: a ShadCN runtime-token :root block — --primary / --card / --ring

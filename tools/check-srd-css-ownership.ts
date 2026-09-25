@@ -33,14 +33,18 @@
  *
  * ## What this asserts
  *
- * Exactly one module in `apps/srd` may import a stylesheet, and it is
- * `src/runtime/styles.entry.ts`. Scoped to srd's own source: `component-lib`
- * components legitimately import their own css and are reached through Vite for
- * the client bundle, which is the case the stub plugin exists to make
- * deterministic on the SSR side.
+ * 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
+ *    `src/runtime/styles.entry.ts`.
+ * 2. No **shipping** `component-lib` module may import a stylesheet (stories,
+ *    tests and the Ladle-only `src/stories/` tree are exempt). A component-side
+ *    `import './x.css'` rides the barrel into every consumer: that is how srd
+ *    bundled — and its service worker precached — the dashboard's 20 KB of
+ *    `.pc-*` rules that no srd page can use (audit PK-01). A component's
+ *    stylesheet is a package EXPORT (`component-lib/styles/*.css`) that the app
+ *    which renders the component imports.
  *
- * Exit codes: 0 — only the entry imports css; 1 — some other module does, or
- * the entry stopped importing any (which would mean the site ships unstyled).
+ * Exit codes: 0 — both hold; 1 — some other module imports css, or the entry
+ * stopped importing any (which would mean the site ships unstyled).
  *
  * Usage: bun run check:srd-css
  */
@@ -97,6 +101,35 @@ for (const file of files) {
   }
 }
 
+// Rule 2 — component-lib ships no side-effect stylesheet imports.
+const LIB_SRC = join(ROOT, 'packages/component-lib/src')
+const isLibExempt = (rel: string): boolean =>
+  rel.includes('/__tests__/') ||
+  rel.startsWith('packages/component-lib/src/stories/') ||
+  /\.(stories|test|spec)\.[cm]?tsx?$/.test(rel)
+const libFiles = walk(LIB_SRC).filter((file) => !isLibExempt(relative(ROOT, file)))
+assertScanFloor(`${LABEL} (component-lib source files)`, libFiles.length, 100)
+
+const libOffenders: string[] = []
+for (const file of libFiles) {
+  const source = readFileSync(file, 'utf-8')
+  for (const match of source.matchAll(CSS_IMPORT)) {
+    libOffenders.push(`${relative(ROOT, file)} imports '${match[1] ?? match[2]}'`)
+  }
+}
+
+if (libOffenders.length > 0) {
+  console.error(`\n✗ ${LABEL}: ${libOffenders.length} stylesheet import(s) inside component-lib.\n`)
+  for (const offender of libOffenders) console.error(`  • ${offender}`)
+  console.error(
+    '\n  A component-lib module that imports css leaks it into EVERY consumer of the\n' +
+      '  barrel — srd shipped the whole dashboard stylesheet this way (audit PK-01).\n\n' +
+      '  Export the stylesheet instead (`component-lib/styles/<name>.css` in the\n' +
+      "  package's `exports`) and import it from the app that renders the component.\n"
+  )
+  process.exit(1)
+}
+
 if (offenders.length > 0) {
   console.error(`\n✗ ${LABEL}: ${offenders.length} stylesheet import(s) outside the entry.\n`)
   for (const offender of offenders) console.error(`  • ${offender}`)
@@ -123,5 +156,6 @@ if (entryImports === 0) {
 
 console.log(
   `✓ srd css ownership: ${entryImports} stylesheet import(s), all in ${ENTRY} ` +
-    `(${files.length} source files checked)`
+    `(${files.length} source files checked); component-lib imports none ` +
+    `(${libFiles.length} files checked)`
 )

@@ -104,6 +104,8 @@ export default defineConfig({
           sourcemaps: {
             filesToDeleteAfterUpload: ['dist/**/*.map'],
           },
+          // No plugin usage telemetry to Sentry from CI builds.
+          telemetry: false,
           // Observability tooling that can take down a deploy is an
           // anti-pattern: an expired token, wrong org/project, or a Sentry
           // API blip should degrade to "no sourcemaps this deploy", not fail

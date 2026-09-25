@@ -47,10 +47,14 @@ checked in one command instead of read:
 ```
 $ bun why @sentry/cloudflare
 @sentry/cloudflare@10.69.0
-  └─ dev observability@workspace (requires 10.69.0)
+  └─ observability@workspace (requires 10.69.0)
      ├─ discord-bot@workspace (requires workspace:*)
      ├─ itun@workspace (requires workspace:*)
 ```
+
+(It read `dev observability@workspace` until the 2026-09-25 audit, PK-07: all
+three Workers import `@sentry/cloudflare` at runtime through
+`observability/cloudflare`, so it is a `dependency`, not a devDependency.)
 
 This example used to be `@netlify/blobs`, and it outlived the package —
 printing a dependency tree that no longer existed, three paragraphs under a
@@ -137,7 +141,7 @@ advisory range; move the offending subtree, not every consumer.
 
 Any dependency used by **two or more** manifests is declared once in the root
 `package.json` under `workspaces.catalog` and referenced everywhere as
-`"react": "catalog:"`. 20 deps, 49 references. Bump the catalog entry, not the
+`"react": "catalog:"`. 17 deps, 44 references (`bun run check:catalog` prints the live count). Bump the catalog entry, not the
 workspace — a version literal in a workspace manifest for a catalogued package
 is a bug, and it silently un-shares that dep.
 
@@ -178,6 +182,34 @@ advisories `check:audit` deliberately ignores.
 `tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
 majors; anything else that learns a version by reading a workspace manifest
 needs the same treatment.
+
+# Declare what you import, in the right field
+
+Every workspace declares, in its **own** manifest, each package its shipping
+code imports — as a `dependency`, not a `devDependency` and not a peer the
+consumer is trusted to supply. The 2026-09-25 audit (PK-07) found three ways
+this had held only by accident:
+
+- `component-lib` listed `@base-ui/react`, `@randsum/roller`, `clsx`,
+  `class-variance-authority`, `lucide-react`, `salvageunion-reference`,
+  `sonner` and `tailwind-merge` as **peers**, while srd declared none of them
+  and neither app declared `sonner`. They resolved only because the library's
+  own devDependency copies happened to be installed. They are now `component-lib`
+  `dependencies`. **`react` and `react-dom` stay peers** — they must be a single
+  instance per app, so the app supplies them, and both apps do. The apps'
+  declarations that only existed to satisfy those peers (`@base-ui/react`,
+  `clsx`, `class-variance-authority`, `tailwind-merge`) were removed — knip
+  reports them unused once nothing asks for them — and with the library as
+  their only consumer those four left the catalog for direct declarations in
+  `component-lib` (a caret range for three, an exact pin for `@base-ui/react`), per the two-manifest rule above.
+- `qrcode` was a `component-lib` dependency used by one ITUN-only component.
+  `SnapshotQr` moved into `apps/itun/src/components/sheet/`, and `qrcode` (plus
+  `@types/qrcode`) moved with it.
+- `@sentry/cloudflare` was a **devDependency** of `observability`, yet all three
+  production Workers import it at runtime through `observability/cloudflare`.
+
+The test: if deleting a devDependency would break `bun run build` or a deploy,
+it was never a devDependency.
 
 # Install cooldown (`minimumReleaseAge`)
 

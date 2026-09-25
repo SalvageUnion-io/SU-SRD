@@ -2,7 +2,7 @@
  * Catalog-only stylesheet — the stateful/responsive half of the split rule for
  * the Foundations specimen pages.
  *
- * WHY THIS IS NOT `src/styles/index.css`. That file is the ONE stylesheet a web
+ * WHY THIS IS NOT `src/styles/index.css`. That file is the base stylesheet every web
  * consumer loads; these rules lay out a Ladle page and ship in no app, so
  * putting them there would export catalog scaffolding to every consumer. The
  * leading underscore is the same marker `_harness.tsx` and `_dashboardStage.tsx`

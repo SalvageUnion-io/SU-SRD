@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./design/tokens": "./src/design/tokens.ts",
+    "./styles/dashboard.css": "./src/styles/dashboard.css",
     "./styles/index.css": "./src/styles/index.css",
     "./styles/theme.css": "./src/styles/theme.css"
   },
@@ -22,36 +23,26 @@
     "ladle:build": "ladle build"
   },
   "peerDependencies": {
-    "@base-ui/react": "^1.2.0",
-    "@randsum/roller": "^4.0.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^1.18.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "salvageunion-reference": "workspace:*",
-    "sonner": "^2.0.3",
-    "tailwind-merge": "^3.0.2"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@base-ui/react": "catalog:",
     "@ladle/react": "5.1.1",
-    "@randsum/roller": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
-    "@types/qrcode": "1.5.6",
-    "class-variance-authority": "catalog:",
-    "clsx": "catalog:",
-    "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "salvageunion-reference": "workspace:*",
-    "sonner": "^2.0.8",
-    "tailwind-merge": "catalog:",
     "vite": "catalog:"
   },
   "dependencies": {
-    "qrcode": "1.5.4"
+    "@base-ui/react": "1.6.0",
+    "@randsum/roller": "catalog:",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "catalog:",
+    "salvageunion-reference": "workspace:*",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.6.0"
   }
 }

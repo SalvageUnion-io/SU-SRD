@@ -17,7 +17,7 @@ files, and every component migrated from here on lands on them:
 | File | Role |
 | --- | --- |
 | [`src/design/tokens.ts`](src/design/tokens.ts) | The typed token scale — colour, space, font size, weight, tracking, radius, border width. Plain `as const` objects, no dependency. |
-| [`src/styles/index.css`](src/styles/index.css) | The **one** stylesheet a web consumer loads. Emits the scale as `--su-*` custom properties, binds the page ground and body face, and carries every rule a style object cannot express. |
+| [`src/styles/index.css`](src/styles/index.css) | The base stylesheet every web consumer loads (ITUN also loads `dashboard.css`, the Dashboard-only `.pc-*` rules, from its dashboard route). Emits the scale as `--su-*` custom properties, binds the page ground and body face, and carries every rule a style object cannot express. |
 
 Both halves of the pattern are load-bearing. The token scale is the visible half;
 the stylesheet is the half that is easy to miss, and
@@ -280,7 +280,7 @@ but no *focus* treatment depends on an alpha rung any more.
 
 **A catalog-only rule goes in `src/stories/_stories.css`, not `index.css`.** The
 split rule sends anything stateful or responsive to a stylesheet class, but
-`index.css` is the one stylesheet a *consumer* loads — story-page layout ships in
+`index.css` is the base stylesheet every *consumer* loads — story-page layout ships in
 no app. The underscore is the same story-scaffolding marker as `_harness.tsx`.
 
 The scale therefore exists twice — once as TypeScript, once as custom properties
