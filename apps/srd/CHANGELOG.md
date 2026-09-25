@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.9.4](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.3...srd-v2.9.4) (2026-09-25)
+
+
+### Bug Fixes
+
+* **srd:** stop dashboard CSS leaking to srd, declare deps, share and test observability, upload srd sourcemaps [audit 3/14] ([#989](https://github.com/SalvageUnion-io/SU-SRD/issues/989)) ([82d8159](https://github.com/SalvageUnion-io/SU-SRD/commit/82d81597d0f8a6da8bf2aeb5fbc56a871ef2c3a2))
+
 ## [2.9.3](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.2...srd-v2.9.3) (2026-09-25)
 
 

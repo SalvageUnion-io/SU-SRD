@@ -1,5 +1,5 @@
 {
-  "apps/srd": "2.9.3",
-  "apps/itun": "1.17.7",
+  "apps/srd": "2.9.4",
+  "apps/itun": "1.17.8",
   "packages/salvageunion-reference": "2.12.1"
 }
