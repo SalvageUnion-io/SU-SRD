@@ -176,7 +176,9 @@ export function openItunDatabase(
             // idb eagerly wires `transaction.done`; aborting rejects it. Nothing
             // on the upgrade path awaits .done, so mark that rejection handled to
             // keep it from surfacing as an unhandled rejection.
-            void transaction.done.catch(() => {})
+            void transaction.done.catch(() => {
+              // Expected: this is the rejection abort() is about to cause.
+            })
             transaction.abort()
           } catch {
             // already aborted/committed — nothing more to do

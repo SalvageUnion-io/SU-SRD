@@ -1,6 +1,6 @@
 # Discord Bot
 
-Discord.js bot for rolling on Salvage Union random tables. Standalone consumer of
+Discord bot for rolling on Salvage Union random tables. Standalone consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
 ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)) and preloads the dataset
 at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
@@ -8,8 +8,9 @@ at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
 ## Stack
 
 - **Runtime:** Bun
-- **Library:** `@discordjs/builders` (Components V2), `discord-api-types`;
-  Discord.js v14 for command types and deployment
+- **Library:** `@discordjs/builders` (commands + Components V2),
+  `@discordjs/rest`, `discord-api-types`. **Not `discord.js`** — it was dropped
+  in the 2026-09-25 audit (AP-14); nothing here needs its gateway client.
 - **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
 
 ## Runtime
@@ -17,9 +18,14 @@ at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
 The bot is an **HTTP-interactions Cloudflare Worker** (`src/http/worker.ts`,
 deployed by `wrangler.jsonc`). There is no Node gateway, no `dist/` bundle and
 no `build`/`start` script; the Worker reports to Sentry through
-`observability/cloudflare`. `discord.js` itself is used only for slash-command
-**types** and by `deploy-commands.ts`; replies are built with
-`@discordjs/builders` + `discord-api-types`.
+`observability/cloudflare`. There is no `discord.js` dependency: slash commands
+and replies are built with `@discordjs/builders`, the wire types and `Routes`
+come from `discord-api-types`, and both the Worker and `deploy-commands.ts`
+talk to Discord through `@discordjs/rest`. Reply payloads are the local
+`ReplyPayload` / `EditReplyPayload` in `src/commands/interactions.ts`, not
+`discord.js`'s options classes. Do not re-add `discord.js` for a type — its
+value import cannot run on workerd, and the portable packages cover everything
+the bot uses.
 
 ## Structure
 
@@ -50,7 +56,12 @@ never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
 [discord-bot-game-client.md](../../docs/architecture/discord-bot-game-client.md).
 
-- `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types
+- `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
+  which are **imported** (`import type`) from
+  `apps/itun/convex/model/botWire.ts` — the same declaration `botClient.ts`
+  annotates its handlers with. Never copy a shape into the bot; add it there.
+  That module must stay import-free, because the bot type-checks it under
+  `nodenext`.
 - `src/gameEmbed.ts` — pure `data → EmbedData` builders, no discord.js, mapped
   onto a container by `src/gameContainer.ts`
 - `src/commands/itunReply.ts` — the shared defer / three-mode / ephemerality spine
@@ -121,13 +132,13 @@ budget from `EMBED_LIMIT`, and not applied twice.
 
 ## Conventions
 
-- Slash commands use Discord.js SlashCommandBuilder
+- Slash commands use `@discordjs/builders`' `SlashCommandBuilder`
 - Everything hangs off the single `/su` top-level command (`src/commands/su.ts`)
   — subcommands, plus the `game` subcommand **group**
 - Commands live in `src/commands/`, generally one file per command; the three
   small personal ones share `account.ts`
 - Handlers depend on the **narrow** interaction types in
-  `src/commands/interactions.ts`, never on discord.js's interaction classes. Add
+  `src/commands/interactions.ts`, never on a library's interaction classes. Add
   a member there only when a handler genuinely reads it, and update the shared
   fakes in `src/__tests__/fakeInteraction.ts` — never cast in a test
 - Every message is built as `ContainerData` and rendered by `toContainer`;

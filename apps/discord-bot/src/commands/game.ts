@@ -1,4 +1,4 @@
-import type { SlashCommandSubcommandGroupBuilder } from 'discord.js'
+import type { SlashCommandSubcommandGroupBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
 import { buildChannelEmbed, denialMessage } from '../gameEmbed.js'
 import { itunSettings } from '../itunSettings.js'

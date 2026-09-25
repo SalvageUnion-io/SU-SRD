@@ -181,7 +181,7 @@ conventions:
 
 - [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (in-house SSG at `apps/srd/ssg` + React islands)
 - [`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md) — Character builder + game manager (React; Solo in memory, Connected on Convex with IndexedDB as its cache)
-- [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
+- [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord bot (HTTP interactions on a Cloudflare Worker)
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
 - [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library
 

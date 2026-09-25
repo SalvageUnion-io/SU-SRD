@@ -26,6 +26,7 @@ import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { readReference } from '../../lib/readReference'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
@@ -42,16 +43,14 @@ const HIDE_CHOICES = { choices: true } as const
  */
 function resolveTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
   if (!typeRef) return []
-  try {
+  return readReference('CrawlerIdentity.resolveTypeAbilities', () => {
     const refs = resolveCrawlerType(typeRef)?.actions ?? []
     if (refs.length === 0) return []
     const actions = SalvageUnionReference.Actions.all()
     return refs
       .map((ref) => actions.find((a) => a.id === ref || a.name === ref))
       .filter((a) => a !== undefined)
-  } catch {
-    return []
-  }
+  }, [])
 }
 
 type CrawlerIdentityPanelProps = {

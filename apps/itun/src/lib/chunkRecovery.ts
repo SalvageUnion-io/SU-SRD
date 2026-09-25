@@ -65,6 +65,7 @@ function readLastReloadAt(storage: Storage | undefined): number {
   try {
     return Number(storage.getItem(LAST_RELOAD_KEY)) || 0
   } catch {
+    // Storage denied: no record of a recent reload, so recovery may reload.
     return 0
   }
 }

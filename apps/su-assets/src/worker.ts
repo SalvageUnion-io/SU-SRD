@@ -133,7 +133,7 @@ function plain(body: string, status: number): Response {
 
 export function makeAssetHandler(
   openBucket: () => AssetBucket,
-  report: AssetFailureReporter = () => {},
+  report: AssetFailureReporter = () => undefined,
   images?: ImagesBinding,
   ctx?: ExecutionCtx
 ) {

@@ -140,6 +140,7 @@ export const dirExists = async (dir: string): Promise<boolean> => {
   try {
     return (await stat(dir)).isDirectory()
   } catch {
+    // ENOENT (or any stat failure) means "no directory" to every caller.
     return false
   }
 }

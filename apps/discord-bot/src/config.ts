@@ -18,6 +18,7 @@ function absoluteUrlOr(key: string, fallback: string): string {
     const parsed = new URL(value)
     return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? value : fallback
   } catch {
+    // Not a URL at all: use the default rather than link somewhere broken.
     return fallback
   }
 }

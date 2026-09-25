@@ -16,7 +16,9 @@
 
 export type Reporter = (error: unknown, context?: Record<string, unknown>) => void
 
-const noop: Reporter = () => {}
+const noop: Reporter = () => {
+  // Until the Worker installs a Sentry reporter, a report goes nowhere.
+}
 
 let reporter: Reporter = noop
 

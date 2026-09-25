@@ -20,7 +20,9 @@
 
 export type SnapshotReporter = (error: unknown, context?: Record<string, unknown>) => void
 
-const noop: SnapshotReporter = () => {}
+const noop: SnapshotReporter = () => {
+  // Until the Worker installs a Sentry reporter, a report goes nowhere.
+}
 
 let reporter: SnapshotReporter = noop
 

@@ -1,5 +1,6 @@
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
+import type { BotDenial } from './botWire'
 import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
 
 /**
@@ -20,26 +21,6 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
  */
 
 type AnyCtx = QueryCtx | MutationCtx
-
-/**
- * Why the bot could not act, when it could not.
- *
- * Three distinct causes with one deliberate property: the *bot* learns which
- * one it was, and a *public channel* never does. Distinguishing them in chat
- * would announce who holds an account and who sits at which table, so the bot
- * renders every one of these into an **ephemeral** reply — visible only to the
- * person who asked, which leaks nothing while still explaining itself.
- *
- * Returned rather than thrown because none of the three is exceptional. Not
- * being in a Game is the ordinary condition of most people in most channels.
- */
-export type BotDenial =
-  /** No ITUN account carries this Discord id. */
-  | 'unlinked'
-  /** This channel speaks for no Game. */
-  | 'unbound'
-  /** Linked and bound, but not a member of *that* Game. */
-  | 'not-a-member'
 
 export type BotResolution<T> = { ok: true; value: T } | { ok: false; reason: BotDenial }
 

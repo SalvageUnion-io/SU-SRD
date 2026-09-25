@@ -6,14 +6,11 @@
 
 import type { SURefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
+import { readReference } from '../../lib/readReference'
 
 /** Resolve a stored crawler-system ref (id or name) to its SRD entity [gap 20]. */
 export function resolveCrawlerSystem(ref: string): SURefEntity | null {
-  try {
-    return resolveSystemRef(ref)
-  } catch {
-    return null
-  }
+  return readReference('resolveCrawlerSystem', () => resolveSystemRef(ref), null)
 }
 
 /** Bay repair cost: 5 Scrap of crawler TL or higher (rules C8, S12). */

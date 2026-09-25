@@ -144,7 +144,7 @@ export function watchForUpdate(
 }
 
 export function registerServiceWorker(options: RegisterOptions = {}): void {
-  const { onUpdateReady = () => {} } = options
+  const { onUpdateReady = () => undefined } = options
 
   if (import.meta.env.DEV) {
     // Skip SW registration in development so Vite HMR is not disrupted.

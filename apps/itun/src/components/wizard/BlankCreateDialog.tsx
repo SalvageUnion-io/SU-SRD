@@ -17,6 +17,7 @@
 import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
 import { useMemo, useState } from 'react'
 import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
 
@@ -39,39 +40,38 @@ type RefOption = { value: string; label: string }
 
 /** All classes, id-valued — deliberately unfiltered (incl. specialisations). */
 function classOptions(): RefOption[] {
-  try {
-    const all = SalvageUnionReference.Classes.all()
-    return all.map((c) => ({ value: c.id, label: c.name }))
-  } catch {
-    return []
-  }
+  return readReference(
+    'BlankCreateDialog.classOptions',
+    () => SalvageUnionReference.Classes.all().map((c) => ({ value: c.id, label: c.name })),
+    []
+  )
 }
 
 /** All chassis, slug-valued — any Tech Level, labelled with its TL. */
 function chassisOptions(): RefOption[] {
-  try {
-    const all = SalvageUnionReference.Chassis.all()
-    return [...all]
-      .sort((a, b) => byTechLevelThenName(a, b))
-      .map((c) => ({
-        value: nameToSlug(c.name),
-        label: `${c.name} · TL ${String(c.techLevel)}`,
-      }))
-  } catch {
-    return []
-  }
+  return readReference(
+    'BlankCreateDialog.chassisOptions',
+    () =>
+      [...SalvageUnionReference.Chassis.all()]
+        .sort((a, b) => byTechLevelThenName(a, b))
+        .map((c) => ({
+          value: nameToSlug(c.name),
+          label: `${c.name} · TL ${String(c.techLevel)}`,
+        })),
+    []
+  )
 }
 
 /** The six crawler tech levels, numeric-valued, labelled with their names. */
 function techLevelOptions(): RefOption[] {
-  try {
-    const all = SalvageUnionReference.CrawlerTechLevels.all()
-    return [...all]
-      .sort((a, b) => a.techLevel - b.techLevel)
-      .map((t) => ({ value: String(t.techLevel), label: `TL ${t.techLevel} · ${t.name}` }))
-  } catch {
-    return []
-  }
+  return readReference(
+    'BlankCreateDialog.techLevelOptions',
+    () =>
+      [...SalvageUnionReference.CrawlerTechLevels.all()]
+        .sort((a, b) => a.techLevel - b.techLevel)
+        .map((t) => ({ value: String(t.techLevel), label: `TL ${t.techLevel} · ${t.name}` })),
+    []
+  )
 }
 
 export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreateDialogProps) {

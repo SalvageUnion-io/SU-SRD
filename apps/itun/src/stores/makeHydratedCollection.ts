@@ -24,6 +24,7 @@
 import { recordDataWrite } from '../lib/backupNudge'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import type { StoreName } from '../lib/db/stores'
+import { captureException } from '../lib/observability'
 import { requireWritableBackend } from './entityBackend'
 
 type DbCollection<T, CreateInput> = {
@@ -212,9 +213,14 @@ export function makeHydratedCollectionSlice<
           } catch (err) {
             // The local row already landed, so undo it rather than leave the
             // cache ahead of the server — the one state ADR-034 forbids.
+            // If the undo itself fails, that forbidden state is exactly what is
+            // left behind — so it is reported, not swallowed. The commit error
+            // is still what the caller sees.
             await db()
               .delete((record as { id: string }).id)
-              .catch(() => {})
+              .catch((undoErr: unknown) => {
+                captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
+              })
             throw err
           }
         }

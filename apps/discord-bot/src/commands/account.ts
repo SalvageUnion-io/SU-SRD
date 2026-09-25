@@ -1,4 +1,4 @@
-import type { SlashCommandSubcommandBuilder } from 'discord.js'
+import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { buildGamesEmbed, buildMeEmbed, buildShelfEmbed } from '../gameEmbed.js'
 import { itunSettings } from '../itunSettings.js'
 import type { CommandExecuteInteraction } from './interactions.js'

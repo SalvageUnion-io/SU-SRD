@@ -471,11 +471,8 @@ describe('the read surfaces', () => {
     const t = testConvex()
     await seedBoundGame(t)
 
-    const result = (await t.query(internal.botClient.me, { discordId: 'discord-player' })) as {
-      ok: true
-      games: Array<{ name: string; organizer: boolean }>
-    }
-    expect(result.ok).toBe(true)
+    const result = await t.query(internal.botClient.me, { discordId: 'discord-player' })
+    if (!result.ok) throw new Error(`me denied: ${result.reason}`)
     expect(result.games).toHaveLength(1)
     expect(result.games[0]).toMatchObject({ name: 'Tenacity', organizer: false })
   })
@@ -495,11 +492,11 @@ describe('the read surfaces', () => {
         })
     )
 
-    const result = (await t.query(internal.botClient.crew, {
+    const result = await t.query(internal.botClient.crew, {
       discordId: 'discord-player',
       channelId: 'chan-1',
-    })) as { ok: true; pilots: Array<{ ownerId: string | null; ownerName: string | null }> }
-    expect(result.ok).toBe(true)
+    })
+    if (!result.ok) throw new Error(`crew denied: ${result.reason}`)
     expect(result.pilots).toHaveLength(1)
     expect(result.pilots[0]).toMatchObject({ ownerId: null, ownerName: null })
   })
@@ -523,9 +520,12 @@ describe('the read surfaces', () => {
       })
     })
 
-    const result = (await t.query(internal.botClient.shelf, {
+    // Typed by `model/botWire.ts` — the same declaration the bot imports — so
+    // this narrows instead of casting to a hand-written shape.
+    const result = await t.query(internal.botClient.shelf, {
       discordId: 'discord-player',
-    })) as { ok: true; pilots: Array<{ body: { callsign: string } }> }
+    })
+    if (!result.ok) throw new Error(`shelf denied: ${result.reason}`)
     expect(result.pilots).toHaveLength(1)
     expect(result.pilots[0]?.body.callsign).toBe('Shelved')
   })
@@ -540,15 +540,11 @@ describe('the read surfaces', () => {
     })
     await organizer.as.mutation(api.downtime.begin, { gameId })
 
-    const result = (await t.query(internal.botClient.channel, {
+    const result = await t.query(internal.botClient.channel, {
       discordId: 'discord-player',
       channelId: 'chan-1',
-    })) as {
-      ok: true
-      game: { name: string }
-      members: Array<{ mediator: boolean }>
-      downtime: { running: boolean }
-    }
+    })
+    if (!result.ok) throw new Error(`channel denied: ${result.reason}`)
     expect(result.game.name).toBe('Tenacity')
     expect(result.members).toHaveLength(2)
     expect(result.downtime.running).toBe(true)

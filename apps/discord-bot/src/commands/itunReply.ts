@@ -88,7 +88,7 @@ export const SOLO_NOTICE = [
 ].join('\n')
 
 /**
- * Turn pure `EmbedData` into a discord.js embed, branded like every other.
+ * Turn pure `EmbedData` into a Discord API embed, branded like every other.
  *
  * This is where Discord's limits are enforced, rather than in each builder.
  * One choke point means a new builder cannot forget: every `EmbedData` in the

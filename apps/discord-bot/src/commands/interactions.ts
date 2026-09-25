@@ -9,7 +9,33 @@
  * added here only when a handler genuinely starts reading them.
  */
 
-import type { InteractionEditReplyOptions, InteractionReplyOptions, MessageFlags } from 'discord.js'
+import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-types/v10'
+
+/**
+ * A top-level message component, either raw or as a builder.
+ *
+ * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
+ * through `toJSON()`, which is exactly what the HTTP adapter calls before the
+ * payload goes over the wire (`http/adapter.ts`, `toPlainPayload`).
+ */
+export type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
+
+/**
+ * What a handler may send as a reply or follow-up.
+ *
+ * Local rather than `discord.js`'s `InteractionReplyOptions`: the bot is an
+ * HTTP-interactions Worker and has no `discord.js` dependency at all, and these
+ * are the only three keys any handler sets. There is deliberately no `embeds`
+ * — every surface moved to Components V2, which forbids them.
+ */
+export type ReplyPayload = {
+  content?: string
+  components?: readonly ReplyComponent[]
+  flags?: number
+}
+
+/** An edit may also clear the content, which a fresh reply cannot. */
+export type EditReplyPayload = Omit<ReplyPayload, 'content'> & { content?: string | null }
 
 /** An autocomplete choice as the handlers emit it (name + string value). */
 export type CommandChoice = { name: string; value: string }
@@ -35,10 +61,10 @@ export type CommandExecuteInteraction = {
   }
   user: { id: string; displayName?: string }
   channelId: string | null
-  reply(payload: InteractionReplyOptions): Promise<unknown>
+  reply(payload: ReplyPayload): Promise<unknown>
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
-  editReply(payload: InteractionEditReplyOptions): Promise<unknown>
-  followUp(payload: InteractionReplyOptions): Promise<unknown>
+  editReply(payload: EditReplyPayload): Promise<unknown>
+  followUp(payload: ReplyPayload): Promise<unknown>
 }
 
 /**
@@ -54,8 +80,8 @@ export type CommandButtonInteraction = {
   customId: string
   user: { id: string; displayName?: string }
   channelId: string | null
-  reply(payload: InteractionReplyOptions): Promise<unknown>
-  editReply(payload: InteractionEditReplyOptions): Promise<unknown>
+  reply(payload: ReplyPayload): Promise<unknown>
+  editReply(payload: EditReplyPayload): Promise<unknown>
 }
 
 /** What `autocomplete` handlers read off an autocomplete interaction. */

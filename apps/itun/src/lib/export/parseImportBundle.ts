@@ -68,8 +68,8 @@ export function parseImportBundle(jsonText: string): ExportBundle {
   let raw: unknown
   try {
     raw = JSON.parse(jsonText)
-  } catch {
-    throw new Error('Import failed: file is not valid JSON.')
+  } catch (err) {
+    throw new Error('Import failed: file is not valid JSON.', { cause: err })
   }
   raw = normalizeLegacyBundle(raw)
 

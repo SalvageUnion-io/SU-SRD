@@ -70,7 +70,9 @@ async function init(): Promise<void> {
  * outcome as a build with no DSN.
  */
 export function observabilityReady(): Promise<void> {
-  return (initializing ?? Promise.resolve()).catch(() => {})
+  return (initializing ?? Promise.resolve()).catch(() => {
+    // A failed init is "ready" too: captures then no-op, as with no DSN.
+  })
 }
 
 /**

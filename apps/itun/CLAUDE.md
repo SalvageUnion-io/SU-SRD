@@ -178,6 +178,17 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   the router's `defaultErrorComponent`, with the root's full-page one as the
   last resort (`src/components/shared/RouteErrors.tsx`) — so do not report from
   an `errorComponent` as well, or each crash is sent twice.
+- **A caught error is either reported or explained — never just dropped.**
+  Catching is what keeps an error away from Sentry's global handlers, so a
+  `catch` must do one of three things: produce an outcome the user or caller
+  sees (an error state, a 4xx/5xx, a rethrow with `cause`), report through
+  `captureException` (browser) or `reportError` / `reportSnapshotError`
+  (Worker), or carry a comment saying why dropping it is correct. Biome's
+  `noEmptyBlockStatements` rejects a block with none of those. Reading
+  reference data that may not be preloaded goes through
+  `readReference(source, read, fallback)` (`src/lib/readReference.ts`), which
+  stays silent for `SchemaNotLoadedError` and reports anything else once per
+  source — never a bare `try { SalvageUnionReference… } catch { return [] }`.
 - **Never insert into an `appId`-addressed table without checking first.**
   `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
   `by_app_id` is an ordinary index — **not** a uniqueness constraint — so

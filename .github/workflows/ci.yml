@@ -98,6 +98,9 @@ jobs:
             bot:
               - *shared
               - 'apps/discord-bot/**'
+              # the bot's wire types are imported (`import type`) from here —
+              # apps/discord-bot/src/itun/types.ts
+              - 'apps/itun/convex/model/botWire.ts'
             ladle:
               - *shared
               - 'packages/component-lib/**'

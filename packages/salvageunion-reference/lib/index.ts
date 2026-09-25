@@ -121,6 +121,7 @@ export { nameToSlug } from './nameToSlug.js'
 export { getPatterns, normalizePatternName, visiblePatterns } from './patterns.js'
 export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView.js'
 export { type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
+export { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
 export type {
   SURefEnumSchemaName,
   SURefObjectBonusPerTechLevel,

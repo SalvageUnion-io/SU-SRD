@@ -83,7 +83,7 @@ function ControlButton({
   const variant = control.variant ?? 'primary'
   const isDisabled = !!control.disabled
   const hasCustomColors = !!(control.bgColor || control.textColor)
-  const onClick = control.onClick ?? (() => {})
+  const onClick = control.onClick ?? (() => undefined)
 
   // Every rail control is stamp-sized. The rail sits beside the card's seam
   // stamp, and the buttons used to run a rung larger than it (and the icon-only

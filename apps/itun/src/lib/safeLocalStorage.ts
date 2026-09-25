@@ -56,6 +56,7 @@ export function readLocal(key: string): string | null {
   try {
     return store.getItem(key)
   } catch {
+    // Denied mid-session (e.g. a profile policy change): read as absent.
     return null
   }
 }
@@ -97,6 +98,7 @@ export function readLocalJson(key: string): unknown {
   try {
     return JSON.parse(raw)
   } catch {
+    // A value this app did not write, or wrote under an older format.
     return null
   }
 }

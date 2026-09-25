@@ -6,7 +6,7 @@
  * the autocomplete substring filter + Discord's 25-choice cap.
  */
 import { describe, expect, test } from 'bun:test'
-import { MessageFlags } from 'discord.js'
+import { MessageFlags } from 'discord-api-types/v10'
 import { rollCommand } from '../commands/roll.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 

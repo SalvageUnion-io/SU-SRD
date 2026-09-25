@@ -13,7 +13,7 @@ salvageunion-reference (game data ORM, no build step)
   |       |
   |       +---> itun (character builder, React 19 + Vite)
   |
-  +---> discord-bot (standalone, Discord.js)
+  +---> discord-bot (@discordjs/builders + @discordjs/rest, HTTP interactions on a Worker)
 ```
 
 All workspace dependencies use `workspace:*` protocol. React 19.2.0+ is aligned across all packages.
@@ -351,11 +351,13 @@ IndexedDB is the on-device layer.
 ## discord-bot
 
 **Location:** `apps/discord-bot/`
-**Framework:** Discord.js 14
+**Framework:** `@discordjs/builders` + `@discordjs/rest` + `discord-api-types` — HTTP interactions on a Cloudflare Worker, no gateway. There is **no** `discord.js` dependency; do not re-add it for a type (see [`apps/discord-bot/CLAUDE.md`](../../apps/discord-bot/CLAUDE.md)).
 
 ### Consumes
 
 - `salvageunion-reference` (workspace:\*) — game data for table rolling
+- `observability` (workspace:\*) — `withObservability` / `reportError` for the Worker
+- `apps/itun/convex/model/botWire.ts` — **`import type` only**, via relative path from `src/itun/types.ts`; it is the wire contract between the bot and ITUN's Convex bot endpoints. Erased at bundle time, so it adds no runtime dependency, but **a change to `botWire.ts` is a cross-package change**: typecheck the bot as well as ITUN. `botWire.ts` must stay import-free — `convex/model/bot.ts` does not typecheck under the bot's `nodenext` resolution.
 
 ### Does Not Use
 

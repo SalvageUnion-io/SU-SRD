@@ -14,7 +14,9 @@ import type { GaugeTone } from './DashboardGauge'
 import { DashboardGauge } from './DashboardGauge'
 
 /** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
-const NOOP = () => {}
+const NOOP = () => {
+  // Nothing to close.
+}
 
 export type BandGauge = {
   label: string

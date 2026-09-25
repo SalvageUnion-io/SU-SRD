@@ -52,6 +52,8 @@ function emittedEntityNames(): Set<string> {
     try {
       parsed = JSON.parse(readFileSync(join(schemaDir, file), 'utf8'))
     } catch {
+      // Not this check's concern: the snapshot gate digests every JSON
+      // endpoint and flags one that stops parsing.
       continue
     }
     if (!Array.isArray(parsed)) continue

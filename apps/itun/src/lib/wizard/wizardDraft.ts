@@ -32,6 +32,7 @@ export function readWizardDraft<T>(key: string): T | null {
     if (raw === null) return null
     return JSON.parse(raw) as T
   } catch {
+    // A corrupt or unreadable draft: drop it and start the wizard clean.
     try {
       sessionStorage.removeItem(key)
     } catch {
