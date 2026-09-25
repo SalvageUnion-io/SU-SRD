@@ -13,7 +13,7 @@
  */
 
 import { Button, EntitySearcher, ModalShell, toast } from 'component-lib'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -36,16 +36,11 @@ export function CrawlerTypeEditModal({
   crawler,
   storeState,
 }: CrawlerTypeEditModalProps) {
-  const [types, setTypes] = useState<SURefCrawler[]>([])
+  // Synchronous: rendered inside GameDataReady, so the dataset is loaded.
+  const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
   const [selected, setSelected] = useState<string | null>(crawler.type ?? null)
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
-
-  useEffect(() => {
-    void SalvageUnionReference.preload(['crawlers', 'crawler-bays']).then(() => {
-      setTypes(SalvageUnionReference.Crawlers.all())
-    })
-  }, [])
 
   // Reset the picker to the crawler's current type each time it opens. Depends
   // on `open` ONLY: the atomic type write flips crawler.type as it completes, so

@@ -8,20 +8,17 @@
  * 404: renders a not-found state with a link back to the dashboard.
  * Other errors: renders a generic error state.
  *
- * The `retrieveFn` prop is not supported on TanStack Router file routes
- * directly, so we expose the retrieve function as a module-level export
- * for testability. Tests render SnapshotPage directly and stub
- * retrieveSnapshot at the import boundary via test utilities.
+ * The page body is `SnapshotPageInner` in `components/sheet/SnapshotPage.tsx`,
+ * which tests render directly. This file exports only `Route`, on purpose:
+ * any other export stops `autoCodeSplitting` from moving the component out
+ * of the entry chunk (see `routes/__tests__/routeExports.test.ts`).
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { buttonVariants, SheetSkeleton } from 'component-lib'
-import { AppLink } from '../../components/shared/AppLink'
-import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
+import { SheetSkeleton } from 'component-lib'
+import { SnapshotPageInner } from '../../components/sheet/SnapshotPage'
 import { captureException } from '../../lib/observability'
-import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/client'
-import { cn } from '../../lib/utils'
 
 // ---------------------------------------------------------------------------
 // Route definition
@@ -69,56 +66,6 @@ export const Route = createFileRoute('/s/$id')({
   // sheet-shaped skeleton instead of a blank page while it resolves.
   pendingComponent: SheetSkeleton,
 })
-
-// ---------------------------------------------------------------------------
-// Page component — exported for direct testing
-// ---------------------------------------------------------------------------
-
-type SnapshotPageInnerProps = {
-  snapshot: SnapshotPayload | null
-  notFound: boolean
-  error: string | null
-}
-
-export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInnerProps) {
-  if (notFound) {
-    return (
-      <main className="mx-auto max-w-5xl p-6">
-        <h1 className="mb-2 text-xl font-bold">Snapshot not found</h1>
-        <p className="mb-4 text-sm text-wk-muted">
-          This snapshot link was removed by its owner, or never existed.
-        </p>
-        <AppLink
-          href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
-        >
-          &larr; Back to Roster
-        </AppLink>
-      </main>
-    )
-  }
-
-  if (error) {
-    return (
-      <main className="mx-auto max-w-5xl p-6">
-        <h1 className="mb-2 text-xl font-bold">Failed to load snapshot</h1>
-        <p className="mb-4 text-sm text-wk-muted">{error}</p>
-        <AppLink
-          href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
-        >
-          &larr; Back to Roster
-        </AppLink>
-      </main>
-    )
-  }
-
-  if (!snapshot) {
-    return null
-  }
-
-  return <SnapshotSheet snapshot={snapshot} />
-}
 
 function SnapshotPage() {
   const { snapshot, notFound, error } = Route.useLoaderData()

@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { PilotWizard } from '../../components/pilot/PilotWizard'
 import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
 import type { CreateMode } from '../../lib/wizard/createMode'
@@ -10,11 +9,9 @@ export const Route = createFileRoute('/pilots/new')({
   validateSearch: (search: Record<string, unknown>): { mode: CreateMode } => ({
     mode: parseCreateMode(search.mode),
   }),
-  loader: async () => {
-    // Preload game data needed by the wizard before rendering
-    await SalvageUnionReference.preload(['classes', 'abilities', 'equipment', 'roll-tables'])
-    return null
-  },
+  // No loader: the wizard renders inside GameDataReady, whose preload('all')
+  // is already the gate for every route, so a per-route preload list here was
+  // pure repetition (audit AP-11).
   component: NewPilotRoute,
 })
 

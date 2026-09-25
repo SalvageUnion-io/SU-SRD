@@ -9,7 +9,7 @@
  */
 
 import { EntitySearcher, ModalShell } from 'component-lib'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { SURefCrawler, SURefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
@@ -34,15 +34,9 @@ export function CrawlerSystemsEditModal({
   crawler,
   patch,
 }: CrawlerSystemsEditModalProps) {
-  const [allSystems, setAllSystems] = useState<SURefSystem[]>([])
-  const [types, setTypes] = useState<SURefCrawler[]>([])
-
-  useEffect(() => {
-    void SalvageUnionReference.preload(['systems', 'crawlers', 'actions']).then(() => {
-      setAllSystems(SalvageUnionReference.Systems.all())
-      setTypes(SalvageUnionReference.Crawlers.all())
-    })
-  }, [])
+  // Synchronous: rendered inside GameDataReady, so the dataset is loaded.
+  const allSystems = useMemo<SURefSystem[]>(() => SalvageUnionReference.Systems.all(), [])
+  const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? null
   const selectedType = types.find((t) => t.id === crawler.type || t.name === crawler.type)

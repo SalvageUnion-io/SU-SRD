@@ -11,9 +11,9 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
+import { SnapshotPageInner } from '../../components/sheet/SnapshotPage'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
-import { SnapshotPageInner } from '../s/$id'
 
 // Preload chassis data so MechSheet can resolve chassis without throwing
 afterEach(() => {

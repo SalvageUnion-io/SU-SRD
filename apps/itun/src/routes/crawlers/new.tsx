@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { CrawlerBuilder } from '../../components/crawler/CrawlerBuilder'
 import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
 import type { CreateMode } from '../../lib/wizard/createMode'
@@ -10,24 +9,9 @@ export const Route = createFileRoute('/crawlers/new')({
   validateSearch: (search: Record<string, unknown>): { mode: CreateMode } => ({
     mode: parseCreateMode(search.mode),
   }),
-  loader: async () => {
-    // Preload game data needed by the wizard before rendering (parity with
-    // pilots/mechs — plan §4.3): crawlers for the type cards + mutations
-    // budgets, crawler-tech-levels for the Statistics step + SP derivation,
-    // systems/actions/traits for the weapons entity cards + isWeaponSystem,
-    // crawler-bays for the seeded set + Crew roster, roll-tables for the
-    // Crawler Name d20 assist.
-    await SalvageUnionReference.preload([
-      'crawlers',
-      'crawler-tech-levels',
-      'systems',
-      'crawler-bays',
-      'actions',
-      'traits',
-      'roll-tables',
-    ])
-    return null
-  },
+  // No loader: the wizard renders inside GameDataReady, whose preload('all')
+  // is already the gate for every route, so a per-route preload list here was
+  // pure repetition (audit AP-11).
   component: CrawlersNewPage,
 })
 
