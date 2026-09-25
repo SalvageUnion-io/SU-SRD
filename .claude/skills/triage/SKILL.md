@@ -105,5 +105,6 @@ Rank by this order unless there is a stated reason to depart from it:
 5. New feature work.
 
 If every signal you read is green, say so in one line and propose feature work
-from the open backlog — but never call the day green while a signal was unread. Do not manufacture findings — "nothing is wrong" is a valid and
-useful triage result.
+from the open backlog — but never call the day green while a signal was unread.
+Do not manufacture findings — "nothing is wrong" is a valid and useful triage
+result.

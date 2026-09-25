@@ -1378,9 +1378,25 @@ const IMPORT_SPECIFIER_PACKAGES = new Set(['convex'])
  * `test/preload-reference.ts`" names a file that is SUPPOSED not to exist yet.
  * Tested against the sentence with its backticked spans removed, so a path
  * that merely contains `new` (`routes/npcs/new.tsx`) does not excuse itself.
+ *
+ * Deliberately narrow. It once carried `add`, `will` and `would`, which read
+ * as proposals in almost no sentence that uses them ("add a row to
+ * `tools/x.ts`" is an instruction about a file that must exist), and together
+ * with {@link CITATION_HISTORY}'s predecessor it skipped ~30% of all cited
+ * paths while the check reported them as checked.
  */
-const PROSPECTIVE =
-  /\b(create|creates|creating|add|adds|adding|planned|proposed|propose|will|future|would)\b/
+const CITATION_PROPOSAL =
+  /\b(create|creates|creating|planned|proposed|propose|proposes|does not exist yet|doesn't exist yet|not yet exist)\b/
+
+/**
+ * Prose that marks a cited path as HISTORY. Its own list, not {@link NEGATED}:
+ * that one serves claim-counting checks and includes `no`, `not`, `was `,
+ * `rather than` — none of which says a path is gone, and a rule file saying
+ * "do not edit `src/stores/x.ts` directly" is live instruction about a file
+ * that must exist. Only words that say the path itself is gone count here.
+ */
+const CITATION_HISTORY =
+  /\b(deleted|removed|retired|no longer|used to|formerly|never existed|does not exist|did not exist|never written|was renamed|superseded)\b/
 
 /**
  * A doc that declares itself a plan in its opening status line. Every path it
@@ -1426,9 +1442,10 @@ export function pathCandidate(token: string): string | null {
  * A gitignored path (`.claude/worktrees/`, `rules/extracted/`, `.profiles/`) is
  * a legitimate thing for an instruction to name — it is where a tool writes —
  * and it is absent in CI by design, so existence proves nothing either way.
- * Handles the three shapes the root `.gitignore` actually uses: a plain path or
- * directory, `dir/*`, and a leading `**` segment before a name. Anything fancier
- * is not matched, which errs toward judging the path.
+ * Handles the shapes the root `.gitignore` actually uses: an unanchored bare
+ * name (matched at any depth, as git does), a path or directory, `dir/*`, and a
+ * leading `**` segment before a name. Anything fancier is not matched, which
+ * errs toward judging the path.
  */
 export function gitignoredMatcher(root: string): (candidate: string) => boolean {
   const file = join(root, '.gitignore')
@@ -1437,9 +1454,16 @@ export function gitignoredMatcher(root: string): (candidate: string) => boolean 
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('!'))
-    .map((line) => line.replace(/^\//, ''))
   return (candidate) =>
-    rules.some((rule) => {
+    rules.some((line) => {
+      const rule = line.replace(/^\//, '')
+      // Git semantics: a pattern with no slash but a trailing one is unanchored
+      // and matches that name at ANY depth, so `.env.local` ignores
+      // `apps/itun/.env.local` too.
+      const bare = rule.replace(/\/$/, '')
+      if (!line.startsWith('/') && !bare.includes('/') && !bare.includes('*')) {
+        return candidate.split('/').includes(bare)
+      }
       if (rule.startsWith('**/')) {
         const name = rule.slice(3)
         return candidate.startsWith(name) || candidate.includes(`/${name}`)
@@ -1522,7 +1546,7 @@ export function sentenceAround(text: string, index: number): string {
  */
 export function readsAsHistoryOrProposal(sentence: string): boolean {
   const prose = sentence.replace(/`[^`]*`/g, ' ').toLowerCase()
-  return NEGATED.test(prose) || PROSPECTIVE.test(prose)
+  return CITATION_HISTORY.test(prose) || CITATION_PROPOSAL.test(prose)
 }
 
 /**
@@ -1573,7 +1597,7 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
     const source = read(root, doc)
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(doc, source)) {
-      if (block.headings.some((heading) => NEGATED.test(heading.toLowerCase()))) continue
+      if (block.headings.some((heading) => CITATION_HISTORY.test(heading.toLowerCase()))) continue
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
         const candidate = pathCandidate(match[1] as string)
         if (candidate === null) continue

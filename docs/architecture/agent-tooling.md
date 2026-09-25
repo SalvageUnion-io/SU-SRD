@@ -148,8 +148,11 @@ PATH="$HOME/.local/share/su-srd-bun/$(cat .bun-version):$PATH"` — and run
 inherit the same `PATH`, so a commit or push needs it too.
 
 **Workflows and skills.** `.claude/workflows/*.js` and `/triage` name the `gh`
-command and the `mcp__github__*` fallback side by side; a step that has neither
-available is reported as unavailable, never skipped silently.
+command and the `mcp__github__*` fallback side by side, and the workflow prompts
+forbid skipping or faking a GitHub step because `gh` is missing. Neither
+workflow's result schema has a dedicated field for a step with no route at all;
+`single_issue_resolve` reports it in its free-text `notes`, and `/triage`
+reports it as an unread signal.
 
 ## Cloudflare
 

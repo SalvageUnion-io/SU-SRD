@@ -150,7 +150,7 @@ CPU cannot be timed from inside a Worker. The authoritative reading is
 
 ### P0 — Port the CI guards · reversible · ½ day
 
-Three tools READ `netlify.toml` at the time this phase was written, and each
+Three tools READ `netlify.toml` (since deleted) at the time this phase was written, and each
 exists because of a documented silent-production incident. A hard cutover
 deletes that file, so they were ported **first**, not during. (That file no
 longer exists anywhere in the tree; this phase is complete.)
@@ -213,7 +213,7 @@ enter this repository. An export gives a second.
 
 - Restore `tools/upload-lp-assets.ts` from `8b678bbd` — it is the restore path.
 - Write `tools/export-lp-assets.ts` as its mirror.
-  `tools/convert-lp-assets-to-webp.ts` already has the scaffold:
+  `tools/convert-lp-assets-to-webp.ts` (since deleted) had the scaffold:
   `netlify blobs:list lp-assets --json` → keys → `blobs:get`.
 - Store the export encrypted, off Netlify, outside this repository.
 
@@ -269,7 +269,7 @@ against a deployed Worker carrying the real command handlers.
 > Cloudflare Dashboard"*, code 10042). KV and D1 are already available.
 
 `SnapshotStorage` is three methods with two existing implementations, so this is
-a drop-in third. Run the **existing**
+a drop-in third. Run the then-existing (since deleted)
 `apps/itun/netlify/functions/__tests__/snapshot.test.ts` against it by swapping
 the injected storage — the suite becomes a conformance suite at no cost.
 
@@ -527,7 +527,7 @@ The app's Public Key in the portal matches `wrangler.jsonc` byte for byte, which
 is what makes the signature check able to succeed at all.
 
 **No Game-command regression, because there is none to lose.** The Worker reports
-`mode: solo`, and so was Render: `render.yaml` declares `ITUN_CONVEX_SITE_URL`
+`mode: solo`, and so was Render: `render.yaml` (since deleted) declared `ITUN_CONVEX_SITE_URL`
 and `ITUN_BOT_SECRET` as `sync: false`, and neither was ever set — on Render or
 in Convex. Reference commands (`/su roll`, `/su lookup`) behave
 identically; Game commands said "not connected" before and still do.
@@ -944,7 +944,7 @@ immediately after the flip rather than waiting for the periodic check (whose UI
 copy says "1–2 hours… may take up to 24 hours").
 
 **A pre-existing bug turned up and the migration fixes it.** On Netlify,
-`DELETE /api/snapshots/:id` answers **405** — the method-conditioned redirect in
+`DELETE /api/snapshots/:id` answers **405** — the method-conditioned redirect in the since-deleted
 `netlify.toml` never matched, so share revocation has been broken in production.
 Proven not to be a freeze artefact: the function itself answered 503 when called
 directly at `/.netlify/functions/snapshot-delete/:id`, so it was deployed and
@@ -1344,7 +1344,7 @@ Only after P7 has been stable for 24 h.
 
 **Gate**
 
-- [ ] `bun run check` green with no `netlify.toml` anywhere in the tree. (`check:all`
+- [ ] `bun run check` green with every `netlify.toml` removed from the tree. (`check:all`
       is a deprecated alias slated for removal — a gate that invokes a removed
       script fails for the wrong reason.)
 - [ ] `claude mcp list` shows the Cloudflare servers connected — zero tool calls

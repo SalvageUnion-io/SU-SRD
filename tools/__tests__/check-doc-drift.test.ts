@@ -363,9 +363,44 @@ describe('sentenceAround / readsAsHistoryOrProposal', () => {
     expect(readsAsHistoryOrProposal('Route `src/routes/npcs/new.tsx` is the wizard')).toBe(false)
     expect(readsAsHistoryOrProposal('Create `test/preload.ts` in the package')).toBe(true)
   })
+
+  it('still judges live instructions that merely contain not / will / add / was', () => {
+    for (const sentence of [
+      'Do not edit `src/stores/entityBackend.ts` directly',
+      'The hook will run `tools/check-path-filters.ts` for you',
+      'Add a row to `tools/check-path-filters.ts` when you add a workspace',
+      'The gate was written in `tools/check-doc-drift.ts`',
+      'Use `a.ts` rather than `b.ts`',
+      'There is no second copy of `tools/x.ts`',
+    ]) {
+      expect(readsAsHistoryOrProposal(sentence)).toBe(false)
+    }
+  })
+
+  it('skips sentences that say the path is gone or not yet built', () => {
+    for (const sentence of [
+      '`tools/x.ts` was deleted with P8',
+      'The old `a.md` no longer exists',
+      '`b.md` used to hold this',
+      '`docs/rules/` never existed',
+      'The planned `tools/y.ts` does not exist yet',
+    ]) {
+      expect(readsAsHistoryOrProposal(sentence)).toBe(true)
+    }
+  })
 })
 
 describe('checkBacktickedPathsExist', () => {
+  it('judges a stale path in a rule sentence that only says not / will', () => {
+    const root = fixture({
+      '.claude/rules/x.md':
+        'Do not read Dexie directly; go through `src/stores/entityBackendRenamed.ts`.\n\n' +
+        'The hook will run `tools/check-path-filters-renamed.ts` for you.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(2)
+  })
+
   it('fails on a .claude path a rule cites that does not exist', () => {
     const root = fixture({
       '.claude/rules/x.md': 'Follow `.claude/skills/gone/SKILL.md` before merging.\n',
@@ -467,5 +502,13 @@ describe('gitignoredMatcher', () => {
     expect(ignored('apps/srd/coverage/lcov.info')).toBe(true)
     expect(ignored('tools/check-doc-drift.ts')).toBe(false)
     expect(ignored('rulesets/a.md')).toBe(false)
+  })
+
+  it('matches an unanchored bare name at any depth, as git does', () => {
+    const root = fixture({ '.gitignore': '.env.local\n/root-only\n' })
+    const ignored = gitignoredMatcher(root)
+    expect(ignored('apps/itun/.env.local')).toBe(true)
+    expect(ignored('.env.local')).toBe(true)
+    expect(ignored('apps/root-only')).toBe(false)
   })
 })

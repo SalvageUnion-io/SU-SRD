@@ -14,7 +14,7 @@ SEO applies to `srd` (the static reference site). Accessibility patterns are sha
 > snapshot of the built site on every CI run. Change anything on this page and
 > the gate will tell you exactly which pages moved; `bun --filter srd snapshot:update`
 > re-blesses, and the snapshot diff is what gets reviewed.
-> (It replaced `ssg/parity.ts`, which compared against an archived Astro
+> (It replaced `ssg/parity.ts`, since deleted, which compared against an archived Astro
 > baseline that expired.)
 
 ### BaseLayout
@@ -53,7 +53,7 @@ type DocumentMeta = {
 - Twitter Cards: `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`
 - Favicons: SVG, PNG 96x96, Apple Touch Icon 180x180
 - Web manifest: `site.webmanifest`
-- Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`, imported from `src/runtime/styles.entry.ts`; served same-origin under the strict `font-src 'self'` CSP, bundled into **`/assets/`** by Vite with `font-display: swap`. (The old Astro output directory was `/_astro/`; `netlify.toml`'s long-cache rule was moved with it.)
+- Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`, imported from `src/runtime/styles.entry.ts`; served same-origin under the strict `font-src 'self'` CSP, bundled into **`/assets/`** by Vite with `font-display: swap`. (The old Astro output directory was `/_astro/`; the long-cache rule moved with it out of `netlify.toml`, which was since deleted.)
 - Prefetch/view transitions are browser-native, replacing Astro's runtime: a `<script type="speculationrules">` block with `eagerness: "moderate"` instead of `prefetch: { prefetchAll, hover }`, and a cross-document `@view-transition { navigation: auto; }` in `global.css` instead of `ClientRouter`. Both ship zero JS.
 
 ### Machine-readable surfaces
