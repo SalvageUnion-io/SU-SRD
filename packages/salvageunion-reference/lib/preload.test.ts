@@ -12,7 +12,12 @@
 
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
 import { BaseModel } from './BaseModel.js'
-import { getDataMaps, resetAllForTesting, SalvageUnionReference } from './index.js'
+import {
+  getDataMaps,
+  resetAllForTesting,
+  SalvageUnionReference,
+  SchemaNotLoadedError,
+} from './index.js'
 
 // After all preload tests complete, restore the global preload state so
 // other test files that run after this one see loaded schemas.
@@ -243,6 +248,19 @@ describe('SalvageUnionReference — access before preload throws', () => {
     expect(() => SalvageUnionReference.Modules.findAll(() => true)).toThrow(
       /Schema "modules" not loaded/
     )
+  })
+
+  // Typed so consumers can tolerate THIS case without a bare `catch {}` that
+  // also swallows every genuine fault (audit AP-15).
+  it('throws a SchemaNotLoadedError carrying the schema id', () => {
+    let caught: unknown
+    try {
+      SalvageUnionReference.Chassis.all()
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeInstanceOf(SchemaNotLoadedError)
+    expect((caught as SchemaNotLoadedError).schemaId).toBe('chassis')
   })
 })
 

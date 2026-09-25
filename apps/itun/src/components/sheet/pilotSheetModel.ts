@@ -19,6 +19,7 @@ import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolvePool } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
+import { readReference } from '../../lib/readReference'
 import { isPilotDead, pilotMaxAPParts, pilotMaxHPParts } from '../../lib/rules/derivedStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -196,15 +197,18 @@ export function usePilotSheetModel({
    * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
    * missing catalog should drop the section, not throw the sheet.
    */
-  const genericAbilities = useMemo(() => {
-    try {
-      return SalvageUnionReference.Abilities.all()
-        .filter((ability) => ability.tree === GENERIC_TREE)
-        .map((ability) => ({ slug: ability.id, ability }))
-    } catch {
-      return []
-    }
-  }, [])
+  const genericAbilities = useMemo(
+    () =>
+      readReference(
+        'pilotSheetModel.genericAbilities',
+        () =>
+          SalvageUnionReference.Abilities.all()
+            .filter((ability) => ability.tree === GENERIC_TREE)
+            .map((ability) => ({ slug: ability.id, ability })),
+        []
+      ),
+    []
+  )
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))

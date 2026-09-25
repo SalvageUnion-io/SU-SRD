@@ -62,8 +62,9 @@ export function makeFrozenStore(parsed: Extract<FrozenParse, { ok: true }>): typ
     crawlers: parsed.kind === 'crawler' ? [parsed.entity] : [],
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
-    hydrate: async () => {},
-    rehydrate: async () => {},
+    // A frozen sheet is already fully in memory: there is nothing to load.
+    hydrate: async () => undefined,
+    rehydrate: async () => undefined,
     list: ((type: EntityType) => byType(type)) as EntityState['list'],
     get: ((type: EntityType, id: string) =>
       byType(type).find((e) => e.id === id) ?? null) as EntityState['get'],

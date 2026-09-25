@@ -179,7 +179,13 @@
         "noExplicitAny": "error",
         "noArrayIndexKey": "warn",
         "useIterableCallbackReturn": "warn",
-        "noAssignInExpressions": "warn"
+        "noAssignInExpressions": "warn",
+        // An empty block is either a mistake or a decision with no reason
+        // written down, and in a `catch` it is an error nobody will ever hear
+        // about (audit AP-15). A block holding only a comment passes, so the
+        // fix for a deliberate one is to say why. Off for tests and stories via
+        // an override below, where `() => {}` is the idiom for a no-op prop.
+        "noEmptyBlockStatements": "error"
       },
       "style": {
         // House rule: "Prefer `type` over `interface` for object types (unless
@@ -316,6 +322,26 @@
     }
   },
   "overrides": [
+    {
+      // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
+      // point in a test or a story, so `noEmptyBlockStatements` — which exists
+      // to catch swallowed errors in shipped code — is off here.
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/__tests__/**",
+        "**/*.stories.tsx",
+        "**/test/**",
+        "**/e2e/**"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noEmptyBlockStatements": "off"
+          }
+        }
+      }
+    },
     {
       // `noExplicitAny` stays "error" for real source, but ESLint's per-line
       // `// eslint-disable-next-line @typescript-eslint/no-explicit-any`

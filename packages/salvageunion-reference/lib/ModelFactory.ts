@@ -28,6 +28,7 @@ import schemaIndex from '../schemas/index.json' with { type: 'json' }
 import { BaseModel } from './BaseModel.js'
 import { dataLoaders, schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js'
 import { toPascalCase } from './naming.js'
+import { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
 
 export { schemaDisplayNames, toPascalCase }
 
@@ -143,9 +144,7 @@ async function loadSingleSchema(schemaId: string, validate: Validator | null): P
  */
 export function getLoadedModel(schemaId: string, propertyName: string): BaseModel<unknown> {
   if (!loadedSchemas.has(schemaId)) {
-    throw new Error(
-      `Schema "${schemaId}" not loaded. Call SalvageUnionReference.preload(['${schemaId}']) or SalvageUnionReference.preload('all') first.`
-    )
+    throw new SchemaNotLoadedError(schemaId)
   }
   const model = modelRegistry[propertyName]
   if (!model) {

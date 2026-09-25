@@ -120,6 +120,12 @@ export declare function getSchemaCatalog(): {
     schemas: EnhancedSchemaMetadata[];
 };
 //# sourceMappingURL=ModelFactory.d.ts.map
+// === lib/SchemaNotLoadedError.d.ts ===
+export declare class SchemaNotLoadedError extends Error {
+    readonly schemaId: string;
+    constructor(schemaId: string);
+}
+//# sourceMappingURL=SchemaNotLoadedError.d.ts.map
 // === lib/actionResolution.d.ts ===
 import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice, SURefObjectTrait } from './schemas/index.js';
 export declare function invalidateActionMap(): void;
@@ -465,6 +471,7 @@ export { nameToSlug } from './nameToSlug.js';
 export { getPatterns, normalizePatternName, visiblePatterns } from './patterns.js';
 export { type ChoiceSelections, resolveChoiceView } from './resolveChoiceView.js';
 export { type RollOnTableOutcome, rollOnTable } from './rollOnTable.js';
+export { SchemaNotLoadedError } from './SchemaNotLoadedError.js';
 export type { SURefEnumSchemaName, SURefObjectBonusPerTechLevel, SURefObjectChoice, SURefObjectContent, SURefObjectContentBlock, SURefObjectDamage, SURefObjectDataValue, SURefObjectGuideStep, SURefObjectPattern, SURefObjectPatternSystemModule, SURefObjectTable, SURefObjectTableContent, SURefObjectTrait, } from './schemas/index.js';
 export { extractContentText, isSchemaName, type SearchOptions, type SearchResult, search, searchIn, } from './search.js';
 export { matchSearchTokens, scoreSearchMatch, searchNameWords, tokenizeSearchQuery, } from './searchRanking.js';

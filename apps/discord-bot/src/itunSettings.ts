@@ -58,6 +58,7 @@ export function normaliseWebUrl(value: string | undefined): string {
       ? trimmed
       : DEFAULT_ITUN_WEB_URL
   } catch {
+    // Not a URL at all: use the default rather than link somewhere broken.
     return DEFAULT_ITUN_WEB_URL
   }
 }

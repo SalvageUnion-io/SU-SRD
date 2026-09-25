@@ -13,6 +13,7 @@
 
 import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'
 import { resolveCrawlerBayRef, resolveCrawlerRef } from 'salvageunion-reference/rules'
+import { readReference } from './readReference'
 
 /** A freeform/permanent NPC choice (its id + display name). */
 export type ResolvedNpcChoice = { id: string; name: string }
@@ -29,20 +30,12 @@ export type ResolvedNpc = {
  * reference record, so consumers can hand it straight to entity cards.
  */
 export function resolveCrawlerType(ref: string): (SURefCrawler & { schemaName: string }) | null {
-  try {
-    return resolveCrawlerRef(ref)
-  } catch {
-    return null
-  }
+  return readReference('resolveCrawlerType', () => resolveCrawlerRef(ref), null)
 }
 
 /** Resolve a stored crawler-bay ref (id or name) to its SRD entity. */
 export function resolveCrawlerBay(ref: string): (SURefCrawlerBay & { schemaName: string }) | null {
-  try {
-    return resolveCrawlerBayRef(ref)
-  } catch {
-    return null
-  }
+  return readReference('resolveCrawlerBay', () => resolveCrawlerBayRef(ref), null)
 }
 
 /**

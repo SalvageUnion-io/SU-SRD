@@ -78,7 +78,10 @@ export function makePublishHandler(storage: SnapshotStorage) {
     let id: string
     try {
       id = await generateUniqueId(async (candidate) => (await storage.get(candidate)) !== null)
-    } catch {
+    } catch (error) {
+      // Every candidate lookup is a storage read, so this is an R2 fault — the
+      // same class the put/get/delete paths below already report.
+      reportSnapshotError(error, { fn: 'snapshot-publish', op: 'generateUniqueId' })
       return new Response('Failed to generate unique ID', { status: 500 })
     }
 

@@ -22,6 +22,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { parseCrawlerTechLevel } from '../crawlerLevel'
 import type { ResolvedNpc } from '../crawlerRefs'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
+import { readReference } from '../readReference'
 import type { Crawler, CrawlerNpcState, ScrapPool } from '../schemas/crawler'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
@@ -191,12 +192,11 @@ export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerW
  */
 export function seedDefaultCrawlerBays(): CrawlerBayEntry[] {
   type BayWithNpc = { id: string; expansion?: boolean; npc?: { hitPoints?: number } }
-  let bays: BayWithNpc[]
-  try {
-    bays = SalvageUnionReference.CrawlerBays.all()
-  } catch {
-    bays = []
-  }
+  const bays: BayWithNpc[] = readReference(
+    'seedDefaultCrawlerBays',
+    () => SalvageUnionReference.CrawlerBays.all(),
+    []
+  )
   return bays
     .filter((bay) => !bay.expansion)
     .map((bay) => {

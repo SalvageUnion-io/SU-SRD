@@ -122,6 +122,14 @@ const MANIFEST_PATH = join(CACHE_DIR, 'manifest.json')
 
 type Manifest = Record<string, string> // "schemaId/itemId" -> content hash
 
+/**
+ * A page/context/browser that will not close is abandoned: the recovery path
+ * opens a fresh one regardless, and the process exits at the end of the run.
+ */
+function ignoreCloseError(): void {
+  // Deliberately nothing — see above.
+}
+
 function readManifest(): Manifest {
   if (process.env.OG_SCREENSHOTS_NO_CACHE) return {}
   try {
@@ -495,7 +503,7 @@ async function run() {
               // Recover on a fresh page (reloads the island + data) so a wedged
               // renderer can't cascade into this worker's remaining entities.
               try {
-                await page.close().catch(() => {})
+                await page.close().catch(ignoreCloseError)
                 page = await freshPage(context)
                 sinceReload = 0
                 await captureInPage(page, entity)
@@ -512,20 +520,20 @@ async function run() {
               log(`${done}/${entities.length}`)
             }
             if (++sinceReload >= RELOAD_EVERY) {
-              await page.close().catch(() => {})
+              await page.close().catch(ignoreCloseError)
               page = await freshPage(context)
               sinceReload = 0
             }
           }
         } finally {
-          await page.close().catch(() => {})
+          await page.close().catch(ignoreCloseError)
         }
       }
 
       await Promise.all(Array.from({ length: Math.max(1, CONCURRENCY) }, worker))
-      await context.close().catch(() => {})
+      await context.close().catch(ignoreCloseError)
     } finally {
-      await browser.close().catch(() => {})
+      await browser.close().catch(ignoreCloseError)
     }
   } finally {
     // `true` closes in-flight connections too, so a wedged chromium request

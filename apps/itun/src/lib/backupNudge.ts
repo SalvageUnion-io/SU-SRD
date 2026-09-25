@@ -99,7 +99,8 @@ export function recordExport(now: Date = new Date()): void {
     localStorage.setItem(DIRTY_WRITES_KEY, '0')
     localStorage.removeItem(FIRST_DIRTY_WRITE_KEY)
   } catch {
-    // ignore
+    // Storage full/unavailable: the nudge just cannot remember this export,
+    // so at worst it asks again. The export itself already happened.
   }
 }
 

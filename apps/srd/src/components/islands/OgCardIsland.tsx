@@ -82,6 +82,8 @@ function OgCardResolved() {
       const all = SalvageUnionReference.findAllIn(target.schema as SURefEnumSchemaName, () => true)
       return all.find((candidate) => getEntitySlug(candidate) === target.item) ?? null
     } catch {
+      // An unknown schema in the query string: render no card, as for an
+      // unknown item. This page only exists for the OG screenshot script.
       return null
     }
   }, [target])

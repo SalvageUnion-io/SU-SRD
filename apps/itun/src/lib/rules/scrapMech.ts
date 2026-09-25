@@ -23,6 +23,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../cargo/cargoTransfer'
+import { readReference } from '../readReference'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { ScrapPool } from '../schemas/crawler'
 import type { ItemCondition, Mech } from '../schemas/mech'
@@ -65,12 +66,8 @@ type RefItem = {
 }
 
 /** Read a reference model defensively — empty when data isn't preloaded. */
-function loadRef(all: () => ReadonlyArray<unknown>): RefItem[] {
-  try {
-    return (all() as ReadonlyArray<RefItem>).slice()
-  } catch {
-    return []
-  }
+function loadRef(source: string, all: () => ReadonlyArray<unknown>): RefItem[] {
+  return readReference(`scrapMech.${source}`, () => (all() as ReadonlyArray<RefItem>).slice(), [])
 }
 
 function numericTl(value: unknown): number | undefined {
@@ -96,9 +93,9 @@ export type ScrapMechInput = Pick<
  * refs are kept (SV 0, no TL) so the breakdown can report them.
  */
 export function mechScrapComponents(mech: ScrapMechInput): ScrapMechComponent[] {
-  const chassisItems = loadRef(() => SalvageUnionReference.Chassis.all())
-  const systemItems = loadRef(() => SalvageUnionReference.Systems.all())
-  const moduleItems = loadRef(() => SalvageUnionReference.Modules.all())
+  const chassisItems = loadRef('chassis', () => SalvageUnionReference.Chassis.all())
+  const systemItems = loadRef('systems', () => SalvageUnionReference.Systems.all())
+  const moduleItems = loadRef('modules', () => SalvageUnionReference.Modules.all())
 
   const chassis = chassisItems.find((c) => matchesRef(c, mech.chassisRef))
   const components: ScrapMechComponent[] = [

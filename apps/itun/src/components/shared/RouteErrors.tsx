@@ -31,6 +31,8 @@ function currentBackend(): BackendKind | null {
   try {
     return selectBackend()
   } catch {
+    // This runs inside the error screen: the error that put us here is what
+    // gets reported, and a second throw would only replace it with this one.
     return null
   }
 }

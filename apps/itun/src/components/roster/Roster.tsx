@@ -43,6 +43,7 @@ import { resolveClassName } from '../../lib/classRef'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
+import { readReference } from '../../lib/readReference'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
@@ -67,18 +68,17 @@ import { AppLink } from '../shared/AppLink'
  * stat rather than a suffix for the same reason.
  *
  * resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
- * name-only match here would fall through to the raw slug for every mech. Wrap
- * in try/catch: resolveChassisRef throws when the Chassis model isn't preloaded
- * (some test/snapshot contexts) — fall back to the raw ref rather than crash.
+ * name-only match here would fall through to the raw slug for every mech.
+ * `readReference` falls back to the raw ref when the Chassis model isn't
+ * preloaded (some test/snapshot contexts) rather than crash.
  */
 function mechChassisStats(chassisRef: string): EntityRowStat[] | undefined {
   if (!chassisRef) return undefined
-  let resolved: { name: string; techLevel?: number } | null = null
-  try {
-    resolved = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
-  } catch {
-    resolved = null
-  }
+  const resolved = readReference(
+    'Roster.mechChassisStats',
+    () => resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null,
+    null
+  )
 
   const stats: EntityRowStat[] = [{ label: 'Chassis', value: resolved?.name ?? chassisRef }]
   if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel })

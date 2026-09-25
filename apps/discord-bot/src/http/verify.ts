@@ -93,6 +93,8 @@ async function importPublicKey(publicKeyHex: string): Promise<CryptoKey | null> 
   try {
     return await subtle.importKey('raw', raw, { name: 'Ed25519' }, false, ['verify'])
   } catch {
+    // Not a usable Ed25519 key: nothing can verify against it, and the caller
+    // rejects every request — which is the only safe answer.
     return null
   }
 }
@@ -127,6 +129,7 @@ export async function isValidDiscordRequest(
       ENCODER.encode(timestamp + rawBody)
     )
   } catch {
+    // A malformed signature is an unverified request, never an error to raise.
     return false
   }
 }

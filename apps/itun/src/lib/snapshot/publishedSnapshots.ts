@@ -49,6 +49,8 @@ function readAll(): PublishedSnapshot[] {
         typeof row.entityId === 'string'
     )
   } catch {
+    // Unparseable or denied storage: the ledger is a convenience list of this
+    // browser's own links, so starting it empty loses nothing server-side.
     return []
   }
 }

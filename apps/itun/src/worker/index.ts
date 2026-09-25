@@ -129,7 +129,8 @@ const OG_ROUTE = /^\/og\/s\/([^/]+)\.png$/
  * with that as the assertion.
  *
  * Never throws: a failed lookup falls back to the defaults. An unfurl is not
- * worth a 500 on a page that would otherwise render.
+ * worth a 500 on a page that would otherwise render — but the failure is still
+ * reported, because an R2 read that fails here fails for the snapshot API too.
  */
 async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | null> {
   const url = new URL(request.url)
@@ -145,7 +146,8 @@ async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | nul
     return metaForSnapshot(stored, url.toString(), {
       image: `${url.origin}/og/s/${id}.png`,
     })
-  } catch {
+  } catch (error) {
+    reportError(error, { source: 'metaForRoute', id })
     return null
   }
 }

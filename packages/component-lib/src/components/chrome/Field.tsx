@@ -189,7 +189,7 @@ export function Field(props: FieldProps) {
       <InlineEditField
         bordered
         value={value}
-        onSave={onSave ? (next) => onSave(String(next)) : () => {}}
+        onSave={onSave ? (next) => onSave(String(next)) : () => undefined}
         readOnly={!editable}
         multiline={multiline}
         placeholder={placeholder}

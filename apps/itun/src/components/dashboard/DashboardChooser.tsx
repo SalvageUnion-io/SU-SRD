@@ -31,6 +31,7 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/entities'
 import type { Container, ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
+import { readReference } from '../../lib/readReference'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { MechPattern } from '../../lib/schemas/pattern'
@@ -94,13 +95,9 @@ const STEP_ORDER: readonly Step[] = ['pilot', 'mech', 'crawler']
  * slug ("mule" instead of "Mule · TL 1").
  */
 function chassisMeta(chassisRef: string): string | undefined {
-  try {
-    const c = resolveChassisRef(chassisRef)
-    if (!c) return chassisRef || undefined
-    return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name
-  } catch {
-    return chassisRef || undefined
-  }
+  const c = readReference('DashboardChooser.chassisMeta', () => resolveChassisRef(chassisRef), null)
+  if (!c) return chassisRef || undefined
+  return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name
 }
 
 export function DashboardChooser({

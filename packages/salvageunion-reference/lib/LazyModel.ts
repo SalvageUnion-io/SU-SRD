@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel.js'
+import { SchemaNotLoadedError } from './SchemaNotLoadedError.js'
 
 /**
  * A BaseModel subclass that guards all data-access methods behind a load
@@ -51,9 +52,7 @@ export class LazyModel<T> extends BaseModel<T> {
 
   private _loadedBacking(): BaseModel<T> {
     if (!this._backing) {
-      throw new Error(
-        `Schema "${this._schemaIdForLazy}" not loaded. Call SalvageUnionReference.preload(['${this._schemaIdForLazy}']) or SalvageUnionReference.preload('all') first.`
-      )
+      throw new SchemaNotLoadedError(this._schemaIdForLazy)
     }
     return this._backing
   }

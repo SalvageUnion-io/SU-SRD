@@ -1,4 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { readReference } from './readReference'
 
 /**
  * Resolve a pilot's stored class reference to its display name. `classRef` may
@@ -10,13 +11,13 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  * throwing if the schema isn't available.
  */
 export function resolveClassName(ref: string): string {
-  try {
-    const all = SalvageUnionReference.Classes.all()
-    const match = all.find(
-      (c) => c.id === ref || c.name === ref || c.name.toLowerCase() === ref.toLowerCase()
-    )
-    return match?.name ?? ref
-  } catch {
-    return ref
-  }
+  const match = readReference(
+    'resolveClassName',
+    () =>
+      SalvageUnionReference.Classes.all().find(
+        (c) => c.id === ref || c.name === ref || c.name.toLowerCase() === ref.toLowerCase()
+      ),
+    undefined
+  )
+  return match?.name ?? ref
 }

@@ -508,6 +508,7 @@ function repairDoneThisSession(): boolean {
   try {
     return sessionStorage.getItem(REPAIR_KEY) !== null
   } catch {
+    // Storage denied: treat it as not done, so the (idempotent) repair runs.
     return false
   }
 }

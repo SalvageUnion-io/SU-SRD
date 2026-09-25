@@ -163,6 +163,8 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
       const body: unknown = await response.json().catch(() => null)
       return interpret<T>(response.status, body)
     } catch {
+      // Timeout or network failure: the bot's Degraded mode, by design. It is
+      // worded to the user as an outage, and ITUN's own monitoring owns it.
       return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
     }
   }

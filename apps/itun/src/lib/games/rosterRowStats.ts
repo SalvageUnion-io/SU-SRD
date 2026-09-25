@@ -5,6 +5,7 @@
 
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../classRef'
+import { readReference } from '../readReference'
 import type { RosterRow } from './gameRoster'
 
 /**
@@ -70,11 +71,11 @@ export function rosterRowStats(row: RosterRow): Array<{ label: string; value: st
 function chassisOf(chassisRef: string): { name: string; techLevel?: number } {
   // `resolveChassisRef` throws when the Chassis model is not preloaded (test
   // and snapshot contexts), so this falls back rather than taking the screen
-  // down with it — the same guard the Roster's `mechChassisMeta` uses.
-  try {
-    const chassis = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
-    return chassis ?? { name: chassisRef }
-  } catch {
-    return { name: chassisRef }
-  }
+  // down with it — the same guard the Roster's `mechChassisStats` uses.
+  const chassis = readReference(
+    'rosterRowStats.chassisOf',
+    () => resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null,
+    null
+  )
+  return chassis ?? { name: chassisRef }
 }

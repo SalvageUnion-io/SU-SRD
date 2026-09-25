@@ -139,7 +139,9 @@ async function fetchIdempotentWithRetry(input: string, init?: RequestInit): Prom
   // wait in this module — and it would sit on the path that only runs when the
   // platform is already misbehaving, undoing the "the share UI can never hang"
   // property the timeout exists for.
-  void first.body?.cancel().catch(() => {})
+  void first.body?.cancel().catch(() => {
+    // A stream that will not cancel is left to GC; the retry does not need it.
+  })
 
   await new Promise((resolve) => setTimeout(resolve, SNAPSHOT_TIMING.retryDelayMs))
   return fetchWithTimeout(input, init, SNAPSHOT_TIMING.retryTimeoutMs)
@@ -187,6 +189,8 @@ export async function probeSnapshotService(): Promise<boolean> {
     const res = await fetchIdempotentWithRetry('/api/snapshots', { method: 'HEAD' })
     return res.status === 405 || res.status === 204
   } catch {
+    // Unreachable IS the answer to "is the service up?". The caller turns a
+    // false into a Sentry message, so the outage is not silent.
     return false
   }
 }
