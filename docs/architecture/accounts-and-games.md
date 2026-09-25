@@ -287,8 +287,8 @@ Project: `alex-jarvis:suref-itun` ·
 ### Convex error reporting — a dashboard toggle, not code
 
 Every other surface in this repo reports errors through a hand-written
-`observability.ts` (`apps/srd`, `apps/itun`'s browser bundle and Netlify
-Functions, `apps/discord-bot`, `apps/su-assets`). **Convex is deliberately not
+`observability.ts` or `observability/cloudflare` (`apps/srd`, `apps/itun`'s
+browser bundle and Worker, `apps/discord-bot`, `apps/su-assets`). **Convex is deliberately not
 one of them.** It has a first-party
 [Exception Reporting integration](https://docs.convex.dev/production/integrations/exception-reporting)
 that is enabled in the Convex dashboard and needs no application code at all.
@@ -319,7 +319,7 @@ repo):
    (`https://de.sentry.io`), like every other project here — and set its
    platform to **Node.js**, which is what Convex's integration expects for
    stack-trace processing. Slug: `itun-convex`, sitting alongside `itun`
-   (browser) and `itun-functions` (Netlify). **This step is done** — the
+   (browser) and `itun-functions` (the itun Worker). **This step is done** — the
    project exists (see the registry in
    [agent-tooling.md](agent-tooling.md)). Whether step 2 has been clicked is
    only visible in the Convex dashboard, so check there rather than assuming.
@@ -465,13 +465,12 @@ Both are idempotent. A row written straight to a table from the Convex
 dashboard bypasses the triggers; `backfillGameSummaries` is also the repair
 for that.
 
-### Netlify
+### Hosting
 
-| Site               | Serves                           | Notes                                                                                                                                        |
-| ------------------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `in-the-union-now` | `https://intheunionnow.com`      | ITUN. **The production origin is the custom domain, not the `.netlify.app` subdomain** — `SITE_URL` and the OAuth redirect must both use it. |
-| `suindex`          | `https://salvageunion.io`        | `apps/srd`. No accounts, ever.                                                                                                               |
-| `su-assets`        | `https://assets.salvageunion.io` | Entity artwork. Unrelated to accounts.                                                                                                       |
+Every surface is a Cloudflare Worker (ADR-033). The one accounts-relevant fact:
+**the production origin is `https://intheunionnow.com`, not a `workers.dev`
+hostname** — Convex's `SITE_URL` and the Discord OAuth redirect must both use
+it. `apps/srd` (`salvageunion.io`) has no accounts, ever.
 
 ### Discord
 
@@ -553,23 +552,16 @@ curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/dis
 
 ### Switching production on
 
-Production builds in **Solo mode** until `VITE_CONVEX_URL` is set on the Netlify
-site — which is safe and deliberate, not an outage: a build with no Convex URL
+Production builds in **Solo mode** until `VITE_CONVEX_URL` is set for the
+deploy build — which is safe and deliberate, not an outage: a build with no Convex URL
 is the pre-accounts app, fully working. To switch accounts on:
 
 1. Add the prod redirect URI to the Discord application (above). **Done.**
-2. Set `VITE_CONVEX_URL=https://exuberant-porpoise-183.convex.cloud` on the
-   `in-the-union-now` Netlify site (production context, `builds` scope) and
-   redeploy. **Done** — it is a build-time variable, so it only takes effect on
-   the next deploy, not immediately.
-
-> **Note the two different origins.** That site also carries a pre-existing
-> `VITE_SITE_URL` of `https://in-the-union-now.netlify.app`, while the primary
-> domain — and Convex's `SITE_URL` — is `https://intheunionnow.com`. Sign-in
-> therefore returns a visitor to the canonical domain even if they started on
-> the `.netlify.app` subdomain. That is defensible, but it is a difference
-> somebody will eventually trip over, so it is written down rather than left to
-> be rediscovered.
+2. Build with `VITE_CONVEX_URL` pointing at the production deployment
+   (`https://exuberant-porpoise-183.convex.cloud`). **Done** —
+   `.github/workflows/deploy-cloudflare.yml` runs the itun build under
+   `convex deploy --cmd-url-env-var-name VITE_CONVEX_URL`, which sets it. It is
+   a build-time variable, so a change only takes effect on the next deploy.
 
 Reversing it is equally simple: unset the variable and production returns to
 Solo, with every local build intact.

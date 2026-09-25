@@ -10,7 +10,7 @@ project on an account.
 for _standing up and debugging sign-in_ (Discord OAuth, Convex env vars, the
 bot credential). This file is the _registry_: which projects exist, what their
 identifiers are, and which tool reaches them. Where the two overlap (the Convex
-deployment names, the Netlify site names) that file is the one with the
+deployment names) that file is the one with the
 surrounding narrative — this one has the identifiers.
 
 ## What is safe to write down here
@@ -184,17 +184,15 @@ zone-level Redirect Rule that sends `www` to the apex (a `_redirects` file
 cannot express a domain-level rule), and Images Transformations, which must be
 enabled per zone in the dashboard.
 
-## Netlify — retired
+## Netlify — retired, deletion pending
 
 Team **SalvageUnion.io** (`salvageunion-io`, `6a3b41d74a67a34e3aae3ede`, Pro) —
 [team dashboard](https://app.netlify.com/teams/salvageunion-io).
 
 **Nothing in this repo reaches Netlify, and no Netlify site serves any traffic.**
-ADR-033 P7 completed 2026-08-31: every production hostname resolves to a
-Cloudflare Worker (see the Cloudflare section above, which is the live one).
-Every `netlify.toml` was deleted from the tree, along with the `netlify/`
-function trees, the `@netlify/blobs` dependency and the `netlify` MCP server.
-Builds are stopped on both repo-linked sites.
+Every production hostname resolves to a Cloudflare Worker (see the Cloudflare
+section above). ADR-033 P8 is done on the repo side (2026-09-25); deleting the
+three sites and the team is the operator's step, decided the same day.
 
 | Site               | App it used to build | Site id                                |
 | ------------------ | -------------------- | -------------------------------------- |
@@ -202,39 +200,15 @@ Builds are stopped on both repo-linked sites.
 | `in-the-union-now` | `apps/itun`          | `801d6f8d-1ad4-42c1-a29d-126b2d69ee69` |
 | `su-assets`        | `apps/su-assets`     | `19faf088-1c54-4bae-9312-74d7b0a94cea` |
 
-The ids are kept for one reason: **deleting these sites is the remaining half of
-P8**, and an agent doing that must target a site by id — the account also carries
-unrelated teams (RANDSUM, Binfinite, JRVS Softworks). Note `suindex` is
-`apps/srd`; the name does not match the directory, which has misled agents
-before.
-
-A site still answering on its `.netlify.app` hostname is **decommission debris,
-not an origin**. This section previously carried the live production URLs in a
-"Production URL" column and described build configuration in `apps/*/netlify.toml`
-in the present tense — months after those files were deleted — which is exactly
-the kind of row an agent acts on rather than checks.
+The ids are kept only so that deletion targets a site by id — the account also
+carries unrelated teams (RANDSUM, Binfinite, JRVS Softworks). Note `suindex` is
+`apps/srd`; the name does not match the directory. A site still answering on its
+`.netlify.app` hostname is **decommission debris, not an origin**. Once the sites
+are deleted, remove this section.
 
 ## Render — gone
 
-**The account was deleted on 2026-09-01.** Nothing here is actionable; this
-section survives only so a future reader who finds "Render" in git history knows
-it was retired deliberately rather than lost.
-
-What used to be here: a table naming the single SU-SRD service
-(`suref-discord-bot`, a background worker), its service and workspace ids, a
-dashboard link, and instructions for passing a `workspaceId` to that host's own
-MCP server because the workspace also held services for unrelated repos. Every one of those
-identifiers now resolves to nothing, and the MCP server was removed before the
-account was.
-
-The service was Blueprint-managed from a `render.yaml` with `autoSync`, deleted
-in ADR-033 P8. The bot has served from a Cloudflare Worker since 2026-08-19
-(ADR-033 P5); its dormant Node gateway — the last code in this repo that read a
-`RENDER_*` variable — was deleted on 2026-09-01, immediately before the account.
-
-This is the failure mode the Netlify section above describes: rows written in the
-present tense outliving the thing they describe, which an agent acts on rather
-than checks. Stating the deletion date is what stops that happening twice.
+The account was deleted on 2026-09-01. Nothing here is actionable.
 
 ## Sentry
 
@@ -245,9 +219,9 @@ is EU.
 
 | Project          | Surface                                   | DSN env var          |
 | ---------------- | ----------------------------------------- | -------------------- |
-| `srd`            | `apps/srd` browser bundle                 | `PUBLIC_SENTRY_DSN`  |
+| `srd`            | `apps/srd` browser bundle                 | `VITE_SENTRY_DSN` (repo variable `SRD_SENTRY_DSN`) |
 | `itun`           | `apps/itun` browser bundle                | `VITE_SENTRY_DSN`    |
-| `itun-functions` | `apps/itun` Netlify Functions             | `SENTRY_DSN`         |
+| `itun-functions` | `apps/itun` Worker                        | `SENTRY_DSN`         |
 | `itun-convex`    | The ITUN Convex deployments               | _dashboard toggle_   |
 | `su-assets`      | `apps/su-assets` function                 | `SENTRY_DSN`         |
 | `su-discord`     | `apps/discord-bot` Cloudflare Worker      | `SENTRY_DSN`         |
