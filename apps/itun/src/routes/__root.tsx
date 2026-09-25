@@ -1,7 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import type { ErrorComponentProps } from '@tanstack/react-router'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { AppHeader, EntityHrefProvider, RecoveryPanel, Toaster } from 'component-lib'
+import { AppHeader, EntityHrefProvider, Toaster } from 'component-lib'
 import { useState } from 'react'
 import { AccountStrip } from '../components/account/AccountStrip'
 import { LegacyLocalData } from '../components/account/LegacyLocalData'
@@ -14,7 +13,7 @@ import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
-import { BlockedUpgradeError } from '../lib/db/index'
+import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { itunEntityHref } from '../lib/entityHref'
 import { queryClient } from '../lib/queryClient'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
@@ -28,49 +27,12 @@ import '@fontsource/barlow-semi-condensed/600.css'
 import '@fontsource/barlow-semi-condensed/700.css'
 import '../index.css'
 
+// The root boundary is the last resort — every other route gets its own via
+// the router's `defaultErrorComponent` (main.tsx). See RouteErrors.tsx.
 export const Route = createRootRoute({
   component: RootComponent,
   errorComponent: RootErrorComponent,
 })
-
-/**
- * Top-level error boundary. Without this, a render-time exception anywhere in
- * the tree (e.g. a rejected game-data preload behind the root Suspense gate)
- * blanks the whole app. TanStack Router renders this component instead and
- * offers a recovery affordance. Mirrors srd's IslandErrorBoundary UX.
- */
-function RootErrorComponent({ error }: ErrorComponentProps) {
-  // A blocked IndexedDB upgrade (this site open in another tab on an older
-  // build) is a distinct, self-serviceable failure — give it its own copy and
-  // CTA instead of the generic "something went wrong". Match on name too, so a
-  // structured clone or re-wrapped error across the router boundary still hits.
-  const isBlockedUpgrade =
-    error instanceof BlockedUpgradeError ||
-    (error as { name?: string } | null)?.name === 'BlockedUpgradeError'
-
-  return (
-    <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-      <RecoveryPanel
-        title={isBlockedUpgrade ? 'Close the other tab' : 'Something went wrong'}
-        message={
-          isBlockedUpgrade
-            ? 'In the Union Now is open in another browser tab running an older version, which is blocking this one from loading. Close every other In the Union Now tab, then reload. Your saved data is safe.'
-            : 'The app hit an unexpected error. Your saved data is stored locally and is not affected.'
-        }
-        action={{
-          label: isBlockedUpgrade ? 'Reload' : 'Reload app',
-          onClick: () => window.location.reload(),
-        }}
-      >
-        {import.meta.env.DEV && (
-          <pre className="max-w-full overflow-auto rounded-card border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
-            {error.message}
-          </pre>
-        )}
-      </RecoveryPanel>
-    </main>
-  )
-}
 
 function RootComponent() {
   const [searchOpen, setSearchOpen] = useState(false)

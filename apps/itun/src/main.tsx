@@ -2,9 +2,10 @@ import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { toast } from 'component-lib'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
 import { installChunkRecovery } from './lib/chunkRecovery'
-import { initBrowserObservability } from './lib/observability'
+import { initBrowserObservability, reactRootErrorHandlers } from './lib/observability'
 import { registerServiceWorker } from './lib/sw/register'
 import { routeTree } from './routeTree.gen'
 
@@ -12,6 +13,10 @@ const router = createRouter({
   routeTree,
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,
+  // Every route gets its own error boundary, so a crash in one route replaces
+  // that route's content and leaves the header to navigate away with. The root
+  // route keeps its own full-page one as the last resort. See RouteErrors.tsx.
+  defaultErrorComponent: RouteErrorComponent,
 })
 
 declare module '@tanstack/react-router' {
@@ -31,7 +36,9 @@ installChunkRecovery()
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')
 
-createRoot(rootEl).render(
+// The error hooks are how a render crash reaches Sentry: an error a boundary
+// catches never reaches window.onerror, which is all the SDK listens to.
+createRoot(rootEl, reactRootErrorHandlers).render(
   <StrictMode>
     <RouterProvider router={router} />
   </StrictMode>
