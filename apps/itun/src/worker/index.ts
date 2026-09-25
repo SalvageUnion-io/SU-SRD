@@ -199,7 +199,7 @@ function edgeCache(): Cache | null {
  *
  * ## How to settle it
  *
- *     bunx wrangler@4.108.0 tail su-itun --format=pretty | grep 'og:image'
+ *     cd apps/itun && bunx wrangler tail su-itun --format=pretty | grep 'og:image'
  *
  * then request `https://intheunionnow.com/og/s/<a real snapshot id>.png` with a
  * cache-busting query string. Read `cpuTime` from the tail entry — NOT the

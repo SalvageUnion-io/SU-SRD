@@ -8,8 +8,11 @@ Moved out of the root `CLAUDE.md` on 2026-09-01. It was ~1,490 of that file's
 ~6,500 words, and the root CLAUDE.md is loaded into **every** session — so this
 was a permanent context tax on every task, most of which never touch a
 dependency. Much of it was also duplicated verbatim in places an agent can read
-on demand: `bunfig.toml` carries a 45-line comment restating the install-cooldown
-section, and `.github/workflows/ci.yml` carries the `overrides` watch list.
+on demand: `bunfig.toml` carries a comment restating the install-cooldown
+section. The per-entry `overrides` record used to be a ~200-line comment in
+`.github/workflows/ci.yml`; it moved here (see "The `overrides` block") because
+a workflow file is the wrong place for dependency history, and that comment had
+gone stale — it described two entries while the block held six.
 
 Nothing here was cut. Read this file before editing `package.json`,
 `bunfig.toml`, the catalog, or `overrides`.
@@ -53,38 +56,82 @@ This example used to be `@netlify/blobs`, and it outlived the package —
 printing a dependency tree that no longer existed, three paragraphs under a
 heading that says not to trust this prose. Re-derived, not edited.
 
-Use it before editing an `overrides` entry too — the CI comment in
-`.github/workflows/ci.yml` documents what each entry holds back and via what,
-and that comment can go stale while `bun why` cannot.
+Use it before editing an `overrides` entry too — the record below says what
+each entry holds back and via what, and a record can go stale while `bun why`
+cannot.
 
-**`overrides` is now two entries, and NEITHER is a security floor** — both are
-dedupe pins. **Neither is optional, though: do not drop either as install
-weight.** `@discordjs/rest` lifts one stale `discord.js` edge onto a version its
-own range already allows, so `undici` clears `GHSA-vxpw-j846-p89q` unaided —
-which makes that pin the only thing keeping a **HIGH** advisory out of the tree,
-dedupe or not;
-`@opentelemetry/core` collapses two OTel cores that would otherwise coexist in
-one subtree and silently desync `@sentry/node`'s span context. The other six
-entries were removed in #787 after measuring what each held back; `ci.yml`
-records the per-entry evidence, the watch list and the restore conditions.
+## The `overrides` block
 
-**Read that comment before removing an entry here**, because "the audit is still
-clean" is necessary but *not sufficient* — `@opentelemetry/core` is the worked
-example of a removal that audits clean and still degrades behaviour.
+`package.json` cannot carry comments, so this is the record. **Five entries:
+one dedupe pin and four security floors.**
 
-`nanoid` was among the six: it is no longer pinned anywhere, and `3.3.18` holds
-only because `postcss`'s `^3.3.17` caret happens to resolve there. That is a
-caret, not a guarantee — **`bunfig.toml`'s `minimumReleaseAge` makes a caret
-resolve silently *down*** to the newest version old enough (see "Install
-cooldown"), where a floor would have errored. So if `bun audit` ever reports
-`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote` or `filelist`, the fix is
-to restore that package's floor — not to hunt for a new consumer.
+| Entry | Kind | Why |
+| --- | --- | --- |
+| `@discordjs/rest: ^2.6.3` | dedupe pin | `discord.js@14.27.0` → `@discordjs/ws@1.2.3` → `@discordjs/rest@2.6.1`, which pins `undici` at exactly 6.24.1 — HIGH `GHSA-vxpw-j846-p89q` (`< 6.27.0`). 2.6.3 asks `undici ^6.27.0` and is inside `ws`'s own `^2.5.1`, so pinning it is a dedupe rather than a forced upgrade, and `undici` floats clear unaided. |
+| `fast-uri: >=3.1.6 <4` | floor | ReDoS class; `ajv` asks `^3.0.1`, so a caret step-down could land an in-advisory 3.x. |
+| `filelist: >=1.0.6` | floor | `jake` asks `^1.0.4`, which a caret step-down could satisfy with a release below the floor. |
+| `nanoid: >=3.3.18` | floor | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17`, a caret that only happens to resolve high enough. |
+| `shell-quote: >=1.9.0` | floor | `concurrently` pins exactly 1.9.0 today; the floor keeps a future resolve from stepping below it. |
 
-**That watch list is manual below `high`.** `check:audit` gates at
-`--audit-level=high`, and nothing in `check`, CI or the pre-push hook runs a
-bare `bun audit` — so a *moderate* advisory on any of those five (the ReDoS
-class they actually draw) fails nothing and is caught only by running
-`bun audit` by hand. The `high` gate is unaffected.
+The four floors were restored in #958 after #787 had removed them. They are
+floors rather than exact pins on purpose: `bunfig.toml`'s `minimumReleaseAge`
+makes a **caret resolve silently down** to the newest version old enough (see
+"Install cooldown"), whereas resolving below an override **errors** — a floor
+fails loudly where a caret fails silently. `brace-expansion` is on the watch
+list but cannot be floored: the tree holds two copies at incompatible majors
+(`minimatch@10` wants `^5`, the `filelist@1` → `minimatch@5` chain wants `^2`),
+and a tree-wide override would break one of them.
+
+**`@discordjs/rest` is security-load-bearing even though it is a dedupe.**
+Removal condition: when a `discord.js` release ships a `ws` that pulls
+`rest >= 2.6.3` itself, delete it — check with `bun why undici`; if it resolves
+`>= 6.27.0` unaided, the entry is dead. Also delete it if `discord.js` moves to
+a `@discordjs/rest` major, because an override is tree-wide and unconditional
+and would silently clamp a `rest@^3` back to 2.6.x.
+
+**`@opentelemetry/core` is gone, and the reason is worth keeping.** It was a
+dedupe pin for `@netlify/otel`, which held a second OTel core inside its own
+subtree and could desync `@sentry/node`'s span context — the worked example of
+a removal that audits clean and still degrades behaviour. When Netlify and the
+bot's Node gateway were deleted, `@opentelemetry/core` left the lockfile
+entirely (`bun why @opentelemetry/core` finds nothing), so the pin was holding
+nothing and was removed with no lockfile change. "The audit is still clean" is
+a necessary test for removing an entry, not a sufficient one; "the package is
+no longer in the tree" is sufficient.
+
+**How to re-derive the block**, so it can be redone rather than trusted: empty
+it, `bun install`, then `bun run check:audit`. Anything that reappears earned
+its entry. Then check `bun why` for every dedupe you removed, because a
+duplicate copy is not an advisory and the audit will not see it.
+
+**Floors are ranges, never exact versions.** An exact override pins the package
+*down* as well as up, so when the next advisory is fixed one patch above it the
+override itself holds the vulnerable version in place and no `bun update` can
+clear it. `brace-expansion` was hand-bumped that way twice (#565, #673), each
+time after an exact pin had blocked every open PR. Raise a floor; never freeze
+it.
+
+**When the audit fails on a transitive dep**, the fix is `bun update <pkg>` plus
+the regenerated `bun.lock`. A floor on the vulnerable package is the *last*
+resort — first look for a parent whose own range already admits a fixed
+version, because that is a dedupe rather than a pin (which is exactly how
+`@discordjs/rest` replaced an `undici` floor).
+
+**The watch list is manual below `high`.** `check:audit` gates at
+`--audit-level=high`, so a *moderate* advisory on `nanoid`, `fast-uri`,
+`brace-expansion`, `shell-quote` or `filelist` — the ReDoS class they actually
+draw — fails nothing in `check`, CI or the pre-push hook.
+`.github/workflows/audit-watch.yml` runs the moderate band weekly and maintains
+one tracking issue. If one of them goes red, raise or restore that package's
+floor rather than hunting for a new consumer.
+
+Dead floors kept as lessons: an `astro: ^7.1.4` floor (for a second astro tree
+`@vite-pwa/astro` pulled in) went with Astro itself (ADR-031); a
+`@vitejs/plugin-react-swc: ^4.3.3` dedupe floor no longer reproduces its
+problem (Ladle's nested copy is satisfied by the vite Ladle already carries).
+Re-measure before restoring either. And do not reach for a blanket `esbuild`
+floor for a Ladle-only issue — `convex` deliberately pins esbuild below the
+advisory range; move the offending subtree, not every consumer.
 
 # Shared versions live in the catalog
 
@@ -123,8 +170,8 @@ Two things this interacts with, both of which have bitten:
 `.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
 takes no comments, so the reason lives here. That feature defaults to **on** at
 `moderate` severity and writes `overrides` entries automatically; this repo
-curates `overrides` by hand — every entry documented in `ci.yml`, and as of
-#787 that is two dedupe pins with zero security floors — and gates at
+curates `overrides` by hand — every entry documented above under "The
+`overrides` block" — and gates at
 `--audit-level=high`. Leaving it on would open PRs editing that block for
 advisories `check:audit` deliberately ignores.
 
@@ -149,12 +196,10 @@ Two behaviours, measured on the pinned Bun (`.bun-version`) — know which one y
   No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
   did nothing — check the publish date before concluding the fix is broken.
   An `overrides` floor is the loud alternative: resolving below one errors
-  instead of silently stepping down. **Both current `overrides` entries are
-  dedupe pins, not floors** (see "Audit gate"), so nothing here is protected that
-  way today. That is the accepted cost of #787, not an oversight — the five
-  packages it applies to (`nanoid`, `fast-uri`, `brace-expansion`, `shell-quote`,
-  `filelist`) are listed there with the instruction to restore a floor if any of
-  them goes red.
+  instead of silently stepping down. **Four of the five `overrides` entries are
+  such floors** (`fast-uri`, `filelist`, `nanoid`, `shell-quote`; see "The
+  `overrides` block"). `brace-expansion` is the one watched package that cannot
+  be floored, so it is the one a caret step-down can still reach silently.
 
 `bun install --frozen-lockfile` does no resolution and is **unaffected** —
 verified; CI and all four deploy targets never see this gate.

@@ -30,15 +30,13 @@ linker = 'isolated'
 #     to do nothing until the cooldown elapses — check the publish date before
 #     concluding the fix is broken.
 #
-#     This comment used to add that "the `overrides` block in package.json is a
-#     set of security FLOORS ... so the floors still hold". THAT IS NO LONGER
-#     TRUE and it was the reassuring half. As of #787 `overrides` holds two
-#     DEDUPE pins and zero security floors, so nothing in this repo is protected
-#     from the silent step-down described above. An override would still fail
-#     loudly (resolving below one errors), which is exactly why the five
-#     packages whose floors were dropped — nanoid, fast-uri, brace-expansion,
-#     shell-quote, filelist — are on a watch list in .github/workflows/ci.yml
-#     with the instruction to restore a floor if any of them goes red.
+#     The loud alternative is an `overrides` floor: resolving below one
+#     errors. Four of the five `overrides` entries in package.json are such
+#     floors (fast-uri, filelist, nanoid, shell-quote); the fifth is a dedupe
+#     pin. `brace-expansion` cannot be floored (two majors in the tree), so it
+#     is the watched package this silent step-down can still reach. The
+#     per-entry record is docs/architecture/dependency-management.md,
+#     "The `overrides` block".
 #
 # `bun install --frozen-lockfile` is unaffected: it installs what bun.lock
 # already resolved and does no resolution, so CI and every deploy target never
