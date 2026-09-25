@@ -114,10 +114,11 @@ The build moved from Netlify to GitHub Actions (ADR-033 §4), so this is no
 longer a site setting:
 
 1. Add the prod redirect URI to the Discord application.
-2. `VITE_CONVEX_URL` is supplied by `convex deploy --cmd-url-env-var-name` in
-   `.github/workflows/deploy-cloudflare.yml`, so it is set by the Convex deploy
-   itself rather than pasted anywhere. It is a **build-time** variable: it takes
-   effect on the next deploy, not immediately.
+2. `VITE_CONVEX_URL` is set from `ITUN_CONVEX_URL` in
+   `.github/workflows/deploy-cloudflare.yml`, and that workflow's `push-convex`
+   job fails before pushing if it differs from the canonical URL the deploy key
+   resolves to. It is a **build-time** variable: it takes effect on the next
+   deploy, not immediately.
 
 Reversing means changing that step. Local builds are unaffected either way.
 

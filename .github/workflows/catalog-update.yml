@@ -120,8 +120,8 @@ jobs:
           if ! bun install --frozen-lockfile; then
             echo "" >&2
             echo "FATAL: the regenerated bun.lock cannot be read by Bun $(cat .bun-version)." >&2
-            echo "The catalog action installs its own unpinned Bun, which has emitted a" >&2
-            echo "lockfile format the repo's pinned toolchain does not understand." >&2
+            echo "The catalog action runs the Bun named in packageManager; if that has" >&2
+            echo "drifted from .bun-version it can emit a lockfile the pinned toolchain cannot read." >&2
             echo "Do NOT merge a PR from this run — it would break install for everyone." >&2
             exit 1
           fi

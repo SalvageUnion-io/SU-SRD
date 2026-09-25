@@ -15,17 +15,21 @@ name: Deploy (Cloudflare)
 # what putting CI in front is for.
 #
 # ---------------------------------------------------------------------------
-# SHAPE: plan -> build-* -> deploy-* -> smoke -> record   (audit CI-12)
+# SHAPE: plan -> build-* -> push-convex -> deploy-* -> smoke -> record (CI-12)
 # ---------------------------------------------------------------------------
 #
 #   plan       provenance, the deploy set, every credential guard, and a dry-run
 #              bundle of every Worker. Holds no artifact; fails before anything
 #              is built.
 #   build-srd  / build-itun   one job per surface that HAS a build, in
-#              parallel. Each uploads the exact `dist` it produced.
+#              parallel. Each uploads the exact `dist` it produced. Neither
+#              pushes anything anywhere.
+#   push-convex  the Convex backend push, only once EVERY build is green, and
+#              before any traffic moves.
 #   deploy-*   one job per surface, in parallel, and NONE starts until EVERY
-#              build job has finished green. Each ships the artifact its build
-#              job uploaded — nothing is rebuilt between build and deploy.
+#              build job has finished green and the backend push (when itun
+#              ships) succeeded. Each ships the artifact its build job
+#              uploaded — nothing is rebuilt between build and deploy.
 #   smoke      the production smoke list, once, after every deploy.
 #   record     moves `deployed/cloudflare`, only after smoke passed.
 #
@@ -46,8 +50,8 @@ name: Deploy (Cloudflare)
 #     images, none of which CI produces.
 #   - itun: CI builds a Solo client with no `VITE_CONVEX_URL`, so its smoke and
 #     bundle-budget specs run with the account gate off. Production must be
-#     compiled against the production deployment's canonical URL, which only
-#     `convex deploy --cmd` provides.
+#     compiled against the production deployment's URL (`ITUN_CONVEX_URL`
+#     below, checked against Convex's canonical URL before the push).
 # And CI path-filters per COMMIT while this workflow deploys per LAST RECORDED
 # DEPLOY (CI-01), so a surface can need deploying on a commit where CI skipped
 # its build — a CI-artifact path would need this build path as a fallback
@@ -108,6 +112,17 @@ concurrency:
 
 permissions:
   contents: read
+
+env:
+  # The production Convex deployment's client URL, which itun is compiled
+  # against. Public — it is in every shipped bundle — and documented in
+  # docs/architecture/agent-tooling.md. It is a constant rather than whatever
+  # `convex deploy --cmd` hands the build, because that command PUSHES the
+  # backend, and the push must wait until every build is green (see
+  # `push-convex`). `push-convex` asserts it equals the canonical URL the
+  # deploy key resolves to before it pushes, so a moved deployment fails the
+  # run before anything ships instead of shipping a client aimed elsewhere.
+  ITUN_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
 
 jobs:
   # ===========================================================================
@@ -501,7 +516,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  # itun — pushes the Convex backend, then builds against it.
+  # itun — builds against the production Convex URL. Pushes nothing.
   build-itun:
     needs: plan
     if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true'
@@ -517,31 +532,23 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # Order is the whole point. `convex deploy --cmd` pushes schema and
-      # functions, then runs the build with VITE_CONVEX_URL set to the
-      # deployment's canonical URL. A client compiled against a URL whose
-      # schema had not been deployed yet would fail at runtime rather than at
-      # build time — which is exactly how the 2026-08 incident presented.
-      #
-      # The push happens HERE, in the build phase, rather than beside
-      # `wrangler deploy` in `deploy-itun`, because the canonical URL comes only
-      # from a real push (`--dry-run` does not run `--cmd`). That leaves the
-      # backend ahead of the served client until `deploy-itun` runs — or, if
-      # another build fails, until the next deploy. That is the safe direction,
-      # and one the backend must already tolerate: every open browser tab keeps
-      # running the previous client against a freshly pushed backend for as
-      # long as it stays open. A backend BEHIND the client is what broke
-      # players in 2026-08, and nothing here can produce that.
-      - name: Push Convex and build itun
+      # The backend is NOT pushed here. `convex deploy --cmd` runs the command
+      # first and pushes after it, so a push in this job would be stopped only
+      # by itun's own build — a failed srd build would still leave the new
+      # backend live under the old client until the next green deploy. That
+      # is unsafe whenever a commit removes a public function together with
+      # its last call site: the old client still calls it. So this job only
+      # builds, and `push-convex` pushes once every build is green.
+      - name: Build itun
         working-directory: apps/itun
         env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          VITE_CONVEX_URL: ${{ env.ITUN_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
-        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
+        run: bun run build
 
       - name: Upload the itun artifact
         uses: actions/upload-artifact@v7
@@ -553,15 +560,63 @@ jobs:
           retention-days: 7
 
   # ===========================================================================
-  # Deploys — one job per surface, in parallel, after EVERY build is green.
+  # The Convex push — after EVERY build is green, before ANY surface ships.
   # ===========================================================================
   #
-  # Each deploy job `needs` both build jobs, not just its own: a failed itun
-  # build must stop srd shipping too, or the run leaves production half on the
-  # new commit. A build job that was SKIPPED (its surface did not change) is
-  # not a failure, which is why these use `!cancelled() && !failure()` rather
-  # than the implicit `success()` — the implicit form would skip every deploy
-  # whenever either surface was unchanged.
+  # Order is the whole point. The backend must never be BEHIND the served
+  # client (that is what broke players in 2026-08), so it is pushed before
+  # `deploy-itun` can run. And it must not be pushed by a run that ends up
+  # shipping nothing, so it waits for both builds — an srd build failure now
+  # stops the push exactly as it stops every deploy. Between this job and
+  # `deploy-itun` the backend leads the served client for a minute or two,
+  # which the backend must tolerate anyway: every open tab keeps running the
+  # previous client for as long as it stays open.
+  #
+  # `--cmd` runs BEFORE the push, with the canonical URL for the deploy key in
+  # CANONICAL_CONVEX_URL, so it is used as a guard: if production has moved
+  # to a deployment other than the one `build-itun` compiled against, the
+  # command fails, `convex deploy` stops before pushing, and nothing ships.
+  push-convex:
+    needs: [plan, build-srd, build-itun]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Push Convex (after confirming the URL itun was built against)
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          # Run by `convex deploy` itself, in its own shell, with
+          # CANONICAL_CONVEX_URL set — so it lives here as data rather than as
+          # a quoted string the step's shell would have to leave unexpanded.
+          URL_GUARD: >-
+            [ "$CANONICAL_CONVEX_URL" = "$ITUN_CONVEX_URL" ] || {
+            echo "FATAL: the deploy key resolves to $CANONICAL_CONVEX_URL but itun was built
+            against $ITUN_CONVEX_URL. Update ITUN_CONVEX_URL in deploy-cloudflare.yml and
+            docs/architecture/agent-tooling.md." >&2; exit 1; }
+        run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
+
+  # ===========================================================================
+  # Deploys — one job per surface, in parallel, after EVERY build is green and
+  # the backend push (if itun ships) succeeded.
+  # ===========================================================================
+  #
+  # Each deploy job `needs` both build jobs and the push, not just its own:
+  # a failed itun build must stop srd shipping too, or the run leaves
+  # production half on the new commit. A job that was SKIPPED (its surface did
+  # not change) is not a failure, which is why these use `!cancelled() &&
+  # !failure()` rather than the implicit `success()` — the implicit form checks
+  # every ancestor and would skip every deploy whenever any surface was
+  # unchanged.
   #
   # wrangler is a catalogued devDependency of all four Worker apps, so every
   # `bun run deploy` below runs the version bun.lock resolved — audited,
@@ -572,7 +627,7 @@ jobs:
 
   # su-assets — no build step; the Worker is its own source.
   deploy-su-assets:
-    needs: [plan, build-srd, build-itun]
+    needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.assets == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -593,7 +648,7 @@ jobs:
         run: bun run deploy
 
   deploy-srd:
-    needs: [plan, build-srd, build-itun]
+    needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -620,7 +675,7 @@ jobs:
         run: bun run deploy
 
   deploy-itun:
-    needs: [plan, build-srd, build-itun]
+    needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -636,7 +691,7 @@ jobs:
 
       # The Worker script is bundled by wrangler from this checkout; the static
       # assets it serves are the artifact `build-itun` compiled against the
-      # backend it pushed.
+      # backend `push-convex` pushed.
       - name: Download the itun artifact
         uses: actions/download-artifact@v8
         with:
@@ -659,7 +714,7 @@ jobs:
   # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
   # and are NOT touched by a deploy, so this cannot clobber them.
   deploy-discord-bot:
-    needs: [plan, build-srd, build-itun]
+    needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.bot == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -731,7 +786,15 @@ jobs:
     # A stale run (an older commit whose CI finished after a newer deploy)
     # shipped nothing, and moving the record to it would make the NEXT run diff
     # from the older commit. Only a dispatch may move the record backwards.
-    if: needs.plan.outputs.stale != 'true'
+    #
+    # The explicit status functions are load-bearing. A bare `if:` gets an
+    # implicit `success()`, which at job level checks EVERY ancestor — and a
+    # skipped build-*/deploy-* job (an unchanged surface) makes it false. The
+    # record then moved only when all four surfaces shipped, so a newer
+    # srd-only deploy left it behind, and an older commit's CI finishing later
+    # was not "stale" and shipped its srd over the newer one: a silent
+    # rollback with every job green. `smoke` must have actually passed.
+    if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

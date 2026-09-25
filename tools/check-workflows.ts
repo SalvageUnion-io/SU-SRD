@@ -32,9 +32,14 @@
  *                 nothing red. The LIVE half — what the deployment actually
  *                 serves — is `tools/check-convex-parity.ts`, run nightly.
  *                 The job pushing the backend must also need the guard's job.
- *   deploy-order  in `deploy-cloudflare.yml`, every deploy job needs every
- *                 build job, the smoke job needs every deploy job, and the
- *                 deploy record needs the smoke job (audit CI-12).
+ *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs every
+ *                 build job, every deploy job needs every build job and the
+ *                 push, the smoke job needs every deploy job, and the deploy
+ *                 record needs the smoke job to have SUCCEEDED (audit CI-12).
+ *                 Every one of those jobs sits downstream of a job that is
+ *                 skipped by design, so each must carry an explicit status
+ *                 function in its `if:` — the implicit `success()` is false
+ *                 whenever any ancestor was skipped.
  *
  * Every check refuses to pass by absence: a parse that found no jobs, no
  * filter groups or no workflow files is a failure, not a clean result.
@@ -563,18 +568,33 @@ export function checkConvexGuard(ctx: WorkflowContext): CheckResult {
 
 const SMOKE_SCRIPT = 'tools/smoke-production.sh'
 
+/** A status-check function other than the implicit `success()`. */
+const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
+
 /**
- * The deploy workflow's job graph keeps its three orderings (audit CI-12):
+ * The deploy workflow's job graph keeps its orderings (audit CI-12):
  *
- *   1. every job that ships (`bun run deploy`) needs every job that uploads an
- *      artifact — all builds finish before any traffic moves, so a failed
- *      build cannot leave production half on the new commit;
- *   2. the job that runs the smoke list needs every job that ships;
- *   3. the job holding `contents: write` (the deploy record) needs the smoke
- *      job — the record moves only once what shipped has answered.
+ *   1. the job that pushes the Convex backend needs every job that uploads an
+ *      artifact — a failed build of ANY surface stops the push, rather than
+ *      leaving a new backend under the old client until the next green run;
+ *   2. every job that ships (`bun run deploy`) needs every job that uploads an
+ *      artifact and the push — all builds finish, and the backend is pushed,
+ *      before any traffic moves;
+ *   3. the job that runs the smoke list needs every job that ships;
+ *   4. the job holding `contents: write` (the deploy record) needs the smoke
+ *      job and requires `needs.<smoke>.result == 'success'` — the record moves
+ *      only once what shipped has answered.
  *
- * Each is one missing `needs:` entry away from silently breaking, and nothing
- * else would notice until a partial deploy was recorded as whole.
+ * And every job from the push onwards whose ancestors include a job with its
+ * own `if:` (other than the root gate) carries an explicit status function.
+ * A bare `if:` is prefixed with `success()`, which at job level is false when
+ * ANY ancestor was skipped — so a record behind a skipped per-surface job
+ * stopped moving on every partial deploy, and an out-of-order CI run then
+ * shipped an older tree over a newer one with every job green.
+ *
+ * Each is one missing `needs:` entry or status function away from silently
+ * breaking, and nothing else would notice until a partial deploy was recorded
+ * as whole.
  */
 export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const doc = file(ctx, DEPLOY)
@@ -588,6 +608,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const builders = jobsWhere(
     (step) => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@')
   )
+  const pushers = jobsWhere((step) => runs(step).includes('convex deploy'))
   const shippers = jobsWhere((step) => /\bbun run deploy\b/.test(runs(step)))
   const smokers = jobsWhere((step) => runs(step).includes(SMOKE_SCRIPT))
   const recorders = Object.keys(jobs)
@@ -613,12 +634,43 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
       }
     }
   }
+  requireBefore(pushers, builders, 'every build must finish before the backend is pushed.')
   requireBefore(shippers, builders, 'every build must finish before any surface ships.')
+  requireBefore(shippers, pushers, 'the backend must be pushed before any surface ships.')
   requireBefore(smokers, shippers, 'the smoke list must run after every deploy.')
   requireBefore(recorders, smokers, 'the deploy record must move only after the smoke list passed.')
+
+  const ifOf = (id: string): string => {
+    const job = jobs[id]
+    return isObject(job) && typeof job.if === 'string' ? job.if : ''
+  }
+  const gated = [...new Set([...pushers, ...shippers, ...smokers, ...recorders])].sort()
+  for (const job of gated) {
+    const skippable = [...ancestorsOf(jobs, job)]
+      .filter((a) => needsOf(jobs[a]).length > 0 && ifOf(a) !== '')
+      .sort()
+    if (skippable.length > 0 && !EXPLICIT_STATUS.test(ifOf(job))) {
+      failures.push(
+        `${DEPLOY} job \`${job}\` has no explicit status function (e.g. \`!cancelled() && ` +
+          `!failure()\`) in its \`if:\`, but depends on \`${skippable.join('`, `')}\`, which can be ` +
+          'skipped — the implicit `success()` would then skip it too.'
+      )
+    }
+  }
+  for (const job of recorders) {
+    for (const smoke of smokers) {
+      if (!ifOf(job).replace(/\s+/g, ' ').includes(`needs.${smoke}.result == 'success'`)) {
+        failures.push(
+          `${DEPLOY} job \`${job}\` does not require \`needs.${smoke}.result == 'success'\` — ` +
+            'the deploy record must move only when the smoke list actually ran and passed.'
+        )
+      }
+    }
+  }
   return {
     ok:
-      `${builders.length} build job(s) before ${shippers.length} deploy job(s), then ` +
+      `${builders.length} build job(s), then ${pushers.join(', ') || 'no push'}, before ` +
+      `${shippers.length} deploy job(s), then ` +
       `${smokers.join(', ')}, then ${recorders.join(', ')}`,
     failures,
   }

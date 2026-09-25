@@ -324,7 +324,7 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
  * Applied to asset responses too, deliberately. If `_headers` does reach them
  * this is an idempotent overwrite with identical values; if it does not, it is
  * the fix. Either way the browser gets them, which is the only thing that
- * counts. The post-deploy smoke step in `deploy-cloudflare.yml` asserts it
+ * counts. The post-deploy `smoke` job in `deploy-cloudflare.yml` asserts it
  * against production so the answer stops being a matter of reading docs.
  *
  * Keep in lockstep with `apps/itun/public/_headers`; `tools/check-observability.ts`

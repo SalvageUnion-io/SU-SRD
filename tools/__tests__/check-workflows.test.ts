@@ -88,35 +88,47 @@ jobs:
           fi
   build-srd:
     needs: plan
+    if: needs.plan.outputs.srd == 'true'
     runs-on: ubuntu-latest
     steps:
       - run: bun --filter srd build
       - uses: actions/upload-artifact@v7
   build-itun:
     needs: plan
+    if: needs.plan.outputs.itun == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Build
-        run: bunx convex deploy --cmd "bun run build"
+      - run: bun run build
       - uses: actions/upload-artifact@v7
-  deploy-srd:
+  push-convex:
     needs: [plan, build-srd, build-itun]
+    if: \${{ !cancelled() && !failure() && needs.plan.outputs.itun == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push
+        run: bunx convex deploy --cmd "true"
+  deploy-srd:
+    needs: [plan, build-srd, build-itun, push-convex]
+    if: \${{ !cancelled() && !failure() && needs.plan.outputs.srd == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
       - run: bun run deploy
   deploy-bot:
-    needs: [plan, build-srd, build-itun]
+    needs: [plan, build-srd, build-itun, push-convex]
+    if: \${{ !cancelled() && !failure() && needs.plan.outputs.bot == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - run: bun run deploy
   smoke:
     needs: [plan, deploy-srd, deploy-bot]
+    if: \${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     steps:
       - run: bash tools/smoke-production.sh
   record:
     needs: [plan, smoke]
+    if: \${{ !cancelled() && !failure() && needs.smoke.result == 'success' }}
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -421,8 +433,8 @@ describe('convex-guard', () => {
 
   test('`convex deploy` mentioned only in a shell comment does not count', () => {
     const deploy = DEPLOY_TEXT.replace(
-      'run: bunx convex deploy --cmd "bun run build"',
-      'run: |\n          # bunx convex deploy used to run here\n          bun run build'
+      'run: bunx convex deploy --cmd "true"',
+      'run: |\n          # bunx convex deploy used to run here\n          true'
     )
     expect(checkConvexGuard(ctx({ deploy })).failures[0]).toContain(
       'no longer runs `convex deploy`'
@@ -430,9 +442,12 @@ describe('convex-guard', () => {
   })
 
   test('a push in a job that does not need the guard job fails', () => {
-    const deploy = DEPLOY_TEXT.replace('  build-itun:\n    needs: plan\n', '  build-itun:\n')
+    const deploy = DEPLOY_TEXT.replace(
+      '  push-convex:\n    needs: [plan, build-srd, build-itun]\n',
+      '  push-convex:\n'
+    )
     expect(checkConvexGuard(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`build-itun` runs `convex deploy` without needing `plan`'),
+      expect.stringContaining('`push-convex` runs `convex deploy` without needing `plan`'),
     ])
   })
 })
@@ -444,11 +459,12 @@ describe('deploy-order', () => {
 
   test('a deploy job that does not wait for EVERY build fails', () => {
     const deploy = DEPLOY_TEXT.replace(
-      '  deploy-bot:\n    needs: [plan, build-srd, build-itun]',
+      '  deploy-bot:\n    needs: [plan, build-srd, build-itun, push-convex]',
       '  deploy-bot:\n    needs: [plan, build-srd]'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`deploy-bot` does not need `build-itun`'),
+      expect.stringContaining('`deploy-bot` does not need `push-convex`'),
     ])
   })
 
@@ -475,6 +491,56 @@ describe('deploy-order', () => {
     expect(checkDeployOrder(ctx({ deploy: record })).failures[0]).toContain(
       '`record` does not need `smoke`'
     )
+  })
+
+  test('a Convex push that does not wait for EVERY build fails', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      '  push-convex:\n    needs: [plan, build-srd, build-itun]',
+      '  push-convex:\n    needs: [plan, build-itun]'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('`push-convex` does not need `build-srd`'),
+    ])
+  })
+
+  test('a Convex push inside a build job fails — a sibling build failure would not stop it', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      '      - run: bun run build\n',
+      '      - run: bunx convex deploy --cmd "bun run build"\n'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toContainEqual(
+      expect.stringContaining('`build-itun` does not need `build-srd`')
+    )
+  })
+
+  test('a deploy job that can ship before the backend push fails', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      '  deploy-bot:\n    needs: [plan, build-srd, build-itun, push-convex]',
+      '  deploy-bot:\n    needs: [plan, build-srd, build-itun]'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('`deploy-bot` does not need `push-convex`'),
+    ])
+  })
+
+  test('a job behind a skippable job with only the implicit success() fails', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      "    if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' }}",
+      "    if: needs.smoke.result == 'success'"
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('`record` has no explicit status function'),
+    ])
+  })
+
+  test('a record that does not require smoke to have succeeded fails', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      "    if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' }}",
+      '    if: ${{ !cancelled() && !failure() }}'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining("does not require `needs.smoke.result == 'success'`"),
+    ])
   })
 
   test('a workflow with no builds, deploys, smoke or record fails rather than passing empty', () => {
