@@ -83,6 +83,70 @@ export function captureException(
   options?: CaptureOptions
 ): void {
   if (!sentryModule) return
+  if (alreadyReported(error)) return
 
   sentryModule.captureException(error, buildCaptureHint(context, options))
+}
+
+/**
+ * Error objects already sent, so one failure seen from two places is one
+ * event.
+ *
+ * It happens for real: a chunk that fails to load is reported by
+ * `chunkRecovery` with its own fingerprint, and — when the reload cooldown
+ * holds it back — the same error then surfaces in the error boundary that
+ * `reactRootErrorHandlers` reports from. A WeakSet, so a reported error is
+ * still collectable; primitives cannot be tracked and are always sent.
+ *
+ * The set is global, so the side effect is deliberate: code that reports the
+ * *same* error object twice (once per retry, say) sends one event, not two.
+ * Wrap or re-create the error if each attempt should be its own event.
+ */
+const reported = new WeakSet<object>()
+
+function alreadyReported(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false
+  if (reported.has(error)) return true
+  reported.add(error)
+  return false
+}
+
+/** What React hands an error hook alongside the error. */
+type ReactErrorInfo = { componentStack?: string | null }
+
+/**
+ * The `createRoot` error hooks, which are what make a render crash reach
+ * Sentry at all.
+ *
+ * Sentry's browser SDK hears errors through `window.onerror`, and a render
+ * error caught by an error boundary never gets there: React catches it, the
+ * router renders its error screen, and by default the only trace is a
+ * `console.error`. Every route has a boundary (`RouteErrors.tsx`), so that was
+ * every render crash in the app — a player saw "Something went wrong" and
+ * nothing was recorded anywhere. These hooks are React's own seam for exactly
+ * this: `onCaughtError` runs for every error a boundary catches,
+ * `onUncaughtError` for one that escapes them all.
+ *
+ * Both still log, because overriding a hook replaces React's default rather
+ * than adding to it — and for `onUncaughtError` the default is `reportError`,
+ * which is how Sentry would otherwise have heard of it, so reporting here and
+ * not re-raising keeps that to one event.
+ */
+export const reactRootErrorHandlers = {
+  onCaughtError(error: unknown, errorInfo: ReactErrorInfo): void {
+    console.error(error)
+    captureException(
+      error,
+      { componentStack: errorInfo.componentStack ?? undefined },
+      { tags: { boundary: 'caught' } }
+    )
+  },
+  onUncaughtError(error: unknown, errorInfo: ReactErrorInfo): void {
+    console.error(error)
+    captureException(
+      error,
+      { componentStack: errorInfo.componentStack ?? undefined },
+      { tags: { boundary: 'uncaught' } }
+    )
+  },
 }

@@ -1,7 +1,8 @@
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
-import type { MutationCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
+import type { QueryCtx } from './_generated/server'
+import { query } from './_generated/server'
+import { mutation, summaryOf } from './model/entities'
 import {
   getMembership,
   NotAuthorized,
@@ -40,53 +41,25 @@ type GameSummary = {
  * `EntityRow` whose badges are "crawler · n pilots · n mechs" — the row has to
  * say what the table *is*, not just what it is called.
  *
- * **Counting means collecting.** Convex has no count API, so each count is a
- * `by_game` scan whose rows are then discarded, and `listMine` runs this once
- * per Game you belong to. That is fine at a table's scale (a Game holds single
- * digits of each) and is the honest cost of the badges; if it ever bites, the
- * fix is a denormalised counter on `games`, not a cleverer query here.
+ * They come from `games.summary`, which the triggers in `model/entities.ts`
+ * keep current, rather than from counting here. Counting here meant collecting
+ * every membership, pilot, mech and crawler of every Game the caller belongs
+ * to on each run — and because this is a reactive query, reading those rows
+ * subscribed the Games list to every sheet in every one of those Games.
  */
 async function summarize(
-  ctx: MutationCtx | Parameters<typeof requireMember>[0],
+  ctx: QueryCtx,
   game: Doc<'games'>,
   membership: Doc<'memberships'>
 ): Promise<GameSummary> {
-  const [members, pilots, mechs, crawlers] = await Promise.all([
-    ctx.db
-      .query('memberships')
-      .withIndex('by_game', (q) => q.eq('gameId', game._id))
-      .collect(),
-    ctx.db
-      .query('pilots')
-      .withIndex('by_game', (q) => q.eq('gameId', game._id))
-      .collect(),
-    ctx.db
-      .query('mechs')
-      .withIndex('by_game', (q) => q.eq('gameId', game._id))
-      .collect(),
-    ctx.db
-      .query('crawlers')
-      .withIndex('by_game', (q) => q.eq('gameId', game._id))
-      .collect(),
-  ])
-
-  // The name lives in the opaque body Convex cannot validate (ADR-030), so read
-  // it defensively rather than trusting the shape — the same move `crew.vitals`
-  // makes for pilot and mech names.
-  const crawlerBody = crawlers[0]?.body as Record<string, unknown> | null | undefined
-  const rawName = crawlerBody?.name
-  const crawlerName = typeof rawName === 'string' && rawName.length > 0 ? rawName : null
-
+  const summary = await summaryOf(ctx, game)
   return {
     _id: game._id,
     name: game.name,
     templateOrigin: game.templateOrigin,
     mediator: membership.mediator,
     organizer: membership.organizer,
-    memberCount: members.length,
-    crawlerName,
-    pilotCount: pilots.length,
-    mechCount: mechs.length,
+    ...summary,
   }
 }
 
@@ -100,14 +73,14 @@ export const listMine = query({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect()
 
-    const out: GameSummary[] = []
-    for (const membership of memberships) {
-      const game = await ctx.db.get(membership.gameId)
-      // A membership whose game is gone is a bug, not a state to render.
-      if (game === null) continue
-      out.push(await summarize(ctx, game, membership))
-    }
-    return out
+    const rows = await Promise.all(
+      memberships.map(async (membership) => {
+        const game = await ctx.db.get(membership.gameId)
+        // A membership whose game is gone is a bug, not a state to render.
+        return game === null ? null : await summarize(ctx, game, membership)
+      })
+    )
+    return rows.filter((row): row is GameSummary => row !== null)
   },
 })
 
@@ -163,23 +136,13 @@ export const create = mutation({
   },
 })
 
-export const rename = mutation({
-  args: { gameId: v.id('games'), name: v.string() },
-  handler: async (ctx, args): Promise<void> => {
-    await requireOrganizer(ctx, args.gameId)
-    const name = args.name.trim()
-    if (name.length === 0) throw new Error('A game needs a name')
-    await ctx.db.patch(args.gameId, { name })
-  },
-})
-
 /**
  * Delete a Game, and land everything it held somewhere real.
  *
  * **Organizer only.** Ending a shared campaign is administrative in the sense
  * ADR-030 §3 means it — it is about the table's existence, not about what is on
- * it — so it sits with `rename` and `transferOrganizer` rather than with the
- * table-runner acts. It is deliberately NOT `requireTableRunner`: that helper
+ * it — so it sits with the Organizer's other acts (`setMediator`, invites)
+ * rather than with the table-runner acts. It is deliberately NOT `requireTableRunner`: that helper
  * falls back to the Organizer only while a Game has no Mediator, which would
  * make who may end a campaign depend on whether one has been appointed yet.
  *
@@ -327,27 +290,5 @@ export const setMediator = mutation({
     const target = await getMembership(ctx, args.gameId, args.userId)
     if (target === null) throw new NotAuthorized('That user is not a member of this game')
     await ctx.db.patch(target._id, { mediator: args.mediator })
-  },
-})
-
-/**
- * Hand the Organizer flag to another member.
- *
- * Both patches happen in the same mutation — Convex mutations are
- * transactional, so there is no window in which a Game has two Organizers or
- * none. That invariant is the whole reason this is one function rather than a
- * clear-then-set pair the client could half-complete.
- */
-export const transferOrganizer = mutation({
-  args: { gameId: v.id('games'), userId: v.id('users') },
-  handler: async (ctx, args): Promise<void> => {
-    const current = await requireOrganizer(ctx, args.gameId)
-    if (current.userId === args.userId) return
-
-    const target = await getMembership(ctx, args.gameId, args.userId)
-    if (target === null) throw new NotAuthorized('That user is not a member of this game')
-
-    await ctx.db.patch(current._id, { organizer: false })
-    await ctx.db.patch(target._id, { organizer: true })
   },
 })

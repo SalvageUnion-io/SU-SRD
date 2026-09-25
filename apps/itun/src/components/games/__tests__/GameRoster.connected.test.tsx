@@ -208,8 +208,8 @@ describe('copy to shelf', () => {
 
     // Derived from what you may already read: membership grants the frozen crew
     // view of every row, so copying what is on screen escalates nothing. It is
-    // also the only way to keep a character when you leave the table —
-    // `ownership.leaveGame` has documented this act since before it existed.
+    // also the only way to keep a character when you walk away from the table:
+    // releasing one leaves it behind, unclaimed.
     expect(screen.getAllByRole('button', { name: 'Copy to shelf' })).toHaveLength(3)
   })
 

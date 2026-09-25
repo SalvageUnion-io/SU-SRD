@@ -205,6 +205,19 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   client, read it with `serverMessage()` / `isServerRefusal()` from
   `src/lib/connection/serverError.ts` — never by string-matching `'Server Error'`,
   and never by rendering `String(err)` from a mutation.
+- **Build every Convex mutation with `mutation` / `internalMutation` from
+  `convex/model/entities.ts`, never from `_generated/server`.** Those wrap the
+  generated builders with the triggers that keep `games.summary` (the Games
+  list's counts) current; a mutation built without them writes rows the summary
+  never hears about. Biome enforces it inside `convex/`. Every public
+  query/mutation also needs a caller in `src/` —
+  `tools/check-convex-callers.ts` fails on one nobody calls.
+- **Render crashes reach Sentry through `createRoot`'s error hooks**
+  (`reactRootErrorHandlers` in `src/lib/observability.ts`), because an error a
+  boundary catches never reaches `window.onerror`. Every route has a boundary —
+  the router's `defaultErrorComponent`, with the root's full-page one as the
+  last resort (`src/components/shared/RouteErrors.tsx`) — so do not report from
+  an `errorComponent` as well, or each crash is sent twice.
 - **Never insert into an `appId`-addressed table without checking first.**
   `pilots`, `mechs` and `crawlers` are looked up by the client's `appId`, and
   `by_app_id` is an ordinary index — **not** a uniqueness constraint — so

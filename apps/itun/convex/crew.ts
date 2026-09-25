@@ -5,8 +5,11 @@ import { requireMember, requireUser } from './model/permissions'
 /**
  * Crew visibility inside a Game (ADR-030 §5, D12).
  *
- * Every member sees every crewmate's **vitals** live, and can drill into a
- * crewmate's full sheet **read-only**. What stays hidden is the Mediator's
+ * Every member sees every crewmate's **vitals** live. (Read-only drill-in to
+ * a crewmate's full sheet is ADR-030 §5's, but it has no web consumer; the
+ * Discord bot's `/su sheet` reads through `botClient.sheet`. A public
+ * `readEntity` query that nothing called was removed rather than kept as
+ * unexercised surface — rebuild it alongside the screen that reads it.) What stays hidden is the Mediator's
  * prepared opposition — that is the one thing a player must not be able to
  * read, and it is simply not queried here.
  *
@@ -86,41 +89,5 @@ export const vitals = query({
         currentHeat: num(m.body, 'currentHeat'),
       })),
     }
-  },
-})
-
-/**
- * A crewmate's full sheet, read-only.
- *
- * Membership is the whole check — inside a Game you may read any crewmate's
- * pilot or mech, which is what "lean over and look at their sheet" means at a
- * physical table. There is no write counterpart to this query anywhere; a
- * Mediator who wants to change what they are reading proposes instead (D7).
- */
-export const readEntity = query({
-  args: {
-    table: v.union(v.literal('pilots'), v.literal('mechs')),
-    entityId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // `normalizeId` is what makes `table` load-bearing rather than decorative —
-    // the same guard `botClient.sheet` carries, for the same reason. A Convex id
-    // is table-tagged, but `db.get` will happily return a document from ANY
-    // table, so casting the string and checking only `gameId` let a member pass
-    // an `encounterNpcs` id and read the Mediator's prepared opposition, the one
-    // thing ADR-030 §5 says must stay hidden. It also turns a malformed id from
-    // a throw into a clean not-found.
-    const entityId = ctx.db.normalizeId(args.table, args.entityId)
-    if (entityId === null) return null
-
-    const doc = await ctx.db.get(entityId)
-    if (doc === null) return null
-
-    // A shelved entity has no Game to be a member of; it is private to its
-    // owner, and this query is deliberately not the way to reach one.
-    if (doc.gameId === null) return null
-
-    await requireMember(ctx, doc.gameId)
-    return { ownerId: doc.ownerId, body: doc.body }
   },
 })

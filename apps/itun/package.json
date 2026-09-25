@@ -34,6 +34,7 @@
     "clsx": "catalog:",
     "component-lib": "workspace:*",
     "convex": "1.45.0",
+    "convex-helpers": "0.1.124",
     "idb": "8.0.3",
     "lucide-react": "catalog:",
     "observability": "workspace:*",

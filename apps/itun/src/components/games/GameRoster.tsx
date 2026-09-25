@@ -342,8 +342,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
    * because it is derived from what you may already read: membership of the Game
    * grants the frozen crew view of every row, and copying what is on your screen
    * escalates nothing. It is also the only way to keep a character when you
-   * leave — `ownership.leaveGame` has documented this act since before it
-   * existed.
+   * walk away from a table — releasing a character leaves it behind, unclaimed.
    *
    * Deliberately no confirm. Copying destroys nothing and the result is one more
    * build on your shelf, so a modal would be friction guarding an undo-by-delete.

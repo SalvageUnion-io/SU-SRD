@@ -162,7 +162,7 @@ sequencing and is not throwaway; the wiring waits and is written once.
 - **`encounterNpcs` — the #871 move, verbatim.** The model is settled (ADR-034
   decision 2): one table, two containers. Today it is `gameId: v.id('games')`
   with no `ownerId` — *exactly* the shape `crawlers` had before #871. Give it a
-  nullable `gameId`, an `ownerId` and a `by_owner` index; a Game-scoped NPC keeps
+  nullable `gameId`, an `ownerId` and a `by_owner_app_id` index; a Game-scoped NPC keeps
   `ownerId: null` the way a communal crawler does, and a shelf NPC takes an
   owner. Read #871's diff before starting — this is the same change twice.
 - **`mechPatterns` — nothing to do.** It already carries `ownerId` and a nullable

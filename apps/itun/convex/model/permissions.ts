@@ -20,8 +20,8 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
  * Organizer is deliberately administrative only. It grants membership and
  * settings powers and **nothing over game content** — an Organizer's reach
  * over a pilot, a mech, or the crawler is whatever their base role already
- * gave them. The single exception is documented on
- * `requireOwnershipAssigner` below, and it is a considered one.
+ * gave them. The single exception is documented on `isTableRunner` below,
+ * and it is a considered one.
  */
 
 type AnyCtx = QueryCtx | MutationCtx
@@ -172,12 +172,12 @@ export async function gameHasMediator(ctx: AnyCtx, gameId: Id<'games'>): Promise
  * Mediator at all, and it is re-evaluated per call rather than latched, so
  * appointing one takes the authority back the same instant.
  *
- * Three acts share this rule, and they share it because they are the same
- * kind of act — *setting the table up* rather than editing what is on it:
+ * The acts that share this rule share it because they are the same kind of
+ * act — *setting the table up* rather than editing what is on it:
  *
  *   - raising or scrapping a **crawler** (ADR-030 §5 amendment)
- *   - creating an entity **unclaimed**, for the crew to pick up
- *   - **assigning** or reassigning ownership
+ *   - adding to a Game that has no crawler yet (`entities.upsertByAppId`)
+ *   - publishing the crew's **crawler** (`publicSheet.setPublic`)
  *
  * None of them edits a sheet. That is the line: a table runner arranges who
  * holds what and what the crew sails in, and still cannot change a number on
@@ -201,21 +201,6 @@ export async function requireTableRunner(
   throw new NotAuthorized(
     'Only the Mediator can do that (or the Organizer, when the game has no Mediator)'
   )
-}
-
-/**
- * Whoever may assign or reassign entity ownership in this Game.
- *
- * Kept as its own name because the call sites read better for it and because
- * ADR-030 §3 names assignment specifically; the rule itself is
- * `requireTableRunner`, and there is deliberately only one implementation of
- * it so the two can never drift into different answers.
- */
-export async function requireOwnershipAssigner(
-  ctx: AnyCtx,
-  gameId: Id<'games'>
-): Promise<Doc<'memberships'>> {
-  return await requireTableRunner(ctx, gameId)
 }
 
 /**

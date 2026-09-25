@@ -115,7 +115,7 @@ describe('duplicate app ids no longer break the mirror', () => {
       gameId: null,
       body: pilotBody({ name: 'written before the repair' }),
     })
-    await t.mutation(internal.maintenance.dedupeAppIds, { apply: true })
+    await t.action(internal.maintenance.dedupeAppIds, { apply: true })
 
     // The two rules have to agree, or the repair would silently discard work
     // that landed while the roster was waiting for it.
@@ -131,7 +131,7 @@ describe('dedupeAppIds', () => {
     const u = await makeUser(t, 'A')
     await duplicatePilot(t, u.userId, 'p1', 3)
 
-    const report = await t.mutation(internal.maintenance.dedupeAppIds, {})
+    const report = await t.action(internal.maintenance.dedupeAppIds, {})
 
     expect(report.applied).toBe(false)
     expect(report.duplicatedAppIds).toBe(1)
@@ -150,7 +150,7 @@ describe('dedupeAppIds', () => {
     const u = await makeUser(t, 'A')
     await duplicatePilot(t, u.userId, 'p1', 3)
 
-    const report = await t.mutation(internal.maintenance.dedupeAppIds, { apply: true })
+    const report = await t.action(internal.maintenance.dedupeAppIds, { apply: true })
     expect(report.applied).toBe(true)
     expect(report.rowsDeleted).toBe(2)
 
@@ -190,7 +190,7 @@ describe('dedupeAppIds', () => {
       })
     })
 
-    await t.mutation(internal.maintenance.dedupeAppIds, { apply: true })
+    await t.action(internal.maintenance.dedupeAppIds, { apply: true })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -224,7 +224,7 @@ describe('dedupeAppIds', () => {
     })
 
     expect(doomed).toBeDefined()
-    const report = await t.mutation(internal.maintenance.dedupeAppIds, {})
+    const report = await t.action(internal.maintenance.dedupeAppIds, {})
     // Proposals and history address an entity by Convex id, not app id, so a
     // repair that says nothing about them would be quietly detaching history.
     expect(report.orphanedChangeLogRows).toBe(1)
@@ -235,9 +235,66 @@ describe('dedupeAppIds', () => {
     const u = await makeUser(t, 'A')
     await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
 
-    const report = await t.mutation(internal.maintenance.dedupeAppIds, {})
+    const report = await t.action(internal.maintenance.dedupeAppIds, {})
     expect(report.duplicatedAppIds).toBe(0)
     expect(report.groups).toEqual([])
     expect(report.scanned).toBe(1)
+  })
+})
+
+describe('dedupeAppIds pages', () => {
+  test('a duplicate group that straddles a page edge is judged whole', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    // In `by_app_id` order: a (1), b (3 copies), c (2 copies). With two rows to
+    // a page, b begins on the first page and ends past it, and is bigger than
+    // a whole page on its own — the two ways a naive page would split a group.
+    await duplicatePilot(t, u.userId, 'a', 1)
+    await duplicatePilot(t, u.userId, 'b', 3)
+    await duplicatePilot(t, u.userId, 'c', 2)
+
+    const report = await t.action(internal.maintenance.dedupeAppIds, {
+      apply: true,
+      pageSize: 2,
+    })
+
+    expect(report.groups.map((g) => [g.appId, g.rows])).toEqual([
+      ['b', 3],
+      ['c', 2],
+    ])
+    expect(report.rowsDeleted).toBe(3)
+    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    expect(rows.map((r) => r.appId).sort()).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('backfillBodyAppIds', () => {
+  test("lifts a legacy row's body id into the column, once", async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    const patternId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechPatterns', {
+          ownerId: u.userId,
+          gameId: null,
+          body: { id: 'pat1', name: 'Mule loadout' },
+        })
+    )
+    const npcId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('encounterNpcs', {
+          gameId: null,
+          ownerId: u.userId,
+          body: { id: 'npc1', name: 'Wretch' },
+        })
+    )
+
+    const first = await t.action(internal.maintenance.backfillBodyAppIds, {})
+    expect(first.updated).toBe(2)
+    expect((await t.run(async (ctx) => await ctx.db.get(patternId)))?.appId).toBe('pat1')
+    expect((await t.run(async (ctx) => await ctx.db.get(npcId)))?.appId).toBe('npc1')
+
+    const second = await t.action(internal.maintenance.backfillBodyAppIds, {})
+    expect(second.updated).toBe(0)
   })
 })

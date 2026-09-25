@@ -1,8 +1,8 @@
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
-import { parseBody } from './model/entities'
+import { query } from './_generated/server'
+import { bodyAppId, mutation, parseBody } from './model/entities'
 import { NotAuthorized, requireMediator, requireUser } from './model/permissions'
 
 /**
@@ -68,19 +68,9 @@ export const addNpc = mutation({
     return await ctx.db.insert('encounterNpcs', {
       gameId: args.gameId,
       ownerId: null,
+      appId: bodyAppId(body),
       body,
     })
-  },
-})
-
-export const updateNpc = mutation({
-  args: { npcId: v.id('encounterNpcs'), body: v.any() },
-  handler: async (ctx, args): Promise<void> => {
-    const doc = await ctx.db.get(args.npcId)
-    if (doc === null) return
-    await requireNpcWriter(ctx, doc)
-    const body = parseBody('encounterNpcs', args.body)
-    await ctx.db.patch(args.npcId, { body })
   },
 })
 

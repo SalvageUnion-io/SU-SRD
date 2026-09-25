@@ -1,7 +1,8 @@
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
+import { query } from './_generated/server'
+import { mutation } from './model/entities'
 import { requireUser } from './model/permissions'
 
 /**
@@ -74,15 +75,15 @@ export const exportMine = query({
 
     const pilots = await ctx.db
       .query('pilots')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
       .collect()
     const mechs = await ctx.db
       .query('mechs')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
       .collect()
     const mechPatterns = await ctx.db
       .query('mechPatterns')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
       .collect()
     const memberships = await ctx.db
       .query('memberships')
@@ -186,13 +187,23 @@ export const deleteAccount = mutation({
     }
 
     // Personal entities, wherever they live — in a Game or on the shelf.
-    for (const table of ['pilots', 'mechs', 'mechPatterns'] as const) {
-      const rows = await ctx.db
-        .query(table)
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-        .collect()
-      for (const row of rows) await ctx.db.delete(row._id)
-    }
+    // Each index leads with `ownerId`, so reading on that prefix alone is "all
+    // of this person's rows" in every one of them.
+    const personal = await Promise.all([
+      ctx.db
+        .query('pilots')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('mechs')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('mechPatterns')
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+        .collect(),
+    ])
+    for (const row of personal.flat()) await ctx.db.delete(row._id)
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

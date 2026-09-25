@@ -1,7 +1,7 @@
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
-import { internalMutation, internalQuery } from './_generated/server'
+import { internalQuery } from './_generated/server'
 import type { BotDenial } from './model/bot'
 import {
   bindChannelAs,
@@ -11,6 +11,7 @@ import {
   unbindChannelAs,
   userByDiscordId,
 } from './model/bot'
+import { internalMutation } from './model/entities'
 import { NotAuthorized } from './model/permissions'
 
 /**
@@ -148,11 +149,11 @@ export const shelf = internalQuery({
     const [pilots, mechs] = await Promise.all([
       ctx.db
         .query('pilots')
-        .withIndex('by_owner', (q) => q.eq('ownerId', user._id))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id).eq('gameId', null))
         .collect(),
       ctx.db
         .query('mechs')
-        .withIndex('by_owner', (q) => q.eq('ownerId', user._id))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', user._id).eq('gameId', null))
         .collect(),
     ])
 
@@ -160,12 +161,8 @@ export const shelf = internalQuery({
       ok: true,
       // See `crew` on why `appId` rides along: it is what the web sheet route
       // actually resolves by.
-      pilots: pilots
-        .filter((p) => p.gameId === null)
-        .map((p) => ({ id: p._id, appId: p.appId ?? null, body: p.body })),
-      mechs: mechs
-        .filter((m) => m.gameId === null)
-        .map((m) => ({ id: m._id, appId: m.appId ?? null, body: m.body })),
+      pilots: pilots.map((p) => ({ id: p._id, appId: p.appId ?? null, body: p.body })),
+      mechs: mechs.map((m) => ({ id: m._id, appId: m.appId ?? null, body: m.body })),
     }
   },
 })

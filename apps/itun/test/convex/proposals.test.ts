@@ -296,6 +296,28 @@ describe('alerts share the proposal bus', () => {
     expect(seen[0]?.message).toBe('Sandstorm inbound')
   })
 
+  test('newest first, capped at the limit, and nothing but alerts', async () => {
+    const t = testConvex()
+    const { gm, player, gameId, mechId } = await seedTable(t)
+    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'first' })
+    // A proposal is a change-log row in the same Game — it must not surface here.
+    await gm.as.mutation(api.proposals.propose, {
+      entityId: mechId,
+      entityType: 'mech',
+      field: 'currentSP',
+      before: 10,
+      after: 6,
+    })
+    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'second' })
+    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'third' })
+
+    const all = await player.as.query(api.proposals.alerts, { gameId })
+    expect(all.map((a) => a.message)).toEqual(['third', 'second', 'first'])
+
+    const two = await player.as.query(api.proposals.alerts, { gameId, limit: 2 })
+    expect(two.map((a) => a.message)).toEqual(['third', 'second'])
+  })
+
   test('a player cannot broadcast', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)

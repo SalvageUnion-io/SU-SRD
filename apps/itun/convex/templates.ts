@@ -6,7 +6,8 @@ import {
   STARTER_SOFT_LINKS,
 } from '../src/lib/starterSet/starterSet'
 import type { Id } from './_generated/dataModel'
-import { mutation, query } from './_generated/server'
+import { query } from './_generated/server'
+import { mutation } from './model/entities'
 import { requireUser } from './model/permissions'
 
 /**

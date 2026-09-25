@@ -1,15 +1,21 @@
 import { v } from 'convex/values'
 import { containerOf, SHELF, sameContainer } from '../src/lib/container'
-import { CrawlerSchema } from '../src/lib/schemas/crawler'
 import type { EntityRef } from '../src/lib/schemas/entity'
 import { EntityRefSchema } from '../src/lib/schemas/entity'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import { SoftLinkSchema } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
+import { query } from './_generated/server'
 import type { OwnableTable } from './model/entities'
-import { loadOwnable, PARSERS, parseBody } from './model/entities'
+import {
+  bodyAppId,
+  findOwnedByAppId,
+  loadOwnable,
+  mutation,
+  PARSERS,
+  parseBody,
+} from './model/entities'
 import {
   gameHasCrawler,
   getMembership,
@@ -37,7 +43,8 @@ import { entityRefType, softLinkType } from './schema'
  * ## What you may read, and what you may write
  *
  * Reading is per-Game: any member sees every pilot and mech in it, which is
- * what makes crew vitals and read-only drill-in possible (D12).
+ * what makes crew vitals possible and would let a read-only drill-in be
+ * built (D12 — decided, not built).
  *
  * Writing is per-*entity*: only the owner writes their own pilot, and nobody
  * writes a crewmate's. A Mediator wanting to change someone else's sheet goes
@@ -101,37 +108,30 @@ function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>):
 }
 
 /**
- * Whether this user may add a new entity to this Game, and as whom.
+ * Whether this user may add a new entity to this container.
  *
  * The shelf is unconditional: it is your own, so there is nobody to be set up
  * for and nothing to gate on. Inside a Game the answer depends on the crawler,
  * for the reason in the module header — with one exception, the table runner,
  * who is who *raises* the crawler.
- *
- * Returns whether the caller is the table runner rather than a bare boolean
- * pass/fail, because the caller immediately needs that same answer to decide
- * whether an `unassigned` create is allowed. Asking twice would mean two
- * lookups and, worse, two places the rule could drift.
  */
 async function assertMayAddToContainer(
   ctx: QueryCtx | MutationCtx,
   gameId: Id<'games'> | null,
   userId: Id<'users'>
-): Promise<{ tableRunner: boolean }> {
-  if (gameId === null) return { tableRunner: false }
+): Promise<void> {
+  if (gameId === null) return
 
   const membership = await getMembership(ctx, gameId, userId)
   if (membership === null) throw new NotAuthorized('Not a member of this game')
 
-  const tableRunner = await isTableRunner(ctx, gameId, membership)
-  if (tableRunner) return { tableRunner }
+  if (await isTableRunner(ctx, gameId, membership)) return
 
   if (!(await gameHasCrawler(ctx, gameId))) {
     throw new NotAuthorized(
       'This game has no Union Crawler yet — the Mediator raises one before the crew joins it'
     )
   }
-  return { tableRunner }
 }
 
 /** Everything in a Game the caller can see: all pilots and mechs, plus the crawler. */
@@ -186,16 +186,6 @@ export const listForGame = query({
 })
 
 /**
- * Create an entity, on the caller's shelf or in a Game they belong to.
- *
- * `unassigned` is how a Mediator pre-builds a character **for somebody else**:
- * the row lands with `ownerId: null` and any player in the Game may pick it up
- * (`ownership.claim`). It is the create-time twin of a template's pre-gens, and
- * it is table-runner-only for the same reason assignment is — an ownerless
- * entity is an offer to the crew, and a player making one would be dropping
- * their own character into the pool rather than offering anything.
- */
-/**
  * Everything this account owns, for filling the local cache.
  *
  * ## Why this did not exist, and why that was a bug
@@ -235,23 +225,23 @@ export const listMine = query({
     const [pilots, mechs, crawlers, patterns, npcs] = await Promise.all([
       ctx.db
         .query('pilots')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
       ctx.db
         .query('mechs')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
       ctx.db
         .query('crawlers')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
       ctx.db
         .query('mechPatterns')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
         .collect(),
       ctx.db
         .query('encounterNpcs')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
         .collect(),
     ])
 
@@ -273,59 +263,6 @@ export const listMine = query({
   },
 })
 
-export const create = mutation({
-  args: {
-    table: OWNABLE,
-    gameId: v.union(v.id('games'), v.null()),
-    /** The local UUID this row mirrors, so later edits can address it. */
-    appId: v.optional(v.string()),
-    /** Table-runner only: land it unclaimed for a player to pick up. */
-    unassigned: v.optional(v.boolean()),
-    body: v.any(),
-  },
-  handler: async (ctx, args): Promise<Id<'pilots'> | Id<'mechs'>> => {
-    const userId = await requireUser(ctx)
-    const { tableRunner } = await assertMayAddToContainer(ctx, args.gameId, userId)
-    const body = parseBody(args.table, args.body)
-
-    // `gameId: null && ownerId: null` is the one invalid combination in the
-    // schema — a shelf is a *person's*, so an unclaimed shelf entity would be
-    // owned by nobody and reachable by nobody.
-    if (args.unassigned === true && args.gameId === null) {
-      throw new NotAuthorized('A shelf has no crew to pick anything up — shelved builds are yours')
-    }
-    if (args.unassigned === true && !tableRunner) {
-      throw new NotAuthorized('Only the Mediator can leave a new character unclaimed')
-    }
-
-    return await ctx.db.insert(args.table, {
-      gameId: args.gameId,
-      ownerId: args.unassigned === true ? null : userId,
-      appId: args.appId,
-      body,
-      updatedAt: Date.now(),
-    })
-  },
-})
-
-/** Replace an entity's body. Owner only — see the module header. */
-export const update = mutation({
-  args: {
-    table: OWNABLE,
-    entityId: v.string(),
-    body: v.any(),
-  },
-  handler: async (ctx, args): Promise<void> => {
-    const userId = await requireUser(ctx)
-    const doc = await loadOwnable(ctx, args.table, args.entityId)
-
-    assertMayWrite(doc, userId)
-    const body = parseBody(args.table, args.body)
-
-    await ctx.db.patch(doc._id, { body, updatedAt: Date.now() })
-  },
-})
-
 /**
  * Delete an entity, addressed by its **server** id. Owner only.
  *
@@ -333,8 +270,8 @@ export const update = mutation({
  * Game roster cannot use that one: it is looking at rows this browser may never
  * have held, and at pre-gens seeded from a template that have no `appId` at all
  * (production holds a dozen). Addressing by `_id` is the only way to name those,
- * and it is exactly how `update`, `ownership.release` and `removeCrawler`
- * already address a row from that surface.
+ * and it is exactly how `ownership.release` and `removeCrawler` already
+ * address a row from that surface.
  */
 export const remove = mutation({
   args: { table: OWNABLE, entityId: v.string() },
@@ -382,10 +319,7 @@ export const createCrawler = mutation({
     const userId = await requireUser(ctx)
     if (args.gameId !== null) await requireTableRunner(ctx, args.gameId)
 
-    const result = CrawlerSchema.safeParse(args.body)
-    if (!result.success) {
-      throw new Error(`Invalid crawler payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
-    }
+    const body = parseBody('crawlers', args.body)
 
     return await ctx.db.insert('crawlers', {
       gameId: args.gameId,
@@ -393,7 +327,7 @@ export const createCrawler = mutation({
       // a shelf crawler MUST take an owner and the caller is the only candidate.
       ownerId: args.gameId === null ? userId : null,
       appId: args.appId,
-      body: result.data,
+      body,
       updatedAt: Date.now(),
     })
   },
@@ -538,7 +472,7 @@ async function appIdTaken(
 const CONTAINED = {
   pilots: PARSERS.pilots,
   mechs: PARSERS.mechs,
-  crawlers: CrawlerSchema,
+  crawlers: PARSERS.crawlers,
 } as const
 
 /**
@@ -590,7 +524,7 @@ export const repairContainers = mutation({
     for (const table of ['pilots', 'mechs', 'crawlers'] as const) {
       const rows = await ctx.db
         .query(table)
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect()
 
       for (const row of rows) {
@@ -793,7 +727,7 @@ export const claimLocal = mutation({
      * crawler pass is now the same straight loop the pilots and mechs use.
      */
     for (const body of args.crawlers ?? []) {
-      const parsed = CrawlerSchema.safeParse(body)
+      const parsed = PARSERS.crawlers.safeParse(body)
       if (!parsed.success) {
         skipped += 1
         continue
@@ -831,15 +765,15 @@ export const claimLocal = mutation({
      * That was survivable while claiming was a card somebody pressed once. It is
      * not survivable now that the migration runs by itself on every signed-in
      * load (ADR-035): an unguarded insert would grow the tray by its own size
-     * every time. `encounterNpcs` has no `appId` column, so identity is the id
-     * inside the body — the same rule the patterns pass below already uses, and
-     * for the same reason.
+     * every time. Identity is the id inside the body (which `appId` now carries
+     * as a column) — the same rule the patterns pass below uses, and for the
+     * same reason.
      */
     const ownNpcs =
       (args.encounterNpcs ?? []).length > 0
         ? await ctx.db
             .query('encounterNpcs')
-            .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+            .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
             .collect()
         : []
     const ownNpcIds = new Set(
@@ -867,6 +801,7 @@ export const claimLocal = mutation({
       await ctx.db.insert('encounterNpcs', {
         gameId: null,
         ownerId: userId,
+        appId: bodyAppId(body),
         body: shelveBody(parsed.data),
       })
       bump('encounterNpcs')
@@ -927,17 +862,18 @@ export const claimLocal = mutation({
     }
 
     /*
-     * Patterns are the one claimed kind with no `appId` column at all, so the
-     * repeat-claim check reads the id out of the body and compares against this
-     * user's own patterns. `by_owner` keeps that to one indexed read of a set
-     * that is per-person and small — a pattern is a saved mech loadout, not a
-     * log.
+     * A pattern's identity is the id inside its body, so the repeat-claim check
+     * compares against this user's own patterns. One indexed read of a set that
+     * is per-person and small — a pattern is a saved mech loadout, not a log —
+     * and cheaper than a lookup per claimed pattern. Rows written before the
+     * `appId` column still carry their id in the body, which is why this reads
+     * bodies rather than the column.
      */
     const ownPatterns =
       (args.mechPatterns ?? []).length > 0
         ? await ctx.db
             .query('mechPatterns')
-            .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+            .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
             .collect()
         : []
     const ownPatternIds = new Set(
@@ -965,6 +901,7 @@ export const claimLocal = mutation({
       await ctx.db.insert('mechPatterns', {
         ownerId: userId,
         gameId: null,
+        appId: bodyAppId(body),
         body: parsed.data,
       })
       bump('mechPatterns')
@@ -1039,11 +976,11 @@ async function byAppId(
  * row as "create it" is what makes the mirror converge instead of silently
  * dropping the first edit after a claim.
  *
- * The insert branch is a **create into a container**, so it answers to the same
- * gate `create` does. Leaving it open would have made the whole rule cosmetic:
- * the client's ordinary write path comes through here, so a player blocked from
- * `create` would simply have built the pilot locally and had the mirror place
- * it in the Game a moment later.
+ * The insert branch is a **create into a container**, so it answers to
+ * `assertMayAddToContainer`. Leaving it open would have made the whole rule
+ * cosmetic: this is the client's ordinary write path, so a player blocked from
+ * adding to a Game would simply have built the pilot locally and had the
+ * mirror place it there a moment later.
  */
 export const upsertByAppId = mutation({
   args: {
@@ -1121,12 +1058,9 @@ export const patchCrawlerByAppId = mutation({
     await assertMayEditCrawler(ctx, existing)
 
     const merged = { ...(existing.body as Record<string, unknown>), ...(args.patch as object) }
-    const result = CrawlerSchema.safeParse(merged)
-    if (!result.success) {
-      throw new Error(`Invalid crawler payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
-    }
+    const body = parseBody('crawlers', merged)
 
-    await ctx.db.patch(existing._id, { body: result.data, updatedAt: Date.now() })
+    await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
   },
 })
 
@@ -1337,22 +1271,24 @@ export const upsertMechPattern = mutation({
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
     const parsed = PARSERS.mechPatterns.parse(args.body)
-    const patternId = (args.body as { id?: unknown }).id
-    if (typeof patternId !== 'string') {
+    const patternId = bodyAppId(args.body)
+    if (patternId === undefined) {
       throw new Error('[itun] a mech pattern must carry a string id in its body')
     }
 
-    const own = await ctx.db
-      .query('mechPatterns')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-      .collect()
-    const existing = own.find((r) => (r.body as { id?: unknown }).id === patternId)
-
-    if (existing === undefined) {
-      await ctx.db.insert('mechPatterns', { ownerId: userId, gameId: null, body: parsed })
+    const existing = await findOwnedByAppId(ctx, 'mechPatterns', userId, patternId)
+    if (existing === null) {
+      await ctx.db.insert('mechPatterns', {
+        ownerId: userId,
+        gameId: null,
+        appId: patternId,
+        body: parsed,
+      })
       return
     }
-    await ctx.db.patch(existing._id, { body: parsed })
+    // `appId` is written on the patch too, so a row from before the column
+    // existed gains it the first time it is saved.
+    await ctx.db.patch(existing._id, { appId: patternId, body: parsed })
   },
 })
 
@@ -1361,14 +1297,10 @@ export const removeMechPattern = mutation({
   args: { patternId: v.string() },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    const own = await ctx.db
-      .query('mechPatterns')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-      .collect()
-    const existing = own.find((r) => (r.body as { id?: unknown }).id === args.patternId)
+    const existing = await findOwnedByAppId(ctx, 'mechPatterns', userId, args.patternId)
     // Absent is success: a delete that races a delete, or a row that never
     // reached the server, must not fail the local write that follows it.
-    if (existing === undefined) return
+    if (existing === null) return
     await ctx.db.delete(existing._id)
   },
 })
@@ -1386,22 +1318,22 @@ export const upsertEncounterNpc = mutation({
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
     const parsed = PARSERS.encounterNpcs.parse(args.body)
-    const npcId = (args.body as { id?: unknown }).id
-    if (typeof npcId !== 'string') {
+    const npcId = bodyAppId(args.body)
+    if (npcId === undefined) {
       throw new Error('[itun] an encounter NPC must carry a string id in its body')
     }
 
-    const own = await ctx.db
-      .query('encounterNpcs')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-      .collect()
-    const existing = own.find((r) => (r.body as { id?: unknown }).id === npcId)
-
-    if (existing === undefined) {
-      await ctx.db.insert('encounterNpcs', { gameId: null, ownerId: userId, body: parsed })
+    const existing = await findOwnedByAppId(ctx, 'encounterNpcs', userId, npcId)
+    if (existing === null) {
+      await ctx.db.insert('encounterNpcs', {
+        gameId: null,
+        ownerId: userId,
+        appId: npcId,
+        body: parsed,
+      })
       return
     }
-    await ctx.db.patch(existing._id, { body: parsed })
+    await ctx.db.patch(existing._id, { appId: npcId, body: parsed })
   },
 })
 
@@ -1410,12 +1342,8 @@ export const removeEncounterNpc = mutation({
   args: { npcId: v.string() },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    const own = await ctx.db
-      .query('encounterNpcs')
-      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-      .collect()
-    const existing = own.find((r) => (r.body as { id?: unknown }).id === args.npcId)
-    if (existing === undefined) return
+    const existing = await findOwnedByAppId(ctx, 'encounterNpcs', userId, args.npcId)
+    if (existing === null) return
     await ctx.db.delete(existing._id)
   },
 })

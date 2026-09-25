@@ -54,16 +54,13 @@ describe('the NPC tray is Mediator-only', () => {
     await expect(player.as.query(api.mediator.npcs, { gameId })).rejects.toThrow(/mediator/i)
   })
 
-  test('a player cannot add, edit or remove one', async () => {
+  test('a player cannot add or remove one', async () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedMediatedGame(t)
     const npcId = await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'A' } })
 
     await expect(
       player.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'B' } })
-    ).rejects.toThrow(/mediator/i)
-    await expect(
-      player.as.mutation(api.mediator.updateNpc, { npcId, body: { name: 'C' } })
     ).rejects.toThrow(/mediator/i)
     await expect(player.as.mutation(api.mediator.removeNpc, { npcId })).rejects.toThrow(/mediator/i)
   })
@@ -105,20 +102,6 @@ describe('the tray parses what it stores', () => {
 
     const rows = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
     expect(rows).toHaveLength(0)
-  })
-
-  test('an edit cannot replace a good body with a malformed one', async () => {
-    const t = testConvex()
-    const { mediator, gameId } = await seedMediatedGame(t)
-    const npcId = await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'A' } })
-
-    await expect(
-      mediator.as.mutation(api.mediator.updateNpc, { npcId, body: { name: '', broken: 1 } })
-    ).rejects.toThrow(/invalid encounterNpcs payload/i)
-
-    // The refusal leaves the row as it was rather than half-written.
-    const rows = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
-    expect((rows[0]?.body as { name?: string })?.name).toBe('A')
   })
 
   test('a fully tracked NPC instance parses too', async () => {

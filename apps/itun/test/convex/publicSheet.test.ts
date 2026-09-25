@@ -137,8 +137,8 @@ describe('only the owner may publish', () => {
 
   test('an unclaimed entity can still be UN-published', async () => {
     // The revocation promise has to survive the owner walking away.
-    // `ownership.release` and the leave-Game sweep both null an `ownerId` on a
-    // row that is still in the Game, so refusing every call on an unclaimed
+    // `ownership.release` nulls an `ownerId` on a row that is still in the
+    // Game, so refusing every call on an unclaimed
     // entity would leave a published sheet permanently world-readable with
     // "Stop sharing" refusing forever.
     const t = testConvex()

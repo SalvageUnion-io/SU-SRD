@@ -49,9 +49,8 @@ mock.module('@sentry/browser', () => ({
   },
 }))
 
-const { captureException, captureMessage, initBrowserObservability } = await import(
-  '../observability'
-)
+const { captureException, captureMessage, initBrowserObservability, reactRootErrorHandlers } =
+  await import('../observability')
 
 /** Env keys this file writes, so `afterAll` can put the environment back. */
 const ENV_KEYS = ['VITE_SENTRY_DSN', 'VITE_COMMIT_REF'] as const
@@ -195,5 +194,53 @@ describe('observability', () => {
     captureMessage('bare')
 
     expect(sentryCalls.find((c) => c.fn === 'captureMessage')?.args[1]).toBeUndefined()
+  })
+
+  test('the same error object is reported once, however many places see it', () => {
+    // A chunk failure is reported by chunkRecovery and then, when the reload
+    // cooldown holds, again by the error boundary it lands in. One failure,
+    // one event.
+    const boom = new Error('Failed to fetch dynamically imported module')
+    captureException(boom, { recovered: false }, { fingerprint: ['chunk-preload-error'] })
+    captureException(boom)
+
+    expect(sentryCalls.filter((c) => c.fn === 'captureException')).toHaveLength(1)
+  })
+
+  test('a render error a boundary catches reaches Sentry, with its component stack', () => {
+    // The whole point of the createRoot hooks: a caught render error never
+    // reaches window.onerror, so without this it was recorded nowhere.
+    const realConsoleError = console.error
+    console.error = () => {}
+    try {
+      const boom = new Error('Cannot read properties of undefined (reading hp)')
+      reactRootErrorHandlers.onCaughtError(boom, { componentStack: '\n    at MechSheet' })
+
+      const captured = sentryCalls.find((c) => c.fn === 'captureException')
+      expect(captured?.args[0]).toBe(boom)
+      expect(captured?.args[1]).toEqual({
+        extra: { componentStack: '\n    at MechSheet' },
+        tags: { boundary: 'caught' },
+      })
+    } finally {
+      console.error = realConsoleError
+    }
+  })
+
+  test('an error no boundary catches is reported and tagged as such', () => {
+    const realConsoleError = console.error
+    console.error = () => {}
+    try {
+      const boom = new Error('escaped every boundary')
+      reactRootErrorHandlers.onUncaughtError(boom, {})
+
+      const captured = sentryCalls.find((c) => c.fn === 'captureException')
+      expect(captured?.args[0]).toBe(boom)
+      expect((captured?.args[1] as { tags?: unknown } | undefined)?.tags).toEqual({
+        boundary: 'uncaught',
+      })
+    } finally {
+      console.error = realConsoleError
+    }
   })
 })
