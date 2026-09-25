@@ -269,10 +269,16 @@ const CSS_PROPERTY_KEY =
  * style-object value never counts.
  */
 function isLooseClassList(text: string, before: string): boolean {
-  const tokens = text.trim().split(/\s+/).filter(Boolean)
+  const all = text.trim().split(/\s+/).filter(Boolean)
+  // The package's own `.su-*` / `.pc-*` classes may sit beside utilities in the
+  // same string (`'su-button flex items-center'`) — the mid-migration shape.
+  // They are not utilities, but their presence proves the literal is a class
+  // list, so the single-token ambiguity rules below no longer apply.
+  const tokens = all.filter((t) => !OWN_CLASS.test(t))
+  const hasOwnClass = tokens.length < all.length
   if (tokens.length === 0 || !tokens.every(isTailwindUtility)) return false
   if (CSS_PROPERTY_KEY.test(before)) return false
-  if (tokens.length === 1) {
+  if (tokens.length === 1 && !hasOwnClass) {
     const token = tokens[0] as string
     const bare = bareUtility(token)
     if (CSS_KEYWORD_COLLISIONS.has(bare)) return false
@@ -280,6 +286,9 @@ function isLooseClassList(text: string, before: string): boolean {
   }
   return true
 }
+
+/** The package's own class namespaces, which are not Tailwind utilities. */
+const OWN_CLASS = /^(?:su|pc)-[\w-]+$/
 
 const LITERAL = /'([^'\\\n]*)'|"([^"\\\n]*)"|`([^`]*)`/g
 
@@ -317,7 +326,7 @@ export function tailwindUtilitiesIn(src: string): string[] {
       continue
     const text = literalText(lit)
     if (isLooseClassList(text, clean.slice(Math.max(0, at - 80), at))) {
-      for (const token of text.split(/\s+/)) if (token) found.push(token)
+      for (const token of text.split(/\s+/)) if (token && !OWN_CLASS.test(token)) found.push(token)
     }
   }
   return found

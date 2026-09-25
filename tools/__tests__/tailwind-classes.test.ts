@@ -79,6 +79,12 @@ describe('tailwindUtilitiesIn', () => {
     expect(tailwindUtilitiesIn(src)).toEqual(['flex', 'items-center', 'gap-2', 'hover:bg-rust'])
   })
 
+  test('a constant mixing the package classes with utilities counts its utilities', () => {
+    // The mid-migration shape: a `.su-*` class beside the utilities it has not yet replaced.
+    const src = `const B = 'su-button flex items-center gap-2'\nconst C = 'su-chip hidden'\nconst D = 'su-button su-button--dark'`
+    expect(tailwindUtilitiesIn(src)).toEqual(['flex', 'items-center', 'gap-2', 'hidden'])
+  })
+
   test('a lookup map of class strings counts, lone-token values included', () => {
     // techLevelStyles.ts / sizing.ts shape.
     const src = `const TL = { '1': 'bg-tl-1 text-ink', 2: 'bg-tl-2' }\nconst RUNG = { full: { label: 'text-sm' } }`

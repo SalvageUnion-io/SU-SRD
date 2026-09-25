@@ -141,20 +141,48 @@ one most likely to be left behind "because it already works".
 
 ### P6 — The apps
 
-`apps/itun` (86 files) then `apps/srd` (24). srd's output gate does **not**
+`apps/itun` (88 files) then `apps/srd` (24). srd's output gate does **not**
 cover this — it digests `<main>` text, not markup or CSS (see `/srd-gate`) — so
 each srd PR carries a visual check of the affected pages.
 
 - **Prerequisite:** the ADR recording the styling change (tokens + one
   stylesheet replacing "Base UI + Tailwind v4"), written before the first app
   PR so the apps' docs have something to point at.
-- **Exit:** `tailwind-utility-file` is 0 **and** the built CSS of both apps
-  and of Ladle emits no Tailwind utility rules (an empty `@layer utilities`).
-  The second half is the oracle the first cannot be: Tailwind generates a rule
-  for every candidate it finds in **any** source string, so a class list the
-  heuristic scan missed — a string built by concatenation, a class passed
-  through data — still shows up there. A non-empty layer is a work-list, not a
-  footnote: each rule in it names a class something still depends on.
+- **Exit:** `tailwind-utility-file` is 0 **and** no rendered element carries
+  a class that the built CSS defines as a Tailwind utility. The second half is
+  the oracle the first cannot be — it catches a class list the heuristic scan
+  missed (a string built by concatenation, a class passed through data) — and
+  it is measured on the **DOM**, not on the stylesheet:
+  - Take the utility selectors from the built CSS of each surface (srd's
+    `dist/assets/styles-*.css`, ITUN's build, Ladle's build): the class names
+    inside `@layer utilities`.
+  - Take the class tokens actually present on elements: srd's built HTML
+    **plus** the DOM after its islands mount (they render client-side only, so
+    the static HTML alone misses them), ITUN's routes, and every Ladle story —
+    crawled with the Playwright the repo already carries for `a11y-scan`.
+  - The check passes when the intersection is empty. A non-empty intersection
+    is the work-list: each entry names an element and a utility it still
+    depends on.
+
+  **An empty `@layer utilities` is not the check, and never will be.**
+  Tailwind v4 scans every source file as plain text — comments, JSDoc, page
+  copy, JSON — and emits a rule for any utility-shaped word. Measured at
+  `c0560252`, srd's built CSS already carries `.static`, `.collapse`,
+  `.container`, `.visible`, `.table`, `.list-item`, `.shadow`, `.outline`,
+  `.filter`, `.blur` and `.resize`, sourced from comments
+  (`EntityCardStatic.tsx`, `ColophonIsland.tsx`, `ssg/build.ts`), an inline
+  `<style>` block in `greembeem.page.tsx`, and `ssg/output-snapshot.json`. None is a
+  class anything depends on, so a gate on the layer being empty would fail
+  forever after the migration finished — and a gate that cannot pass gets
+  waived. The DOM intersection ignores those rules because no element uses
+  them.
+
+  Its limit is coverage: it sees only the states the crawl reaches, so a class
+  applied on an interaction or an error path it never triggers is invisible to
+  it. For those, the per-PR visual check above is the backstop — or, once
+  before P7, a screenshot diff of the same crawl with the `tailwindcss()`
+  plugin removed from both Vite configs, which catches any element that loses
+  styling regardless of where its class came from.
 
 ### P7 — Remove Tailwind
 
@@ -172,7 +200,7 @@ each srd PR carries a visual check of the affected pages.
   check` green; built CSS size recorded before and after (#802's success list).
   None of those three notices an element that silently lost its styling — the
   srd gate digests text, not markup — so P7 must not start until P6's
-  empty-`@layer utilities` check has passed on the commit it branches from.
+  DOM-intersection check has passed on the commit it branches from.
 
 ## 4. The rules every phase applies
 
