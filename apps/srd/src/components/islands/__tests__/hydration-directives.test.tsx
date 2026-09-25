@@ -1,13 +1,9 @@
 /**
- * Hydration directives — the guard, ported to the in-house island protocol.
+ * Island directives — the guard on the in-house island protocol.
  *
- * The Astro version of this file read `.astro` sources as TEXT and grepped for
- * `client:visible` / `client:idle`. Those directives no longer exist: a page now
- * renders `<Island name=… client=… ssr=…>` and the placeholder it emits is the
- * contract (see `ssg/DESIGN.md`, "The island protocol").
- *
- * So the invariants are the same and the method is not: every assertion below
- * renders the real component and reads the real placeholder, rather than
+ * A page renders `<Island name=… client=… ssr=…>` and the placeholder it emits
+ * is the contract (see `ssg/DESIGN.md`, "The island protocol"). Every assertion
+ * below renders the real component and reads the real placeholder, rather than
  * matching source text. The one exception is `Toaster`, an assertion about
  * ABSENCE that the module graph is the honest place to check — and even that is
  * backed by a rendered-markup check beside it.
@@ -230,8 +226,8 @@ describe('hydration directives', () => {
 
   describe('the placeholder contract binds to the client mounter', () => {
     it('every island a page emits is resolvable in islandRegistry', () => {
-      // In Astro a mistyped island was a broken import. Here `name` is a string
-      // the mounter looks up at runtime, so a typo is silently dead UI.
+      // `name` is a string the mounter looks up at runtime, so a typo is
+      // silently dead UI rather than a broken import.
       const emitted = [
         ...renderIslands(<TopNavigation currentPath="/" />).islands,
         ...renderIslands(

@@ -5,7 +5,7 @@ export type StructuredData = Record<string, unknown>
 
 export type BreadcrumbItem = { name: string; url: string }
 
-/** Everything BaseLayout needs to build <head>. Mirrors BaseLayout.astro's Props. */
+/** Everything BaseLayout needs to build <head>. */
 export type DocumentMeta = {
   title?: string
   description?: string
@@ -61,9 +61,8 @@ export type PageResult = { meta: DocumentMeta; children: ReactNode; shell?: Docu
  * source path relative to the Vite root (`src/assets/eldridge-coast-map.webp` ->
  * `/assets/eldridge-coast-map-Bx1.webp`).
  *
- * This is the replacement for `astro:assets`. Astro's `<Image>` both emitted a
- * file and handed the page its URL; here those halves are split, because the SSR
- * pass runs under Bun and never goes through Vite. `src/runtime/assets.entry.ts`
+ * Emitting a file and handing the page its URL are split, because the SSR pass
+ * runs under Bun and never goes through Vite. `src/runtime/assets.entry.ts`
  * (a client-bundle entry) imports the asset so Vite emits it; `ssg/build.ts`
  * reads the emitted URL out of `dist/.vite/manifest.json` and passes it down
  * here. Look one up with `builtAssetUrl()` from `src/lib/builtAssets.ts` rather
@@ -89,7 +88,7 @@ export type RouteContext<Params, Props> = {
 export type StaticPath<Params, Props> = { params: Params; props: Props }
 
 export type PageModule<Params = Record<string, string>, Props = unknown> = {
-  /** Astro-style pattern, e.g. '/schema/[schemaId]/item/[itemId]' */
+  /** Route pattern, e.g. '/schema/[schemaId]/item/[itemId]' */
   pattern: string
   /** Omit for a single fixed route. */
   getStaticPaths?: () => StaticPath<Params, Props>[]

@@ -1,5 +1,5 @@
 /**
- * `/api` — the public JSON API reference. Port of `api.astro`.
+ * `/api` — the public JSON API reference.
  *
  * Pure static prose plus one table driven by the reference dataset. The code
  * samples live in template literals rather than as JSX text: JSX collapses

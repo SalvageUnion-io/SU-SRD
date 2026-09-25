@@ -1,20 +1,12 @@
 {
   // assets.salvageunion.io — entity artwork, served from R2 (ADR-033).
   //
-  // Replaces the Netlify Function over a Blobs store. The URL grammar is
-  // unchanged, so `salvageunion-reference`'s ASSET_BASE_URL keeps pointing at
-  // the same hostname and neither app needs a code change: at cutover the
-  // hostname moves to this Worker and every derived artwork URL keeps resolving.
+  // `salvageunion-reference`'s ASSET_BASE_URL points at this hostname, so every
+  // derived artwork URL in both apps resolves here.
   //
-  // No static assets directory. The Netlify site published `public/` (a
-  // robots.txt) alongside the function; here the Worker answers every path, and
-  // robots is served from the Worker rather than smuggled in as a second
-  // mechanism — one place decides what this origin returns.
-  //
-  // That was the INTENT from the start and the branch was missing until it was
-  // written: `/robots.txt` fell through to Cloudflare's zone-level managed file,
-  // which has no `Disallow`, so this origin was open to crawlers between the
-  // cutover and that fix. `src/__tests__/robots.test.ts` now holds it closed.
+  // No static assets directory: the Worker answers every path, robots.txt
+  // included, so one place decides what this origin returns.
+  // `src/__tests__/robots.test.ts` holds robots closed.
   "name": "su-assets",
 
   // One hostname, and it moves with srd rather than separately: `ASSET_BASE_URL`

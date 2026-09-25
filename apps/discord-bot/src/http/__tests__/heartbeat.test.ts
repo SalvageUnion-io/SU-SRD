@@ -7,18 +7,14 @@ import worker from '../worker.js'
  *
  * Driven through `worker.scheduled` rather than by exporting `heartbeat`,
  * because the entry point IS the contract: Cloudflare calls this, and a
- * heartbeat that works but is never wired to the trigger is exactly the failure
- * being replaced — `startLivenessHeartbeat` was correct code that the Worker
- * never reached.
+ * heartbeat that works but is never wired to the trigger reports nothing.
  *
  * ## What must be true, and why each matters
  *
- * The old monitor watched a Render process the Worker had superseded, so it
- * either alerted forever or reported green for something nobody used. The
- * replacement is only better if it reports on the thing that can actually break.
+ * The monitor is only useful if it reports on the thing that can actually break.
  * Under HTTP interactions there is no gateway session to observe, so **token
  * validity is the liveness question** — which is why a check-in that merely
- * proved "the cron fired" would be no improvement at all.
+ * proved "the cron fired" would be worthless.
  */
 
 const ENV: Env = {

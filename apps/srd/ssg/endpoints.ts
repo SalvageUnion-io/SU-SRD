@@ -11,9 +11,8 @@
  * URL — `schema/[schemaId].json`, not `/schema/[schemaId].json/`. It is written
  * exactly where it says, so `/schema/chassis.json` lands at
  * `dist/schema/chassis.json` and NOT `dist/schema/chassis.json/index.html`.
- * That distinction is the whole reason `astro.config.mjs` had to set
- * `trailingSlash: 'ignore'` (read the comment there); here it falls out of the
- * pattern being a path in the first place, so there is nothing to configure.
+ * That falls out of the pattern being a path in the first place, so there is
+ * nothing to configure.
  *
  * ## Preload ordering
  *

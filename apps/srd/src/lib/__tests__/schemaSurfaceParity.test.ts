@@ -10,7 +10,7 @@ import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
  * `/schema/actions.json` existed and `/schema/actions/` did not. Three
  * consequences, none of which surfaced as a failure anywhere:
  *
- *  - three undocumented endpoints, since `api.astro` — the page that documents
+ *  - three undocumented endpoints, since `api.page.tsx` — the page that documents
  *    this API — filters the meta schemas out;
  *  - `seo-accessibility.md`'s claim that every schema page has a JSON twin was
  *    true, while the reverse silently was not;

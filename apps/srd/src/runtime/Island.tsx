@@ -7,8 +7,8 @@
  *
  * and records the island's props in a render-scoped collector so
  * `ssg/document.tsx` can emit them ONCE per page as a single JSON script tag
- * (`<script type="application/json" data-island-props>`), instead of Astro's
- * per-island `props="…"` attribute.
+ * (`<script type="application/json" data-island-props>`), rather than as a
+ * per-island attribute.
  *
  * Mounting on the client is always `createRoot`, never `hydrateRoot` (see
  * `ssg/DESIGN.md`), so the markup inside the placeholder is discarded and
@@ -24,7 +24,7 @@ import type { ReactNode } from 'react'
 // the client registry (or the island components, or their css) into its graph.
 import type { IslandName } from './islandRegistry'
 
-/** Mount scheduling, kept 1:1 with the Astro `client:*` directives we used. */
+/** When the client mounts an island (see `islands.client.ts`). */
 export type IslandClientDirective = 'load' | 'idle' | 'visible' | 'only'
 
 export type IslandProps = {

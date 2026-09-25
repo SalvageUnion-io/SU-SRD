@@ -1,14 +1,12 @@
 # Response headers for salvageunion.io.
 #
 # Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
-# Assets (ADR-033). Netlify reads the same file format, so during the cutover
-# BOTH hosts serve these — which is what makes the parallel phase meaningful
-# rather than a comparison of two different configurations.
+# Assets (ADR-033). srd has no Worker script, so this file is its ONLY source of
+# security headers.
 #
-# The CSP moved here from `netlify.toml`. `tools/check-observability.ts` reads
-# whichever source exists and holds every one that declares a policy to the same
-# rule, so this file and the toml cannot drift apart silently while both are
-# live.
+# `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
+# origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the
+# browser.
 
 /*
   X-Frame-Options: DENY

@@ -47,9 +47,8 @@ function NotAvailable() {
  * `'skip'` is NOT sufficient for that: `useQuery` calls `useQueries` on every
  * path, and a build with no `VITE_CONVEX_URL` mounts no provider at all, so the
  * hook throws "Could not find Convex client!" and the route renders the root
- * error boundary instead of a page. That build is not hypothetical — every
- * Netlify deploy preview and branch deploy is one, as is a fresh checkout and
- * the unit-test environment.
+ * error boundary instead of a page. That build is not hypothetical — CI, a
+ * fresh checkout and the unit-test environment are all one.
  */
 function PublicSheetQuery({ kind, appId }: { kind: PublicKind; appId: string }) {
   const result = useQuery(api.publicSheet.get, { kind, appId })

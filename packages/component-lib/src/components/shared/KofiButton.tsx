@@ -7,9 +7,8 @@ import { cn } from '../../utils/cn'
  * Loads Ko-fi's Widget_2.js and injects the button markup via the widget's
  * `getHTML()` — deliberately NOT its `draw()`, which uses `document.write` and
  * would blow away the page when it runs after load. `getHTML()` works the same
- * in a React SPA (itun) and under Astro's client-side router
- * (srd re-hydrates this island on navigation), where a `document.write`
- * would be fatal.
+ * in a React SPA (itun) and in an srd island mounted after load, where a
+ * `document.write` would be fatal.
  *
  * Progressive enhancement: the container renders a plain accessible link to
  * ko-fi.com up front; the widget replaces it once the script loads. If the
@@ -17,7 +16,7 @@ import { cn } from '../../utils/cn'
  *
  * Requires the host CSP to allow `script-src https://storage.ko-fi.com`
  * (the button image is served from the same host, covered by `img-src https:`).
- * See each app's `netlify.toml`.
+ * See each app's `public/_headers`.
  */
 
 const WIDGET_SRC = 'https://storage.ko-fi.com/cdn/widget/Widget_2.js'

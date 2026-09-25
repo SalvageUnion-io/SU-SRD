@@ -3,18 +3,11 @@ import type { AssetBucket } from '../worker'
 import { makeAssetHandler } from '../worker'
 
 /**
- * The R2 asset Worker (ADR-033), held to the same contract as the Netlify
- * Function it replaces.
+ * The R2 asset Worker's contract: its guards, its extension allowlist and its
+ * reporting policy, each asserted case by case, so a guard going missing fails
+ * here rather than in production.
  *
- * The cases mirror `netlify/functions/__tests__/asset.test.ts` deliberately —
- * same guards, same allowlist, same reporting policy — because the point of the
- * port is that *nothing observable changes* except the store underneath. A test
- * that only exercised the new happy path would not notice a guard going missing.
- *
- * The one behavioural difference is where a lookup can fail: Netlify Blobs could
- * fail to *open* the store (`getStore` throws without a runtime context), while
- * an R2 binding either exists at deploy time or the Worker does not start. So
- * "cannot open the store" is expressed here as the bucket getter throwing.
+ * "Cannot open the store" is expressed as the bucket getter throwing.
  */
 
 function bucketWith(entries: Record<string, string>): AssetBucket & { asked: string[] } {

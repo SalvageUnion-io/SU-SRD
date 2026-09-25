@@ -80,8 +80,7 @@ renders exactly one placeholder:
 <div data-island="SearchIsland" data-client="idle" data-island-id="i0">…</div>
 ```
 
-- **Four client strategies** (`data-client`), kept 1:1 with the old Astro
-  directives: `load` and `only` mount immediately, `idle` via
+- **Four client strategies** (`data-client`): `load` and `only` mount immediately, `idle` via
   `requestIdleCallback` (fallback `setTimeout(…, 200)`), `visible` via
   `IntersectionObserver` on first intersection.
 - **Mounting is always `createRoot`, never `hydrateRoot`**
@@ -99,8 +98,8 @@ renders exactly one placeholder:
 - `src/runtime/islandRegistry.ts` maps name → `() => import('…')`. Every
   specifier must be a **static string literal** so Rollup code-splits it; a
   computed specifier collapses the registry into one eager chunk.
-- **`MobileNavIsland` takes zero props on purpose.** Astro inlined a 16.6 KB
-  catalog blob into all 1,039 pages (17.3 MB of the payload); the island now
+- **`MobileNavIsland` takes zero props on purpose.** As a prop, its 16.6 KB
+  catalog blob would be inlined into all 1,039 pages (17.3 MB); the island
   computes `buildCatalogSections()` and `location.pathname` itself inside its own
   chunk. Do not "helpfully" pass it props again.
 - `EntityCardStatic` is **not** an island — it renders straight into the page

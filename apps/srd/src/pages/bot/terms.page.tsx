@@ -1,5 +1,5 @@
 /**
- * `/bot/terms` — Discord bot terms of service. Port of `bot/terms.astro`.
+ * `/bot/terms` — Discord bot terms of service.
  *
  * A plain static document: no islands, no data, no structured data.
  */

@@ -12,7 +12,7 @@
 import { join } from 'node:path'
 
 /**
- * Must match Astro exactly (see the table in `ssg/DESIGN.md`):
+ * The URL -> file mapping (see the table in `ssg/DESIGN.md`):
  * `/` -> `index.html`, `/404` -> `404.html` (special-cased, NOT a directory),
  * everything else -> `<route>/index.html`.
  *

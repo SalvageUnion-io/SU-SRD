@@ -1,13 +1,10 @@
 {
   // Discord bot as a Cloudflare Worker serving HTTP interactions (ADR-033 §1).
   //
-  // This does NOT replace the gateway bot until the Interactions Endpoint URL
-  // is set on the Discord application — the two transports are mutually
-  // exclusive and the setting is application-wide, so the flip is atomic across
-  // every server. Until then this Worker can be deployed and exercised with the
-  // signed replay harness while Render keeps serving production.
+  // The Discord application's Interactions Endpoint URL points here; the
+  // setting is application-wide, so this Worker serves every server at once.
   //
-  // Still no `nodejs_compat`: the portable Discord packages (@discordjs/builders,
+  // No `nodejs_compat`: the portable Discord packages (@discordjs/builders,
   // /collection, /rest and discord-api-types) run on workerd unaided, and the
   // Node shim would both grow the bundle and make it easy to reintroduce a
   // Node-only import without noticing.
@@ -74,11 +71,7 @@
   // `src/observability.ts` — the Sentry cron monitor's expected interval is
   // configured against that number, so the two move together or the monitor
   // alerts on a schedule nobody changed.
-  //
-  // This replaces a `setInterval` that only ever ran on the Render gateway
-  // process (started from `events/ready.ts`), so after P5 it was watching a
-  // service that no longer answers anything. ADR-033 said the signal "needs
-  // rethinking rather than deleting"; this is the rethink.
+
   "triggers": {
     "crons": ["*/5 * * * *"]
   },

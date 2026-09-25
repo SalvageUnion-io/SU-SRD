@@ -1,14 +1,14 @@
 /**
  * preview — serve the finished `dist/` as static files.
  *
- * Replaces `astro preview`. Two consumers, one implementation, so they can
- * never disagree about how a URL maps to a file:
+ * Two consumers, one implementation, so they can never disagree about how a URL
+ * maps to a file:
  *   - `bun run preview` (and Playwright's `webServer` in CI) — the CLI below.
  *   - `scripts/og-screenshots.ts` — imports `startPreview` and serves in-process
  *     while it drives chromium over `/og-card/`.
  *
  * It reproduces the mapping in `ssg/DESIGN.md` ("URL -> file"), which is the
- * mapping Astro's `trailingSlash: 'ignore'` gave us and the one Netlify serves:
+ * one Workers Static Assets serves in production:
  *   /                      -> index.html
  *   /about  or  /about/    -> about/index.html
  *   /404                   -> 404.html          (a FILE, not a directory)
@@ -16,8 +16,8 @@
  *   anything else          -> 404.html, status 404
  *
  * This is a build/test convenience server only — never a production surface, so
- * it sets no caching or security headers (Netlify owns those, from
- * `netlify.toml`).
+ * it sets no caching or security headers (production takes those from
+ * `public/_headers`).
  */
 
 import type { Server } from 'bun'
@@ -53,7 +53,7 @@ async function resolveFile(dir: string, pathname: string): Promise<string | null
 
   // A dotted endpoint (`schema/chassis.json`) is a real file and must win over
   // any directory interpretation; a bare route is a directory holding
-  // index.html; `/404` is the one route Astro emitted as a sibling `.html`.
+  // index.html; `/404` is the one route emitted as a sibling `.html`.
   for (const candidate of [target, join(target, 'index.html'), `${target}.html`]) {
     const file = Bun.file(candidate)
     if (await file.exists()) return candidate

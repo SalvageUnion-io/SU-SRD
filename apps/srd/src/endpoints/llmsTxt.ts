@@ -1,8 +1,8 @@
 /**
- * `/llms.txt` — port of `src/pages/llms.txt.ts`.
+ * `/llms.txt` — the site summary for LLM crawlers.
  *
- * The template literal below is a verbatim copy of the Astro original —
- * including its trailing newline. **Do not reflow it.** `ssg/snapshot.ts`
+ * The template literal below is exact, including its trailing newline. **Do not
+ * reflow it.** `ssg/snapshot.ts`
  * digests this file's exact bytes, so reformatting the literal fails the gate
  * rather than silently changing what ships.
  */

@@ -18,10 +18,6 @@ import { getEntitySlug, srdEntityPath, srdSchemaPath } from 'salvageunion-refere
  * changing the route pattern here would have left the package emitting the old
  * path, silently 404ing every external link.
  *
- * (The previous version of this note justified itself with `trailingSlash:
- * 'ignore'` in `astro.config.mjs` — a file deleted when srd moved off Astro,
- * ADR-031.)
- *
  * The path segment is always a SLUG, never a uuid — see `getEntitySlug`.
  */
 export function schemaHref(schemaName: string): string {

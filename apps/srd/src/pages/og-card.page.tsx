@@ -1,5 +1,5 @@
 /**
- * `/og-card` — the build-only OG-card render surface. Port of `og-card.astro`.
+ * `/og-card` — the build-only OG-card render surface.
  *
  * A single static page that renders the REAL catalog `ReferenceEntityCard` for
  * the entity named by `?schema=&item=`, at a masonry-tile width the schema index
@@ -17,8 +17,7 @@
  *
  * ## Why this page is `shell: 'bare'`
  *
- * It owns its whole `<html>` document, exactly as the Astro original did. It is
- * not a reader-facing page: it has no canonical URL, no Open Graph block, no
+ * It owns its whole `<html>` document. It is not a reader-facing page: it has no canonical URL, no Open Graph block, no
  * nav, no footer and no `<main>`. `ssg/snapshot.ts` holds all of that (its
  * `main` digest is `null` and its canonical is absent), and
  * `ssg/__tests__/render.test.tsx` asserts it directly. It is still a full island page though — the
@@ -27,8 +26,8 @@
  *
  * ## Where the CSS comes from
  *
- * `og-card.astro` imported the seven `@fontsource` faces and `global.css`
- * itself. It must not here: an SSR-reachable `.css` import is a build hazard
+ * This page must not import the `@fontsource` faces or `global.css` itself: an
+ * SSR-reachable `.css` import is a build hazard
  * (`ssg/DESIGN.md`, hard rule 1). `src/runtime/styles.entry.ts` already imports
  * exactly that set, and its emitted stylesheet is linked into every page, so
  * this page gets the same bytes through the sanctioned seam.
@@ -39,14 +38,11 @@ import { CATALOG_TILE_MIN_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
 import { Island } from '../runtime/Island'
 
 /**
- * Astro's `define:vars` pushed these two values into the style block as custom
- * properties; written out explicitly here, on `:root`, which is the shape the
- * generator's comment below already assumes.
- *
- * The rest is `og-card.astro`'s style block verbatim.
+ * The two geometry values are written as custom properties on `:root`, which
+ * is the shape the generator's comment below assumes.
  *
  * One ordering note, since this block is emitted BEFORE the injected
- * stylesheet link rather than after it as Astro emitted it: the only
+ * stylesheet link: the only
  * declaration that competes with `global.css` is `body { background-color }`
  * (both unlayered, both specificity 0-0-1), so global.css now wins that one.
  * It is cosmetic and never photographed — the capture is scoped to `#og-card`,

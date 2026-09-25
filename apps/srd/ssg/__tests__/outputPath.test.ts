@@ -35,8 +35,8 @@ describe('outputPathFor', () => {
   })
 
   it('maps /404 to 404.html, NOT to a directory', () => {
-    // Netlify serves `404.html` for unmatched paths; `404/index.html` would
-    // never be reached. Astro special-cases this and so must we.
+    // Workers Static Assets' `404-page` handling serves `404.html` for
+    // unmatched paths; `404/index.html` would never be reached.
     expect(outputPathFor('/404')).toBe('404.html')
   })
 

@@ -1,29 +1,23 @@
 /**
- * Transport-neutral ITUN settings, for code shared by both bot transports.
+ * ITUN settings, installed by the entrypoint rather than read from `config.ts`.
  *
- * ## The bug this exists to fix
+ * ## Why not `config.ts`
  *
- * `config.ts` calls `requireEnv('DISCORD_TOKEN')` at MODULE SCOPE, deliberately
- * — a bot that starts without a Discord token is a bot that fails silently in
- * production, and that strictness is correct for the Render worker.
- *
- * It is fatal on Cloudflare. Four ITUN command modules import `config.js`, all
- * reachable from `su.ts`, so the Worker's module graph evaluates `requireEnv`
- * at isolate startup. There is no `process.env` on workerd — configuration
+ * `config.ts` (used by the `deploy-commands` CLI) calls
+ * `requireEnv('DISCORD_TOKEN')` at MODULE SCOPE. That is fatal on Cloudflare: a
+ * command module importing it would make the Worker's module graph evaluate
+ * `requireEnv` at isolate startup. There is no `process.env` on workerd — configuration
  * arrives as the `env` argument to `fetch` — so the isolate throws before it
  * ever serves a request.
  *
- * The unit tests did NOT catch this: `test/env.ts` is preloaded via
+ * The unit tests cannot catch this: `test/env.ts` is preloaded via
  * `bunfig.toml` and sets those variables, so `config.ts` loads happily under
- * Bun. It surfaced only when the Worker was driven without that preload, which
- * is why `__tests__/workerEnv.test.ts` now asserts the property directly rather
- * than relying on a graph that happens to be clean.
+ * Bun. `http/__tests__/workerEnv.test.ts` asserts the property directly.
  *
  * ## The shape
  *
- * Same pattern as `report.ts`: shared code names no transport, and each
- * entrypoint installs what it knows. `index.ts` installs from `config`;
- * `http/worker.ts` installs from its `env`.
+ * Same pattern as `report.ts`: shared code reads nothing from the environment,
+ * and `http/worker.ts` installs the settings from its `env`.
  *
  * Solo mode remains the default and is the important half: with `siteUrl` or
  * `botSecret` missing, reference commands behave exactly as they always have

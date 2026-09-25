@@ -1,19 +1,6 @@
 {
-  // Extends the repo base like every sibling workspace. This file previously
-  // restated a set of options inherited from `astro/tsconfigs/base.json`; with
-  // Astro gone, only the ones srd genuinely needs remain.
-  //
-  // srd is also no longer pinned to TypeScript 6. The app-level
-  // `typescript: 6.0.3` devDependency existed solely because
-  // `@astrojs/check@0.9.10` peer-depends on `^5 || ^6` — verified against the
-  // published manifest, and still true of the latest release. Removing Astro
-  // removes the pin, so this workspace now typechecks on the repo's TypeScript
-  // 7 like everything else.
-  //
-  // NOTE: the root `typescript-classic` alias (typescript@6) is NOT dead and
-  // must stay — `tools/check-architecture.ts` and
-  // `packages/salvageunion-reference/tools/generateApiReport.ts` both import it
-  // for the TS 6 compiler API. Astro was never its only consumer.
+  // Extends the repo base like every sibling workspace, and typechecks on the
+  // repo's TypeScript 7. Only the options srd genuinely needs are set here.
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ESNext",

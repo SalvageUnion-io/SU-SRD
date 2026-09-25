@@ -1,5 +1,5 @@
 /**
- * `/search-index.json` — port of `src/pages/search-index.json.ts`.
+ * `/search-index.json` — the client search index.
  *
  * Compact, build-time-generated search index — a small static JSON asset
  * (id/name/slug/schemaName/schemaTitle/text per entity, no full entity data)

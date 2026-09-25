@@ -8,7 +8,7 @@
  * renderer, and this file adds no rendering code at all.
  *
  * The difference from a snapshot is what it is fed. A snapshot is a frozen blob
- * fetched from Netlify Blobs; this is a live Convex read, so it reflects the
+ * fetched from R2; this is a live Convex read, so it reflects the
  * sheet as it stands right now and needs nobody to have pressed publish for
  * this particular copy. The banner says so, because "read-only" and "frozen"
  * are different promises and a reader should not have to guess which one they

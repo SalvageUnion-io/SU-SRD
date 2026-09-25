@@ -13,11 +13,10 @@ const PUBLISHABLE = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker' }) }
 /**
  * The itun Worker's routing table (ADR-033 P4).
  *
- * `netlify.toml` expressed this as an ordered redirect list. Cloudflare cannot
- * express method-conditioned routing declaratively, so it became code — which
- * is more legible and less verified. These tests are the compensation: every
- * rule that used to be config, and every ordering constraint whose comment
- * cites an incident, is asserted here.
+ * Cloudflare cannot express method-conditioned routing declaratively, so it is
+ * code — more legible than config and less verified. These tests are the
+ * compensation: every rule, and every ordering constraint whose comment cites
+ * an incident, is asserted here.
  *
  * The two that have already broken production:
  *
@@ -320,8 +319,7 @@ describe('/api/snapshots — method-conditioned routing', () => {
   })
 
   it('DELETE /api/snapshots/:id revokes — it is NOT swallowed into a 405', async () => {
-    // The ordering constraint netlify.toml's comment warns about: the retrieve
-    // rule has no method condition, so a DELETE matched against it answers 405
+    // The ordering constraint: the retrieve rule has no method condition, so a DELETE matched against it answers 405
     // and revocation silently stops working.
     const env = envWith({ '/index.html': 'SPA' }, { ABCD1234: { kind: 'pilot' } })
     const res = await worker.fetch(req('/api/snapshots/ABCD1234', { method: 'DELETE' }), env)

@@ -18,8 +18,7 @@ import { createRoot } from 'react-dom/client'
 import { initBrowserObservability } from '../lib/observability'
 import { islandRegistry } from './islandRegistry'
 
-// Env-gated browser error tracking. BaseLayout.astro carried this as its own
-// inline module script; with a single client entry there is one place for it.
+// Env-gated browser error tracking, initialised from the single client entry.
 void initBrowserObservability()
 
 type PropsById = Record<string, Record<string, unknown>>

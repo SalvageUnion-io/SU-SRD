@@ -21,9 +21,8 @@ type SchemaCategory = {
 /**
  * Both props are optional and neither is passed by the SSG.
  *
- * Serialized island props on the Astro baseline totalled 18.7 MB across 1,039
- * pages, of which this island alone was 17.3 MB — the same 16.6 KB catalog blob
- * inlined into every single page. The catalog now ships ONCE, inside this
+ * Passing the catalog as a prop would inline the same 16.6 KB blob into every
+ * one of ~1,039 pages (17.3 MB in total). It ships ONCE instead, inside this
  * island's own chunk, as the build-time-frozen `NAV_CATALOG`
  * (see `ssg/genNavCatalog.ts`), and `currentPath` comes from
  * `location.pathname`.
@@ -104,12 +103,11 @@ function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) 
 }
 
 /**
- * Wrapped, like its sibling `SearchIsland`. All three of these hydrate together
- * inside `TopNavigation.astro`, and only the first was protected — so a render
- * error in the mobile search or the mobile nav took the header with it, which
- * is exactly the blank-page failure `IslandErrorBoundary` exists to contain.
- * The boundary also reports through `captureException`, so a crash here is now
- * visible in production rather than only to the person it happened to.
+ * Wrapped, like its siblings `SearchIsland` and the other mobile island. All
+ * three mount together inside `TopNavigation`, so an unwrapped render error in
+ * one takes the header with it — the blank-page failure `IslandErrorBoundary`
+ * exists to contain. The boundary also reports through `captureException`, so a
+ * crash here is visible in production.
  */
 export function MobileNavIsland(props: Parameters<typeof MobileNavIslandBody>[0]) {
   return (

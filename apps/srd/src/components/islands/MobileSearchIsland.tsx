@@ -20,12 +20,11 @@ function MobileSearchIslandBody() {
 }
 
 /**
- * Wrapped, like its sibling `SearchIsland`. All three of these hydrate together
- * inside `TopNavigation.astro`, and only the first was protected — so a render
- * error in the mobile search or the mobile nav took the header with it, which
- * is exactly the blank-page failure `IslandErrorBoundary` exists to contain.
- * The boundary also reports through `captureException`, so a crash here is now
- * visible in production rather than only to the person it happened to.
+ * Wrapped, like its siblings `SearchIsland` and the other mobile island. All
+ * three mount together inside `TopNavigation`, so an unwrapped render error in
+ * one takes the header with it — the blank-page failure `IslandErrorBoundary`
+ * exists to contain. The boundary also reports through `captureException`, so a
+ * crash here is visible in production.
  */
 export function MobileSearchIsland() {
   return (

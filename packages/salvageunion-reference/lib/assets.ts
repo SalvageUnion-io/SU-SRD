@@ -48,9 +48,9 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
- * Origin of the public Salvage Union reference site (the `apps/srd` Netlify
- * site). Every deep link into the SRD — from ITUN, from the Discord bot, from
- * the site's own canonical/OG tags — is this base plus {@link srdEntityPath},
+ * Origin of the public Salvage Union reference site (`apps/srd`). Every deep
+ * link into the SRD — from ITUN, from the Discord bot, from the site's own
+ * canonical/OG tags — is this base plus {@link srdEntityPath},
  * so the host is named once here rather than retyped per surface.
  */
 

@@ -1,7 +1,7 @@
 /**
  * Shared geometry for the per-entity og:image cards.
  *
- * One module so the render surface (`pages/og-card.astro`), the generator
+ * One module so the render surface (`pages/og-card.page.tsx`), the generator
  * (`scripts/og-screenshots.ts`) and the item page that references the output
  * path can never disagree about width, canvas size, or file location.
  */

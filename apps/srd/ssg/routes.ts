@@ -1,7 +1,7 @@
 /**
  * routes — the explicit route registry.
  *
- * Astro discovered routes from the filesystem; this file lists them. That is
+ * Routes are listed here, not discovered from the filesystem. That is
  * deliberate: it is the one place to read to know what the site emits, and a
  * page that is not listed here is simply not built.
  *
@@ -29,8 +29,8 @@ import { register, registerDocument } from './render'
 
 export const routes: RouteRegistration[] = [
   register(indexPage),
-  // `@astrojs/sitemap` drops 404/500 pages itself, so the baseline sitemap has
-  // no `/404/` entry. That rule is not URL-shaped here — it is declared.
+  // The sitemap has no `/404/` entry. That rule is not URL-shaped — it is
+  // declared.
   register(notFoundPage, { sitemap: false }),
   register(schemaListingPage),
   register(itemPage),
@@ -43,14 +43,13 @@ export const routes: RouteRegistration[] = [
   register(apiPage),
   register(discordPage),
   // Build-only screenshot surface for the per-entity og:images. Noindexed, and
-  // `sitemap: false` keeps it out of sitemap-0.xml the way the Astro config's
-  // `!page.includes('/og-card')` filter did.
+  // `sitemap: false` keeps it out of sitemap-0.xml (the URL filter in
+  // ssg/sitemap.ts also drops `/og-card`).
   register(ogCardPage, { sitemap: false }),
   // SITEMAP_EXCLUDED. A standalone document (its own <html>, its own <style>,
   // none of the site's css or js) — hence `registerDocument`, not `register`.
-  // Astro's sitemap filter dropped any path containing `/greembeem`;
   // `registerDocument` is unconditionally `sitemap: false`, and ssg/sitemap.ts
-  // still applies the URL filter on top. It is also noindexed.
+  // also filters any `/greembeem` path. It is also noindexed.
   registerDocument(greembeemPage),
 
   // ---------------------------------------------------------------------

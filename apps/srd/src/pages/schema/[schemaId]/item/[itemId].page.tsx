@@ -1,6 +1,5 @@
 /**
  * `/schema/[schemaId]/item/[itemId]` — an entity's show page.
- * Port of `[itemId].astro`.
  *
  * The largest route family on the site (~880 of 1,039 pages), so a change here
  * reaches almost the whole SRD at once. `ssg/snapshot.ts` is what makes that

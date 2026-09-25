@@ -3,12 +3,7 @@ import type { RouteContext } from '../../../ssg/types'
 import { llmsTxtEndpoint } from '../../endpoints/llmsTxt'
 
 /**
- * Was `import { GET } from '../../pages/llms.txt'` — an Astro `APIRoute`
- * returning a `Response`. The SSG contract models a non-HTML output as an
- * `EndpointModule` with a `contentType` and a `body()` returning a string, so
- * the transport wrapper is gone and the content-type is declared rather than
- * set on a header. Every assertion about the BODY below is unchanged. These
- * cover the endpoint's content RULES; `ssg/snapshot.ts` separately digests the
+ * These cover the endpoint's content RULES; `ssg/snapshot.ts` separately digests the
  * emitted file's exact bytes, so a reflow of the template literal fails there.
  */
 const render = () => llmsTxtEndpoint.body({} as RouteContext<Record<string, string>, unknown>)

@@ -21,18 +21,12 @@ type ResourceTotals = { count: number; bytes: number; names: string[] }
  *  a page load, keyed by response so redirects/duplicates aren't double
  *  counted. `names` records the chunk filenames for assert-not-present checks.
  *
- *  The prefix was `/_astro/` under Astro; Vite emits to `/assets/`. That
- *  mattered more than a rename: this whole guard silently matched NOTHING after
- *  the migration, so the budget summed 0 bytes and every assertion passed
- *  vacuously — the payload guard was dead while still reporting green. Keep
- *  this prefix in step with `build.assetsDir` in ssg/vite.config.ts, and see
- *  the zero-chunk assertion below.
- *
- *  The chunk-name SEPARATOR changed with it, and is the same trap one level
- *  down: Astro emitted `guides.HASH.js`, Vite emits `guides-HASH.js`, so every
- *  `startsWith('guides.')` / `/^(actions|chassis|…)\./` check below was also
- *  matching nothing. Both halves have to move together. */
-async function captureAstroJsTotals(
+ *  Keep the `/assets/` prefix in step with `build.assetsDir` in
+ *  ssg/vite.config.ts, and the `name-HASH.js` separator in step with Vite's
+ *  chunk naming: if either drifts this guard silently matches NOTHING, the
+ *  budget sums 0 bytes and every assertion passes vacuously. See the
+ *  zero-chunk assertion below. */
+async function captureJsTotals(
   page: import('@playwright/test').Page,
   navigate: () => Promise<unknown>
 ): Promise<ResourceTotals> {
@@ -110,14 +104,13 @@ test.beforeAll(async ({ browser }) => {
 test.describe('bundle-size budget', () => {
   // Every assertion in this file is of the form "these chunks are absent" or
   // "the total is under N". Both are trivially satisfied when the capture
-  // matches nothing at all — which is exactly what happened when the Astro
-  // migration changed the asset prefix from /_astro/ to /assets/ and this file
-  // was not updated: the suite stayed green while guarding nothing.
+  // matches nothing at all — a changed asset prefix once left this suite green
+  // while guarding nothing.
   //
   // So assert the capture is non-empty FIRST. A budget guard that cannot fail
   // is worse than no guard, because it is also reassuring.
   test('the capture actually sees JS chunks (guards against a dead selector)', async ({ page }) => {
-    const totals = await captureAstroJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    const totals = await captureJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
     expect(totals.count).toBeGreaterThan(0)
     expect(totals.bytes).toBeGreaterThan(0)
   })
@@ -125,7 +118,7 @@ test.describe('bundle-size budget', () => {
   test('a leaf-schema item page never loads the large content/chassis data chunks', async ({
     page,
   }) => {
-    const totals = await captureAstroJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    const totals = await captureJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
     expect(totals.count).toBeGreaterThan(0)
 
     // The big, schema-specific data chunks (actions ~360KB, chassis ~150KB,
@@ -167,7 +160,7 @@ test.describe('bundle-size budget', () => {
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
     page,
   }) => {
-    const totals = await captureAstroJsTotals(page, () => page.goto('/schema/chassis/item/mule/'))
+    const totals = await captureJsTotals(page, () => page.goto('/schema/chassis/item/mule/'))
 
     // Schemas with no chassis-pattern relationship (per CHASSIS_BUNDLE in
     // schemaPreloadDeps.ts) should never be fetched on a chassis page.
@@ -184,7 +177,7 @@ test.describe('bundle-size budget', () => {
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
     page,
   }) => {
-    const jsTotals = await captureAstroJsTotals(page, () => page.goto('/'))
+    const jsTotals = await captureJsTotals(page, () => page.goto('/'))
 
     let sawSearchIndex = false
     page.on('response', (response) => {

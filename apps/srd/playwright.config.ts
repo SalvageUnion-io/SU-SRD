@@ -5,8 +5,8 @@ import { defineConfig, devices } from '@playwright/test'
  *
  * srd is a fully static site (the in-house SSG in `ssg/`, no SSR, no backend).
  * The e2e suite therefore runs against a locally-served build — the same
- * static-preview approach ITUN uses, NOT a Netlify Deploy-Preview target
- * (there is no server-side behaviour to exercise against a live deployment).
+ * static-preview approach ITUN uses (there is no server-side behaviour to
+ * exercise against a live deployment).
  *
  * - CI: `bun ssg/build.ts` produces `dist/`, then `bun ssg/preview.ts` serves it
  *   as static files on port 4321 (no per-request compile — first navigation is

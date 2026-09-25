@@ -1,15 +1,12 @@
 /**
  * Cloudflare Worker entrypoint for Discord HTTP interactions (ADR-033 §1).
  *
- * The gateway entry (`src/index.ts`) is untouched and still ships to Render.
- * Both transports drive the SAME handlers, because `commands/` depends on the
- * narrow structural types in `commands/interactions.ts` rather than on
- * `discord.js` classes. That is what makes this a second front door rather than
- * a fork.
+ * This is the bot's only transport. `commands/` depends on the narrow
+ * structural types in `commands/interactions.ts` rather than on `discord.js`
+ * classes, which is what lets it run on workerd.
  *
- * Cutting over is a Discord setting, not a deploy: setting the application's
- * Interactions Endpoint URL stops `INTERACTION_CREATE` reaching the gateway.
- * The two are **mutually exclusive** and the setting is application-wide, so
+ * Discord routes interactions here because the application's Interactions
+ * Endpoint URL points at this Worker. That setting is application-wide, so
  * there is no canary and no test guild — which is why the replay harness in
  * `__tests__/` is the gate rather than a staged rollout.
  *
@@ -65,18 +62,13 @@ import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './ver
 await SalvageUnionReference.preload('all')
 
 /**
- * Shared code reports through `report.ts`, which names no transport. The
- * gateway installs `@sentry/node`; that package drags in OpenTelemetry and
- * `node:path` and does not bundle for workerd, which is why this isolate cannot
- * use it.
- *
- * This is the `@sentry/cloudflare` port that comment used to defer — the last
- * of the three Workers to get one. It reports to BOTH: Workers Logs is what
+ * Shared code reports through `report.ts`, which names no SDK; this isolate
+ * installs the reporter. It reports to BOTH: Workers Logs is what
  * `wrangler tail` shows during an incident, Sentry is what alerts, and dropping
  * either trades one blind spot for another.
  *
- * With no `SENTRY_DSN` secret the SDK initialises disabled and this is exactly
- * the old behaviour — a logging Worker, not a dark SDK.
+ * With no `SENTRY_DSN` secret the SDK initialises disabled and this is a
+ * logging Worker, not a dark SDK.
  *
  * Assignment at module scope is fine: workerd forbids I/O, timers and
  * randomness in global scope, not assignment. `reportError` performs no I/O
@@ -162,11 +154,7 @@ async function dispatch(
     // the commands that defer — which are exactly the ones that make a network
     // call and can therefore throw — the old single `sink.send` here wrote
     // nothing at all, and Discord left "<bot> is thinking…" on screen forever.
-    //
-    // The gateway path got this right: `events/interactionCreate.ts` sends a
-    // followUp when `deferred`. Evidence this was a half-finished port rather
-    // than a decision: `ResponseSink.deferred` was WRITTEN by `deferReply` and
-    // read nowhere in the repo until now.
+
     if (sink.settled) {
       // Already deferred (or answered). The initial response is spent, so the
       // only way to say anything is to edit the message it promised. PATCH
@@ -233,10 +221,9 @@ async function dispatch(
 /**
  * The Sentry cron monitor slug.
  *
- * Deliberately the SAME string the gateway heartbeat used
- * (`src/observability.ts`). The monitor is about "is the Salvage Union bot
- * alive", not about which transport happens to answer, so reusing the slug
- * continues one history rather than orphaning it and starting a second.
+ * The monitor is about "is the Salvage Union bot alive", not about which
+ * transport answers, so the slug names the bot; changing it orphans the
+ * monitor's history and starts a second one.
  */
 const HEARTBEAT_MONITOR_SLUG = 'discord-bot-heartbeat'
 
@@ -296,26 +283,13 @@ async function health(env: Env): Promise<Response> {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 /**
- * The liveness signal, rebuilt for Workers.
- *
- * ## Why the old one stopped meaning anything
- *
- * `startLivenessHeartbeat` (src/observability.ts) is a `setInterval` on a
- * long-lived process, started from `events/ready.ts` — the GATEWAY path. A
- * Worker has no long-lived process and never reaches that file, so after the
- * P5 cutover the `discord-bot-heartbeat` Sentry monitor was watching a Render
- * service that no longer serves any interaction. It either alerted forever
- * (Render stopped) or reported green for a process nobody was using.
- *
- * ADR-033 said this signal "needs rethinking rather than deleting" and nothing
- * was done. This is the rethink.
+ * The liveness signal, run from the Worker's cron trigger.
  *
  * ## Why a check-in rather than an event
  *
- * Sentry alerts on events ARRIVING, never on their absence — which is exactly
- * why the original `discord-bot ready` info event could not do this job, and is
- * recorded as such in `observability.ts`. A cron monitor inverts that: silence
- * is the alarm.
+ * Sentry alerts on events ARRIVING, never on their absence, so an info event
+ * cannot say the bot is gone. A cron monitor inverts that: silence is the
+ * alarm.
  *
  * ## Why it probes Discord rather than just checking in
  *

@@ -1,5 +1,5 @@
 /**
- * BaseLayout — the SSG port of `BaseLayout.astro`.
+ * BaseLayout — the page document every srd route renders into.
  *
  * Renders the whole `<html>` document except for the built asset tags and the
  * island-props script, which `ssg/document.tsx` injects into the rendered
@@ -28,16 +28,12 @@ const DEFAULT_DESCRIPTION =
  * text block for JS users. Without this the naked static text painted until the
  * island mounted — a text-only flash on every entity load.
  *
- * Astro's `data-astro-rerun` attribute is deliberately gone: with real document
- * navigations (no ClientRouter) this inline script runs on every page, so there
- * is nothing to re-run.
+ * Every navigation is a real document load, so this inline script runs on every
+ * page.
  */
 const JS_CLASS_SCRIPT = "document.documentElement.classList.add('js')"
 
-/**
- * Replaces Astro's `prefetch: { prefetchAll: true, defaultStrategy: 'hover' }`.
- * Browser-native, zero JS.
- */
+/** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
 })

@@ -1,7 +1,7 @@
 /**
  * Build-time resolution of trait/keyword names to SRD item URLs.
  * Used by the static (no-JS / crawler) entity fallback, where data is fully
- * loaded during the Astro build.
+ * loaded during the static build.
  */
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { itemHref } from './entityHref'

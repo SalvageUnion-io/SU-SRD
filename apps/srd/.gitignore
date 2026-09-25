@@ -1,8 +1,3 @@
-# Local Netlify folder
-.netlify
-
-# Astro
-.astro/
 dist/
 
 # Playwright

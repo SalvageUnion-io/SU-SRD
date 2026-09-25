@@ -6,10 +6,9 @@ import { makeAssetHandler } from '../worker'
  * `/robots.txt`.
  *
  * This origin holds artwork licensed from Leyline Press under "do not
- * redistribute", and the Netlify site disallowed every crawler. The Cloudflare
- * Worker has no assets directory and no branch was ever written for this path,
- * so after the cutover it fell through to Cloudflare's zone-level managed
- * robots.txt — content-signal comments with **no `Disallow` directive at all**,
+ * redistribute", so it must disallow every crawler. The Worker has no assets
+ * directory, so without its own branch this path falls through to Cloudflare's
+ * zone-level managed robots.txt — content-signal comments with **no `Disallow` directive at all**,
  * which permits everything.
  *
  * Verified against production while auditing:

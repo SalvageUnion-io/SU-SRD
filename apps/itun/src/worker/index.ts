@@ -4,11 +4,9 @@
  *
  * ## The routing table, and why order is load-bearing
  *
- * `netlify.toml` expressed this as an ordered redirect list, and every entry in
- * it has an incident behind it. Cloudflare cannot express method-conditioned
- * routing declaratively, so it becomes code — which is an improvement in
- * legibility and a risk in fidelity. The order below is the same order, and the
- * reasons are kept with it:
+ * Every rule has an incident behind it. Cloudflare cannot express
+ * method-conditioned routing declaratively, so it is code, and
+ * `__tests__/routing.test.ts` asserts each rule and each ordering constraint:
  *
  *   1. `/sheet/:kind/:id/share` → 301 to the sheet. The Share Snapshot screen
  *      was removed in #793; this is where a bookmark or a pasted builder link
@@ -27,8 +25,8 @@
  * ## Rule 4 is the one that has already broken production
  *
  * Every hashed chunk a deploy rotates away is requested by exactly one
- * population: clients still running the previous build. Before the Netlify rule
- * existed those requests got `200 text/html`, the import rejected on MIME type,
+ * population: clients still running the previous build. Without this rule
+ * those requests got `200 text/html`, the import rejected on MIME type,
  * and the `immutable` header pinned that HTML into the HTTP cache **for a year**
  * under the chunk's URL.
  *
@@ -42,23 +40,13 @@
  * Enforced at the edge by Cloudflare's Rate Limiting binding, declared as
  * `ratelimits` in `wrangler.jsonc` and applied to POST below.
  *
- * The Netlify handler's module-scope `RateLimiter{10/min}` was deliberately not
- * ported (P3): it counted per Function instance and would count per isolate
- * here, which is approximate to the point of being decorative. `handlers.ts` no
- * longer carries it at all — it was only ever the default so Netlify's
- * behaviour stayed unchanged during the migration, and that host is gone.
- *
- * `RATE_LIMITER` is Cloudflare's own binding, which is a real control because it
- * is enforced at the edge rather than per-instance. It is optional here so the
- * Worker still runs without it.
- *
- * That tolerance is not a claim that its absence is harmless, and this comment
- * used to say it was — "the same protection the 256 KB cap already provides".
- * The cap bounds bytes PER REQUEST, not requests, so it bounds nothing about
- * how many a caller may make. The binding was in fact unprovisioned through
- * P4-P7 while this paragraph called it a real control, and the endpoint took
- * unlimited unauthenticated POSTs into billable R2. `wrangler.jsonc` declares
- * it now, and `__tests__/rateLimitBinding.test.ts` fails if that is removed.
+ * `RATE_LIMITER` is a real control because it is enforced at the edge rather
+ * than per isolate (an in-process counter would be decorative). It is optional
+ * here so the Worker still runs without it — but its absence is NOT harmless:
+ * the 256 KB cap bounds bytes per request, not requests, so without the binding
+ * the endpoint takes unlimited unauthenticated POSTs into billable R2.
+ * `__tests__/rateLimitBinding.test.ts` fails if `wrangler.jsonc` stops
+ * declaring it.
  */
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
@@ -111,8 +99,7 @@ type AnalyticsEngineDataset = {
  * The caller's IP, as Cloudflare presents it.
  *
  * `CF-Connecting-IP` is set by the edge and cannot be spoofed by the client,
- * unlike `x-forwarded-for`, which anyone may send. The Netlify equivalent was
- * `x-nf-client-connection-ip`.
+ * unlike `x-forwarded-for`, which anyone may send.
  */
 function clientIp(request: Request): string {
   return request.headers.get('cf-connecting-ip') ?? 'unknown'
@@ -405,8 +392,7 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
   }
 
   // 2 & 3. The snapshot API. Method-conditioned routing, which Cloudflare
-  // cannot express declaratively — this is the piece netlify.toml did in
-  // config and that therefore has to be tested rather than read.
+  // cannot express declaratively, so it has to be tested rather than read.
   if (path === '/api/snapshots' || path.startsWith('/api/snapshots/')) {
     const storage = createR2Storage(env.SNAPSHOTS)
 
@@ -415,8 +401,7 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
         const { success } = await env.RATE_LIMITER.limit({ key: clientIp(request) })
         if (!success) return new Response('Too many requests', { status: 429 })
       }
-      // The factory answers 405 for everything that is not POST, so the
-      // non-POST branch needs no separate rule the way netlify.toml did.
+      // The factory answers 405 for everything that is not POST.
       return makePublishHandler(storage)(request)
     }
 
@@ -427,9 +412,8 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
       return new Response('Invalid snapshot ID', { status: 400 })
     }
 
-    // DELETE FIRST. Reversing these two is the mistake netlify.toml's comment
-    // warns about: the retrieve rule has no method condition, so it would
-    // swallow DELETE and answer 405.
+    // DELETE FIRST: the retrieve handler has no method condition, so checking
+    // it first would swallow DELETE and answer 405.
     if (request.method === 'DELETE') {
       return makeDeleteHandler(storage)(request)
     }

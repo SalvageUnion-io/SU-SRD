@@ -20,18 +20,17 @@ type EntityCardStaticProps = {
  * The reference entity card, rendered to HTML at build time.
  *
  * This is the same `ReferenceEntityCard` the builder app uses — NOT a
- * simplified stand-in. It carries no `client:*` directive, so Astro renders it
- * to static markup and ships no JS for it, exactly as `SiteHeader` does.
+ * simplified stand-in. It is not an island, so it renders straight into the
+ * page's static markup and ships no JS, exactly as `SiteHeader` does.
  *
  * That is only possible because the SRD is a Reference surface (ADR-021): it
  * passes no `controls`, and `EntityDetailLinkProvider` puts nested entities in
  * link mode, so every affordance on the card is a navigation rather than client
- * state. The card must therefore never be given a `client:*` directive here —
- * hydrating it would re-introduce the React #418 mismatch that the old
- * island + `GameDataGate` arrangement existed to avoid.
+ * state. It must therefore never be wrapped in an `<Island>` — that would ship
+ * the whole card tree as client JS for no interactive gain.
  *
- * Callers must `await SalvageUnionReference.preload(...)` in their Astro
- * frontmatter before rendering this, so the ORM lookups the card makes for
+ * Callers must `await SalvageUnionReference.preload(...)` in their page module
+ * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
 export function EntityCardStatic({ item, pattern, titleAs }: EntityCardStaticProps) {

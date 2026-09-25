@@ -1,11 +1,8 @@
 /**
- * pwa — the service worker, replacing `@vite-pwa/astro`.
+ * pwa — the service worker.
  *
- * `@vite-pwa/astro` did exactly two things for this site: it wrote a tiny
- * `registerSW.js` (because `injectRegister: 'script-defer'`) and it ran
- * workbox's `generateSW` over the finished build. Both are reproduced here
- * against the same configuration, which lives verbatim in `astro.config.mjs`
- * until the Astro files are deleted.
+ * Two jobs: write a tiny `registerSW.js`, and run workbox's `generateSW` over
+ * the finished build.
  *
  * ## Ordering
  *
@@ -26,12 +23,10 @@
  * - `navigateFallback: null` — this is a static site, so an unvisited page
  *   should 404 offline rather than resolve to a stale shell.
  * - `sourcemap: false` and `cleanupOutdatedCaches: true` are not workbox's
- *   defaults; they are `vite-plugin-pwa`'s, and they are what the Astro
- *   baseline emitted. Keep them, or `dist/sw.js.map` appears in the output —
+ *   defaults. Keep them, or `dist/sw.js.map` appears in the output —
  *   which `ssg/snapshot.ts`'s file-set check reports as a new path.
- * - `skipWaiting` / `clientsClaim` are `registerType: 'autoUpdate'` semantics.
- *   `vite-plugin-pwa` only sets them implicitly when `injectRegister` is
- *   `'auto'`, so they were explicit there and stay explicit here.
+ * - `skipWaiting` / `clientsClaim`: a new build takes over immediately
+ *   (auto-update semantics).
  */
 
 import { writeFile } from 'node:fs/promises'
@@ -39,18 +34,15 @@ import { join } from 'node:path'
 import { generateSW } from 'workbox-build'
 
 /**
- * What `vite-plugin-pwa` emitted for `registerType: 'autoUpdate'` +
- * `injectRegister: 'script-defer'`, plus a `.catch()`.
- * `BaseLayout.tsx` loads it with `<script defer src="/registerSW.js">`.
+ * The service-worker registration snippet. `BaseLayout.tsx` loads it with
+ * `<script defer src="/registerSW.js">`.
  *
- * **The `.catch()` is the whole reason this is no longer byte-identical to the
- * Astro baseline's 134 bytes.** `register()` returns a promise that rejects for
- * reasons entirely outside this site's control — a browser with service workers
- * disabled, a locked-down enterprise profile, an extension intercepting the
- * request — and `vite-plugin-pwa`'s snippet never handled it. Every one of those
- * rejections became an *unhandled* rejection, which Sentry's `globalHandlers`
- * integration dutifully reported as `Error: Rejected`: no stack worth reading,
- * no user impact, and nothing anyone could act on. Nine of them in a week (issue
+ * **The `.catch()` is load-bearing.** `register()` returns a promise that
+ * rejects for reasons entirely outside this site's control — a browser with
+ * service workers disabled, a locked-down enterprise profile, an extension
+ * intercepting the request. Unhandled, each is a rejection that Sentry's
+ * `globalHandlers` integration reports as `Error: Rejected`: no stack worth
+ * reading, no user impact, and nothing anyone could act on. Nine of them in a week (issue
  * SRD-2) for a feature that is meant to degrade silently.
  *
  * Swallowing is correct rather than lazy here. A failed registration means no

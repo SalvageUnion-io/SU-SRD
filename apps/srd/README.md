@@ -34,7 +34,7 @@ And from `apps/srd/` itself:
 
 In-house SSG at [`ssg/`](ssg/) (static output) + React 19 islands, Vite 8 for the
 client bundle, Tailwind v4, in-memory search via `salvageunion-reference`'s
-`search()`. Deployed to Netlify.
+`search()`. Deployed to Cloudflare Workers Static Assets (ADR-033).
 
 Two things worth knowing before you touch it:
 

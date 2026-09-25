@@ -3,19 +3,16 @@
  * Generates `src/generated/navCatalog.ts` — the mobile nav drawer's catalog,
  * frozen at build time.
  *
- * Why this exists at all, in three moves:
+ * Why this exists at all:
  *
- *  1. Astro passed `categories` into `MobileNavIsland` as a build-time prop.
- *     That inlined the same 16.6 KB blob into all 1,039 pages — 17.3 MB, about
- *     a third of the built site. Designing the prop out is the single largest
- *     win in the Astro migration (ADR-031).
- *  2. The first attempt replaced the prop with a runtime `useGameData()` call.
- *     That deleted the HTML, but bought the bytes back as LATENCY (the drawer
- *     waited on the whole ~1.4 MB corpus) and then, when narrowed, as a
- *     `guides-*.js` + `catalog-categories-*.js` request on every page — which
- *     `e2e/bundle-budget.e2e.ts` explicitly forbids on leaf-schema pages.
- *  3. So do what DESIGN.md actually specified: the island imports its own
- *     static data in its OWN chunk. One shared copy, no ORM at runtime, no
+ *  - Passing the catalog as an island prop inlines the same 16.6 KB blob into
+ *    all 1,039 pages — 17.3 MB, about a third of the built site.
+ *  - Computing it at runtime with `useGameData()` buys the bytes back as
+ *    LATENCY (the drawer waits on the whole ~1.4 MB corpus), or as a
+ *    `guides-*.js` + `catalog-categories-*.js` request on every page — which
+ *    `e2e/bundle-budget.e2e.ts` explicitly forbids on leaf-schema pages.
+ *  - So, per DESIGN.md, the island imports its own static data in its OWN
+ *    chunk. One shared copy, no ORM at runtime, no
  *     preload, no per-page duplication. The payload is small — the catalog
  *     serialises to ~9 KB — because it holds labels and hrefs, not entities.
  *

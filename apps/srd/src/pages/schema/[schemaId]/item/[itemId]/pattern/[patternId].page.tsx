@@ -1,6 +1,6 @@
 /**
  * `/schema/[schemaId]/item/[itemId]/pattern/[patternId]` — a chassis pattern's
- * own page. Port of `[patternId].astro`.
+ * own page.
  *
  * `schemaId` is always `chassis`; it stays a param so the route sits inside the
  * existing `/schema/<schema>/item/<item>/` tree and its breadcrumbs resolve

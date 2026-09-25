@@ -1,5 +1,5 @@
 /**
- * `/` — the landing page. Port of `index.astro`.
+ * `/` — the landing page.
  */
 
 import { buildCatalogSections, CatalogTile, SectionHeader } from 'component-lib'

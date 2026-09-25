@@ -16,7 +16,7 @@
  *
  * The fix is to notice and reload once, because a reload fetches a current
  * `index.html` naming current hashes. It pairs with the `/assets/*` → 404 rule
- * in `netlify.toml`: without that rule a missing chunk came back as `200
+ * in `src/worker/index.ts`: without that rule a missing chunk came back as `200
  * text/html` from the SPA fallback, which fails the import on MIME type but is
  * also, thanks to the `/assets/*` header block, cached `immutable` for a year.
  *

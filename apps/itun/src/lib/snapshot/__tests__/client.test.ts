@@ -505,8 +505,8 @@ describe('transient platform failures are retried once', () => {
   })
 
   test('a SLOW 502 is not retried — the function ran and blew its execution limit', async () => {
-    // Netlify emits 502 both when it declines to start a function (fast, worth
-    // one more try) and when a running function exceeds its limit (slow, and
+    // A platform 502 comes both from failing to start the handler (fast, worth
+    // one more try) and from a running handler exceeding its limit (slow, and
     // asking again only makes a person wait for the same answer twice). The
     // clock is what tells them apart, so it is driven rather than waited on.
     const start = Date.now()
