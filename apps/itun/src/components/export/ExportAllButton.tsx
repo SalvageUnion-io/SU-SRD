@@ -9,6 +9,8 @@
 
 import { Button, toast } from 'component-lib'
 import { useState } from 'react'
+import { buildLegacyExportBundle, mergeExportBundles } from '../../lib/account/legacyMigration'
+import type { LegacyLocalData } from '../../lib/db/legacyLocalData'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
@@ -25,9 +27,17 @@ type ExportAllButtonProps = {
    * notification, so a caller that must re-render needs telling directly.
    */
   onExported?: () => void
+  /**
+   * A pre-account roster on this device, folded into the same file.
+   *
+   * Set by `UnsavedWorkBanner`, which speaks for both the tab's unsaved work and
+   * the device's older builds so they need not be two banners — and so "Download
+   * all" has to mean all of both.
+   */
+  deviceRows?: LegacyLocalData | null
 }
 
-export function ExportAllButton({ onExported }: ExportAllButtonProps = {}) {
+export function ExportAllButton({ onExported, deviceRows }: ExportAllButtonProps = {}) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,7 +46,10 @@ export function ExportAllButton({ onExported }: ExportAllButtonProps = {}) {
     setError(null)
     try {
       const entityStore = useEntityStore.getState()
-      const bundle = await buildExportBundle(entityStore)
+      const tabBundle = await buildExportBundle(entityStore)
+      const bundle = deviceRows
+        ? mergeExportBundles(tabBundle, buildLegacyExportBundle(deviceRows))
+        : tabBundle
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`itun-backup-${date}.json`, bundle)
       toast.success('Backup downloaded.')

@@ -251,3 +251,39 @@ export function buildLegacyExportBundle(local: LegacyLocalData): ExportBundle {
     encounterNpcs: local.encounterNpcs,
   } as ExportBundle
 }
+
+/** Concatenate by `id`, first occurrence wins. Rows without an id are kept. */
+function unionById<T>(primary: readonly T[], secondary: readonly T[]): T[] {
+  const seen = new Set<unknown>()
+  const out: T[] = []
+  for (const row of [...primary, ...secondary]) {
+    const id = (row as { id?: unknown }).id
+    if (id !== undefined) {
+      if (seen.has(id)) continue
+      seen.add(id)
+    }
+    out.push(row)
+  }
+  return out
+}
+
+/**
+ * One bundle from two, `primary` winning on a shared id.
+ *
+ * For the signed-out banner's "Download all" when the tab holds unsaved work
+ * AND the device holds a pre-account roster: the tab's copy of a row is the
+ * newer one, so it is the one kept.
+ */
+export function mergeExportBundles(primary: ExportBundle, secondary: ExportBundle): ExportBundle {
+  return {
+    ...primary,
+    entities: {
+      pilots: unionById(primary.entities.pilots, secondary.entities.pilots),
+      mechs: unionById(primary.entities.mechs, secondary.entities.mechs),
+      crawlers: unionById(primary.entities.crawlers, secondary.entities.crawlers),
+    },
+    softLinks: unionById(primary.softLinks, secondary.softLinks),
+    mechPatterns: unionById(primary.mechPatterns, secondary.mechPatterns),
+    encounterNpcs: unionById(primary.encounterNpcs, secondary.encounterNpcs),
+  }
+}
