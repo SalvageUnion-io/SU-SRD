@@ -16,7 +16,7 @@ import { getEntitySlug, getSource, getTechLevel, getTree } from 'salvageunion-re
 import { itemHref, srdEntityHref } from '../../lib/entityHref'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
-import { CatalogTile } from './CatalogTile'
+import { EntityCatalogTile } from './EntityCatalogTile'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 // Hoisted to a stable module-level reference.
@@ -356,7 +356,10 @@ export function SchemaViewerIsland({
                   <MasonryColumns>
                     {filteredData.map((item: SURefEntity) => (
                       <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
-                        <CatalogTile entity={item} href={itemHref(schemaId, getEntitySlug(item))} />
+                        <EntityCatalogTile
+                          entity={item}
+                          href={itemHref(schemaId, getEntitySlug(item))}
+                        />
                       </Suspense>
                     ))}
                   </MasonryColumns>

@@ -9,7 +9,7 @@ import {
 } from 'salvageunion-reference'
 import { itemHref, patternHref, srdEntityHref } from '../../lib/entityHref'
 import { GameDataGate } from '../../lib/useGameData'
-import { CatalogTile } from './CatalogTile'
+import { EntityCatalogTile } from './EntityCatalogTile'
 
 /**
  * Build-only OG-card surface.
@@ -108,7 +108,7 @@ function OgCardResolved() {
 
   if (!entity || !resolved) return null
 
-  // The SAME `CatalogTile` the schema index renders, under the same providers —
+  // The SAME `EntityCatalogTile` the schema index renders, under the same providers —
   // that shared component is what makes the og:image a true 1:1 of the Catalog
   // view rather than a look-alike that can drift.
   const href = pattern
@@ -119,7 +119,7 @@ function OgCardResolved() {
     <EntityHrefProvider value={srdEntityHref}>
       <EntityDetailLinkProvider value={true}>
         <div data-og-tile="">
-          <CatalogTile entity={entity} href={href} pattern={pattern ?? undefined} />
+          <EntityCatalogTile entity={entity} href={href} pattern={pattern ?? undefined} />
         </div>
       </EntityDetailLinkProvider>
     </EntityHrefProvider>
