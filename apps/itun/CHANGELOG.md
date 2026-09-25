@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.8](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.7...itun-v1.17.8) (2026-09-25)
+
+
+### Bug Fixes
+
+* **srd:** stop dashboard CSS leaking to srd, declare deps, share and test observability, upload srd sourcemaps [audit 3/14] ([#989](https://github.com/SalvageUnion-io/SU-SRD/issues/989)) ([82d8159](https://github.com/SalvageUnion-io/SU-SRD/commit/82d81597d0f8a6da8bf2aeb5fbc56a871ef2c3a2))
+
 ## [1.17.7](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.6...itun-v1.17.7) (2026-09-25)
 
 
