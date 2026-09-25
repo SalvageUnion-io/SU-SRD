@@ -37,7 +37,10 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
     if (focus.statless) {
       if (focus.key === 'tables') return { kind: 'tables' }
       if (focus.key === 'actions') {
-        return { kind: 'slot', node: <ActionsDeck mech={mech} pilot={pilot} mount={mount} /> }
+        return {
+          kind: 'slot',
+          node: <ActionsDeck mech={mech} pilot={pilot} crawler={crawler} mount={mount} />,
+        }
       }
       if (focus.key === 'srd') return { kind: 'srd' }
       return { kind: 'note', text: focus.label }

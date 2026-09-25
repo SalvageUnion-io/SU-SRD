@@ -17,7 +17,7 @@ import type { EconLozItem } from 'component-lib'
 import { CrawlerEconFrame, EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
 import { resolvePool } from 'salvageunion-reference/rules'
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
+import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { crawlerMaxSPParts } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
@@ -229,7 +229,9 @@ export function SheetCrawler({
               sheetHref={`/sheet/pilot/${crewPilot.id}`}
               linkAs={AppLink}
               meta="Pilot"
-              stats={rowStats(pilotRailItems(crewPilot))}
+              stats={rowStats(
+                pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
+              )}
               onDeleteClick={unlinkPilot(crewPilot.id)}
             />
           ))}

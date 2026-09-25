@@ -67,6 +67,7 @@ conventions, then the relevant architecture doc below.
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
 | [persistence-and-pwa.md](architecture/persistence-and-pwa.md)         | **Executable plan** for ADR-034 and ADR-035 — phases, gates, progress, and what is not DB-backed yet   |
 | [unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md)   | **Plan** for unifying the two account-free share surfaces (`/s/:id` frozen, `/p/:kind/:appId` live) — phases, gates, and the open decisions a future ADR must settle |
+| [npc-builder.md](architecture/npc-builder.md) | **Plan** for the NPC Builder: a fourth player-owned entity (wizard, sheet, roster column, assignment to crawler bays) — decisions, data model, phases, open questions |
 
 ### Rules text — extract and grep, no digest
 

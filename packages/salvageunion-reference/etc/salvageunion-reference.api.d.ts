@@ -2304,8 +2304,9 @@ export declare function isCrawlerWeaponPickComplete(selectedCount: number): bool
  * it replaces the old PILOT_MAX_HP/PILOT_MAX_AP constants (lib/pilotStats.ts)
  * and the crawler SP slug-regex previously local to CrawlerSheet.
  *
- *   Pilot:   maxHP = 10 + maxHpModifier − Σ(minor injury: 1, major: 2)
- *            maxAP = 5 + maxApModifier
+ *   Pilot:   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
+ *                     − Σ(minor injury: 1, major: 2)
+ *            maxAP = 5 + 1×(crawler tech − 1) + maxApModifier
  *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + max*Modifier
  *   Crawler: maxSP = tech-level structurePoints (ORM) + the chosen TYPE's
  *            `max_sp_bonus` mutations (Battle +5, applied at read —
@@ -2399,6 +2400,17 @@ type Injury = {
 type PilotDerivationInput = {
     /** Ability refs the pilot holds — the source of ability contributions (ADR-029). */
     abilities?: string[];
+    /**
+     * The pilot's EFFECTIVE crawler Tech Level (1–6) — the source of the Stat
+     * Training bonus (see `pilotStatTrainingContributions`). In ITUN this is
+     * `resolveEffectiveCrawlerLevel`: the linked crawler's tech level, else the
+     * pilot's manual `crawlerLevel`. Absent = Tech 1 = no bonus.
+     *
+     * Deliberately NOT named `crawlerLevel`, which is a field on ITUN's persisted
+     * Pilot: passing a pilot record straight through would then silently pick up
+     * the manual fallback and ignore a linked crawler. Callers set this explicitly.
+     */
+    crawlerTechLevel?: number;
     injuries?: Injury[];
     maxHpModifier?: number;
     maxApModifier?: number;
@@ -2416,7 +2428,7 @@ export declare function injuryMaxHpPenalty(injuries: Injury[] | undefined): numb
  */
 export declare function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown;
 export declare function pilotMaxHP(pilot: PilotDerivationInput): number;
-/** Derived max AP (base 5 + Stat Training tiers etc.). */
+/** Derived max AP: base 5 + Stat Training (crawler tier) + abilities + modifier. */
 export declare function pilotMaxAPParts(pilot: PilotDerivationInput): StatBreakdown;
 export declare function pilotMaxAP(pilot: PilotDerivationInput): number;
 /**

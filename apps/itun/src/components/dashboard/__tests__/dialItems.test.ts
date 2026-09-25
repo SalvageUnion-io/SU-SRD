@@ -46,6 +46,28 @@ describe('dialItems', () => {
     expect(heat?.value).toBe(0)
   })
 
+  test("the pilot's max HP/AP follow the linked crawler's tech level", () => {
+    const fresh = pilotFixture({ id: 'p2', name: 'Kest' })
+    const gaugesFor = (c: typeof crawler | null) => {
+      const item = dialItems({ mount: 'mech', mech, pilot: fresh, crawler: c }).find(
+        (i) => i.label === 'Pilot · Kest'
+      )
+      if (!item || item.statless) throw new Error('expected a statful pilot dial item')
+      return item.gauges
+    }
+    // Tech 3 crawler: 10 + 4 HP, 5 + 2 AP, with the tier as its own line.
+    const [hp, ap] = gaugesFor(crawler)
+    expect(hp?.max).toBe(14)
+    expect(ap?.max).toBe(7)
+    expect(hp?.provenance).toContainEqual(
+      expect.objectContaining({ label: 'Crawler Tech 3', amount: 4 })
+    )
+    // No crawler and no manual level: Tech 1 base.
+    const [hp1, ap1] = gaugesFor(null)
+    expect(hp1?.max).toBe(10)
+    expect(ap1?.max).toBe(5)
+  })
+
   test('statless views carry no gauges', () => {
     const items = dialItems({ mount: 'mech', mech, pilot: null, crawler: null })
     const actions = items.find((i) => i.label === 'Actions')

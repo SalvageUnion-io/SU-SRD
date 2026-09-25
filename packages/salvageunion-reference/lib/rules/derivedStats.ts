@@ -6,8 +6,9 @@
  * it replaces the old PILOT_MAX_HP/PILOT_MAX_AP constants (lib/pilotStats.ts)
  * and the crawler SP slug-regex previously local to CrawlerSheet.
  *
- *   Pilot:   maxHP = 10 + maxHpModifier − Σ(minor injury: 1, major: 2)
- *            maxAP = 5 + maxApModifier
+ *   Pilot:   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
+ *                     − Σ(minor injury: 1, major: 2)
+ *            maxAP = 5 + 1×(crawler tech − 1) + maxApModifier
  *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + max*Modifier
  *   Crawler: maxSP = tech-level structurePoints (ORM) + the chosen TYPE's
  *            `max_sp_bonus` mutations (Battle +5, applied at read —
@@ -120,6 +121,17 @@ type Injury = { severity: 'minor' | 'major'; note: string }
 type PilotDerivationInput = {
   /** Ability refs the pilot holds — the source of ability contributions (ADR-029). */
   abilities?: string[]
+  /**
+   * The pilot's EFFECTIVE crawler Tech Level (1–6) — the source of the Stat
+   * Training bonus (see `pilotStatTrainingContributions`). In ITUN this is
+   * `resolveEffectiveCrawlerLevel`: the linked crawler's tech level, else the
+   * pilot's manual `crawlerLevel`. Absent = Tech 1 = no bonus.
+   *
+   * Deliberately NOT named `crawlerLevel`, which is a field on ITUN's persisted
+   * Pilot: passing a pilot record straight through would then silently pick up
+   * the manual fallback and ignore a linked crawler. Callers set this explicitly.
+   */
+  crawlerTechLevel?: number
   injuries?: Injury[]
   maxHpModifier?: number
   maxApModifier?: number
@@ -134,6 +146,41 @@ export function injuryMaxHpPenalty(injuries: Injury[] | undefined): number {
   return (injuries ?? []).reduce((sum, injury) => sum + (injury.severity === 'major' ? 2 : 1), 0)
 }
 
+/** Stat Training per Pilot Bay tier above Tech 1 (Pilot Bay, "Stat Training"). */
+const STAT_TRAINING_HP_PER_TIER = 2
+const STAT_TRAINING_AP_PER_TIER = 1
+
+/**
+ * Stat Training as a named provenance line — "Crawler Tech 3 +4" (HP).
+ *
+ * RULES: the Pilot Bay's "Stat Training" grants a one-off +2 HP / +1 AP for
+ * training during Downtime in each of a Tech 2..6 Pilot Bay, in order.
+ *
+ * HOUSE CHOICE (product decision, deliberately simpler than the book): the
+ * bonus is ALWAYS derived from the crawler's tech level — +2 HP and +1 AP per
+ * tier above Tech 1 — with no per-pilot record of which tiers were actually
+ * trained. A pilot aboard a Tech 3 crawler reads 14 HP / 7 AP whether or not
+ * they spent a Downtime in its Pilot Bay, and moving to a lower-tier crawler
+ * lowers the maximum again. A table that tracks training strictly can correct
+ * it with the manual adjustment (`max*Modifier`) or the absolute pin.
+ *
+ * Tech 1 (or no level) contributes nothing, so the line is omitted. A level
+ * outside 1..6 is clamped into it rather than trusted.
+ */
+function pilotStatTrainingContributions(
+  crawlerTechLevel: number | undefined,
+  stat: 'maxHp' | 'maxAp'
+): ResolvedContribution[] {
+  if (crawlerTechLevel === undefined || !Number.isFinite(crawlerTechLevel)) return []
+  const tech = Math.min(6, Math.max(1, Math.trunc(crawlerTechLevel)))
+  const tiers = tech - 1
+  if (tiers === 0) return []
+  const perTier = stat === 'maxHp' ? STAT_TRAINING_HP_PER_TIER : STAT_TRAINING_AP_PER_TIER
+  return [
+    { source: `Crawler Tech ${tech}`, ref: 'Pilot Bay', stat, amount: perTier * tiers, copies: 1 },
+  ]
+}
+
 /**
  * Derived max HP. Can legitimately reach 0 or below — that is the dead state
  * (rules A2: "if Max HP reaches 0 the Pilot dies") and is surfaced by
@@ -143,8 +190,11 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
   // The injury penalty rides in `installed` — it is a rules-sourced contribution
   // like an installed statBonus, just a negative one, and is derived from
   // `injuries` so healing restores max HP with no bookkeeping.
-  const hpSources = abilityContributions(pilot.abilities, 'pilot', 'maxHp')
-  const abilityHp = sumContributions(hpSources)
+  const hpSources = [
+    ...pilotStatTrainingContributions(pilot.crawlerTechLevel, 'maxHp'),
+    ...abilityContributions(pilot.abilities, 'pilot', 'maxHp'),
+  ]
+  const sourcedHp = sumContributions(hpSources)
   const parts = breakdownOf(
     PILOT_BASE_HP,
     -injuryMaxHpPenalty(pilot.injuries),
@@ -157,7 +207,7 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
   // unfloored so a lethal injury total is not hidden behind breakdownOf's floor.
   if (parts.overridden) return parts
   const unfloored =
-    PILOT_BASE_HP + (pilot.maxHpModifier ?? 0) - injuryMaxHpPenalty(pilot.injuries) + abilityHp
+    PILOT_BASE_HP + (pilot.maxHpModifier ?? 0) - injuryMaxHpPenalty(pilot.injuries) + sourcedHp
   return { ...parts, derived: unfloored, total: unfloored }
 }
 
@@ -165,15 +215,12 @@ export function pilotMaxHP(pilot: PilotDerivationInput): number {
   return pilotMaxHPParts(pilot).total
 }
 
-/** Derived max AP (base 5 + Stat Training tiers etc.). */
+/** Derived max AP: base 5 + Stat Training (crawler tier) + abilities + modifier. */
 export function pilotMaxAPParts(pilot: PilotDerivationInput): StatBreakdown {
-  return breakdownOf(
-    PILOT_BASE_AP,
-    0,
-    pilot.maxApModifier ?? 0,
-    pilot.maxApOverride,
-    abilityContributions(pilot.abilities, 'pilot', 'maxAp')
-  )
+  return breakdownOf(PILOT_BASE_AP, 0, pilot.maxApModifier ?? 0, pilot.maxApOverride, [
+    ...pilotStatTrainingContributions(pilot.crawlerTechLevel, 'maxAp'),
+    ...abilityContributions(pilot.abilities, 'pilot', 'maxAp'),
+  ])
 }
 
 export function pilotMaxAP(pilot: PilotDerivationInput): number {
