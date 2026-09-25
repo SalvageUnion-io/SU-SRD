@@ -32,8 +32,14 @@ on:
 # `pull_request` base filter came off above: CodeQL now fires on every layer of
 # a stack, and one `gh stack sync` force-pushes all of them at once. Without
 # this, an N-layer stack starts N analyses per sync and leaves every earlier
-# in-flight analysis running to its `timeout-minutes: 360`, which the old
-# main-only filter had bounded by accident.
+# in-flight analysis running to its timeout, which the old main-only filter
+# had bounded by accident.
+#
+# NO `paths-ignore`, deliberately, even for docs-only PRs. `Analyze
+# (javascript-typescript)` is its OWN required status on main, and a workflow
+# skipped by a path filter never reports — so the PR would sit on "Expected —
+# waiting for status" forever. Paying for a docs-only analysis is cheaper than
+# an unmergeable docs PR.
 concurrency:
   group: codeql-${{ github.ref }}
   cancel-in-progress: true
@@ -48,10 +54,14 @@ jobs:
   analyze:
     name: Analyze (javascript-typescript)
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    # Bounds a hang to a red check instead of GitHub's six-hour default. Raise
+    # it if a real analysis ever approaches it; do not remove it.
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4.38.0

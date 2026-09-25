@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a TypeScript monorepo with shared packages (component-lib, etc.). After any cross-package changes, always run typecheck, tests, and lint before considering a task complete. When modifying shared components, check all consuming apps for regressions (especially Tailwind @source paths and import changes).
 
-**`bun run check` is the full-check entry point** — the one command that runs everything (schema drift, lint, format, typecheck, tests, data validation, knip, audit, tokens, styling, CI aggregator gate, srd output gate), and the same spelling as the other repos in this fleet. `bun run check:fast` is the ~12s inner-loop subset. `check:all` remains as a thin alias for `check` for one release cycle and will then be removed; don't add new callers of it.
+**`bun run check` is the full-check entry point** — the one command that runs everything (schema drift, Biome lint/format/imports, typecheck, tests, data validation, knip, audit, tokens, styling, CI aggregator gate, workflow lint (actionlint + zizmor), srd output gate), and the same spelling as the other repos in this fleet. `bun run check:fast` is the ~12s inner-loop subset. `check:all` remains as a thin alias for `check` for one release cycle and will then be removed; don't add new callers of it.
 
 ### Root Dev Dependencies (Intentional)
 
@@ -103,7 +103,9 @@ bun run dev:itun         # Build package + start ITUN app dev server
 
 # Testing
 bun run test             # Canonical FULL suite: each workspace with its own
-                         # bunfig. This is what CI runs — prefer it.
+                         # bunfig, plus tools/. CI runs the same files once,
+                         # instrumented (`test:coverage` + `test:tools` in the
+                         # `coverage` job) — prefer this locally.
                          # Pre-push does NOT run this; it runs the --changed
                          # subset (see "Pre-commit Hooks" below), so run this by
                          # hand when you want the whole sweep locally.
@@ -153,9 +155,13 @@ bun run check:fast       # ~12s inner loop: lint + validate:all + knip (parallel
 bun run lint             # Lint all packages (Biome)
 bun run format           # Format all packages (Biome — the ONLY formatter; .md/.yml are formatted by nothing)
 bun run typecheck        # TypeScript check all packages
+bun run lint:workflows   # actionlint + zizmor over .github/ (pinned, hash-verified;
+                         # first run downloads both). Why CI is shaped the way
+                         # it is: docs/architecture/ci.md
 bun run check            # THE full-check entry point — the one command that runs
-                         # everything (adds format, test, audit, tokens, styling,
-                         # ci-aggregator, schema-drift). ~35s — run before
+                         # everything (adds format + import order, test, audit,
+                         # tokens, styling, ci-aggregator, workflow lint,
+                         # schema-drift). ~35s — run before
                          # pushing, not per-edit.
                          # `check:all` is a deprecated alias kept for one release
                          # cycle; new callers use `check`.

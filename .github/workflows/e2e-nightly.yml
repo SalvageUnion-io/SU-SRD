@@ -7,7 +7,7 @@ name: E2E (nightly)
 # main branch instead. They do not block PR merges.
 #
 # Failures are surfaced two ways: the Actions tab (as always), and a tracking
-# GitHub Issue (notify-failure/notify-recovery below) opened/commented on
+# GitHub Issue (the `notify` job below) opened/commented on
 # failure and closed on the next green run — GitHub-native, no external
 # notification service or webhook secret.
 #
@@ -40,6 +40,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -91,6 +93,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -241,6 +245,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -309,6 +315,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -370,9 +378,11 @@ jobs:
         run: |
           set -euo pipefail
           if [ ! -s a11y-report.json ]; then
-            echo "### Accessibility scan — srd" >> "$GITHUB_STEP_SUMMARY"
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "The scanner produced no report; see the step log above." >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "### Accessibility scan — srd"
+              echo ""
+              echo "The scanner produced no report; see the step log above."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           {
@@ -446,6 +456,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -480,6 +492,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -491,189 +505,88 @@ jobs:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
         run: bun run validate:convex-parity:live
 
-  notify-failure:
+  # ONE notifier, computed from `needs` rather than restated in two inverted
+  # `if:` expressions. The two-job version drifted twice: convex-parity and
+  # e2e-itun-signin were each added to `needs:` and to one condition but not
+  # the other, so a red run could fail to open the issue — or CLOSE it.
+  # Deriving the verdict from `toJSON(needs)` means a job added to `needs:`
+  # is reported and judged with no second list to update.
+  #
+  # Verdict per job: `failure` or `cancelled` is broken. `cancelled` is how a
+  # job that hit `timeout-minutes` reports, and treating it as anything else is
+  # how this suite once broke silently for days. `skipped` is fine for the
+  # variable-gated probes (their switch is off) but NOT for a job in
+  # ALWAYS_RUNS, which has no `if:` and so can only be skipped by a broken
+  # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
+  # run, which is a human action rather than a regression.
+  notify:
     needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd]
-    # NOT `failure()`. A job that exhausts its `timeout-minutes` is reported with
-    # result `cancelled`, and `failure()` does not cover `cancelled` — so when
-    # e2e-itun started timing out, `notify-failure` AND `notify-recovery` were
-    # both skipped and the suite broke silently for days. Nothing was red except
-    # the Actions tab nobody was watching, which is the exact hole this tracking
-    # issue exists to close.
-    #
-    # So: fire on any non-success result from either suite. `!cancelled()` still
-    # exempts a genuine cancellation of the whole run (manual stop, or the
-    # concurrency group superseding this run) — that is a human action, not a
-    # regression, and should not open an issue. A per-job timeout does NOT set
-    # `cancelled()`, so timeouts still notify.
-    #
-    # observability-probe is compared with `== 'failure'`, NOT `!= 'success'`:
-    # it is skipped whenever the OBSERVABILITY_PROBE variable is off, and a
-    # skipped job must not open an issue. Only a real dark-production result
-    # notifies.
-    if: >-
-      always() && !cancelled() &&
-      (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success' ||
-       needs.e2e-itun-signin.result != 'success' ||
-       needs.observability-probe.result == 'failure' ||
-       needs.observability-probe.result == 'cancelled' ||
-       needs.convex-parity.result == 'failure' ||
-       needs.convex-parity.result == 'cancelled' ||
-       needs.a11y-srd.result == 'failure' ||
-       needs.a11y-srd.result == 'cancelled')
+    if: always() && !cancelled()
     runs-on: ubuntu-latest
-    # Bounded like every other job here: this one is two REST calls, so if it is
-    # still running at 5 minutes it is wedged, and a wedged notifier is the
-    # worst one to leave unbounded — it is the thing that tells you the rest
-    # broke.
+    # Two REST calls. A wedged notifier is the worst one to leave unbounded —
+    # it is the thing that tells you the rest broke.
     timeout-minutes: 5
     permissions:
       issues: write
     steps:
-      - name: Open or update the nightly-e2e-failure tracking issue
+      - name: Open, update or close the nightly-e2e-failure tracking issue
         uses: actions/github-script@v9
         env:
-          ITUN_RESULT: ${{ needs.e2e-itun.result }}
-          SRD_RESULT: ${{ needs.e2e-srd.result }}
-          SIGNIN_RESULT: ${{ needs.e2e-itun-signin.result }}
-          PROBE_RESULT: ${{ needs.observability-probe.result }}
-          PARITY_RESULT: ${{ needs.convex-parity.result }}
-          A11Y_RESULT: ${{ needs.a11y-srd.result }}
+          NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
+            const ALWAYS_RUNS = new Set(['e2e-itun', 'e2e-srd', 'e2e-itun-signin'])
             const label = 'nightly-e2e-failure'
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            // Name the per-suite results explicitly. 'cancelled' here almost
-            // always means "hit timeout-minutes", which reads very differently
-            // from 'failure' (assertions failed) and points at a hang rather
-            // than a broken expectation.
-            // observability-probe MUST appear here, not just in `needs:` and the
-            // `if:`. It can open this issue on its own, and without a line of its
-            // own the issue would read "e2e-itun: success, e2e-srd: success" while
-            // still being filed — an alarm that refuses to say what tripped it.
-            // Omitted entirely when skipped (the OBSERVABILITY_PROBE variable is
-            // off), so the report never lists a job that did not run.
-            //
-            // convex-parity obeys the same rule for the same reason, and did NOT
-            // when it was added: it sat in `needs:` and in the `if:` above — so it
-            // could open this issue entirely on its own — while having no line
-            // here at all. A parity failure therefore filed an issue reading
-            // "e2e-itun: success, e2e-srd: success" and nothing else, which is
-            // precisely the alarm-that-won't-say-what-tripped-it the paragraph
-            // above describes. Anything in that `if:` MUST appear in this list.
-            const optional = (job, result) =>
-              result && result !== 'skipped' ? [[job, result]] : []
-            const results = [
-              ['e2e-itun', process.env.ITUN_RESULT],
-              ['e2e-srd', process.env.SRD_RESULT],
-              // e2e-itun-signin carries no `if:` of its own, so it always runs
-              // and is never 'skipped' — which puts it in the same class as the
-              // two above rather than in `optional()`. It shipped in `needs:`
-              // and in neither notifier's `if:`, the same defect convex-parity
-              // had, with one extra consequence: notify-recovery's condition
-              // was SATISFIED while this job was failing, so a red run CLOSED
-              // the tracking issue instead of opening one.
-              ['e2e-itun-signin', process.env.SIGNIN_RESULT],
-              ...optional('observability-probe', process.env.PROBE_RESULT),
-              ...optional('convex-parity', process.env.PARITY_RESULT),
-              // a11y-srd follows the same rule as the two above: it can open
-              // this issue on its own, so it needs a line of its own or the
-              // report would name every other job as successful and no cause.
-              ...optional('a11y-srd', process.env.A11Y_RESULT),
-            ]
+            const { owner, repo } = context.repo
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+
+            const needs = JSON.parse(process.env.NEEDS)
+            const results = Object.entries(needs).map(([job, { result }]) => [job, result])
+            const broken = results.filter(
+              ([job, result]) =>
+                result === 'failure' ||
+                result === 'cancelled' ||
+                (ALWAYS_RUNS.has(job) && result !== 'success')
+            )
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              labels: label,
+            })
+
+            if (broken.length === 0) {
+              for (const issue of open) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  body: `Nightly E2E passed again on \`${context.ref}\` — closing. Run: ${runUrl}`,
+                })
+                await github.rest.issues.update({ owner, repo, issue_number: issue.number, state: 'closed' })
+              }
+              return
+            }
+
+            // Every job that ran gets a line — a skipped probe is omitted, so the
+            // report never lists a job that did not run. An issue that names no
+            // cause is the failure this list exists to prevent.
             const body = [
               `Nightly E2E (\`e2e-nightly.yml\`) did not pass on \`${context.ref}\`.`,
               '',
-              ...results.map(
-                ([job, result]) =>
-                  `- \`${job}\`: **${result}**${result === 'cancelled' ? ' (hit `timeout-minutes` — likely a hang, not an assertion failure)' : ''}`
-              ),
+              ...results
+                .filter(([job, result]) => result !== 'skipped' || ALWAYS_RUNS.has(job))
+                .map(
+                  ([job, result]) =>
+                    `- \`${job}\`: **${result}**${result === 'cancelled' ? ' (hit `timeout-minutes` — likely a hang, not an assertion failure)' : ''}`
+                ),
               '',
               `Run: ${runUrl}`,
             ].join('\n')
 
-            const { data: open } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: label,
-            })
-
             if (open.length > 0) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: open[0].number,
-                body,
-              })
+              await github.rest.issues.createComment({ owner, repo, issue_number: open[0].number, body })
             } else {
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: 'Nightly E2E failing',
-                body,
-                labels: [label],
-              })
-            }
-
-  notify-recovery:
-    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd]
-    # NOT a bare `success()`. A job whose `needs:` includes a SKIPPED job is
-    # itself skipped unless its condition starts with always()/!cancelled() —
-    # and observability-probe is skipped whenever the OBSERVABILITY_PROBE
-    # variable is off. A bare `success()` here would therefore stop closing the
-    # tracking issue entirely the moment that job was added, quietly undoing the
-    # recovery half of this suite. Spell the conditions out instead, treating a
-    # skipped probe as "nothing to say" rather than as a failure.
-    #
-    # `cancelled` is spelled out separately from `failure` for both probes for
-    # the reason notify-failure documents at length: a job that exhausts its
-    # `timeout-minutes` reports `cancelled`, not `failure`. Without these two
-    # clauses a timed-out probe would satisfy the recovery condition and CLOSE
-    # an open tracking issue — the silent-break shape this suite has already
-    # been bitten by once. It matters more for convex-parity than for
-    # observability-probe: that job does a checkout, an install and a network
-    # round-trip to Convex inside five minutes.
-    if: >-
-      always() && !cancelled() &&
-      needs.e2e-itun.result == 'success' && needs.e2e-srd.result == 'success' &&
-      needs.e2e-itun-signin.result == 'success' &&
-      needs.observability-probe.result != 'failure' &&
-      needs.observability-probe.result != 'cancelled' &&
-      needs.convex-parity.result != 'failure' &&
-      needs.convex-parity.result != 'cancelled' &&
-      needs.a11y-srd.result != 'failure' &&
-      needs.a11y-srd.result != 'cancelled'
-    runs-on: ubuntu-latest
-    # Bounded for the same reason as notify-failure above.
-    timeout-minutes: 5
-    permissions:
-      issues: write
-    steps:
-      - name: Close any open nightly-e2e-failure tracking issue
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const label = 'nightly-e2e-failure'
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-
-            const { data: open } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: label,
-            })
-
-            for (const issue of open) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                body: `Nightly E2E passed again on \`${context.ref}\` — closing. Run: ${runUrl}`,
-              })
-              await github.rest.issues.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                state: 'closed',
-              })
+              await github.rest.issues.create({ owner, repo, title: 'Nightly E2E failing', body, labels: [label] })
             }

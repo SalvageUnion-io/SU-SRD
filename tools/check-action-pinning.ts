@@ -84,11 +84,12 @@ function workflowFiles(root: string): string[] {
 /**
  * Pull every `bunx <tool>` invocation out of one file.
  *
- * A bare `bunx wrangler` resolves whatever npm published most recently, at the
- * moment it runs. `deploy-cloudflare.yml` did that four times in the job
- * holding CLOUDFLARE_API_TOKEN, CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN, while
- * three `wrangler.jsonc` files asserted "this repo's wrangler (4.108)" — a
- * claim nothing made true.
+ * A bare `bunx <tool>` for a tool no manifest declares resolves whatever npm
+ * published most recently, at the moment it runs. `deploy-cloudflare.yml` once
+ * did that four times with `bunx wrangler`, in the job holding
+ * CLOUDFLARE_API_TOKEN, CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN. wrangler is
+ * now a catalogued devDependency of every Worker app, so the workflows run it
+ * through `bun run deploy` from the lockfile.
  *
  * `bunx convex deploy` in the same file is CORRECT and must keep passing: it
  * resolves the pinned `convex` from `apps/itun/package.json` because the step
@@ -171,8 +172,8 @@ function runnerCalls(contents: string): { line: number; runner: string; tool: st
 }
 
 /**
- * `wrangler@4.108.0` is pinned; `wrangler`, `wrangler@latest` and `wrangler@4`
- * are not. A scoped name keeps its leading `@`, hence `lastIndexOf`.
+ * `tool@4.108.0` is pinned; `tool`, `tool@latest` and `tool@4` are not. A
+ * scoped name keeps its leading `@`, hence `lastIndexOf`.
  *
  * This tested only that SOME `@` followed position 0, so every mutable tag
  * passed — `@latest`, `@next`, `@beta`, a bare major. The message this gate

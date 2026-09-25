@@ -13,7 +13,9 @@
     "format:check": "biome format .",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
-    "clean": "true"
+    "clean": "true",
+    "deploy": "wrangler deploy",
+    "worker:bundle": "wrangler deploy --dry-run"
   },
   "dependencies": {
     "@discordjs/builders": "1.14.1",
@@ -25,5 +27,7 @@
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "wrangler": "catalog:"
+  }
 }

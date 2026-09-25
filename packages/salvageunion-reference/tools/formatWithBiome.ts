@@ -14,7 +14,7 @@
  * backend) resolved independently of the pinned `@biomejs/biome` devDependency,
  * so the two could format differently after a version bump — exactly the drift
  * this file exists to prevent. Driving the pinned binary guarantees generated
- * output matches what `bun run format` and CI's `format:check` produce.
+ * output matches what `bun run format` and CI's `biome ci .` produce.
  *
  * ## The ignored-path gotcha
  *

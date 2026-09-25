@@ -46,9 +46,9 @@
  * `public/_headers` and the Worker own those in production.
  */
 
+import type { Server } from 'bun'
 import { join, normalize, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Server } from 'bun'
 
 const DIST_DIR = fileURLToPath(new URL('../dist', import.meta.url))
 

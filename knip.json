@@ -69,12 +69,9 @@
     "apps/itun": {
       "entry": [
         "src/routes/**/*.tsx",
-        // The Cloudflare Worker entry (ADR-033). workerd loads the module and
-        // calls its default export, so nothing in this repo imports it. Listed
-        // here because otherwise the file stays alive only because a test
-        // imports it, and deleting that test would make the deployed Worker
-        // look like dead code.
-        "src/worker/index.ts",
+        // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
+        // wrangler plugin reads `main` from wrangler.jsonc now that wrangler
+        // is a declared devDependency, and flags a manual entry as redundant.
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
@@ -97,28 +94,20 @@
       ]
     },
     "apps/su-assets": {
-      // `src/worker.ts` is a framework entry: workerd loads the module and
-      // calls its default export, so nothing in this repo imports it.
-      //
-      // It was missed when the itun and discord-bot Workers were added above.
-      // The consequence is worse than an un-analyzed file: `project` did not
-      // cover `src/**` either, so the whole Worker and its 217-line test sat
-      // OUTSIDE knip's scope rather than being exempted from one rule inside
-      // it — the gate passed by not looking.
-      "entry": ["src/worker.ts"],
+      // The Worker entry (`src/worker.ts`) comes from wrangler.jsonc's `main`
+      // via knip's wrangler plugin. `project` must still cover `src/**`: when
+      // it did not, the whole Worker and its test sat OUTSIDE knip's scope and
+      // the gate passed by not looking.
       "project": ["src/**/*.ts"],
       "includeEntryExports": false
     },
     "apps/discord-bot": {
-      // `src/http/worker.ts` is a framework entry: workerd loads the module and
-      // calls its default export, so nothing in this repo imports it. Without
-      // it listed, knip reports the
-      // whole HTTP-interactions transport — and `@discordjs/rest`, which only
-      // that transport uses — as dead code.
-      //
-      // `src/index.ts` and `src/deploy-commands.ts` are matched by knip's own
-      // bin/script detection from package.json and are deliberately not listed.
-      "entry": ["src/http/worker.ts"],
+      // `src/http/worker.ts` (the Worker) comes from wrangler.jsonc's `main`
+      // via knip's wrangler plugin, and `src/deploy-commands.ts` from the
+      // package.json scripts, so neither is listed. If the wrangler plugin
+      // ever stops applying (wrangler removed from this manifest), knip will
+      // report the whole HTTP-interactions transport — and `@discordjs/rest`,
+      // which only it uses — as dead code; restore the entry then.
       "project": ["src/**/*.ts"]
     }
   }

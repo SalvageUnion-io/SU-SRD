@@ -20,6 +20,9 @@ name: Deploy (Cloudflare)
 # property. Do not rename this file without updating that tool.
 
 on:
+  # zizmor: ignore[dangerous-triggers] — the job-level `if:` below is the
+  # mitigation zizmor asks for: it requires a same-repo `push` to `main`, so a
+  # fork or PR run can never reach the checkout or the credentials.
   workflow_run:
     workflows: ['CI']
     types: [completed]
@@ -41,9 +44,24 @@ on:
         description: 'Commit to deploy (must be an ancestor of main). Defaults to the tip of main.'
         required: false
         type: string
+      # Ignore the last-deploy record and ship every surface. For recovering
+      # from something the diff cannot see: a surface changed out of band in
+      # the Cloudflare dashboard, or a record that is suspected to be wrong.
+      force_all:
+        description: 'Deploy every surface, ignoring what changed since the last recorded deploy.'
+        required: false
+        type: boolean
+        default: false
 
 # One deploy at a time, and never cancel one in flight: a half-uploaded asset
 # manifest is worse than a queued deploy.
+#
+# GitHub keeps at most ONE pending run per group, so when three CI runs finish
+# close together the middle deploy is dropped from the queue. That is safe ONLY
+# because the deploy set below is computed against the last RECORDED deploy,
+# not against `HEAD^`: the run that survives diffs across every commit the
+# dropped run would have shipped. Diffing `HEAD^..HEAD` here would silently
+# skip any surface touched only by the dropped commit (CI-01).
 concurrency:
   group: deploy-cloudflare
   cancel-in-progress: false
@@ -96,17 +114,35 @@ jobs:
        github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      sha: ${{ steps.target.outputs.sha }}
+      # `true` when HEAD is older than the recorded deploy on a `workflow_run`
+      # — a newer commit's CI finished first and already shipped. The `record`
+      # job must not move the tag back in that case.
+      stale: ${{ steps.surfaces.outputs.stale }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # Nothing in this job pushes, and the tree it checks out runs
+          # `bun install` before any secret step — so no token is left in
+          # .git/config for that code to find.
+          persist-credentials: false
           # workflow_run checks out the DEFAULT branch by default, not the commit
           # that was tested. Deploying a different commit than the one CI passed
           # would make the gate meaningless.
           ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
           # Ancestry cannot be checked in a shallow clone, and the deploy-set
-          # diff below needs the previous commit on main.
+          # diff below needs the last deployed commit.
           fetch-depth: 0
+
+      # The ONE place the deployed commit is named. The build steps stamp it
+      # into both apps and the `record` job writes it to the deploy record, so
+      # a dispatched `sha` is reported as itself rather than as the tip of
+      # main — which is what `head_sha || github.sha` used to report for it.
+      - name: Resolve the commit being deployed
+        id: target
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
@@ -117,54 +153,46 @@ jobs:
       # deployed straight to production by anyone with write access.
       - name: The dispatched commit must be an ancestor of main
         if: inputs.sha != ''
+        # Through `env:`, never `${{ }}` inside the script: an expression is
+        # spliced into the shell source before bash parses it, so a crafted
+        # input would run as code in the job that holds the deploy secrets.
+        env:
+          DISPATCHED_SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
           git fetch --no-tags origin main
-          if ! git merge-base --is-ancestor "${{ inputs.sha }}" origin/main; then
-            echo "FATAL: ${{ inputs.sha }} is not an ancestor of origin/main." >&2
+          if ! git merge-base --is-ancestor "$DISPATCHED_SHA" origin/main; then
+            echo "FATAL: $DISPATCHED_SHA is not an ancestor of origin/main." >&2
             echo "Only a commit that has been on main — and therefore through CI — may be deployed." >&2
             exit 1
           fi
-          echo "OK: ${{ inputs.sha }} is on main."
+          echo "OK: $DISPATCHED_SHA is on main."
 
-      # Which surfaces this commit actually touches.
+      # Which surfaces differ from what is live.
       #
-      # ci.yml path-filters every heavy job; this workflow filtered nothing, so
-      # a docs-only merge still installed Chromium, rendered ~2,000 OG images
-      # and ran four `wrangler deploy`s. `main` is squash-merged, so `HEAD^` is
-      # the previous commit on main and `HEAD^..HEAD` is exactly the merged PR.
+      # ci.yml path-filters every heavy job; without this, a docs-only merge
+      # still installed Chromium, rendered ~2,000 OG images and ran four
+      # `wrangler deploy`s.
       #
-      # Fails SAFE in every direction: no parent (first commit, a force-push, a
-      # dispatch of an old sha) deploys everything, and so does any change to a
-      # shared path. Under-deploying is the only outcome that could serve a
-      # stale surface, so nothing here may narrow on a guess.
+      # The base is the LAST SUCCESSFUL DEPLOY — the `deployed/cloudflare` tag
+      # that the `record` job below moves after every green run — never
+      # `HEAD^`, which silently skipped any surface touched only by a commit
+      # whose deploy never ran (audit CI-01). The logic, its reasoning and its
+      # tests live in tools/deploy-surfaces.ts; it fails SAFE (no record, a
+      # shared path or `force_all` deploys everything).
+      #
+      # It also refuses to go BACKWARDS on a `workflow_run`. ci.yml runs every
+      # commit on main to completion, so an older commit's CI can finish after
+      # a newer one has already deployed; diffing newer->older would ship the
+      # older tree over the newer one. Such a run is `stale`: nothing deploys
+      # and the record stays put. Only a dispatch (the rollback path) passes
+      # `--allow-backwards`.
       - name: Decide which surfaces to deploy
         id: surfaces
-        run: |
-          set -euo pipefail
-          if ! git rev-parse --verify -q HEAD^ >/dev/null; then
-            echo "no parent commit — deploying every surface"
-            changed=""
-            all=true
-          else
-            changed=$(git diff --name-only HEAD^ HEAD)
-            all=false
-            # Anything shared, or the deploy machinery itself, means everything.
-            if printf '%s\n' "$changed" | grep -qE '^(packages/|test/|package\.json|bun\.lock|bunfig\.toml|tsconfig|patches/|\.bun-version|\.github/)'; then
-              all=true
-            fi
-          fi
-          emit() {
-            if [ "$all" = true ] || printf '%s\n' "$changed" | grep -qE "^apps/$2/"; then
-              echo "$1=true" >> "$GITHUB_OUTPUT"; echo "  deploy $2"
-            else
-              echo "$1=false" >> "$GITHUB_OUTPUT"; echo "  skip   $2"
-            fi
-          }
-          emit assets su-assets
-          emit srd srd
-          emit itun itun
-          emit bot discord-bot
+        run: >-
+          bun tools/deploy-surfaces.ts
+          ${{ inputs.force_all && '--force-all' || '' }}
+          ${{ github.event_name == 'workflow_dispatch' && '--allow-backwards' || '' }}
 
       # Bundle ALL FOUR before ANY of them ships.
       #
@@ -178,6 +206,7 @@ jobs:
       # `--dry-run` needs no credential, so this also runs before the credential
       # guards below have any effect.
       - name: Bundle every Worker before deploying any
+        if: steps.surfaces.outputs.stale != 'true'
         run: |
           set -euo pipefail
           # itun's Worker declares `assets.directory: ./dist`, and wrangler
@@ -204,7 +233,7 @@ jobs:
           mkdir -p apps/itun/dist
           for app in su-assets itun discord-bot; do
             echo "--- bundling $app"
-            (cd "apps/$app" && bunx wrangler@4.108.0 deploy --dry-run --outdir "/tmp/predeploy-$app")
+            bun --filter "$app" worker:bundle --outdir "/tmp/predeploy-$app"
           done
           echo "All Worker bundles produced. srd declares no main (Static Assets only)."
 
@@ -331,24 +360,18 @@ jobs:
       # ---------------------------------------------------------------------
       # su-assets — no build step; the Worker is its own source.
       # ---------------------------------------------------------------------
-      # `wrangler@4.108.0` is written out at all four deploy steps, deliberately.
-      #
-      # Hoisting it to one `env:` var was tried and reverted: `check-action-pinning`
-      # refuses a `bunx` invocation it cannot statically read as an exact version,
-      # and it is right to — this job holds the deploy credentials, so an
-      # unresolvable pin there is where a supply-chain problem would land. A
-      # variable defeats that check for the sake of removing three literals.
-      #
-      # Dependabot cannot update this in either shape (it reads manifests; this is
-      # a shell argument), so the four copies must be moved by hand — TOGETHER,
-      # and together with `compatibility_date` in all four wrangler.jsonc files,
-      # which is pinned to the workerd this version bundles.
+      # wrangler is a catalogued devDependency of all four Worker apps, so every
+      # `bun run deploy` below runs the version bun.lock resolved — audited,
+      # behind the 3-day release-age gate and bumped by the catalog updater —
+      # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile.
+      # Bumping it moves all four together; keep `compatibility_date` in the
+      # four wrangler.jsonc files at or below the workerd it bundles.
       - name: Deploy su-assets
         if: steps.surfaces.outputs.assets == 'true'
         working-directory: apps/su-assets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler@4.108.0 deploy
+        run: bun run deploy
 
       # ---------------------------------------------------------------------
       # srd — static, but the OG pass needs a browser.
@@ -370,7 +393,7 @@ jobs:
       - name: Build srd
         if: steps.surfaces.outputs.srd == 'true'
         env:
-          PUBLIC_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
+          PUBLIC_COMMIT_REF: ${{ steps.target.outputs.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
         run: bun --filter srd build
 
@@ -420,7 +443,7 @@ jobs:
         working-directory: apps/srd
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler@4.108.0 deploy
+        run: bun run deploy
 
       # ---------------------------------------------------------------------
       # itun — pushes the Convex backend FIRST, then builds against it.
@@ -436,7 +459,7 @@ jobs:
         working-directory: apps/itun
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-          VITE_COMMIT_REF: ${{ github.event.workflow_run.head_sha || github.sha }}
+          VITE_COMMIT_REF: ${{ steps.target.outputs.sha }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
@@ -448,7 +471,7 @@ jobs:
         working-directory: apps/itun
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler@4.108.0 deploy
+        run: bun run deploy
 
       # ---------------------------------------------------------------------
       # discord-bot — the Worker, not the Render gateway process.
@@ -474,7 +497,7 @@ jobs:
         working-directory: apps/discord-bot
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler@4.108.0 deploy
+        run: bun run deploy
 
       # ---------------------------------------------------------------------
       # Post-deploy smoke. Cheap, and it is the only thing that knows whether
@@ -573,3 +596,51 @@ jobs:
           # server, is the worst possible moment to find out.
           check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted by Discord"
           exit "$fail"
+
+  # ---------------------------------------------------------------------------
+  # The deploy record — what the next run diffs against.
+  # ---------------------------------------------------------------------------
+  #
+  # Moves the lightweight tag `deployed/cloudflare` to the commit that just
+  # shipped. Only after `deploy` succeeded, smoke test included: a run that
+  # failed anywhere leaves the record where it was, so the next run re-deploys
+  # every surface this one may have left half-done.
+  #
+  # A separate job so that `contents: write` is held by six lines of REST calls
+  # and nothing else — never by the job that checks out and runs the tree. If
+  # this job fails the deploy itself stands; the next run just diffs from an
+  # older record and over-deploys, which is the safe direction.
+  record:
+    needs: deploy
+    # A stale run (an older commit whose CI finished after a newer deploy)
+    # shipped nothing, and moving the record to it would make the NEXT run diff
+    # from the older commit. Only a dispatch may move the record backwards.
+    if: needs.deploy.outputs.stale != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Move the deployed/cloudflare tag to the deployed commit
+        uses: actions/github-script@v9
+        env:
+          DEPLOYED_SHA: ${{ needs.deploy.outputs.sha }}
+        with:
+          script: |
+            const sha = process.env.DEPLOYED_SHA ?? ''
+            if (!/^[0-9a-f]{40}$/.test(sha)) {
+              core.setFailed(`deploy job reported no usable commit sha (got '${sha}')`)
+              return
+            }
+            const { owner, repo } = context.repo
+            const ref = 'tags/deployed/cloudflare'
+            try {
+              // force: a rollback DISPATCH legitimately moves the record
+              // BACKWARDS. A `workflow_run` never reaches here going backwards:
+              // deploy-surfaces marks that run stale and this job is skipped.
+              await github.rest.git.updateRef({ owner, repo, ref, sha, force: true })
+            } catch (error) {
+              if (error.status !== 422 && error.status !== 404) throw error
+              await github.rest.git.createRef({ owner, repo, ref: `refs/${ref}`, sha })
+            }
+            core.info(`deployed/cloudflare -> ${sha}`)

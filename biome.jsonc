@@ -20,7 +20,7 @@
 // stated goals of the Astro migration: 2,034 lines across 17 files had zero
 // lint/format coverage under the old toolchain and are now covered.
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "root": true,
   "files": {
     "ignoreUnknown": true,

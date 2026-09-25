@@ -54,6 +54,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # The one checkout that KEEPS its token: the catalog action commits
+          # and pushes its update branch with it. Every other checkout in this
+          # repo sets `false`.
+          persist-credentials: true # zizmor: ignore[artipacked]
           # The updater diffs against the base branch, so it needs real history.
           fetch-depth: 0
 

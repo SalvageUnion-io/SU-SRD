@@ -48,6 +48,10 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
+    # Matches bunfig.toml's 3-day `minimumReleaseAge`: a Dependabot PR for a
+    # version bun refuses to install would fail its own `bun install`.
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 10
     groups:
       dev-dependencies:
@@ -84,6 +88,10 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
+    # Matches bunfig.toml's 3-day `minimumReleaseAge`: a Dependabot PR for a
+    # version bun refuses to install would fail its own `bun install`.
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 5
     groups:
       github-actions:

@@ -15,6 +15,7 @@ import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { discoverWorkspaceDirs } from './lib/workspaceCoverage'
 
 const toolsDir = dirname(fileURLToPath(import.meta.url))
 const root = resolve(toolsDir, '..')
@@ -55,6 +56,20 @@ describe('coverage tooling workspace lists', () => {
       }
       expect(pkg.scripts?.['test:coverage']).toBeTruthy()
     }
+  })
+
+  // CI's only test gate is `test:coverage`, which runs exactly these
+  // workspaces — so a workspace with tests that is missing here has NO tests
+  // run in CI at all. Discovered, not listed, so a new workspace fails this.
+  it('every workspace with a test script is run', () => {
+    const withTests = discoverWorkspaceDirs().filter((dir) => {
+      const pkg = JSON.parse(readFileSync(join(root, dir, 'package.json'), 'utf-8')) as {
+        scripts?: Record<string, string>
+      }
+      return Boolean(pkg.scripts?.test)
+    })
+    expect(withTests.length).toBeGreaterThan(0)
+    expect(withTests.filter((dir) => !runnerDirs.includes(dir))).toEqual([])
   })
 
   it("each runner filter matches its workspace's package name", () => {

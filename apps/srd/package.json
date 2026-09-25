@@ -25,7 +25,8 @@
     "e2e:install": "playwright install --with-deps chromium",
     "clean": "rm -rf dist node_modules/.vite",
     "check": "bun run lint && bun run format:check && bun run typecheck",
-    "check:examples": "bun ssg/checkPageExamples.ts"
+    "check:examples": "bun ssg/checkPageExamples.ts",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -46,6 +47,7 @@
     "playwright": "catalog:",
     "sharp": "0.35.4",
     "vite": "catalog:",
-    "workbox-build": "7.4.1"
+    "workbox-build": "7.4.1",
+    "wrangler": "catalog:"
   }
 }

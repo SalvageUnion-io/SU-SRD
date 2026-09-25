@@ -130,30 +130,42 @@ describe('check-action-pinning', () => {
 /**
  * The `bunx` half.
  *
- * Adding wrangler as a devDependency was the first attempt at this, and CI
- * rejected it for a good reason: wrangler depends on miniflare, which pins
- * `sharp@0.34.5` and `undici@7.28.0` — two HIGH advisories — so the tree gained
- * vulnerabilities to fix a supply-chain hole. Overriding them was worse: both
- * are EXACT pins by miniflare, and `sharp` is catalogued, which this repo
- * documents as a hazard to leave dormant.
- *
- * Pinning at the call site instead removes the property that actually mattered
- * — "resolves whatever npm published most recently, in a job holding deploy
- * credentials" — with no tree impact. The honest residual is that it pins a
- * version rather than a tarball hash; a lockfile entry would be stronger, and
- * is unavailable here without the advisories.
+ * The deploy workflow no longer calls any unlisted tool — wrangler became a
+ * catalogued devDependency once its tree stopped carrying HIGH advisories
+ * (wrangler 4.132's miniflare ships fixed `sharp` and `undici`) — so these
+ * inject the call site they test rather than borrowing a real one.
  */
+const DEPLOY = '.github/workflows/deploy-cloudflare.yml'
+const FIRST_DEPLOY_STEP = /run: bun run deploy\n/
+
+function injectRun(command: string) {
+  return (s: string) => {
+    if (!FIRST_DEPLOY_STEP.test(s)) throw new Error(`no \`bun run deploy\` step in ${DEPLOY}`)
+    return s.replace(FIRST_DEPLOY_STEP, `run: ${command}\n`)
+  }
+}
+
 describe('check-action-pinning — bunx tools', () => {
-  test('fails when a bunx tool loses its version pin', async () => {
-    await withFileContents(
-      '.github/workflows/deploy-cloudflare.yml',
-      (s) => s.replace('bunx wrangler@4.108.0 deploy', 'bunx wrangler deploy'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('bunx wrangler')
-      }
-    )
+  test('fails when an unlisted bunx tool carries no version pin', async () => {
+    await withFileContents(DEPLOY, injectRun('bunx unlisted-tool deploy'), async () => {
+      const { exitCode, stderr } = await runCheck()
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain('bunx unlisted-tool')
+    })
+  })
+
+  test('fails on a mutable tag, not just a missing one', async () => {
+    await withFileContents(DEPLOY, injectRun('bunx unlisted-tool@latest deploy'), async () => {
+      const { exitCode } = await runCheck()
+      expect(exitCode).toBe(1)
+    })
+  })
+
+  test('passes when the unlisted tool carries an exact version', async () => {
+    await withFileContents(DEPLOY, injectRun('bunx unlisted-tool@1.2.3 deploy'), async () => {
+      const { exitCode } = await runCheck()
+      expect(exitCode).toBe(0)
+    })
   })
 
   /**
@@ -171,7 +183,7 @@ describe('check-action-pinning — bunx tools', () => {
 
   test('a commented-out bunx line is ignored', async () => {
     await withFileContents(
-      '.github/workflows/deploy-cloudflare.yml',
+      DEPLOY,
       (s) => `${s}\n# bunx some-unpinned-tool build\n`,
       async () => {
         const { exitCode } = await runCheck()
@@ -220,18 +232,26 @@ describe('check-action-pinning — locally-resolved derivation', () => {
     )
   })
 
-  test('a tool in NO manifest is still caught', async () => {
-    // wrangler is pinned at its call sites precisely because it is not a
-    // dependency; the derivation must not accidentally exempt it.
-    await withFileContents(
-      '.github/workflows/deploy-cloudflare.yml',
-      (s) => s.replace('bunx wrangler@4.108.0 deploy', 'bunx wrangler deploy'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('bunx wrangler')
-      }
-    )
+  test('wrangler is exempt because the Worker apps declare it, and only while they do', async () => {
+    // Passes with the committed manifests: every Worker app lists wrangler, so
+    // bunx resolves the lockfile's copy.
+    await withFileContents(DEPLOY, injectRun('bunx wrangler deploy'), async () => {
+      expect((await runCheck()).exitCode).toBe(0)
+
+      // The catalog entry in the root manifest is not a dependency, so with
+      // the four app entries gone nothing exempts it and it must be pinned.
+      const apps = ['srd', 'itun', 'discord-bot', 'su-assets'].map((a) => `apps/${a}/package.json`)
+      const dropWrangler = (s: string) => s.replace(/,?\n\s*"wrangler":\s*"catalog:"/, '')
+      const nested = apps.reduceRight<() => Promise<void>>(
+        (inner, manifest) => () => withFileContents(manifest, dropWrangler, inner),
+        async () => {
+          const { exitCode, stderr } = await runCheck()
+          expect(exitCode).toBe(1)
+          expect(stderr).toContain('bunx wrangler')
+        }
+      )
+      await nested()
+    })
   })
 })
 

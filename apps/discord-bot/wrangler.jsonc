@@ -19,7 +19,8 @@
   "name": "su-discord-bot",
   "main": "src/http/worker.ts",
 
-  // Pinned to what this repo's wrangler (4.108) bundles as workerd, so
+  // Held at or below what the catalogued wrangler (root package.json,
+  // `workspaces.catalog`) bundles as workerd, so
   // `wrangler dev` runs locally. A newer date fails with "requires
   // compatibility date X, but the newest date supported by this server binary
   // is Y" — which reads like a config error and is really a version skew.

@@ -14,7 +14,9 @@
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "test:watch": "bun test --watch",
-    "clean": "rm -rf dist .vite node_modules/.vite"
+    "clean": "rm -rf dist .vite node_modules/.vite",
+    "deploy": "wrangler deploy",
+    "worker:bundle": "wrangler deploy --dry-run"
   },
   "dependencies": {
     "@auth/core": "0.41.3",
@@ -51,6 +53,7 @@
     "convex-test": "0.0.56",
     "fake-indexeddb": "catalog:",
     "vite": "catalog:",
-    "vite-plugin-pwa": "1.3.0"
+    "vite-plugin-pwa": "1.3.0",
+    "wrangler": "catalog:"
   }
 }
