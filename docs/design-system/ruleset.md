@@ -153,7 +153,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    Sanctioned patterns today: the `Slab` dashed leader, the **srd catalog tile
    ramps** (`CatalogTile`/`catalogColors` — tech-level and ability-tier bands
    as a wayfinding cue) and its story, and the snapshot QR placeholder
-   checkerboard. Each is still listed in `tools/check-design-tokens.ts`'s
+   checkerboard. Each is still listed in `tools/rules/designTokens.ts`'s
    `EXEMPTIONS` table with a written reason, because the checker matches the
    CSS function and cannot itself tell a hard stop from a blend.
 
@@ -222,7 +222,7 @@ once defined as aliases _of_ is deleted (see the note in `theme.css`). It was a
 shadow tokenset: `su-orange-dark` and `rust` were the same `#a85222`, which made
 "rust = action, only action" unauditable by search, and `su-paper` shipped a
 second cream reading surface beside `--color-paper`. Enforced by
-`bun run check:tokens`.
+`bun run check styling`.
 
 **The paper flip (decided):** `--color-paper = #fbfaf7` — the dedicated system
 white, **not cream** (the cream cutover read too beige, and `bg-paper` is already
@@ -251,7 +251,7 @@ active use. Ratified as-is rather than re-lettering every label in the app.
 
 `caps-tight` is the default for a label; reach up the ladder only deliberately.
 **Arbitrary `tracking-[…]` values are forbidden** — a value not on this ladder is
-a defect, enforced by `bun run check:tokens`. Promoting these tokens into
+a defect, enforced by `bun run check styling`. Promoting these tokens into
 component-lib fixed a real cross-app bug: `tracking-caps` silently rendered
 untracked outside ITUN.
 

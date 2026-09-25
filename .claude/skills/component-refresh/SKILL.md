@@ -14,7 +14,7 @@ from a paragraph and some skipped the parts that make it safe.
 **The methodology lives in
 [`docs/design/entity-card-reconciliation.md`](../../../docs/design/entity-card-reconciliation.md)
 Part 1 — read it first, and treat it as the source of truth.** Do not restate it
-here or anywhere else; a second copy drifts, and `validate:doc-drift` exists
+here or anywhere else; a second copy drifts, and the `doc-drift` check exists
 because that has already happened. This skill is the operating procedure for
 running it.
 
@@ -68,7 +68,7 @@ legacy and canonicalize stories), committing per stage.
   before. Prove it by diffing rendered `innerHTML` against `HEAD` — do not
   assert it from reading the diff.
 - **Green at every checkpoint.** `bun run typecheck`, `bun run lint`,
-  `bun run test`, `bun run validate:all` — committed per stage, not batched to
+  `bun run test`, `bun run check data doc-drift` — committed per stage, not batched to
   the end.
 - **Real data everywhere** — mockups, stories and SSR captures alike.
 - **Prefer changing the data shape over special-casing the renderer.** A

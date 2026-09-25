@@ -48,7 +48,7 @@ For every step, use the first route that works and record which one you used:
 2. **Production error tracking** — is it reporting, and what did it report?
 
    ```bash
-   bun run validate:observability:live   # is the SDK actually being served?
+   bun run check:observability:live   # is the SDK actually being served?
    ```
 
    If this fails, production is blind and that is the finding. Once a Sentry

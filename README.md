@@ -70,16 +70,16 @@ bun run typecheck
 bun run test          # prefer this — each workspace with its own bunfig.
                       # A bare root `bun test` is viable (the root bunfig
                       # preloads the union) but is not identical; see CLAUDE.md
-bun run validate:all  # Data integrity: IDs, cross-refs, action refs
-bun run check         # THE full-check entry point: the whole CI suite (lint,
-                      # format, typecheck, test, validate, knip, audit, …).
-                      # `check:all` is a deprecated alias for it.
+bun run check         # THE full-check entry point: every gate in tools/check.ts
+                      # (lint, format, typecheck, test, data, knip, audit, …)
+                      # in parallel, ending in a pass/fail table.
+bun run check data    # any subset by id — `bun run check --list` names them
 ```
 
 The root scripts are the aggregates only — there are deliberately no
 per-workspace `lint:*` / `test:*` / `typecheck:*` aliases. To scope any of them
 to one workspace, call it directly: `bun --filter srd build`,
-`bun --filter component-lib lint`, `bun --filter salvageunion-reference test`.
+`bun --filter itun typecheck`, `bun --filter salvageunion-reference test`.
 
 ### Local-only diagnostics
 
@@ -109,7 +109,7 @@ with the test that enforces them.
    `lib/generated/`, and the API report. CI fails on drift.
 3. Changes are immediately available to consuming apps via workspace linking.
 
-Those generated artifacts are listed in `bun run check:schemas` — never edit
+Those generated artifacts are listed in `tools/check-generated.ts` — never edit
 them by hand. (There is no `dist/` in any workspace; this line used to claim one
 and contradicted the "no build step" paragraph two sections above.)
 
@@ -134,4 +134,4 @@ Built on **[the Butter Stack](https://alxjrvs.github.io/butter/)** — Bun · Un
   no `any`) are Biome rules — see [`biome.jsonc`](biome.jsonc); `bun run lint`
   is the authority.
 - Pre-commit (Lefthook): `biome check --write` on staged files. Pre-push:
-  typecheck, test, lint, validate:all, knip, schema/token/styling checks.
+  `bun tools/check.ts --profile=pre-push` and the test suite.

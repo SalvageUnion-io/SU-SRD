@@ -51,7 +51,7 @@ See Part 3 — the ordered, green-at-every-checkpoint stages.
   and prop-gated; a card with no write props renders exactly as before — prove it
   by diffing rendered `innerHTML` against `HEAD`.
 - **Green at every checkpoint:** typecheck (all packages) + lint + tests +
-  `validate:all`, committed per stage.
+  `bun run check data`, committed per stage.
 - **Real data everywhere** (mockups, stories, SSR captures).
 - **Data-driven, few special cases:** prefer changing the _data shape_ (e.g. an
   inline `choice` content-block marker) over special-casing the renderer.
@@ -75,7 +75,7 @@ See Part 3 — the ordered, green-at-every-checkpoint stages.
 - **Stage a LANDED** (`6a552f3b`, pushed to #466): the compat shim + barrel flip
   are live — **every direct `ReferenceEntityDisplay` consumer now renders through
   `NEWReferenceEntityCard`**. The 6 flip-surfaced deltas are all closed (see below).
-  Green: typecheck (4 pkgs) + lint + knip + validate:all; tests all pass
+  Green: typecheck (4 pkgs) + lint + knip + data checks; tests all pass
   (component-lib 414, srd 989, ITUN 1321).
 - **Legacy render core is now reachable only through 3 internal component-lib
   consumers** (the shim itself forwards to the new card, not legacy):

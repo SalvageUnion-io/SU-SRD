@@ -25,7 +25,7 @@ the ADRs and architecture docs this file points to.
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
 - Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). If a visual change needs iteration, ask for a screenshot before adjusting further. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
-- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check:styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
+- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
 ## Build & Validation
 
@@ -37,9 +37,11 @@ bun install && bun run build:package   # first-time setup (regenerates JSON sche
 bun run dev              # build package + srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # build package + ITUN dev server
 
-bun run check:fast       # ~12s inner loop: lint + validate:all + knip, then typecheck
-bun run check            # THE full gate (~35s): schemas, biome, typecheck, test, validate:all,
-                         # knip, audit, tokens, styling, ci-aggregator, workflow lint, srd output
+bun run check:fast       # ~12s inner loop: every gate except the suite, the srd build,
+                         # the network and regeneration
+bun run check            # THE full gate (~35s), every check in tools/check.ts in parallel,
+                         # ending in a pass/fail table
+bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
 bun --filter <workspace> test      # one workspace: salvageunion-reference, component-lib, srd, itun
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
@@ -47,15 +49,13 @@ bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are f
 bun run build            # package + srd + ITUN (the bot has no build; wrangler bundles it)
 bun --filter srd gate    # srd build + output-snapshot diff — use the /srd-gate skill
 
-bun run validate:all     # data IDs, cross-references, doc drift, observability, convex parity, …
 bun run reap             # list abandoned .claude/worktrees/ checkouts (--force removes them)
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
 - **Prefer `bun run test` over bare `bun test`.** A bare root run preloads the union of the workspace preloads and has a handful of known cross-workspace failures (a `mock.module` collision between the two `observability` suites, and one preload-set difference); every one passes in its own workspace. If `bun run test` is red, something is broken.
 - **Do not use `--parallel` or `--isolate` to speed tests up** — both are measured regressions here (spurious timeouts; ~7× slower). `--changed` is the flag that helps.
-- **A gate failed?** [`tools/CLAUDE.md`](tools/CLAUDE.md) indexes every checker in `tools/`: what it guards, how to fix a failure, and which baseline file it ratchets.
-- `check:all` is a deprecated alias of `check`; don't add callers.
+- **A gate failed?** [`tools/CLAUDE.md`](tools/CLAUDE.md) indexes every checker in `tools/`: what it guards, how to fix a failure, and which baseline file it ratchets. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
 - **Dependencies:** read [`dependency-management.md`](docs/architecture/dependency-management.md) before touching `package.json`, `bunfig.toml`, `workspaces.catalog` or `overrides`. In short: `bun audit --audit-level=high` gates merges with no suppressions; a dependency used by two or more manifests is declared once in `workspaces.catalog`; `bunfig.toml` refuses versions under three days old, so a caret range resolves silently downward.
 - Root dev dependency `playwright` is used by `tools/a11y-scan.ts` (WCAG scans) — not dead code.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
@@ -63,7 +63,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ### Hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (parallel):** typecheck, test, biome check, check:schemas, validate:all, knip, check:tokens, check:styling. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and the **full** suite whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs the full suite.
+- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite, the srd build and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and the **full** suite whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs the full suite.
 
 ## Repository Overview
 
@@ -121,7 +121,7 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
 - `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see "Cloud sessions" in `agent-tooling.md`.
-- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (in `validate:all`) checks DSN gating, each app's `public/_headers` CSP against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
+- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's `public/_headers` CSP against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 
 ## Merging
 

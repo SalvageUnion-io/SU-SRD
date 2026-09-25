@@ -731,8 +731,9 @@ docs — treat it as such.
   UI is safe.
 - This sits alongside srd's pinned TS6 foothold as a load-bearing consequence of the TS7 migration
   (see the repo memory _ts7-upgrade-ts6-footholds_ and
-  [`canonical-primitive-language.md`](./canonical-primitive-language.md)). A `tools/check-bun-version.ts`
-  guard runs in `validate:all` near this discipline.
+  [`canonical-primitive-language.md`](./canonical-primitive-language.md)). The Bun-version guard
+  (`tools/check-workflows.ts`) runs in `bun run check` near this discipline, and
+  CI now builds the stories on every component-lib change (`build-ladle`).
 
 **If you bump Ladle:** re-verify the patch still applies (or regenerate it), re-run `ladle build`,
 confirm no story renders blank (the two classic blank-story causes are the double React plugin, §5.1,

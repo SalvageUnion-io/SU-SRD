@@ -67,7 +67,7 @@ Knowing this stops you trusting a green gate for the wrong thing:
   artwork behind `style="opacity:0"` (#717) does **not** fail this gate.
   **Visual regressions are not this gate's job — look at the page.**
 - **CSS.** A stylesheet that silently stops shipping changes no digested text.
-  `bun run check:srd-css` covers that separately.
+  `bun run check styling` (its `srd-css` rule set) covers that separately.
 
 ## Its real limit
 

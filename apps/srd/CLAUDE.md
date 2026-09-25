@@ -114,7 +114,7 @@ renders exactly one placeholder:
    That is precisely why the rule matters: a stylesheet imported anywhere else
    never reaches Vite, so its authored rules never ship, with a green build, a
    green typecheck and an unchanged output snapshot (which digests `<main>` text,
-   not CSS). `bun run check:srd-css` is what actually enforces it. **All** css is
+   not CSS). `bun run check styling` (its `srd-css` rule set) is what actually enforces it. **All** css is
    imported from
    `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
    else. `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and

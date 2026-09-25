@@ -239,8 +239,8 @@ The design pass Phase 3 deferred, plus the ownership rules it exposed as missing
   public functions nothing called — `entities.create` / `update`,
   `games.rename` / `transferOrganizer`, `mediator.updateNpc`,
   `ownership.assign` / `leaveGame`. A public function nobody calls is reachable
-  surface nothing exercises; `tools/check-convex-callers.ts` (in
-  `validate:all`) now fails on one. Rebuild each alongside the screen that
+  surface nothing exercises; `tools/check-convex-callers.ts` (the
+  `convex-callers` check) now fails on one. Rebuild each alongside the screen that
   calls it.
 - **Adopted copies re-sync only on the way in.** Opening a row through the
   roster overwrites this browser's copy from the server, so the crawler a

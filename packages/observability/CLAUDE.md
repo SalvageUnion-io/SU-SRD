@@ -20,7 +20,7 @@ there is no root export:
   `import('@sentry/browser')` and Vite drops the SDK from a build with no DSN.
   Hoisting the guard in here would ship the SDK to every visitor.
 - **A new Worker must wrap its export and grant `nodejs_als`.**
-  `tools/check-observability.ts` (in `validate:all`) fails otherwise — that
+  `tools/check-observability.ts` (the `observability` check) fails otherwise — that
   gate is also where the CSP half lives, so change a Sentry region or CSP in
   every source for that app together.
 - `@sentry/cloudflare` is a runtime `dependency` here, not a devDependency: the

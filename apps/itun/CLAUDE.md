@@ -201,7 +201,7 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 bun run dev:itun          # build package + start ITUN dev server
 bun --filter itun test
 bun run e2e:itun          # Playwright e2e (chromium)
-bun run typecheck:itun
+bun --filter itun typecheck
 ```
 
 Deploys to Cloudflare Workers (SPA + the snapshot API in one Worker); config in

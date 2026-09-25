@@ -17,12 +17,12 @@ gone stale — it described two entries while the block held six.
 Nothing here was cut. Read this file before editing `package.json`,
 `bunfig.toml`, the catalog, or `overrides`.
 
-# Audit gate (`check:audit`)
+# Audit gate (the `audit` check)
 
 `bun audit --audit-level=high` gates merges via the `static-checks` job, and
 `package.json` cannot carry comments, so the reasoning lives here.
 
-**There are no suppressed advisories.** `check:audit` carries no `--ignore`
+**There are no suppressed advisories.** The `audit` check carries no `--ignore`
 flags, and a bare `bun audit` reports nothing across 1,049 packages. It used to
 suppress two — `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`, both
 `image-size <=2.0.2` — behind a page of justification about which code paths
@@ -104,7 +104,7 @@ a necessary test for removing an entry, not a sufficient one; "the package is
 no longer in the tree" is sufficient.
 
 **How to re-derive the block**, so it can be redone rather than trusted: empty
-it, `bun install`, then `bun run check:audit`. Anything that reappears earned
+it, `bun install`, then `bun run check audit`. Anything that reappears earned
 its entry. Then check `bun why` for every dedupe you removed, because a
 duplicate copy is not an advisory and the audit will not see it.
 
@@ -121,7 +121,7 @@ resort — first look for a parent whose own range already admits a fixed
 version, because that is a dedupe rather than a pin (which is exactly how
 `@discordjs/rest` replaced an `undici` floor).
 
-**The watch list is manual below `high`.** `check:audit` gates at
+**The watch list is manual below `high`.** The `audit` check gates at
 `--audit-level=high`, so a *moderate* advisory on `nanoid`, `fast-uri`,
 `brace-expansion`, `shell-quote` or `filelist` — the ReDoS class they actually
 draw — fails nothing in `check`, CI or the pre-push hook.
@@ -141,7 +141,7 @@ advisory range; move the offending subtree, not every consumer.
 
 Any dependency used by **two or more** manifests is declared once in the root
 `package.json` under `workspaces.catalog` and referenced everywhere as
-`"react": "catalog:"`. 17 deps, 44 references (`bun run check:catalog` prints the live count). Bump the catalog entry, not the
+`"react": "catalog:"`. 17 deps, 44 references (`bun run check catalog` prints the live count). Bump the catalog entry, not the
 workspace — a version literal in a workspace manifest for a catalogued package
 is a bug, and it silently un-shares that dep.
 
@@ -177,7 +177,7 @@ takes no comments, so the reason lives here. That feature defaults to **on** at
 curates `overrides` by hand — every entry documented above under "The
 `overrides` block" — and gates at
 `--audit-level=high`. Leaving it on would open PRs editing that block for
-advisories `check:audit` deliberately ignores.
+advisories the `audit` check deliberately ignores.
 
 `tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
 majors; anything else that learns a version by reading a workspace manifest

@@ -212,7 +212,7 @@ which was worth checking before proposing one.
 - No new local-only store has appeared: a test asserts the set of IndexedDB
   stores with no Convex counterpart is exactly `{workspaces}`.
 - The `changeLog` ordering rule is written down and reviewed.
-- `bun run check:all` green.
+- `bun run check` green.
 
 The second gate is the one worth keeping forever — it is what stops gap four.
 
@@ -471,7 +471,7 @@ it), so it may deserve its own follow-up phase rather than riding along here.
 - A row present locally and absent server-side does not survive a reload. This is
   the assertion that IndexedDB is a cache; it should feel uncomfortable and it
   should pass.
-- `bun run check:all` green, and the `apps/itun` coverage ratchet is not
+- `bun run check` green, and the `apps/itun` coverage ratchet is not
   regressed.
 
 ---

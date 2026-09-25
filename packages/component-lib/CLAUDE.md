@@ -32,7 +32,7 @@ evidence behind the rules below live in
   `.su-*` names are public API. The exemption does not extend to components.
 - **Edit `tokens.ts` and the `--su-*` properties together** —
   `src/design/tokens.parity.test.ts` fails if they disagree.
-- **Do not add Tailwind or `.pc-*` classes.** `bun run check:styling` ratchets
+- **Do not add Tailwind or `.pc-*` classes.** `bun run check styling` ratchets
   both counts downward (`tailwind-utility-file`, `pc-class-defined`); if you
   removed some, lower the baseline with `--update-baseline` in the same PR.
 - `src/styles/ladle.css` must import `index.css` into `layer(su-base)` — load-

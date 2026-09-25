@@ -27,7 +27,7 @@
 
 Tailwind files by workspace: `apps/itun` 88, `apps/srd` 24, component-lib 217
 (`shared` 65, `chrome` 52, `referenceEntity` 25, `dashboard` 21, `wizard` 20,
-`sheet` 11, `stat` 8, the rest ≤ 3). `bun run check:styling --report` prints the
+`sheet` 11, `stat` 8, the rest ≤ 3). `bun tools/check-styling.ts --report` prints the
 current per-file list; it is the work-list, so it is not copied here.
 
 **End state: one system** — `tokens.ts` for values, `index.css` for every rule
@@ -38,17 +38,19 @@ conflict resolution.
 ## 2. The ratchets (in force now)
 
 Neither Tailwind nor a stylesheet errors when it grows, so without a ratchet
-the backlog refills as fast as a phase drains it. Two rules in
-`tools/check-styling-ownership.ts` (`bun run check:styling`, in `check` and at
-pre-push) make the retiring systems a number that can only go **down**:
+the backlog refills as fast as a phase drains it. Two ratchet rules
+in `tools/rules/stylingOwnership.ts` (`bun run check styling`, in `check`, at
+pre-push and in CI) make the retiring systems a number that can only go **down**:
 
 | Rule | Counts | Baseline |
 | --- | --- | --- |
 | `tailwind-utility-file` | UI source files (stories included, tests excluded) with ≥ 1 Tailwind utility — in a class-list context, or as a class string held elsewhere | 329 |
 | `pc-class-defined` | distinct `.pc-*` classes defined by the Dashboard stylesheets | 129 |
 
-`check:tokens` (`tools/check-design-tokens.ts`) ratchets the same way on raw
-colours (22) and arbitrary font sizes (2).
+The `tokens` rule set (`tools/rules/designTokens.ts`) ratchets the same way on
+raw colours (21) and arbitrary font sizes (2). All four counts live in
+`tools/styling-baseline.json`, and the ratchet is strict both ways: a count that
+falls without the baseline falling fails too, so a freed slot cannot be spent.
 
 The detector (`tools/lib/tailwindClasses.ts`, unit-tested) reads two places:
 every utility in a `className=` value or a `cn(` / `clsx(` / `cva(` argument,
@@ -63,9 +65,10 @@ CSS keyword / header name that shares a utility's shape (`'flex-start'`,
 oracle — the built CSS is (see P6's exit).
 
 **Every phase PR lowers the baselines** with
-`bun run check:styling --update-baseline` (and `check:tokens` likewise) and
-commits the JSON. A PR that migrates files and leaves the baseline where it
-was hands the freed headroom to the next PR that adds Tailwind.
+`bun tools/check-styling.ts --update-baseline` and commits the JSON. A PR that
+migrates files and leaves the baseline where it was now fails — before the
+ratchet was strict, it handed the freed headroom to the next PR that added
+Tailwind.
 
 ## 3. The phases
 
@@ -89,7 +92,7 @@ have no matching rung, in 17 spellings: `ink/5`, `ink/35`, `ink/55`, `ink/60`,
 `wk-faint/80`.
 
 Rounding one to a neighbouring rung is a re-tone, and a raw `rgb(… / .NN)` at
-the call site is a `check:tokens` `raw-color` violation, so adding rungs is the
+the call site is a `tokens/raw-color` violation, so adding rungs is the
 only legal move — but choosing which rungs the system owns enlarges the closed
 colour set and is a **design** decision, not a port.
 
@@ -105,7 +108,7 @@ colour set and is a **design** decision, not a port.
 ### P2 — component-lib Atoms
 
 - **Scope:** every file behind an `Atoms/*` Ladle story.
-- **Exit:** no Atoms file in `check:styling --report`'s `tailwind-utility-file`
+- **Exit:** no Atoms file in `check-styling.ts --report`'s `tailwind-utility-file`
   list; Ladle renders the group identically to `main` (screenshot pair in the
   PR); baseline lowered.
 
@@ -195,7 +198,7 @@ each srd PR carries a visual check of the affected pages.
   exists only to lose to Tailwind's utilities) and rewrite the
   `package-stylesheet-import` guard to match.
 - Delete the `tailwind-utility-file` rule and `tools/lib/tailwindClasses.ts`;
-  re-target `check:tokens` from `@theme` entries to `tokens.ts`.
+  re-target the `tokens` rule set from `@theme` entries to `tokens.ts`.
 - **Exit:** `grep -ri tailwind` finds only historical references; `bun run
   check` green; built CSS size recorded before and after (#802's success list).
   None of those three notices an element that silently lost its styling — the
@@ -279,7 +282,7 @@ The scale exists as TypeScript (`tokens.ts`) and as `--su-*` properties
   to be loaded alone once Tailwind leaves, so its base block is unlayered — and
   unlayered CSS beats layered CSS whatever the source order. A plain `@import`
   landed `h1,…,h6 { font-size: inherit }` past the utilities layer and
-  flattened every heading. `check:styling`'s `package-stylesheet-import` rule
+  flattened every heading. the `styling/package-stylesheet-import` rule
   guards the app side.
 
 ## 6. Verification traps (read before "checking" a style)

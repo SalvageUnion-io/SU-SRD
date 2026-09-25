@@ -46,8 +46,8 @@ linker = 'isolated'
 # `minimumReleaseAgeExcludes` below — not lowering this number.
 minimumReleaseAge = 259200 # 3 days, in seconds
 
-# `bun-types` must match .bun-version EXACTLY — tools/check-bun-version.ts fails
-# `validate:all` when they disagree, and it is an exact pin, so the gate turns a
+# `bun-types` must match .bun-version EXACTLY — tools/check-workflows.ts (the
+# bun-version half) fails `bun run check` when they disagree, and it is an exact pin, so the gate turns a
 # routine Bun upgrade into a hard install error for three days. It carries no
 # install scripts and no runtime code (type declarations only), so the cooldown
 # buys nothing here that it does not already cost.

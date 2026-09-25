@@ -82,7 +82,7 @@ subpath so the ~783 KB schema corpus is never pulled into an app bundle through
 the main barrel — only the srd `/schema/[id].schema.json` build route imports it
 (enforced by `noRestrictedImports` in the root `biome.jsonc`).
 
-`tools/check-doc-drift.ts` (`bun run validate:all`) fails CI if this block
+`tools/check-doc-drift.ts` (`bun run check doc-drift`) fails CI if this block
 ever falls out of sync with `packages/salvageunion-reference/package.json`'s
 actual `exports` map again — the exact class of drift a prior campaign PR had
 to fix by hand.
@@ -135,7 +135,7 @@ All JSON data files (~1.1 MB total) are loaded via dynamic `import()` at runtime
 3. After each schema loads, the `LazyModel` receives a "backing" model via `_install()`. All subsequent data-access calls delegate to the backing model.
 4. Before `preload()`, any data-access call throws a descriptive error.
 
-The Zod entity schemas are **not** on this path. A load is trusted by default: CI validates every committed file (`validate:schemas`) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. `preload(ids, { validate: true })` restores the parse and reaches the schemas through a dynamic `import()` of `lib/validateData.ts` (which holds `lib/generated/zodSchemaMap.generated.ts` behind it), so a bundler never links them into a chunk the trusted path needs. Types are unaffected — they are inferred from the schemas at compile time.
+The Zod entity schemas are **not** on this path. A load is trusted by default: CI validates every committed file (the `schemas` data check) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. `preload(ids, { validate: true })` restores the parse and reaches the schemas through a dynamic `import()` of `lib/validateData.ts` (which holds `lib/generated/zodSchemaMap.generated.ts` behind it), so a bundler never links them into a chunk the trusted path needs. Types are unaffected — they are inferred from the schemas at compile time.
 
 ### preload() API
 
@@ -251,7 +251,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 
 - **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom` only — one instance per app
 - **Dependencies** (declared by the library itself, catalogued where shared): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
-- **Stylesheets are exports, never side-effect imports**: `component-lib/styles/index.css`, `theme.css`, and `dashboard.css` (the `.pc-*` dashboard bundle, imported only by ITUN). No shipping library module imports `.css` — `bun run check:srd-css` enforces it (audit PK-01)
+- **Stylesheets are exports, never side-effect imports**: `component-lib/styles/index.css`, `theme.css`, and `dashboard.css` (the `.pc-*` dashboard bundle, imported only by ITUN). No shipping library module imports `.css` — `bun run check styling` (its `srd-css` rule set) enforces it (audit PK-01)
 - **No backend/data-source dependency** — fully data-source agnostic
 
 ### Design Principles
@@ -429,10 +429,10 @@ When modifying shared packages, follow this checklist:
 
 - [ ] Rebuild: `bun run build:package`
 - [ ] Run typecheck: `bun run typecheck`
-- [ ] Run validation: `bun run validate:all`
+- [ ] Run validation: `bun run check data`
 - [ ] Run tests: `bun test`
 - [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `packages/salvageunion-reference/tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
-- [ ] Data integrity: `bun run validate:all` (includes `validate:slugs` — same-named entities in one file shadow each other's slug URLs and will fail the gate)
+- [ ] Data integrity: `bun run check data` (includes the `slugs` check — same-named entities in one file shadow each other's slug URLs and will fail the gate)
 
 ### 2. After changing `component-lib`
 
