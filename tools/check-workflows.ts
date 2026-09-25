@@ -2,7 +2,7 @@
 /**
  * Workflow invariants — `bun run check workflows`.
  *
- * Five properties of `.github/`, checked from one parse of every workflow and
+ * Six properties of `.github/`, checked from one parse of every workflow and
  * composite action. They used to be five scripts, and two of them carried a
  * hand-written YAML state machine "because there is no parser in this repo" —
  * while `Bun.YAML.parse` shipped in the runtime that ran them. Each of those
@@ -21,22 +21,31 @@
  *                 every `bunx`/`npx` tool with no manifest entry carries an
  *                 exact version. A tag is a mutable pointer, and these run in
  *                 jobs holding deploy credentials.
- *   bun-version   `.bun-version` is the one Bun: the root `bun-types` matches
- *                 it, no workflow pins Bun by hand instead of using
- *                 `./.github/actions/setup-bun`, and the Bun running this is
- *                 the pinned one (a mismatched Bun cannot read bun.lock, and
+ *   bun-version   `.bun-version` is the one Bun: the root `bun-types` and
+ *                 `packageManager` match it, no workflow pins Bun by hand
+ *                 instead of using `./.github/actions/setup-bun`, and the Bun
+ *                 running this is the pinned one (a mismatched Bun cannot read bun.lock, and
  *                 `bun why` exits 0 while saying so).
  *   convex-guard  `deploy-cloudflare.yml` still runs `convex deploy` and still
  *                 fails a production deploy with no CONVEX_DEPLOY_KEY. Without
  *                 it, production ran a four-day-stale backend in 2026-08 with
  *                 nothing red. The LIVE half — what the deployment actually
  *                 serves — is `tools/check-convex-parity.ts`, run nightly.
+ *                 The job pushing the backend must also need the guard's job.
+ *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs every
+ *                 build job, every deploy job needs every build job and the
+ *                 push, the smoke job needs every deploy job, and the deploy
+ *                 record needs the smoke job to have SUCCEEDED (audit CI-12).
+ *                 Every one of those jobs sits downstream of a job that is
+ *                 skipped by design, so each must carry an explicit status
+ *                 function in its `if:` — the implicit `success()` is false
+ *                 whenever any ancestor was skipped.
  *
  * Every check refuses to pass by absence: a parse that found no jobs, no
  * filter groups or no workflow files is a failure, not a clean result.
  *
  * Usage:
- *   bun tools/check-workflows.ts                     # all five
+ *   bun tools/check-workflows.ts                     # all six
  *   bun tools/check-workflows.ts --only=pinning      # one (comma-separate for more)
  */
 
@@ -49,6 +58,7 @@ export type WorkflowFile = { path: string; doc: Yaml }
 
 type Manifest = {
   name?: string
+  packageManager?: string
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
 }
@@ -140,6 +150,22 @@ function needsOf(job: unknown): string[] {
   const needs = job.needs
   if (typeof needs === 'string') return [needs]
   return Array.isArray(needs) ? needs.filter((n): n is string => typeof n === 'string') : []
+}
+
+/** `jobs.<id>.steps[n]` -> `<id>`. */
+const jobOf = (where: string): string => where.split('.')[1] ?? ''
+
+/** Every job `job` transitively `needs`. */
+function ancestorsOf(jobs: Yaml, job: string): Set<string> {
+  const seen = new Set<string>()
+  const queue = needsOf(jobs[job])
+  while (queue.length > 0) {
+    const next = queue.pop() as string
+    if (seen.has(next)) continue
+    seen.add(next)
+    queue.push(...needsOf(jobs[next]))
+  }
+  return seen
 }
 
 export function checkAggregator(
@@ -445,6 +471,17 @@ export function checkBunVersion(ctx: WorkflowContext): CheckResult {
         '`bun why` / `bun pm ls` exit 0 when it does.'
     )
   }
+  // `packageManager` is how a tool that installs its OWN Bun picks a version:
+  // oven-sh/setup-bun reads it when given no `bun-version`, which is exactly
+  // how the catalog-update action calls it. Unpinned, that action once
+  // rewrote bun.lock with a Bun the pinned one could not read.
+  const packageManager = ctx.manifests.get('package.json')?.packageManager
+  if (packageManager !== `bun@${expected}`) {
+    failures.push(
+      `root package.json packageManager = ${packageManager ?? '(absent)'}, expected bun@${expected} ` +
+        '— actions that set up their own Bun (catalog-update) read it, and fall back to `latest`.'
+    )
+  }
   const bunTypes = ctx.manifests.get('package.json')?.devDependencies?.['bun-types']
   if (!bunTypes) failures.push('root package.json declares no bun-types')
   else if (bunTypes.replace(/^[^0-9]*/, '') !== expected) {
@@ -507,9 +544,134 @@ export function checkConvexGuard(ctx: WorkflowContext): CheckResult {
           'absent key would ship a current client against a stale backend with nothing red.'
       )
     }
+    // The deploy runs as several jobs, so a guard in one job protects the
+    // push in another only if the push cannot start until the guard passed.
+    const jobs = isObject(doc.jobs) ? doc.jobs : {}
+    const guardJob = jobOf(guard.where)
+    for (const { where } of steps.filter(({ step }) => runs(step).includes('convex deploy'))) {
+      const pushJob = jobOf(where)
+      if (pushJob !== guardJob && !ancestorsOf(jobs, pushJob).has(guardJob)) {
+        failures.push(
+          `${DEPLOY} job \`${pushJob}\` runs \`convex deploy\` without needing \`${guardJob}\`, ` +
+            `which carries \`${GUARD_STEP}\` — the push could run before, or without, the guard.`
+        )
+      }
+    }
   }
   return {
     ok: 'a production deploy runs `convex deploy` and fails with no CONVEX_DEPLOY_KEY',
+    failures,
+  }
+}
+
+// ─── deploy-order ───────────────────────────────────────────────────────────
+
+const SMOKE_SCRIPT = 'tools/smoke-production.sh'
+
+/** A status-check function other than the implicit `success()`. */
+const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
+
+/**
+ * The deploy workflow's job graph keeps its orderings (audit CI-12):
+ *
+ *   1. the job that pushes the Convex backend needs every job that uploads an
+ *      artifact — a failed build of ANY surface stops the push, rather than
+ *      leaving a new backend under the old client until the next green run;
+ *   2. every job that ships (`bun run deploy`) needs every job that uploads an
+ *      artifact and the push — all builds finish, and the backend is pushed,
+ *      before any traffic moves;
+ *   3. the job that runs the smoke list needs every job that ships;
+ *   4. the job holding `contents: write` (the deploy record) needs the smoke
+ *      job and requires `needs.<smoke>.result == 'success'` — the record moves
+ *      only once what shipped has answered.
+ *
+ * And every job from the push onwards whose ancestors include a job with its
+ * own `if:` (other than the root gate) carries an explicit status function.
+ * A bare `if:` is prefixed with `success()`, which at job level is false when
+ * ANY ancestor was skipped — so a record behind a skipped per-surface job
+ * stopped moving on every partial deploy, and an out-of-order CI run then
+ * shipped an older tree over a newer one with every job green.
+ *
+ * Each is one missing `needs:` entry or status function away from silently
+ * breaking, and nothing else would notice until a partial deploy was recorded
+ * as whole.
+ */
+export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
+  const doc = file(ctx, DEPLOY)
+  if (!doc) return { ok: '', failures: [`${DEPLOY} is missing`] }
+  const jobs = isObject(doc.jobs) ? doc.jobs : {}
+  const steps = stepsOf({ path: DEPLOY, doc })
+  const runs = (step: Yaml) => (typeof step.run === 'string' ? executable(step.run) : '')
+  const jobsWhere = (pred: (step: Yaml) => boolean) =>
+    [...new Set(steps.filter(({ step }) => pred(step)).map(({ where }) => jobOf(where)))].sort()
+
+  const builders = jobsWhere(
+    (step) => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@')
+  )
+  const pushers = jobsWhere((step) => runs(step).includes('convex deploy'))
+  const shippers = jobsWhere((step) => /\bbun run deploy\b/.test(runs(step)))
+  const smokers = jobsWhere((step) => runs(step).includes(SMOKE_SCRIPT))
+  const recorders = Object.keys(jobs)
+    .filter((id) => {
+      const job = jobs[id]
+      return isObject(job) && isObject(job.permissions) && job.permissions.contents === 'write'
+    })
+    .sort()
+
+  const failures: string[] = []
+  if (builders.length === 0) failures.push(`${DEPLOY} has no job that uploads a build artifact.`)
+  if (shippers.length === 0) failures.push(`${DEPLOY} has no job that runs \`bun run deploy\`.`)
+  if (smokers.length === 0) failures.push(`${DEPLOY} has no job that runs ${SMOKE_SCRIPT}.`)
+  if (recorders.length === 0)
+    failures.push(`${DEPLOY} has no job with \`contents: write\` to move the deploy record.`)
+
+  const requireBefore = (later: string[], earlier: string[], why: string) => {
+    for (const job of later) {
+      const ancestors = ancestorsOf(jobs, job)
+      for (const dep of earlier) {
+        if (dep !== job && !ancestors.has(dep))
+          failures.push(`${DEPLOY} job \`${job}\` does not need \`${dep}\` — ${why}`)
+      }
+    }
+  }
+  requireBefore(pushers, builders, 'every build must finish before the backend is pushed.')
+  requireBefore(shippers, builders, 'every build must finish before any surface ships.')
+  requireBefore(shippers, pushers, 'the backend must be pushed before any surface ships.')
+  requireBefore(smokers, shippers, 'the smoke list must run after every deploy.')
+  requireBefore(recorders, smokers, 'the deploy record must move only after the smoke list passed.')
+
+  const ifOf = (id: string): string => {
+    const job = jobs[id]
+    return isObject(job) && typeof job.if === 'string' ? job.if : ''
+  }
+  const gated = [...new Set([...pushers, ...shippers, ...smokers, ...recorders])].sort()
+  for (const job of gated) {
+    const skippable = [...ancestorsOf(jobs, job)]
+      .filter((a) => needsOf(jobs[a]).length > 0 && ifOf(a) !== '')
+      .sort()
+    if (skippable.length > 0 && !EXPLICIT_STATUS.test(ifOf(job))) {
+      failures.push(
+        `${DEPLOY} job \`${job}\` has no explicit status function (e.g. \`!cancelled() && ` +
+          `!failure()\`) in its \`if:\`, but depends on \`${skippable.join('`, `')}\`, which can be ` +
+          'skipped — the implicit `success()` would then skip it too.'
+      )
+    }
+  }
+  for (const job of recorders) {
+    for (const smoke of smokers) {
+      if (!ifOf(job).replace(/\s+/g, ' ').includes(`needs.${smoke}.result == 'success'`)) {
+        failures.push(
+          `${DEPLOY} job \`${job}\` does not require \`needs.${smoke}.result == 'success'\` — ` +
+            'the deploy record must move only when the smoke list actually ran and passed.'
+        )
+      }
+    }
+  }
+  return {
+    ok:
+      `${builders.length} build job(s), then ${pushers.join(', ') || 'no push'}, before ` +
+      `${shippers.length} deploy job(s), then ` +
+      `${smokers.join(', ')}, then ${recorders.join(', ')}`,
     failures,
   }
 }
@@ -522,6 +684,7 @@ export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'pinning', label: 'supply-chain pinning', run: checkPinning },
   { id: 'bun-version', label: 'Bun version', run: checkBunVersion },
   { id: 'convex-guard', label: 'Convex deploy guard', run: checkConvexGuard },
+  { id: 'deploy-order', label: 'deploy job order', run: checkDeployOrder },
 ]
 
 /** Read the real repo into a context. */

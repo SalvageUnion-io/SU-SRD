@@ -1,12 +1,12 @@
 name: Deploy (Cloudflare)
 
-# Builds and deploys the three web surfaces to Cloudflare Workers (ADR-033).
+# Builds and deploys the web surfaces and the bot to Cloudflare Workers (ADR-033).
 #
 # WHY THE BUILD RUNS HERE AND NOT IN WORKERS BUILDS (ADR-033 §4). srd's build
 # provisions a headless Chromium to render ~850 per-entity OG images, which is a
 # poor fit for Cloudflare's build environment. Rather than split the build across
-# two systems — one surface here, two there — all three build in Actions and
-# deploy with `wrangler`. One build path, one place path-filtering lives, and the
+# two systems — one surface here, two there — everything builds in Actions and
+# deploys with `wrangler`. One build path, one place path-filtering lives, and the
 # existing CI gates sit in front of every deploy.
 #
 # THE GATE IS NOT DECORATIVE. `workflow_run` fires on the CI workflow's
@@ -14,15 +14,59 @@ name: Deploy (Cloudflare)
 # explicitly. Without it a red CI run would deploy — which is the opposite of
 # what putting CI in front is for.
 #
-# `tools/check-convex-parity.ts` asserts this file still refuses a production
-# deploy with no CONVEX_DEPLOY_KEY. It named this path before the file existed,
-# deliberately, so there was never a window in which nothing asserted the
-# property. Do not rename this file without updating that tool.
+# ---------------------------------------------------------------------------
+# SHAPE: plan -> build-* -> push-convex -> deploy-* -> smoke -> record (CI-12)
+# ---------------------------------------------------------------------------
+#
+#   plan       provenance, the deploy set, every credential guard, and a dry-run
+#              bundle of every Worker. Holds no artifact; fails before anything
+#              is built.
+#   build-srd  / build-itun   one job per surface that HAS a build, in
+#              parallel. Each uploads the exact `dist` it produced. Neither
+#              pushes anything anywhere.
+#   push-convex  the Convex backend push, only once EVERY build is green, and
+#              before any traffic moves.
+#   deploy-*   one job per surface, in parallel, and NONE starts until EVERY
+#              build job has finished green and the backend push (when itun
+#              ships) succeeded. Each ships the artifact its build job
+#              uploaded — nothing is rebuilt between build and deploy.
+#   smoke      the production smoke list, once, after every deploy.
+#   record     moves `deployed/cloudflare`, only after smoke passed.
+#
+# This used to be ONE serial 30-minute job: srd built, OG-rendered and deployed
+# before itun started building, so an itun build failure left srd on the new
+# commit and itun on the old — a partial deploy nobody chose. Now every build
+# finishes before any traffic moves, and the two long builds overlap.
+# `tools/check-workflows.ts` (deploy-order) asserts that ordering, so a future
+# edit cannot quietly let one deploy job run ahead of a build.
+#
+# WHY THE ARTIFACTS ARE BUILT HERE AND NOT TAKEN FROM CI'S RUN. The audit's
+# first suggestion was to deploy the `dist` CI already built on the main push.
+# Neither CI build is the production artifact, and cannot be without breaking
+# the gate it exists for:
+#   - srd: CI builds with NO Sentry DSN, because the output snapshot is blessed
+#     against that build and the DSN changes the emitted chunk set (see
+#     `build-srd` below). Production must ship the DSN, source maps and the OG
+#     images, none of which CI produces.
+#   - itun: CI builds a Solo client with no `VITE_CONVEX_URL`, so its smoke and
+#     bundle-budget specs run with the account gate off. Production must be
+#     compiled against the production deployment's URL (`ITUN_CONVEX_URL`
+#     below, checked against Convex's canonical URL before the push).
+# And CI path-filters per COMMIT while this workflow deploys per LAST RECORDED
+# DEPLOY (CI-01), so a surface can need deploying on a commit where CI skipped
+# its build — a CI-artifact path would need this build path as a fallback
+# anyway. So the build happens once, here, and the deploy ships exactly it.
+#
+# `tools/check-workflows.ts` (convex-guard) asserts this file still refuses a
+# production deploy with no CONVEX_DEPLOY_KEY, and that the job pushing the
+# backend depends on the job carrying that guard. Do not rename this file
+# without updating that tool.
 
 on:
-  # zizmor: ignore[dangerous-triggers] — the job-level `if:` below is the
+  # zizmor: ignore[dangerous-triggers] — the `plan` job's `if:` below is the
   # mitigation zizmor asks for: it requires a same-repo `push` to `main`, so a
-  # fork or PR run can never reach the checkout or the credentials.
+  # fork or PR run can never reach the checkout or the credentials. Every other
+  # job `needs` plan, so none of them runs when plan is skipped.
   workflow_run:
     workflows: ['CI']
     types: [completed]
@@ -69,8 +113,22 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # The production Convex deployment's client URL, which itun is compiled
+  # against. Public — it is in every shipped bundle — and documented in
+  # docs/architecture/agent-tooling.md. It is a constant rather than whatever
+  # `convex deploy --cmd` hands the build, because that command PUSHES the
+  # backend, and the push must wait until every build is green (see
+  # `push-convex`). `push-convex` asserts it equals the canonical URL the
+  # deploy key resolves to before it pushes, so a moved deployment fails the
+  # run before anything ships instead of shipping a client aimed elsewhere.
+  ITUN_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
+
 jobs:
-  deploy:
+  # ===========================================================================
+  # plan — decide, guard and pre-flight. Nothing here is built or shipped.
+  # ===========================================================================
+  plan:
     # `workflow_run` gives us the triggering run's conclusion; a manual dispatch
     # has no triggering run, so it is allowed through on its own.
     #
@@ -91,7 +149,7 @@ jobs:
     # — a composite action read FROM THE CHECKED-OUT TREE — which runs
     # `bun install` against that tree's `package.json` before any secret step.
     # That is arbitrary code execution ahead of CLOUDFLARE_API_TOKEN,
-    # CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN. The four "refuse to deploy
+    # CONVEX_DEPLOY_KEY and SENTRY_AUTH_TOKEN. The "refuse to deploy
     # without…" guards below check that a credential is PRESENT, never where the
     # code asking for it came from.
     #
@@ -105,6 +163,10 @@ jobs:
     # the second half: CI runs on both `push` (main only) and `pull_request`, so
     # without it a same-repo branch PR would still qualify. Deploys should follow
     # pushes to main and nothing else.
+    #
+    # Every later job `needs` this one, directly or through a build job, and a
+    # skipped job's dependents are skipped — so this one expression gates the
+    # whole workflow.
     if: >-
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' &&
@@ -113,13 +175,17 @@ jobs:
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     outputs:
       sha: ${{ steps.target.outputs.sha }}
       # `true` when HEAD is older than the recorded deploy on a `workflow_run`
-      # — a newer commit's CI finished first and already shipped. The `record`
-      # job must not move the tag back in that case.
+      # — a newer commit's CI finished first and already shipped. Nothing
+      # builds or deploys, and `record` must not move the tag back.
       stale: ${{ steps.surfaces.outputs.stale }}
+      assets: ${{ steps.surfaces.outputs.assets }}
+      srd: ${{ steps.surfaces.outputs.srd }}
+      itun: ${{ steps.surfaces.outputs.itun }}
+      bot: ${{ steps.surfaces.outputs.bot }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -136,10 +202,10 @@ jobs:
           # diff below needs the last deployed commit.
           fetch-depth: 0
 
-      # The ONE place the deployed commit is named. The build steps stamp it
-      # into both apps and the `record` job writes it to the deploy record, so
-      # a dispatched `sha` is reported as itself rather than as the tip of
-      # main — which is what `head_sha || github.sha` used to report for it.
+      # The ONE place the deployed commit is named. Every later job checks out
+      # exactly this sha, the build jobs stamp it into both apps and the
+      # `record` job writes it to the deploy record, so a dispatched `sha` is
+      # reported as itself rather than as the tip of main.
       - name: Resolve the commit being deployed
         id: target
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -194,41 +260,29 @@ jobs:
           ${{ inputs.force_all && '--force-all' || '' }}
           ${{ github.event_name == 'workflow_dispatch' && '--allow-backwards' || '' }}
 
-      # Bundle ALL FOUR before ANY of them ships.
+      # Bundle every Worker before anything is built, let alone shipped.
       #
-      # The four deploys are sequential with no compensating action, so a
-      # bundling failure on the third left the first two on the new commit and
-      # the last two on the old — a partial deploy nobody chose. Producing every
-      # bundle first turns that class of failure into an abort before any
-      # traffic moves, which is the property `wrangler versions upload` would
-      # buy, without changing how deployment itself works.
-      #
-      # `--dry-run` needs no credential, so this also runs before the credential
-      # guards below have any effect.
-      - name: Bundle every Worker before deploying any
+      # `--dry-run` needs no credential and takes seconds, so a Worker SCRIPT
+      # that will not bundle fails the run here, before the two long builds
+      # spend twenty minutes producing artifacts nothing can ship.
+      - name: Bundle every Worker before building anything
         if: steps.surfaces.outputs.stale != 'true'
         run: |
           set -euo pipefail
           # itun's Worker declares `assets.directory: ./dist`, and wrangler
           # refuses to bundle when that directory is missing — which it is here,
-          # because this step deliberately runs BEFORE anything is built.
+          # because nothing has been built yet.
           #
-          # That combination broke every deploy between this step landing and
-          # this line: `✘ The directory specified by the "assets.directory"
-          # field in your configuration file does not exist`. The guard was
-          # added ahead of the build it depends on, so it failed closed on a
-          # healthy tree — and it failed at the one moment nobody was reading
-          # deploy logs, because CI on the PR had been green.
+          # That combination once broke every deploy: `✘ The directory specified
+          # by the "assets.directory" field in your configuration file does not
+          # exist`. The guard was added ahead of the build it depends on, so it
+          # failed closed on a healthy tree — at the one moment nobody was
+          # reading deploy logs, because CI on the PR had been green.
           #
           # An empty placeholder is the right shape rather than a workaround.
           # What this step exists to catch is a Worker SCRIPT that will not
-          # bundle; the static assets are a separate artifact that `Push Convex
-          # and build itun` produces and `Deploy itun` uploads, and they are not
-          # part of the bundle being validated. Building the app here to satisfy
-          # a config check would cost the whole build twice and defeat the point
-          # of a cheap pre-flight.
-          #
-          # The real build writes into this directory later, so the placeholder
+          # bundle; the static assets are the separate artifact `build-itun`
+          # produces. This job's workspace is discarded, so the placeholder
           # never reaches production.
           mkdir -p apps/itun/dist
           for app in su-assets itun discord-bot; do
@@ -238,7 +292,7 @@ jobs:
           echo "All Worker bundles produced. srd declares no main (Static Assets only)."
 
       # ---------------------------------------------------------------------
-      # The guard. FIRST, before anything is built.
+      # The guards. Before anything is built.
       # ---------------------------------------------------------------------
       #
       # An absent CONVEX_DEPLOY_KEY must be fatal, loudly, before any artifact
@@ -351,33 +405,36 @@ jobs:
             exit 1
           fi
 
-      # ---------------------------------------------------------------------
-      # su-assets — no build step; the Worker is its own source.
-      # ---------------------------------------------------------------------
-      # wrangler is a catalogued devDependency of all four Worker apps, so every
-      # `bun run deploy` below runs the version bun.lock resolved — audited,
-      # behind the 3-day release-age gate and bumped by the catalog updater —
-      # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile.
-      # Bumping it moves all four together; keep `compatibility_date` in the
-      # four wrangler.jsonc files at or below the workerd it bundles.
-      - name: Deploy su-assets
-        if: steps.surfaces.outputs.assets == 'true'
-        working-directory: apps/su-assets
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
+  # ===========================================================================
+  # Builds — one job per surface that has one, in parallel. Each uploads the
+  # exact `dist` it produced; its deploy job ships that artifact, unrebuilt.
+  # ===========================================================================
+  #
+  # su-assets and the bot have no build: wrangler bundles their Worker source
+  # at deploy time, and `plan` has already proved both bundles.
 
-      # ---------------------------------------------------------------------
-      # srd — static, but the OG pass needs a browser.
-      # ---------------------------------------------------------------------
-      #
+  # srd — static, but the OG pass needs a browser.
+  build-srd:
+    needs: plan
+    if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
       # The OG screenshot pass never fails the build: a missing browser or a
       # wedged render logs and leaves those pages on the default og:image,
       # capped by OG_SCREENSHOTS_BUDGET_MS. The worst case is "some previews are
       # generic", never a failed deploy. `og:generate` (build + screenshots in
       # one script) is deliberately NOT used here — see the steps below.
       - name: Install Chromium for the srd OG pass
-        if: steps.surfaces.outputs.srd == 'true'
         run: bun --filter srd og:install-browser
 
       # Build and OG pass are separate steps rather than one `og:generate`, so
@@ -385,9 +442,8 @@ jobs:
       # the Sentry DSN, the screenshot pass takes its budget. It also keeps the
       # best-effort half independently skippable from the half that must succeed.
       - name: Build srd
-        if: steps.surfaces.outputs.srd == 'true'
         env:
-          VITE_COMMIT_REF: ${{ steps.target.outputs.sha }}
+          VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
           VITE_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
           # ROLLBACK SHIM — remove once `deployed/cloudflare` is past the commit
           # that renamed srd's env prefix. A `sha` dispatch runs THIS workflow
@@ -397,7 +453,7 @@ jobs:
           # and ship srd with Sentry tree-shaken out while the DSN guard above
           # still passed. The current tree has the default `VITE_` prefix, so
           # these are never exposed to its bundle.
-          PUBLIC_COMMIT_REF: ${{ steps.target.outputs.sha }}
+          PUBLIC_COMMIT_REF: ${{ needs.plan.outputs.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
           # Source-map upload (apps/srd/ssg/vite.config.ts). Same token and org
           # as itun; the PROJECT is srd's own, and is written literally rather
@@ -429,8 +485,8 @@ jobs:
       # build this workflow was fixed to prevent.
       #
       # So the gate stays where its precondition holds — CI, on every PR — and
-      # this job verifies the DEPLOYED artifact instead, via the smoke step at
-      # the end. That is the honest division: a content gate on the reproducible
+      # this workflow verifies the DEPLOYED artifact instead, via the `smoke`
+      # job. That is the honest division: a content gate on the reproducible
       # build, a behaviour check on the thing actually serving.
       #
       # If you are tempted to re-add it, there is a second trap waiting: it must
@@ -443,113 +499,302 @@ jobs:
       # Additive and non-fatal by design: a missing browser or a
       # wedged render leaves those pages on the default og:image.
       - name: Render srd OG images
-        if: steps.surfaces.outputs.srd == 'true'
         working-directory: apps/srd
         env:
           OG_SCREENSHOTS: '1'
           OG_SCREENSHOTS_BUDGET_MS: '300000'
         run: bun scripts/og-screenshots.ts
 
+      # `include-hidden-files`: the artifact is what ships, byte for byte, so
+      # it must not silently drop a dotfile the build emitted.
+      - name: Upload the srd artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: srd-dist
+          path: apps/srd/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  # itun — builds against the production Convex URL. Pushes nothing.
+  build-itun:
+    needs: plan
+    if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # The backend is NOT pushed here. `convex deploy --cmd` runs the command
+      # first and pushes after it, so a push in this job would be stopped only
+      # by itun's own build — a failed srd build would still leave the new
+      # backend live under the old client until the next green deploy. That
+      # is unsafe whenever a commit removes a public function together with
+      # its last call site: the old client still calls it. So this job only
+      # builds, and `push-convex` pushes once every build is green.
+      - name: Build itun
+        working-directory: apps/itun
+        env:
+          VITE_CONVEX_URL: ${{ env.ITUN_CONVEX_URL }}
+          VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: bun run build
+
+      - name: Upload the itun artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: itun-dist
+          path: apps/itun/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  # ===========================================================================
+  # The Convex push — after EVERY build is green, before ANY surface ships.
+  # ===========================================================================
+  #
+  # Order is the whole point. The backend must never be BEHIND the served
+  # client (that is what broke players in 2026-08), so it is pushed before
+  # `deploy-itun` can run. And it must not be pushed by a run that ends up
+  # shipping nothing, so it waits for both builds — an srd build failure now
+  # stops the push exactly as it stops every deploy. Between this job and
+  # `deploy-itun` the backend leads the served client for a minute or two,
+  # which the backend must tolerate anyway: every open tab keeps running the
+  # previous client for as long as it stays open.
+  #
+  # `--cmd` runs BEFORE the push, with the canonical URL for the deploy key in
+  # CANONICAL_CONVEX_URL, so it is used as a guard: if production has moved
+  # to a deployment other than the one `build-itun` compiled against, the
+  # command fails, `convex deploy` stops before pushing, and nothing ships.
+  push-convex:
+    needs: [plan, build-srd, build-itun]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Push Convex (after confirming the URL itun was built against)
+        working-directory: apps/itun
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          # Run by `convex deploy` itself, in its own shell, with
+          # CANONICAL_CONVEX_URL set — so it lives here as data rather than as
+          # a quoted string the step's shell would have to leave unexpanded.
+          URL_GUARD: >-
+            [ "$CANONICAL_CONVEX_URL" = "$ITUN_CONVEX_URL" ] || {
+            echo "FATAL: the deploy key resolves to $CANONICAL_CONVEX_URL but itun was built
+            against $ITUN_CONVEX_URL. Update ITUN_CONVEX_URL in deploy-cloudflare.yml and
+            docs/architecture/agent-tooling.md." >&2; exit 1; }
+        run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
+
+  # ===========================================================================
+  # Deploys — one job per surface, in parallel, after EVERY build is green and
+  # the backend push (if itun ships) succeeded.
+  # ===========================================================================
+  #
+  # Each deploy job `needs` both build jobs and the push, not just its own:
+  # a failed itun build must stop srd shipping too, or the run leaves
+  # production half on the new commit. A job that was SKIPPED (its surface did
+  # not change) is not a failure, which is why these use `!cancelled() &&
+  # !failure()` rather than the implicit `success()` — the implicit form checks
+  # every ancestor and would skip every deploy whenever any surface was
+  # unchanged.
+  #
+  # wrangler is a catalogued devDependency of all four Worker apps, so every
+  # `bun run deploy` below runs the version bun.lock resolved — audited,
+  # behind the 3-day release-age gate and bumped by the catalog updater —
+  # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping
+  # it moves all four together; keep `compatibility_date` in the four
+  # wrangler.jsonc files at or below the workerd it bundles.
+
+  # su-assets — no build step; the Worker is its own source.
+  deploy-su-assets:
+    needs: [plan, build-srd, build-itun, push-convex]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.assets == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Deploy su-assets
+        working-directory: apps/su-assets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun run deploy
+
+  deploy-srd:
+    needs: [plan, build-srd, build-itun, push-convex]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Download the srd artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: srd-dist
+          path: apps/srd/dist
+
       - name: Deploy srd
-        if: steps.surfaces.outputs.srd == 'true'
         working-directory: apps/srd
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: bun run deploy
 
-      # ---------------------------------------------------------------------
-      # itun — pushes the Convex backend FIRST, then builds against it.
-      # ---------------------------------------------------------------------
-      #
-      # Order is the whole point. `convex deploy --cmd` pushes schema and
-      # functions, then runs the build with VITE_CONVEX_URL set to the
-      # deployment it just pushed to. A client compiled against a URL whose
-      # schema had not been deployed yet would fail at runtime rather than at
-      # build time — which is exactly how the 2026-08 incident presented.
-      - name: Push Convex and build itun
-        if: steps.surfaces.outputs.itun == 'true'
-        working-directory: apps/itun
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-          VITE_COMMIT_REF: ${{ steps.target.outputs.sha }}
-          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
-        run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"
+  deploy-itun:
+    needs: [plan, build-srd, build-itun, push-convex]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # The Worker script is bundled by wrangler from this checkout; the static
+      # assets it serves are the artifact `build-itun` compiled against the
+      # backend `push-convex` pushed.
+      - name: Download the itun artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: itun-dist
+          path: apps/itun/dist
 
       - name: Deploy itun
-        if: steps.surfaces.outputs.itun == 'true'
         working-directory: apps/itun
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: bun run deploy
 
-      # ---------------------------------------------------------------------
-      # discord-bot
-      # ---------------------------------------------------------------------
-      #
-      # Discord's Interactions Endpoint URL points at this Worker, so every merge
-      # that touches the bot ships it here; there is no other deploy path.
-      #
-      # No build step — wrangler bundles `src/http/worker.ts` directly.
-      #
-      # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
-      # and are NOT touched by a deploy, so this cannot clobber them.
+  # discord-bot
+  #
+  # Discord's Interactions Endpoint URL points at this Worker, so every merge
+  # that touches the bot ships it here; there is no other deploy path.
+  #
+  # No build step — wrangler bundles `src/http/worker.ts` directly.
+  #
+  # Secrets (DISCORD_TOKEN and friends) are wrangler secrets set out of band
+  # and are NOT touched by a deploy, so this cannot clobber them.
+  deploy-discord-bot:
+    needs: [plan, build-srd, build-itun, push-convex]
+    if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.bot == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
       - name: Deploy discord-bot
-        if: steps.surfaces.outputs.bot == 'true'
         working-directory: apps/discord-bot
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: bun run deploy
 
-      # ---------------------------------------------------------------------
-      # Post-deploy smoke. Cheap, and it is the only thing that knows whether
-      # what shipped actually answers.
-      # ---------------------------------------------------------------------
-      #
-      # Deliberately includes the rotated-chunk 404: `not_found_handling` is one
-      # line of config away from silently reintroducing #759, where a missing
-      # hashed chunk answered `200 text/html` and the `immutable` header pinned
-      # that HTML into the HTTP cache for a year.
-      # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
-      # the same checks on a schedule, catching a regression that happens
-      # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
-      #
-      # Run from the WORKFLOW's commit, not the checked-out tree. A rollback
-      # dispatch checks out an older `sha` that may predate the script; running
-      # it from that tree would exit 127 AFTER the deploy, skip `record`, and
-      # leave `deployed/cloudflare` naming a commit production no longer serves.
-      # `fetch-depth: 0` above means the workflow's commit is already local; the
-      # fetch covers a dispatch from a ref the checkout did not include.
+  # ===========================================================================
+  # Post-deploy smoke. Cheap, and it is the only thing that knows whether what
+  # shipped actually answers.
+  # ===========================================================================
+  #
+  # Deliberately includes the rotated-chunk 404: `not_found_handling` is one
+  # line of config away from silently reintroducing #759, where a missing
+  # hashed chunk answered `200 text/html` and the `immutable` header pinned
+  # that HTML into the HTTP cache for a year.
+  # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
+  # the same checks on a schedule, catching a regression that happens
+  # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
+  smoke:
+    needs: [plan, deploy-su-assets, deploy-srd, deploy-itun, deploy-discord-bot]
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.stale != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # From the WORKFLOW's commit, not the deployed tree. A rollback dispatch
+      # deploys an older `sha` that may predate the script; running it from
+      # that tree would exit 127 AFTER the deploy, skip `record`, and leave
+      # `deployed/cloudflare` naming a commit production no longer serves.
+      # The script needs nothing but curl, so only it is checked out.
+      - name: Checkout the smoke list
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ github.workflow_sha }}
+          sparse-checkout: tools/smoke-production.sh
+          sparse-checkout-cone-mode: false
+
       - name: Smoke the deployed surfaces
-        env:
-          WORKFLOW_SHA: ${{ github.workflow_sha }}
-        run: |
-          git cat-file -e "$WORKFLOW_SHA^{commit}" 2>/dev/null \
-            || git fetch --no-tags --depth=1 origin "$WORKFLOW_SHA"
-          git show "$WORKFLOW_SHA:tools/smoke-production.sh" > "$RUNNER_TEMP/smoke-production.sh"
-          bash "$RUNNER_TEMP/smoke-production.sh"
+        run: bash tools/smoke-production.sh
 
   # ---------------------------------------------------------------------------
   # The deploy record — what the next run diffs against.
   # ---------------------------------------------------------------------------
   #
   # Moves the lightweight tag `deployed/cloudflare` to the commit that just
-  # shipped. Only after `deploy` succeeded, smoke test included: a run that
+  # shipped. Only after every deploy AND the smoke job succeeded: a run that
   # failed anywhere leaves the record where it was, so the next run re-deploys
   # every surface this one may have left half-done.
   #
   # A separate job so that `contents: write` is held by six lines of REST calls
-  # and nothing else — never by the job that checks out and runs the tree. If
+  # and nothing else — never by a job that checks out and runs the tree. If
   # this job fails the deploy itself stands; the next run just diffs from an
   # older record and over-deploys, which is the safe direction.
   record:
-    needs: deploy
+    needs: [plan, smoke]
     # A stale run (an older commit whose CI finished after a newer deploy)
     # shipped nothing, and moving the record to it would make the NEXT run diff
     # from the older commit. Only a dispatch may move the record backwards.
-    if: needs.deploy.outputs.stale != 'true'
+    #
+    # The explicit status functions are load-bearing. A bare `if:` gets an
+    # implicit `success()`, which at job level checks EVERY ancestor — and a
+    # skipped build-*/deploy-* job (an unchanged surface) makes it false. The
+    # record then moved only when all four surfaces shipped, so a newer
+    # srd-only deploy left it behind, and an older commit's CI finishing later
+    # was not "stale" and shipped its srd over the newer one: a silent
+    # rollback with every job green. `smoke` must have actually passed.
+    if: ${{ !cancelled() && !failure() && needs.smoke.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -558,12 +803,12 @@ jobs:
       - name: Move the deployed/cloudflare tag to the deployed commit
         uses: actions/github-script@v9
         env:
-          DEPLOYED_SHA: ${{ needs.deploy.outputs.sha }}
+          DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
         with:
           script: |
             const sha = process.env.DEPLOYED_SHA ?? ''
             if (!/^[0-9a-f]{40}$/.test(sha)) {
-              core.setFailed(`deploy job reported no usable commit sha (got '${sha}')`)
+              core.setFailed(`plan job reported no usable commit sha (got '${sha}')`)
               return
             }
             const { owner, repo } = context.repo

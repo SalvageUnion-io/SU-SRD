@@ -568,9 +568,10 @@ accounts on:
 1. Add the prod redirect URI to the Discord application (above). **Done.**
 2. Build with `VITE_CONVEX_URL` pointing at the production deployment
    (`https://exuberant-porpoise-183.convex.cloud`). **Done** —
-   `.github/workflows/deploy-cloudflare.yml` runs the itun build under
-   `convex deploy --cmd-url-env-var-name VITE_CONVEX_URL`, which sets it. It is
-   a build-time variable, so a change only takes effect on the next deploy.
+   `.github/workflows/deploy-cloudflare.yml` sets it from the workflow's
+   `ITUN_CONVEX_URL`, and its `push-convex` job refuses to push if that is not
+   the canonical URL the deploy key resolves to. It is a build-time variable,
+   so a change only takes effect on the next deploy.
 
 **There is no rollback by unsetting it.** Doing so would silently turn off
 saving for every player: all writes would go to the tab's memory, and the

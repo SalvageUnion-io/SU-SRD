@@ -426,7 +426,7 @@ jobs:
   convex-parity:
     # The other thing CI structurally cannot do on a PR: know what is actually
     # deployed. ITUN ships from two mechanisms — wrangler publishes the client,
-    # `convex deploy` pushes the backend — and only the deploy job ties them to the
+    # `convex deploy` pushes the backend — and only the deploy workflow ties them to the
     # same commit. When they came apart, nothing was red: the site served the
     # current commit and the backend was four days stale, so the published
     # bundle called `entities:upsertSoftLink` against a deployment that had no

@@ -192,6 +192,38 @@ The deploy workflow's own comments carry its guard rationale (provenance check,
 credential guards, Sentry, the srd snapshot it deliberately does not re-run).
 The part that interacts with CI:
 
+- **Shape: `plan` -> `build-srd` / `build-itun` -> `push-convex` -> `deploy-*`
+  -> `smoke` -> `record`** (audit CI-12). `plan` resolves the commit, the deploy set, every
+  credential guard and a dry-run bundle of every Worker. The two builds run in
+  parallel and each uploads the exact `dist` it produced; the four `deploy-*`
+  jobs run in parallel, ship those artifacts unrebuilt, and none starts until
+  **every** build is green, so a failed itun build no longer leaves srd on the
+  new commit. It used to be one serial 30-minute job. `bun run check workflows`
+  (`deploy-order`) asserts the orderings, and that every job downstream of a
+  conditionally skipped job carries an explicit status function — the implicit
+  `success()` is false whenever any ancestor was skipped, which once kept
+  `record` from running on every deploy that left a surface unchanged.
+- **The artifacts are built in the deploy, not taken from CI's run.** Neither
+  CI build is a production artifact: srd's is built with no Sentry DSN because
+  the output snapshot is blessed against that build, and itun's is a Solo
+  client with no `VITE_CONVEX_URL`. And CI path-filters per commit while the
+  deploy ships per last recorded deploy, so a surface can need deploying on a
+  commit where CI skipped its build. Build once, in the deploy, and ship that.
+- **A failed `deploy-*` job does not stop the others** — they run in parallel
+  once every build is green. It fails the run, so `smoke` and `record` are
+  skipped and the next run re-deploys every surface since the last record.
+- **itun's backend is pushed in `push-convex`, after every build is green and
+  before any surface ships.** `build-itun` compiles against the fixed
+  production URL (`ITUN_CONVEX_URL` in the workflow) and pushes nothing, so a
+  failed srd build stops the push as it stops every deploy — a push inside the
+  build job used to leave the new backend under the old client until the next
+  green deploy. `push-convex` runs `convex deploy` with a `--cmd` that asserts
+  the deploy key's canonical URL equals `ITUN_CONVEX_URL` (convex runs `--cmd`
+  before it pushes), so a moved deployment fails before anything ships. The
+  backend leads the served client only for the minutes until `deploy-itun`
+  finishes — the safe direction, and one the backend must already tolerate for
+  every tab still running the previous client.
+
 - **The base is the last successful deploy, not `HEAD^`.** After every green
   run the `record` job moves the lightweight tag `deployed/cloudflare` to the
   commit that shipped; the next run tree-diffs against it. Dropped queue

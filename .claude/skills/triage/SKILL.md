@@ -32,7 +32,7 @@ For every step, use the first route that works and record which one you used:
 | Workflow runs (steps 1, 3, 4) | `gh run list …` | `mcp__github__actions_list` (load it with ToolSearch) |
 | Issues and PRs (steps 1, 4, 5) | `gh issue list …` / `gh pr list …` | `mcp__github__list_issues` / `mcp__github__list_pull_requests` |
 | Production errors (step 2) | `sentry` MCP | none — record it as unread |
-| Worker logs (step 3) | `cloudflare-observability` MCP | none — the deploy workflow's smoke step still counts |
+| Worker logs (step 3) | `cloudflare-observability` MCP | none — the deploy workflow's smoke job still counts |
 
 1. **Nightly E2E** — did last night's run pass?
 
@@ -57,12 +57,12 @@ For every step, use the first route that works and record which one you used:
 
 3. **Deploys** — did the last deploy succeed? All four surfaces ship from one
    workflow, `.github/workflows/deploy-cloudflare.yml`, so check that workflow's
-   most recent run rather than four dashboards. Its post-deploy smoke step is
+   most recent run rather than four dashboards. Its `smoke` job is
    the useful part: it asserts the production hostnames, the rotated-chunk 404,
    `robots.txt` by body, and that CSP and HSTS actually reach the browser.
    `cloudflare-observability` (MCP) gives Worker errors and logs on top.
 
-   A green deploy with a red smoke step means the code shipped and something
+   Green `deploy-*` jobs with a red `smoke` job mean the code shipped and something
    about routing, headers or a zone rule did not — that is a finding, not noise.
 
    This step used to name the Netlify and Render MCP servers, which were deleted

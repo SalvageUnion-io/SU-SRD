@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "TRIAL (2026-09-25). Renovate runs alongside Dependabot and catalog-update.yml and opens nothing on its own: every update waits on the Dependency Dashboard for a maintainer to tick it.",
+    "Scope is the root workspaces.catalog only, the one set Dependabot cannot read. Renovate's bun manager does not extract Bun catalogs either (it handles pnpm and yarn catalogs only), so a JSONata custom manager finds them.",
+    "Switch-over steps and the known gap (a custom manager does not refresh bun.lock) are in docs/architecture/dependency-management.md, 'Renovate trial'."
+  ],
+  "extends": ["config:recommended"],
+  "enabledManagers": ["custom.jsonata"],
+  "dependencyDashboard": true,
+  "dependencyDashboardApproval": true,
+  "dependencyDashboardTitle": "Renovate trial: catalog dependency dashboard",
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "rangeStrategy": "bump",
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps",
+  "branchPrefix": "renovate/",
+  "prConcurrentLimit": 5,
+  "customManagers": [
+    {
+      "description": "Bun workspaces.catalog in the root package.json; every entry is an npm package.",
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["/^package\\.json$/"],
+      "matchStrings": [
+        "$each(workspaces.catalog, function($v, $k) { { \"depName\": $k, \"currentValue\": $v } })"
+      ],
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm",
+      "depTypeTemplate": "bun.catalog.default"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Patch bumps travel together, as in .catalog-updaterc.json's all-patch-updates; the named groups below take precedence.",
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "all patch updates"
+    },
+    {
+      "description": "Same groups as .catalog-updaterc.json, so the two tools' PRs line up one to one during the trial.",
+      "matchPackageNames": ["react", "react-dom"],
+      "groupName": "react"
+    },
+    {
+      "matchPackageNames": ["@sentry/**"],
+      "groupName": "sentry"
+    },
+    {
+      "matchPackageNames": ["playwright", "@playwright/test"],
+      "groupName": "playwright"
+    },
+    {
+      "matchPackageNames": ["vite", "@vitejs/**"],
+      "groupName": "vite"
+    },
+    {
+      "matchPackageNames": ["@fontsource/**"],
+      "groupName": "fontsource"
+    }
+  ]
+}

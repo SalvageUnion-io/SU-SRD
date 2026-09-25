@@ -173,7 +173,14 @@ Two things this interacts with, both of which have bitten:
   rewrites (#12522) — both still open.
   `.github/workflows/catalog-update.yml` covers updates instead, pinned to a
   commit SHA because it is a young composite action running in this repo's
-  runner. **Delete that workflow when dependabot-core supports `catalog:`.**
+  runner. **Delete that workflow when dependabot-core supports `catalog:`, or
+  when the Renovate trial below proves out — whichever comes first.**
+- **That action installs its own Bun.** It runs `oven-sh/setup-bun@v2` with no
+  `bun-version`, so setup-bun reads the root `packageManager` field and falls
+  back to `latest` without it — which is how a lockfile the pinned Bun could not
+  read once got written. `packageManager` is `bun@<.bun-version>`, and
+  `bun run check workflows` (bun-version) fails when the two disagree. Bump
+  them together.
 
 `.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
 takes no comments, so the reason lives here. That feature defaults to **on** at
@@ -186,6 +193,69 @@ advisories the `audit` check deliberately ignores.
 `tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
 majors; anything else that learns a version by reading a workspace manifest
 needs the same treatment.
+
+# Renovate trial (decided 2026-09-25)
+
+Two bots and a composite action currently split dependency updates:
+Dependabot owns per-workspace deps and GitHub Actions, `catalog-update.yml`
+owns the catalog because Dependabot cannot read it. The decision is to **trial
+Renovate** as the single replacement, without switching anything off until it
+has earned it.
+
+**What is committed.** [`renovate.json`](../../renovate.json), deliberately
+narrow:
+
+- **Scope: the catalog only** (`enabledManagers: ["custom.jsonata"]`), the one
+  set nothing but a young third-party action covers today. Dependabot keeps
+  everything else, so the trial cannot double up on its PRs.
+- **Renovate's `bun` manager does not read Bun catalogs either.** Its
+  extractor handles pnpm and yarn catalogs only (read in Renovate's own
+  source, its bun manager's extract module, on 2026-09-25), so a JSONata custom
+  manager extracts `workspaces.catalog` from the root `package.json` as npm
+  deps. The query was evaluated against this repo's `package.json` and returns
+  every entry; `renovate-config-validator --strict` passes.
+- **`minimumReleaseAge: "3 days"`** with `internalChecksFilter: "strict"`, the
+  same cooldown as `bunfig.toml` and `.catalog-updaterc.json`, so Renovate does
+  not propose a version `bun install` would refuse.
+- **`dependencyDashboardApproval: true`.** Nothing opens on its own. Renovate
+  lists what it would do on a "Renovate trial" dashboard issue; a maintainer
+  ticks an entry to get that PR. That is how the trial runs next to
+  `catalog-update.yml` without doubling every catalog PR.
+- Groups copy `.catalog-updaterc.json` (react, sentry, playwright, vite,
+  fontsource, all patch updates), so the two tools' output can be compared one
+  PR to one PR.
+
+**The known gap.** A custom manager rewrites `package.json` but does **not**
+regenerate `bun.lock`: Renovate refreshes lockfiles only for its built-in
+managers, and `postUpgradeTasks` exists only on self-hosted Renovate. So a
+Renovate catalog PR fails `bun install --frozen-lockfile` in CI until someone
+runs `bun install` on the branch and pushes the lockfile. This fails closed
+(`CI Success` is required), but it is exactly what the trial has to judge. If
+Renovate starts extracting Bun catalogs itself, the custom manager goes and the
+gap goes with it.
+
+**Switch-over steps**, in order. Each is reversible until step 5.
+
+1. Install the Renovate GitHub App on `SalvageUnion-io/SU-SRD` only (an
+   account action; nothing in the repo can do it). The app reads the committed
+   `renovate.json`, so skip its onboarding PR if it offers one.
+2. Confirm the dashboard issue lists every catalog entry under "Detected
+   dependencies". A short list means the JSONata manager missed something; fix
+   that before judging anything else.
+3. For two or three weekly cycles, approve on the dashboard whatever
+   `catalog-update.yml` also opened, and compare: same versions, same groups,
+   cooldown respected, and how much hand-work the lockfile gap costs.
+4. If it proves out, widen `renovate.json`: add `"bun"` and `"github-actions"`
+   to `enabledManagers` (keeping `"custom.jsonata"` while the catalog still
+   needs it), drop `dependencyDashboardApproval`, and port `.github/dependabot.yml`'s
+   groups, its majors-in-one-PR rule and its 3-day cooldown. Disable
+   Renovate's `packageManager` bumps unless `.bun-version` and `bun-types`
+   move with them (`bun run check workflows` fails otherwise).
+5. In the same PR, delete `.github/dependabot.yml`,
+   `.github/workflows/catalog-update.yml` and `.catalog-updaterc.json`, and
+   update this section, `CLAUDE.md` and `docs/architecture/ci.md`.
+
+If it does not prove out, delete `renovate.json` and uninstall the app.
 
 # Declare what you import, in the right field
 

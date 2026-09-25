@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "bun@1.4.0",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
   "workspaces": {
     "packages": [
