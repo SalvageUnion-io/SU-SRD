@@ -27,11 +27,13 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import { runWrite } from '../../lib/runWrite'
+import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
@@ -63,6 +65,8 @@ type ActionsDeckProps = {
   mech: Mech
   /** The on-foot pilot; when `mount === 'pilot'` the deck lists their actions. */
   pilot?: Pilot | null
+  /** The pilot's crawler — its tier drives Stat Training (max AP). */
+  crawler?: Crawler | null
   /** Which entity owns the cockpit; defaults to the boarded mech. */
   mount?: MountState
   /** Injectable store (defaults to the live entity store). */
@@ -71,7 +75,7 @@ type ActionsDeckProps = {
 
 const HUGE_HEAT_CAP = Number.MAX_SAFE_INTEGER
 
-export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckProps) {
+export function ActionsDeck({ mech, pilot, crawler, mount = 'mech', store }: ActionsDeckProps) {
   const liveStore = useEntityStore()
   const s: PlayStore = store ?? liveStore
   const range = usePlayStateStore((st) => st.range)
@@ -145,7 +149,13 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       // never clamp it here, since an unresolved ref makes the max 0.
       const patch = pilotActivationPatch({
         apCost: economy.epCost,
-        currentAP: resolvePoolStart(fresh.currentAP, pilotMaxAP(fresh)),
+        currentAP: resolvePoolStart(
+          fresh.currentAP,
+          pilotMaxAP({
+            ...fresh,
+            crawlerTechLevel: resolveEffectiveCrawlerLevel(fresh, crawler),
+          })
+        ),
       })
       if (Object.keys(patch).length > 0) {
         runWrite(() => s.update('pilot', pilot.id, patch, DASHBOARD_TXN))
