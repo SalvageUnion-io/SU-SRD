@@ -36,6 +36,17 @@ function setOnline(value: boolean): void {
   })
 }
 
+/**
+ * happy-dom defines `onLine` on Navigator.prototype, so there is normally no
+ * OWN descriptor to put back, and deleting the own property is the restore.
+ * Restoring only when a descriptor existed left the forced value in place for
+ * every later file in the same process.
+ */
+function restoreOnLine(original: PropertyDescriptor | undefined): void {
+  if (original) Object.defineProperty(navigator, 'onLine', original)
+  else Reflect.deleteProperty(navigator, 'onLine')
+}
+
 describe('ConnectionProvider reacts to connectivity', () => {
   test('a Solo user is unaffected by going offline and back', () => {
     const original = Object.getOwnPropertyDescriptor(navigator, 'onLine')
@@ -57,7 +68,7 @@ describe('ConnectionProvider reacts to connectivity', () => {
       setOnline(true)
       expect(screen.getByTestId('probe').textContent).toBe('solo:true')
     } finally {
-      if (original) Object.defineProperty(navigator, 'onLine', original)
+      restoreOnLine(original)
     }
   })
 
@@ -76,7 +87,7 @@ describe('ConnectionProvider reacts to connectivity', () => {
       setOnline(false)
       setOnline(true)
     } finally {
-      if (original) Object.defineProperty(navigator, 'onLine', original)
+      restoreOnLine(original)
     }
   })
 })
