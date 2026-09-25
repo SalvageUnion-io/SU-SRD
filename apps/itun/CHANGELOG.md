@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.7](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.6...itun-v1.17.7) (2026-09-25)
+
+
+### Performance Improvements
+
+* **itun:** report render crashes, per-route error boundaries, indexed Convex reads, drop uncalled functions [audit 2/14] ([#986](https://github.com/SalvageUnion-io/SU-SRD/issues/986)) ([bb14dea](https://github.com/SalvageUnion-io/SU-SRD/commit/bb14deaf67a96c6db64a9630db9c3a7ad4a3758d))
+
 ## [1.17.6](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.5...itun-v1.17.6) (2026-09-25)
 
 
