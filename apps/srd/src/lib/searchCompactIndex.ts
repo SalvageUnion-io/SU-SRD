@@ -1,31 +1,31 @@
 /**
  * Client-side matcher for the build-time compact search index
- * (`searchIndexTypes.ts` / `searchIndexBuild.ts`). Deliberately simpler than
- * `salvageunion-reference`'s ORM-backed `search()`: it matches against one
- * concatenated `text` field instead of per-field breakdown, so it drops
- * `matchedFields`-based scoring (never surfaced in the srd UI — the
- * only consumers, `SearchIsland`/`SearchResultsIsland`, don't render match
- * reasons) and the `+10` description-specific boost. It keeps the
- * name-priority scoring tiers and typo tolerance so ranking/UX parity holds
- * for the common cases. This trade-off is what keeps entity search decoupled
- * from the ORM — no preload, no entity corpus in the browser — at the cost of
- * losing fine-grained field-match ranking.
+ * (`searchIndexTypes.ts` / `searchIndexBuild.ts`). It matches against one
+ * concatenated `text` field rather than the ORM's per-field breakdown, which is
+ * what keeps entity search decoupled from the ORM — no preload, no entity
+ * corpus in the browser; matching runs against the fetched
+ * `/search-index.json`.
  *
- * `withinEditDistance1` / `TYPO_MIN_TOKEN_LENGTH` were forked into this file
- * (byte-for-byte, per the old comment here) to keep the import type-only. They
- * are now imported for real from `salvageunion-reference`, so typo-tolerance
- * parity with `search()` is structural rather than aspirational. Measured cost
- * on the srd bundle: **none**. Every consumer of this module —
- * `SearchIsland`, `SearchResultsIsland`, `MobileSearchIsland` — already
- * imports the shared `src` chunk, which already contained these functions;
- * moving to them shrank this chunk by 215 B and grew `src` by 8 B. The part
- * that actually mattered still holds: the browser never loads the entity
- * corpus, because matching runs against the fetched `/search-index.json`, not
- * an ORM `preload()`.
+ * The matching and ranking RULES are not implemented here. Tokenising, the
+ * AND-of-tokens rule with its name-only typo forgiveness, and the name-priority
+ * score tiers all come from `salvageunion-reference`'s `searchRanking.ts`, the
+ * same functions the ORM `search()` calls (audit PK-11 — this file used to
+ * re-implement the tiers inline). What differs is only the facts this matcher
+ * has: with no per-field text it passes no description and no matched-field
+ * count, so the ORM's `+10` description boost and `+5`-per-field refinement do
+ * not apply. Neither is surfaced in the srd UI, which renders no match reasons.
+ *
+ * Those functions import nothing from the ORM, so the browser still never
+ * loads the corpus.
  */
 
 import type { SearchOptions, SearchResult } from 'salvageunion-reference'
-import { TYPO_MIN_TOKEN_LENGTH, withinEditDistance1 } from 'salvageunion-reference'
+import {
+  matchSearchTokens,
+  scoreSearchMatch,
+  searchNameWords,
+  tokenizeSearchQuery,
+} from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /**
@@ -41,9 +41,9 @@ export function searchCompactIndex(
   options: SearchOptions
 ): SearchResult[] {
   const { query, schemas: schemaFilter, limit } = options
-  const loweredQuery = query.trim().toLowerCase()
-  if (!loweredQuery) return []
-  const tokens = loweredQuery.split(/\s+/)
+  const parsed = tokenizeSearchQuery(query)
+  if (!parsed) return []
+  const { loweredQuery, tokens } = parsed
   const schemasToSearch = schemaFilter ? new Set(schemaFilter) : null
 
   const results: SearchResult[] = []
@@ -52,28 +52,12 @@ export function searchCompactIndex(
     if (schemasToSearch && !schemasToSearch.has(entry.schemaName)) continue
 
     const nameText = entry.name.toLowerCase()
-    let usedTypo = false
-    let matches = true
-    for (const token of tokens) {
-      if (entry.text.includes(token)) continue
-      if (token.length >= TYPO_MIN_TOKEN_LENGTH) {
-        const nameWords = nameText.split(/[^a-z0-9]+/).filter(Boolean)
-        if (nameWords.some((word) => withinEditDistance1(token, word))) {
-          usedTypo = true
-          continue
-        }
-      }
-      matches = false
-      break
-    }
+    const { matches, usedTypo } = matchSearchTokens(tokens, searchNameWords(nameText), (token) =>
+      entry.text.includes(token)
+    )
     if (!matches) continue
 
-    let score = 0
-    if (nameText === loweredQuery) score += 100
-    else if (nameText.startsWith(loweredQuery)) score += 50
-    else if (nameText.includes(loweredQuery)) score += 25
-    else if (tokens.every((t) => nameText.includes(t))) score += 20
-    if (usedTypo) score -= 15
+    const score = scoreSearchMatch({ nameText, loweredQuery, tokens, usedTypo })
 
     results.push({
       schemaName: entry.schemaName,
