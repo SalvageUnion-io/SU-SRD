@@ -31,6 +31,7 @@ import {
   resolvePool,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import {
   crawlerMaxSPParts,
@@ -98,7 +99,14 @@ export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandPr
     return <CrawlerBand crawler={crawler} mech={mech} store={s} onLeave={leaveDowntime} />
   }
   if (mount === 'pilot' && pilot) {
-    return <PilotBand pilot={pilot} store={s} onBoard={() => setMount('mech')} />
+    return (
+      <PilotBand
+        pilot={pilot}
+        crawler={crawler ?? null}
+        store={s}
+        onBoard={() => setMount('mech')}
+      />
+    )
   }
   return (
     <MechBand
@@ -719,15 +727,19 @@ type PilotPrompt =
 
 function PilotBand({
   pilot,
+  crawler,
   store,
   onBoard,
 }: {
   pilot: Pilot
+  /** The pilot's crawler — its tier drives Stat Training (max HP/AP). */
+  crawler: Crawler | null
   store: PlayStore
   onBoard: () => void
 }) {
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
+  const crawlerTechLevel = resolveEffectiveCrawlerLevel(pilot, crawler)
+  const maxHP = Math.max(0, pilotMaxHP({ ...pilot, crawlerTechLevel }))
+  const maxAP = Math.max(0, pilotMaxAP({ ...pilot, crawlerTechLevel }))
   const hp = resolvePool(pilot.currentHP, maxHP)
   const ap = resolvePool(pilot.currentAP, maxAP)
 
@@ -750,7 +762,7 @@ function PilotBand({
   function applyDamage() {
     const p = fresh()
     const { patch, effect } = pilotDamagePatch({
-      currentHP: resolvePoolStart(p.currentHP, Math.max(0, pilotMaxHP(p))),
+      currentHP: resolvePoolStart(p.currentHP, Math.max(0, pilotMaxHP({ ...p, crawlerTechLevel }))),
       amount: dmg,
       vulnerable: false,
     })

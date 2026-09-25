@@ -2,7 +2,8 @@
  * Unit tests for derivedStats.ts — derived maxima for all three entities
  * (plan 2.5). The pilot max-HP derivation is rules-critical and pinned:
  *
- *   maxHP = 10 + maxHpModifier − Σ(minor injury: 1, major injury: 2)
+ *   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
+ *           − Σ(minor injury: 1, major injury: 2)
  *
  * Mech maxima use a hand-crafted chassis; crawler max SP uses REAL
  * crawler-tech-levels data from salvageunion-reference.
@@ -29,6 +30,7 @@ import {
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
   pilotMaxAP,
+  pilotMaxAPParts,
   pilotMaxHP,
   pilotMaxHPParts,
   pilotMaxInventorySlots,
@@ -62,7 +64,7 @@ describe('pilot derivation', () => {
 
   it('pinned formula: maxHP = 10 + modifier − injuries', () => {
     const pilot = {
-      maxHpModifier: 4, // two Stat Training tiers
+      maxHpModifier: 4, // a hand-entered adjustment
       injuries: [
         { severity: 'minor' as const, note: '' },
         { severity: 'major' as const, note: '' },
@@ -100,6 +102,82 @@ describe('pilot derivation', () => {
   it('returns an empty patch when nothing exceeds the maxima', () => {
     expect(clampPilotCurrentStats({ currentHP: 3, currentAP: 2 })).toEqual({})
     expect(clampPilotCurrentStats({})).toEqual({})
+  })
+})
+
+// House choice: Stat Training is ALWAYS derived from the crawler tier —
+// +2 HP / +1 AP per tech level above 1 — with no per-pilot training record.
+describe('pilot Stat Training follows the crawler tech level', () => {
+  it.each([
+    [undefined, 10, 5],
+    [1, 10, 5],
+    [2, 12, 6],
+    [3, 14, 7],
+    [4, 16, 8],
+    [5, 18, 9],
+    [6, 20, 10],
+  ])('Tech %p → %i HP / %i AP', (crawlerTechLevel, hp, ap) => {
+    expect(pilotMaxHP({ crawlerTechLevel })).toBe(hp)
+    expect(pilotMaxAP({ crawlerTechLevel })).toBe(ap)
+  })
+
+  it('renders as its own named provenance line, not the base or the adjustment', () => {
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 3 })
+    expect(hp.base).toBe(PILOT_BASE_HP)
+    expect(hp.adjustment).toBe(0)
+    expect(hp.sources).toEqual([
+      { source: 'Crawler Tech 3', ref: 'Pilot Bay', stat: 'maxHp', amount: 4, copies: 1 },
+    ])
+    const ap = pilotMaxAPParts({ crawlerTechLevel: 3 })
+    expect(ap.sources).toEqual([
+      { source: 'Crawler Tech 3', ref: 'Pilot Bay', stat: 'maxAp', amount: 2, copies: 1 },
+    ])
+  })
+
+  it('adds no line at Tech 1', () => {
+    expect(pilotMaxHPParts({ crawlerTechLevel: 1 }).sources).toEqual([])
+    expect(pilotMaxAPParts({ crawlerTechLevel: 1 }).sources).toEqual([])
+  })
+
+  it('clamps an out-of-range level into 1..6', () => {
+    expect(pilotMaxHP({ crawlerTechLevel: 9 })).toBe(20)
+    expect(pilotMaxHP({ crawlerTechLevel: 0 })).toBe(10)
+  })
+
+  it('stacks with injuries and the manual adjustment', () => {
+    const pilot = {
+      crawlerTechLevel: 3,
+      maxHpModifier: 1,
+      maxApModifier: -1,
+      injuries: [{ severity: 'major' as const, note: '' }],
+    }
+    expect(pilotMaxHP(pilot)).toBe(10 + 4 + 1 - 2)
+    expect(pilotMaxAP(pilot)).toBe(5 + 2 - 1)
+  })
+
+  it('an absolute pin still wins, and keeps the tier-derived value as `derived`', () => {
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 6, maxHpOverride: 11 })
+    expect(hp.total).toBe(11)
+    expect(hp.derived).toBe(20)
+    expect(pilotMaxAP({ crawlerTechLevel: 6, maxApOverride: 4 })).toBe(4)
+  })
+
+  it('keeps the unfloored dead state: the tier bonus offsets injuries', () => {
+    const injuries = Array.from({ length: 6 }, () => ({ severity: 'major' as const, note: '' }))
+    // Tech 1: 10 − 12 = −2 → dead, and the negative total is not floored away.
+    expect(pilotMaxHP({ injuries })).toBe(-2)
+    expect(isPilotDead({ injuries })).toBe(true)
+    // Tech 3: 14 − 12 = 2 → alive.
+    expect(pilotMaxHP({ injuries, crawlerTechLevel: 3 })).toBe(2)
+    expect(isPilotDead({ injuries, crawlerTechLevel: 3 })).toBe(false)
+  })
+
+  it('clamps current HP/AP against the tier-derived maxima', () => {
+    expect(clampPilotCurrentStats({ crawlerTechLevel: 3, currentHP: 14, currentAP: 7 })).toEqual({})
+    expect(clampPilotCurrentStats({ crawlerTechLevel: 2, currentHP: 14, currentAP: 7 })).toEqual({
+      currentHP: 12,
+      currentAP: 6,
+    })
   })
 })
 

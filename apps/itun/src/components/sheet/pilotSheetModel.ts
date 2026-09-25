@@ -108,6 +108,10 @@ export function usePilotSheetModel({
   const crawlerLink = outgoing.find((link) => link.type === 'pilot-to-crawler')
   const linkedCrawler = crawlerLink ? storeState.get('crawler', crawlerLink.to.id) : null
   const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
+  // The same effective level drives the pilot's Stat Training bonus to max HP
+  // and AP (house choice: always derived from the crawler tier — see
+  // `pilotMaxHPParts`), so every max-HP read below goes through this input.
+  const statInput = { ...pilot, crawlerTechLevel: effectiveCrawlerLevel }
   // Memoized so the {techLevel} object's identity is stable across renders.
   //
   // The original comment here justified this by "the React.memo on the (heavy)
@@ -138,7 +142,7 @@ export function usePilotSheetModel({
     return acc
   }, {})
 
-  const dead = isPilotDead(pilot)
+  const dead = isPilotDead(statInput)
   const slotsUsed = pilotInventoryUsed(pilot)
   const slotsCap = pilotInventoryCapacity(pilot)
   const overCapacity = slotsUsed > slotsCap
@@ -205,8 +209,8 @@ export function usePilotSheetModel({
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
 
-  const hpParts = pilotMaxHPParts(pilot)
-  const apParts = pilotMaxAPParts(pilot)
+  const hpParts = pilotMaxHPParts(statInput)
+  const apParts = pilotMaxAPParts(statInput)
 
   // Stat provenance ledgers (ADR-029). Injuries ride the contribution line —
   // a negative rules-sourced addend, derived from `injuries` so healing restores

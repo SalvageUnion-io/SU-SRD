@@ -293,7 +293,8 @@ export const PilotSchema = z
     /**
      * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used
      * to scale choice caps (e.g. the Custom Sniper Rifle's Modification choice,
-     * "at each Tech Level you may select an additional Modification"). Only used
+     * "at each Tech Level you may select an additional Modification") and the
+     * Stat Training bonus to max HP/AP (`pilotMaxHPParts`). Only used
      * when the pilot is NOT linked to a crawler; when a crawler is associated its
      * techLevel takes precedence (see resolveEffectiveCrawlerLevel). Optional and
      * additive — no DB migration needed (same tactic as equipmentChoices).
@@ -319,20 +320,27 @@ export const PilotSchema = z
 
     /**
      * Injuries list (enum severity, not free-form). Drives the max-HP
-     * derivation: maxHP = 10 + maxHpModifier − Σ(minor: 1, major: 2).
+     * derivation: maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
+     * − Σ(minor: 1, major: 2).
      * Absent = no injuries.
      */
     injuries: z.array(InjurySchema).optional(),
 
     /**
-     * Training/passive bonuses to max HP ONLY (Stat Training +2 per tier,
-     * Beefcake, Defy Death, …). Injury penalties are NOT folded in here — they
-     * are derived from `injuries` so healing an injury restores max HP without
-     * bookkeeping. Absent = 0.
+     * A general, hand-entered adjustment to max HP ("Manual adjustment" in the
+     * provenance panel). NOT Stat Training: that is derived from the crawler
+     * tier at read time (+2 per tech level above 1 — `pilotMaxHPParts`), and
+     * abilities contribute through their own named lines. Injury penalties are
+     * NOT folded in here either — they are derived from `injuries` so healing
+     * an injury restores max HP without bookkeeping. Absent = 0.
      */
     maxHpModifier: z.number().int().optional(),
 
-    /** Training/passive bonuses to max AP (Stat Training +1 per tier). Absent = 0. */
+    /**
+     * A general, hand-entered adjustment to max AP. NOT Stat Training, which is
+     * derived from the crawler tier (+1 per tech level above 1 —
+     * `pilotMaxAPParts`). Absent = 0.
+     */
     maxApModifier: z.number().int().optional(),
 
     /**

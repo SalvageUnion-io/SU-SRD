@@ -14,7 +14,7 @@
  * All functions are pure — no store, no React.
  */
 
-import { PILOT_BASE_AP, PILOT_BASE_HP } from '../rules/derivedStats'
+import { pilotMaxAP, pilotMaxHP } from '../rules/derivedStats'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 import type { PartnerInstance } from '../schemas/partner'
 import type { Pilot } from '../schemas/pilot'
@@ -112,8 +112,14 @@ export function pilotFormToPartners(
 }
 
 /**
- * Create payload for a fresh pilot. Fresh pilots start at full HP/AP
- * (core-rules base — no injuries or training modifiers exist at creation).
+ * Create payload for a fresh pilot. Fresh pilots start at their FULL derived
+ * max HP/AP, so an ability that raises the max (Bionic Arms, Beefcake) is
+ * filled at creation rather than reading as damage.
+ *
+ * The values are stored, not left unset, on purpose (product decision): a
+ * later rise in max — linking to a higher-tier crawler — does not heal the
+ * pilot. Only creation starts at max. A new pilot has no crawler link yet, so
+ * this is the Tech 1 max.
  *
  * Equipment carrying a mech-shaped stat block (Auto-Turret, Survey Drone, Mecha
  * Companion) is granted as a live partner here rather than as an inert
@@ -125,8 +131,8 @@ export function pilotFormToCreateInput(form: PilotWizardFormState) {
     schemaVersion: 1 as const,
     ...pilotFormToUpdatePatch(form),
     conditions: [],
-    currentHP: PILOT_BASE_HP,
-    currentAP: PILOT_BASE_AP,
+    currentHP: pilotMaxHP({ abilities: form.abilities }),
+    currentAP: pilotMaxAP({ abilities: form.abilities }),
     ...(partners !== undefined ? { partners } : {}),
   }
 }

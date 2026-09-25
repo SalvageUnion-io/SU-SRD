@@ -377,11 +377,16 @@ export function healableInjuries(
  * Ordering matters: injuries heal FIRST, then HP restores to the max derived
  * from the injuries that remain — healing a Minor Injury at a Tech 3 Med Bay
  * restores the pilot to the recovered maximum in one pass.
+ *
+ * `crawlerTechLevel` is the pilot's effective crawler tier
+ * (`resolveEffectiveCrawlerLevel`) — it raises max HP/AP via Stat Training, so
+ * rest restores to the same maximum the sheet shows. Absent = Tech 1.
  */
 export function downtimePilotPatch(
   pilot: Pilot,
   medBay: MedBayStatus,
-  steps: DowntimeSteps
+  steps: DowntimeSteps,
+  crawlerTechLevel?: number
 ): Partial<Pilot> {
   const patch: Partial<Pilot> = {}
 
@@ -402,10 +407,13 @@ export function downtimePilotPatch(
   if (steps.healPilots) {
     // AP restores through Downtime rest regardless of the Med Bay (p.228);
     // HP healing requires an operational Med Bay (p.223).
-    const maxAP = Math.max(0, pilotMaxAP(pilot))
+    const maxAP = Math.max(0, pilotMaxAP({ ...pilot, crawlerTechLevel }))
     if (pilot.currentAP !== undefined && pilot.currentAP !== maxAP) patch.currentAP = maxAP
     if (medBay.operational) {
-      const maxHP = Math.max(0, pilotMaxHP({ ...pilot, injuries: remainingInjuries }))
+      const maxHP = Math.max(
+        0,
+        pilotMaxHP({ ...pilot, injuries: remainingInjuries, crawlerTechLevel })
+      )
       if (pilot.currentHP !== undefined && pilot.currentHP !== maxHP) patch.currentHP = maxHP
     }
   }

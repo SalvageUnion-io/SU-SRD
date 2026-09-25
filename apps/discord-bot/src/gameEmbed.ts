@@ -163,6 +163,11 @@ function pilotStats(body: EntityBody): {
     maxApModifier: num(body, 'maxApModifier') ?? undefined,
     maxHpOverride: num(body, 'maxHpOverride') ?? undefined,
     maxApOverride: num(body, 'maxApOverride') ?? undefined,
+    // Stat Training follows the crawler tier. The app resolves it from the
+    // pilot's LINKED crawler first; the bot only ever sees one pilot body, with
+    // no SoftLinks, so it uses the pilot's manual `crawlerLevel` fallback —
+    // which is the whole answer for an unlinked pilot and may lag a linked one.
+    crawlerTechLevel: num(body, 'crawlerLevel') ?? undefined,
   }
   const maxHp = pilotMaxHP(input)
   const maxAp = pilotMaxAP(input)
