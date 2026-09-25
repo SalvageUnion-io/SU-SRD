@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 /**
@@ -74,6 +76,15 @@ describe('enforce-bun.sh', () => {
     ['bare, with no arguments', PM],
     ['in a command substitution', `echo $(${PM} bin)`],
     ['behind env', `env CI=1 ${PM} test`],
+    // Wrapper and keyword forms a command-position regex missed.
+    ['behind a wrapper with a flag', `sudo -E ${PM} install`],
+    ['behind timeout', `timeout 60 ${PM} install`],
+    ['as an if condition', `if ${PM} test; then echo ok; fi`],
+    ['negated', `! ${PM} test`],
+    ['behind a quoted assignment', `FOO="a b" ${PM} install`],
+    ['behind bun x', `bun x ${PM} install`],
+    ['as an absolute path', `/usr/bin/${PM} install`],
+    ['found through which', `$(which ${PM}) install`],
   ])('blocks %s', async (_label, command) => {
     expect(await bash(command)).toBe(BLOCK)
   })
@@ -90,6 +101,9 @@ describe('enforce-bun.sh', () => {
     ['a grep for it', `grep -rn ${PM} docs`],
     ['an rg for a phrase', `rg -n "${PM} run" apps`],
     ['a path containing it', `ls node_modules/${PM2}`],
+    ['a cd into a directory named for it', `cd node_modules/${PM2}`],
+    ['a quoted mention after a separator', `git commit -m "a; ${PM} is banned"`],
+    ['an rg alternation', `rg "(${PM}|${PM2})" docs`],
   ])('allows %s', async (_label, command) => {
     expect(await bash(command)).toBe(ALLOW)
   })
@@ -122,6 +136,60 @@ describe('typecheck-scoped.sh', () => {
 
   test('an empty payload is allowed rather than erroring', async () => {
     expect(await runHook('typecheck-scoped.sh', { tool_input: {} })).toBe(ALLOW)
+  })
+
+  // A throwaway git repo whose `typecheck:tools` script is a stub, so the
+  // exit-code path and the root resolution are tested without running tsc.
+  async function fixture(script: string): Promise<{ dir: string; file: string }> {
+    const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
+    mkdirSync(join(dir, 'tools'))
+    mkdirSync(join(dir, 'apps', 'srd'), { recursive: true })
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({ scripts: { 'typecheck:tools': script } })
+    )
+    writeFileSync(join(dir, 'tools', 'x.ts'), 'export {}\n')
+    await Bun.spawn(['git', 'init', '-q', dir]).exited
+    return { dir, file: join(dir, 'tools', 'x.ts') }
+  }
+
+  async function runFrom(cwd: string, file_path: string) {
+    const proc = Bun.spawn([join(HOOKS, 'typecheck-scoped.sh')], {
+      cwd,
+      stdin: new TextEncoder().encode(JSON.stringify({ tool_input: { file_path } })),
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+    const code = await proc.exited
+    return {
+      code,
+      stdout: await new Response(proc.stdout).text(),
+      stderr: await new Response(proc.stderr).text(),
+    }
+  }
+
+  test('a failing typecheck exits 2 with the output on stderr, from any cwd', async () => {
+    const { dir, file } = await fixture('echo boom-from-tsc >&2; exit 1')
+    try {
+      const result = await runFrom(join(dir, 'apps', 'srd'), file)
+      expect(result.code).toBe(2)
+      expect(result.stderr).toContain('boom-from-tsc')
+      expect(result.stdout).toBe('')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  test('a passing typecheck is silent', async () => {
+    const { dir, file } = await fixture('echo all-good')
+    try {
+      const result = await runFrom(join(dir, 'apps', 'srd'), file)
+      expect(result.code).toBe(ALLOW)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toBe('')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 

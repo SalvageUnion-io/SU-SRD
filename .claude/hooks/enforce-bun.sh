@@ -22,16 +22,17 @@
 #   * `echo x | npm install` — a single pipe, which the old comment claimed to
 #     cover ("piped or chained") and did not.
 #
-# The pattern below matches the token only in COMMAND POSITION: at the start of
-# the string or after a command separator (`;` `&` `|` `(` `{` or backtick/`$(`),
-# optionally behind env assignments and wrapper words (sudo, bunx, env, xargs,
-# exec, time, nohup, command, and the shell keywords do/then/else). It no longer
-# requires a trailing space, so a bare `npm` is caught too.
+# HOW IT DECIDES. Quoted strings are blanked first, then the command is split
+# into segments at every separator (`;` `&` `|` `(` `)` `{` `}` backtick `$(`
+# and newline). A segment is blocked when any bare word in it IS a package
+# manager name, so wrappers of every shape are covered without keeping a list:
+# `sudo -E <pm>`, `timeout 60 <pm>`, `if <pm> ...`, `! <pm>`, `FOO="a b" <pm>`.
 #
-# Command position, not "after any whitespace": the earlier any-whitespace form
-# blocked every commit message, grep, rg and PR body that merely MENTIONED a
-# package manager (`git commit -m "docs: say <pm> is banned"`, `grep -rn <pm>
-# docs`), which is exactly the prose this repo writes about the rule.
+# Two things are deliberately allowed, because the previous any-whitespace
+# pattern blocked the prose this repo writes about the rule itself:
+#   * a word inside quotes: commit messages, `rg "<pm> run"`, PR bodies;
+#   * a segment whose command only READS text (grep, rg, git, ls, cat, echo...),
+#     so `grep -rn <pm> docs` runs.
 #
 # WHAT THIS DELIBERATELY DOES NOT CATCH, and why that is fine.
 # A token inside a quoted string — `bash -c "<pm> install"` — still passes. It
@@ -59,9 +60,32 @@ if [ -z "$COMMAND" ]; then
   exit 0
 fi
 
-SEP='(^|[;&|({`]|\$\()'
-PREFIX='(([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|sudo|bunx|env|xargs|exec|time|nohup|command|do|then|else)[[:space:]]+)*'
-if echo "$COMMAND" | grep -qE "${SEP}[[:space:]]*${PREFIX}(npm|yarn|pnpm)(\$|[[:space:];&|)])"; then
+PMS=' npm yarn pnpm '
+# Commands that only mention text: a package-manager word after one of these is
+# an argument, not something being run.
+READERS=' grep egrep fgrep rg ag git ls cat head tail less more echo printf sed awk wc jq diff cut sort uniq tr tee '
+
+blocked=false
+# Blank quoted strings (single-quoted, then double-quoted with escapes).
+STRIPPED=$(printf '%s' "$COMMAND" | sed -E "s/'[^']*'/''/g; s/\"([^\"\\\\]|\\\\.)*\"/\"\"/g")
+while IFS= read -r segment; do
+  read -ra words <<<"$segment" || true
+  first=""
+  for w in ${words[@]+"${words[@]}"}; do
+    # Leading env assignments are not the command.
+    if [ -z "$first" ] && [[ "$w" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then continue; fi
+    [ -z "$first" ] && first="${w##*/}"
+    [[ "$READERS" == *" $first "* ]] && break
+    # A bare name anywhere in the segment, or a path to one as the command.
+    base="${w##*/}"
+    if [[ "$PMS" == *" $base "* ]] && { [ "$w" = "$base" ] || [ "$first" = "$base" ]; }; then
+      blocked=true
+      break 2
+    fi
+  done
+done < <(printf '%s\n' "$STRIPPED" | awk '{ gsub(/\$\(|[;&|(){}`]/, "\n"); print }')
+
+if $blocked; then
   echo "BLOCKED: this project uses bun, not npm/yarn/pnpm." >&2
   echo "" >&2
   echo "  install        -> bun install" >&2

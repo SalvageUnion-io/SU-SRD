@@ -13,10 +13,14 @@
       "Bash(git show*)",
       "Bash(git fetch*)",
       "Bash(git pull*)",
-      "Bash(git checkout *)",
+      "Bash(git checkout -b *)",
+      "Bash(git checkout -B *)",
       "Bash(git switch *)",
       "Bash(git commit *)",
-      "Bash(git push*)",
+      "Bash(git push)",
+      "Bash(git push origin *)",
+      "Bash(git push -u origin *)",
+      "Bash(git push --force-with-lease*)",
       "Bash(git rebase *)",
       "Bash(git merge *)",
       "Bash(git merge-base *)",
@@ -26,7 +30,6 @@
       "Bash(git worktree list*)",
       "Bash(rg *)",
       "Bash(grep *)",
-      "Bash(find *)",
       "Bash(cat *)",
       "Bash(head *)",
       "Bash(tail *)",
@@ -54,11 +57,25 @@
       "Bash(gh release delete*)",
       "Bash(gh secret *)",
       "Bash(gh variable *)",
-      "Bash(gh api * -X DELETE*)",
-      "Bash(gh api * --method DELETE*)",
       "Bash(git branch -D*)",
       "Bash(git push * --delete*)",
-      "Bash(git push * :*)"
+      "Bash(git push * :*)",
+      "Bash(bun * deploy-commands*)",
+      "Bash(bun x wrangler deploy*)",
+      "Bash(bunx wrangler@* deploy*)",
+      "Bash(bunx wrangler@* delete*)",
+      "Bash(bunx wrangler@* secret *)",
+      "Bash(bunx wrangler@* r2 * delete*)",
+      "Bash(bunx convex@* deploy*)",
+      "Bash(gh api * DELETE*)",
+      "Bash(gh api *=DELETE*)",
+      "Bash(gh workflow run*)",
+      "Bash(git switch --discard-changes*)",
+      "Bash(git switch * --discard-changes*)",
+      "Bash(git switch -f*)",
+      "Bash(git switch * -f*)",
+      "Bash(git push * -d *)",
+      "Bash(git push * --no-verify*)"
     ],
     "deny": [
       "Bash(npm *)",
@@ -74,6 +91,13 @@
       "Bash(git push * -f)",
       "Bash(git push * -f *)",
       "Bash(git push * +*)",
+      "Bash(git push -f)",
+      "Bash(git push -uf*)",
+      "Bash(git push -fu*)",
+      "Bash(git push * -uf*)",
+      "Bash(git push * -fu*)",
+      "Bash(git push * --mirror*)",
+      "Bash(git push --mirror*)",
       "Bash(git reset --hard*)",
       "Bash(git worktree remove*)",
       "Bash(rm -rf *)",
@@ -82,7 +106,9 @@
   },
   "sandbox": {
     "network": {
-      "allowUnixSockets": ["~/.cache/chrome-a11y"]
+      "allowUnixSockets": [
+        "~/.cache/chrome-a11y"
+      ]
     }
   },
   "hooks": {

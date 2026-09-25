@@ -42,18 +42,27 @@ case "$FILE_PATH" in
   *) exit 0 ;;
 esac
 
-# Map the edited path to the workspace that owns it. Ordered most-specific
-# first; salvageunion-reference must precede any broader packages/ rule.
-case "$FILE_PATH" in
-  *packages/salvageunion-reference/*) WORKSPACE="salvageunion-reference" ;;
-  *packages/component-lib/*)          WORKSPACE="component-lib" ;;
-  *packages/observability/*)          WORKSPACE="observability" ;;
-  *apps/srd/*)                        WORKSPACE="srd" ;;
-  *apps/itun/*)                       WORKSPACE="itun" ;;
-  *apps/discord-bot/*)                WORKSPACE="discord-bot" ;;
-  *apps/su-assets/*)                  WORKSPACE="su-assets" ;;
-  # tools/ is typechecked as its own project (tsconfig.tools.json).
-  *tools/*)                           WORKSPACE="tools" ;;
+# Resolve the checkout that owns the file (NOT $CLAUDE_PROJECT_DIR, which in a
+# worktree session points at the main checkout) and run from its root: the
+# `bun run` / `bun --filter` calls below only resolve from there.
+DIR=$(cd "$(dirname "$FILE_PATH")" 2>/dev/null && pwd -P) || exit 0
+ROOT=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null) || exit 0
+ROOT=$(cd "$ROOT" && pwd -P)
+REL="${DIR#"$ROOT"}/$(basename "$FILE_PATH")"
+REL="${REL#/}"
+cd "$ROOT" || exit 0
+
+# Map the repo-relative path to the project that owns it.
+case "$REL" in
+  packages/salvageunion-reference/*) WORKSPACE="salvageunion-reference" ;;
+  packages/component-lib/*)          WORKSPACE="component-lib" ;;
+  packages/observability/*)          WORKSPACE="observability" ;;
+  apps/srd/*)                        WORKSPACE="srd" ;;
+  apps/itun/*)                       WORKSPACE="itun" ;;
+  apps/discord-bot/*)                WORKSPACE="discord-bot" ;;
+  apps/su-assets/*)                  WORKSPACE="su-assets" ;;
+  # Root tools/ and test/ are typechecked as one project (tsconfig.tools.json).
+  tools/* | test/*)                  WORKSPACE="tools" ;;
   # Repo-root config belongs to no project — leave it to CI.
   *) exit 0 ;;
 esac

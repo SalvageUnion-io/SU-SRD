@@ -39,17 +39,22 @@ if [ "$HAVE" != "$WANT" ]; then
     # GitHub releases rather than bun.sh/install: some sandboxes allow the
     # former and deny the latter, and this needs one exact version, not a
     # version resolver.
+    case "$(uname -s)" in
+      Linux) OS=linux ;;
+      Darwin) OS=darwin ;;
+      *) note "unsupported OS $(uname -s); leaving Bun alone." && exit 0 ;;
+    esac
     case "$(uname -m)" in
       x86_64) ARCH=x64 ;;
       aarch64 | arm64) ARCH=aarch64 ;;
       *) note "unsupported architecture $(uname -m); leaving Bun alone." && exit 0 ;;
     esac
-    URL="https://github.com/oven-sh/bun/releases/download/bun-v${WANT}/bun-linux-${ARCH}.zip"
+    URL="https://github.com/oven-sh/bun/releases/download/bun-v${WANT}/bun-${OS}-${ARCH}.zip"
     if curl -fsSL --max-time 180 -o "${PREFIX}/bun.zip" "$URL" &&
       unzip -oq "${PREFIX}/bun.zip" -d "$PREFIX" &&
-      mv -f "${PREFIX}/bun-linux-${ARCH}/bun" "${PREFIX}/bun"; then
+      mv -f "${PREFIX}/bun-${OS}-${ARCH}/bun" "${PREFIX}/bun"; then
       chmod +x "${PREFIX}/bun"
-      rm -rf "${PREFIX}/bun.zip" "${PREFIX}/bun-linux-${ARCH}"
+      rm -rf "${PREFIX}/bun.zip" "${PREFIX}/bun-${OS}-${ARCH}"
     else
       note "could not download Bun ${WANT} from ${URL}."
       note "Install it by hand; until then bun.lock may be unreadable and every bun script will fail."
@@ -75,7 +80,8 @@ fi
 # (a pull that moves the lockfile otherwise leaves a stale tree behind). The
 # stamp lives inside node_modules, so deleting the tree also clears it.
 STAMP=node_modules/.su-srd-lockhash
-LOCKHASH="$(sha256sum bun.lock 2>/dev/null | cut -d' ' -f1)"
+# sha256sum is GNU; stock macOS has only shasum.
+LOCKHASH="$({ sha256sum bun.lock 2>/dev/null || shasum -a 256 bun.lock 2>/dev/null; } | cut -d' ' -f1)"
 if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null | head -1)" ] ||
   [ "$(cat "$STAMP" 2>/dev/null)" != "$LOCKHASH" ]; then
   note "installing dependencies (frozen lockfile — bun.lock is not rewritten)…"
