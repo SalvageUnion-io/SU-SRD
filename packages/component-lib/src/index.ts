@@ -71,9 +71,9 @@ export {
   entityGuideToneColor,
   entityHostTone,
 } from './components/referenceEntity/card/entityCardTone'
-export type { ReferenceCardEntity } from './components/referenceEntity/card/ReferenceEntityCard'
 // Entity display system
 export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
+export type { ReferenceCardEntity } from './components/referenceEntity/card/referenceEntityCardTypes'
 // Interactive choice cards (granted-equipment choices)
 export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 export type {

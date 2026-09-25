@@ -2,8 +2,8 @@ import { CountStepper } from 'component-lib'
 import { Caption } from 'component-lib/stories/harness'
 import { useState } from 'react'
 import { InstrumentStage } from './_dashboardStage'
-import type { ActiveItemBandModel, StorageLot } from './ActiveItemBand'
-import { ActiveItemBandFrame, StorageBay } from './ActiveItemBand'
+import type { ActiveItemBandModel, StorageLot } from './ActiveItemBandFrame'
+import { ActiveItemBandFrame, StorageBay } from './ActiveItemBandFrame'
 
 export default { title: 'Compositions/Dashboard/Active Item Band' }
 

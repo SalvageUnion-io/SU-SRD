@@ -5,7 +5,7 @@ import { testConvex } from './harness'
 /**
  * Who may write into a game's Change Log.
  *
- * `entities.appendChangeLog` is the client's mirror of a local append: a record
+ * `changeLog.appendChangeLog` is the client's mirror of a local append: a record
  * of something that ALREADY happened on the user's own device. It called
  * `requireUser` and then inserted every entry verbatim — and every field of an
  * entry is client-supplied, `gameId` included. Nothing derived that id from a
@@ -55,7 +55,7 @@ describe('appendChangeLog authorization', () => {
     const gm = await makeUser(t, 'Mediator')
     const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
 
-    await gm.as.mutation(api.entities.appendChangeLog, { entries: [entry(gameId)] })
+    await gm.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(1)
@@ -66,7 +66,7 @@ describe('appendChangeLog authorization', () => {
     const t = testConvex()
     const user = await makeUser(t, 'Solo')
 
-    await user.as.mutation(api.entities.appendChangeLog, { entries: [entry(null)] })
+    await user.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(null)] })
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(rows).toHaveLength(1)
@@ -80,7 +80,7 @@ describe('appendChangeLog authorization', () => {
     const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
 
     await expect(
-      outsider.as.mutation(api.entities.appendChangeLog, { entries: [entry(gameId)] })
+      outsider.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
     ).rejects.toThrow(/Not a member of this game/)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
@@ -97,7 +97,7 @@ describe('appendChangeLog authorization', () => {
     // A batch that is mostly legitimate. Checking only the first entry, or
     // stopping at the first success, would let the smuggled row through.
     await expect(
-      player.as.mutation(api.entities.appendChangeLog, {
+      player.as.mutation(api.changeLog.appendChangeLog, {
         entries: [entry(mine), entry(theirs), entry(null)],
       })
     ).rejects.toThrow(/Not a member of this game/)
@@ -115,7 +115,7 @@ describe('appendChangeLog authorization', () => {
     await player.as.mutation(api.invites.redeem, { code })
 
     // While a member: allowed.
-    await player.as.mutation(api.entities.appendChangeLog, { entries: [entry(gameId)] })
+    await player.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
 
     // Leaving, as far as authorization can tell: the membership row is gone.
     await t.run(async (ctx) => {
@@ -127,7 +127,7 @@ describe('appendChangeLog authorization', () => {
     })
 
     await expect(
-      player.as.mutation(api.entities.appendChangeLog, { entries: [entry(gameId)] })
+      player.as.mutation(api.changeLog.appendChangeLog, { entries: [entry(gameId)] })
     ).rejects.toThrow(/Not a member of this game/)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
@@ -141,7 +141,7 @@ describe('appendChangeLog authorization', () => {
     await gm.as.mutation(api.games.setMediator, { gameId, userId: gm.userId, mediator: true })
 
     await expect(
-      gm.as.mutation(api.entities.appendChangeLog, {
+      gm.as.mutation(api.changeLog.appendChangeLog, {
         entries: [
           entry(gameId, {
             field: 'alert',
@@ -168,7 +168,7 @@ describe('appendChangeLog authorization', () => {
     await player.as.mutation(api.invites.redeem, { code })
 
     await expect(
-      player.as.mutation(api.entities.appendChangeLog, {
+      player.as.mutation(api.changeLog.appendChangeLog, {
         entries: [entry(gameId, { field: 'alert', entityType: 'game', after: 'free scrap' })],
       })
     ).rejects.toThrow(/Alerts are written by the Mediator/)

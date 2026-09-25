@@ -32,23 +32,24 @@
  *
  * Rolls are ephemeral (nothing persists but the applied bookkeeping), so
  * snapshots have nothing to show; the control mounts only on editable
- * sheets. Pure logic lives in lib/rules/crawlerEconomy.ts (injectable d20).
+ * sheets. Pure logic lives in lib/rules/crawlerEconomy.ts (injectable d20);
+ * the Upkeep and Trading Bay dialogs' UI state is a pair of pure reducers in
+ * `crawlerEconomyDialogState.ts`.
  */
 
 import { Button, FieldError, ModalShell, Select, Slab, Stat } from 'component-lib'
-import { useState } from 'react'
+import { useReducer, useState } from 'react'
 import { resolvePool } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
-import type { DeteriorationEffect, TradingRollResult } from '../../lib/rules/crawlerEconomy'
+import type { DeteriorationEffect } from '../../lib/rules/crawlerEconomy'
 import {
   bayGate,
   contributeToUpgradePool,
   convertedCount,
   convertScrap,
   crawlerUpgradeQuote,
-  exchangeStep,
   payUpkeep,
   performDeterioration,
   performTradingRoll,
@@ -66,6 +67,13 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { freshEntity } from './controlPrimitives'
+import {
+  INITIAL_UPKEEP_STATE,
+  initialTradeState,
+  tradeReducer,
+  tradeStep,
+  upkeepReducer,
+} from './crawlerEconomyDialogState'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
@@ -136,9 +144,7 @@ function describeDeterioration(effect: DeteriorationEffect, bayName: string | nu
 
 function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Roll }) {
   const storeState = store()
-  const [result, setResult] = useState<string | null>(null)
-  const [choosePrompt, setChoosePrompt] = useState(false)
-  const [done, setDone] = useState(false)
+  const [{ result, choosePrompt, done }, dispatch] = useReducer(upkeepReducer, INITIAL_UPKEEP_STATE)
 
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
   const pool = crawler.scrapPool ?? {}
@@ -152,7 +158,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const payment = payUpkeep(fresh.scrapPool ?? {}, freshTl)
     if (!payment) {
-      setResult('The pool can no longer cover Upkeep — roll Deterioration instead.')
+      dispatch({ type: 'payFailed' })
       return
     }
     const nextUpgradePool = (fresh.upgradePool ?? 0) + payment.upgradeCredit
@@ -166,12 +172,12 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
       LIVE_SHEET_TXN
     )
     const drawText = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
-    setResult(
-      `Paid ${UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${nextUpgradePool}${
+    dispatch({
+      type: 'paid',
+      message: `Paid ${UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${nextUpgradePool}${
         quote ? ` of ${quote.cost}` : ''
-      }.`
-    )
-    setDone(true)
+      }.`,
+    })
   }
 
   /**
@@ -203,9 +209,11 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         bayName = resolveCrawlerBay(entry.bayRef)?.name ?? entry.bayRef
       }
     }
-    setChoosePrompt(effect.requiresPlayerChoice)
-    setResult(describeDeterioration(effect, bayName))
-    setDone(true)
+    dispatch({
+      type: 'deteriorated',
+      message: describeDeterioration(effect, bayName),
+      choosePrompt: effect.requiresPlayerChoice,
+    })
   }
 
   return (
@@ -415,42 +423,38 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
   const gate = bayGate(crawler, TRADING_BAY)
   const pool = crawler.scrapPool ?? {}
 
-  const [fromTl, setFromTl] = useState(1)
-  const [toTl, setToTl] = useState(2)
-  const [count, setCount] = useState(exchangeStep(1, 2))
-  const [convertNote, setConvertNote] = useState<string | null>(null)
-  const [availability, setAvailability] = useState<TradingRollResult | null>(null)
+  const [{ fromTl, toTl, count, convertNote, availability }, dispatch] = useReducer(
+    tradeReducer,
+    undefined,
+    initialTradeState
+  )
 
-  const step = fromTl === toTl ? 1 : exchangeStep(fromTl, toTl)
+  // The stepper moves in whole exchange steps; `count` is re-seated on one
+  // whenever the pair changes (`tradeReducer`), so it is always a multiple.
+  const step = tradeStep(fromTl, toTl)
   const toCount = convertedCount(fromTl, count, toTl)
   const bucket = scrapPoolBucket(pool, fromTl)
   const convertible =
     gate.operational && fromTl !== toTl && toCount !== null && count > 0 && bucket >= count
-
-  function pickFrom(next: number) {
-    setFromTl(next)
-    setCount(next === toTl ? 1 : exchangeStep(next, toTl))
-  }
-  function pickTo(next: number) {
-    setToTl(next)
-    setCount(fromTl === next ? 1 : exchangeStep(fromTl, next))
-  }
 
   /** Apply the fixed equal-value exchange to the pool buckets (auto-applies). */
   async function handleConvert() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const result = convertScrap(fresh.scrapPool ?? {}, fromTl, count, toTl)
     if (!result) {
-      setConvertNote('The pool no longer covers that trade.')
+      dispatch({ type: 'converted', note: 'The pool no longer covers that trade.' })
       return
     }
     await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN)
-    setConvertNote(`Traded ${count}× T${fromTl} for ${result.toCount}× T${toTl}.`)
+    dispatch({
+      type: 'converted',
+      note: `Traded ${count}× T${fromTl} for ${result.toCount}× T${toTl}.`,
+    })
   }
 
   /** Once per Downtime (honor system) — what the wastelanders brought. */
   function handleAvailabilityRoll() {
-    setAvailability(performTradingRoll({ crawlerTl: tl, roll }))
+    dispatch({ type: 'rolled', result: performTradingRoll({ crawlerTl: tl, roll }) })
   }
 
   return (
@@ -494,7 +498,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                     id="trade-from-tl"
                     className="px-2 py-1.5"
                     value={fromTl}
-                    onChange={(e) => pickFrom(Number(e.target.value))}
+                    onChange={(e) => dispatch({ type: 'pickFrom', tl: Number(e.target.value) })}
                   >
                     {SCRAP_TLS.map((t) => (
                       <option key={t} value={t}>
@@ -512,7 +516,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                     id="trade-to-tl"
                     className="px-2 py-1.5"
                     value={toTl}
-                    onChange={(e) => pickTo(Number(e.target.value))}
+                    onChange={(e) => dispatch({ type: 'pickTo', tl: Number(e.target.value) })}
                   >
                     {SCRAP_TLS.map((t) => (
                       <option key={t} value={t}>
@@ -531,7 +535,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                     step={step}
                     mode="edit"
                     stepperLabel={`trade amount by ${step}`}
-                    onChange={setCount}
+                    onChange={(next) => dispatch({ type: 'setCount', count: next })}
                   />
                 </span>
               </div>

@@ -128,8 +128,8 @@ tolerate partial application.
 
 ## Heat check & reactor overload
 
-**Where:** the **Dashboard**, not the Live Sheet. `ActiveItemBand.tsx` (the
-reactor band) and `ActionsDeck.tsx` call `heatCheckOncePatch()` / `pushPatch()`
+**Where:** the **Dashboard**, not the Live Sheet. `MechBand.tsx` (the
+reactor bay of the Active Item band) and `ActionsDeck.tsx` call `heatCheckOncePatch()` / `pushPatch()`
 in `dashboardRules.ts`, which run `performHeatCheck` / `performPush`, map the
 effect through `heatCheckPatch()`, record the result in `lastHeatCheck`, and
 call `storeState.update('mech', …)` to apply it.
@@ -201,8 +201,8 @@ narrative choices stay player-driven.
 
 **On the Dashboard** (`src/components/dashboard/`):
 
-- **Take Damage / Critical Damage / Critical Injury** — `ActiveItemBand.tsx`
-  over `dashboardRules.ts` (`mechDamagePatch`, `critDamagePatch`,
+- **Take Damage / Critical Damage / Critical Injury** — `MechBand.tsx` and
+  `PilotBand.tsx` (the Active Item band's mech and on-foot bands) over `dashboardRules.ts` (`mechDamagePatch`, `critDamagePatch`,
   `pilotDamagePatch`, `critInjuryPatch`) → `lib/rules/takeDamage.ts`. The SP/HP
   value of a self-declared hit auto-applies; the Critical roll at 0 and marking
   the mech Destroyed are explicit player-confirmed steps.

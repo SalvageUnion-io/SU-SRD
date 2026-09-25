@@ -57,18 +57,26 @@ export {
   extractContentText,
   getSuggestions,
   invalidateSearchIndex,
-  // Search primitives. Public because every consumer that needs them today has
-  // forked them instead (discord-bot + component-lib fork `isSchemaName`; srd
-  // forks `extractContentText`, `withinEditDistance1` and
-  // `TYPO_MIN_TOKEN_LENGTH`). One implementation, one behaviour.
+  // Search primitives. Public because every consumer that needs them today had
+  // forked them instead (discord-bot + component-lib forked `isSchemaName`).
+  // One implementation, one behaviour.
   isSchemaName,
   type SearchOptions,
   type SearchResult,
   search,
   searchIn,
-  TYPO_MIN_TOKEN_LENGTH,
-  withinEditDistance1,
 } from './search.js'
+// The pure matching + ranking rules both matchers share: the ORM `search()`
+// above and srd's compact client index (audit PK-11). No ORM import, so a
+// browser bundle pays only for these functions.
+export {
+  matchSearchTokens,
+  type SearchMatchFacts,
+  type SearchQuery,
+  scoreSearchMatch,
+  searchNameWords,
+  tokenizeSearchQuery,
+} from './searchRanking.js'
 // Export slug utilities
 export { findEntityBySlug, getEntitySlug, nameToSlug } from './slug.js'
 // Export utility functions (type guards and property extractors)

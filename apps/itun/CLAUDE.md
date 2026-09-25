@@ -28,8 +28,8 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   `ShelfSync`. Do not add a second surface that uploads local work; there is no
   legacy exemption, no claim card, and no offer-and-decline path.
 - **A container written twice must be written together** — the row's `gameId`
-  column and the body's `gameId` (`shelveBody` in `convex/entities.ts`;
-  `entities.repairContainers` repairs old rows toward the column).
+  column and the body's `gameId` (`shelveBody` in `convex/claim.ts`;
+  `claim.repairContainers` repairs old rows toward the column).
 - **e2e durability specs need an account.** Without `VITE_CONVEX_URL` +
   `VITE_TEST_AUTH` in the build and `ITUN_TEST_AUTH` on the deployment they
   SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
@@ -126,7 +126,8 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
-  `ActionsDeck.tsx` / `ActiveItemBand.tsx` as one write-through
+  `ActionsDeck.tsx` and the Active Item bands (`MechBand.tsx`,
+  `PilotBand.tsx`, `CrawlerBand.tsx`) as one write-through
   ([ADR-008](../../docs/adrs/ADR-008-sequential-mutations.md),
   [ADR-021](../../docs/adrs/ADR-021-itun-surface-taxonomy.md)).
 - Non-destructive heat-check outcomes auto-apply; destructive condition changes

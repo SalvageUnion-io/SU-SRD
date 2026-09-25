@@ -177,7 +177,7 @@ export function unsavedWork(work: LocalWork, served: ServedRoster): LocalWork {
   }
 }
 
-type ClaimLocal = ReturnType<typeof useMutation<typeof api.entities.claimLocal>>
+type ClaimLocal = ReturnType<typeof useMutation<typeof api.claim.claimLocal>>
 
 /** What a reconciliation pass achieved. */
 export type ReconcileResult = {

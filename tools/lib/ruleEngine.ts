@@ -171,10 +171,12 @@ export function ratchetCounts(
 /**
  * Ratchet rules whose new count is HIGHER than the committed one.
  *
- * `--update-baseline` refuses these unless `--allow-increase` is passed. The one
- * legitimate reason is recorded in the design-token history: a rule made
- * STRICTER counts literals that were always there, and that commit may raise
- * the baseline once, with the reason written down. Drift may not.
+ * `--update-baseline` refuses these unless `--allow-increase` is passed. Two
+ * reasons are legitimate, each recorded where it happened: a rule made STRICTER
+ * counts literals that were always there (the design-token history), and a pure
+ * FILE SPLIT raises a per-file count without a literal being written (the
+ * styling-ownership history). Either may raise the baseline once, in its own
+ * commit, with the reason and the evidence written down. Drift may not.
  */
 export function increases(
   previous: Record<string, number>,

@@ -525,10 +525,12 @@ the roster** — read it rather than trusting a tree here. The composition below
 DashboardCanvas                    ← fixed 1280×800 canvas; scale + narrow-width bail-out
 └── DashboardGrid                  ← the 4-slot grid: rail / primary / display / wheel
     ├── rail:    RailBar           ← exit · context stamp · fam tint
-    ├── primary: ActiveItemBand    ← 2/3 viewfinder; bays of gauges + buttons,
-    │                                driven by an `ActiveItemBandView` (BandBay /
-    │                                BandGauge / BandButton / BandOverlay).
-    │                                StorageBay is its cargo-hold overlay.
+    ├── primary: ActiveItemBand    ← 2/3 viewfinder; dispatches by mount to
+    │                                MechBand / PilotBand / CrawlerBand, each of
+    │                                which builds an `ActiveItemBandModel` (BandBay /
+    │                                BandGauge / BandButton / BandOverlay) that
+    │                                ActiveItemBandFrame renders. StorageBay is
+    │                                its cargo-hold overlay.
     ├── display: DisplayPanel        ← the one "forward" surface. Takes a discriminated
     │                                `DisplayContent`: 'entity' (ReferenceEntityCard +
     │                                `controls`) | 'tables' (RollTable + TablePickerOverlay)
@@ -542,9 +544,11 @@ DashboardGauge                     ← the segmented pip gauge, used inside Acti
 playStateStore                     ← mount state / dial focus (ephemeral, apps/itun/src/stores/)
 ```
 
-The ITUN containers (`ActiveItemBand.tsx`, `DisplayPanel.tsx`, `ActionsDeck.tsx`,
-`DowntimeWizard.tsx`, `DialConfig.tsx`) are same-named wrappers that resolve
-store + rules state into the view objects the `component-lib` shells take.
+The ITUN containers (`ActiveItemBand.tsx` with its per-mount `MechBand.tsx` /
+`PilotBand.tsx` / `CrawlerBand.tsx`, `DisplayPanel.tsx`, `ActionsDeck.tsx`,
+`DowntimeWizard.tsx`, `DialConfig.tsx`) resolve store + rules state into the
+view objects their presentational halves take (`ActiveItemBandFrame.tsx` for the
+bands).
 Supporting modules: `dialItems.ts`, `dashboardRules.ts`, `dashboardLinks.ts`,
 `dashboardLaunch.ts`, `DashboardChooser.tsx`.
 

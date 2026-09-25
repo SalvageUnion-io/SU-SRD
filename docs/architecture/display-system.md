@@ -24,7 +24,13 @@ There is no single stack. There are **two card shells**, deliberately separate:
   printed-card spec (frame on the inner clipping element so the seam stamp can
   escape the clip, book-style text sub-header, identity footer) and owns entity
   recursion: nested systems/modules/actions/grants render as nested cards,
-  bounded by a `MAX_DEPTH` guard.
+  bounded by a `MAX_DEPTH` guard. That file is the orchestrator — it decides
+  what a card carries and composes it; each body section (seam, shortform
+  badge, prose, choices, guide steps, nested groups, a pattern's loadout, …) is
+  its own component beside it in `card/`, the pure cell/stat/body rules live in
+  `cardCells.ts`, `bodyBlocks.ts`, `cardChrome.ts` and `nestedSections.ts`, and
+  the prop types in `referenceEntityCardTypes.ts`. Sections that render nested
+  cards receive the card as a `NestedCard` prop rather than importing it.
 - **`Card`** — `packages/component-lib/src/components/shared/Card.tsx`.
   The generic four-band container (header / sub-header / body-plus-expand /
   footer) that non-entity surfaces compose: `ModalShell`, `SheetSection` /
@@ -32,7 +38,7 @@ There is no single stack. There are **two card shells**, deliberately separate:
   encounter cards.
 
 **They are NOT being merged, and `ReferenceEntityCard` does not render through
-`Card`** (it imports only the `CardFootMeta` type from it). A full
+`Card`** (its modules import only the `CardFootMeta` type from it). A full
 assessment found the composition impossible without visual deltas across every
 SRD page — the frame-element difference alone shifts every absolute overlay by
 3px, ghosted sub-header tones are underivable inside Card, and the two

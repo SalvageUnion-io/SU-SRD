@@ -3,6 +3,12 @@
  */
 
 import { getDataMaps, getSchemaCatalog } from './ModelFactory.js'
+import {
+  matchSearchTokens,
+  scoreSearchMatch,
+  searchNameWords,
+  tokenizeSearchQuery,
+} from './searchRanking.js'
 import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
 import { extractActions } from './utilities.js'
 
@@ -154,7 +160,7 @@ function buildSearchIndex(): SearchIndexEntry[] {
         contentText,
         actionsText,
         fields: fieldPairs,
-        nameWords: nameText.split(/[^a-z0-9]+/).filter(Boolean),
+        nameWords: searchNameWords(nameText),
       })
     }
   }
@@ -246,122 +252,16 @@ export function extractContentText(content: unknown): string {
 }
 
 /**
- * True when `token` is within edit distance 1 of `word` (insert, delete, or
- * substitute one character). Two-pointer scan — no DP table, O(len) time.
- *
- * The canonical typo-tolerance primitive. `apps/srd`'s
- * `searchCompactIndex.ts` used to carry a verbatim port and now imports this.
- * Ranking parity between the ORM-backed search and the compact client index
- * depends on the two behaving identically, which is exactly the thing a fork
- * cannot guarantee — so keep it that way.
+ * Which fields of an entry hold at least one token. Drives the per-field part
+ * of the score; the match decision itself is `matchSearchTokens`, shared with
+ * srd's compact index (see `searchRanking.ts`).
  */
-export function withinEditDistance1(token: string, word: string): boolean {
-  const lenDiff = token.length - word.length
-  if (lenDiff < -1 || lenDiff > 1) return false
-  // Walk both strings past the common prefix, then compare the remainder
-  // according to which edit (substitute / insert / delete) could reconcile.
-  let i = 0
-  while (i < token.length && i < word.length && token[i] === word[i]) i++
-  if (i === token.length && i === word.length) return true // identical
-  if (lenDiff === 0) return token.slice(i + 1) === word.slice(i + 1) // substitute
-  if (lenDiff === 1) return token.slice(i + 1) === word.slice(i) // delete from token
-  return token.slice(i) === word.slice(i + 1) // insert into token
-}
-
-/**
- * Minimum token length before typo (edit-distance-1) matching applies.
- *
- * Paired with {@link withinEditDistance1}. `apps/srd`'s
- * `searchCompactIndex.ts` used to re-declare it and now imports it; a fork
- * that drifts changes ranking silently.
- */
-export const TYPO_MIN_TOKEN_LENGTH = 4
-
-/**
- * Calculate a relevance score for a search match.
- * Higher scores = better matches. Token-aware (audit item 11): whole-query
- * name hits rank above all-tokens-in-name, which ranks above hits scattered
- * across other fields; typo-assisted matches rank below every literal hit.
- */
-function calculateScore(
-  entry: SearchIndexEntry,
-  loweredQuery: string,
-  tokens: string[],
-  matchedFields: string[],
-  usedTypo: boolean
-): number {
-  let score = 0
-
-  if (entry.nameText === loweredQuery) {
-    score += 100
-  } else if (entry.nameText.startsWith(loweredQuery)) {
-    score += 50
-  } else if (entry.nameText.includes(loweredQuery)) {
-    score += 25
-  } else if (tokens.every((t) => entry.nameText.includes(t))) {
-    // All tokens appear in the name, just not contiguously ("heavy laser"
-    // → "Heavy Arc Laser").
-    score += 20
-  }
-
-  if (entry.descriptionText.includes(loweredQuery)) {
-    score += 10
-  }
-
-  score += matchedFields.length * 5
-
-  // A match that needed typo forgiveness always ranks below literal hits.
-  if (usedTypo) score -= 15
-
-  return score
-}
-
-/**
- * Check if an entity matches the tokenized query using the pre-computed
- * index. Every token must match somewhere (substring across any field, or —
- * for tokens of 4+ chars — edit-distance-1 against a name word). matchedFields
- * lists every field containing at least one token.
- */
-function matchesQuery(
-  indexEntry: SearchIndexEntry,
-  tokens: string[]
-): { matches: boolean; matchedFields: string[]; usedTypo: boolean } {
+function matchedFieldsOf(indexEntry: SearchIndexEntry, tokens: string[]): string[] {
   const matchedFields: string[] = []
-  let usedTypo = false
-
-  // Which fields contain at least one token (drives matchedFields)?
   for (const [fieldName, text] of indexEntry.fields) {
-    for (const token of tokens) {
-      if (text.includes(token)) {
-        matchedFields.push(fieldName)
-        break
-      }
-    }
+    if (tokens.some((token) => text.includes(token))) matchedFields.push(fieldName)
   }
-
-  // AND semantics: every token must land somewhere.
-  for (const token of tokens) {
-    let found = false
-    for (const [, text] of indexEntry.fields) {
-      if (text.includes(token)) {
-        found = true
-        break
-      }
-    }
-    if (!found && token.length >= TYPO_MIN_TOKEN_LENGTH) {
-      // Name-only typo forgiveness: "hellfyre" → "Hellfire".
-      if (indexEntry.nameWords.some((word) => withinEditDistance1(token, word))) {
-        found = true
-        usedTypo = true
-        if (!matchedFields.includes('name')) matchedFields.push('name')
-      }
-    }
-    if (!found) {
-      return { matches: false, matchedFields: [], usedTypo: false }
-    }
-  }
-
-  return { matches: matchedFields.length > 0, matchedFields, usedTypo }
+  return matchedFields
 }
 
 /**
@@ -370,11 +270,11 @@ function matchesQuery(
 export function search(options: SearchOptions): SearchResult[] {
   const { query, schemas: schemaFilter, limit } = options
 
-  const loweredQuery = query.trim().toLowerCase()
-  if (!loweredQuery) {
+  const parsed = tokenizeSearchQuery(query)
+  if (!parsed) {
     return []
   }
-  const tokens = loweredQuery.split(/\s+/)
+  const { loweredQuery, tokens } = parsed
 
   // Create cache key from search options
   const cacheKey = JSON.stringify(options)
@@ -398,10 +298,23 @@ export function search(options: SearchOptions): SearchResult[] {
       continue
     }
 
-    const { matches, matchedFields, usedTypo } = matchesQuery(indexEntry, tokens)
+    // AND semantics: every token must land in some field, or — name-only —
+    // within one typo of a name word.
+    const { matches, usedTypo } = matchSearchTokens(tokens, indexEntry.nameWords, (token) =>
+      indexEntry.fields.some(([, text]) => text.includes(token))
+    )
 
     if (matches) {
-      const matchScore = calculateScore(indexEntry, loweredQuery, tokens, matchedFields, usedTypo)
+      const matchedFields = matchedFieldsOf(indexEntry, tokens)
+      if (usedTypo && !matchedFields.includes('name')) matchedFields.push('name')
+      const matchScore = scoreSearchMatch({
+        nameText: indexEntry.nameText,
+        loweredQuery,
+        tokens,
+        usedTypo,
+        descriptionText: indexEntry.descriptionText,
+        matchedFieldCount: matchedFields.length,
+      })
 
       results.push({
         schemaName: indexEntry.schemaName,

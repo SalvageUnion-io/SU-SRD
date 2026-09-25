@@ -36,7 +36,8 @@
  * So a copy is `gameId: null` with the copier as owner. It cannot be
  * "unclaimed" in the `ownerId: null` sense — that is the invalid row. No one
  * mutation refuses it; the server simply never writes one. Every shelf insert
- * in `convex/entities.ts` sets `ownerId` to the caller, `games.destroy` gives
+ * in `convex/entities.ts`, `convex/claim.ts` and `convex/shelf.ts` sets
+ * `ownerId` to the caller, `games.destroy` gives
  * an unclaimed row the Organizer as it shelves it, an unclaimed row cannot be
  * written (so cannot be moved out of its Game), and `ownership.release`
  * refuses a shelved build (*"A build on your shelf is already yours"*).

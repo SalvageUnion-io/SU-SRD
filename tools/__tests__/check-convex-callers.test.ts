@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { publicFunctionsIn, referencesIn, uncalled } from '../check-convex-callers'
+import { publicFunctionsIn, reExportsIn, referencesIn, uncalled } from '../check-convex-callers'
 
 /**
  * `tools/check-convex-callers.ts` gates merges, so its parsing is pinned here:
@@ -20,6 +20,45 @@ describe('publicFunctionsIn', () => {
       'const notExported = query({',
     ].join('\n')
     expect(publicFunctionsIn(source)).toEqual(['listMine', 'create', 'run'])
+  })
+})
+
+describe('reExportsIn', () => {
+  test('reads named, aliased and star re-exports of sibling modules', () => {
+    const source = [
+      "export { claimLocal, repairContainers as repair } from './claim'",
+      'export {',
+      '  removeMechPattern,',
+      '  upsertMechPattern,',
+      "} from './shelf'",
+      "export * from './changeLog'",
+    ].join('\n')
+    expect(reExportsIn(source)).toEqual([
+      {
+        from: 'claim',
+        names: [
+          ['claimLocal', 'claimLocal'],
+          ['repairContainers', 'repair'],
+        ],
+      },
+      {
+        from: 'shelf',
+        names: [
+          ['removeMechPattern', 'removeMechPattern'],
+          ['upsertMechPattern', 'upsertMechPattern'],
+        ],
+      },
+      { from: 'changeLog', names: '*' },
+    ])
+  })
+
+  test('type-only re-exports, packages and commented-out lines register nothing', () => {
+    const source = [
+      "export { type Doc } from './_generated/dataModel'",
+      "export { v } from 'convex/values'",
+      "// export { claimLocal } from './claim'",
+    ].join('\n')
+    expect(reExportsIn(source)).toEqual([{ from: '_generated/dataModel', names: [] }])
   })
 })
 

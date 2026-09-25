@@ -5,6 +5,7 @@ import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import { MechPatternSchema } from '../../src/lib/schemas/pattern'
 import { StoredPilotSchema } from '../../src/lib/schemas/pilot'
+import type { SoftLink } from '../../src/lib/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import {
@@ -156,6 +157,32 @@ export async function findOwnedByAppId(
 
   const legacy: Doc<BodyIdTable>[] = await byKey(undefined).collect()
   return legacy.find((row) => bodyAppId(row.body) === appId) ?? null
+}
+
+/**
+ * The server row for a soft link, addressed the way the client addresses one.
+ *
+ * Soft links carry no `appId` and need none: `from.id` and `to.id` already ARE
+ * app-level ids, so the (from, to, kind) triple is the link's identity. Two
+ * links with the same endpoints and the same kind are the same link, whichever
+ * browser drew it — which is what makes the mirror idempotent for free.
+ *
+ * Shared by the mirror mutations (`entities.ts`) and the claim (`claim.ts`):
+ * the triple is the link's identity in both places, and two copies of that
+ * rule could disagree.
+ */
+export async function findSoftLink(
+  ctx: MutationCtx,
+  fromId: string,
+  toId: string,
+  type: SoftLink['type']
+): Promise<Doc<'softLinks'> | null> {
+  const candidates = await ctx.db
+    .query('softLinks')
+    .withIndex('by_from', (q) => q.eq('from.id', fromId))
+    .collect()
+
+  return candidates.find((l) => l.to.id === toId && l.type === type) ?? null
 }
 
 /* -------------------------------------------------------------------------- */

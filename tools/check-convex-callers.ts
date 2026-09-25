@@ -31,9 +31,17 @@
  * built through a differently named custom builder would be missed, so keep
  * public builders under those three names (as `model/entities` does).
  *
+ * A RE-EXPORT of a public function is a public function too: Convex registers
+ * every export of a module, so `export { claimLocal } from './claim'` in
+ * `entities.ts` makes `entities:claimLocal` callable by anyone. The check
+ * follows `export { … } from './x'` and `export * from './x'` to sibling
+ * modules and counts each re-exported public function under the re-exporting
+ * module's name — otherwise a re-export would be reachable surface this check
+ * could not see.
+ *
  * If a public function is genuinely meant to be called from outside this repo,
  * list it in `ALLOWED_WITHOUT_CALLER` with the reason. That list is empty on
- * purpose.
+ * purpose, apart from transitional aliases that name their own removal.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -45,8 +53,25 @@ const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
 /** Directories whose non-test sources count as callers. */
 const CALLER_DIRS = [join(ROOT, 'apps/itun/src'), join(ROOT, 'apps/discord-bot/src')]
 
+/**
+ * Stale-client aliases for the functions audit AP-07 moved out of
+ * `entities.ts`. The CURRENT client calls them at their new paths; a tab still
+ * running the bundle from before the move calls them here. See "Transitional
+ * aliases" at the bottom of `convex/entities.ts` — remove these entries with
+ * that block, one release after it shipped.
+ */
+const AP07_ALIAS = 'AP-07 transitional alias: called by clients built before the entities.ts split'
+
 /** `module:name` → why it has no caller in this repo. */
-const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {}
+const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {
+  'entities:appendChangeLog': AP07_ALIAS,
+  'entities:claimLocal': AP07_ALIAS,
+  'entities:removeEncounterNpc': AP07_ALIAS,
+  'entities:removeMechPattern': AP07_ALIAS,
+  'entities:repairContainers': AP07_ALIAS,
+  'entities:upsertEncounterNpc': AP07_ALIAS,
+  'entities:upsertMechPattern': AP07_ALIAS,
+}
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
 const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
@@ -73,6 +98,34 @@ export function publicFunctionsIn(source: string): string[] {
   return [...source.matchAll(/^export const (\w+) = (?:query|mutation|action)\(/gm)]
     .map((m) => m[1])
     .filter((name): name is string => name !== undefined)
+}
+
+/**
+ * Sibling-module re-exports in one module's source: `export { a, b as c } from
+ * './x'` yields `{ from: 'x', names: [['a', 'a'], ['b', 'c']] }` (source name,
+ * exported name); `export * from './x'` yields `names: '*'`. Type-only
+ * re-exports register nothing and are skipped.
+ */
+export function reExportsIn(
+  raw: string
+): Array<{ from: string; names: Array<[string, string]> | '*' }> {
+  const source = withoutComments(raw)
+  const out: Array<{ from: string; names: Array<[string, string]> | '*' }> = []
+  for (const m of source.matchAll(/^export\s*\{([^}]*)\}\s*from\s*['"]\.\/([\w/]+)['"]/gm)) {
+    const names = (m[1] ?? '')
+      .split(',')
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0 && !part.startsWith('type '))
+      .map((part): [string, string] => {
+        const [name = '', alias] = part.split(/\s+as\s+/)
+        return [name, alias ?? name]
+      })
+    if (m[2] !== undefined) out.push({ from: m[2], names })
+  }
+  for (const m of source.matchAll(/^export\s*\*\s*from\s*['"]\.\/([\w/]+)['"]/gm)) {
+    if (m[1] !== undefined) out.push({ from: m[1], names: '*' })
+  }
+  return out
 }
 
 /**
@@ -111,13 +164,26 @@ function isTest(path: string): boolean {
 function main(): void {
   const defined: string[] = []
   const modules = walk(CONVEX_DIR, (p) => p.endsWith('.ts') && !p.endsWith('.d.ts'))
+  const sources = new Map<string, string>()
+  const ownPublic = new Map<string, string[]>()
   for (const file of modules) {
     const module = relative(CONVEX_DIR, file).replace(/\.ts$/, '')
     // Nested modules (`model/*`) are helpers; a public function there would be
     // `api["model/x"]`, which nothing in this repo uses and this would miss.
     if (SKIPPED_MODULES.has(module)) continue
-    for (const name of publicFunctionsIn(readFileSync(file, 'utf-8'))) {
-      defined.push(`${module}:${name}`)
+    const source = readFileSync(file, 'utf-8')
+    sources.set(module, source)
+    ownPublic.set(module, publicFunctionsIn(source))
+  }
+  for (const [module, source] of sources) {
+    for (const name of ownPublic.get(module) ?? []) defined.push(`${module}:${name}`)
+    for (const { from, names } of reExportsIn(source)) {
+      const targetPublic = ownPublic.get(from) ?? []
+      const pairs: Array<[string, string]> =
+        names === '*' ? targetPublic.map((n): [string, string] => [n, n]) : names
+      for (const [name, alias] of pairs) {
+        if (targetPublic.includes(name)) defined.push(`${module}:${alias}`)
+      }
     }
   }
 
