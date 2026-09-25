@@ -28,6 +28,7 @@
  */
 
 import { initWasm, Resvg } from '@resvg/resvg-wasm'
+import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm'
 // `Data` / wasm rules in wrangler.jsonc turn these into binary at build time.
 //
 // They are cast at the use site rather than typed by a `declare module`,
@@ -38,7 +39,6 @@ import { initWasm, Resvg } from '@resvg/resvg-wasm'
 import barlow400 from './fonts/barlow-400.ttf'
 import barlowCond700 from './fonts/barlow-cond-700.ttf'
 import { cardSvg, WIDTH } from './ogCard'
-import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm'
 
 const asBuffer = (imported: unknown): Uint8Array => new Uint8Array(imported as ArrayBuffer)
 const asWasm = (imported: unknown): WebAssembly.Module => imported as WebAssembly.Module
