@@ -7,10 +7,10 @@
   // bare settings bag with no `include`, and nothing ever ran `tsc` at the root.
   // So the ~24 files below were linted and formatted but never type-checked:
   //
-  //   tools/**   every CI guard the repo's correctness rests on —
-  //              check-architecture, check-doc-drift, check-observability,
-  //              check-bun-version, check-design-tokens, check-styling-ownership
-  //              — plus a11y-scan, the coverage reporter and the rules digest.
+  //   tools/**   every CI guard the repo's correctness rests on — the
+  //              check.ts runner and every gate it calls (check-workflows,
+  //              check-styling and its rule sets, check-doc-drift, …) — plus
+  //              a11y-scan and the coverage reporter.
   //   test/**    the four preload files loaded by EVERY workspace bunfig.
   //
   // This is the same class of hole as `apps/itun/convex/**` (see that
@@ -30,7 +30,7 @@
     "declaration": false,
     "declarationMap": false,
     "composite": false,
-    // `tools/` reads JSON baselines (design-tokens, styling-ownership) directly.
+    // `tools/` reads JSON baselines (styling-baseline, a11y-baseline) directly.
     "resolveJsonModule": true
   },
   "include": ["tools/**/*.ts", "test/**/*.ts"]

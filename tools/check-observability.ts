@@ -19,7 +19,7 @@
  * So the two halves must be checked together, and they are checked at the two
  * different places they can break:
  *
- *   STATIC (default; runs in `validate:all`, so every PR)
+ *   STATIC (default; the `observability` check, so every PR)
  *     Cheap, hermetic, no network. Asserts the wiring a repo can own:
  *       1. each browser app has an observability module reading its expected
  *          DSN env var,

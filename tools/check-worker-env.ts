@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Worker `Env` drift check — `bun run check:worker-env`.
+ * Worker `Env` drift check — `bun run check worker-env`.
  *
  * Each of the three Workers hand-writes its `Env` type (audit AP-12), and the
  * bindings it lists are a second copy of what that Worker's `wrangler.jsonc`
@@ -36,7 +36,7 @@
  * The reverse direction is not checked: `Env` legitimately declares secrets
  * and observability fields that no config file names.
  *
- * Usage: bun run check:worker-env
+ * Usage: bun run check worker-env
  */
 
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
@@ -45,7 +45,7 @@ import { join, relative } from 'node:path'
 import { assertScanFloor } from './lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
-const LABEL = 'check:worker-env'
+const LABEL = 'check worker-env'
 
 export type Worker = { app: string; configPath: string; mainPath: string }
 

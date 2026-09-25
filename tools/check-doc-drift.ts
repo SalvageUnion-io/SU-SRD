@@ -56,6 +56,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, extname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { CHECK_IDS } from './check'
 import { assertScanFloor } from './lib/scanFloor'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -846,7 +847,7 @@ type CatalogHost = {
  * at the top level of the package.json file, that will work too"). This repo
  * uses the `workspaces` form, but the fallback is not hypothetical tidiness:
  * dependabot-core #12522 rewrites this field, and a check that returns
- * undefined here fails `validate:all` with "has the dependency moved?" —
+ * undefined here fails `bun run check` with "has the dependency moved?" —
  * pointing at the dependency rather than at the rewrite that actually broke it.
  */
 function resolveCatalog(root: string, spec: string, dependency: string): string | undefined {
@@ -968,7 +969,9 @@ export function checkFrameworkVersions(root: string): CheckResult {
  * `bun test` because nothing compared instructions against reality.
  *
  * Scope: `bun run <name>` and `bun --filter <workspace> <name>`, which is how
- * every documented command in this repo is written.
+ * every documented command in this repo is written — plus the check ids in
+ * `bun run check <id> …`, which name entries in `tools/check.ts`'s registry
+ * rather than scripts, and would otherwise rot unseen the same way.
  */
 function scriptsOf(root: string, manifest: string): Set<string> {
   const path = join(root, manifest)
@@ -1042,6 +1045,20 @@ export function checkReferencedScripts(root: string): { ok: string; failures: st
             `${owningManifest(doc) ? ` or in ${owningManifest(doc)}` : ''}.\n` +
             `  → rename the reference to the surviving script, or drop it.`
         )
+      }
+    }
+
+    // `bun run check data doc-drift` — the words after `check` are registry ids.
+    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[\s`'"]|$)/g)) {
+      for (const id of (m[1] ?? '').trim().split(' ')) {
+        checked++
+        if (!CHECK_IDS.includes(id)) {
+          failures.push(
+            `${doc} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
+              `tools/check.ts (known: ${CHECK_IDS.join(', ')}).\n` +
+              '  → use a registered id, or drop it.'
+          )
+        }
       }
     }
 
@@ -1729,7 +1746,7 @@ if (import.meta.main) {
   // whereas this printed counts of FINDINGS — 4 ADRs, 181 references — never of
   // corpus, so a collapsed scan looked identical to a healthy one.
   //
-  // This gate walks the largest tree of any in `validate:all` and was the one
+  // This gate walks the largest tree of any in `bun run check` and was the one
   // `tools/lib/scanFloor.ts` was not applied to when its four siblings were
   // fixed. Floor set well below the real count: a catastrophe detector, not a
   // coverage target.
