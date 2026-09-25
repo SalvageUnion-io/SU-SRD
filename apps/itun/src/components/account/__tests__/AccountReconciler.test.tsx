@@ -309,6 +309,85 @@ describe('signing in', () => {
     expect(screen.queryByText(/could not be saved/i)).toBeNull()
   })
 
+  test('signing out does not turn the account’s cached rows into anonymous work', async () => {
+    // A page loaded signed in, holding the account's own cached pilot.
+    authed = true
+    server = { owned: new Set(['acct-1']), unparseable: new Set() }
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'acct-1' }))
+    const view = render(<Tree />)
+    await act(async () => {
+      await probeLegacyLocalData()
+    })
+
+    // Signed out, the caches still hold it — but it is not this tab's work.
+    authed = false
+    view.rerender(<Tree />)
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(screen.queryByText(/not saved/i)).toBeNull()
+
+    // Signing in again (to any account) sends nothing and reports nothing.
+    authed = true
+    view.rerender(<Tree />)
+    await waitFor(() =>
+      expect(mutations.some((m) => m.name === 'entities:repairContainers')).toBe(true)
+    )
+    expect(claims()).toHaveLength(0)
+    expect(promotionState()).toBe('idle')
+    expect(screen.queryByText(/could not be saved/i)).toBeNull()
+  })
+
+  test('after signing out, only work built since is captured', async () => {
+    authed = true
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'acct-1' }))
+    server = { owned: new Set(['acct-1']), unparseable: new Set() }
+    const view = render(<Tree />)
+    await act(async () => {
+      await probeLegacyLocalData()
+    })
+
+    authed = false
+    view.rerender(<Tree />)
+    await act(async () => {
+      await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    })
+    await waitFor(() => expect(screen.getByText(/1 build not saved/i)).toBeTruthy())
+
+    authed = true
+    view.rerender(<Tree />)
+    await waitFor(() => expect(claims()).toHaveLength(1))
+    const sent = claims()[0]?.args.pilots as { id: string }[] | undefined
+    expect(sent?.map((p) => p.id)).toEqual(['tab-1'])
+    await waitFor(() => expect(promotionState()).toBe('idle'))
+  })
+
+  test('a build saved on one sign-in is not captured again after signing out', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    server = { owned: new Set(), unparseable: new Set() }
+    const view = render(<Tree />)
+    await signIn(view)
+    await waitFor(() => expect(claims()).toHaveLength(1))
+    await waitFor(() => expect(promotionState()).toBe('idle'))
+
+    authed = false
+    view.rerender(<Tree />)
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(screen.queryByText(/not saved/i)).toBeNull()
+
+    authed = true
+    view.rerender(<Tree />)
+    await waitFor(() =>
+      expect(
+        mutations.filter((m) => m.name === 'entities:repairContainers').length
+      ).toBeGreaterThan(0)
+    )
+    expect(claims()).toHaveLength(1)
+    expect(screen.queryByText(/could not be saved/i)).toBeNull()
+  })
+
   test('device rows missing from the account are sent, on the shelf', async () => {
     await db.pilots.put(pilotFixture({ id: 'disk-1', gameId: 'phantom-workspace' }))
     authed = true

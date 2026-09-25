@@ -88,6 +88,49 @@ export function captureSessionWork(): LocalWork {
   }
 }
 
+/** A row's own id, or null for a row without one. */
+function rowId(row: unknown): string | null {
+  const id = (row as { id?: unknown } | null)?.id
+  return typeof id === 'string' ? id : null
+}
+
+/** Every row id a selection holds, soft links included. */
+export function workIds(work: LocalWork): Set<string> {
+  const ids = new Set<string>()
+  for (const rows of Object.values(work) as unknown[][]) {
+    for (const row of rows) {
+      const id = rowId(row)
+      if (id !== null) ids.add(id)
+    }
+  }
+  return ids
+}
+
+/**
+ * A selection with the given rows taken out.
+ *
+ * What keeps a signed-in account's cached rows out of the anonymous capture.
+ * The Zustand caches survive signing out, so without this the account's own
+ * roster reads as "this tab's unsaved work" the moment the backend returns to
+ * `memory` — and the next sign-in, possibly to a different account, uploads it.
+ */
+export function withoutIds(work: LocalWork, excluded: ReadonlySet<string>): LocalWork {
+  if (excluded.size === 0) return work
+  const keep = (rows: readonly unknown[]): unknown[] =>
+    rows.filter((row) => {
+      const id = rowId(row)
+      return id === null || !excluded.has(id)
+    })
+  return {
+    pilots: keep(work.pilots),
+    mechs: keep(work.mechs),
+    crawlers: keep(work.crawlers),
+    softLinks: keep(work.softLinks),
+    mechPatterns: keep(work.mechPatterns),
+    encounterNpcs: keep(work.encounterNpcs),
+  }
+}
+
 /**
  * The part of this session's work the account does not hold yet.
  *

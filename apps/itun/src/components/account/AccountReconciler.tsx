@@ -49,6 +49,16 @@
  * capture lives in a ref on this always-mounted component because the
  * signed-in half mounts only after the flip — a capture living there would be
  * torn down at exactly the moment it is needed.
+ *
+ * Signing OUT does not empty the Zustand caches, so "anonymous" cannot mean
+ * "whatever the caches hold while the backend is `memory`": that would capture
+ * the account's own rows the instant it signs out, name them as unsaved, and
+ * send them — perhaps to a different account — on the next sign-in, where
+ * `claimLocal` answers `alreadyPresent` and the error line never clears. Every
+ * id the caches hold while signed in is recorded as the account's
+ * (`accountIds`), as is every row a pass saves, and the capture excludes them.
+ * The one exception is a capture still being sent: a failed upload stays this
+ * tab's work, and is still named after a sign-out.
  */
 
 import { Button, Text, toast } from 'component-lib'
@@ -63,7 +73,14 @@ import {
 } from '../../lib/account/legacyMigration'
 import { setPromotionState } from '../../lib/account/promotionState'
 import type { LocalWork } from '../../lib/account/reconcile'
-import { combineBundles, countWork, reconcile, unsavedWork } from '../../lib/account/reconcile'
+import {
+  combineBundles,
+  countWork,
+  reconcile,
+  unsavedWork,
+  withoutIds,
+  workIds,
+} from '../../lib/account/reconcile'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
@@ -214,6 +231,8 @@ const NO_FAILURE: Failure = { session: null, device: null }
  */
 type ReconcileState = {
   sessionWork: RefObject<LocalWork | null>
+  /** Row ids known to be the account's, never to be captured as anonymous. */
+  accountIds: RefObject<Set<string>>
   running: RefObject<{ session: boolean; device: boolean }>
   /**
    * Bumped every time the backend returns to `memory` (signing out). A pass
@@ -250,7 +269,7 @@ function SignedInReconciler({
   state: ReconcileState
   device: DeviceRows | null
 }) {
-  const { sessionWork, running, epoch, failure, setFailure } = state
+  const { sessionWork, accountIds, running, epoch, failure, setFailure } = state
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
   const claimLocal = useMutation(api.entities.claimLocal)
@@ -258,6 +277,19 @@ function SignedInReconciler({
 
   /** One device pass per mount: a live query re-emits, the reconciliation must not. */
   const deviceRan = useRef(false)
+
+  /** Mark rows as the account's, and take them out of any pending capture. */
+  const settle = useCallback(
+    (saved: LocalWork) => {
+      const ids = workIds(saved)
+      for (const id of ids) accountIds.current.add(id)
+      const pending = sessionWork.current
+      if (pending === null) return
+      const rest = withoutIds(pending, ids)
+      sessionWork.current = countWork(rest) > 0 ? rest : null
+    },
+    [accountIds, sessionWork]
+  )
 
   const runSession = useCallback(() => {
     if (running.current.session) return
@@ -267,6 +299,7 @@ function SignedInReconciler({
     // fresh capture is new, so there is nothing to filter).
     const work = captured === null || mine === undefined ? captured : unsavedWork(captured, mine)
     if (work === null || countWork(work) === 0) {
+      if (captured !== null) settle(captured)
       sessionWork.current = null
       setPromotionState('idle')
       setFailure((f) => ({ ...f, session: null }))
@@ -282,6 +315,10 @@ function SignedInReconciler({
 
     void reconcile(claimLocal, work, { adopt: true })
       .then(({ stranded }) => {
+        // A pass that landed in full is a fact about the account whatever has
+        // happened since: its rows are the account's now and must not be
+        // captured again after a sign-out — nor sent to the next account.
+        if (stranded === 0) settle(work)
         if (!current()) return
         if (stranded > 0) {
           setPromotionState('failed')
@@ -308,7 +345,7 @@ function SignedInReconciler({
       .finally(() => {
         if (current()) running.current.session = false
       })
-  }, [claimLocal, mine, running, epoch, sessionWork, setFailure])
+  }, [claimLocal, mine, running, epoch, sessionWork, settle, setFailure])
 
   const runDevice = useCallback(() => {
     // Nothing on this device, or the account is still loading. `undefined` is
@@ -423,6 +460,10 @@ function SignedInReconciler({
           <Button
             variant="default"
             size="compact"
+            // Until the account loads, a retry cannot tell what already landed
+            // and would resend the whole capture — which comes back
+            // `alreadyPresent` for every row the first pass saved.
+            disabled={mine === undefined}
             onClick={() => {
               if (failure.session !== null) {
                 setFailure((f) => ({ ...f, session: null }))
@@ -490,13 +531,33 @@ export function AccountReconciler() {
 
   /** This tab's anonymous work, as of the last anonymous render. See the header. */
   const sessionWork = useRef<LocalWork | null>(null)
+  /**
+   * Every row id the caches held while signed in, other than the capture that
+   * was being sent. See "The consent line": the caches survive signing out, so
+   * without this an account's own rows would be captured as anonymous work.
+   */
+  const accountIds = useRef(new Set<string>())
   const running = useRef({ session: false, device: false })
   const epoch = useRef(0)
   const [failure, setFailure] = useState<Failure>(NO_FAILURE)
+
+  // Read in render so the banner's count and the capture agree. A ref, not
+  // state: it only grows while signed in, when this value is not rendered.
+  const anonymous = backend === 'memory' ? withoutIds(session, accountIds.current) : session
+
   useEffect(() => {
-    if (backend !== 'memory') return
-    sessionWork.current = countWork(session) > 0 ? session : null
-  }, [backend, session])
+    if (backend === 'memory') {
+      sessionWork.current = countWork(anonymous) > 0 ? anonymous : null
+      return
+    }
+    // Signed in (or blocked): whatever the caches hold is the account's —
+    // except a capture still being sent, which stays this tab's work until it
+    // lands (a failed upload must still be named after signing out).
+    const pending = sessionWork.current === null ? null : workIds(sessionWork.current)
+    for (const id of workIds(session)) {
+      if (pending === null || !pending.has(id)) accountIds.current.add(id)
+    }
+  }, [backend, session, anonymous])
 
   // Signing out ends everything the last sign-in started. The error line and
   // the prune guard describe THAT account's passes; kept, they would stop the
@@ -512,7 +573,7 @@ export function AccountReconciler() {
   }, [backend])
 
   if (backend === 'memory') {
-    const n = countWork(session)
+    const n = countWork(anonymous)
     if (n === 0 && device === null) return null
     return <AnonymousNotice session={n} device={device} />
   }
@@ -522,7 +583,7 @@ export function AccountReconciler() {
   if (backend !== 'remote' || !isConvexConfigured) return null
   return (
     <SignedInReconciler
-      state={{ sessionWork, running, epoch, failure, setFailure }}
+      state={{ sessionWork, accountIds, running, epoch, failure, setFailure }}
       device={device}
     />
   )
