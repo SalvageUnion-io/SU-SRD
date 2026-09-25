@@ -1,6 +1,5 @@
-#!/usr/bin/env bun
 /**
- * Design-token guardrails — `bun run check:tokens`.
+ * Design-token laws — the `tokens` rule set of `tools/check-styling.ts`.
  *
  * Plan phase 6 of the canonical primitive language (docs/design-system/
  * canonical-primitive-language.md §4) specified these checks and they were never
@@ -11,21 +10,41 @@
  * Why this must exist as a build step rather than a review habit: these tokens
  * are Tailwind v4 `@theme` entries, so a deleted token does not fail typecheck —
  * the utility simply stops being generated and the element renders unstyled.
- * There is no compiler backstop for this class of mistake. This script is it.
+ * There is no compiler backstop for this class of mistake. This rule set is it.
  *
  * Every rule maps to a law in docs/design-system/ruleset.md; the `rule` field
  * cites the section so a failure tells you which law you broke, not just which
  * regex you tripped.
+ *
+ * ## Zero rules and the two ratchets
+ *
+ * Six rules are `zero`: any finding fails. Two still carry a backlog and are
+ * `ratchet` rules, counted against `tools/styling-baseline.json`:
+ *
+ *   - `raw-color` — the Discord bot restates the palette as hex integers
+ *     (`format.ts`, `gameEmbed.ts`, `lookupEmbed.ts`; `0xb7410e` is
+ *     `--color-rust`, three times over).
+ *   - `arbitrary-font-size` — `WizShell.tsx` and `LiveSheet.tsx`.
+ *
+ * ONE SANCTIONED upward rebaseline is on record, and it is the only kind there
+ * may be: when a rule is made STRICTER its count rises without anyone having
+ * written a new violation. That happened once, to `raw-color` (11 -> 35), when
+ * its `rgb()` arm stopped using `\b` — a boundary that could never fire inside a
+ * Tailwind arbitrary value, because `_` is a word character. The newly-counted
+ * literals were all pre-existing `shadow-[..._rgba(...)]` values; baselined
+ * rather than fixed because there is no shadow token ladder to convert them to.
+ * A stricter rule may raise its baseline ONCE, in the commit that tightens it,
+ * with `--allow-increase` and the reason written down. Drift may not.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
-import { assertCoversWorkspaces } from './lib/workspaceCoverage'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
+import { isExempt, listFiles } from '../lib/ruleEngine'
+import { assertScanFloor } from '../lib/scanFloor'
+import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
-const ROOT = join(import.meta.dir, '..')
-
-const SCAN_DIRS = [
+export const SCAN_DIRS = [
   'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
   // The DATASET, not just the code that reads it. `data/guides.json` carried
@@ -52,21 +71,16 @@ const SCAN_DIRS = [
 // for the first time (see EXEMPTIONS).
 const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json']
 
-type Rule = {
-  /** Stable id, used by the exemption list. */
-  id: string
-  /** Which law this enforces — cited back to the author on failure. */
-  rule: string
-  /** What to do instead. */
-  fix: string
+type TokenRule = Rule & {
   pattern: RegExp
-  /** Files this rule never applies to (globs are substring matches on the repo-relative path). */
+  /** Files this rule never applies to (substring matches on the repo-relative path). */
   skip?: string[]
 }
 
-const RULES: Rule[] = [
+export const TOKEN_RULES: TokenRule[] = [
   {
     id: 'shadow-tokens',
+    mode: 'zero',
     rule: 'ruleset §0/§4.1 — one closed colour set',
     fix: 'Use the canonical token: su-orange→pilot, su-orange-dark→rust, su-green→mech, su-green-dark→mech-dark, su-pink→crawler, su-black→ink, su-blue-pale→wk-bg, su-orange-light/su-peach→pilot-light, su-rust→adversary, su-paper→paper (or band-cream in RollTable bands), greys→ink-75/50/30/12/8.',
     // The `su-` colour family only. `.su-section-header` / `.su-print-hidden`
@@ -77,6 +91,7 @@ const RULES: Rule[] = [
   },
   {
     id: 'raw-color',
+    mode: 'ratchet',
     rule: 'ruleset §4.1 — colour lives in tokens, not call sites',
     fix: 'Add or reuse a token in theme.css and reference it via a Tailwind utility or var(--color-*).',
     // Two guards keep this from firing on things that only LOOK like hex:
@@ -115,6 +130,7 @@ const RULES: Rule[] = [
   },
   {
     id: 'gradient',
+    mode: 'zero',
     rule: 'ruleset §3.5 — no gradient SHADING (hard-stop patterns are allowed)',
     // The law bans smooth interpolation, not the CSS function — a gradient
     // whose stops are coincident paints flat bands and is a PATTERN. That
@@ -128,6 +144,7 @@ const RULES: Rule[] = [
   },
   {
     id: 'arbitrary-tracking',
+    mode: 'zero',
     rule: 'ruleset §4.2 — the tracking ladder is tokens only',
     // (This note used to say canon and code DISAGREED — that ruleset §4.2
     // declared a three-token set while theme.css shipped five, leaving a
@@ -141,6 +158,7 @@ const RULES: Rule[] = [
   },
   {
     id: 'arbitrary-border-width',
+    mode: 'zero',
     rule: 'ruleset §4.3 — border weights are tokens, one meaning each',
     fix: 'Use border-entity (3px, plus border-b-/border-l- sides) / border-rail (2.5px) / border-2 (2px pill) / border-chrome (1.5px, plus sides) / border (1px hairline).',
     // Only widths — `border-[color:var(--x)]` is a colour, covered by raw-color.
@@ -148,6 +166,7 @@ const RULES: Rule[] = [
   },
   {
     id: 'arbitrary-radius',
+    mode: 'zero',
     rule: 'ruleset §4.4 — the ONE radius vocabulary',
     // The gap this closes: theme.css has said "never `rounded-[Npx]`" since the
     // radius ladder landed, and nothing enforced it. 28 arbitrary radii
@@ -162,12 +181,14 @@ const RULES: Rule[] = [
   },
   {
     id: 'arbitrary-font-size',
+    mode: 'ratchet',
     rule: 'ruleset §4.2 — one type scale',
     fix: 'Use the semantic ladder: text-nano / micro / label / label-lg / badge / note / caption / lede, then the display end — readout (17) / title (22) / display (26) / display-lg (31) / hero (38).',
     pattern: /text-\[(?!var\(|color:|--)[^\]]+\]/g,
   },
   {
     id: 'pure-white',
+    mode: 'zero',
     rule: 'ruleset §4.1 — pure white is retired; paper (#fbfaf7) is the one light surface',
     fix: 'Use bg-paper / text-paper.',
     pattern: /\b(?:bg|text|border|ring|fill|stroke)-white\b/g,
@@ -178,7 +199,7 @@ const RULES: Rule[] = [
  * Sanctioned literals. Each entry needs a reason — an exemption without a
  * justification is just a silent hole in the guardrail.
  */
-const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
+const EXEMPTIONS: Exemption[] = [
   {
     file: 'apps/srd/src/pages/greembeem.page.tsx',
     rules: ['raw-color'],
@@ -308,191 +329,63 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
   },
 ]
 
-function walk(dir: string): string[] {
-  const out: string[] = []
-  let entries: string[]
-  try {
-    entries = readdirSync(dir)
-  } catch {
-    return out
-  }
-  for (const entry of entries) {
-    // `generated`: machine-written files are not a place a violation can be
-    // fixed — the only edit that survives is to the generator, and the literals
-    // in them are DATA rather than authored styling. apps/srd's
-    // src/generated/navCatalog.ts carries the dataset's own `catalogBg` values
-    // (including its gradients), which used to reach the browser as serialized
-    // island props and were never scanned there either.
-    if (entry === 'node_modules' || entry === 'dist' || entry === 'generated') continue
-    if (entry.startsWith('.')) continue
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walk(full))
-    else if (SCAN_EXTENSIONS.some((ext) => entry.endsWith(ext))) out.push(full)
+/**
+ * Catastrophe floor for SCAN_DIRS, counted AFTER tests and generated files are
+ * dropped: ~760 files today. See tools/lib/scanFloor.ts for why this is
+ * deliberately far below the real count (~65%).
+ */
+const SCAN_FLOOR = 500
+
+function scannedFiles(root: string): string[] {
+  return listFiles(root, SCAN_DIRS, SCAN_EXTENSIONS).filter(
+    (rel) =>
+      // Generated files and test fixtures are not authored surfaces. Tests are a
+      // category rather than an EXEMPTIONS entry: a colour literal in a test is
+      // an ASSERTION about behaviour (an arbitrary override passing through
+      // untouched), and tokenising it would delete the test.
+      !rel.includes('.gen.') &&
+      !rel.includes('routeTree') &&
+      !rel.includes('__tests__') &&
+      !/\.test\.[tj]sx?$/.test(rel)
+  )
+}
+
+/** Findings per rule for the given sources, keyed by repo-relative path. */
+export function scanTokenSources(sources: ReadonlyMap<string, string>): Record<string, Finding[]> {
+  const out: Record<string, Finding[]> = {}
+  for (const rule of TOKEN_RULES) out[rule.id] = []
+  for (const [rel, text] of sources) {
+    const lines = text.split('\n')
+    for (const rule of TOKEN_RULES) {
+      if (isExempt(EXEMPTIONS, rel, rule.id)) continue
+      if (rule.skip?.some((s) => rel.includes(s))) continue
+      lines.forEach((line, i) => {
+        // A line may opt out with a cited reason.
+        if (line.includes('design-tokens-ignore')) return
+        for (const match of line.match(rule.pattern) ?? []) {
+          out[rule.id]?.push({ file: rel, line: i + 1, detail: match })
+        }
+      })
+    }
   }
   return out
 }
 
-function isExempt(relPath: string, ruleId: string): boolean {
-  return EXEMPTIONS.some((e) => relPath.includes(e.file) && e.rules.includes(ruleId))
+export const designTokens: RuleSet = {
+  id: 'tokens',
+  label: 'design tokens',
+  rules: TOKEN_RULES,
+  exemptionsLive: 'tools/rules/designTokens.ts (or a `design-tokens-ignore` line comment)',
+  preflight(root) {
+    assertScanFloor('design tokens', scannedFiles(root).length, SCAN_FLOOR)
+    // A workspace never added to SCAN_DIRS only makes the floor go up, so the
+    // floor is blind to it. See tools/lib/workspaceCoverage.ts.
+    assertCoversWorkspaces('design tokens', SCAN_DIRS)
+  },
+  scan(root) {
+    const sources = new Map<string, string>()
+    for (const rel of scannedFiles(root)) sources.set(rel, readFileSync(join(root, rel), 'utf8'))
+    return scanTokenSources(sources)
+  },
+  summary: (root) => `${scannedFiles(root).length} files scanned`,
 }
-
-type Violation = { file: string; line: number; text: string; match: string; rule: Rule }
-
-const violations: Violation[] = []
-
-/**
- * Catastrophe floor for SCAN_DIRS. 1,069 files today (was 998 before the
- * dataset and discord-bot were added); see tools/lib/scanFloor.ts
- * for why this is deliberately far below the real count.
- */
-const SCAN_FLOOR = 650
-
-const scannedFiles = SCAN_DIRS.flatMap((dir) => walk(join(ROOT, dir)))
-assertScanFloor('design tokens', scannedFiles.length, SCAN_FLOOR)
-// A workspace never added to SCAN_DIRS only makes the floor go up, so the floor
-// is blind to it. Both workspaces added above scanned clean on the first run —
-// no exemptions needed. See tools/lib/workspaceCoverage.ts.
-assertCoversWorkspaces('design tokens', SCAN_DIRS)
-
-for (const file of scannedFiles) {
-  const relPath = relative(ROOT, file)
-  // Generated files and test fixtures are not authored surfaces. Test files
-  // are here rather than in EXEMPTIONS because it is a category, not a
-  // judgement call about one file: a colour literal in a test is an ASSERTION
-  // about behaviour (`expect(borderColorFromHeaderBg('bg-pilot', '#D46A30'))
-  // .toBe('#D46A30')` — the point of the case is that an arbitrary override
-  // passes through untouched). Tokenising it would delete the test.
-  if (relPath.includes('.gen.') || relPath.includes('routeTree')) continue
-  if (relPath.includes('__tests__') || /\.test\.[tj]sx?$/.test(relPath)) continue
-
-  const lines = readFileSync(file, 'utf8').split('\n')
-  for (const rule of RULES) {
-    if (isExempt(relPath, rule.id)) continue
-    if (rule.skip?.some((s) => relPath.includes(s))) continue
-
-    lines.forEach((text, i) => {
-      // A line may opt out with a cited reason.
-      if (text.includes('design-tokens-ignore')) return
-      const matches = text.match(rule.pattern)
-      if (matches) {
-        for (const match of matches) {
-          violations.push({ file: relPath, line: i + 1, text: text.trim(), match, rule })
-        }
-      }
-    })
-  }
-}
-
-const byRule = new Map<string, Violation[]>()
-for (const v of violations) {
-  const list = byRule.get(v.rule.id) ?? []
-  list.push(v)
-  byRule.set(v.rule.id, list)
-}
-
-/**
- * The ratchet.
- *
- * Killing the `su-*` shadow family was one directive; the other rules surfaced
- * ~345 pre-existing violations that predate this check. Blocking CI on all of
- * them would mean either a mega-commit nobody can review or (far more likely) a
- * guardrail that gets switched off — which is how the drift accumulated in the
- * first place. So: every rule is enforced from its current count downward. New
- * violations fail immediately; the existing backlog burns down incrementally and
- * can never grow. `shadow-tokens` has a baseline of 0 and is therefore fully
- * enforced today.
- *
- * Rebaseline (only ever downward) with: bun run check:tokens --update-baseline
- *
- * ONE SANCTIONED EXCEPTION to "only ever downward", recorded because a silent
- * upward bump is exactly what this ratchet exists to prevent: when a rule is
- * made STRICTER, its count rises without anyone having written a new violation.
- * That happened once, to `raw-color` (11 -> 35), when its `rgb()` arm stopped
- * using `\b` — a boundary that could never fire inside a Tailwind arbitrary
- * value, because `_` is a word character. The 24 newly-counted literals are all
- * pre-existing `shadow-[..._rgba(...)]` / `[text-shadow:..._rgba(...)]` values
- * that had been present and uncounted; not one of them is new drift.
- *
- * They are baselined rather than fixed because there is no shadow/scrim token
- * ladder to convert them to — inventing one is a design decision with real
- * visual consequences across the wizard doors, roll tables and hover lifts, not
- * a lint cleanup. The debt is now VISIBLE and frozen, which is the point.
- *
- * The rule stands: a stricter rule may rebaseline upward ONCE, in the same
- * commit that tightens it, with the reason written down. Drift may not.
- *
- * STATUS: 24 known violations remain, and this file is still a burn-down chart.
- *
- * A previous version of this comment read "the backlog is GONE. Every rule now
- * sits at 0" while `design-tokens-baseline.json` recorded `raw-color: 22` and
- * `arbitrary-font-size: 2`, and the gate printed "24 known, burning down" on
- * every run. The 22 are the Discord bot restating the palette as hex integers
- * (`format.ts`, `gameEmbed.ts`, `lookupEmbed.ts` — `0xb7410e` is `--color-rust`,
- * three times over); the 2 are `WizShell.tsx` and `LiveSheet.tsx`.
- */
-const BASELINE_PATH = join(import.meta.dir, 'design-tokens-baseline.json')
-
-type Baseline = Record<string, number>
-
-const counts: Baseline = {}
-for (const rule of RULES) counts[rule.id] = byRule.get(rule.id)?.length ?? 0
-
-if (process.argv.includes('--update-baseline')) {
-  const { writeFileSync } = await import('node:fs')
-  writeFileSync(BASELINE_PATH, `${JSON.stringify(counts, null, 2)}\n`)
-  console.log('✓ baseline written:', BASELINE_PATH)
-  for (const [id, n] of Object.entries(counts)) console.log(`   ${id}: ${n}`)
-  process.exit(0)
-}
-
-let baseline: Baseline = {}
-try {
-  baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'))
-} catch {
-  console.error(
-    `No baseline at ${BASELINE_PATH}. Create it with: bun run check:tokens --update-baseline`
-  )
-  process.exit(1)
-}
-
-const regressions: string[] = []
-const improvements: string[] = []
-for (const rule of RULES) {
-  // `?? 0` matches the `was` line below, and is load-bearing rather than
-  // cosmetic: without it `now` is `number | undefined`, and `undefined > was`
-  // evaluates to false — so a rule that disappeared from `counts` entirely
-  // could never be reported as a regression.
-  const now = counts[rule.id] ?? 0
-  const was = baseline[rule.id] ?? 0
-  if (now > was) regressions.push(rule.id)
-  else if (now < was) improvements.push(`${rule.id}: ${was} → ${now}`)
-}
-
-if (regressions.length === 0) {
-  const total = Object.values(counts).reduce((a, b) => a + b, 0)
-  console.log(`✓ design tokens: no new violations (${total} known, burning down)`)
-  if (improvements.length > 0) {
-    console.log('  improved — lower the baseline with `bun run check:tokens --update-baseline`:')
-    for (const i of improvements) console.log(`    ${i}`)
-  }
-  process.exit(0)
-}
-
-console.error('\n✗ NEW design-token violations introduced\n')
-for (const ruleId of regressions) {
-  const list = byRule.get(ruleId) ?? []
-  const rule = RULES.find((r) => r.id === ruleId)
-  if (!rule) continue
-  const was = baseline[ruleId] ?? 0
-  console.error(`── ${ruleId} — ${rule.rule}`)
-  console.error(`   ${was} allowed, ${list.length} found (+${list.length - was})`)
-  console.error(`   fix: ${rule.fix}\n`)
-  for (const v of list.slice(0, 25)) console.error(`   ${v.file}:${v.line}  ${v.match}`)
-  if (list.length > 25) console.error(`   … and ${list.length - 25} more`)
-  console.error('')
-}
-console.error('An off-system literal that is genuinely correct needs either an EXEMPTIONS entry')
-console.error(
-  'in tools/check-design-tokens.ts (with a reason) or a `design-tokens-ignore` comment.\n'
-)
-process.exit(1)

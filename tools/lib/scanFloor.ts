@@ -3,11 +3,11 @@
  *
  * ## Why this exists
  *
- * Three gates in `validate:all` — `check-architecture`, `check-design-tokens`
- * and `check-styling-ownership` — walk a hardcoded set of directories, count
- * violations, and exit 0 when the count is not worse than a committed baseline.
- * All three baselines are currently all-zero, and every one of their `walk()`
- * helpers swallows a failed `readdirSync` and returns `[]`. So a scan that
+ * Three gates — `check-architecture` and what are now the `tokens` and
+ * `styling` rule sets of `check-styling.ts` — walk a hardcoded set of
+ * directories, count violations, and exit 0 when the count is not worse than a
+ * committed baseline. All three baselines were all-zero at the time, and every
+ * one of their `walk()` helpers swallowed a failed `readdirSync` and returns `[]`. So a scan that
  * matched NOTHING produced byte-identical output to a healthy run:
  *
  *     ✓ design tokens: no new violations (0 known, burning down)

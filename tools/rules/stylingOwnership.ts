@@ -1,134 +1,90 @@
-#!/usr/bin/env bun
 /**
- * Styling-ownership guardrails — `bun run check:styling`.
+ * Styling-ownership laws — the `styling` rule set of `tools/check-styling.ts`.
  *
  * The property this locks: **component-lib is the single source of truth for all
  * components and shared styling.** An app is a composition root — it wires the
  * library's components to its own data — not a second design system. When an app
  * grows its own `@theme` tokens, its own orphaned CSS, or generic components that
  * never touch the library, the source-of-truth boundary has already been crossed;
- * the drift just hasn't been named yet. This script names it.
+ * the drift just hasn't been named yet. This rule set names it.
  *
- * Why a build step and not a review habit: like the design-token drift its sibling
- * `check-design-tokens.ts` guards, none of these violations fail typecheck. A
- * stray app `@theme` block compiles. Dead CSS compiles. A `pc-*` class referenced
- * but never defined renders unstyled — no error, just a wrong-looking element.
- * There is no compiler backstop for this class of mistake, so this is it.
- *
- * Mirrors the structure of check-design-tokens.ts exactly: a RULES table (each
- * rule cites the law it enforces and the fix), an EXEMPTIONS table where every
- * entry carries a written reason, and a committed baseline JSON that ratchets
- * DOWNWARD only — new violations fail, the backlog burns down and can never grow.
- * Rebaseline (only ever downward) with: bun run check:styling --update-baseline
+ * Why a build step and not a review habit: like the design-token drift, none of
+ * these violations fail typecheck. A stray app `@theme` block compiles. Dead CSS
+ * compiles. A `pc-*` class referenced but never defined renders unstyled — no
+ * error, just a wrong-looking element.
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
- * parsing) rather than the per-line regexes of check-design-tokens, so each rule
- * carries a `scan()` instead of a `pattern`. The RULES/EXEMPTIONS/baseline/report
- * shape is otherwise identical.
+ * parsing) rather than per-line regexes, so each rule has its own scan function.
+ * Four rules are `zero` (any finding fails); the two #802 migration counts are
+ * `ratchet` rules against `tools/styling-baseline.json`.
  */
 
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
-import { assertScanFloor } from './lib/scanFloor'
-import { tailwindUtilitiesIn } from './lib/tailwindClasses'
-import { assertCoversWorkspaces } from './lib/workspaceCoverage'
-
-const ROOT = join(import.meta.dir, '..')
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
+import { isExempt, listFiles } from '../lib/ruleEngine'
+import { assertScanFloor } from '../lib/scanFloor'
+import { tailwindUtilitiesIn } from '../lib/tailwindClasses'
+import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-function walk(dir: string, exts: string[]): string[] {
-  const out: string[] = []
-  let entries: string[]
-  try {
-    entries = readdirSync(dir)
-  } catch {
-    return out
-  }
-  for (const entry of entries) {
-    if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walk(full, exts))
-    else if (exts.some((ext) => entry.endsWith(ext))) out.push(full)
-  }
-  return out
-}
-
-const rel = (f: string) => relative(ROOT, f)
-const read = (f: string) => readFileSync(f, 'utf8')
-
-// Pre-gather the file sets the rules share, once.
 const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
 const DASHBOARD_DIR = 'packages/component-lib/src/components/dashboard'
 
-const appCssFiles = APP_DIRS.flatMap((d) => walk(join(ROOT, d), ['.css']))
-// `.astro` was in this list until apps/srd moved off Astro; nothing in the repo
-// emits that extension any more (same cleanup as tools/check-design-tokens.ts).
-const appSourceFiles = APP_DIRS.flatMap((d) => walk(join(ROOT, d), ['.tsx', '.ts']))
-// pc-* usage is checked repo-wide (both apps + the library + tests).
-const allTsFiles = [
-  ...walk(join(ROOT, 'apps'), ['.tsx', '.ts']),
-  ...walk(join(ROOT, 'packages'), ['.tsx', '.ts']),
-]
-
 /**
- * Catastrophe floors for the three file sets above. Today: 3 app CSS files, 511
- * app source files, 1,172 repo-wide TS files. Each is set far below the real
- * count — see tools/lib/scanFloor.ts for why these are not coverage targets.
- *
- * `appCssFiles` is only 3 files, so its floor is necessarily blunt; it still
- * catches the case that matters, which is the directory list going stale and
- * the set collapsing to zero.
+ * UI source a Tailwind class could live in. Tests are excluded because they
+ * assert on class names rather than style with them; stories are INCLUDED,
+ * because a Ladle group is only migrated when none of its files carries a
+ * Tailwind class (the plan's per-group exit criterion).
  */
-assertScanFloor('styling ownership (app CSS)', appCssFiles.length, 2)
-assertScanFloor('styling ownership (app source)', appSourceFiles.length, 350)
-assertScanFloor('styling ownership (repo TS)', allTsFiles.length, 800)
+const UI_SOURCE_DIRS = ['packages/component-lib/src', 'apps/itun/src', 'apps/srd/src'] as const
 
-/**
- * APP_DIRS is the set of apps whose LOCAL css this gate audits, and it is a
- * hardcoded list — the same shape that let `apps/su-assets` and
- * `packages/observability` go unscanned by three sibling gates. Here the gaps
- * are real decisions rather than oversights, so they are written down: this
- * check is about an app owning styling it should not own, and a workspace with
- * no stylesheet cannot violate that.
- *
- * If any of these ever grows a `.css` file, the exemption becomes stale and
- * this assertion fails — which is the point. See tools/lib/workspaceCoverage.ts.
- */
-assertCoversWorkspaces('styling ownership', APP_DIRS, {
-  'apps/discord-bot': 'ships no stylesheet — it renders Discord embeds, not DOM.',
-  'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
-  'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
-  'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
-  'packages/component-lib':
-    'is the OWNER this gate checks apps against, not an app to audit. Its dashboard ' +
-    'CSS is read separately via DASHBOARD_DIR.',
-})
+/** The file sets the rules share, gathered once per scan. Repo-relative paths. */
+type Corpus = {
+  root: string
+  appCss: string[]
+  appSource: string[]
+  /** pc-* usage is checked repo-wide (both apps + the library + tests). */
+  allTs: string[]
+  uiSource: string[]
+  read: (rel: string) => string
+}
+
+function corpus(root: string): Corpus {
+  const cache = new Map<string, string>()
+  return {
+    root,
+    appCss: listFiles(root, APP_DIRS, ['.css']),
+    // `.astro` was in this list until apps/srd moved off Astro.
+    appSource: listFiles(root, APP_DIRS, ['.tsx', '.ts']),
+    allTs: listFiles(root, ['apps', 'packages'], ['.tsx', '.ts']),
+    uiSource: listFiles(root, UI_SOURCE_DIRS, ['.tsx', '.ts']).filter(
+      (f) => !/\.test\.tsx?$/.test(f) && !/[\\/]__tests__[\\/]/.test(f)
+    ),
+    read(rel) {
+      let text = cache.get(rel)
+      if (text === undefined) {
+        text = readFileSync(join(root, rel), 'utf8')
+        cache.set(rel, text)
+      }
+      return text
+    },
+  }
+}
 
 /** Which app a repo-relative path belongs to (for same-app reference checks). */
 function appOf(relPath: string): string | null {
   return relPath.match(/^apps\/([^/]+)\//)?.[1] ?? null
 }
 
-// ── rule / exemption / violation types ───────────────────────────────────────
-
-type Violation = { file: string; line: number; detail: string }
-
-type Rule = {
-  /** Stable id, used by the exemption list and the baseline. */
-  id: string
-  /** Which law this enforces — cited back to the author on failure. */
-  rule: string
-  /** What to do instead. */
-  fix: string
-  scan: () => Violation[]
-}
+// ── exemptions ───────────────────────────────────────────────────────────────
 
 /**
  * Sanctioned exceptions. Each entry needs a reason — an exemption without a
  * justification is just a silent hole in the guardrail.
  */
-const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
+const EXEMPTIONS: Exemption[] = [
   {
     file: 'apps/itun/src/index.css',
     rules: ['app-theme'],
@@ -136,10 +92,6 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
       'The one surviving app-local `@theme` block: `--animate-loader-slide`, a genuinely app-only indeterminate-loader animation with a single consumer (GameDataReady). It defines no reserved-namespace design token — only an `--animate-*` keyframe binding — so it is not shared styling the library should own. NOTE this exempts the block from the "no @theme in an app" clause ONLY; the separate reserved-token-definition clause is NOT exempted here, so adding a `--color-*`/`--text-*`/etc. inside this block would still fail.',
   },
 ]
-
-function isExempt(relPath: string, ruleId: string): boolean {
-  return EXEMPTIONS.some((e) => relPath.includes(e.file) && e.rules.includes(ruleId))
-}
 
 // ── shared CSS helpers ───────────────────────────────────────────────────────
 
@@ -191,17 +143,16 @@ const RESERVED_TOKEN = /^\s*--(?:color|text|tracking|bw|radius|font|shadow)-[\w-
 
 // ── Rule 1: app-theme ─────────────────────────────────────────────────────────
 
-function scanAppTheme(): Violation[] {
-  const out: Violation[] = []
-  for (const file of appCssFiles) {
-    const relPath = rel(file)
-    const css = stripCssComments(read(file))
+function scanAppTheme(c: Corpus): Finding[] {
+  const out: Finding[] = []
+  for (const relPath of c.appCss) {
+    const css = stripCssComments(c.read(relPath))
     const lines = css.split('\n')
     const mask = printBlockMask(css)
     lines.forEach((text, i) => {
       // (a) an `@theme` block is an app-local token registry — the library owns
       //     the theme. Exempt only the sanctioned loader-animation block.
-      if (/@theme\b/.test(text) && !isExempt(relPath, 'app-theme')) {
+      if (/@theme\b/.test(text) && !isExempt(EXEMPTIONS, relPath, 'app-theme')) {
         out.push({ file: relPath, line: i + 1, detail: '@theme block in an app stylesheet' })
       }
       // (b) DEFINING a reserved-namespace token anywhere in an app is forbidden —
@@ -263,23 +214,22 @@ function classSelectorsInCss(css: string): { name: string; line: number }[] {
   return out
 }
 
-function scanDeadAppCss(): Violation[] {
-  const out: Violation[] = []
+function scanDeadAppCss(c: Corpus): Finding[] {
+  const out: Finding[] = []
   // Concatenate each app's source once for whole-word reference checks.
   const sourceByApp = new Map<string, string>()
-  for (const f of appSourceFiles) {
-    const app = appOf(rel(f))
+  for (const f of c.appSource) {
+    const app = appOf(f)
     if (!app) continue
-    sourceByApp.set(app, (sourceByApp.get(app) ?? '') + read(f))
+    sourceByApp.set(app, (sourceByApp.get(app) ?? '') + c.read(f))
   }
-  for (const file of appCssFiles) {
-    const relPath = rel(file)
-    if (isExempt(relPath, 'dead-app-css')) continue
+  for (const relPath of c.appCss) {
+    if (isExempt(EXEMPTIONS, relPath, 'dead-app-css')) continue
     const app = appOf(relPath)
     if (!app) continue
     const source = sourceByApp.get(app) ?? ''
     const seen = new Set<string>()
-    for (const { name, line } of classSelectorsInCss(read(file))) {
+    for (const { name, line } of classSelectorsInCss(c.read(relPath))) {
       if (seen.has(name)) continue
       seen.add(name)
       // Referenced as a whole token anywhere in the same app's source?
@@ -298,18 +248,17 @@ function scanDeadAppCss(): Violation[] {
 
 // ── Rule 3: pc-class-contract ─────────────────────────────────────────────────
 
-const PC_CSS_FILES = ['DashboardCanvas.css', 'DashboardGrid.css', 'instruments.css'].map((f) =>
-  join(ROOT, DASHBOARD_DIR, f)
+const PC_CSS_FILES = ['DashboardCanvas.css', 'DashboardGrid.css', 'instruments.css'].map(
+  (f) => `${DASHBOARD_DIR}/${f}`
 )
 
-function scanPcContract(): Violation[] {
-  const out: Violation[] = []
+function scanPcContract(c: Corpus): Finding[] {
+  const out: Finding[] = []
 
   // DEFINED: `.pc-*` class selectors in the three dashboard CSS files (exact).
   const defined = new Map<string, { file: string; line: number }>()
-  for (const file of PC_CSS_FILES) {
-    const relPath = rel(file)
-    const css = stripCssComments(read(file))
+  for (const relPath of PC_CSS_FILES) {
+    const css = stripCssComments(c.read(relPath))
     css.split('\n').forEach((line, i) => {
       for (const m of line.matchAll(/\.(pc-[a-z0-9-]+)/g)) {
         const name = m[1]
@@ -332,9 +281,8 @@ function scanPcContract(): Violation[] {
   //    is a radio-group name, not a class) is skipped — it is not part of the
   //    class contract and must not gate the ratchet.
   const used = new Map<string, { file: string; line: number }>()
-  for (const file of allTsFiles) {
-    const relPath = rel(file)
-    stripTsComments(read(file))
+  for (const relPath of c.allTs) {
+    stripTsComments(c.read(relPath))
       .split('\n')
       .forEach((line, i) => {
         for (const m of line.matchAll(/\bpc-[a-z0-9-]+/g)) {
@@ -388,14 +336,15 @@ function scanPcContract(): Violation[] {
 const BINDING_IMPORT =
   /from\s+['"](?:component-lib|salvageunion-reference|@tanstack\/react-router)['"]|from\s+['"][^'"]*(?:stores?\/|lib\/db|lib\/rules|\/schemas?|routeTree|\/router)[^'"]*['"]/
 
-function scanUnboundComponents(): Violation[] {
-  const out: Violation[] = []
-  const componentFiles = APP_DIRS.flatMap((d) =>
-    walk(join(ROOT, d, 'components'), ['.tsx'])
+function scanUnboundComponents(c: Corpus): Finding[] {
+  const out: Finding[] = []
+  const componentFiles = listFiles(
+    c.root,
+    APP_DIRS.map((d) => `${d}/components`),
+    ['.tsx']
   ).filter((f) => !/\.(test|stories)\.tsx$/.test(f))
-  for (const file of componentFiles) {
-    const relPath = rel(file)
-    const src = read(file)
+  for (const relPath of componentFiles) {
+    const src = c.read(relPath)
     const rendersJsx = /return\s*[(<]/.test(src) && /<[A-Za-z]/.test(src)
     if (!rendersJsx) continue
     if (BINDING_IMPORT.test(src)) continue
@@ -419,25 +368,13 @@ function scanUnboundComponents(): Violation[] {
 // system errors when it grows, so without a ratchet the backlog would refill as
 // fast as the phases drain it.
 
-/**
- * UI source a Tailwind class could live in. Tests are excluded because they
- * assert on class names rather than style with them; stories are INCLUDED,
- * because a Ladle group is only migrated when none of its files carries a
- * Tailwind class (the plan's per-group exit criterion).
- */
-const UI_SOURCE_DIRS = ['packages/component-lib/src', 'apps/itun/src', 'apps/srd/src'] as const
-const uiSourceFiles = UI_SOURCE_DIRS.flatMap((d) => walk(join(ROOT, d), ['.tsx', '.ts'])).filter(
-  (f) => !/\.test\.tsx?$/.test(f) && !/[\\/]__tests__[\\/]/.test(f)
-)
-assertScanFloor('styling ownership (UI source)', uiSourceFiles.length, 500)
-
-function scanTailwindFiles(): Violation[] {
-  const out: Violation[] = []
-  for (const file of uiSourceFiles) {
-    const found = tailwindUtilitiesIn(read(file))
+function scanTailwindFiles(c: Corpus): Finding[] {
+  const out: Finding[] = []
+  for (const file of c.uiSource) {
+    const found = tailwindUtilitiesIn(c.read(file))
     if (found.length === 0) continue
     out.push({
-      file: rel(file),
+      file,
       line: 1,
       detail: `${found.length} Tailwind utilit${found.length === 1 ? 'y' : 'ies'} (e.g. ${found.slice(0, 3).join(' ')})`,
     })
@@ -446,12 +383,11 @@ function scanTailwindFiles(): Violation[] {
 }
 
 /** One violation per distinct `.pc-*` class the Dashboard stylesheets DEFINE. */
-function scanPcDefinitions(): Violation[] {
+function scanPcDefinitions(c: Corpus): Finding[] {
   const seen = new Set<string>()
-  const out: Violation[] = []
-  for (const file of PC_CSS_FILES) {
-    const relPath = rel(file)
-    stripCssComments(read(file))
+  const out: Finding[] = []
+  for (const relPath of PC_CSS_FILES) {
+    stripCssComments(c.read(relPath))
       .split('\n')
       .forEach((line, i) => {
         for (const m of line.matchAll(/\.(pc-[a-z0-9-]+)/g)) {
@@ -500,10 +436,10 @@ const APP_ENTRY_CSS = ['apps/itun/src/index.css', 'apps/srd/src/styles/global.cs
  * declared order puts it before `utilities` — so renaming `su-base` stays cheap
  * while removing the layering does not.
  */
-function scanPackageStylesheetImport(): Violation[] {
-  const out: Violation[] = []
+function scanPackageStylesheetImport(c: Corpus): Finding[] {
+  const out: Finding[] = []
   for (const rel of APP_ENTRY_CSS) {
-    const css = stripCssComments(read(join(ROOT, rel)))
+    const css = stripCssComments(c.read(rel))
     const lines = css.split('\n')
 
     const importLine = lines.findIndex((l) =>
@@ -553,139 +489,102 @@ function scanPackageStylesheetImport(): Violation[] {
   return out
 }
 
-const RULES: Rule[] = [
+type OwnershipRule = Rule & { scan: (c: Corpus) => Finding[] }
+
+const RULES: OwnershipRule[] = [
   {
     id: 'app-theme',
+    mode: 'zero',
     rule: 'source-of-truth §component-lib owns shared styling — no app-local design tokens',
     fix: 'Move the token into packages/component-lib/src/styles/theme.css so both apps share one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed). A truly app-only animation with one consumer gets an EXEMPTIONS entry with a reason.',
     scan: scanAppTheme,
   },
   {
     id: 'dead-app-css',
+    mode: 'zero',
     rule: 'source-of-truth §authored CSS must have a consumer — orphaned app CSS is drift',
     fix: 'Delete the unreferenced selector, or wire it up. If it is shared styling, it belongs in a component-lib component, not an app stylesheet.',
     scan: scanDeadAppCss,
   },
   {
     id: 'pc-class-contract',
+    mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
     fix: 'used-but-undefined: define the class in dashboard/{DashboardCanvas,DashboardGrid,instruments}.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — pc-crawler-focus and pc-crawler-focus-note are different classes.',
     scan: scanPcContract,
   },
   {
     id: 'package-stylesheet-import',
+    mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, and it must not outrank Tailwind while both are live (#799, epic #802)',
     fix: "Each app entry stylesheet must (a) import 'component-lib/styles/index.css' and (b) import it into a cascade layer declared BEFORE Tailwind's `utilities` — the shape is `@layer theme, base, su-base, components, utilities;` at the top and `@import 'component-lib/styles/index.css' layer(su-base);` beside the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {
     id: 'tailwind-utility-file',
+    mode: 'ratchet',
     rule: 'tailwind-removal plan §ratchet — the number of UI source files carrying a Tailwind utility only goes down (#802)',
     fix: 'Style the new or edited code with the split rule instead: a style object from `tokens.ts` for static properties, a `.su-*` class in component-lib/src/styles/index.css for anything stateful or responsive. See docs/design-system/tailwind-removal.md. If you REMOVED Tailwind from a file, lower the baseline with --update-baseline.',
     scan: scanTailwindFiles,
   },
   {
     id: 'pc-class-defined',
+    mode: 'ratchet',
     rule: 'tailwind-removal plan §ratchet — the Dashboard `.pc-*` scope only shrinks (#802, phase 5)',
     fix: 'Do not add a `.pc-*` class. Dashboard styling that needs a new rule goes into a `.su-*` class in component-lib/src/styles/index.css (phase 5 folds the `.pc-*` scope into it). If you removed one, lower the baseline with --update-baseline.',
     scan: scanPcDefinitions,
   },
 ]
 
-// The report-only rule is run separately — it never touches pass/fail.
-const REPORT_ONLY: Rule = {
-  id: 'app-unbound-component',
-  rule: 'source-of-truth §generic components belong in the library (HEURISTIC, report-only)',
-  fix: 'If the component is generic (no store / db / schema / router / reference coupling), move it to packages/component-lib. If it is legitimately app-specific, ignore — this is a heuristic and will false-positive.',
-  scan: scanUnboundComponents,
+/** The report-only heuristic — printed as a warning, never gated. */
+const REPORT_ONLY_ID = 'app-unbound-component'
+
+// ── preconditions ───────────────────────────────────────────────────────────
+
+function preflight(root: string): void {
+  const c = corpus(root)
+  /**
+   * Catastrophe floors for the file sets. Today: 3 app CSS files, ~510 app
+   * source files, ~1,170 repo-wide TS files, ~800 UI source files. Each is set
+   * far below the real count — see tools/lib/scanFloor.ts. `appCss` is only 3
+   * files, so its floor is necessarily blunt; it still catches the directory
+   * list going stale and the set collapsing to zero.
+   */
+  assertScanFloor('styling ownership (app CSS)', c.appCss.length, 2)
+  assertScanFloor('styling ownership (app source)', c.appSource.length, 350)
+  assertScanFloor('styling ownership (repo TS)', c.allTs.length, 800)
+  assertScanFloor('styling ownership (UI source)', c.uiSource.length, 500)
+
+  /**
+   * APP_DIRS is the set of apps whose LOCAL css this rule set audits, and it is
+   * a hardcoded list. The gaps are real decisions rather than oversights, so
+   * they are written down: this is about an app owning styling it should not
+   * own, and a workspace with no stylesheet cannot violate that. If any of
+   * these ever grows a `.css` file, the exemption becomes stale and this
+   * assertion fails — which is the point. See tools/lib/workspaceCoverage.ts.
+   */
+  assertCoversWorkspaces('styling ownership', APP_DIRS, {
+    'apps/discord-bot': 'ships no stylesheet — it renders Discord embeds, not DOM.',
+    'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
+    'packages/observability': 'Sentry wiring only; no components and no stylesheet.',
+    'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
+    'packages/component-lib':
+      'is the OWNER this gate checks apps against, not an app to audit. Its dashboard ' +
+      'CSS is read separately via DASHBOARD_DIR.',
+  })
 }
 
-// ── ratchet ───────────────────────────────────────────────────────────────────
-
-const BASELINE_PATH = join(import.meta.dir, 'styling-ownership-baseline.json')
-type Baseline = Record<string, number>
-
-const results = new Map<string, Violation[]>()
-for (const rule of RULES) results.set(rule.id, rule.scan())
-
-const counts: Baseline = {}
-for (const rule of RULES) counts[rule.id] = (results.get(rule.id) ?? []).length
-
-// --report: print every current violation, grouped. Diagnostic; never gates.
-if (process.argv.includes('--report')) {
-  for (const rule of RULES) {
-    const list = results.get(rule.id) ?? []
-    console.log(`\n── ${rule.id} (${list.length})`)
-    for (const v of list) console.log(`   ${v.file}:${v.line}  ${v.detail}`)
-  }
-  const warn = REPORT_ONLY.scan()
-  console.log(`\n── ${REPORT_ONLY.id} [report-only] (${warn.length})`)
-  for (const v of warn) console.log(`   ${v.file}:${v.line}  ${v.detail}`)
-  process.exit(0)
+export const stylingOwnership: RuleSet = {
+  id: 'styling',
+  label: 'styling ownership',
+  rules: RULES,
+  exemptionsLive: 'tools/rules/stylingOwnership.ts',
+  preflight,
+  scan(root) {
+    const c = corpus(root)
+    const out: Record<string, Finding[]> = {}
+    for (const rule of RULES) out[rule.id] = rule.scan(c)
+    return out
+  },
+  advisory: (root) => ({ id: REPORT_ONLY_ID, findings: scanUnboundComponents(corpus(root)) }),
 }
-
-if (process.argv.includes('--update-baseline')) {
-  writeFileSync(BASELINE_PATH, `${JSON.stringify(counts, null, 2)}\n`)
-  console.log('✓ baseline written:', rel(BASELINE_PATH))
-  for (const [id, n] of Object.entries(counts)) console.log(`   ${id}: ${n}`)
-  process.exit(0)
-}
-
-let baseline: Baseline = {}
-try {
-  baseline = JSON.parse(read(BASELINE_PATH))
-} catch {
-  console.error(
-    `No baseline at ${rel(BASELINE_PATH)}. Create it with: bun run check:styling --update-baseline`
-  )
-  process.exit(1)
-}
-
-const regressions: string[] = []
-const improvements: string[] = []
-for (const rule of RULES) {
-  // See the identical note in check-design-tokens.ts: without `?? 0` this is
-  // `number | undefined`, and `undefined > was` is false, so a rule missing
-  // from `counts` could never register as a regression.
-  const now = counts[rule.id] ?? 0
-  const was = baseline[rule.id] ?? 0
-  if (now > was) regressions.push(rule.id)
-  else if (now < was) improvements.push(`${rule.id}: ${was} → ${now}`)
-}
-
-// The report-only rule always prints its findings as a warning, but never gates.
-const warnings = REPORT_ONLY.scan()
-
-if (regressions.length === 0) {
-  const total = Object.values(counts).reduce((a, b) => a + b, 0)
-  console.log(`✓ styling ownership: no new violations (${total} known, burning down)`)
-  if (improvements.length > 0) {
-    console.log('  improved — lower the baseline with `bun run check:styling --update-baseline`:')
-    for (const i of improvements) console.log(`    ${i}`)
-  }
-  if (warnings.length > 0) {
-    console.log(
-      `\n  ⚠ ${REPORT_ONLY.id} [report-only, not enforced]: ${warnings.length} candidate(s) — generic components that may belong in component-lib:`
-    )
-    for (const v of warnings.slice(0, 25)) console.log(`    ${v.file}`)
-    if (warnings.length > 25) console.log(`    … and ${warnings.length - 25} more`)
-  }
-  process.exit(0)
-}
-
-console.error('\n✗ NEW styling-ownership violations introduced\n')
-for (const ruleId of regressions) {
-  const list = results.get(ruleId) ?? []
-  const rule = RULES.find((r) => r.id === ruleId)
-  if (!rule) continue
-  const was = baseline[ruleId] ?? 0
-  console.error(`── ${ruleId} — ${rule.rule}`)
-  console.error(`   ${was} allowed, ${list.length} found (+${list.length - was})`)
-  console.error(`   fix: ${rule.fix}\n`)
-  for (const v of list.slice(0, 25)) console.error(`   ${v.file}:${v.line}  ${v.detail}`)
-  if (list.length > 25) console.error(`   … and ${list.length - 25} more`)
-  console.error('')
-}
-console.error('A genuinely-correct case needs either an EXEMPTIONS entry in')
-console.error('tools/check-styling-ownership.ts (with a reason) or the violation removed.\n')
-process.exit(1)

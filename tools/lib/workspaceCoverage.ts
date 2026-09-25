@@ -18,8 +18,8 @@
  * does not know about a surface cannot fail for it.
  *
  * At the time of writing the same pattern survived in four more places:
- * `check-design-tokens` (SCAN_DIRS), `check-architecture` (INCLUDE_GLOBS),
- * `check-styling-ownership` (APP_DIRS) and `coverage-report` (WORKSPACES) all
+ * the design-token rules (SCAN_DIRS), `check-architecture` (INCLUDE_GLOBS),
+ * the styling-ownership rules (APP_DIRS) and `coverage-report` (WORKSPACES) all
  * predate `apps/su-assets` and `packages/observability`, and all four silently
  * omitted them.
  *

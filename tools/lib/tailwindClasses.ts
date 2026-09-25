@@ -1,6 +1,6 @@
 /**
  * Tailwind-utility detection for the #802 migration ratchet
- * (`tailwind-utility-file` in tools/check-styling-ownership.ts).
+ * (`tailwind-utility-file` in tools/rules/stylingOwnership.ts).
  *
  * A heuristic, and scoped so that its errors fall on the safe side: it only
  * reads class-list CONTEXTS (see `classContexts`) and only recognises utility
