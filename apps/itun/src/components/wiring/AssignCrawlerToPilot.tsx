@@ -16,7 +16,7 @@
 
 import { Button, FieldError, ModalShell, Radio } from 'component-lib'
 import { useState } from 'react'
-import { useCrawlers } from '../../hooks/queries'
+import { useCrawlers } from '../../hooks/entities'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { cn } from '../../lib/utils'
 import type { SoftLinkStore } from './useSoftLinks'

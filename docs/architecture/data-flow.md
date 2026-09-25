@@ -187,7 +187,7 @@ Reactive reads use `convex/react` (`useQuery`) directly in the Connected
 surfaces (`src/components/games/`, `src/components/account/`,
 `src/components/container/`), provided by `AppConvexProvider`. Those
 subscriptions are the Connected-mode analogue of `entityStore`'s in-memory
-cache — they are not routed through TanStack Query.
+cache.
 
 ---
 
@@ -216,25 +216,17 @@ nudges the user to export a backup — the local-first analogue of durability.
 
 ---
 
-## TanStack Query (mounted, currently unused)
+## No TanStack Query
 
-**File:** `apps/itun/src/lib/queryClient.ts`
-
-`QueryClientProvider` is mounted in `src/routes/__root.tsx` with these defaults:
-
-```typescript
-queries:   { staleTime: 5 min, gcTime: 10 min, retry: 1, refetchOnWindowFocus: false }
-mutations: { retry: 0 }
-```
-
-**No component currently calls `useQuery`/`useMutation` from
-`@tanstack/react-query`** — the only two importers in `apps/itun/src` are the
-client module and the root provider. Snapshot retrieval runs in a TanStack
-Router loader instead (`src/routes/s/$id.tsx`), and the Connected surfaces use
-Convex's own `useQuery` from `convex/react`. Query is available for genuinely
-async, non-Convex, cacheable work, but it is not load-bearing anywhere; don't
-reach for it just because it is mounted, and never route persistent entity state
-through it.
+ITUN does not depend on `@tanstack/react-query`. It was mounted in
+`src/routes/__root.tsx` for months with no `useQuery`/`useMutation` caller, and
+still shipped in the entry chunk, so it was removed (audit AP-10, 2026-09-25).
+Snapshot retrieval runs in a TanStack Router loader (`src/routes/s/$id.tsx`),
+the Connected surfaces use Convex's own `useQuery` from `convex/react`, and the
+typed entity read hooks in `src/hooks/entities/` (`usePilots()`, `useMech()`, …)
+are selectors over the Zustand stores. If genuinely async, non-Convex, cacheable
+work ever needs a cache, argue for the dependency then — do not re-add it
+speculatively, and never route persistent entity state through one.
 
 ---
 

@@ -11,7 +11,7 @@
  * the case where an endpoint entity no longer exists in the store.
  */
 
-import { useSoftLinkList } from '../../hooks/queries'
+import { useSoftLinkList } from '../../hooks/entities'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'

@@ -1,5 +1,5 @@
 /**
- * Tests for the hooks/queries layer (design review T-7).
+ * Tests for the hooks/entities layer (design review T-7).
  *
  * Covers the contract the migrated components rely on:
  *   - list/by-id hooks read the store's in-memory state

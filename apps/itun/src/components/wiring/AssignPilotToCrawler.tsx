@@ -31,7 +31,7 @@
 
 import { Button, FieldError, ModalShell, Radio } from 'component-lib'
 import { useState } from 'react'
-import { usePilots } from '../../hooks/queries'
+import { usePilots } from '../../hooks/entities'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'

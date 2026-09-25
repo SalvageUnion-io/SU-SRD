@@ -19,7 +19,7 @@ import type {
 } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationCrawlerWeapon, isWeaponSystem } from 'salvageunion-reference/rules'
-import { useMechs, usePilots } from '../../hooks/queries'
+import { useMechs, usePilots } from '../../hooks/entities'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import type { CrawlerWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import {

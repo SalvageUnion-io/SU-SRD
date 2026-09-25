@@ -48,8 +48,9 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - React 19 + Vite, TypeScript.
 - **TanStack Router** — file-based routes in `src/routes/`; the route tree is
   generated to `src/routeTree.gen.ts` (do not hand-edit).
-- **TanStack Query** — mounted, **unused**; see
-  `.claude/rules/itun-data-access.md`.
+- **No TanStack Query.** It was mounted and never called, so it was removed;
+  the typed entity read hooks live in `src/hooks/entities/` (selectors over
+  the Zustand stores). See `.claude/rules/itun-data-access.md`.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **Base UI** primitives from `component-lib` (`ui/`, `chrome/`, `base/`) —
   there is no app-local `src/components/ui/`. Styling is the `component-lib`
@@ -100,8 +101,8 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - **Write-through:** `update`/`create`/`delete` persist to IndexedDB first, then
   update in-memory state; cross-tab writes invalidate via broadcast
   ([ADR-003](../../docs/adrs/ADR-003-zustand-hydration.md)).
-- Route persistent entity state through the store, **never** through TanStack
-  Query (see `.claude/rules/itun-data-access.md`).
+- Route persistent entity state through the store, **never** through a
+  separate query cache (see `.claude/rules/itun-data-access.md`).
 
 ## Combat / rules
 

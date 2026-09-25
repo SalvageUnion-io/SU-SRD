@@ -20,7 +20,7 @@ import {
   evaluatePilotWarnings,
   isLegalCreationAbility,
 } from 'salvageunion-reference/rules'
-import { usePilot } from '../../hooks/queries'
+import { usePilot } from '../../hooks/entities'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
 import type { PilotWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'

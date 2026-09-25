@@ -287,7 +287,7 @@ for rendering) + React 19 islands — see
 
 ### Does Not Use
 
-- Auth, user data, persistence, TanStack Query/Router, Zustand (pure static site)
+- Auth, user data, persistence, TanStack Router, Zustand (pure static site)
 
 ### Tailwind Source Path
 
@@ -302,14 +302,14 @@ for rendering) + React 19 islands — see
 ## itun
 
 **Location:** `apps/itun/`
-**Framework:** React 19 + Vite + TanStack Router/Query
+**Framework:** React 19 + Vite + TanStack Router
 
 ### Consumes
 
 - `salvageunion-reference` (workspace:\*) — game data
 - `component-lib` (workspace:\*) — shared components + theme
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
-- `@tanstack/react-router`, `@tanstack/react-query` — routing + async/derived data
+- `@tanstack/react-router` — routing (and the snapshot route's loader)
 - `zustand` — write-through entity/container stores (`src/stores/`)
 - `@base-ui/react` — headless UI primitives
 - `@netlify/blobs` — snapshot-sharing Netlify Functions storage
@@ -380,8 +380,8 @@ If you need a module-level constant derived from reference data, compute it lazi
 ### One-Way Dependency: Reference Package → Apps
 
 `salvageunion-reference` provides the game-data model that ITUN's local-first
-layer builds on (IndexedDB store shapes, slug references, Zod validation, and
-TanStack Query keys all derive from the reference schema). The dependency flows
+layer builds on (IndexedDB store shapes, slug references and Zod validation all
+derive from the reference schema). The dependency flows
 one way:
 
 ```

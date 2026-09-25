@@ -37,7 +37,7 @@ import {
   useMechs,
   usePilots,
   useSoftLinkList,
-} from '../../hooks/queries'
+} from '../../hooks/entities'
 import { resolveClassName } from '../../lib/classRef'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerFields } from '../../lib/container'
