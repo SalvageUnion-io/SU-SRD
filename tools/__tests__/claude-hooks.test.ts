@@ -93,6 +93,7 @@ describe('enforce-bun.sh', () => {
     ['in a quoted command substitution', `ls "$(${PM} root -g)"`],
     ['in a quoted substitution in an assignment', `export PATH="$(${PM} bin):$PATH"`],
     ['through a quoted which', `"$(which ${PM})" install`],
+    ['in a quoted backtick substitution', `echo "\`${PM} bin\`"`],
     // An apostrophe in a comment must not open a quote that hides later lines.
     ['after a comment containing an apostrophe', `echo hi # don't do this\n${PM} install`],
   ])('blocks %s', async (_label, command) => {
@@ -118,6 +119,7 @@ describe('enforce-bun.sh', () => {
     ['a lookup through command -v', `command -v ${PM}`],
     ['a mention in a trailing comment', `rm -f package-lock.json # left by ${PM}`],
     ['a quoted substitution that is harmless', `git commit -m "fix: $(date) ${PM} note"`],
+    ['a harmless quoted backtick substitution', `git commit -m "built \`date\` without ${PM}"`],
     // How agents actually write commits and PR bodies: multi-line quoted text
     // and heredocs. Stripping quotes one line at a time blocked all of these.
     [

@@ -40,7 +40,8 @@
 #
 # WHAT THIS DELIBERATELY DOES NOT CATCH, and why that is fine.
 # A token inside a quoted string — `bash -c "<pm> install"` — still passes
-# (a `$(...)` inside double quotes is scanned as code, since it runs). It
+# (a `$(...)` or backtick substitution inside double quotes is scanned as
+# code, since it runs). It
 # is not chased, for two reasons. Nobody types that by accident: it is a
 # deliberate evasion, and a deliberate evader can equally split the token across
 # a concatenation, which no regex closes. And extending the character class to
@@ -103,8 +104,11 @@ SEGMENTS=$(printf '%s\n' "$COMMAND" | awk -v q="'" '
         if (c == q) { st = 1; out = out " "; continue }
         if (c == "\"") { st = 2; out = out " "; continue }
         if (c == "\\") { i++; out = out " "; continue }
-        if (sp > 0 && c == "(") dep[sp]++
-        if (sp > 0 && c == ")") {
+        # Close the innermost substitution opened inside double quotes: a
+        # backtick frame ends at the next backtick, a $( frame at its `)`.
+        if (sp > 0 && bt[sp] && c == "`") { st = ret[sp]; sp--; out = out "`"; continue }
+        if (sp > 0 && !bt[sp] && c == "(") dep[sp]++
+        if (sp > 0 && !bt[sp] && c == ")") {
           if (dep[sp] == 0) { st = ret[sp]; sp--; out = out ")"; continue }
           dep[sp]--
         }
@@ -114,7 +118,10 @@ SEGMENTS=$(printf '%s\n' "$COMMAND" | awk -v q="'" '
       } else {
         if (c == "\\") { i++; continue }
         if (c == "$" && substr(buf, i + 1, 1) == "(") {
-          sp++; ret[sp] = 2; dep[sp] = 0; st = 0; out = out "$("; i++; continue
+          sp++; ret[sp] = 2; dep[sp] = 0; bt[sp] = 0; st = 0; out = out "$("; i++; continue
+        }
+        if (c == "`") {
+          sp++; ret[sp] = 2; dep[sp] = 0; bt[sp] = 1; st = 0; out = out "`"; continue
         }
         if (c == "\"") st = 0
       }
