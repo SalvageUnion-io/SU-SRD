@@ -20,6 +20,7 @@
 import { Button, DowntimeWizard as DowntimeWizardView } from 'component-lib'
 import { useState } from 'react'
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import {
   allDowntimeSteps,
@@ -128,7 +129,12 @@ export function DowntimeWizard({
     }
     if (pilot) {
       const fresh = storeState.get('pilot', pilot.id) ?? pilot
-      const patch = downtimePilotPatch(fresh, medBayStatus(crawler), steps)
+      const patch = downtimePilotPatch(
+        fresh,
+        medBayStatus(crawler),
+        steps,
+        resolveEffectiveCrawlerLevel(fresh, crawler)
+      )
       if (Object.keys(patch).length > 0) {
         runWrite(() => storeState.update('pilot', pilot.id, patch, DASHBOARD_TXN))
         applied.push(fresh.name)

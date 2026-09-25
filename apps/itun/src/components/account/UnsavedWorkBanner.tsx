@@ -47,6 +47,8 @@ import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { SignInControl } from './SignInControl'
+import { useAnonymousWorkCount } from './useAnonymousWorkCount'
+import { countLegacyRows, useLegacyRows } from './useLegacyRows'
 
 /** "3 builds" / "1 build". Plain, because it is being read in a warning. */
 function buildPhrase(n: number): string {
@@ -54,18 +56,14 @@ function buildPhrase(n: number): string {
 }
 
 export function UnsavedWorkBanner() {
-  // Subscribed rather than captured: the banner has to appear the moment the
-  // first build lands and disappear the moment the work is promoted, and both
-  // of those are store changes.
-  const pilots = useEntityStore((s) => s.list('pilot'))
-  const mechs = useEntityStore((s) => s.list('mech'))
-  const crawlers = useEntityStore((s) => s.list('crawler'))
-  const patterns = usePatternStore((s) => s.mechPatterns)
+  const count = useAnonymousWorkCount()
+  // A pre-account roster on this device is the other half of the same gate
+  // (`LegacyLocalData`). Same two doors, so it is said here rather than in a
+  // second banner: one sentence, and its rows ride along in the download.
+  const deviceRows = useLegacyRows()
+  const deviceCount = deviceRows === null ? 0 : countLegacyRows(deviceRows)
 
-  const count = pilots.length + mechs.length + crawlers.length + patterns.length
-  const anonymous = selectBackend() === 'memory'
-
-  if (!anonymous || count === 0) return null
+  if (count === 0) return null
 
   return (
     <div className="border-b-2 border-ink bg-paper px-4 py-3">
@@ -73,10 +71,17 @@ export function UnsavedWorkBanner() {
         <Text>
           <strong>{buildPhrase(count)} not saved.</strong> Everything here lives in this tab only —
           closing it loses the lot.
+          {deviceCount > 0 && (
+            <>
+              {' '}
+              This device also holds {buildPhrase(deviceCount)} from before — signing in brings
+              anything missing into your account too.
+            </>
+          )}
         </Text>
         <div className="flex flex-wrap items-center gap-2">
           {/* Both ways out, side by side. Neither is the "cancel". */}
-          <ExportAllButton />
+          <ExportAllButton deviceRows={deviceRows} />
           {isConvexConfigured && <SignInControl />}
         </div>
       </div>

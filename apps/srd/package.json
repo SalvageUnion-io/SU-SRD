@@ -1,7 +1,7 @@
 {
   "name": "srd",
   "private": true,
-  "version": "2.9.2",
+  "version": "2.9.3",
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
@@ -44,7 +44,7 @@
     "@testing-library/react": "catalog:",
     "@vitejs/plugin-react-swc": "catalog:",
     "playwright": "catalog:",
-    "sharp": "0.35.3",
+    "sharp": "0.35.4",
     "vite": "catalog:",
     "workbox-build": "7.4.1"
   }

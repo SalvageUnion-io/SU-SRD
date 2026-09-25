@@ -13,6 +13,7 @@
 import type { DialItem as DialCellItem } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
 import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import {
   crawlerMaxSPParts,
   mechMaxHeatParts,
@@ -42,9 +43,11 @@ export const DIAL_KIND_LABELS: Record<DialKind, string> = {
 /** The kind that can never be hidden (locked visible in the config overlay). */
 export const LOCKED_DIAL_KIND: DialKind = 'actions'
 
-function pilotItem(pilot: Pilot): DialItem {
-  const hpParts = pilotMaxHPParts(pilot)
-  const apParts = pilotMaxAPParts(pilot)
+/** `crawler` is the pilot's crawler — its tier drives Stat Training (max HP/AP). */
+function pilotItem(pilot: Pilot, crawler: Crawler | null): DialItem {
+  const statInput = { ...pilot, crawlerTechLevel: resolveEffectiveCrawlerLevel(pilot, crawler) }
+  const hpParts = pilotMaxHPParts(statInput)
+  const apParts = pilotMaxAPParts(statInput)
   const maxHP = Math.max(0, hpParts.total)
   const maxAP = Math.max(0, apParts.total)
   return {
@@ -172,7 +175,7 @@ export function dialItems(args: {
   // The counterpart entities — everything NOT in the active row. In Downtime
   // the crawler is active, so the dial carries the mech + pilot instead.
   if (mount !== 'mech') items.push(mechItem(mech, pilot))
-  if (mount !== 'pilot' && pilot) items.push(pilotItem(pilot))
+  if (mount !== 'pilot' && pilot) items.push(pilotItem(pilot, crawler))
   if (mount !== 'downtime' && crawler) items.push(crawlerItem(crawler))
   items.push({
     key: 'tables',

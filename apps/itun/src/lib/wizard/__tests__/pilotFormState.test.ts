@@ -5,6 +5,7 @@
  * fields — an edit save must never clobber live-play state.
  */
 import { describe, expect, it } from 'bun:test'
+import { pilotMaxHP } from '../../rules/derivedStats'
 import type { Pilot } from '../../schemas/pilot'
 import {
   EMPTY_PILOT_FORM_STATE,
@@ -101,6 +102,19 @@ describe('pilotFormToCreateInput', () => {
     expect(input.classRef).toBe('class-engineer')
     // No partner-granting equipment, so the field stays absent entirely.
     expect(input).not.toHaveProperty('partners')
+  })
+
+  it('seeds current HP/AP at the derived max, so a max-raising ability starts filled', () => {
+    const input = pilotFormToCreateInput({
+      ...EMPTY_PILOT_FORM_STATE,
+      name: 'Mira Voss',
+      callsign: 'Sparks',
+      abilities: ['Bionic Arms'],
+    })
+    // Bionic Arms is +2 max HP; a new pilot is created at that max, not at 10.
+    expect(input.currentHP).toBe(pilotMaxHP({ abilities: ['Bionic Arms'] }))
+    expect(input.currentHP).toBe(12)
+    expect(input.currentAP).toBe(5)
   })
 
   it('grants a live partner for equipment carrying a stat block, not an inert card', () => {

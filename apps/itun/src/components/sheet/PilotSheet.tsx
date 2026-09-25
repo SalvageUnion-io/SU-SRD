@@ -64,8 +64,6 @@ import {
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
-import { resolvePool } from 'salvageunion-reference/rules'
-import { pilotMaxAP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
@@ -154,7 +152,12 @@ export function PilotSheet({
   const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
 
   const model = usePilotSheetModel({ pilot, storeState, picker })
-  const actions = usePilotSheetActions({ pilot, store, storeState })
+  const actions = usePilotSheetActions({
+    pilot,
+    store,
+    storeState,
+    crawlerTechLevel: model.effectiveCrawlerLevel,
+  })
 
   const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
 
@@ -163,7 +166,7 @@ export function PilotSheet({
     return (
       <PilotAbilityItem
         ability={ability}
-        currentAP={resolvePool(pilot.currentAP, pilotMaxAP(pilot))}
+        currentAP={ap}
         used={pilot.usedAbilities?.includes(slug) ?? false}
         onSpend={(cost) => {
           void actions.handleSpendAP(cost)

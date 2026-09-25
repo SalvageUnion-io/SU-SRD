@@ -42,7 +42,12 @@ describe('NotConnectedBanner', () => {
       // has nothing to be disconnected FROM.
       expect(screen.queryByRole('status')).toBeNull()
     } finally {
+      // happy-dom defines `onLine` on Navigator.prototype, so there is normally
+      // no OWN descriptor to put back, and deleting the own property is the
+      // restore. Skipping it left `onLine === false` for every file that ran
+      // later in the same process, which then read as Disconnected.
       if (original) Object.defineProperty(navigator, 'onLine', original)
+      else Reflect.deleteProperty(navigator, 'onLine')
     }
   })
 })

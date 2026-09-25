@@ -55,6 +55,11 @@ type PilotSheetActionsOptions = {
   /** Injectable store hook — forwarded to `useSoftWarnings`. */
   store: typeof useEntityStore
   storeState: SheetStoreState
+  /**
+   * The pilot's effective crawler Tech Level (`resolveEffectiveCrawlerLevel`),
+   * so a Spend AP on an unset pool starts from the same max the sheet shows.
+   */
+  crawlerTechLevel?: number
 }
 
 export type PilotSheetActions = {
@@ -82,6 +87,7 @@ export function usePilotSheetActions({
   pilot,
   store,
   storeState,
+  crawlerTechLevel,
 }: PilotSheetActionsOptions): PilotSheetActions {
   // Soft warnings (REQ-012, ADR-021) on BUILD edits only — ability add/remove
   // and the class change. Advisory, never blocking: a clean edit saves straight
@@ -238,7 +244,7 @@ export function usePilotSheetActions({
 
   async function handleSpendAP(cost: number) {
     const p = freshPilot()
-    const current = resolvePool(p.currentAP, pilotMaxAP(p))
+    const current = resolvePool(p.currentAP, pilotMaxAP({ ...p, crawlerTechLevel }))
     const next = Math.max(0, current - cost)
     if (next === current) return
     await writeAwait({ currentAP: next })

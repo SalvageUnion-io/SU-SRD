@@ -44,15 +44,13 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
 import type { LegacyLocalData as LegacyRows } from '../../lib/db/legacyLocalData'
-import {
-  markLegacyLocalDataMigrated,
-  probeLegacyLocalData,
-  readLegacyLocalData,
-} from '../../lib/db/legacyLocalData'
+import { markLegacyLocalDataMigrated } from '../../lib/db/legacyLocalData'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { captureException } from '../../lib/observability'
 import { accountRequired, backendForMode } from '../../stores/entityBackend'
 import { SignInControl } from './SignInControl'
+import { useAnonymousWorkCount } from './useAnonymousWorkCount'
+import { countLegacyRows, useLegacyRows } from './useLegacyRows'
 
 const REPAIR_KEY = 'itun.containersRepaired'
 
@@ -86,43 +84,6 @@ function markRepairDone(): void {
 }
 
 /**
- * The rows this browser is holding, or `null` when it holds none.
- *
- * Probes rather than reading `legacyLocalDataState()` directly: the probe is
- * asynchronous and resolves after mount, and the connection context does not
- * re-render on its completion, so a component that read the cached answer once
- * would decide "nothing here" before the answer existed. `probeLegacyLocalData`
- * caches its own result, so awaiting it again costs nothing.
- */
-function useLegacyRows(): LegacyRows | null {
-  const [rows, setRows] = useState<LegacyRows | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    void probeLegacyLocalData()
-      .then(async (state) => {
-        if (state !== 'present' || cancelled) return
-        const local = await readLegacyLocalData()
-        if (!cancelled) setRows(local)
-      })
-      .catch((err: unknown) => {
-        // A browser that will not read is not a browser holding a roster this
-        // app can migrate. Report it and render nothing rather than blocking.
-        captureException(err)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return rows
-}
-
-function countRows(rows: LegacyRows): number {
-  return rows.pilots.length + rows.mechs.length + rows.crawlers.length + rows.mechPatterns.length
-}
-
-/**
  * Signed out, with a pre-account roster on the device.
  *
  * States the fact and offers both doors. It is not dismissible, for the same
@@ -132,7 +93,7 @@ function countRows(rows: LegacyRows): number {
  */
 function SignedOutNotice({ rows }: { rows: LegacyRows }) {
   const [busy, setBusy] = useState(false)
-  const n = countRows(rows)
+  const n = countLegacyRows(rows)
 
   return (
     <div className="border-b-2 border-ink bg-paper px-4 py-3">
@@ -308,6 +269,7 @@ function SignedInMigration({ rows }: { rows: LegacyRows | null }) {
 export function LegacyLocalData() {
   const { mode } = useConnection()
   const rows = useLegacyRows()
+  const anonymousWork = useAnonymousWorkCount()
 
   const backend = backendForMode(mode, accountRequired)
 
@@ -317,7 +279,15 @@ export function LegacyLocalData() {
   if (backend === 'local') return null
   // Signed out there is no account to migrate into, so this is the whole of
   // what can be said — and nothing to say at all in a browser holding nothing.
-  if (backend === 'memory') return rows === null ? null : <SignedOutNotice rows={rows} />
+  //
+  // One banner, not two: when this tab also holds unsaved work,
+  // `UnsavedWorkBanner` is already asking the same question (sign in, or
+  // download) about the more urgent loss, and it folds this device's count and
+  // rows into its own text and download. Rendering both stacked two identical
+  // pairs of buttons over the header.
+  if (backend === 'memory') {
+    return rows === null || anonymousWork > 0 ? null : <SignedOutNotice rows={rows} />
+  }
   // `blocked` is Disconnected or mid-handshake: no writes, so no migration.
   if (backend !== 'remote' || !isConvexConfigured) return null
   // `rows` may be null here, and the component still mounts: the container

@@ -2,6 +2,20 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.17.6](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.5...itun-v1.17.6) (2026-09-25)
+
+
+### Bug Fixes
+
+* **itun:** show one signed-out banner, not two ([#987](https://github.com/SalvageUnion-io/SU-SRD/issues/987)) ([b06e410](https://github.com/SalvageUnion-io/SU-SRD/commit/b06e4104619ad35e8c457c2217021c3d4df739ba))
+
+## [1.17.5](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.4...itun-v1.17.5) (2026-09-25)
+
+
+### Bug Fixes
+
+* **itun:** pilot max HP/AP follows crawler tech level ([#982](https://github.com/SalvageUnion-io/SU-SRD/issues/982)) ([15691d9](https://github.com/SalvageUnion-io/SU-SRD/commit/15691d9b61770878231c327131870b80aa3fb534))
+
 ## [1.17.4](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.3...itun-v1.17.4) (2026-09-01)
 
 

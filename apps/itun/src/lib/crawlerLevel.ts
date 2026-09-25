@@ -14,6 +14,10 @@
  *
  * A crawler's `techLevel` is stored as a slug like "tech-3"; this parses out the
  * numeric level.
+ *
+ * The same effective level also drives the pilot's Stat Training bonus to max
+ * HP/AP (`crawlerTechLevel` on the pilot derivations) — every surface that shows
+ * or clamps a pilot's max HP/AP must feed it this value, or it reads Tech 1.
  */
 
 import type { Crawler } from './schemas/crawler'

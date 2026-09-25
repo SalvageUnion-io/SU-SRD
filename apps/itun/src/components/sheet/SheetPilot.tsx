@@ -11,6 +11,7 @@
 import { EntityRow, Stat } from 'component-lib'
 import { resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -51,8 +52,14 @@ export function SheetPilot({
   )?.id
   const unassign = (linkId: string | undefined) =>
     editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
+  // Stat Training follows the pilot's crawler tier (linked crawler, else the
+  // manual `crawlerLevel`) — the same level the body sheet derives from.
+  const statInput = {
+    ...pilot,
+    crawlerTechLevel: resolveEffectiveCrawlerLevel(pilot, composition.crawler),
+  }
+  const maxHP = Math.max(0, pilotMaxHP(statInput))
+  const maxAP = Math.max(0, pilotMaxAP(statInput))
   const hp = resolvePool(pilot.currentHP, maxHP)
   const ap = resolvePool(pilot.currentAP, maxAP)
 
