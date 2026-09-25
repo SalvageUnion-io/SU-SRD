@@ -224,7 +224,11 @@ function scanAppTheme(): Violation[] {
  *  selectors ([data-*]) and pseudo (::before / :hover) by construction — a `.`
  *  token stops at `:` and `[` is never a `.`. */
 function classSelectorsInCss(css: string): { name: string; line: number }[] {
-  const clean = stripCssComments(css)
+  // Quoted strings are blanked first (length-preserving is unnecessary — only
+  // line numbers are reported). A path in an at-rule prelude is not a
+  // selector: `@source not '../src/**/*.stories.tsx';` would otherwise report
+  // a dead `.stories` class, and `@import 'x/theme.css'` a `.css` one.
+  const clean = stripCssComments(css).replace(/'[^'\n]*'|"[^"\n]*"/g, "''")
   const lines = clean.split('\n')
   const out: { name: string; line: number }[] = []
   let depth = 0

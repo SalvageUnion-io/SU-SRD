@@ -13,16 +13,15 @@
  * It owns the `.pc-root` scope (see DashboardCanvas.css) that every dashboard
  * surface inherits, and paints the dark ground the instruments sit on; the grid
  * regions and instruments fill `children`.
+ *
+ * It imports NO stylesheet. The `.pc-*` rules ship as the package export
+ * `component-lib/styles/dashboard.css`, which the rendering app imports — a
+ * side-effect `import './x.css'` here rode the barrel into every consumer, so
+ * srd bundled and precached the whole dashboard stylesheet (audit PK-01).
  */
 
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-
-import './DashboardCanvas.css'
-// The shared instrument stylesheet (all `.pc-*` surfaces) lives here so the app
-// holds no bespoke dashboard CSS; loading it with the canvas covers every
-// dashboard surface rendered inside `.pc-root`.
-import './instruments.css'
 
 const CANVAS_W = 1280
 const CANVAS_H = 800

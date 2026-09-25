@@ -13,14 +13,16 @@
  *
  * ## The css/SSR hazard
  *
- * Step 3 runs under Bun, NOT through Vite. `component-lib`'s barrel reaches
- * `DashboardCanvas.tsx` / `DashboardGrid.tsx`, both of which `import './x.css'`,
- * so every SSR render pulls stylesheets into a runtime that has no css loader.
- * Bun happens to load `.css` as a text module today, which is why this "works"
- * unguarded — but that is an implementation detail of the runtime, and the
- * first `@fontsource` import that drifts into an SSR module would break it.
- * The `Bun.plugin` below stubs `.css` to an empty module so the behaviour is
- * ours rather than the runtime's.
+ * Step 3 runs under Bun, NOT through Vite, so a `.css` import anywhere in the
+ * SSR module graph lands in a runtime that has no css loader. `component-lib`'s
+ * barrel used to be exactly that: `DashboardCanvas.tsx` / `DashboardGrid.tsx`
+ * each did `import './x.css'`. They no longer do (the dashboard stylesheet is
+ * the package export `component-lib/styles/dashboard.css`, imported only by
+ * ITUN — audit PK-01), so today the graph is css-free. The stub stays as the
+ * guard for the next one: Bun happens to load `.css` as a text module, which
+ * would let a stray import "work" unguarded until the first `@fontsource`
+ * import that drifts into an SSR module broke it. The `Bun.plugin` below stubs
+ * `.css` to an empty module so the behaviour is ours rather than the runtime's.
  *
  * The plugin only affects modules loaded AFTER it is registered, so everything
  * downstream of it is imported dynamically — do not turn those `await import`s

@@ -61,12 +61,13 @@ Hence `.ds-css/` inside the package rather than under `.design-sync/`.
 ### Three dashboard stylesheets are invisible to the converter
 
 `DashboardCanvas.css`, `DashboardGrid.css` and `instruments.css` are **not**
-reachable from `index.css` — each is a side-effect `import './x.css'` inside its
-own component, which Vite injects for the apps. The converter compiles `.css`
-imports to empty (styles ship via the stylesheet, not the bundle), so without
-explicit `@import`s in the Tailwind entry the entire `.pc-*` instrument
-vocabulary is missing and every dashboard component renders unstyled. They are
-imported unlayered and last, which is how a side-effect import lands in an app.
+reachable from `index.css`. The components import no CSS at all: the three ship
+as the package export `component-lib/styles/dashboard.css`, which ITUN imports
+from its `Dashboard` (a component-side `import './x.css'` rode the barrel into
+srd — audit PK-01). So without explicit `@import`s in the Tailwind entry the
+entire `.pc-*` instrument vocabulary is missing and every dashboard component
+renders unstyled. They are imported unlayered and last, which is how ITUN's
+JS-side import lands them.
 
 ## The ORM must be a bundle export (`extraEntries`)
 

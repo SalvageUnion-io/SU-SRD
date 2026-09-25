@@ -1,5 +1,7 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
+// The components import no CSS; the app (or story) loads the bundle.
+import '../../styles/dashboard.css'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
 

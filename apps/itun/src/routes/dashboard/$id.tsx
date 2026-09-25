@@ -12,8 +12,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Dashboard } from '../../components/dashboard/Dashboard'
 import { useEntityStore } from '../../stores/entityStore'
-// The instrument stylesheet now lives in component-lib and loads with
-// DashboardCanvas (see component-lib .../dashboard/instruments.css) — the app
+// The instrument stylesheet lives in component-lib and ships as the export
+// `component-lib/styles/dashboard.css`, imported by `Dashboard.tsx` — the app
 // holds no bespoke dashboard CSS.
 
 export const Route = createFileRoute('/dashboard/$id')({
