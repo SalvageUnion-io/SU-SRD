@@ -7,8 +7,7 @@
  * (railStats.ts) is the adapter that replaced it.
  */
 
-import { buttonVariants } from 'component-lib'
-import { cn } from '../../lib/utils'
+import { buttonVariants, cn } from 'component-lib'
 import { AppLink } from '../shared/AppLink'
 
 /** Anchor CTA for rail empty slots ('+ Create'). */

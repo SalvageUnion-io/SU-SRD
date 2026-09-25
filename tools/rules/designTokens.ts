@@ -247,7 +247,7 @@ const EXEMPTIONS: Exemption[] = [
       'gradient',
     ],
     reason:
-      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. (This entry is the directory, so it also covers the two non-story helpers here, _harness.tsx and _dashboardStage.tsx.)',
+      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. (This entry is the directory, so it also covers the non-story helper here, _harness.tsx.)',
   },
   {
     file: '.stories.tsx',

@@ -22,12 +22,17 @@
 | Tailwind utilities | `className=` / `cn()` / `cva()`, plus class strings held in constants and lookup maps, in the three UI workspaces | **329 files** (`tailwind-utility-file`) | gone |
 | `.su-*` package stylesheet | `packages/component-lib/src/styles/index.css` | 894 lines | **stays** — the one stylesheet |
 | `theme.css` (`@theme`) | `packages/component-lib/src/styles/theme.css` | 490 lines | folded into `index.css`, deleted |
-| Dashboard `.pc-*` scope | `components/dashboard/{DashboardCanvas,DashboardGrid,instruments}.css` via `styles/dashboard.css` | **129 classes** (`pc-class-defined`), ~1,370 lines | folded into `.su-*`, deleted |
+| Dashboard `.pc-*` scope | `styles/dashboard/{DashboardCanvas,DashboardGrid,instruments}.css` via `styles/dashboard.css` | **129 classes** (`pc-class-defined`), ~1,370 lines | folded into `.su-*`, deleted |
 | Typed tokens | `packages/component-lib/src/design/tokens.ts` | imported by 8 `.tsx` files, all Ladle catalog pages or harnesses | **stays** — the one token source |
 
 Tailwind files by workspace: `apps/itun` 88, `apps/srd` 24, component-lib 217
 (`shared` 65, `chrome` 52, `referenceEntity` 25, `dashboard` 21, `wizard` 20,
-`sheet` 11, `stat` 8, the rest ≤ 3). `bun tools/check-styling.ts --report` prints the
+`sheet` 11, `stat` 8, the rest ≤ 3). **Moved the same day** by the component-lib
+boundary audit (PK-02/PK-03), which took ITUN-only and srd-only components out
+of the library: now `apps/itun` 138, `apps/srd` 29, component-lib 159
+(`shared` 61, `chrome` 52, `referenceEntity` 23, `stat` 8, the rest ≤ 3), 326
+in all. The Dashboard, sheet and wizard files are ITUN's now, so they migrate
+in P6 rather than P4/P5; the phase boundaries below say so. `bun tools/check-styling.ts --report` prints the
 current per-file list; it is the work-list, so it is not copied here.
 
 **End state: one system** — `tokens.ts` for values, `index.css` for every rule
@@ -119,11 +124,11 @@ the chrome shells — the bulk of `shared/` and `chrome/`).
 
 ### P4 — component-lib Compositions (excluding the Dashboard)
 
-The `Compositions/Entity`, `/Catalog`, `/Wizard` and `/Shell` sub-groups and the flat Compositions
-leaves — `referenceEntity/`, `wizard/`, `sheet/`, the rest of `shared/`.
+The library's `Compositions/Entity`, `/Catalog` and `/Shell` stories and the flat Compositions
+leaves — `referenceEntity/` and the rest of `shared/`. (The `/Wizard` and `/Dashboard` sub-groups,
+and the sheet presentation, are ITUN's own components since PK-02; they migrate with the app in P6.)
 
-- **Exit:** the only component-lib files left in the `tailwind-utility-file`
-  list are under `components/dashboard/`.
+- **Exit:** no component-lib file is left in the `tailwind-utility-file` list.
 
 ### P5 — The Dashboard `.pc-*` scope
 
@@ -135,16 +140,16 @@ one most likely to be left behind "because it already works".
 
 - Fold each `.pc-*` rule into a `.su-*` class in `index.css` (or a style
   object, per §4), move the `.pc-root` properties onto `--su-*` tokens, and
-  migrate the 21 Tailwind files under `components/dashboard/`.
+  migrate the Tailwind files under `apps/itun/src/components/dashboard/`.
 - Delete `styles/dashboard.css` and its package export once empty; ITUN's
   `Dashboard.tsx` import goes with it.
 - **Exit:** `pc-class-defined` is 0 and the rule plus `pc-class-contract` are
-  deleted; no `components/dashboard/` file in the Tailwind list; the Dashboard
+  deleted; no `apps/itun/src/components/dashboard/` file in the Tailwind list; the Dashboard
   Ladle stories and the ITUN dashboard route render identically to `main`.
 
 ### P6 — The apps
 
-`apps/itun` (88 files) then `apps/srd` (24). srd's output gate does **not**
+`apps/itun` (138 files, the Dashboard's excepted if P5 has taken them) then `apps/srd` (29). srd's output gate does **not**
 cover this — it digests `<main>` text, not markup or CSS (see `/srd-gate`) — so
 each srd PR carries a visual check of the affected pages.
 

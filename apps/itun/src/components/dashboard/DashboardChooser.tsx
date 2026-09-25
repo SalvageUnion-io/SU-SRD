@@ -25,7 +25,7 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { Button, FieldError, ModalShell, Radio } from 'component-lib'
+import { Button, cn, FieldError, ModalShell, Radio } from 'component-lib'
 import { useState } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/entities'
@@ -36,7 +36,6 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
-import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { LaunchStore } from './dashboardLaunch'

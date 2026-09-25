@@ -1,5 +1,16 @@
 export default {
-  stories: 'src/**/*.stories.{ts,tsx}',
+  // The library's own stories, plus the app-owned components that left the
+  // library in the component-lib boundary audit (PK-02): ITUN's Dashboard
+  // instruments, live-sheet presentation and wizard steps, and srd's
+  // site-only components. They live beside their components in the apps, and
+  // stay in this one catalog so a redesign still has a Ladle page to compare
+  // against. `src/story-coverage.test.ts` holds all three roots to the same
+  // taxonomy, and `src/styles/ladle.css` points Tailwind at the app folders.
+  stories: [
+    'src/**/*.stories.{ts,tsx}',
+    '../../apps/itun/src/components/**/*.stories.tsx',
+    '../../apps/srd/src/components/**/*.stories.tsx',
+  ],
   outDir: 'build-ladle',
   viteConfig: './vite.config.ts',
   // Shell relayout (injected into Ladle's own <head> — the officially-blessed

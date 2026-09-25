@@ -101,6 +101,10 @@ jobs:
             ladle:
               - *shared
               - 'packages/component-lib/**'
+              # App-owned components whose stories the catalog serves
+              # (packages/component-lib/.ladle/config.mjs).
+              - 'apps/itun/src/components/**'
+              - 'apps/srd/src/components/**'
             assets:
               - *shared
               - 'apps/su-assets/**'

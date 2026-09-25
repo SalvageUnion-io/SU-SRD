@@ -69,7 +69,6 @@ import {
   EntityGridRow,
   MasonryColumns,
   ReferenceEntityCard,
-  SheetHero,
   SheetSectionSlab,
   Stat,
 } from 'component-lib'
@@ -89,6 +88,7 @@ import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
+import { SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
 import { runWrite } from './sheetWrite'
 

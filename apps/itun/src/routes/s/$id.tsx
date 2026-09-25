@@ -15,7 +15,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { SheetSkeleton } from 'component-lib'
+import { SheetSkeleton } from '../../components/sheet/SheetSkeleton'
 import { SnapshotPageInner } from '../../components/sheet/SnapshotPage'
 import { captureException } from '../../lib/observability'
 import { retrieveSnapshot, SnapshotNotFoundError } from '../../lib/snapshot/client'

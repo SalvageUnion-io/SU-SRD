@@ -11,7 +11,7 @@
  * for everything the card renders.
  */
 
-import type { ChassisStatItem, ProvenanceLine } from 'component-lib'
+import type { ProvenanceLine } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -26,6 +26,7 @@ import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { useEntityStore } from '../../stores/entityStore'
+import type { ChassisStatItem } from './SheetHero'
 
 /** Narrow subset of chassis data the stat derivations need. */
 export type ChassisLike = {

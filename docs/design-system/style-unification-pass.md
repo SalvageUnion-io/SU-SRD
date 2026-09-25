@@ -18,10 +18,10 @@
 >   record is [`entity-card-reconciliation.md`](../design/entity-card-reconciliation.md)
 >   and the resulting rules are enshrined in
 >   [ADR-026](../adrs/ADR-026-entity-card-design-rules.md).
-> - **Dashboard pass** — the instruments were lifted into
->   `packages/component-lib/src/components/dashboard/` and are barrel-exported
->   (`RailBar`, `Dial`, `ActiveItemBand`, `DisplayPanel`, `ActionsDeck`,
->   `SheetHero`).
+> - **Dashboard pass** — the instruments were lifted into component-lib and
+>   barrel-exported (`RailBar`, `Dial`, `ActiveItemBand`, `DisplayPanel`,
+>   `ActionsDeck`, `SheetHero`). With ITUN their only consumer, they moved back
+>   into `apps/itun/src/components/` in the 2026-09 boundary audit (PK-02).
 >
 > That also means **§3's "Deferred (do NOT build in this sub-pass)" list is spent** —
 > every component it forbids is built and exported. Do not read it as a

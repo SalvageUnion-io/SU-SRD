@@ -17,14 +17,13 @@
  * live — and hands the views resolved data via props.
  */
 
-import { buttonVariants, SheetActionsMenu } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
@@ -37,6 +36,7 @@ import type { EntityLookup } from './composition'
 import { resolveSheetComposition } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
 import { ShareStatusDialog } from './ShareStatusDialog'
+import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'

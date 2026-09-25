@@ -1,14 +1,5 @@
 import type { StepRule } from 'component-lib'
-import {
-  Banner,
-  GainScrapStep,
-  MechFlavorStep,
-  OffRulesEscape,
-  RuleBrief,
-  toast,
-  WizShell,
-  WizTracker,
-} from 'component-lib'
+import { Banner, OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import {
@@ -45,6 +36,8 @@ import {
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
 import { WIZARD_TXN } from '../../stores/surfaceProvenance'
+import { GainScrapStep } from '../wizard/GainScrapStep'
+import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { CraftItemsStep } from './CraftItemsStep'
 import { InstallStep } from './InstallStep'

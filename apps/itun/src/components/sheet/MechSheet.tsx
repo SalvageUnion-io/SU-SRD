@@ -61,7 +61,6 @@ import {
   MasonryColumns,
   ReferenceEntityCard,
   SectionManageButton,
-  SheetHero,
   SheetPickerModal,
   SheetSectionSlab,
   VitalGauge,
@@ -81,6 +80,7 @@ import { pinOrUndef, useMechSheetActions } from './mechSheetActions'
 import type { ChassisLike } from './mechSheetModel'
 import { useMechSheetModel } from './mechSheetModel'
 import { PartnerCard } from './PartnerCard'
+import { SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
 
 type MechSheetProps = {

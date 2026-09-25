@@ -10,7 +10,7 @@
  * See docs/architecture/play-cockpit.md for the full plan.
  */
 
-import { buttonVariants, DashboardCanvas, DashboardGrid, Dial, RailBar } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 // The dashboard's `.pc-*` stylesheet. component-lib's dashboard components
 // import no CSS themselves — that rode the barrel into srd (audit PK-01) — so
 // the one app that renders a dashboard loads it here, and it lands in this
@@ -27,10 +27,14 @@ import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
+import { DashboardCanvas } from './DashboardCanvas'
+import { DashboardGrid } from './DashboardGrid'
+import { Dial } from './Dial'
 import { DialConfig } from './DialConfig'
 import { DisplayPanel } from './DisplayPanel'
 import { DowntimeWizard } from './DowntimeWizard'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
+import { RailBar } from './RailBar'
 
 export function Dashboard({ id }: { id: string }) {
   const storeState = useEntityStore()

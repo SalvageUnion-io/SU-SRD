@@ -13,8 +13,7 @@
  * only because the branch wasn't a component).
  */
 
-import type { EconLozItem } from 'component-lib'
-import { CrawlerEconFrame, EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
+import { EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
 import { resolvePool } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
@@ -25,6 +24,8 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
 import { AssignPilotToCrawler } from '../wiring/AssignPilotToCrawler'
+import type { EconLozItem } from './CrawlerEcon'
+import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'

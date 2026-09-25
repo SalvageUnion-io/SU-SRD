@@ -42,6 +42,7 @@ import {
   Badge,
   Button,
   buttonVariants,
+  cn,
   EmptyState,
   EntityRow,
   ModalShell,
@@ -64,7 +65,6 @@ import type { OwnerChip } from '../../lib/ownership/ownerChip'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { cn } from '../../lib/utils'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'

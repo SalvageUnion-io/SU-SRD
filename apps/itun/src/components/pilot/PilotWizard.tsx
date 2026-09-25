@@ -1,17 +1,5 @@
-import type { RollTableDeps, StepRule } from 'component-lib'
-import {
-  BackgroundStep,
-  Banner,
-  CallsignStep,
-  ClassAbilityStep,
-  EquipmentStep,
-  FlavorStep,
-  OffRulesEscape,
-  RuleBrief,
-  toast,
-  WizShell,
-  WizTracker,
-} from 'component-lib'
+import type { StepRule } from 'component-lib'
+import { Banner, OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -45,6 +33,12 @@ import {
 } from '../../lib/wizard/wizardDraft'
 import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
+import { BackgroundStep } from '../wizard/BackgroundStep'
+import { CallsignStep } from '../wizard/CallsignStep'
+import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
+import { EquipmentStep } from '../wizard/EquipmentStep'
+import { FlavorStep } from '../wizard/FlavorStep'
+import type { RollTableDeps } from '../wizard/rollTableHelpers'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'

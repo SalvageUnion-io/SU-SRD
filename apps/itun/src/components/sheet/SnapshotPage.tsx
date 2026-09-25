@@ -9,9 +9,8 @@
  * every route downloads (audit AP-11). Tests render it directly.
  */
 
-import { buttonVariants } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
-import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 import { SnapshotSheet } from './SnapshotSheet'
 

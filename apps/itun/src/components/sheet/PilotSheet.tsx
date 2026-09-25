@@ -47,14 +47,12 @@
 
 import {
   Badge,
-  ConditionsEditor,
   EmptyState,
   EntityGridRow,
   EntitySearcher,
   MasonryColumns,
   Panel,
   SectionManageButton,
-  SheetHero,
   SheetPickerModal,
   SheetSectionSlab,
   Slab,
@@ -67,6 +65,7 @@ import type { SURefAbility } from 'salvageunion-reference'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { ConditionsEditor } from './ConditionsEditor'
 import { PartnerCard } from './PartnerCard'
 import { PilotIdentityPanel } from './PilotIdentity'
 import {
@@ -77,6 +76,7 @@ import {
 } from './PilotSheetItems'
 import { pinOrUndef, usePilotSheetActions } from './pilotSheetActions'
 import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
+import { SheetHero } from './SheetHero'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`

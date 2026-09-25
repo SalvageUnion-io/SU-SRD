@@ -31,6 +31,12 @@
 @source not '../../../packages/component-lib/src/**/*.test.{ts,tsx}';
 @source not '../../../packages/component-lib/src/**/__tests__';
 @source not '../../../packages/component-lib/src/stories';
+/*
+ * ITUN's own components keep their Ladle stories beside them (the Dashboard
+ * instruments, sheet presentation and wizard steps that left the library in
+ * audit PK-02); their demo markup is not the app's.
+ */
+@source not './**/*.stories.tsx';
 
 /*
  * (Removed: a ShadCN runtime-token :root block — --primary / --card / --ring

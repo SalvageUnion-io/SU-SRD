@@ -232,16 +232,25 @@ read `src/index.ts` for anything load-bearing:
 - **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
 - **Base typography** — `Text`
 - **UI primitives** — `Toaster` / `toast`, `ModalShell`
-- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Sel`, `KvRow`, and friends
+- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `Conditions`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Textarea`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Sel`, `KvRow`, `Toggle`, and friends
 - **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `heatDangerFrom` (the running-text `StatLine` was
   absorbed into `Stat` as `orientation="horizontal" surface="plain"`)
-- **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
-- **Shared components** — `Card`, `AppBar`, `Footer`, `FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, … (the former `FilterChip` is gone: the interactive chip is now `Badge as="button"`, with the call site owning pressed state)
-- **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
-- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`, `CrawlerEconFrame`, `ConditionsEditor`, … (the snapshot QR tile moved to ITUN with its `qrcode` dependency)
-- **Wizard steps** (`src/components/wizard/`) — `ClassAbilityStep`, `CrawlerTypeSelectStep`, `EquipmentStep`, …
+- **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `entityHostTone` / `entityGuideToneColor`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton` / `Ghost`
+- **Shared components** — `Card`, `AppBar`, `ControlButtons`, `FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `Inset`, `RollTable`, `SheetSectionCard`, `SlotGrid`, `Stat`, `CatalogTile`, … (the former `FilterChip` is gone: the interactive chip is now `Badge as="button"`, with the call site owning pressed state)
 - **Changelog** — `parseChangelog`, `mergeChangelogs`, `Changelog`
 - **Utilities** — the single `cn()` (its tailwind-merge config knows the custom utilities; never re-wrap `twMerge` with the default config)
+
+**What is deliberately NOT here: code only one app renders** (audit PK-02).
+It no longer lives in this package. The Dashboard instruments, live-sheet presentation and wizard steps live in
+ITUN (`apps/itun/src/components/{dashboard,sheet,wizard}/`), and srd's
+site-only components (`ClassAbilityTree`, `StaticEntityContent`, `Footer`,
+`MobileSearchDialog`, `getClassSelections`) live in srd. A component with one
+consuming app belongs to that app; promote it here only when a second app
+renders it. Their Ladle stories stayed in the one catalog —
+`.ladle/config.mjs` globs both apps' `src/components/`. The Dashboard's
+`.pc-*` stylesheets are the exception that stays: styling is this package's to
+own, so they live in `src/styles/dashboard/` behind the `dashboard.css` export
+until the Tailwind-removal plan folds them into `index.css`.
 
 Note: some components are deliberately internal and NOT exported — there is no
 `Tooltip` primitive, `EntityTooltip` is used inside the entity card rather than

@@ -14,10 +14,9 @@
  * toast so the user can retry without losing the dialog state.
  */
 
-import { Button, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
+import { Button, cn, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
 import { useState } from 'react'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
-import { cn } from '../../../lib/utils'
 import { usePatternStore } from '../../../stores/patternStore'
 
 type SavePatternButtonProps = {

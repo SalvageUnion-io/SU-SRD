@@ -1,15 +1,5 @@
 import type { StepRule } from 'component-lib'
-import {
-  Banner,
-  CrawlerStatsStep,
-  CrawlerTypeSelectStep,
-  OffRulesEscape,
-  RuleBrief,
-  SystemsList,
-  toast,
-  WizShell,
-  WizTracker,
-} from 'component-lib'
+import { Banner, OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SURefCrawler,
@@ -44,6 +34,9 @@ import {
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
+import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
+import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
+import { SystemsList } from '../wizard/SystemsList'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
