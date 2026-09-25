@@ -14,8 +14,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import { PublicSheetView } from '../../components/sheet/PublicSheetView'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
-import { PublicSheetView } from '../p.$kind.$appId'
 
 describe('the public sheet route in a Solo build', () => {
   test('the test environment really is Convex-free', () => {

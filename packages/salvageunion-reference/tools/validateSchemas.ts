@@ -15,7 +15,7 @@
  * Exits non-zero if any file fails validation.
  */
 
-import { zodSchemaMap } from '../lib/ModelFactory.js'
+import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { loadAllDataFiles } from './loadData.js'
 import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 

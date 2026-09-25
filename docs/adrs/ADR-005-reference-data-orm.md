@@ -4,6 +4,13 @@
 
 Accepted
 
+> **2026-09-25 amendment (audit PK-04):** "Zod schemas stay statically
+> imported" no longer holds for the *load path*. `preload()` is trusted by
+> default — CI validates the committed data and a test proves it is
+> parse-stable — and reaches the schemas through a dynamic `import()` only for
+> `{ validate: true }`, so they drop out of client bundles. Zod remains the
+> single source of types, JSON Schema and CI validation; that half is unchanged.
+
 ## Context
 
 Every app consumes the same Salvage Union reference data (chassis, systems,

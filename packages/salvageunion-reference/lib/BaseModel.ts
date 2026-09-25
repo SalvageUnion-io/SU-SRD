@@ -31,13 +31,19 @@ export class BaseModel<T> {
     this._schemaName = schemaName
     this._displayName = displayName
 
-    // Pre-stamp schemaName on each entity and build ID map
+    // Pre-stamp schemaName on each entity and build ID map.
+    //
+    // The stamp goes on a shallow COPY, never on `item` itself. The trusted
+    // load path (ModelFactory, audit PK-04) hands this constructor the rows of
+    // the imported JSON module as-is — there is no Zod parse in between to
+    // produce fresh objects any more — so stamping in place would write
+    // `schemaName` into the module cache, where the next validating load of
+    // the same file would reject it as an unrecognised key under `.strict()`.
     this.idMap = new Map()
     this.data = data.map((item) => {
       // Sole assertion (the JSON-ingest edge): raw data rows are T; stamping
       // adds the runtime schemaName discriminant the static type can't carry.
-      const stamped = item as T & { schemaName: string }
-      stamped.schemaName = schemaName
+      const stamped = { ...item, schemaName } as T & { schemaName: string }
       if (
         typeof item === 'object' &&
         item !== null &&

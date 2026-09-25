@@ -64,6 +64,12 @@ export default defineConfig({
       includeAssets: ['favicon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // `validateData-*.js` (Zod's entity schemas) exists only for
+        // `preload(…, { validate: true })`, which the app never calls — see
+        // salvageunion-reference's ModelFactory (audit PK-04). Keep it out of
+        // the install. The first entry restates workbox's own default, which
+        // setting `globIgnores` replaces; workbox already skips `swDest`.
+        globIgnores: ['**/node_modules/**/*', '**/validateData-*.js'],
       },
       manifest: {
         name: 'ITUN — In The Union Now',
@@ -128,6 +134,60 @@ export default defineConfig({
     // above) — the upload step deletes them from dist/ afterward, so default
     // builds (local, CI, unconfigured deploys) never generate or ship maps.
     sourcemap: !!sentryAuthToken,
+    rolldownOptions: {
+      output: {
+        // Named groups for the code every route loads (audit AP-11).
+        //
+        // Left to itself, Rolldown folded React, component-lib, the reference
+        // ORM and the rest of the initial graph into ONE ~600 KB chunk named
+        // after whichever module it happened to pick (`src-*.js`). One chunk
+        // means one download that cannot start until the entry is parsed, and
+        // a new hash — so a full re-download — on every deploy that touches
+        // any line of app or library code.
+        //
+        // Splitting it by how often each part changes fixes both: third-party
+        // code (which changes only on a dependency bump) and Zod stay cached
+        // across ordinary deploys, and the pieces download in parallel.
+        //
+        // `tags: ['$initial']` is the load-bearing part. It restricts a group
+        // to modules the entry reaches STATICALLY, so a library only one lazy
+        // route uses (qrcode, for the share dialog) stays in that route's
+        // chunk instead of being hoisted into a vendor chunk every visitor
+        // downloads. Without it a `node_modules` group would undo the route
+        // splitting above.
+        //
+        // Priority decides who claims a module first, and each group also
+        // pulls in its dependencies, so the order matters: Zod and React
+        // (the two largest, most stable libraries, each its own chunk) before
+        // the rest of node_modules, node_modules before component-lib (whose
+        // dependencies would otherwise drag React into the component-lib
+        // chunk).
+        codeSplitting: {
+          groups: [
+            { name: 'zod', test: /[\\/]node_modules[\\/].*[\\/]zod[\\/]/, priority: 40 },
+            {
+              name: 'react',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              tags: ['$initial'],
+              priority: 35,
+            },
+            { name: 'vendor', test: /[\\/]node_modules[\\/]/, tags: ['$initial'], priority: 30 },
+            {
+              name: 'reference',
+              test: /[\\/]packages[\\/]salvageunion-reference[\\/]lib[\\/]/,
+              tags: ['$initial'],
+              priority: 20,
+            },
+            {
+              name: 'component-lib',
+              test: /[\\/]packages[\\/]component-lib[\\/]/,
+              tags: ['$initial'],
+              priority: 10,
+            },
+          ],
+        },
+      },
+    },
   },
   // Pre-bundle the game-data package so esbuild inlines its dynamic
   // `import('../data/*.json', { with: { type: 'json' } })` (+ schema) imports.

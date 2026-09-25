@@ -3,36 +3,9 @@
  * DO NOT EDIT DIRECTLY — edit lib/schemas/registry.ts and run
  * `bun run build:package` to regenerate.
  */
-import { z } from '../zod.js'
-import {
-  AbilitySchema,
-  AbilityTreeRequirementSchema,
-  MetaActionSchema,
-  ChassisSchema,
-  ClassSchema,
-  CrawlerBaySchema,
-  CrawlerTechLevelSchema,
-  CrawlerSchema,
-  CreatureSchema,
-  DistanceSchema,
-  DroneSchema,
-  EquipmentSchema,
-  FactionSchema,
-  GuideSchema,
-  KeywordSchema,
-  MeldSchema,
-  ModuleSchema,
-  NPCSchema,
-  RollTableSchema,
-  SquadSchema,
-  SystemSchema,
-  BioTitanSchema,
-  TraitEntitySchema,
-  VehicleSchema,
-  SourceEntitySchema,
-  TechLevelEntitySchema,
-  CatalogCategorySchema,
-} from '../schemas/index.js'
+// No Zod import here, on purpose: this module is on every consumer's load
+// path, and the entity schemas live in zodSchemaMap.generated.ts so that
+// only a validating load pulls them in (see ModelFactory.loadSchemas).
 
 // ---------------------------------------------------------------------------
 // Lazy loader registries — no JSON is imported at module scope. Keys must be
@@ -71,42 +44,6 @@ export const dataLoaders: Record<string, () => Promise<unknown[]>> = {
   'tech-levels': () => import('../../data/tech-levels.json').then((m) => m.default as unknown[]),
   'catalog-categories': () =>
     import('../../data/catalog-categories.json').then((m) => m.default as unknown[]),
-}
-
-/**
- * Zod schema map — statically available, these are code not data.
- * Exported so the `validate:schemas` tool validates data against the exact
- * same schemas runtime uses, rather than maintaining a parallel literal that
- * could silently drift.
- */
-export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
-  abilities: AbilitySchema,
-  'ability-tree-requirements': AbilityTreeRequirementSchema,
-  actions: MetaActionSchema,
-  chassis: ChassisSchema,
-  classes: ClassSchema,
-  'crawler-bays': CrawlerBaySchema,
-  'crawler-tech-levels': CrawlerTechLevelSchema,
-  crawlers: CrawlerSchema,
-  creatures: CreatureSchema,
-  distances: DistanceSchema,
-  drones: DroneSchema,
-  equipment: EquipmentSchema,
-  factions: FactionSchema,
-  guides: GuideSchema,
-  keywords: KeywordSchema,
-  meld: MeldSchema,
-  modules: ModuleSchema,
-  npcs: NPCSchema,
-  'roll-tables': RollTableSchema,
-  squads: SquadSchema,
-  systems: SystemSchema,
-  'bio-titans': BioTitanSchema,
-  traits: TraitEntitySchema,
-  vehicles: VehicleSchema,
-  sources: SourceEntitySchema,
-  'tech-levels': TechLevelEntitySchema,
-  'catalog-categories': CatalogCategorySchema,
 }
 
 /**

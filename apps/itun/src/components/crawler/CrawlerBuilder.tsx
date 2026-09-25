@@ -19,7 +19,7 @@ import type {
 } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationCrawlerWeapon, isWeaponSystem } from 'salvageunion-reference/rules'
-import { useMechs, usePilots } from '../../hooks/queries'
+import { useMechs, usePilots } from '../../hooks/entities'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import type { CrawlerWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import {
@@ -162,10 +162,21 @@ export function CrawlerBuilder({
   const isEdit = crawlerId !== undefined
   const steps = isEdit ? EDIT_STEPS : CREATE_STEPS
 
-  const [techLevels, setTechLevels] = useState<SURefMetaCrawlerTechLevel[]>([])
-  const [allSystems, setAllSystems] = useState<SURefSystem[]>([])
-  const [allBays, setAllBays] = useState<SURefEntity[]>([])
-  const [types, setTypes] = useState<SURefCrawler[]>([])
+  // Read straight from the ORM: this renders inside GameDataReady, whose
+  // preload('all') has already resolved, so these are synchronous. crawlers
+  // drives the type selection (and its mutations-derived budgets);
+  // crawler-bays seeds the default bays + the Crew step; crawler-tech-levels
+  // backs the Statistics step + the SP derivation. (A per-component
+  // `preload([...]).then(setState)` used to sit here — redundant behind the
+  // gate, and it cost an empty first render.)
+  const techLevels = useMemo<SURefMetaCrawlerTechLevel[]>(
+    () =>
+      [...SalvageUnionReference.CrawlerTechLevels.all()].sort((a, b) => a.techLevel - b.techLevel),
+    []
+  )
+  const allSystems = useMemo<SURefSystem[]>(() => SalvageUnionReference.Systems.all(), [])
+  const allBays = useMemo<SURefEntity[]>(() => SalvageUnionReference.CrawlerBays.all(), [])
+  const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
   // Advisory prelude context (plan §4.3 step 0): a gentle count of the pilots
   // and mechs saved here — surfaced in step 1's RuleBrief, NEVER a blocker
@@ -245,29 +256,6 @@ export function CrawlerBuilder({
     failureMessage: 'Failed to save crawler.',
     onComplete,
   })
-
-  useEffect(() => {
-    // crawlers drives the type selection (and its mutations-derived budgets);
-    // crawler-bays seeds the default bays + the Crew step; crawler-tech-levels
-    // backs the Statistics step + the SP derivation; actions resolves each
-    // system's damage so isWeaponSystem can filter to weapons; roll-tables
-    // backs the Crawler Name d20 assist. The route loader preloads the same
-    // set, so this resolves instantly on the normal path.
-    void SalvageUnionReference.preload([
-      'crawlers',
-      'crawler-tech-levels',
-      'systems',
-      'crawler-bays',
-      'actions',
-      'roll-tables',
-    ]).then(() => {
-      const tls = SalvageUnionReference.CrawlerTechLevels.all()
-      setTechLevels([...tls].sort((a, b) => a.techLevel - b.techLevel))
-      setAllSystems(SalvageUnionReference.Systems.all())
-      setAllBays(SalvageUnionReference.CrawlerBays.all())
-      setTypes(SalvageUnionReference.Crawlers.all())
-    })
-  }, [])
 
   function updateForm(patch: Partial<CrawlerWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))

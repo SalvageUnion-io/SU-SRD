@@ -2,13 +2,19 @@
 /**
  * generateRegistry — codegen for the schema registration mechanism.
  *
- * Reads the single manifest (lib/schemas/registry.ts) and emits two
+ * Reads the single manifest (lib/schemas/registry.ts) and emits three
  * committed, human-reviewable generated files:
  *
  *   - lib/generated/modelFactoryRegistry.generated.ts
  *       dataLoaders (literal per-id `import()` calls — required for bundler
- *       code-splitting to statically analyze them) plus zodSchemaMap /
- *       schemaDisplayNames.
+ *       code-splitting to statically analyze them) plus schemaDisplayNames.
+ *       It imports NO Zod: this module is on every consumer's load path.
+ *
+ *   - lib/generated/zodSchemaMap.generated.ts
+ *       zodSchemaMap — the entity Zod schemas keyed by schema id. Kept in its
+ *       own module so the runtime loader reaches it (via lib/validateData.ts)
+ *       only through a dynamic `import()` when validation is asked for, and bundlers leave the
+ *       entity schemas out of the client chunks (audit PK-04).
  *
  *   - lib/generated/schemaRegistry.generated.ts
  *       the SchemaToEntityMap type, the LazyModel instances (inlined
@@ -25,8 +31,8 @@
  * `Object.getOwnPropertyNames(SalvageUnionReference)`.
  *
  * Run via `bun run build:package` (before generate:json-schemas, since
- * generateJsonSchemas.ts transitively imports ModelFactory's zodSchemaMap,
- * which now lives in the generated file this script produces).
+ * generateJsonSchemas.ts imports zodSchemaMap from the generated file this
+ * script produces).
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -72,16 +78,12 @@ function validateRegistry(entries: RegistryEntry[]): void {
 // ---------------------------------------------------------------------------
 
 function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
-  const zodImports = entries.map((e) => `  ${e.zodExportName},`).join('\n')
-
   const dataLoaders = entries
     .map(
       (e) =>
         `  '${e.id}': () => import('../../data/${e.id}.json').then((m) => m.default as unknown[]),`
     )
     .join('\n')
-
-  const zodSchemaMap = entries.map((e) => `  '${e.id}': ${e.zodExportName},`).join('\n')
 
   const schemaDisplayNames = entries
     .map(
@@ -92,10 +94,9 @@ function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
 
   return (
     GENERATED_HEADER +
-    `import { z } from '../zod.js'
-import {
-${zodImports}
-} from '../schemas/index.js'
+    `// No Zod import here, on purpose: this module is on every consumer's load
+// path, and the entity schemas live in zodSchemaMap.generated.ts so that
+// only a validating load pulls them in (see ModelFactory.loadSchemas).
 
 // ---------------------------------------------------------------------------
 // Lazy loader registries — no JSON is imported at module scope. Keys must be
@@ -108,20 +109,43 @@ ${dataLoaders}
 }
 
 /**
- * Zod schema map — statically available, these are code not data.
- * Exported so the \`validate:schemas\` tool validates data against the exact
- * same schemas runtime uses, rather than maintaining a parallel literal that
- * could silently drift.
- */
-export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
-${zodSchemaMap}
-}
-
-/**
  * Schema display name mappings
  */
 export const schemaDisplayNames: Record<string, { singular: string; plural: string }> = {
 ${schemaDisplayNames}
+}
+`
+  )
+}
+
+// ---------------------------------------------------------------------------
+// lib/generated/zodSchemaMap.generated.ts
+// ---------------------------------------------------------------------------
+
+function generateZodSchemaMap(entries: RegistryEntry[]): string {
+  const zodImports = entries.map((e) => `  ${e.zodExportName},`).join('\n')
+  const zodSchemaMap = entries.map((e) => `  '${e.id}': ${e.zodExportName},`).join('\n')
+
+  return (
+    GENERATED_HEADER +
+    `import type { z } from '../zod.js'
+import {
+${zodImports}
+} from '../schemas/index.js'
+
+/**
+ * Zod schema map — the entity schemas keyed by schema id.
+ *
+ * The \`validate:schemas\` tool and \`generate:json-schemas\` import this
+ * directly, so data is validated against the exact schemas the runtime would
+ * use rather than a parallel literal that could drift. At runtime only
+ * \`lib/validateData.ts\` imports it, and ModelFactory reaches that module
+ * through a dynamic \`import()\` when a caller passes \`{ validate: true }\` to
+ * \`preload()\` — never statically, or every client bundle would carry the
+ * schemas again.
+ */
+export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
+${zodSchemaMap}
 }
 `
   )
@@ -239,18 +263,22 @@ async function main() {
 
   const modelFactoryOut = join(generatedDir, 'modelFactoryRegistry.generated.ts')
   const schemaRegistryOut = join(generatedDir, 'schemaRegistry.generated.ts')
+  const zodSchemaMapOut = join(generatedDir, 'zodSchemaMap.generated.ts')
 
   console.log('Generating registry files from lib/schemas/registry.ts...\n')
 
   // lib/generated/** is biome-ignored (same treatment as routeTree.gen.ts) so
   // it's never a format:check/lint requirement, but running it through the
   // formatter anyway keeps the committed, human-reviewable output pleasant to
-  // review. Because Biome would return an ignored path untouched, these two go
+  // review. Because Biome would return an ignored path untouched, these three go
   // through the synthetic TS_FORMAT_PATH rather than their own paths.
   const formatGenerated = (source: string) => formatWithBiome(source, TS_FORMAT_PATH)
 
   writeFileSync(modelFactoryOut, formatGenerated(generateModelFactoryRegistry(registry)))
   console.log('✓ Generated lib/generated/modelFactoryRegistry.generated.ts')
+
+  writeFileSync(zodSchemaMapOut, formatGenerated(generateZodSchemaMap(registry)))
+  console.log('✓ Generated lib/generated/zodSchemaMap.generated.ts')
 
   writeFileSync(schemaRegistryOut, formatGenerated(generateSchemaRegistry(registry)))
   console.log('✓ Generated lib/generated/schemaRegistry.generated.ts')

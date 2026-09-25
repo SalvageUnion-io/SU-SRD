@@ -1,5 +1,5 @@
 /**
- * hooks/queries — the typed reactive read layer over the Zustand stores
+ * hooks/entities — the typed reactive read layer over the Zustand stores
  * (design review T-7).
  *
  * Components subscribe through these hooks instead of ad-hoc

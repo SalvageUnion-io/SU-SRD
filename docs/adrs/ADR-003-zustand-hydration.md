@@ -4,6 +4,10 @@
 
 Accepted
 
+> **2026-09-25:** ITUN no longer depends on TanStack Query at all — it was
+> mounted and never called, and was removed (audit AP-10). The rule below that
+> persistent entity state flows through the Zustand stores is unchanged.
+
 ## Context
 
 ITUN holds user entities in IndexedDB ([ADR-002](ADR-002-indexeddb-idb-zod.md)),

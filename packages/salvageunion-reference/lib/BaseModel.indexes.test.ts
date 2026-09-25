@@ -80,7 +80,10 @@ describe('BaseModel name/slug indexes', () => {
     expect(model.getByName('Repeated')?.id).toBe('a')
     expect(model.getBySlug('repeated')?.id).toBe('a')
     expect(model.getByName('Unique')?.id).toBe('c')
-    expect(model.getByName('Repeated')).toBe(rows.find((r) => r.name === 'Repeated') as never)
+    // Identity against the model's own rows, not `rows`: the model stamps
+    // `schemaName` on a shallow copy and never mutates what it was given.
+    expect(model.getByName('Repeated')).toBe(model.all().find((r) => r.name === 'Repeated'))
+    expect(rows[0]).not.toHaveProperty('schemaName')
   })
 
   test('rows with no name, a non-string name, or an empty name are not addressable', () => {

@@ -3,23 +3,52 @@
  * Uses lazy (dynamic) imports for JSON data files so consumers
  * can code-split the ~1.1 MB data corpus via SalvageUnionReference.preload().
  *
- * The three registries below (dataLoaders, zodSchemaMap, schemaDisplayNames)
- * are generated from lib/schemas/registry.ts by
- * tools/generateRegistry.ts into lib/generated/modelFactoryRegistry.generated.ts
- * — run `bun run build:package` to regenerate after editing the manifest.
+ * The registries it reads (dataLoaders, schemaDisplayNames, and — only on a
+ * validating load — zodSchemaMap) are generated from lib/schemas/registry.ts
+ * by tools/generateRegistry.ts into lib/generated/ — run
+ * `bun run build:package` to regenerate after editing the manifest.
+ *
+ * ## The trusted load path (audit PK-04)
+ *
+ * The data files are committed, and CI validates every one of them against
+ * its Zod schema (`validate:schemas`) and proves that a Zod parse returns each
+ * file UNCHANGED (`lib/dataCanonical.test.ts`: no defaults left to fill, no
+ * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
+ * therefore pure repetition — and it was most of the cost: ~87% of a
+ * `preload('all')`, in every browser tab and every Worker isolate, plus the
+ * entity schemas in both client bundles.
+ *
+ * So a load is trusted by default. `{ validate: true }` restores the Zod
+ * pass, and reaches it (`validateData.ts`, which holds the schema map) through
+ * a dynamic `import()` so that a bundler never links Zod or the schemas into a
+ * chunk a trusted load needs.
  */
 
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
 import { BaseModel } from './BaseModel.js'
-import {
-  dataLoaders,
-  schemaDisplayNames,
-  zodSchemaMap,
-} from './generated/modelFactoryRegistry.generated.js'
+import { dataLoaders, schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js'
 import { toPascalCase } from './naming.js'
-import { z } from './zod.js'
 
-export { schemaDisplayNames, toPascalCase, zodSchemaMap }
+export { schemaDisplayNames, toPascalCase }
+
+/** Options for {@link loadSchemas} / `SalvageUnionReference.preload()`. */
+export type LoadOptions = {
+  /**
+   * Re-validate each loaded file against its Zod schema. Off by default: the
+   * committed data is validated in CI and proven parse-stable, so the trusted
+   * path returns the same keys and values a validating load would. Key ORDER
+   * differs: a trusted row keeps the data file's order, a parsed row takes the
+   * schema's. Turn it on for data you have not validated yourself (a
+   * hand-edited checkout mid-change, a tool that wants the loud failure). The
+   * first validating load fetches the schema module, so it is async in the
+   * same way the data is.
+   *
+   * It applies only to schemas this call actually loads. A schema that is
+   * already loaded (by an earlier trusted `preload()`) is skipped, so
+   * `{ validate: true }` validates nothing for it.
+   */
+  validate?: boolean
+}
 
 // ---------------------------------------------------------------------------
 // Load state
@@ -47,27 +76,44 @@ export function isSchemaLoaded(schemaId: string): boolean {
  * Idempotent: already-loaded schemas are skipped.
  * Returns a Promise that resolves when all requested schemas are loaded.
  */
-export async function loadSchemas(schemas: string[] | 'all'): Promise<void> {
+export async function loadSchemas(
+  schemas: string[] | 'all',
+  options: LoadOptions = {}
+): Promise<void> {
   const ids = schemas === 'all' ? Object.keys(dataLoaders) : schemas
 
   // Only load schemas not yet loaded
   const pending = ids.filter((id) => !loadedSchemas.has(id))
   if (pending.length === 0) return
 
-  await Promise.all(pending.map((id) => loadSingleSchema(id)))
+  for (const id of pending) {
+    if (!dataLoaders[id]) throw new Error(`No loader found for schema ID: ${id}`)
+  }
+
+  const validate = options.validate ? await loadValidator() : null
+  await Promise.all(pending.map((id) => loadSingleSchema(id, validate)))
 }
 
-async function loadSingleSchema(schemaId: string): Promise<void> {
-  const dataLoader = dataLoaders[schemaId]
-  const zodSchema = zodSchemaMap[schemaId]
+type Validator = (schemaId: string, rawData: unknown[]) => unknown[]
 
-  if (!dataLoader || !zodSchema) {
-    throw new Error(`No loader found for schema ID: ${schemaId}`)
-  }
+/**
+ * Fetch the validating parse. A dynamic import on purpose — see the module
+ * header, and `validateData.ts` for why the boundary is that module rather
+ * than `zod.ts` itself.
+ */
+async function loadValidator(): Promise<Validator> {
+  const { validateRows } = await import('./validateData.js')
+  return validateRows
+}
+
+async function loadSingleSchema(schemaId: string, validate: Validator | null): Promise<void> {
+  const dataLoader = dataLoaders[schemaId]
+  if (!dataLoader) throw new Error(`No loader found for schema ID: ${schemaId}`)
 
   const rawData = await dataLoader()
 
-  const validatedData = validateAndParseData(schemaId, rawData, zodSchema)
+  // Trusted: the committed file IS the parsed form (lib/dataCanonical.test.ts).
+  const validatedData = validate ? validate(schemaId, rawData) : rawData
   const displayNameValue = schemaDisplayNames[schemaId]?.singular ?? schemaId
   const model = new BaseModel(validatedData, schemaId, displayNameValue)
 
@@ -164,36 +210,15 @@ export function getDataMaps(): {
 // ---------------------------------------------------------------------------
 
 /**
- * Registry key sets, exported for the consistency test ONLY — the loader
- * maps themselves stay private (they must remain static-literal for
- * bundler-analyzable dynamic imports). Every map here must cover exactly
- * the same schema ids; lib/registryConsistency.test.ts enforces it.
+ * Registry key set, exported for the consistency test ONLY — the loader map
+ * itself stays private (it must remain static-literal for bundler-analyzable
+ * dynamic imports). lib/registryConsistency.test.ts checks it against
+ * zodSchemaMap, which it imports from the generated module directly: a
+ * static import of that module here would put the schemas back in every
+ * client bundle.
  */
 export const _registryKeySets = {
   dataLoaders: Object.keys(dataLoaders),
-  zodSchemaMap: Object.keys(zodSchemaMap),
-}
-
-/**
- * Validate and parse data using Zod schema
- */
-function validateAndParseData<T>(
-  schemaId: string,
-  rawData: unknown[],
-  zodSchema: z.ZodType<T>
-): T[] {
-  try {
-    return z.array(zodSchema).parse(rawData)
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error(`Validation error for schema ${schemaId}:`, error.issues)
-      throw new Error(
-        `Data validation failed for ${schemaId}: ${error.issues.map((e: { message: string }) => e.message).join(', ')}`,
-        { cause: error }
-      )
-    }
-    throw error
-  }
 }
 
 /**

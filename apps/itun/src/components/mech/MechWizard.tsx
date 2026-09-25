@@ -21,7 +21,7 @@ import {
   resolvePool,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { useMech } from '../../hooks/queries'
+import { useMech } from '../../hooks/entities'
 import type { MechWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,

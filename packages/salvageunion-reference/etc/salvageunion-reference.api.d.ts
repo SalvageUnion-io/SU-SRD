@@ -152,15 +152,48 @@ export declare class LazyModel<T> extends BaseModel<T> {
  * Uses lazy (dynamic) imports for JSON data files so consumers
  * can code-split the ~1.1 MB data corpus via SalvageUnionReference.preload().
  *
- * The three registries below (dataLoaders, zodSchemaMap, schemaDisplayNames)
- * are generated from lib/schemas/registry.ts by
- * tools/generateRegistry.ts into lib/generated/modelFactoryRegistry.generated.ts
- * — run `bun run build:package` to regenerate after editing the manifest.
+ * The registries it reads (dataLoaders, schemaDisplayNames, and — only on a
+ * validating load — zodSchemaMap) are generated from lib/schemas/registry.ts
+ * by tools/generateRegistry.ts into lib/generated/ — run
+ * `bun run build:package` to regenerate after editing the manifest.
+ *
+ * ## The trusted load path (audit PK-04)
+ *
+ * The data files are committed, and CI validates every one of them against
+ * its Zod schema (`validate:schemas`) and proves that a Zod parse returns each
+ * file UNCHANGED (`lib/dataCanonical.test.ts`: no defaults left to fill, no
+ * unknown keys to strip). Re-running `z.array(schema).parse` on every load was
+ * therefore pure repetition — and it was most of the cost: ~87% of a
+ * `preload('all')`, in every browser tab and every Worker isolate, plus the
+ * entity schemas in both client bundles.
+ *
+ * So a load is trusted by default. `{ validate: true }` restores the Zod
+ * pass, and reaches it (`validateData.ts`, which holds the schema map) through
+ * a dynamic `import()` so that a bundler never links Zod or the schemas into a
+ * chunk a trusted load needs.
  */
 import { BaseModel } from './BaseModel.js';
-import { schemaDisplayNames, zodSchemaMap } from './generated/modelFactoryRegistry.generated.js';
+import { schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js';
 import { toPascalCase } from './naming.js';
-export { schemaDisplayNames, toPascalCase, zodSchemaMap };
+export { schemaDisplayNames, toPascalCase };
+/** Options for {@link loadSchemas} / `SalvageUnionReference.preload()`. */
+export type LoadOptions = {
+    /**
+     * Re-validate each loaded file against its Zod schema. Off by default: the
+     * committed data is validated in CI and proven parse-stable, so the trusted
+     * path returns the same keys and values a validating load would. Key ORDER
+     * differs: a trusted row keeps the data file's order, a parsed row takes the
+     * schema's. Turn it on for data you have not validated yourself (a
+     * hand-edited checkout mid-change, a tool that wants the loud failure). The
+     * first validating load fetches the schema module, so it is async in the
+     * same way the data is.
+     *
+     * It applies only to schemas this call actually loads. A schema that is
+     * already loaded (by an earlier trusted `preload()`) is skipped, so
+     * `{ validate: true }` validates nothing for it.
+     */
+    validate?: boolean;
+};
 /**
  * Returns true if the given schema ID has been loaded via preload().
  */
@@ -170,7 +203,7 @@ export declare function isSchemaLoaded(schemaId: string): boolean;
  * Idempotent: already-loaded schemas are skipped.
  * Returns a Promise that resolves when all requested schemas are loaded.
  */
-export declare function loadSchemas(schemas: string[] | 'all'): Promise<void>;
+export declare function loadSchemas(schemas: string[] | 'all', options?: LoadOptions): Promise<void>;
 /**
  * Get a loaded model by PascalCase property name.
  * Throws with a descriptive error if the schema hasn't been loaded yet.
@@ -201,14 +234,15 @@ export declare function getDataMaps(): {
     dataMap: Record<string, unknown[]>;
 };
 /**
- * Registry key sets, exported for the consistency test ONLY — the loader
- * maps themselves stay private (they must remain static-literal for
- * bundler-analyzable dynamic imports). Every map here must cover exactly
- * the same schema ids; lib/registryConsistency.test.ts enforces it.
+ * Registry key set, exported for the consistency test ONLY — the loader map
+ * itself stays private (it must remain static-literal for bundler-analyzable
+ * dynamic imports). lib/registryConsistency.test.ts checks it against
+ * zodSchemaMap, which it imports from the generated module directly: a
+ * static import of that module here would put the schemas back in every
+ * client bundle.
  */
 export declare const _registryKeySets: {
     dataLoaders: string[];
-    zodSchemaMap: string[];
 };
 /**
  * Enhanced schema metadata interface
@@ -711,15 +745,7 @@ export declare function isBaseAdvancedClass(entity: SURefMetaEntity): entity is 
  * DO NOT EDIT DIRECTLY — edit lib/schemas/registry.ts and run
  * `bun run build:package` to regenerate.
  */
-import { z } from '../zod.js';
 export declare const dataLoaders: Record<string, () => Promise<unknown[]>>;
-/**
- * Zod schema map — statically available, these are code not data.
- * Exported so the `validate:schemas` tool validates data against the exact
- * same schemas runtime uses, rather than maintaining a parallel literal that
- * could silently drift.
- */
-export declare const zodSchemaMap: Record<string, z.ZodType<unknown>>;
 /**
  * Schema display name mappings
  */
@@ -888,6 +914,26 @@ export declare const SCHEMA_REGISTRY: {
     };
 };
 //# sourceMappingURL=schemaRegistry.generated.d.ts.map
+// === lib/generated/zodSchemaMap.generated.d.ts ===
+/**
+ * AUTO-GENERATED by tools/generateRegistry.ts from lib/schemas/registry.ts.
+ * DO NOT EDIT DIRECTLY — edit lib/schemas/registry.ts and run
+ * `bun run build:package` to regenerate.
+ */
+import type { z } from '../zod.js';
+/**
+ * Zod schema map — the entity schemas keyed by schema id.
+ *
+ * The `validate:schemas` tool and `generate:json-schemas` import this
+ * directly, so data is validated against the exact schemas the runtime would
+ * use rather than a parallel literal that could drift. At runtime only
+ * `lib/validateData.ts` imports it, and ModelFactory reaches that module
+ * through a dynamic `import()` when a caller passes `{ validate: true }` to
+ * `preload()` — never statically, or every client bundle would carry the
+ * schemas again.
+ */
+export declare const zodSchemaMap: Record<string, z.ZodType<unknown>>;
+//# sourceMappingURL=zodSchemaMap.generated.d.ts.map
 // === lib/helpers.d.ts ===
 /**
  * Helper functions for common operations on Salvage Union reference data
@@ -1109,11 +1155,12 @@ export declare function extractStaticEntitySummary(entity: SURefEntity): StaticE
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js';
 import { SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js';
+import type { LoadOptions } from './ModelFactory.js';
 import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from './types/index.js';
 export { BaseModel, type ModelWithMetadata } from './BaseModel.js';
 export { parseContentBlockString, replaceChassisPlaceholder, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
 export * from './helpers.js';
-export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js';
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog, type LoadOptions, } from './ModelFactory.js';
 export { type ChoicePrompt, type ChoiceSelections, type ResolvedChoiceView, resolveChoiceView, } from './resolveChoiceView.js';
 export { type D20Roller, type RollOnTableOutcome, rollOnTable } from './rollOnTable.js';
 export { extractContentText, getSuggestions, invalidateSearchIndex, isSchemaName, type SearchOptions, type SearchResult, search, searchIn, TYPO_MIN_TOKEN_LENGTH, withinEditDistance1, } from './search.js';
@@ -1165,6 +1212,11 @@ export declare class SalvageUnionReference {
      * Load schemas before use.
      *
      * @param schemas - Array of schema IDs to load, or `'all'` to load everything.
+     * @param options - `{ validate: true }` re-parses each file through its Zod
+     *   schema. Off by default: the committed data is validated in CI and proven
+     *   parse-stable, so a trusted load returns the same rows at a fraction of
+     *   the cost and keeps the schemas out of client bundles. See
+     *   `LoadOptions` in `ModelFactory.ts`.
      * @returns Promise that resolves when all requested schemas are loaded.
      *
      * @example
@@ -1174,7 +1226,7 @@ export declare class SalvageUnionReference {
      * // Load only what you need (enables code-splitting):
      * await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
      */
-    static preload(schemas: string[] | 'all'): Promise<void>;
+    static preload(schemas: string[] | 'all', options?: LoadOptions): Promise<void>;
     /**
      * Check whether a schema has been loaded.
      *
@@ -5086,10 +5138,11 @@ export declare function resolveClassRef(ref: string): ({
         page: number;
     }[] | undefined;
     hybrid: boolean;
-    advanceable: boolean;
     maxAbilities: number;
-    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
-    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    advanceable: boolean;
+    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
+    advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
+    legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
 } & {
     schemaName: string;
 }) | ({
@@ -5132,11 +5185,10 @@ export declare function resolveClassRef(ref: string): ({
         page: number;
     }[] | undefined;
     hybrid: boolean;
-    maxAbilities: number;
     advanceable: boolean;
-    coreTrees: ("Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep")[];
-    advancedTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
-    legendaryTree?: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep" | undefined;
+    maxAbilities: number;
+    advancedTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
+    legendaryTree: "Advanced Engineer" | "Advanced Hacking" | "Advanced Hauler" | "Advanced Scout" | "Advanced Soldier" | "Augmentation" | "Cyborg" | "Electronics" | "Fabricator" | "Forging" | "Generic" | "Gladiatorial Combat" | "Hacking" | "Leadership" | "Legendary Cyborg" | "Legendary Engineer" | "Legendary Fabricator" | "Legendary Hacker" | "Legendary Hauler" | "Legendary Ranger" | "Legendary Scout" | "Legendary Smuggler" | "Legendary Soldier" | "Legendary Union Rep" | "Mech-Tech" | "Mechanical Knowledge" | "Ranger" | "Recon" | "Salvaging" | "Sleuth" | "Smuggler" | "Sniper" | "Survivalist" | "Tactical Warfare" | "Trading" | "Union Rep";
 } & {
     schemaName: string;
 }) | null;
@@ -18268,6 +18320,10 @@ export type TableRow = {
  */
 export declare function tableRows(table: SURefObjectTable | undefined | null): TableRow[];
 //# sourceMappingURL=tableRows.d.ts.map
+// === lib/validateData.d.ts ===
+/** Parse one data file through its schema; throw a readable error if it fails. */
+export declare function validateRows(schemaId: string, rawData: unknown[]): unknown[];
+//# sourceMappingURL=validateData.d.ts.map
 // === lib/zod.d.ts ===
 /**
  * Pre-configured Zod instance.

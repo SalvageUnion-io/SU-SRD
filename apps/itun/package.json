@@ -26,7 +26,6 @@
     "@randsum/roller": "catalog:",
     "@resvg/resvg-wasm": "^2.6.0",
     "@sentry/browser": "catalog:",
-    "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-router": "^1.170.31",
     "@tanstack/router-plugin": "^1.168.34",
     "component-lib": "workspace:*",
