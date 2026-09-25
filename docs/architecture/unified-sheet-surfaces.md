@@ -371,12 +371,13 @@ unification that moves route families will meet that same problem three times.
   coverage in `apps/itun/src/worker/__tests__/routing.test.ts` and the route
   tests in `apps/itun/src/routes/__tests__/`.
 - A retired-URL table: every share URL shape the app has ever served, and what
-  answers it now. `apps/itun/src/routes/__tests__/retiredShareRoute.test.tsx` is
-  the pattern; the table is the thing that is new, because the rule is about the
-  set and not about one route.
-- The guard must cover **both halves of the PWA problem**: the route registered
-  in the app, and the Worker's own path handling in
-  `apps/itun/src/worker/index.ts`.
+  answers it now. `apps/itun/src/worker/retiredRoutes.ts` is that table for the
+  retired app routes (the Worker 301s each one, and the service worker's
+  navigation denylist is built from it); share URLs belong in the same table,
+  because the rule is about the set and not about one route.
+- The guard must cover **both halves of the PWA problem**: the service worker
+  answering a navigation from its precache, and the Worker's own path handling
+  in `apps/itun/src/worker/index.ts`.
 
 **Gate.**
 

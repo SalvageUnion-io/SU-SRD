@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
+import { RETIRED_NAVIGATIONS } from './src/worker/retiredRoutes'
 
 // Sourcemap upload is entirely env-gated on SENTRY_AUTH_TOKEN, mirroring the
 // discipline of src/lib/observability.ts: absent locally and in CI (no token
@@ -59,6 +60,9 @@ export default defineConfig({
         // the install. The first entry restates workbox's own default, which
         // setting `globIgnores` replaces; workbox already skips `swDest`.
         globIgnores: ['**/node_modules/**/*', '**/validateData-*.js'],
+        // Retired URLs go to the network, where the Worker 301s them, instead of
+        // being answered with the precached shell — see src/worker/retiredRoutes.ts.
+        navigateFallbackDenylist: [...RETIRED_NAVIGATIONS],
       },
       manifest: {
         name: 'ITUN — In The Union Now',

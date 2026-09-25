@@ -73,7 +73,7 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
   await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
 
   // There is deliberately no top-bar "edit this pilot" link any more: the edit
-  // wizard route is gone (/pilots/$id is a bare redirect) and the Live Sheet is
+  // wizard route is gone (/pilots/$id is a Worker 301) and the Live Sheet is
   // itself the Free Edit surface under ADR-021, edited in place per section.
   // `Sheet-topbar-segments.test.tsx` pins its ABSENCE, so asserting it here
   // would contradict a unit test rather than guard anything.

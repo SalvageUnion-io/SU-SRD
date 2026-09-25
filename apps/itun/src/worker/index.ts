@@ -8,9 +8,11 @@
  * method-conditioned routing declaratively, so it is code, and
  * `__tests__/routing.test.ts` asserts each rule and each ordering constraint:
  *
- *   1. `/sheet/:kind/:id/share` → 301 to the sheet. The Share Snapshot screen
- *      was removed in #793; this is where a bookmark or a pasted builder link
- *      would otherwise dead-end on the SPA's not-found page.
+ *   1. a retired URL           → 301 to the page that replaced it (the Share
+ *      Snapshot screen, removed in #793, and the per-entity detail pages
+ *      collapsed into the live sheet). The table is `./retiredRoutes.ts`,
+ *      which the service worker's navigation denylist also reads — that is
+ *      what lets this 301 reach an installed PWA at all.
  *   2. `/api/snapshots`        → POST publishes; every other method 405.
  *   3. `/api/snapshots/:id`    → DELETE revokes, GET retrieves. DELETE must be
  *      matched BEFORE GET, or an unconditioned retrieve swallows it into a 405.
@@ -65,6 +67,7 @@ import { isValidSnapshotId } from '../lib/snapshot/id'
 import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
+import { retiredRedirect } from './retiredRoutes'
 import type { ShellMeta } from './shellMeta'
 import { applyMeta, metaForSnapshot } from './shellMeta'
 
@@ -104,8 +107,6 @@ type AnalyticsEngineDataset = {
 function clientIp(request: Request): string {
   return request.headers.get('cf-connecting-ip') ?? 'unknown'
 }
-
-const SHARE_PATH = /^\/sheet\/([^/]+)\/([^/]+)\/share\/?$/
 
 const SNAPSHOT_ROUTE = /^\/s\/([^/]+)\/?$/
 
@@ -379,17 +380,14 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
   const url = new URL(request.url)
   const path = url.pathname
 
-  // 1. Retired URL. 301 rather than 302: the screen is not coming back.
+  // 1. Retired URL. 301 rather than 302: none of these screens is coming back.
   //
-  // NOT sufficient on its own, and the app carries a matching client-side
-  // route. The service worker registers a NavigationRoute bound to a precached
-  // index.html, so for anyone with the app installed or cached a navigation is
-  // answered from Cache Storage and never reaches this Worker at all. This
-  // covers first-time loads, crawlers and non-SW clients.
-  const share = SHARE_PATH.exec(path)
-  if (share) {
-    return Response.redirect(`${url.origin}/sheet/${share[1]}/${share[2]}`, 301)
-  }
+  // This reaches installed PWAs only because the service worker's
+  // `navigateFallbackDenylist` is built from the same table — otherwise a
+  // cached navigation is answered from Cache Storage and never gets here. See
+  // `./retiredRoutes.ts`.
+  const retired = retiredRedirect(path)
+  if (retired) return Response.redirect(`${url.origin}${retired}`, 301)
 
   // 2 & 3. The snapshot API. Method-conditioned routing, which Cloudflare
   // cannot express declaratively, so it has to be tested rather than read.
@@ -449,7 +447,7 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
   //    whole origin an infinite well of soft-404s to index.
   //
   //    A client route in this app never has a file extension — they are
-  //    `/pilots/$id`, `/sheet/$kind/$id`, `/games/$gameId`. So a dot in the
+  //    `/pilots/new`, `/sheet/$kind/$id`, `/games/$gameId`. So a dot in the
   //    last segment is a reliable signal that the request wanted a FILE, and
   //    a file that is not there is a 404. This is deliberately narrower than
   //    an allowlist of known filenames, which would go stale silently.

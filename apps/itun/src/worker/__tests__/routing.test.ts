@@ -75,6 +75,26 @@ function envWith(
 const req = (path: string, init?: RequestInit) =>
   new Request(`https://intheunionnow.com${path}`, init)
 
+describe('retired detail pages', () => {
+  it.each([
+    ['/pilots/abc123', '/sheet/pilot/abc123'],
+    ['/mechs/xyz', '/sheet/mech/xyz'],
+    ['/crawlers/c-9', '/sheet/crawler/c-9'],
+  ])('301s %s to %s', async (from, to) => {
+    const res = await worker.fetch(req(from), envWith())
+
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe(`https://intheunionnow.com${to}`)
+  })
+
+  it('leaves the wizards and the pattern library to the SPA', async () => {
+    for (const path of ['/pilots/new', '/mechs/new', '/crawlers/new', '/mechs/patterns']) {
+      const res = await worker.fetch(req(path), envWith())
+      expect(res.status).toBe(200)
+    }
+  })
+})
+
 describe('retired share URL', () => {
   it('301s /sheet/:kind/:id/share to the sheet', async () => {
     const env = envWith()

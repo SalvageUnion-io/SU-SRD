@@ -56,7 +56,7 @@ test('build a crawler from scratch', async ({ page }) => {
 })
 
 /**
- * Crawler edit round-trip. /crawlers/$id is now a bare redirect and there is no
+ * Crawler edit round-trip. /crawlers/$id is now a Worker 301 and there is no
  * /crawlers/$id/edit route — the detail page was collapsed into the live sheet,
  * the Free Edit surface under ADR-021. Intent is unchanged: change the crawler
  * after creation and have the change persist.
