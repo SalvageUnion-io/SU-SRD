@@ -47,7 +47,7 @@
  * constraint and works in Solo, which is the whole point of it.
  */
 
-import { Button, FieldError, Input, ModalShell, SnapshotQr, toast } from 'component-lib'
+import { Button, FieldError, Input, ModalShell, toast } from 'component-lib'
 import { useEffect, useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
@@ -65,6 +65,7 @@ import {
   removePublishedSnapshot,
 } from '../../lib/snapshot/publishedSnapshots'
 import { PublicSheetPanel } from './PublicSheetPanel'
+import { SnapshotQr } from './SnapshotQr'
 
 type ShareStatusDialogProps = {
   kind: EntityRef['type']

@@ -179,7 +179,6 @@ export type { ChassisStatItem } from './components/sheet/SheetHero'
 // only the store-wired containers that feed these).
 export { SheetHero } from './components/sheet/SheetHero'
 export { SheetSkeleton } from './components/sheet/SheetSkeleton'
-export { SnapshotQr } from './components/sheet/SnapshotQr'
 export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
 // Skeletons
 export { Skeleton } from './components/skeleton/Skeleton'

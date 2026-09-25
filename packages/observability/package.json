@@ -12,6 +12,10 @@
     "./cloudflare": {
       "types": "./src/cloudflare.ts",
       "default": "./src/cloudflare.ts"
+    },
+    "./worker-http": {
+      "types": "./src/workerHttp.ts",
+      "default": "./src/workerHttp.ts"
     }
   },
   "scripts": {
@@ -22,7 +26,7 @@
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage"
   },
-  "devDependencies": {
+  "dependencies": {
     "@sentry/cloudflare": "10.69.0"
   }
 }
