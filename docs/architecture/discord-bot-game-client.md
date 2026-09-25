@@ -7,6 +7,13 @@
 sits on, and [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md) for the
 surface/mode taxonomy that decides what the bot is allowed to do.
 
+> **Hosting has moved since this plan was drawn.** Where §3 and §10 weigh the
+> options against "the Render gateway", read them as the decision record they
+> are: the bot now runs as HTTP interactions on the `su-discord-bot` Cloudflare
+> Worker ([ADR-033](../adrs/ADR-033-cloudflare-hosting.md) P5, live
+> 2026-08-19), and the Render account was deleted on 2026-09-01. Its secrets
+> are wrangler secrets on that Worker, not Render env.
+
 ---
 
 ## 1. What actually exists today
@@ -459,7 +466,8 @@ Each phase is a shippable PR. Phase 0 is the only hard prerequisite.
 - Bot side: extend `config.ts` with `itunSiteUrl` + `itunBotSecret` (both
   **optional** — Solo must keep working), and add a thin client module so tests
   stay offline.
-- Render: `ITUN_CONVEX_SITE_URL`, `ITUN_BOT_SECRET` (1Password → Render env).
+- Bot env: `ITUN_CONVEX_SITE_URL`, `ITUN_BOT_SECRET` (1Password → originally
+  Render env; now wrangler secrets on the `su-discord-bot` Worker, see §1).
 
 **Exit:** an integration test proves an unauthenticated `recordRoll` is rejected,
 and the bot can round-trip one authenticated call.

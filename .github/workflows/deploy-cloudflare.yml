@@ -389,6 +389,16 @@ jobs:
         env:
           VITE_COMMIT_REF: ${{ steps.target.outputs.sha }}
           VITE_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
+          # ROLLBACK SHIM — remove once `deployed/cloudflare` is past the commit
+          # that renamed srd's env prefix. A `sha` dispatch runs THIS workflow
+          # file against an OLDER tree, and srd before the rename read
+          # `import.meta.env.PUBLIC_*` under `envPrefix: 'PUBLIC_'`; with only
+          # the VITE_ names set, a rollback would inline the DSN as `undefined`
+          # and ship srd with Sentry tree-shaken out while the DSN guard above
+          # still passed. The current tree has the default `VITE_` prefix, so
+          # these are never exposed to its bundle.
+          PUBLIC_COMMIT_REF: ${{ steps.target.outputs.sha }}
+          PUBLIC_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
           # Source-map upload (apps/srd/ssg/vite.config.ts). Same token and org
           # as itun; the PROJECT is srd's own, and is written literally rather
           # than read from `vars.SENTRY_PROJECT`, which names itun's. A project
@@ -505,8 +515,21 @@ jobs:
       # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run
       # the same checks on a schedule, catching a regression that happens
       # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
+      #
+      # Run from the WORKFLOW's commit, not the checked-out tree. A rollback
+      # dispatch checks out an older `sha` that may predate the script; running
+      # it from that tree would exit 127 AFTER the deploy, skip `record`, and
+      # leave `deployed/cloudflare` naming a commit production no longer serves.
+      # `fetch-depth: 0` above means the workflow's commit is already local; the
+      # fetch covers a dispatch from a ref the checkout did not include.
       - name: Smoke the deployed surfaces
-        run: bash tools/smoke-production.sh
+        env:
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          git cat-file -e "$WORKFLOW_SHA^{commit}" 2>/dev/null \
+            || git fetch --no-tags --depth=1 origin "$WORKFLOW_SHA"
+          git show "$WORKFLOW_SHA:tools/smoke-production.sh" > "$RUNNER_TEMP/smoke-production.sh"
+          bash "$RUNNER_TEMP/smoke-production.sh"
 
   # ---------------------------------------------------------------------------
   # The deploy record — what the next run diffs against.

@@ -35,7 +35,11 @@ check() {
 # platform, so it is asserted against production rather than read from config.
 check_header() {
   local url="$1" header="$2" label="$3"
-  if curl -sSI --max-time 20 "$url" | grep -qi "^${header}:"; then
+  # Captured first rather than piped: `grep -q` exits at the first match, and
+  # under `pipefail` the SIGPIPE that gives curl would read as a failure.
+  local headers
+  headers=$(curl -sSI --max-time 20 "$url" 2>/dev/null) || true
+  if printf '%s\n' "$headers" | grep -i "^${header}:" >/dev/null; then
     echo "  ok   $label"
   else
     echo "  FAIL $label — no '${header}' in response headers" >&2

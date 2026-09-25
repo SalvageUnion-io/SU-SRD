@@ -219,12 +219,20 @@ is EU.
 
 | Project          | Surface                                   | DSN env var          |
 | ---------------- | ----------------------------------------- | -------------------- |
-| `srd`            | `apps/srd` browser bundle                 | `VITE_SENTRY_DSN` (repo variable `SRD_SENTRY_DSN`) |
+| `srd`            | `apps/srd` browser bundle                 | `VITE_SENTRY_DSN` (repo variable `SRD_SENTRY_DSN`\*) |
 | `itun`           | `apps/itun` browser bundle                | `VITE_SENTRY_DSN`    |
 | `itun-functions` | `apps/itun` Worker                        | `SENTRY_DSN`         |
 | `itun-convex`    | The ITUN Convex deployments               | _dashboard toggle_   |
 | `su-assets`      | `apps/su-assets` function                 | `SENTRY_DSN`         |
 | `su-discord`     | `apps/discord-bot` Cloudflare Worker      | `SENTRY_DSN`         |
+
+\* **Operator follow-up, not yet done:** `SRD_SENTRY_DSN` may not exist yet —
+the DSN still sits in the repository variable under its old name,
+`PUBLIC_SENTRY_DSN`, and `deploy-cloudflare.yml` reads
+`vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN`. To finish: create
+`SRD_SENTRY_DSN` with the same value, delete `PUBLIC_SENTRY_DSN`, then drop the
+`||` fallback (both occurrences) and the `PUBLIC_*` rollback shim on the
+"Build srd" step once `deployed/cloudflare` is past the rename.
 
 `itun-convex` has **no DSN env var in this repo on purpose.** Convex reports
 through its first-party Exception Reporting integration, configured in the
