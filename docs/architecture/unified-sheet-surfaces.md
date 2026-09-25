@@ -358,11 +358,15 @@ and the measurement was what made the phase safe to close.
 any phase can violate it.
 
 **Why it is this early.** There is precedent in this repo for a route quietly
-ceasing to resolve and only a bookmark noticing:
-`apps/itun/src/routes/sheet/$kind/$id_.share.tsx` exists solely to stop a
-retired URL dead-ending, and its header explains that the edge rule alone was
-not enough because the service worker answers navigations from cache. A
-unification that moves route families will meet that same problem three times.
+ceasing to resolve and only a bookmark noticing. The retired Share Snapshot
+URL (`/sheet/:kind/:id/share`) once needed its own client-side redirect route,
+because the Worker's 301 alone was not enough: the service worker answered the
+navigation from its precache and the Worker never saw it. That route is gone;
+`apps/itun/src/worker/retiredRoutes.ts` now feeds both the Worker's 301 and the
+service worker's `navigateFallbackDenylist`, and it is the denylist half that
+makes the 301 sufficient. Do not reintroduce per-URL redirect routes — add the
+retired shape to that table. A unification that moves route families will meet
+that same problem three times.
 
 **Work.**
 
@@ -556,8 +560,8 @@ costs a permanent second route family. Redirected requires knowing what to
 redirect *to*, which requires the index from decision **a**, which does not
 exist for ownerless snapshots — so "redirect" may be undecidable for exactly the
 links that have been in the wild longest. Note that a redirect must satisfy the
-governing rule, which the service-worker problem in
-`apps/itun/src/routes/sheet/$kind/$id_.share.tsx` shows is not free.
+governing rule, which the service-worker problem (see
+`apps/itun/src/worker/retiredRoutes.ts`) shows is not free.
 
 ---
 

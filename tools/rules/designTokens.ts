@@ -66,9 +66,10 @@ export const SCAN_DIRS = [
 ]
 
 // `.astro` was here until apps/srd moved off Astro. Nothing in the repo emits
-// that extension any more, and the pages it used to cover are now .tsx — which
-// is how greembeem's deliberate Wikipedia palette became visible to this check
-// for the first time (see EXEMPTIONS).
+// that extension any more, and the pages it used to cover are now .tsx. The
+// one page that needed a raw-color exemption, greembeem (a MediaWiki-palette
+// novelty page), now ships as a static file under apps/srd/public/, which this
+// check does not scan, so it carries no exemption here.
 const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json']
 
 type TokenRule = Rule & {
@@ -200,12 +201,6 @@ export const TOKEN_RULES: TokenRule[] = [
  * justification is just a silent hole in the guardrail.
  */
 const EXEMPTIONS: Exemption[] = [
-  {
-    file: 'apps/srd/src/pages/greembeem.page.tsx',
-    rules: ['raw-color'],
-    reason:
-      "Not an SRD surface. This is a standalone novelty page — a Wikipedia pastiche for an in-joke episode list — that is `noindex, nofollow`, excluded from the sitemap (ssg/sitemap.ts, and it registers via registerDocument), linked from nowhere in the repo, and carries its own self-contained inline <style> importing nothing from the theme. It is the ONLY page that opts out of the site stylesheet entirely: it owns its whole <html> and loads no global.css. Its literals ARE the joke: #a2a9b1 borders, #f8f9fa chrome and #3366cc links are MediaWiki's palette, and reskinning them in Salvage Union tokens would destroy the only thing the page does. It shares the deploy, not the design system. (Carried over verbatim from the `greembeem.astro` entry this replaces — the page was ported to .tsx by the Astro migration, not newly exempted. This checker always scanned .astro; it was Biome, not this rule, that gained srd coverage in that migration.)",
-  },
   {
     file: 'packages/component-lib/src/styles/theme.css',
     rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius'],

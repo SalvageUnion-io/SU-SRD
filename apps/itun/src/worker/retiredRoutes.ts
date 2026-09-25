@@ -21,6 +21,12 @@
  *   screen that no longer exists, opened offline, and it is the right trade
  *   for not carrying a route per retired URL forever.
  *
+ *   The same holds under `bun run dev:itun`: plain Vite serves the SPA with no
+ *   Worker in front of it, so a retired path there lands on the SPA's
+ *   not-found screen rather than redirecting. That is expected, not a
+ *   regression — exercise the redirects through the Worker (wrangler) or its
+ *   routing tests.
+ *
  * Keep the patterns anchored and specific: anything matched here is answered
  * by the Worker and bypasses the app entirely, so a loose pattern would
  * shadow a live route.
