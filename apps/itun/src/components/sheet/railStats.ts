@@ -75,10 +75,18 @@ export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
   ]
 }
 
-/** Pilot rail vitals: "HP 7/10 · AP 4/6". */
-export function pilotRailItems(pilot: Pilot): RailStat[] {
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
+/**
+ * Pilot rail vitals: "HP 7/10 · AP 4/6".
+ *
+ * `crawlerTechLevel` is the pilot's EFFECTIVE crawler tier
+ * (`resolveEffectiveCrawlerLevel(pilot, theirCrawler)`), which raises max HP/AP
+ * via Stat Training. Omitting it reads a Tech 1 pilot — lower than their own
+ * sheet whenever they are aboard a higher-tier crawler.
+ */
+export function pilotRailItems(pilot: Pilot, crawlerTechLevel?: number): RailStat[] {
+  const input = { ...pilot, crawlerTechLevel }
+  const maxHP = Math.max(0, pilotMaxHP(input))
+  const maxAP = Math.max(0, pilotMaxAP(input))
   return [
     { label: 'HP', value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
     { label: 'AP', value: resolvePool(pilot.currentAP, maxAP), max: maxAP },

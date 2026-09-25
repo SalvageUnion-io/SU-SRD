@@ -13,6 +13,7 @@
 import { EntityRow } from 'component-lib'
 import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -102,7 +103,12 @@ export function SheetMech({
           sheetHref={`/sheet/pilot/${composition.pilot.id}`}
           linkAs={AppLink}
           meta="Assigned Pilot"
-          stats={rowStats(pilotRailItems(composition.pilot))}
+          stats={rowStats(
+            pilotRailItems(
+              composition.pilot,
+              resolveEffectiveCrawlerLevel(composition.pilot, composition.crawler)
+            )
+          )}
           onDeleteClick={unassignPilot}
         />
       ) : (
