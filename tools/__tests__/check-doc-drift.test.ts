@@ -20,9 +20,9 @@ import {
   checkFrameworkVersions,
   checkReferencedScripts,
   checkSupersededAdrCitations,
+  citationReadsAsHistoryOrProposal,
   gitignoredMatcher,
   pathCandidate,
-  readsAsHistoryOrProposal,
   sentenceAround,
   splitMarkdownBlocks,
   supersededAdrs,
@@ -352,16 +352,53 @@ describe('pathCandidate', () => {
   })
 })
 
-describe('sentenceAround / readsAsHistoryOrProposal', () => {
+/** Is the first backticked span of `text` excused as history or a proposal? */
+function excused(text: string, token?: string): boolean {
+  const span = token === undefined ? (text.match(/`[^`]*`/)?.[0] ?? '') : `\`${token}\``
+  const index = text.indexOf(span)
+  expect(index).toBeGreaterThanOrEqual(0)
+  return citationReadsAsHistoryOrProposal(text, index, span.length)
+}
+
+describe('sentenceAround', () => {
+  it('ends a sentence at a period followed by closing markup', () => {
+    const text = '- **Workspaces are retired.** Resolve through `src/lib/container.ts`.'
+    expect(sentenceAround(text, text.indexOf('`src'))).toBe(
+      ' Resolve through `src/lib/container.ts`.'
+    )
+    const paren = 'See the note (it was deleted.) Then read `b.md`.'
+    expect(sentenceAround(paren, paren.indexOf('`b.md`'))).toBe(' Then read `b.md`.')
+  })
+
+  it('treats every table row and list item as its own unit', () => {
+    const table = '| Who may create | anyone |\n| Storage | `apps/itun/convex/schema.ts` |'
+    expect(sentenceAround(table, table.indexOf('`apps'))).toBe(
+      '| Storage | `apps/itun/convex/schema.ts` |'
+    )
+    const list = '- `a.ts` was deleted\n- `b.ts` is live'
+    expect(sentenceAround(list, list.indexOf('`b.ts`'))).toBe('- `b.ts` is live')
+  })
+})
+
+describe('citationReadsAsHistoryOrProposal', () => {
   it('scopes history to the sentence, not the paragraph', () => {
     const text = 'The old `a.md` was deleted. Read `b.md` for the live rules.'
-    expect(readsAsHistoryOrProposal(sentenceAround(text, text.indexOf('`a.md`')))).toBe(true)
-    expect(readsAsHistoryOrProposal(sentenceAround(text, text.indexOf('`b.md`')))).toBe(false)
+    expect(excused(text, 'a.md')).toBe(true)
+    expect(excused(text, 'b.md')).toBe(false)
   })
 
   it('judges the prose, never the path spelling', () => {
-    expect(readsAsHistoryOrProposal('Route `src/routes/npcs/new.tsx` is the wizard')).toBe(false)
-    expect(readsAsHistoryOrProposal('Create `test/preload.ts` in the package')).toBe(true)
+    expect(excused('Route `src/routes/npcs/new.tsx` is the wizard')).toBe(false)
+    expect(excused('Route `src/routes/removed/x.tsx` is live')).toBe(false)
+  })
+
+  it('reads create as a proposal only as an imperative opening the sentence', () => {
+    expect(excused('Create `test/preload.ts` in the package')).toBe(true)
+    expect(excused('- Create `test/preload.ts` in the package')).toBe(true)
+    expect(excused('Gated on the create path by `lib/rules/creation.ts`')).toBe(false)
+    expect(excused('| Who may create | the owner, via `apps/itun/convex/publicSheet.ts` |')).toBe(
+      false
+    )
   })
 
   it('still judges live instructions that merely contain not / will / add / was', () => {
@@ -373,20 +410,31 @@ describe('sentenceAround / readsAsHistoryOrProposal', () => {
       'Use `a.ts` rather than `b.ts`',
       'There is no second copy of `tools/x.ts`',
     ]) {
-      expect(readsAsHistoryOrProposal(sentence)).toBe(false)
+      expect(excused(sentence)).toBe(false)
     }
   })
 
-  it('skips sentences that say the path is gone or not yet built', () => {
+  it('skips citations marked as gone or not yet built right beside them', () => {
     for (const sentence of [
       '`tools/x.ts` was deleted with P8',
       'The old `a.md` no longer exists',
       '`b.md` used to hold this',
       '`docs/rules/` never existed',
       'The planned `tools/y.ts` does not exist yet',
+      'Three tools read `netlify.toml` (since deleted) at the time',
+      'the method-conditioned redirect in the since-deleted `netlify.toml` never matched',
     ]) {
-      expect(readsAsHistoryOrProposal(sentence)).toBe(true)
+      expect(excused(sentence)).toBe(true)
     }
+  })
+
+  it('does not let a history word far along the same sentence excuse a live path', () => {
+    const text =
+      '`Next` is gated by the step gates in `lib/rules/creation.ts` with the unmet ' +
+      'requirement in the footer note, cross-step invalidation and draft-restore clamping ' +
+      'are announced by toast, and the advisory `Banner` is removed from the create flow.'
+    expect(excused(text, 'lib/rules/creation.ts')).toBe(false)
+    expect(excused(text, 'Banner')).toBe(true)
   })
 })
 
@@ -429,12 +477,41 @@ describe('checkBacktickedPathsExist', () => {
     expect(checkBacktickedPathsExist(root).failures).toHaveLength(1)
   })
 
-  it('allows a path its own sentence marks as history, or under a history heading', () => {
+  it('allows a path marked as history beside it, but not by its section heading alone', () => {
     const root = fixture({
       'docs/architecture/x.md':
         '`tools/sync.ts` was deleted after P6.\n\n## Netlify — retired\n\nSee `apps/srd/netlify.toml`.\n',
     })
-    expect(checkBacktickedPathsExist(root).failures).toEqual([])
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('`apps/srd/netlify.toml`')
+  })
+
+  it('judges live paths in the shapes that used to hide them (end to end)', () => {
+    const root = fixture({
+      'apps/itun/src/lib/rules/creation.ts': '',
+      'apps/itun/CLAUDE.md':
+        '- **Workspaces are retired.** An entity lives in one container, resolved\n' +
+        '  through `src/lib/containerGone.ts`, never by reading `workspaceId`.\n',
+      'docs/architecture/sheets.md':
+        '| Concern | Snapshot | Public sheet |\n| --- | --- | --- |\n' +
+        '| Who may create | anyone | the owner, via `apps/itun/convex/publicSheetGone.ts` |\n' +
+        '| Who may revoke | anyone | the owner only |\n',
+      'docs/architecture/rules.md':
+        '- **Wizard** enforces creation **hard** on the create path: `Next` is gated by\n' +
+        '  the step gates in `lib/rules/creationGone.ts` with the unmet requirement in the\n' +
+        '  footer note, cross-step invalidation is announced by toast, and the advisory\n' +
+        '  banner is removed from the create flow. Gates live in `lib/rules/creation.ts`.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(3)
+    expect(failures.join('\n')).toContain('apps/itun/CLAUDE.md:2 cites `src/lib/containerGone.ts`')
+    expect(failures.join('\n')).toContain(
+      'docs/architecture/sheets.md:3 cites `apps/itun/convex/publicSheetGone.ts`'
+    )
+    expect(failures.join('\n')).toContain(
+      'docs/architecture/rules.md:2 cites `lib/rules/creationGone.ts`'
+    )
   })
 
   it('skips a doc whose status line declares it a plan', () => {

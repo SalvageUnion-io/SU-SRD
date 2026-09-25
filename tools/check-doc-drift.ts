@@ -1386,7 +1386,14 @@ const IMPORT_SPECIFIER_PACKAGES = new Set(['convex'])
  * paths while the check reported them as checked.
  */
 const CITATION_PROPOSAL =
-  /\b(create|creates|creating|planned|proposed|propose|proposes|does not exist yet|doesn't exist yet|not yet exist)\b/
+  /\b(planned|proposed|propose|proposes|does not exist yet|doesn't exist yet|not yet exist)\b/
+
+/**
+ * "Create `x`" as an imperative, opening its sentence. Bare `create` anywhere
+ * in a sentence is a noun as often as a verb here — "the create path", "Who may
+ * create" — and matching it skipped a whole table of live citations.
+ */
+const CITATION_IMPERATIVE_CREATE = /^[\s>*_\-+|]*(?:\d+[.)]\s+)?create\b/
 
 /**
  * Prose that marks a cited path as HISTORY. Its own list, not {@link NEGATED}:
@@ -1520,12 +1527,27 @@ function resolvesFrom(root: string, doc: string, candidate: string, workspaces: 
 }
 
 /**
- * The sentence of `text` that contains offset `index`. Sentences end at `.`,
- * `!`, `?` or `;` followed by whitespace — a path ending in `.` is already
- * rejected by `pathCandidate`, so a boundary never falls inside a citation.
+ * The sentence of `text` that contains offset `index` — the unit a reader uses
+ * to decide whether a path is offered as live.
+ *
+ * A sentence ends at `.`, `!`, `?` or `;` followed by whitespace, with any
+ * closing markup in between (`.**`, `.)`, `.\``): this repo's docs bold their
+ * lead sentences, and a boundary that missed `.**` merged "**Workspaces are
+ * retired.**" into the next sentence and hid its live path. A path ending in
+ * `.` is already rejected by `pathCandidate`, so a boundary never falls inside a
+ * citation.
+ *
+ * Every markdown table row and list item is also its own unit: a table has no
+ * sentence punctuation at all, so one history word anywhere in it used to
+ * excuse every row.
  */
 export function sentenceAround(text: string, index: number): string {
-  const boundary = /[.!?;](?=\s)|\n\s*\n/g
+  const [start, end] = sentenceBounds(text, index)
+  return text.slice(start, end)
+}
+
+function sentenceBounds(text: string, index: number): [number, number] {
+  const boundary = /[.!?;][*_)\]`'"]*(?=\s)|\n\s*\n|\n(?=\s*(?:\||[-*+]\s|\d+[.)]\s))/g
   let start = 0
   let end = text.length
   for (const m of text.matchAll(boundary)) {
@@ -1536,17 +1558,46 @@ export function sentenceAround(text: string, index: number): string {
       break
     }
   }
-  return text.slice(start, end)
+  return [start, end]
 }
 
+/** Lower-cased prose with every backticked span collapsed to one placeholder word. */
+function proseOf(text: string): string {
+  return text.replace(/`[^`]*`/g, ' code ').toLowerCase()
+}
+
+/** Words either side of a citation that may mark it as history or a proposal. */
+const CITATION_CONTEXT_WORDS = 6
+
 /**
- * Whether a sentence offers its paths as history or as a proposal rather than
- * as live. Judged on the PROSE: backticked spans are removed first, so a path's
- * own spelling (`…/new.tsx`, `…/removed/`) never decides it.
+ * Whether the citation at `index` (a backticked span `length` characters long)
+ * is offered as history or as a proposal.
+ *
+ * Judged on the PROSE: backticked spans are collapsed first, so a path's own
+ * spelling (`…/new.tsx`, `…/removed/`) never decides it. The marker must sit
+ * within {@link CITATION_CONTEXT_WORDS} words of THIS citation, inside its
+ * sentence — "`x.ts` (since deleted)", "the since-deleted `x.ts`",
+ * "`x.ts` was deleted in P8". A long sentence that mentions a removal somewhere
+ * else ("…, and the advisory `Banner` is removed from the create flow") no
+ * longer excuses a live path twenty words away. The one sentence-wide form is
+ * an imperative "Create `x`" opening the sentence.
  */
-export function readsAsHistoryOrProposal(sentence: string): boolean {
-  const prose = sentence.replace(/`[^`]*`/g, ' ').toLowerCase()
-  return CITATION_HISTORY.test(prose) || CITATION_PROPOSAL.test(prose)
+export function citationReadsAsHistoryOrProposal(
+  text: string,
+  index: number,
+  length: number
+): boolean {
+  const [start, end] = sentenceBounds(text, index)
+  if (CITATION_IMPERATIVE_CREATE.test(proseOf(text.slice(start, end)))) return true
+  const before = proseOf(text.slice(start, index)).split(/\s+/).filter(Boolean)
+  const after = proseOf(text.slice(index + length, end))
+    .split(/\s+/)
+    .filter(Boolean)
+  const window = [
+    ...before.slice(-CITATION_CONTEXT_WORDS),
+    ...after.slice(0, CITATION_CONTEXT_WORDS),
+  ].join(' ')
+  return CITATION_HISTORY.test(window) || CITATION_PROPOSAL.test(window)
 }
 
 /**
@@ -1565,12 +1616,14 @@ export function readsAsHistoryOrProposal(sentence: string): boolean {
  * and the workflow prompts, which cite paths without backticks because they are
  * JavaScript strings.
  *
- * **History is allowed, but only when the SENTENCE says so.** A citation whose
- * own sentence reads as "no longer exists" / "was deleted" / "retired", or that
- * sits under a heading that does, is the repo's documented style and is
- * skipped. The judgement used to be a three-line window, which let one "not"
- * anywhere nearby excuse an unrelated stale path; a sentence is the unit a
- * reader uses to decide whether a path is being offered as live.
+ * **History is allowed, but only when the words NEXT TO the citation say so.**
+ * A citation marked "(since deleted)", "was deleted", "no longer exists" within
+ * a few words and inside its own sentence is the repo's documented style and is
+ * skipped — see {@link citationReadsAsHistoryOrProposal}. The judgement was once
+ * a three-line window, then a whole sentence, then a whole heading section; each
+ * let one history word excuse unrelated live paths (a whole table skipped
+ * because one row said "Who may create", a live path hidden because a bold lead
+ * sentence ended in `.**`).
  *
  * Globs are skipped: a path containing `*` is a legitimate way to name a set
  * of files (a per-app wrangler config, say) rather than a claim about one.
@@ -1587,8 +1640,8 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
     if (resolvesFrom(root, doc, candidate, workspaces)) return
     failures.push(
       `${doc}:${line} cites \`${candidate}\`, which does not exist. ` +
-        `If the reference is historical, say so in the same sentence ("was deleted", ` +
-        `"no longer exists") — this check skips a citation whose sentence reads as history — ` +
+        `If the reference is historical, say so right next to it ("\`x.ts\` (since deleted)", ` +
+        `"\`x.ts\` was deleted") — this check skips a citation marked as history within a few words — ` +
         `and if it is an instruction, it is unfollowable as written: fix the path.`
     )
   }
@@ -1597,11 +1650,12 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
     const source = read(root, doc)
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(doc, source)) {
-      if (block.headings.some((heading) => CITATION_HISTORY.test(heading.toLowerCase()))) continue
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
         const candidate = pathCandidate(match[1] as string)
         if (candidate === null) continue
-        if (readsAsHistoryOrProposal(sentenceAround(block.text, match.index ?? 0))) continue
+        if (citationReadsAsHistoryOrProposal(block.text, match.index ?? 0, match[0].length)) {
+          continue
+        }
         judge(doc, lineOf(block, match.index ?? 0), candidate)
       }
     }
@@ -1619,7 +1673,7 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
       for (const match of line.matchAll(bareRepoPath)) {
         const candidate = pathCandidate(match[1] as string)
         if (candidate === null) continue
-        if (readsAsHistoryOrProposal(sentenceAround(line, match.index ?? 0))) continue
+        if (citationReadsAsHistoryOrProposal(line, match.index ?? 0, match[0].length)) continue
         judge(script, index + 1, candidate)
       }
     }

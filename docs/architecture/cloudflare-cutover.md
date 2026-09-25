@@ -150,7 +150,7 @@ CPU cannot be timed from inside a Worker. The authoritative reading is
 
 ### P0 — Port the CI guards · reversible · ½ day
 
-Three tools READ `netlify.toml` (since deleted) at the time this phase was written, and each
+When this phase was written, three tools read `netlify.toml` (since deleted), and each
 exists because of a documented silent-production incident. A hard cutover
 deletes that file, so they were ported **first**, not during. (That file no
 longer exists anywhere in the tree; this phase is complete.)

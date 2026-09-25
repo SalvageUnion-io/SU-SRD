@@ -192,9 +192,9 @@ Team **SalvageUnion.io** (`salvageunion-io`, `6a3b41d74a67a34e3aae3ede`, Pro) â€
 **Nothing in this repo reaches Netlify, and no Netlify site serves any traffic.**
 ADR-033 P7 completed 2026-08-31: every production hostname resolves to a
 Cloudflare Worker (see the Cloudflare section above, which is the live one).
-There is no `netlify.toml` anywhere in the tree, no `netlify/` function trees,
-no `@netlify/blobs` dependency, and no `netlify` MCP server. Builds are stopped
-on both repo-linked sites.
+Every `netlify.toml` was deleted from the tree, along with the `netlify/`
+function trees, the `@netlify/blobs` dependency and the `netlify` MCP server.
+Builds are stopped on both repo-linked sites.
 
 | Site               | App it used to build | Site id                                |
 | ------------------ | -------------------- | -------------------------------------- |
