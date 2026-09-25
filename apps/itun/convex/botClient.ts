@@ -2,7 +2,6 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { internalQuery } from './_generated/server'
-import type { BotDenial } from './model/bot'
 import {
   bindChannelAs,
   displayNameOf,
@@ -11,6 +10,20 @@ import {
   unbindChannelAs,
   userByDiscordId,
 } from './model/bot'
+import type {
+  BindResult,
+  BotDenialReason,
+  BotFailure,
+  BotSuccess,
+  ChannelResult,
+  CrewResult,
+  EntityBody,
+  GamesResult,
+  MeResult,
+  RecordRollResult,
+  SheetResult,
+  ShelfResult,
+} from './model/botWire'
 import { internalMutation } from './model/entities'
 import { NotAuthorized } from './model/permissions'
 
@@ -44,15 +57,16 @@ import { NotAuthorized } from './model/permissions'
  * what it stores; the bot renders what the rules say.
  */
 
-/** A failure the bot can render. Widened from `BotDenial` with mutation cases. */
-type Denial = BotDenial | 'forbidden' | 'not-found'
-
-type Failure = { ok: false; reason: Denial; message: string }
-type Success<T> = { ok: true } & T
+/*
+ * Every success payload below is annotated with its `model/botWire.ts` type.
+ * That module is also what the Discord bot imports (`import type`), so a change
+ * to a return shape here is a compile error on both sides of the wire rather
+ * than a silent drift between two hand-kept copies.
+ */
 /** A success carrying nothing but the fact that it worked. */
 type Ack = { ok: true }
 
-const DENIAL_MESSAGE: Record<Denial, string> = {
+const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   unlinked: 'No In The Union Now account is signed in with this Discord account.',
   unbound: 'This channel is not bound to a game.',
   'not-a-member': 'You are not a member of the game bound to this channel.',
@@ -60,7 +74,7 @@ const DENIAL_MESSAGE: Record<Denial, string> = {
   'not-found': 'That could not be found.',
 }
 
-function fail(reason: Denial, message?: string): Failure {
+function fail(reason: BotDenialReason, message?: string): BotFailure {
   return { ok: false, reason, message: message ?? DENIAL_MESSAGE[reason] }
 }
 
@@ -71,7 +85,7 @@ function fail(reason: Denial, message?: string): Failure {
  * else is a real fault and is re-thrown so it reaches Sentry rather than being
  * flattened into a shrug in a Discord channel.
  */
-function asFailure(error: unknown): Failure {
+function asFailure(error: unknown): BotFailure {
   if (error instanceof NotAuthorized) return fail('forbidden', error.message)
   throw error
 }
@@ -108,7 +122,7 @@ async function ownerNames(ctx: QueryCtx, gameId: Id<'games'>): Promise<Map<strin
  */
 export const me = internalQuery({
   args: { discordId: v.string() },
-  handler: async (ctx, args): Promise<Failure | Success<{ user: unknown; games: unknown }>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<MeResult>> => {
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
 
@@ -127,7 +141,7 @@ export const me = internalQuery({
 /** Every Game the caller belongs to. Also the source for `bind` autocomplete. */
 export const games = internalQuery({
   args: { discordId: v.string() },
-  handler: async (ctx, args): Promise<Failure | Success<{ games: unknown }>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<GamesResult>> => {
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
     return { ok: true, games: await gamesForUser(ctx, user._id) }
@@ -142,7 +156,7 @@ export const games = internalQuery({
  */
 export const shelf = internalQuery({
   args: { discordId: v.string() },
-  handler: async (ctx, args): Promise<Failure | Success<{ pilots: unknown; mechs: unknown }>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<ShelfResult>> => {
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
 
@@ -170,7 +184,7 @@ export const shelf = internalQuery({
 /** The bound Game's roster and Downtime phase. */
 export const channel = internalQuery({
   args: { discordId: v.string(), channelId: v.string() },
-  handler: async (ctx, args): Promise<Failure | Success<Record<string, unknown>>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<ChannelResult>> => {
     const actor = await resolveActor(ctx, args.channelId, args.discordId)
     if (!actor.ok) return fail(actor.reason)
 
@@ -214,7 +228,7 @@ export const channel = internalQuery({
  */
 export const crew = internalQuery({
   args: { discordId: v.string(), channelId: v.string() },
-  handler: async (ctx, args): Promise<Failure | Success<Record<string, unknown>>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<CrewResult>> => {
     const actor = await resolveActor(ctx, args.channelId, args.discordId)
     if (!actor.ok) return fail(actor.reason)
 
@@ -281,7 +295,7 @@ export const sheet = internalQuery({
     table: v.union(v.literal('pilots'), v.literal('mechs'), v.literal('crawlers')),
     entityId: v.string(),
   },
-  handler: async (ctx, args): Promise<Failure | Success<Record<string, unknown>>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<SheetResult>> => {
     const actor = await resolveActor(ctx, args.channelId, args.discordId)
     if (!actor.ok) return fail(actor.reason)
 
@@ -324,7 +338,7 @@ export const sheet = internalQuery({
       // no public URL, and advertising one would 404 the reader.
       publicRead: (doc as unknown as { publicRead?: boolean }).publicRead === true,
       ownerName: ownerId === null ? null : (names.get(ownerId) ?? null),
-      body: (doc as unknown as { body: unknown }).body,
+      body: (doc as unknown as { body: EntityBody }).body,
     }
   },
 })
@@ -332,7 +346,7 @@ export const sheet = internalQuery({
 /** Bind this channel to a Game. Organizer only, enforced in `model/bot.ts`. */
 export const bind = internalMutation({
   args: { discordId: v.string(), channelId: v.string(), gameId: v.id('games') },
-  handler: async (ctx, args): Promise<Failure | Success<{ name: string }>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<BindResult>> => {
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
 
@@ -349,7 +363,7 @@ export const bind = internalMutation({
 
 export const unbind = internalMutation({
   args: { discordId: v.string(), channelId: v.string() },
-  handler: async (ctx, args): Promise<Failure | Ack> => {
+  handler: async (ctx, args): Promise<BotFailure | Ack> => {
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
 
@@ -382,7 +396,7 @@ export const recordRoll = internalMutation({
     description: v.string(),
     result: v.any(),
   },
-  handler: async (ctx, args): Promise<Failure | Success<{ game: string }>> => {
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<RecordRollResult>> => {
     const actor = await resolveActor(ctx, args.channelId, args.discordId)
     if (!actor.ok) return fail(actor.reason)
 
