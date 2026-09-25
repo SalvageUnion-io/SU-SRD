@@ -1,6 +1,6 @@
 ---
 name: component-refresh
-description: Redesign an existing component through the three-level loop — real SSR "before", NEW* Ladle comparison, then staged cutover
+description: Use when asked to redesign, refresh, restyle or "modernise" an existing component, or to mock one up before building it. Runs the three-level loop — real SSR "before", NEW* Ladle comparison, staged cutover — and never crosses into L3 cutover without an explicit command.
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep
 ---
 

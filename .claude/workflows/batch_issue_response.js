@@ -38,6 +38,14 @@ const cfg = Array.isArray(args)
     : args || {}
 const triageOnly = !!cfg.triageOnly
 
+// See single_issue_resolve.js: `gh` is absent in cloud sessions, and the GitHub
+// MCP tools are deferred, so the subagent is told how to load them.
+const GITHUB_ACCESS =
+  'GitHub access: use the `gh` CLI if `command -v gh` finds it. If it does not (the usual case ' +
+  'in a cloud session), use the GitHub MCP tools instead — they are deferred, so load them first ' +
+  'with ToolSearch, e.g. "select:mcp__github__list_issues,mcp__github__issue_read". The repository ' +
+  'is owner "SalvageUnion-io", repo "SU-SRD". Never skip or fake a GitHub step because `gh` is missing.'
+
 // ── Phase 1: collect feedback ─────────────────────────────────────────────────
 phase('Collect')
 let items = cfg.feedback
@@ -91,9 +99,12 @@ if (!items || !items.length) {
   const label = cfg.label || 'itun-revamp'
   log(`No feedback passed in args — pulling open GitHub issues labelled "${label}".`)
   const collector = await agent(
-    `Run: gh issue list --label "${label}" --state open --limit 50 --json number,title,body. ` +
+    `List the open issues labelled "${label}" (at most 50): ` +
+      `gh issue list --label "${label}" --state open --limit 50 --json number,title,body — or ` +
+      'mcp__github__list_issues with that label and state OPEN. ' +
       'Return every issue as a feedback item. Each item: ref = "#<number>", title = the issue title, ' +
-      'summary = the issue title followed by the issue body.',
+      'summary = the issue title followed by the issue body.\n\n' +
+      GITHUB_ACCESS,
     {
       label: 'collect:github-issues',
       phase: 'Collect',
@@ -172,7 +183,8 @@ const TRIAGE_SCHEMA = {
     approach: { type: 'string', description: 'the smallest proposed fix' },
     inScope: {
       type: 'boolean',
-      description: 'actionable within ITUN local-first scope (no auth/backend) and worth a PR?',
+      description:
+        'actionable within ITUN scope, through its existing stores and Convex functions, and worth a PR?',
     },
   },
   required: ['title', 'summary', 'uxArea', 'rules', 'approach', 'inScope'],
@@ -197,9 +209,11 @@ const triageAgent = (fb) =>
       '   converts the gitignored PDFs in rules/ and emits <!-- page N --> markers so a citation can',
       '   name a real page. If the extract is unavailable, say so and return an empty rules list —',
       '   do NOT invent a rule or a page number. If no game rule applies (pure UX), also empty.',
-      '3. Propose the smallest in-scope fix. ITUN has an account-gated Convex backend (ADR-030/034);'
-      '   persistence requires an account and anonymous work is in-memory only. Set',
-      '   inScope=false for anything needing a backend or out of ITUN scope, and explain in approach.',
+      '3. Propose the smallest in-scope fix. Persistence is account-gated (ADR-030, ADR-034, ADR-035):',
+      '   signed in, Convex is the server of record and IndexedDB its cache; anonymous work is in-memory',
+      '   only. A fix may use the existing stores and Convex functions (see apps/itun/CLAUDE.md). Set',
+      '   inScope=false for anything that needs a NEW persistence path, a device-only store, a change',
+      '   to the account model, or that is outside ITUN — and explain why in approach.',
     ]
       .filter(Boolean)
       .join('\n'),
@@ -317,10 +331,11 @@ const groupResults = await parallel(
   groups.map((group) => async () => {
     const out = []
     let base = null // null → branch off main; otherwise the previous PR's branch
+    const stackDepth = group.order.length
     for (const id of group.order) {
       const triage = byId[id]
       // one-level nesting: batch (parent) → single_issue_resolve (child)
-      const childArgs = base ? { ...triage, baseBranch: base } : triage
+      const childArgs = base ? { ...triage, baseBranch: base, stackDepth } : { ...triage, stackDepth }
       const result = await workflow('single_issue_resolve', childArgs)
       const branch = result && result.implementation ? result.implementation.branch : null
       out.push({ triage, dispatched: true, base, result })
@@ -331,6 +346,26 @@ const groupResults = await parallel(
   })
 )
 
+// How to keep each stack alive as its layers merge. A stack of three or more is
+// handed to `gh stack` (the /stacked-pr threshold): the per-item worktrees each
+// hold their own gh-stack state, so the stack is adopted from its TOP branch.
+const stackRecovery = groups
+  .map((group, index) => {
+    if (group.order.length < 2) return null
+    const branches = (groupResults[index] || [])
+      .map((r) => (r && r.result && r.result.implementation ? r.result.implementation.branch : null))
+      .filter(Boolean)
+    const top = branches[branches.length - 1]
+    if (!top) return null
+    const procedure =
+      group.order.length >= 3
+        ? `gh stack checkout ${top}, then gh stack sync after every merge beneath it`
+        : 'git rebase --onto origin/main <recorded parent tip> after the base merges (/stacked-pr)'
+    log(`Stack ${branches.join(' → ')}: ${procedure}`)
+    return { branches, procedure }
+  })
+  .filter(Boolean)
+
 const clean = groupResults.flat().filter(Boolean)
 const dispatched = clean.filter((r) => r.dispatched)
 log(`Done: ${triaged.length} triaged, ${dispatched.length} dispatched to single_issue_resolve.`)
@@ -338,6 +373,7 @@ log(`Done: ${triaged.length} triaged, ${dispatched.length} dispatched to single_
 return {
   triaged,
   relations: groups,
+  stackRecovery,
   resolved: dispatched.map((r) => ({
     title: r.triage.title,
     stackedOn: r.base || 'main',

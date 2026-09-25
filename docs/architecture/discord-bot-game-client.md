@@ -51,14 +51,19 @@ the wrong half is load-bearing** — so start here rather than from the checklis
 
 | Piece                                        | State                                                                                     |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `convex/bot.ts` (204 lines, fully tested)    | **Written.** Bindings, actor resolution, roll recording, roll history.                    |
+| `convex/model/bot.ts` + `convex/botClient.ts` | **Written.** Bindings, actor resolution, roll recording, roll history. (The web-facing `bot.ts` wrapper had no caller and was deleted in #725.) |
 | `channelBindings` table + `users.by_discord` | **Written.** Schema and indexes are in place.                                             |
-| `convex/__tests__/bot.test.ts`               | **Written.** Proves the bot cannot act as a non-member.                                   |
-| Any caller of `api.bot.*`                    | **None.** `grep` finds zero references in `apps/itun/src` **and** `apps/discord-bot/src`. |
-| A way for the bot to authenticate to Convex  | **Does not exist.** See below — this is the blocker.                                      |
+| `test/convex/bot.test.ts`                     | **Written.** Proves the bot cannot act as a non-member.                                   |
+| Any caller of `api.bot.*`                    | **None** — the module no longer exists; the bot reaches `internal.botClient.*` through `botHttp.ts`. |
+| A way for the bot to authenticate to Convex  | **Exists.** A shared secret, `ITUN_BOT_SECRET`, checked by `botHttp.ts` on every `POST /bot/<op>`; every `botClient` function is internal. See the note above. |
 
-So the server layer is real and the wiring is absent on _both_ ends. Two
-consequences follow, and the second is a live defect:
+> **History — resolved by the shared-secret route above.** What follows is the
+> gap as it stood when this plan was written, kept because Section 3's decision
+> is argued from it. Neither defect is live: the bot no longer needs a user
+> token, and nothing it calls is public.
+
+When this plan was written the server layer was real and the wiring was absent
+on _both_ ends. Two consequences followed, and the second was a live defect:
 
 **a. `gameForChannel` is uncallable by the bot.** It opens with
 `requireUser(ctx)`, which resolves the caller's identity from a Convex auth

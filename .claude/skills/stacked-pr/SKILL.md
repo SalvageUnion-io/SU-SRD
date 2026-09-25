@@ -1,6 +1,6 @@
 ---
 name: stacked-pr
-description: Recover a stacked PR after the layer beneath it merges, on a squash-merge repo where --force can resurrect an already-merged branch
+description: Use when the PR beneath yours squash-merged and yours now shows its parent's files, when `gh pr update-branch` fails with "rebase conflict between base and head", when a push is rejected as "stale info", or before building a stack of three or more PRs. Recovers with `rebase --onto` / `gh stack`; never a bare --force.
 allowed-tools: Bash, Read, Grep
 ---
 

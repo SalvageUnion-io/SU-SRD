@@ -17,10 +17,13 @@ export const meta = {
 // ── args contract ────────────────────────────────────────────────────────────
 //   string  → raw feedback text (this workflow infers the UX area + rules itself)
 //   object  → a triage record from batch_issue_response:
-//             { title, summary, uxArea, files?, rules?, approach?, inScope?, source?, baseBranch? }
+//             { title, summary, uxArea, files?, rules?, approach?, inScope?, source?, baseBranch?,
+//               stackDepth? }
 //             baseBranch: if set (and not "main"), this PR is STACKED on that branch — the new branch
 //             is cut from origin/<baseBranch> and the PR opened with --base <baseBranch>, so a chain of
 //             dependent items lands as a stack rather than as conflicting independent diffs off main.
+//             stackDepth: how many PRs the whole stack holds; at 3+ the PR names `gh stack` as its
+//             recovery procedure instead of a manual `rebase --onto` (the /stacked-pr threshold).
 const input = args
 const triage =
   typeof input === 'string'
@@ -40,6 +43,33 @@ if (!triage.summary && !triage.title) {
 // Base branch for this PR: "main" normally, or the previous item's branch when stacking.
 const baseBranch = (triage.baseBranch && String(triage.baseBranch)) || 'main'
 const stacked = baseBranch !== 'main'
+// How deep the whole stack this item belongs to is (1 = not stacked). Set by
+// batch_issue_response; it decides which recovery procedure the PR body names.
+const stackDepth = Number(triage.stackDepth) || (stacked ? 2 : 1)
+
+// GitHub access. Both workflows used to assume the `gh` CLI, which a cloud
+// session does not have — so every PR, diff and comment step failed there. The
+// GitHub MCP tools are the fallback, and they are deferred: a subagent has to
+// load them before it can call one.
+const GITHUB_ACCESS =
+  'GitHub access: use the `gh` CLI if `command -v gh` finds it. If it does not (the usual case ' +
+  'in a cloud session), use the GitHub MCP tools instead — they are deferred, so load them first ' +
+  'with ToolSearch, e.g. "select:mcp__github__create_pull_request,mcp__github__pull_request_read,' +
+  'mcp__github__add_issue_comment". The repository is owner "SalvageUnion-io", repo "SU-SRD". ' +
+  'Never skip or fake a GitHub step because `gh` is missing.'
+
+// What to do when a layer beneath this PR squash-merges. Two layers: a manual
+// `rebase --onto`. Three or more: `gh stack`, which owns the cascading rebase —
+// the /stacked-pr skill's own threshold.
+const STACK_RECOVERY =
+  stackDepth >= 3
+    ? `This stack is ${stackDepth} PRs deep, so it is managed with \`gh stack\` (see /stacked-pr §5): ` +
+      'after a layer beneath merges, run `gh stack checkout <this branch>` then `gh stack sync` — never ' +
+      'hand-rebase inside a gh-managed stack. Without the `gh` CLI, fall back to the manual ' +
+      '`git rebase --onto` procedure in the same skill.'
+    : 'When the layer beneath yours squash-merges, the fix is `git rebase --onto` from the recorded ' +
+      'parent tip (see /stacked-pr), never `gh pr update-branch` (which fails on the duplicated ' +
+      'commit) and never a bare `--force` (which on this repo can resurrect an already-merged branch).'
 
 // Canonical Salvage Union rules.
 //
@@ -125,22 +155,32 @@ const impl = await agent(
     '1. Pinpoint the exact UX this concerns in apps/itun/src — the route under',
     '   src/routes (pilots / mechs / crawlers / sheet / s), the component(s) under src/components,',
     '   and/or the store under src/stores. Read the code before changing it.',
-    `2. Confirm the governing game rules by consulting the Salvage Union rulebooks in ${RULES}.`,
-    '   Cite book + page/section for any rule the change depends on. (docs/rules/ digest is gitignored',
-    '   and absent in a fresh worktree — the PDFs are canonical; Read them with the pages parameter.)',
-    '3. Implement the SMALLEST change that addresses the feedback. Reuse existing shared components',
-    '   (EntityDisplay, DisplayCard, component-lib primitives) — do NOT add unrequested features, schema,',
-    '   or UI. ITUN is local-first (IndexedDB, no auth/backend); do not introduce a backend.',
-    '4. Validate: run "bun run typecheck", "bun test", and "bun run lint" (or "bun run check").',
-    '   If you touched the salvageunion-reference package, "bun run build:package" first.',
-    '   Run "bun run format" before committing (the PostToolUse prettier hook uses defaults, not the',
-    '   repo .prettierrc, so format explicitly).',
+    `2. Confirm the governing game rules by consulting ${RULES}.`,
+    '   Cite book + page for any rule the change depends on.',
+    '3. Implement the SMALLEST change that addresses the feedback. Reuse existing shared components —',
+    '   ReferenceEntityCard for any SRD entity, Card for everything else, and the primitives exported',
+    '   from packages/component-lib/src/index.ts (read the barrel; never trust a component name from',
+    '   memory). Do NOT add unrequested features, schema, or UI.',
+    '   Persistence is account-gated (ADR-030, ADR-034, ADR-035): signed in, Convex is the server of',
+    '   record and IndexedDB is its cache; anonymous work is in-memory only. Read apps/itun/CLAUDE.md',
+    '   and .claude/rules/itun-data-access.md before touching data, go through the existing stores and',
+    '   Convex functions, and never add a device-only store or a second persistence path.',
+    '4. Validate: "bun run check:fast" while iterating, then "bun run check" (the full gate) before',
+    '   pushing — or at minimum "bun run typecheck", "bun run test" (not a bare root bun test, which',
+    '   is not the gate) and "bun run lint". If you touched salvageunion-reference schemas or data, run',
+    '   "bun run build:package" first and commit the regenerated schemas. Biome is the only formatter:',
+    '   run "bun run format" (the pre-commit hook also formats staged files).',
     `5. Commit on a new branch named fix/itun-<short-slug>${stacked ? ` cut from origin/${baseBranch} (see above)` : ''}. Use a conventional-commit message and the`,
-    '   Co-Authored-By / Claude-Session trailers required by CLAUDE.md.',
-    `6. Push the branch and open a PR with "gh pr create --base ${baseBranch}". If ${baseBranch} is not main, this is a STACKED PR: follow the /stacked-pr skill (.claude/skills/stacked-pr/SKILL.md) before doing anything to it later. When the layer beneath yours squash-merges, the fix is \`git rebase --onto\` from the recorded parent tip, never \`gh pr update-branch\` (which fails on the duplicated commit) and never a bare \`--force\` (which on this repo can resurrect an already-merged branch). The PR body MUST: restate`,
-    '   the feedback, name the UX area changed, cite the SURules reference(s), summarize the fix, and list',
-    `   which checks passed.${stacked ? ` Note at the top that this PR is STACKED on "${baseBranch}" and should merge after it.` : ''}`,
-    '   End the body with the "Generated with Claude Code" footer from CLAUDE.md.',
+    '   commit trailers your session attribution instructions require.',
+    `6. Push the branch and open a PR against base "${baseBranch}" ("gh pr create --base ${baseBranch}", or`,
+    '   mcp__github__create_pull_request without gh).',
+    stacked
+      ? `   This is a STACKED PR: follow the /stacked-pr skill (.claude/skills/stacked-pr/SKILL.md) before doing anything to it later. ${STACK_RECOVERY}`
+      : '',
+    '   The PR body MUST: restate the feedback, name the UX area changed, cite the rules reference(s),',
+    `   summarize the fix, and list which checks passed.${stacked ? ` Note at the top that this PR is STACKED on "${baseBranch}" and should merge after it, and include the recovery procedure above.` : ''}`,
+    '   End the body with the PR footer your session attribution instructions require.',
+    GITHUB_ACCESS,
     '',
     'Return the PR number and url. If you could not open a PR (e.g. no actionable change, checks fail',
     'and cannot be fixed in scope), set prNumber and prUrl to null and explain why in notes.',
@@ -175,12 +215,16 @@ const review = await agent(
       : '',
     '',
     'STEPS',
-    `1. Read the diff ("gh pr diff ${impl.prNumber}") and the body ("gh pr view ${impl.prNumber}").`,
-    '2. Check: does it resolve the feedback? Is it scoped (no unrequested features/schema/backend)?',
-    `   Does it respect the cited Salvage Union rules (re-check against the rulebooks in ${RULES} if a`,
+    GITHUB_ACCESS,
+    `1. Read the diff ("gh pr diff ${impl.prNumber}") and the body ("gh pr view ${impl.prNumber}"),`,
+    '   or mcp__github__pull_request_read (methods get_diff and get) without gh.',
+    '2. Check: does it resolve the feedback? Is it scoped (no unrequested features, schema, or new',
+    '   persistence path — ADR-030/034/035 make Convex the server of record)?',
+    `   Does it respect the cited Salvage Union rules (re-check against ${RULES}, if a`,
     '   rule claim is load-bearing)? Does it reuse shared components instead of one-off UI? Are the',
     '   checks green per the PR body?',
-    `3. Post your review as a PR comment: "gh pr comment ${impl.prNumber} --body <review>". The comment`,
+    `3. Post your review as a PR comment: "gh pr comment ${impl.prNumber} --body <review>", or`,
+    '   mcp__github__add_issue_comment without gh. The comment',
     '   must be a short structured review (what you checked, any concerns) and END with one explicit',
     '   status line, exactly one of:',
     '     **Review status: ✅ Approved**',

@@ -53,46 +53,38 @@ none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and
 matched no CI path filter at the time, `validate:all` never ran on that PR.
 
 CLAUDE.md sends agents here *instead of* enumerating accounts, so a wrong row
-here is followed rather than checked. There is no `github` MCP server: use the
-`gh` CLI. The `netlify` and `render` servers were deleted with the hosts they
+here is followed rather than checked. There is no declared `github` server: use
+the `gh` CLI, or the session's `mcp__github__*` tools where `gh` is absent. The `netlify` and `render` servers were deleted with the hosts they
 reached.
 
 **Verify the whole set at once with `claude mcp list`.** A server that reports
 anything other than `✔ Connected` is not a server you can rely on, and "zero
 tool calls" is indistinguishable from "broken" without running this.
 
-### `github` needs machine-local auth, and fails loudly without it
+### GitHub is not a declared server
 
-The committed entry carries the right URL and transport, but the endpoint does
-**not** support dynamic client registration, so Claude Code cannot OAuth into it.
-Unconfigured, `claude mcp list` reports:
+`.mcp.json` declares no GitHub server, on purpose: the endpoint
+(`https://api.githubcopilot.com/mcp/`) does **not** support dynamic client
+registration, so Claude Code cannot OAuth into it, and a committed entry could
+only ever report `✘ Failed to connect` on every machine that had not added a
+token by hand.
 
-```
-github: https://api.githubcopilot.com/mcp/ (HTTP) - ✘ Failed to connect —
-        Incompatible auth server: does not support dynamic client registration
-```
+- **On a laptop**, use the `gh` CLI. If you want the MCP tools as well, add a
+  **local-scope** entry in your own `~/.claude.json` (never in the committed
+  `.mcp.json`, which would either leak a token or hard-code a path that only
+  exists on one machine) that supplies an `Authorization` header from a PAT:
 
-That is expected, not a repo defect. The fix is a **local-scope** override in
-your own `~/.claude.json` (never in the committed `.mcp.json`, which would
-either leak a token or hard-code a path that only exists on one machine) that
-supplies an `Authorization` header from a PAT:
+  ```jsonc
+  // ~/.claude.json → projects["/path/to/SU-SRD"].mcpServers
+  "github": {
+    "type": "http",
+    "url": "https://api.githubcopilot.com/mcp/",
+    "headersHelper": "<command that prints {\"Authorization\":\"Bearer <PAT>\"}>"
+  }
+  ```
 
-```jsonc
-// ~/.claude.json → projects["/path/to/SU-SRD"].mcpServers
-"github": {
-  "type": "http",
-  "url": "https://api.githubcopilot.com/mcp/",
-  "headersHelper": "<command that prints {\"Authorization\":\"Bearer <PAT>\"}>"
-}
-```
-
-A local-scope entry **shadows** the same-named `.mcp.json` entry, so this is
-additive — nothing needs to be removed from the committed file. This is how the
-now-deleted hosting entries were overridden on the maintainer's machine, and why
-those connected while `github` does not.
-
-`gh` on the command line is unaffected and remains the fallback for everything
-the MCP server would have done.
+- **In a cloud session**, `gh` is not installed and the session supplies its
+  own `mcp__github__*` tools instead. See [Cloud sessions](#cloud-sessions).
 
 ### `convex` is read-only against dev by default, and that is deliberate
 
@@ -125,6 +117,42 @@ documentation, not the source** — verify anything load-bearing against
 `node_modules` or the project's own types — and library-name queries leave the
 machine, though no repo content does. It exposes two tools, the smallest context
 cost of any server here.
+
+## Cloud sessions
+
+Everything above assumes a laptop: a `gh` CLI, OAuth'd MCP servers and a
+Convex device login. A Claude Code on the web session has none of those, and
+each one fails differently, so know what to expect before reading a failure as
+a repo defect.
+
+| Tool | Laptop | Cloud session |
+| --- | --- | --- |
+| `gh` CLI | installed | **absent** — use the session's `mcp__github__*` tools |
+| `mcp__github__*` | only with a local-scope entry (above) | **provided by the session**, deferred: load with ToolSearch (`select:mcp__github__create_pull_request,…`) before the first call |
+| `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `context7` | OAuth / keyless | **fail to connect** — the egress proxy refuses the tunnel (`ERR_PROXY_TUNNEL`, 403) unless the host is allowed |
+| `convex` (stdio) | device credentials in `~/.convex/config.json` | **no credentials** — every tool call fails; ask for data rather than working around it |
+| Pinned Bun (`.bun-version`) | installed by you | the image's Bun may predate the pin and cannot read `bun.lock`; the SessionStart hook installs the pinned one under `~/.local/share/su-srd-bun/<version>/` |
+
+**Network.** The remote MCP hosts are reachable only if the environment's
+network policy allows them: `bindings.mcp.cloudflare.com`,
+`observability.mcp.cloudflare.com`, `mcp.sentry.dev` and `mcp.context7.com`.
+That is a setting on the cloud environment (Network access → allowed domains),
+not something the repo can change. Until it is set, work that depends on those
+servers — Sentry issues, Worker logs — is **unread**, and a report must say so
+rather than imply the signal was clean (`/triage` does this explicitly).
+
+**Bun.** If `bun --version` does not match `.bun-version`, put the pinned build
+first on `PATH` for the command — `export
+PATH="$HOME/.local/share/su-srd-bun/$(cat .bun-version):$PATH"` — and run
+`bun install --frozen-lockfile` if `node_modules` is empty. The lefthook hooks
+inherit the same `PATH`, so a commit or push needs it too.
+
+**Workflows and skills.** `.claude/workflows/*.js` and `/triage` name the `gh`
+command and the `mcp__github__*` fallback side by side, and the workflow prompts
+forbid skipping or faking a GitHub step because `gh` is missing. Neither
+workflow's result schema has a dedicated field for a step with no route at all;
+`single_issue_resolve` reports it in its free-text `notes`, and `/triage`
+reports it as an unread signal.
 
 ## Cloudflare
 
@@ -164,9 +192,9 @@ Team **SalvageUnion.io** (`salvageunion-io`, `6a3b41d74a67a34e3aae3ede`, Pro) �
 **Nothing in this repo reaches Netlify, and no Netlify site serves any traffic.**
 ADR-033 P7 completed 2026-08-31: every production hostname resolves to a
 Cloudflare Worker (see the Cloudflare section above, which is the live one).
-There is no `netlify.toml` anywhere in the tree, no `netlify/` function trees,
-no `@netlify/blobs` dependency, and no `netlify` MCP server. Builds are stopped
-on both repo-linked sites.
+Every `netlify.toml` was deleted from the tree, along with the `netlify/`
+function trees, the `@netlify/blobs` dependency and the `netlify` MCP server.
+Builds are stopped on both repo-linked sites.
 
 | Site               | App it used to build | Site id                                |
 | ------------------ | -------------------- | -------------------------------------- |
@@ -268,8 +296,9 @@ is unreachable" rather than as a typo. Backend modules live in
 
 Repo [`SalvageUnion-io/SU-SRD`](https://github.com/SalvageUnion-io/SU-SRD),
 default branch `main`. CI is GitHub Actions; releases are release-please
-([ADR-024](../adrs/ADR-024-derived-release-changelogs.md)). With the `github`
-MCP unconfigured (see above), use the `gh` CLI.
+([ADR-024](../adrs/ADR-024-derived-release-changelogs.md)). On a laptop use the
+`gh` CLI; in a cloud session use the session's `mcp__github__*` tools (see
+[Cloud sessions](#cloud-sessions)).
 
 ## Verifying this file is still true
 

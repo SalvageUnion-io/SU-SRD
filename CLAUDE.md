@@ -54,6 +54,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 
 - **Prefer `bun run test` over bare `bun test`.** A bare root run preloads the union of the workspace preloads and has a handful of known cross-workspace failures (a `mock.module` collision between the two `observability` suites, and one preload-set difference); every one passes in its own workspace. If `bun run test` is red, something is broken.
 - **Do not use `--parallel` or `--isolate` to speed tests up** — both are measured regressions here (spurious timeouts; ~7× slower). `--changed` is the flag that helps.
+- **A gate failed?** [`tools/CLAUDE.md`](tools/CLAUDE.md) indexes every checker in `tools/`: what it guards, how to fix a failure, and which baseline file it ratchets.
 - `check:all` is a deprecated alias of `check`; don't add callers.
 - **Dependencies:** read [`dependency-management.md`](docs/architecture/dependency-management.md) before touching `package.json`, `bunfig.toml`, `workspaces.catalog` or `overrides`. In short: `bun audit --audit-level=high` gates merges with no suppressions; a dependency used by two or more manifests is declared once in `workspaces.catalog`; `bunfig.toml` refuses versions under three days old, so a caret range resolves silently downward.
 - Root dev dependency `playwright` is used by `tools/a11y-scan.ts` (WCAG scans) — not dead code.
@@ -110,7 +111,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 
 ## `.claude/`
 
-- **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, and workspace manifests. There is nothing to open by hand.
+- **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
 - **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/srd-gate` (read the snapshot diff before re-blessing), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
 - `bun run reap` when repo-wide grep starts returning duplicates from old worktrees.
 
@@ -119,7 +120,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 The registry — ids, deployments, dashboards, how each server authenticates — is [`docs/architecture/agent-tooling.md`](docs/architecture/agent-tooling.md). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **dev** deployment from `CONVEX_DEPLOYMENT`; run `bunx convex dev` once) and `context7` (version-pinned library docs — this repo runs ahead of training data: TypeScript 7, Vite 8, Tailwind 4.3, Convex 1.43).
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
-- `claude mcp list` is the only way to know a server works. GitHub has no declared server; use the `gh` CLI.
+- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see "Cloud sessions" in `agent-tooling.md`.
 - **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (in `validate:all`) checks DSN gating, each app's `public/_headers` CSP against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 
 ## Merging

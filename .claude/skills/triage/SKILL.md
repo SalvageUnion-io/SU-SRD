@@ -1,7 +1,7 @@
 ---
 name: triage
-description: Morning triage — read every production and CI signal, then propose the day's work in priority order
-allowed-tools: Bash, Read
+description: Use at the start of a working session, or when asked "what should I work on" / "what is broken". Reads nightly E2E, Sentry, deploys, dependency PRs and in-flight work, reports any signal it could not reach, and proposes at most five items in priority order.
+allowed-tools: Bash, Read, ToolSearch, mcp__github__actions_list, mcp__github__list_issues, mcp__github__list_pull_requests
 ---
 
 # Triage
@@ -20,6 +20,19 @@ March. This closes that loop by hand until it earns being automated.
 
 Gather all of these before proposing anything. A signal you skipped is a
 recommendation you cannot justify.
+
+**A signal you could not reach is a finding, not a skip.** In a cloud session
+the `gh` CLI is usually absent and the `cloudflare-*`, `sentry` and `context7`
+MCP servers fail to connect through the egress proxy (see "Cloud sessions" in
+[`docs/architecture/agent-tooling.md`](../../../docs/architecture/agent-tooling.md)).
+For every step, use the first route that works and record which one you used:
+
+| Signal | Route 1 | Route 2 (no `gh`) |
+| --- | --- | --- |
+| Workflow runs (steps 1, 3, 4) | `gh run list …` | `mcp__github__actions_list` (load it with ToolSearch) |
+| Issues and PRs (steps 1, 4, 5) | `gh issue list …` / `gh pr list …` | `mcp__github__list_issues` / `mcp__github__list_pull_requests` |
+| Production errors (step 2) | `sentry` MCP | none — record it as unread |
+| Worker logs (step 3) | `cloudflare-observability` MCP | none — the deploy workflow's smoke step still counts |
 
 1. **Nightly E2E** — did last night's run pass?
 
@@ -72,7 +85,13 @@ recommendation you cannot justify.
 
 ## Output
 
-Propose an ordered list of at most **five** items. For each: the signal that
+Open with a **Signals** line that names every signal you read and every one
+you could not, with the reason (`gh` absent, MCP server failed to connect,
+secret not available). "Sentry: unread — MCP blocked by proxy" is a result the
+reader can act on; a triage that silently drops Sentry reads as "production is
+clean", which is the one conclusion it has no evidence for.
+
+Then propose an ordered list of at most **five** items. For each: the signal that
 produced it, why it ranks where it does, and a rough size. Then state plainly
 what you are NOT proposing and why — an unranked list of everything wrong is
 the backlog problem restated, not triage.
@@ -85,6 +104,7 @@ Rank by this order unless there is a stated reason to depart from it:
 4. In-flight work that is one step from landing.
 5. New feature work.
 
-If every signal is green, say so in one line and propose feature work from the
-open backlog. Do not manufacture findings — "nothing is wrong" is a valid and
-useful triage result.
+If every signal you read is green, say so in one line and propose feature work
+from the open backlog — but never call the day green while a signal was unread.
+Do not manufacture findings — "nothing is wrong" is a valid and useful triage
+result.
