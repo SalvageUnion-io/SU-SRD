@@ -1334,8 +1334,9 @@ Only after P7 has been stable for 24 h.
   around a command, and six wrapper skills were deleted for failing that test.
   The four qualifying failure modes are P4's 200-vs-404 trap, P2's module-scope
   restriction, ADR-033 §3's KV consistency trap, and redirect ordering.
-- Port or delete `tools/convert-lp-assets-to-webp.ts` and
-  `tools/upload-lp-assets.ts`. **Not before P1's export is verified.**
+- ~~Port or delete the LP-asset converter and `tools/upload-lp-assets.ts`.~~
+  **Done** — the WebP converter was deleted when Cloudflare Images took over
+  derivative rendering; `tools/upload-lp-assets.ts` survives as the R2 uploader.
 - Remove `@netlify/blobs`, then delete both `--ignore` flags from `check:audit`
   and the CLAUDE.md section documenting them.
 - Update CLAUDE.md, `docs/README.md` and

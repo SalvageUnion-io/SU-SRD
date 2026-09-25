@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Doc-drift guard (mechanical, narrow — 7 checks, not a general doc-linter).
+ * Doc-drift guard (mechanical, narrow — a fixed list of checks, not a general doc-linter).
  *
  * A prior campaign PR had to hand-fix docs/architecture/package-contracts.md
  * after its "Entry Points" JSON block silently fell out of sync with
@@ -40,6 +40,10 @@
  *      `packages/component-lib/src/`.
  *   6. Every "<framework> <major>" claim in the docs must match the version in
  *      the package.json that actually installs that framework.
+ *   7. Every `bun run <script>` a live doc or workflow prompt names exists.
+ *   8+. Counts, MCP-server parity, ADR routing, two-sided supersession, and
+ *      every repo path a live doc or workflow prompt cites resolving on disk
+ *      (`checkBacktickedPathsExist`).
  *
  * Checks 4 and 5 read *live-instruction* docs only (see LIVE_INSTRUCTION_DOC_DIRS
  * / HISTORICAL_DOCS / HISTORICAL_MENTION). The repo deliberately keeps bannered
@@ -208,12 +212,40 @@ export function splitMarkdownBlocks(
 // not had since it started shipping source. A skill is executed, not merely
 // read, so a stale one is worse than a stale doc — it hands an agent a wrong
 // command to run.
+//
+// `.claude/agent-memory` joined for the same reason: a subagent's MEMORY.md is
+// loaded into that agent's system prompt verbatim, so it is instruction, not
+// notes. The 2026-09 audit found it still citing ESLint and puppeteer (both
+// gone) and a whole topic file describing an embed surface the bot had already
+// replaced — none of which any check here could see.
 const LIVE_INSTRUCTION_DOC_DIRS = [
   '.claude/rules',
   '.claude/agents',
+  '.claude/agent-memory',
   '.claude/skills',
   'docs/architecture',
 ]
+
+/**
+ * Workflow scripts whose string literals are prompts handed to subagents.
+ *
+ * They are JavaScript, not markdown, so the block-level prose checks do not
+ * apply — but the two checks that ask "does this thing the instruction names
+ * actually exist" (Check 7's `bun run <script>`, and the path check) apply
+ * exactly as they do to a skill. A prompt is executed, not read, and these had
+ * gone stale in ways no check saw: a local-first rule ADR-030 withdrew,
+ * components that no longer exist, and a Prettier hook the repo never had.
+ */
+const AGENT_WORKFLOW_DIR = '.claude/workflows'
+
+export function agentWorkflowScripts(root: string): string[] {
+  const full = join(root, AGENT_WORKFLOW_DIR)
+  if (!existsSync(full)) return []
+  return readdirSync(full)
+    .filter((name) => name.endsWith('.js'))
+    .sort()
+    .map((name) => `${AGENT_WORKFLOW_DIR}/${name}`)
+}
 
 /**
  * Live-instruction docs that are deliberately historical records. They carry
@@ -264,6 +296,7 @@ function liveInstructionDocs(root: string): string[] {
     'CLAUDE.md',
     'README.md',
     'CONTRIBUTING.md',
+    'tools/CLAUDE.md',
     ...perWorkspace,
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
   ].filter((doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc)))
@@ -981,7 +1014,7 @@ function owningManifest(doc: string): string | undefined {
   return m ? `${m[1]}/package.json` : undefined
 }
 
-function checkReferencedScripts(root: string): { ok: string; failures: string[] } {
+export function checkReferencedScripts(root: string): { ok: string; failures: string[] } {
   const failures: string[] = []
   const rootScripts = scriptsOf(root, 'package.json')
   const manifests = workspaceManifests(root)
@@ -991,7 +1024,7 @@ function checkReferencedScripts(root: string): { ok: string; failures: string[] 
   }
 
   let checked = 0
-  for (const doc of liveInstructionDocs(root)) {
+  for (const doc of [...liveInstructionDocs(root), ...agentWorkflowScripts(root)]) {
     const text = readFileSync(join(root, doc), 'utf-8')
 
     const localScripts = (() => {
@@ -1310,55 +1343,268 @@ function statusSection(source: string): string {
 }
 
 /**
- * A backticked repo path in a live doc must exist.
+ * Top-level directories a repo-rooted citation starts with. Anything else with
+ * a slash in backticks is more likely a package name (`@sentry/browser`), a ref
+ * (`origin/main`) or a media type than a path, and is not judged.
+ */
+const REPO_PATH_ROOTS = [
+  '.claude',
+  '.github',
+  'apps',
+  'packages',
+  'tools',
+  'docs',
+  'test',
+  'patches',
+]
+
+/**
+ * Directories that only exist INSIDE a workspace. A per-app CLAUDE.md, a
+ * path-scoped rule and a workflow prompt all say `src/stores/` meaning some
+ * workspace's `src/stores/`, so these resolve beside the doc or under any
+ * `apps/*` / `packages/*` — loose on purpose: the drift this catches is a path
+ * that exists NOWHERE, which is what a rename or deletion leaves behind.
+ */
+const WORKSPACE_PATH_ROOTS = ['src', 'ssg', 'convex', 'scripts', 'lib', 'e2e', 'public']
+
+/**
+ * Dependencies whose name collides with a workspace directory, so that
+ * `convex/react` reads as an import and `convex/games.ts` as a path.
+ */
+const IMPORT_SPECIFIER_PACKAGES = new Set(['convex'])
+
+/**
+ * Prose that proposes a path rather than asserting one: "Create
+ * `test/preload-reference.ts`" names a file that is SUPPOSED not to exist yet.
+ * Tested against the sentence with its backticked spans removed, so a path
+ * that merely contains `new` (`routes/npcs/new.tsx`) does not excuse itself.
+ */
+const PROSPECTIVE =
+  /\b(create|creates|creating|add|adds|adding|planned|proposed|propose|will|future|would)\b/
+
+/**
+ * A doc that declares itself a plan in its opening status line. Every path it
+ * names is a proposal, so it is skipped whole rather than sentence by sentence.
+ */
+const PLAN_DOC_STATUS = /^>?\s*\*\*Status:?\*\*:?\s*(?:plan|proposed|proposal|draft)\b/im
+
+/** Root-level config files named bare, e.g. `bunfig.toml`, `lefthook.yml`. */
+const BARE_CONFIG_FILE_RE = /^[A-Za-z0-9_-]+\.(?:toml|yaml|yml)$/
+
+/**
+ * The repo path a backticked token names, or null when the token is not a
+ * path claim this check judges. Exported for the tests.
+ */
+export function pathCandidate(token: string): string | null {
+  // Strip a trailing `:line` / `:line:col` and an `#anchor` — `foo.ts:42` cites
+  // a file that must exist just as much as `foo.ts` does.
+  const candidate = token.replace(/(?::\d+)+$/, '').replace(/#[\w-]*$/, '')
+  // Globs, placeholders, URLs, env expansions and home paths name a SET or a
+  // template, not one file.
+  if (/[*<>{}$~?\s]|:\/\//.test(candidate) || candidate.includes(':')) return null
+  if (candidate.endsWith('.') || candidate.startsWith('/')) return null
+  if (BARE_CONFIG_FILE_RE.test(candidate)) return candidate
+  const first = candidate.split('/')[0] ?? ''
+  if (!candidate.includes('/')) return null
+  // `convex/react`, `convex/values`: a package subpath import, not a file. Keyed
+  // on shape so it holds in a fixture with no node_modules — no extension, no
+  // trailing slash, and a first segment that is also a dependency's name.
+  if (
+    IMPORT_SPECIFIER_PACKAGES.has(first) &&
+    !/\.\w+$/.test(candidate) &&
+    !candidate.endsWith('/')
+  ) {
+    return null
+  }
+  if (REPO_PATH_ROOTS.includes(first) || WORKSPACE_PATH_ROOTS.includes(first)) return candidate
+  return null
+}
+
+/**
+ * A predicate for "this path is gitignored at the repo root".
+ *
+ * A gitignored path (`.claude/worktrees/`, `rules/extracted/`, `.profiles/`) is
+ * a legitimate thing for an instruction to name — it is where a tool writes —
+ * and it is absent in CI by design, so existence proves nothing either way.
+ * Handles the three shapes the root `.gitignore` actually uses: a plain path or
+ * directory, `dir/*`, and a leading `**` segment before a name. Anything fancier
+ * is not matched, which errs toward judging the path.
+ */
+export function gitignoredMatcher(root: string): (candidate: string) => boolean {
+  const file = join(root, '.gitignore')
+  if (!existsSync(file)) return () => false
+  const rules = readFileSync(file, 'utf-8')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '' && !line.startsWith('#') && !line.startsWith('!'))
+    .map((line) => line.replace(/^\//, ''))
+  return (candidate) =>
+    rules.some((rule) => {
+      if (rule.startsWith('**/')) {
+        const name = rule.slice(3)
+        return candidate.startsWith(name) || candidate.includes(`/${name}`)
+      }
+      if (rule.endsWith('/*')) return candidate.startsWith(rule.slice(0, -1))
+      if (rule.includes('*')) return false
+      return candidate === rule || candidate.startsWith(rule.endsWith('/') ? rule : `${rule}/`)
+    })
+}
+
+/** Every `apps/*` and `packages/*` directory — the workspace-relative bases. */
+function workspaceDirs(root: string): string[] {
+  return ['apps', 'packages'].flatMap((dir) => {
+    const base = join(root, dir)
+    if (!existsSync(base)) return []
+    return readdirSync(base, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `${dir}/${entry.name}`)
+  })
+}
+
+/**
+ * Import-specifier spellings of a path: docs cite `lib/db/broadcast` the way
+ * the code imports it, with no extension.
+ */
+const MODULE_SUFFIXES = ['', '.ts', '.tsx', '/index.ts', '/index.tsx']
+
+function existsAsModule(path: string): boolean {
+  return MODULE_SUFFIXES.some((suffix) => existsSync(`${path}${suffix}`))
+}
+
+/** Does `candidate`, cited from `doc`, name something on disk? */
+function resolvesFrom(root: string, doc: string, candidate: string, workspaces: string[]): boolean {
+  if (existsAsModule(join(root, candidate))) return true
+  // Beside the doc: a package's CLAUDE.md saying `tools/generateDocs.ts` means
+  // that package's tools/, not the repo's.
+  if (existsAsModule(join(root, dirname(doc), candidate))) return true
+  const first = candidate.split('/')[0] ?? ''
+  // `test/` is both a repo-root directory and a per-workspace one.
+  if (WORKSPACE_PATH_ROOTS.includes(first) || first === 'test') {
+    // `lib/rules/downtime.ts` in ITUN's docs means `apps/itun/src/lib/…`: the
+    // app's own import root, which is how its code and docs both spell it.
+    return workspaces.some(
+      (ws) =>
+        existsAsModule(join(root, ws, candidate)) ||
+        existsAsModule(join(root, ws, 'src', candidate))
+    )
+  }
+  // A bare workflow file name (`deploy-cloudflare.yml`) names a GitHub workflow.
+  if (BARE_CONFIG_FILE_RE.test(candidate)) {
+    return existsSync(join(root, '.github/workflows', candidate))
+  }
+  return false
+}
+
+/**
+ * The sentence of `text` that contains offset `index`. Sentences end at `.`,
+ * `!`, `?` or `;` followed by whitespace — a path ending in `.` is already
+ * rejected by `pathCandidate`, so a boundary never falls inside a citation.
+ */
+export function sentenceAround(text: string, index: number): string {
+  const boundary = /[.!?;](?=\s)|\n\s*\n/g
+  let start = 0
+  let end = text.length
+  for (const m of text.matchAll(boundary)) {
+    const at = m.index ?? 0
+    if (at < index) start = at + m[0].length
+    else {
+      end = at
+      break
+    }
+  }
+  return text.slice(start, end)
+}
+
+/**
+ * Whether a sentence offers its paths as history or as a proposal rather than
+ * as live. Judged on the PROSE: backticked spans are removed first, so a path's
+ * own spelling (`…/new.tsx`, `…/removed/`) never decides it.
+ */
+export function readsAsHistoryOrProposal(sentence: string): boolean {
+  const prose = sentence.replace(/`[^`]*`/g, ' ').toLowerCase()
+  return NEGATED.test(prose) || PROSPECTIVE.test(prose)
+}
+
+/**
+ * A backticked repo path in a live doc — or any repo path in a workflow
+ * prompt — must exist.
  *
  * The negative-assertion class: "X was removed" and "see `path/to/thing`" are
  * both claims about the tree that no shape check reaches. Live docs pointed at
- * `apps/su-assets/netlify.toml`, `apps/itun/netlify/functions/`, `render.yaml`
- * and `storageNetlify.ts`, none of which exist — and one of those citations was
- * an instruction to change two files together.
+ * `netlify.toml` files, `netlify/functions/` trees, `render.yaml` and a
+ * `storageNetlify.ts` long after all of them were deleted — and one of those
+ * citations was an instruction to change two files together.
+ *
+ * Scope was widened after the 2026-09 audit found this check green while it
+ * judged only four top-level prefixes: `.claude/…`, `.github/…` and every
+ * workspace-relative `src/…` citation escaped it, as did the agent-memory files
+ * and the workflow prompts, which cite paths without backticks because they are
+ * JavaScript strings.
+ *
+ * **History is allowed, but only when the SENTENCE says so.** A citation whose
+ * own sentence reads as "no longer exists" / "was deleted" / "retired", or that
+ * sits under a heading that does, is the repo's documented style and is
+ * skipped. The judgement used to be a three-line window, which let one "not"
+ * anywhere nearby excuse an unrelated stale path; a sentence is the unit a
+ * reader uses to decide whether a path is being offered as live.
  *
  * Globs are skipped: a path containing `*` is a legitimate way to name a set
  * of files (a per-app wrangler config, say) rather than a claim about one.
  */
 export function checkBacktickedPathsExist(root: string): { ok: string; failures: string[] } {
   const failures: string[] = []
-  const PATHISH =
-    /`((?:apps|packages|tools|docs)\/[A-Za-z0-9_./@-]+|[A-Za-z0-9_-]+\.(?:toml|yaml))`/g
+  const workspaces = workspaceDirs(root)
+  const isGitignored = gitignoredMatcher(root)
   let checked = 0
 
+  const judge = (doc: string, line: number, candidate: string): void => {
+    if (isGitignored(candidate)) return
+    checked++
+    if (resolvesFrom(root, doc, candidate, workspaces)) return
+    failures.push(
+      `${doc}:${line} cites \`${candidate}\`, which does not exist. ` +
+        `If the reference is historical, say so in the same sentence ("was deleted", ` +
+        `"no longer exists") — this check skips a citation whose sentence reads as history — ` +
+        `and if it is an instruction, it is unfollowable as written: fix the path.`
+    )
+  }
+
   for (const doc of liveInstructionDocs(root)) {
-    const lines = read(root, doc).split('\n')
-    for (const [index, line] of lines.entries()) {
-      for (const match of line.matchAll(PATHISH)) {
-        const candidate = match[1] as string
-        if (candidate.includes('*') || candidate.endsWith('.')) continue
-        // A doc SAYING a path is gone is the opposite of drift — it is the
-        // repo's own documented style ("no `netlify.toml`", "`docs/rules/` was
-        // planned and never existed"). Flagging those would punish exactly the
-        // prose that keeps this file honest, so the sentence around the
-        // citation has to read as an assertion that the path is live.
-        const context = `${lines[index - 1] ?? ''} ${line} ${lines[index + 1] ?? ''}`.toLowerCase()
-        if (NEGATED.test(context)) continue
-        checked++
-        // Resolve against the repo root AND the doc's own directory: a
-        // package's CLAUDE.md saying `tools/generateDocs.ts` means that
-        // package's tools/, not the repo's.
-        const resolvesAtRoot = existsSync(join(root, candidate))
-        const resolvesBeside = existsSync(join(root, dirname(doc), candidate))
-        if (!resolvesAtRoot && !resolvesBeside) {
-          failures.push(
-            `${doc} cites \`${candidate}\`, which does not exist. ` +
-              `If the reference is historical, say so in the sentence — this check skips a ` +
-              `citation whose context reads as "no longer exists" — and if it is an ` +
-              `instruction, it is unfollowable as written.`
-          )
-        }
+    const source = read(root, doc)
+    if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
+    for (const block of splitMarkdownBlocks(doc, source)) {
+      if (block.headings.some((heading) => NEGATED.test(heading.toLowerCase()))) continue
+      for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
+        const candidate = pathCandidate(match[1] as string)
+        if (candidate === null) continue
+        if (readsAsHistoryOrProposal(sentenceAround(block.text, match.index ?? 0))) continue
+        judge(doc, lineOf(block, match.index ?? 0), candidate)
       }
     }
   }
 
-  return { ok: `backticked repo paths in live docs resolve (${checked} checked)`, failures }
+  // Workflow prompts are JS string literals: no markdown backticks to anchor on,
+  // so any repo-rooted path token counts. Only repo-ROOTED prefixes — a prompt
+  // saying `src/routes` is prose about "the app's routes", not a citation.
+  const bareRepoPath = new RegExp(
+    `(?<![\\w./@-])((?:${REPO_PATH_ROOTS.map((r) => r.replace('.', '\\.')).join('|')})/[A-Za-z0-9_./@-]*[A-Za-z0-9_/-])`,
+    'g'
+  )
+  for (const script of agentWorkflowScripts(root)) {
+    for (const [index, line] of read(root, script).split('\n').entries()) {
+      for (const match of line.matchAll(bareRepoPath)) {
+        const candidate = pathCandidate(match[1] as string)
+        if (candidate === null) continue
+        if (readsAsHistoryOrProposal(sentenceAround(line, match.index ?? 0))) continue
+        judge(script, index + 1, candidate)
+      }
+    }
+  }
+
+  return {
+    ok: `repo paths cited by live docs and workflow prompts resolve (${checked} checked)`,
+    failures,
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -51,10 +51,10 @@ the wrong half is load-bearing** — so start here rather than from the checklis
 
 | Piece                                        | State                                                                                     |
 | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `convex/bot.ts` (204 lines, fully tested)    | **Written.** Bindings, actor resolution, roll recording, roll history.                    |
+| `convex/model/bot.ts` + `convex/botClient.ts` | **Written.** Bindings, actor resolution, roll recording, roll history. (The web-facing `bot.ts` wrapper had no caller and was deleted in #725.) |
 | `channelBindings` table + `users.by_discord` | **Written.** Schema and indexes are in place.                                             |
-| `convex/__tests__/bot.test.ts`               | **Written.** Proves the bot cannot act as a non-member.                                   |
-| Any caller of `api.bot.*`                    | **None.** `grep` finds zero references in `apps/itun/src` **and** `apps/discord-bot/src`. |
+| `test/convex/bot.test.ts`                     | **Written.** Proves the bot cannot act as a non-member.                                   |
+| Any caller of `api.bot.*`                    | **None** — the module no longer exists; the bot reaches `internal.botClient.*` through `botHttp.ts`. |
 | A way for the bot to authenticate to Convex  | **Does not exist.** See below — this is the blocker.                                      |
 
 So the server layer is real and the wiring is absent on _both_ ends. Two

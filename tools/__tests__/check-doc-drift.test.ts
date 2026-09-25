@@ -13,10 +13,17 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
+  agentWorkflowScripts,
   barrelExports,
+  checkBacktickedPathsExist,
   checkComponentLibSymbolNames,
   checkFrameworkVersions,
+  checkReferencedScripts,
   checkSupersededAdrCitations,
+  gitignoredMatcher,
+  pathCandidate,
+  readsAsHistoryOrProposal,
+  sentenceAround,
   splitMarkdownBlocks,
   supersededAdrs,
 } from '../check-doc-drift'
@@ -311,5 +318,154 @@ describe('checkFrameworkVersions', () => {
     expect(failures.some((f) => f.includes('Could not read the installed "vite" version'))).toBe(
       true
     )
+  })
+})
+
+describe('pathCandidate', () => {
+  it('judges repo-rooted and workspace-relative paths', () => {
+    expect(pathCandidate('.claude/skills/srd-gate/SKILL.md')).toBe(
+      '.claude/skills/srd-gate/SKILL.md'
+    )
+    expect(pathCandidate('.github/workflows/ci.yml')).toBe('.github/workflows/ci.yml')
+    expect(pathCandidate('src/lib/connection/')).toBe('src/lib/connection/')
+    expect(pathCandidate('bunfig.toml')).toBe('bunfig.toml')
+  })
+
+  it('strips a line suffix and an anchor', () => {
+    expect(pathCandidate('tools/check-doc-drift.ts:42')).toBe('tools/check-doc-drift.ts')
+    expect(pathCandidate('docs/README.md#adrs')).toBe('docs/README.md')
+  })
+
+  it('ignores globs, placeholders, packages, refs and import specifiers', () => {
+    for (const token of [
+      'apps/*/wrangler.jsonc',
+      'docs/adrs/ADR-<n>.md',
+      '@sentry/browser',
+      'origin/main',
+      'convex/react',
+      'https://example.com/docs/x',
+      '~/.claude.json',
+      'bun run test',
+    ]) {
+      expect(pathCandidate(token)).toBeNull()
+    }
+  })
+})
+
+describe('sentenceAround / readsAsHistoryOrProposal', () => {
+  it('scopes history to the sentence, not the paragraph', () => {
+    const text = 'The old `a.md` was deleted. Read `b.md` for the live rules.'
+    expect(readsAsHistoryOrProposal(sentenceAround(text, text.indexOf('`a.md`')))).toBe(true)
+    expect(readsAsHistoryOrProposal(sentenceAround(text, text.indexOf('`b.md`')))).toBe(false)
+  })
+
+  it('judges the prose, never the path spelling', () => {
+    expect(readsAsHistoryOrProposal('Route `src/routes/npcs/new.tsx` is the wizard')).toBe(false)
+    expect(readsAsHistoryOrProposal('Create `test/preload.ts` in the package')).toBe(true)
+  })
+})
+
+describe('checkBacktickedPathsExist', () => {
+  it('fails on a .claude path a rule cites that does not exist', () => {
+    const root = fixture({
+      '.claude/rules/x.md': 'Follow `.claude/skills/gone/SKILL.md` before merging.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('.claude/rules/x.md:1')
+    expect(failures[0]).toContain('`.claude/skills/gone/SKILL.md`')
+  })
+
+  it('resolves a workspace-relative path under any workspace, with or without src/', () => {
+    const root = fixture({
+      'apps/itun/src/lib/rules/downtime.ts': '',
+      'apps/itun/src/lib/db/broadcast.ts': '',
+      '.claude/rules/x.md':
+        'Downtime lives in `lib/rules/downtime.ts`, and writes publish through `lib/db/broadcast`.\n',
+    })
+    expect(checkBacktickedPathsExist(root).failures).toEqual([])
+  })
+
+  it('does not let a negation in a NEIGHBOURING sentence excuse a stale path', () => {
+    const root = fixture({
+      'docs/architecture/x.md':
+        'Netlify is not a host any more. Deploys run from `.github/workflows/deploy.yml`.\n',
+    })
+    expect(checkBacktickedPathsExist(root).failures).toHaveLength(1)
+  })
+
+  it('allows a path its own sentence marks as history, or under a history heading', () => {
+    const root = fixture({
+      'docs/architecture/x.md':
+        '`tools/sync.ts` was deleted after P6.\n\n## Netlify — retired\n\nSee `apps/srd/netlify.toml`.\n',
+    })
+    expect(checkBacktickedPathsExist(root).failures).toEqual([])
+  })
+
+  it('skips a doc whose status line declares it a plan', () => {
+    const root = fixture({
+      'docs/architecture/plan.md':
+        '# NPCs\n\n> **Status:** Plan. Nothing here is built.\n\nRoute `src/routes/npcs/new.tsx`.\n',
+    })
+    expect(checkBacktickedPathsExist(root).failures).toEqual([])
+  })
+
+  it('does not judge a gitignored path, which is absent in CI by design', () => {
+    const root = fixture({
+      '.gitignore': '# agent checkouts\n.claude/worktrees/\nrules/*\n**/coverage/\n/.profiles/\n',
+      '.claude/rules/x.md':
+        'Old checkouts pile up in `.claude/worktrees/`, extracts in `rules/extracted/core.txt`, ' +
+        'reports in `apps/itun/coverage/lcov.info` and profiles in `.profiles/`. See `tools/gone.ts`.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('`tools/gone.ts`')
+  })
+
+  it('scans agent memory as a live-instruction doc', () => {
+    const root = fixture({
+      '.claude/agent-memory/ux/MEMORY.md': 'Tokens live in `packages/ui/theme.css`.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('.claude/agent-memory/ux/MEMORY.md:1')
+  })
+
+  it('scans workflow prompts for bare repo paths', () => {
+    const root = fixture({
+      '.claude/skills/stacked-pr/SKILL.md': '# skill\n',
+      '.claude/workflows/w.js': [
+        "const a = 'follow .claude/skills/stacked-pr/SKILL.md'",
+        "const b = 'then read .claude/skills/nope/SKILL.md'",
+      ].join('\n'),
+    })
+    expect(agentWorkflowScripts(root)).toEqual(['.claude/workflows/w.js'])
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('.claude/workflows/w.js:2')
+  })
+})
+
+describe('checkReferencedScripts', () => {
+  it('checks the bun scripts a workflow prompt tells a subagent to run', () => {
+    const root = fixture({
+      'package.json': JSON.stringify({ scripts: { test: 'x', lint: 'x' } }),
+      '.claude/workflows/w.js': 'const s = \'run "bun run test" then "bun run verify"\'\n',
+    })
+    const { failures } = checkReferencedScripts(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('bun run verify')
+  })
+})
+
+describe('gitignoredMatcher', () => {
+  it('matches plain, dir/* and double-star rules, and nothing else', () => {
+    const root = fixture({ '.gitignore': '/.profiles/\nrules/*\n**/coverage/\n!keep\n*.log\n' })
+    const ignored = gitignoredMatcher(root)
+    expect(ignored('.profiles/cpu.md')).toBe(true)
+    expect(ignored('rules/extracted/a.txt')).toBe(true)
+    expect(ignored('apps/srd/coverage/lcov.info')).toBe(true)
+    expect(ignored('tools/check-doc-drift.ts')).toBe(false)
+    expect(ignored('rulesets/a.md')).toBe(false)
   })
 })
