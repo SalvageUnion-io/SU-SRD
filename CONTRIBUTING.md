@@ -40,8 +40,10 @@ Run the full local gate — it mirrors the CI merge gate:
 bun run check
 ```
 
-This runs, in order: schema-drift check (`build:package` + `git diff`), lint,
-format check, typecheck, tests, data validation, knip, and `bun audit`. If
+This runs, in order: schema-drift check (`build:package` + `git diff`), Biome
+(`biome ci .` — lint, format and import order), typecheck, then tests, data
+validation, knip, `bun audit`, the design guards, the CI-aggregator guard,
+workflow lint (actionlint + zizmor) and the srd output gate. If
 `check` is green, CI's `CI Success` gate should be too. `check:all` is a
 deprecated alias for the same script, kept for one release cycle so existing
 muscle memory and scripts keep working — new callers use `check`. The app builds
@@ -63,7 +65,8 @@ bun run typecheck:itun               # typecheck one workspace
 > `bunfig.toml` preloads; the root `bunfig.toml` now preloads the union of them,
 > so it runs. It is still not identical to the per-workspace run — the preload
 > *sets* differ, and one component-lib SSR test fails only from the root. Use
-> `bun run test` as the source of truth; it is what CI runs.
+> `bun run test` as the source of truth; CI runs the same files (instrumented,
+> via `test:coverage` + `test:tools`).
 
 ## Conventions
 

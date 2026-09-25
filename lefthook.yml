@@ -60,8 +60,8 @@ pre-push:
       # over-selects, which is the safe direction.
       #
       # Even so this is a local fast path, NOT a narrowing of the gate: CI runs
-      # `bun run test` in full on every PR and that is what branch protection
-      # requires. Falls back to the full suite when there is no origin/main to
+      # the full suite (`test:coverage` + `test:tools`) on every code PR and
+      # that is what branch protection requires. Falls back to the full suite when there is no origin/main to
       # diff against — a missing base must never mean "nothing to test".
       run: |
         base=$(git merge-base HEAD origin/main 2>/dev/null || true)
