@@ -127,7 +127,13 @@ line('   SURefMetaEntity unions: both are generated from the registry entry in')
 line('   step 3 (lib/generated/entityTypes.generated.ts).')
 if (!nonEntity) {
   line('   A rules-metadata schema (like actions) that should stay out of the')
-  line('   narrower SURefEntity union gets `excludeFromEntityUnion: true`.')
+  line('   narrower SURefEntity union gets `excludeFromEntityUnion: true` AND a')
+  line('   typeName starting `SURefMeta` — registryConsistency.test.ts requires')
+  line('   the flag and the prefix to agree; add the type to its MetaOnly union.')
+} else {
+  line('   A non-entity schema must also be added to the hard-coded list in')
+  line("   registryConsistency.test.ts (currently ['catalog-categories']) and to")
+  line('   its SURefMetaEntity | SURefCatalogCategory equality check.')
 }
 line()
 

@@ -12,7 +12,10 @@
  *   - {@link entityFixture} — a WELL-FORMED entity of one named schema. The
  *     overrides are type-checked against that schema's inferred type, and the
  *     fields every entity requires (`id`, `name`, `source`, `page`) are filled
- *     in, so the result genuinely is the type it claims to be.
+ *     in with values that pass `BaseEntitySchema` (asserted in
+ *     `testing.test.ts`). Schema-specific required fields are the caller's to
+ *     supply: the result is cast from a `Partial`, so it is only as complete
+ *     as the overrides make it.
  *   - {@link malformed} — a DELIBERATELY invalid value, for tests whose whole
  *     point is that a reader tolerates bad data (a nameless entity, a trait
  *     that is a bare string, `undefined` where a list belongs). The cast is the

@@ -123,31 +123,25 @@ All models provide a simple, consistent API with just three methods:
 
 ## Direct Data Access
 
+The package's public surface is its declared entry points and nothing else:
+`salvageunion-reference`, `/rules`, `/zod`, `/schema-definitions` and
+`/testing` (test code only). The raw `data/*.json` and `schemas/*.schema.json`
+files are **not** importable subpaths — reach them through the accessors below.
+
 ```typescript
-// Import raw data
-import chassisData from 'salvageunion-reference/data/chassis.json'
-import equipmentData from 'salvageunion-reference/data/equipment.json'
-
-// Import schemas
-import chassisSchema from 'salvageunion-reference/schemas/chassis.schema.json'
-
-// Or use the data maps
-import { getDataMaps, getSchemaCatalog, toPascalCase } from 'salvageunion-reference'
+// Raw data, keyed by schema ID
+import { getDataMaps, getSchemaCatalog } from 'salvageunion-reference'
 
 const { dataMap } = getDataMaps()
 const chassisData = dataMap['chassis']
 
-// JSON Schema definitions come from their own accessor, not getDataMaps()
-import { getJsonSchemaDefinition } from 'salvageunion-reference'
+// JSON Schema definitions come from their own entry point, not getDataMaps()
+import { getJsonSchemaDefinition } from 'salvageunion-reference/schema-definitions'
 const chassisSchema = getJsonSchemaDefinition('chassis')
 
 // Get schema catalog metadata
 const catalog = getSchemaCatalog()
 console.log(catalog.schemas) // Array of all schema entries
-
-// Convert schema IDs to property names
-toPascalCase('ability-tree-requirements') // => 'AbilityTreeRequirements'
-toPascalCase('classes.core') // => 'CoreClasses'
 ```
 
 ## TypeScript Support

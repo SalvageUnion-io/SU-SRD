@@ -115,10 +115,10 @@ to the list; the API report (`etc/salvageunion-reference.api.d.ts`) then shows
 the addition in review.
 
 **Utility exports (representative — `lib/index.ts` is the source of truth):**
-`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `getParagraphString`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `isColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `BaseModel`, `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
+`nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
 
 **Choice-resolver types:**
-`ChoiceSelections` (`Record<string, string[]>`), `ResolvedChoiceView` (`{ datavalues, traits, prompts }`), `ChoicePrompt`
+`ChoiceSelections` (`Record<string, string[]>`). `ResolvedChoiceView` and `ChoicePrompt` are package-internal — nothing outside the package named them, so they are not on the barrel.
 
 ### Dependencies
 
