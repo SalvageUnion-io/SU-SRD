@@ -261,7 +261,7 @@ The design pass Phase 3 deferred, plus the ownership rules it exposed as missing
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `entityStore`          | Write-through to IndexedDB is the single write path for the whole app; the server of record inverts it. Keep the public API identical and swap the backend beneath it.      |
 | `activeWorkspaceStore` | **Replaced** by `activeContainerStore`, which persists `shelf` \| `game:<id>`. The "exactly one current container" invariant survives; it is only consulted when Connected. |
-| `db/broadcast.ts`      | Cross-tab invalidation is superseded by Convex reactivity **only in Connected mode**. Keep it — Solo needs it.                                                              |
+| `db/broadcast.ts`      | Cross-tab invalidation is superseded by Convex reactivity **only in Connected mode**. Solo does not use it — the in-memory backend is per tab and never broadcasts.         |
 | `ExportBundle`         | `schemaVersion: 1` is a literal. Adding ownership columns is breaking; bump to `2` and keep reading v1 as Solo entities.                                                    |
 | Migration v10          | The Default-workspace backfill must become a no-op for anyone who never signs in.                                                                                           |
 | Nullable `ownerId`     | Every surface reading an owner must render **Unclaimed** as a state, not a blank or a crash.                                                                                |
@@ -558,9 +558,12 @@ curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/dis
 
 ### Switching production on
 
-Production builds in **Solo mode** until `VITE_CONVEX_URL` is set for the
-deploy build — which is safe and deliberate, not an outage: a build with no Convex URL
-is the pre-accounts app, fully working. To switch accounts on:
+A build with no `VITE_CONVEX_URL` has no server of record, so every visitor is
+anonymous and gets the **in-memory backend** — nothing they build survives the
+tab. Since ADR-034/ADR-035 retired the durable anonymous backend there is no
+"pre-accounts app" to fall back to: such a build is fine for CI and a fresh
+checkout, and is **not** a working production configuration. To switch
+accounts on:
 
 1. Add the prod redirect URI to the Discord application (above). **Done.**
 2. Build with `VITE_CONVEX_URL` pointing at the production deployment
@@ -569,8 +572,10 @@ is the pre-accounts app, fully working. To switch accounts on:
    `convex deploy --cmd-url-env-var-name VITE_CONVEX_URL`, which sets it. It is
    a build-time variable, so a change only takes effect on the next deploy.
 
-Reversing it is equally simple: unset the variable and production returns to
-Solo, with every local build intact.
+**There is no rollback by unsetting it.** Doing so would silently turn off
+saving for every player: all writes would go to the tab's memory, and the
+account data would be unreachable until the variable came back. If Convex has
+to be taken out of the path, that is an outage to announce, not a toggle.
 
 ### Secrets
 

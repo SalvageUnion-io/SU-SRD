@@ -215,11 +215,22 @@ const NO_FAILURE: Failure = { session: null, device: null }
 type ReconcileState = {
   sessionWork: RefObject<LocalWork | null>
   running: RefObject<{ session: boolean; device: boolean }>
+  /**
+   * Bumped every time the backend returns to `memory` (signing out). A pass
+   * that settles in a later epoch belongs to a different sign-in — possibly a
+   * different account — and must not write its result, clear its flag or drop
+   * the capture the new sign-in is about to send.
+   */
+  epoch: RefObject<number>
   failure: Failure
   setFailure: Dispatch<SetStateAction<Failure>>
 }
 
-const STILL_HERE = 'They are still on this device — download a copy before clearing this browser.'
+/** Session work lives in this tab's memory only; closing it loses the work. */
+const STILL_IN_TAB = 'They are only in this tab — keep it open and try again.'
+/** Device rows stay in this browser's storage until they land. */
+const STILL_ON_DEVICE =
+  'They are still on this device — do not clear this browser until they are saved.'
 
 /** Why a whole call failed, in words a player can act on. */
 function failureMessage(err: unknown, fallback: string): string {
@@ -239,7 +250,7 @@ function SignedInReconciler({
   state: ReconcileState
   device: DeviceRows | null
 }) {
-  const { sessionWork, running, failure, setFailure } = state
+  const { sessionWork, running, epoch, failure, setFailure } = state
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
   const claimLocal = useMutation(api.entities.claimLocal)
@@ -263,17 +274,20 @@ function SignedInReconciler({
     }
 
     running.current.session = true
+    const started = epoch.current
+    const current = () => epoch.current === started
     // Announced BEFORE the await. `ShelfSync` prunes local shelf rows the
     // server did not return, and until this lands these rows are exactly that.
     setPromotionState('pending')
 
     void reconcile(claimLocal, work, { adopt: true })
       .then(({ stranded }) => {
+        if (!current()) return
         if (stranded > 0) {
           setPromotionState('failed')
           setFailure((f) => ({
             ...f,
-            session: `${builds(stranded)} could not be saved to your account. ${STILL_HERE}`,
+            session: `${builds(stranded)} could not be saved to your account. ${STILL_IN_TAB}`,
           }))
           return
         }
@@ -282,6 +296,7 @@ function SignedInReconciler({
         setFailure((f) => ({ ...f, session: null }))
       })
       .catch((err: unknown) => {
+        if (!current()) return
         // The caches still hold the work, and `ShelfSync` must be told so it
         // does not read that as "deleted elsewhere" and forget it.
         setPromotionState('failed')
@@ -291,9 +306,9 @@ function SignedInReconciler({
         }))
       })
       .finally(() => {
-        running.current.session = false
+        if (current()) running.current.session = false
       })
-  }, [claimLocal, mine, running, sessionWork, setFailure])
+  }, [claimLocal, mine, running, epoch, sessionWork, setFailure])
 
   const runDevice = useCallback(() => {
     // Nothing on this device, or the account is still loading. `undefined` is
@@ -311,12 +326,15 @@ function SignedInReconciler({
     }
 
     running.current.device = true
+    const started = epoch.current
+    const current = () => epoch.current === started
     void reconcile(claimLocal, work, { adopt: false })
       .then(({ stranded }) => {
+        if (!current()) return
         if (stranded > 0) {
           setFailure((f) => ({
             ...f,
-            device: `${builds(stranded)} could not be moved into your account. ${STILL_HERE}`,
+            device: `${builds(stranded)} could not be moved into your account. ${STILL_ON_DEVICE}`,
           }))
           return
         }
@@ -324,6 +342,7 @@ function SignedInReconciler({
         setFailure((f) => ({ ...f, device: null }))
       })
       .catch((err: unknown) => {
+        if (!current()) return
         setFailure((f) => ({
           ...f,
           device: failureMessage(
@@ -333,9 +352,9 @@ function SignedInReconciler({
         }))
       })
       .finally(() => {
-        running.current.device = false
+        if (current()) running.current.device = false
       })
-  }, [claimLocal, device, mine, games, running, setFailure])
+  }, [claimLocal, device, mine, games, running, epoch, setFailure])
 
   // Session work goes the moment the backend is `remote` — it needs no
   // comparison (every id is fresh), and a sign-in that was pressed to save
@@ -472,11 +491,25 @@ export function AccountReconciler() {
   /** This tab's anonymous work, as of the last anonymous render. See the header. */
   const sessionWork = useRef<LocalWork | null>(null)
   const running = useRef({ session: false, device: false })
+  const epoch = useRef(0)
   const [failure, setFailure] = useState<Failure>(NO_FAILURE)
   useEffect(() => {
     if (backend !== 'memory') return
     sessionWork.current = countWork(session) > 0 ? session : null
   }, [backend, session])
+
+  // Signing out ends everything the last sign-in started. The error line and
+  // the prune guard describe THAT account's passes; kept, they would stop the
+  // next sign-in's automatic pass (a mount that finds a failure on screen
+  // waits for "Try again") and show one account another account's error.
+  // `blocked` does not reset — a dropped connection is the same sign-in.
+  useEffect(() => {
+    if (backend !== 'memory') return
+    epoch.current += 1
+    running.current = { session: false, device: false }
+    setFailure(NO_FAILURE)
+    setPromotionState('idle')
+  }, [backend])
 
   if (backend === 'memory') {
     const n = countWork(session)
@@ -488,6 +521,9 @@ export function AccountReconciler() {
   // and a build with no Convex URL mounts no provider for the hooks below.
   if (backend !== 'remote' || !isConvexConfigured) return null
   return (
-    <SignedInReconciler state={{ sessionWork, running, failure, setFailure }} device={device} />
+    <SignedInReconciler
+      state={{ sessionWork, running, epoch, failure, setFailure }}
+      device={device}
+    />
   )
 }

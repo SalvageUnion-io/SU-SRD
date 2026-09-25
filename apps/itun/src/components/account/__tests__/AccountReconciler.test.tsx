@@ -283,6 +283,32 @@ describe('signing in', () => {
     expect(screen.queryByText(/could not be saved/i)).toBeNull()
   })
 
+  test('a failure from one sign-in does not stop the next one from saving', async () => {
+    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+    server = { owned: new Set(), unparseable: new Set(['tab-1']) }
+    const view = render(<Tree />)
+    await signIn(view)
+    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
+
+    // Sign out, build something else, sign in again (the server now accepts both).
+    authed = false
+    view.rerender(<Tree />)
+    await waitFor(() => expect(promotionState()).toBe('idle'))
+    server.unparseable.clear()
+    await act(async () => {
+      await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
+    })
+    authed = true
+    view.rerender(<Tree />)
+
+    // The new sign-in runs its own pass rather than waiting on the old error.
+    await waitFor(() => expect(claims()).toHaveLength(2))
+    const sent = claims()[1]?.args.pilots as { id: string }[] | undefined
+    expect(sent?.map((p) => p.id)).toContain('tab-2')
+    await waitFor(() => expect(promotionState()).toBe('idle'))
+    expect(screen.queryByText(/could not be saved/i)).toBeNull()
+  })
+
   test('device rows missing from the account are sent, on the shelf', async () => {
     await db.pilots.put(pilotFixture({ id: 'disk-1', gameId: 'phantom-workspace' }))
     authed = true

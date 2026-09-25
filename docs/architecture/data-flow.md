@@ -178,18 +178,17 @@ see the header comment in `convex/schema.ts`.
 so the backend swaps without rewriting the store. `src/stores/entityBackend.ts`
 picks it:
 
-- `selectBackend()` returns `'local'` unless the app is genuinely Connected —
-  not signed in, no Convex URL compiled in, or offline all resolve away from
-  `'remote'`. The ordering is deliberate: the worst outcome in this migration is
-  a Solo user's writes silently going nowhere.
-- Disconnected returns `'blocked'` and throws `WritesBlockedOffline`; it never
-  falls back to local. Surfaces check `canWrite` before offering the affordance.
-- In `'remote'`, `mirrorWrite()` mirrors the local write to Convex **addressed
-  by app id**, not by Convex's own `_id` (an indexed `appId` column stands in for
-  a mapping table). It is an **upsert** — an entity built while Solo has no
-  server row until the account is claimed — and **fire-and-forget**: the local
-  write already succeeded and is what the UI reads, so a mirror failure warns
-  rather than rolling back.
+- `selectBackend()` has exactly three answers: `'remote'` when the app is
+  genuinely Connected, `'memory'` when it is anonymous (including any build with
+  no Convex URL compiled in), and `'blocked'` while Disconnected or mid-handshake.
+  The durable anonymous `'local'` backend is gone (ADR-034/ADR-035).
+- `'blocked'` throws `WritesBlockedOffline`; it never falls back to IndexedDB.
+  Surfaces check `canWrite` before offering the affordance.
+- In `'remote'`, `commitEntityWrite()` (and its siblings) write to Convex
+  **addressed by app id**, not by Convex's own `_id` (an indexed `appId` column
+  stands in for a mapping table), and are **awaited**: a write the server refused
+  did not happen, and the caller is told so. They replaced the fire-and-forget
+  `mirrorWrite()` family, which suited a local store that was authoritative.
 
 Reactive reads use `convex/react` (`useQuery`) directly in the Connected
 surfaces (`src/components/games/`, `src/components/account/`,
