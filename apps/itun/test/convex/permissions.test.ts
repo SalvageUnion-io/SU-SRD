@@ -82,12 +82,10 @@ describe('roles are a base role plus one modifier', () => {
     expect(them?.mediator).toBe(false)
   })
 
-  test('a Player cannot rename the game', async () => {
+  test('a Player cannot delete the game', async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
-    await expect(player.as.mutation(api.games.rename, { gameId, name: 'Mine' })).rejects.toThrow(
-      /organizer/i
-    )
+    await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
   })
 
   test('a Player cannot appoint a Mediator', async () => {
@@ -100,150 +98,6 @@ describe('roles are a base role plus one modifier', () => {
         mediator: true,
       })
     ).rejects.toThrow(/organizer/i)
-  })
-})
-
-describe('transferOrganizer keeps exactly one Organizer', () => {
-  test('after transfer there is exactly one, and it is the new holder', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
-
-    await organizer.as.mutation(api.games.transferOrganizer, { gameId, userId: player.userId })
-
-    // Read as the NEW organizer — the old one is now a plain Player.
-    const roster = await player.as.query(api.games.members, { gameId })
-    const organizers = roster.filter((m) => m.organizer)
-
-    expect(organizers).toHaveLength(1)
-    expect(organizers[0]?.userId).toBe(player.userId)
-  })
-
-  test('the previous Organizer loses administrative power', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
-    await organizer.as.mutation(api.games.transferOrganizer, { gameId, userId: player.userId })
-
-    await expect(
-      organizer.as.mutation(api.games.rename, { gameId, name: 'Take-backs' })
-    ).rejects.toThrow(/organizer/i)
-  })
-
-  test('transferring to yourself is a no-op, not a way to end up with none', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    await organizer.as.mutation(api.games.transferOrganizer, { gameId, userId: organizer.userId })
-
-    const roster = await organizer.as.query(api.games.members, { gameId })
-    expect(roster.filter((m) => m.organizer)).toHaveLength(1)
-  })
-})
-
-describe('ownership assignment (ADR-030 §3 — the Organizer fallback)', () => {
-  test('a plain Player cannot assign ownership', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seedGame(t)
-    const pilotId = await seedPilot(t, gameId, null)
-
-    await expect(
-      player.as.mutation(api.ownership.assign, {
-        table: 'pilots',
-        entityId: pilotId,
-        toUserId: player.userId,
-      })
-    ).rejects.toThrow(/mediator/i)
-  })
-
-  test('the Organizer CAN assign while the game has no Mediator', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
-    const pilotId = await seedPilot(t, gameId, null)
-
-    await organizer.as.mutation(api.ownership.assign, {
-      table: 'pilots',
-      entityId: pilotId,
-      toUserId: player.userId,
-    })
-
-    const pilot = await t.run(async (ctx) => await ctx.db.get(pilotId))
-    expect(pilot?.ownerId).toBe(player.userId)
-  })
-
-  test('the Organizer LOSES that power once a Mediator exists', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
-    const pilotId = await seedPilot(t, gameId, null)
-
-    // The fallback is conditional, and this is the condition ending.
-    await organizer.as.mutation(api.games.setMediator, {
-      gameId,
-      userId: player.userId,
-      mediator: true,
-    })
-
-    await expect(
-      organizer.as.mutation(api.ownership.assign, {
-        table: 'pilots',
-        entityId: pilotId,
-        toUserId: organizer.userId,
-      })
-    ).rejects.toThrow(/mediator/i)
-  })
-
-  test('the Mediator can assign', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
-    const pilotId = await seedPilot(t, gameId, null)
-
-    await organizer.as.mutation(api.games.setMediator, {
-      gameId,
-      userId: player.userId,
-      mediator: true,
-    })
-    await player.as.mutation(api.ownership.assign, {
-      table: 'pilots',
-      entityId: pilotId,
-      toUserId: organizer.userId,
-    })
-
-    const pilot = await t.run(async (ctx) => await ctx.db.get(pilotId))
-    expect(pilot?.ownerId).toBe(organizer.userId)
-  })
-
-  test('ownership cannot be assigned to a non-member', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const outsider = await makeUser(t, 'Outsider')
-    const pilotId = await seedPilot(t, gameId, null)
-
-    // Otherwise the entity becomes unreachable — owned by someone with no
-    // membership through which to see it.
-    await expect(
-      organizer.as.mutation(api.ownership.assign, {
-        table: 'pilots',
-        entityId: pilotId,
-        toUserId: outsider.userId,
-      })
-    ).rejects.toThrow(/not a member/i)
-  })
-
-  test('every assignment is recorded on the Change Log', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
-    const pilotId = await seedPilot(t, gameId, null)
-
-    await organizer.as.mutation(api.ownership.assign, {
-      table: 'pilots',
-      entityId: pilotId,
-      toUserId: player.userId,
-    })
-
-    const entries = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
-    expect(entries).toHaveLength(1)
-    expect(entries[0]?.field).toBe('ownerId')
-    expect(entries[0]?.before).toBeNull()
-    expect(entries[0]?.after).toBe(player.userId)
-    expect(entries[0]?.actorId).toBe(organizer.userId)
-    expect(entries[0]?.state).toBe('applied')
   })
 })
 
@@ -270,30 +124,6 @@ describe('release', () => {
     await expect(
       organizer.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })
     ).rejects.toThrow(/owner or the mediator/i)
-  })
-})
-
-describe('leaving a game', () => {
-  test('a departing Player leaves their entities behind, unclaimed', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seedGame(t)
-    const pilotId = await seedPilot(t, gameId, player.userId)
-
-    await player.as.mutation(api.ownership.leaveGame, { gameId })
-
-    const pilot = await t.run(async (ctx) => await ctx.db.get(pilotId))
-    // The crew survives a departure; nothing is destroyed.
-    expect(pilot?.gameId).toBe(gameId)
-    expect(pilot?.ownerId).toBeNull()
-  })
-
-  test('the Organizer cannot leave without handing the flag on', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    // A game with no Organizer has nobody who can invite, rename, or delete it.
-    await expect(organizer.as.mutation(api.ownership.leaveGame, { gameId })).rejects.toThrow(
-      /transfer the organizer/i
-    )
   })
 })
 
@@ -425,16 +255,10 @@ describe('requireMediator', () => {
     })
 
     // setMediator is Organizer-gated, so exercise the Mediator gate through a
-    // mutation that actually requires it.
-    const pilotId = await seedPilot(t, gameId, null)
-    await player.as.mutation(api.ownership.assign, {
-      table: 'pilots',
-      entityId: pilotId,
-      toUserId: organizer.userId,
-    })
-
-    const pilot = await t.run(async (ctx) => await ctx.db.get(pilotId))
-    expect(pilot?.ownerId).toBe(organizer.userId)
+    // read that actually requires it: the opposition tray.
+    expect(await player.as.query(api.mediator.npcs, { gameId })).toEqual([])
+    // The Organizer holds no content authority by holding the flag.
+    await expect(organizer.as.query(api.mediator.npcs, { gameId })).rejects.toThrow(/mediator/i)
   })
 })
 
@@ -526,23 +350,7 @@ describe('invite lifecycle', () => {
   })
 })
 
-describe('a shelved entity is not assignable', () => {
-  test('assigning one is refused, because there is no game to assign within', async () => {
-    const t = testConvex()
-    const { organizer } = await seedGame(t)
-    const shelved = await seedPilot(t, null, organizer.userId)
-
-    // Ownership only means something inside a crew. On a shelf the entity
-    // already belongs to exactly one person and there is nobody to hand it to.
-    await expect(
-      organizer.as.mutation(api.ownership.assign, {
-        table: 'pilots',
-        entityId: shelved,
-        toUserId: organizer.userId,
-      })
-    ).rejects.toThrow(/shelf/i)
-  })
-
+describe('a shelved entity cannot be released', () => {
   test('releasing one is refused, because null + null is the invalid state', async () => {
     const t = testConvex()
     const { organizer } = await seedGame(t)

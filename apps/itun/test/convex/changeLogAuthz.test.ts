@@ -117,7 +117,14 @@ describe('appendChangeLog authorization', () => {
     // While a member: allowed.
     await player.as.mutation(api.entities.appendChangeLog, { entries: [entry(gameId)] })
 
-    await player.as.mutation(api.ownership.leaveGame, { gameId })
+    // Leaving, as far as authorization can tell: the membership row is gone.
+    await t.run(async (ctx) => {
+      const membership = await ctx.db
+        .query('memberships')
+        .withIndex('by_game_user', (q) => q.eq('gameId', gameId).eq('userId', player.userId))
+        .unique()
+      if (membership !== null) await ctx.db.delete(membership._id)
+    })
 
     await expect(
       player.as.mutation(api.entities.appendChangeLog, { entries: [entry(gameId)] })

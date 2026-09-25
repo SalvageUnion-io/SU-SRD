@@ -15,9 +15,9 @@ import { testConvex } from './harness'
  *     the act of whoever runs the table.
  *  2. **A Game takes players' pilots and mechs once it has a crawler.** A Game
  *     with none is not set up yet, and the crew has nowhere to be anchored.
- *  3. **A Mediator's pre-built character lands unclaimed, and a player takes
- *     it.** Unclaimed is an offer; claiming is accepting it. Nobody can take
- *     what a crewmate already holds.
+ *  3. **An unclaimed character is an offer, and a player takes it.** It arrives
+ *     from a Game template or from a player releasing it; claiming is accepting
+ *     it. Nobody can take what a crewmate already holds.
  *
  * "Table runner" throughout means the Mediator, or the Organizer while the Game
  * has no Mediator — the narrow fallback that stops a brand-new Game being a
@@ -84,6 +84,48 @@ async function seedTable(t: Ctx) {
   return { organizer, mediator, player, gameId }
 }
 
+type User = Awaited<ReturnType<typeof makeUser>>
+
+/**
+ * Mirror a pilot up the way the client does, and return its server id.
+ * `upsertByAppId` is the one path a client creates an ownable entity through.
+ */
+async function mirrorPilot(
+  t: Ctx,
+  user: User,
+  gameId: Id<'games'> | null,
+  body: Record<string, unknown> = pilotBody()
+): Promise<Id<'pilots'>> {
+  const appId = String(body.id)
+  await user.as.mutation(api.entities.upsertByAppId, { table: 'pilots', appId, gameId, body })
+  const row = await t.run(
+    async (ctx) =>
+      await ctx.db
+        .query('pilots')
+        .withIndex('by_app_id', (q) => q.eq('appId', appId))
+        .first()
+  )
+  if (row === null) throw new Error(`pilot ${appId} was not mirrored`)
+  return row._id
+}
+
+/**
+ * An unclaimed pre-gen, written the way `templates.createGame` seeds one: in
+ * the Game, owned by nobody, waiting for somebody to take it.
+ */
+async function offerPilot(t: Ctx, gameId: Id<'games'>): Promise<Id<'pilots'>> {
+  return await t.run(
+    async (ctx) =>
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: null,
+        appId: 'p1',
+        body: pilotBody(),
+        updatedAt: 1,
+      })
+  )
+}
+
 describe('the table runner raises the crawler', () => {
   test('the Mediator can raise one', async () => {
     const t = testConvex()
@@ -147,7 +189,7 @@ describe('the table runner raises the crawler', () => {
 
     await expect(
       mediator.as.mutation(api.entities.createCrawler, { gameId, body: { nonsense: true } })
-    ).rejects.toThrow(/invalid crawler payload/i)
+    ).rejects.toThrow(/invalid crawlers payload/i)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
     expect(rows).toHaveLength(0)
@@ -195,9 +237,7 @@ describe('a game takes the crew once it has a crawler', () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
 
-    await expect(
-      player.as.mutation(api.entities.create, { table: 'pilots', gameId, body: pilotBody() })
-    ).rejects.toThrow(/no union crawler yet/i)
+    await expect(mirrorPilot(t, player, gameId)).rejects.toThrow(/no union crawler yet/i)
   })
 
   test('and can as soon as one does', async () => {
@@ -205,7 +245,7 @@ describe('a game takes the crew once it has a crawler', () => {
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
 
-    await player.as.mutation(api.entities.create, { table: 'pilots', gameId, body: pilotBody() })
+    await mirrorPilot(t, player, gameId)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -217,7 +257,7 @@ describe('a game takes the crew once it has a crawler', () => {
     const { mediator, gameId } = await seedTable(t)
 
     // If this were gated too, a new Game could never be populated at all.
-    await mediator.as.mutation(api.entities.create, { table: 'pilots', gameId, body: pilotBody() })
+    await mirrorPilot(t, mediator, gameId)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -227,11 +267,7 @@ describe('a game takes the crew once it has a crawler', () => {
     const t = testConvex()
     const { player } = await seedTable(t)
 
-    await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId: null,
-      body: pilotBody(),
-    })
+    await mirrorPilot(t, player, null)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows[0]?.gameId).toBeNull()
@@ -258,12 +294,7 @@ describe('a game takes the crew once it has a crawler', () => {
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
 
-    await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId: null,
-      appId: 'p1',
-      body: pilotBody(),
-    })
+    await mirrorPilot(t, player, null)
     await player.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
       appId: 'p1',
@@ -307,83 +338,29 @@ describe('a game takes the crew once it has a crawler', () => {
   })
 })
 
-describe('a mediator offers characters; players pick them up', () => {
-  test('a Mediator can create one unclaimed', async () => {
-    const t = testConvex()
-    const { mediator, gameId } = await seedTable(t)
-
-    await mediator.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      unassigned: true,
-      body: pilotBody(),
-    })
-
-    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
-    expect(rows[0]?.ownerId).toBeNull()
-  })
-
-  test('a player cannot', async () => {
-    const t = testConvex()
-    const { mediator, player, gameId } = await seedTable(t)
-    await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
-
-    await expect(
-      player.as.mutation(api.entities.create, {
-        table: 'pilots',
-        gameId,
-        unassigned: true,
-        body: pilotBody(),
-      })
-    ).rejects.toThrow(/only the mediator/i)
-  })
-
-  test('nothing on a shelf can be unclaimed — it would belong to nobody', async () => {
-    const t = testConvex()
-    const { mediator } = await seedTable(t)
-
-    // `gameId: null && ownerId: null` is the schema's one invalid combination.
-    await expect(
-      mediator.as.mutation(api.entities.create, {
-        table: 'pilots',
-        gameId: null,
-        unassigned: true,
-        body: pilotBody(),
-      })
-    ).rejects.toThrow(/shelf/i)
-  })
-
+describe('unclaimed characters are offers; players pick them up', () => {
   test('a player picks up what is offered, and it becomes theirs to edit', async () => {
     const t = testConvex()
-    const { mediator, player, gameId } = await seedTable(t)
-    const pilotId = await mediator.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      unassigned: true,
-      body: pilotBody(),
-    })
+    const { player, gameId } = await seedTable(t)
+    const pilotId = await offerPilot(t, gameId)
 
     await player.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
-    await player.as.mutation(api.entities.update, {
+    await player.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
-      entityId: pilotId,
+      appId: 'p1',
+      gameId,
       body: pilotBody({ name: 'Renamed' }),
     })
 
-    const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row?.ownerId).toBe(player.userId)
     expect((row?.body as { name: string } | undefined)?.name).toBe('Renamed')
   })
 
   test('claiming is recorded in the Change Log like any other ownership move', async () => {
     const t = testConvex()
-    const { mediator, player, gameId } = await seedTable(t)
-    const pilotId = await mediator.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      unassigned: true,
-      body: pilotBody(),
-    })
+    const { player, gameId } = await seedTable(t)
+    const pilotId = await offerPilot(t, gameId)
     await player.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
 
     const log = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
@@ -398,11 +375,7 @@ describe('a mediator offers characters; players pick them up', () => {
     const t = testConvex()
     const { organizer, mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
-    const pilotId = await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      body: pilotBody(),
-    })
+    const pilotId = await mirrorPilot(t, player, gameId)
 
     const other = await makeUser(t, 'Latecomer')
     // Inviting is administrative, so it is the Organizer's — not the Mediator's.
@@ -418,29 +391,20 @@ describe('a mediator offers characters; players pick them up', () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
-    const pilotId = await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      body: pilotBody(),
-    })
+    const pilotId = await mirrorPilot(t, player, gameId)
 
     // This is how a campaign survives somebody leaving mid-season.
     await player.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })
     await mediator.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
 
-    const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row?.ownerId).toBe(mediator.userId)
   })
 
   test('a non-member cannot claim into a game they are not in', async () => {
     const t = testConvex()
-    const { mediator, gameId } = await seedTable(t)
-    const pilotId = await mediator.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      unassigned: true,
-      body: pilotBody(),
-    })
+    const { gameId } = await seedTable(t)
+    const pilotId = await offerPilot(t, gameId)
     const outsider = await makeUser(t, 'Outsider')
 
     await expect(
@@ -450,18 +414,13 @@ describe('a mediator offers characters; players pick them up', () => {
 
   test('claiming needs no crawler — an offer stands whatever order the table was set up in', async () => {
     const t = testConvex()
-    const { mediator, player, gameId } = await seedTable(t)
-    const pilotId = await mediator.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      unassigned: true,
-      body: pilotBody(),
-    })
+    const { player, gameId } = await seedTable(t)
+    const pilotId = await offerPilot(t, gameId)
 
     // The crawler gate governs ADDING to a game; claiming adds nothing.
     await player.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
 
-    const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row?.ownerId).toBe(player.userId)
   })
 })

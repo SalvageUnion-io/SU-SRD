@@ -1,9 +1,8 @@
 import { ConvexError, v } from 'convex/values'
-import { CrawlerSchema } from '../src/lib/schemas/crawler'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
-import { parseBody } from './model/entities'
+import { query } from './_generated/server'
+import { mutation, parseBody } from './model/entities'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 
 /**
@@ -255,11 +254,6 @@ export const setPublic = mutation({
     // refuse to render, so this fails HERE — where the owner is standing and
     // can see it — rather than on a page they have already given somebody.
     //
-    // Crawlers go through `CrawlerSchema` directly because `PARSERS` does not
-    // cover that table; `entities.ts` validates crawler writes the same way,
-    // for the same reason. Widening `PARSERS` would change how crawler writes
-    // behave elsewhere, which is not this change's business.
-    //
     // Both branches throw `ConvexError`, and that is the load-bearing part.
     // `parseBody` throws a plain `Error`, which Convex redacts to "Server
     // Error" before the client sees it — so re-throwing as `ConvexError` is
@@ -268,14 +262,7 @@ export const setPublic = mutation({
     // where the owner can see it") would have held for crawlers only.
     if (args.isPublic) {
       try {
-        if (table === 'crawlers') {
-          const parsed = CrawlerSchema.safeParse(row.body)
-          if (!parsed.success) {
-            throw new Error(parsed.error.issues[0]?.message ?? 'unknown')
-          }
-        } else {
-          parseBody(table, row.body)
-        }
+        parseBody(table, row.body)
       } catch (error) {
         const detail = error instanceof Error ? error.message : 'unknown'
         throw new ConvexError(`This ${args.kind} cannot be shared publicly: ${detail}`)

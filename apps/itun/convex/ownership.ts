@@ -1,16 +1,9 @@
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
-import { mutation } from './_generated/server'
 import type { OwnableTable } from './model/entities'
-import { loadOwnable } from './model/entities'
-import {
-  getMembership,
-  NotAuthorized,
-  requireMember,
-  requireOwnershipAssigner,
-  requireUser,
-} from './model/permissions'
+import { loadOwnable, mutation } from './model/entities'
+import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 
 /**
  * Entity ownership (ADR-030 §3–4).
@@ -36,19 +29,14 @@ import {
  * What did **not** change is the boundary the original rule protected: claiming
  * touches only what is *free*. An entity somebody already holds cannot be taken
  * — it must be released first, by its owner or the Mediator — so no player can
- * ever pull a character out from under a crewmate. `assign` remains the
- * table runner's power for placing an entity with a *particular* person, which
- * self-claim cannot express.
- */
-
-/**
- * The two entity tables that carry an owner. Crawlers are communal by design.
+ * ever pull a character out from under a crewmate.
  *
- * The runtime list is here because `leaveGame` iterates it; the type it names
- * is `OwnableTable` from `model/entities.ts`, where the loader that consumes it
- * lives.
+ * There is no table-runner `assign` (placing an entity with a *particular*
+ * person) and no `leaveGame`. Both existed as public mutations that no client
+ * ever called; they were removed rather than left as reachable, untested-in-
+ * product surface. An invite carrying `grants` is how a Mediator hands a
+ * character to a specific person today (`invites.ts`).
  */
-const OWNABLE = ['pilots', 'mechs'] as const
 
 const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
 
@@ -87,46 +75,6 @@ export async function logOwnershipChange(
     state: 'applied',
   })
 }
-
-/**
- * Assign or reassign an entity to a member of its Game.
- *
- * Covers both the first assignment of an unclaimed entity and moving one
- * between members — they are the same write, and splitting them would only
- * duplicate the permission check.
- */
-export const assign = mutation({
-  args: {
-    table: ownableTable,
-    entityId: v.string(),
-    toUserId: v.id('users'),
-  },
-  handler: async (ctx, args): Promise<void> => {
-    const doc = await loadOwnable(ctx, args.table, args.entityId)
-    if (doc.gameId === null) {
-      throw new NotAuthorized('An entity on a shelf has no game to assign it within')
-    }
-
-    const actor = await requireOwnershipAssigner(ctx, doc.gameId)
-
-    // The recipient must be in the Game, or the entity would become
-    // unreachable — owned by someone with no membership to see it through.
-    const recipient = await getMembership(ctx, doc.gameId, args.toUserId)
-    if (recipient === null) throw new NotAuthorized('That user is not a member of this game')
-
-    if (doc.ownerId === args.toUserId) return
-
-    await ctx.db.patch(doc._id, { ownerId: args.toUserId, updatedAt: Date.now() })
-    await logOwnershipChange(ctx, {
-      table: args.table,
-      entityId: args.entityId,
-      gameId: doc.gameId,
-      before: doc.ownerId,
-      after: args.toUserId,
-      actorId: actor.userId,
-    })
-  },
-})
 
 /**
  * Pick up an unclaimed entity in a Game you belong to.
@@ -220,47 +168,5 @@ export const release = mutation({
       after: null,
       actorId: userId,
     })
-  },
-})
-
-/**
- * Leave a Game.
- *
- * Entities stay behind, unclaimed, so the crew survives a departure and the
- * Mediator can hand the character to someone else. Nothing is destroyed —
- * a player who wants to keep a character copies it to their shelf first, which
- * is a separate, explicit act.
- *
- * The Organizer cannot leave without handing the flag on: a Game with no
- * Organizer has nobody who can invite, rename, or delete it.
- */
-export const leaveGame = mutation({
-  args: { gameId: v.id('games') },
-  handler: async (ctx, args): Promise<void> => {
-    const membership = await requireMember(ctx, args.gameId)
-    if (membership.organizer) {
-      throw new NotAuthorized('Transfer the Organizer role before leaving this game')
-    }
-
-    for (const table of OWNABLE) {
-      const owned = await ctx.db
-        .query(table)
-        .withIndex('by_owner', (q) => q.eq('ownerId', membership.userId))
-        .collect()
-      for (const row of owned) {
-        if (row.gameId !== args.gameId) continue
-        await ctx.db.patch(row._id, { ownerId: null, updatedAt: Date.now() })
-        await logOwnershipChange(ctx, {
-          table,
-          entityId: row._id,
-          gameId: args.gameId,
-          before: membership.userId,
-          after: null,
-          actorId: membership.userId,
-        })
-      }
-    }
-
-    await ctx.db.delete(membership._id)
   },
 })

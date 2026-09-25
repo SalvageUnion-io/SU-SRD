@@ -3,8 +3,8 @@ import { MechSchema } from '../src/lib/schemas/mech'
 import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
-import { loadOwnable } from './model/entities'
+import { query } from './_generated/server'
+import { loadOwnable, mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 
 /**
@@ -87,10 +87,14 @@ export const propose = mutation({
     }
 
     // Supersede any live proposal against the same field, so the player is
-    // never asked to choose between two contradictory pending values.
+    // never asked to choose between two contradictory pending values. Read
+    // through the full index key, so this is the (normally zero or one) live
+    // proposals for this field rather than the entity's entire history.
     const live = await ctx.db
       .query('changeLog')
-      .withIndex('by_entity', (q) => q.eq('entityId', args.entityId))
+      .withIndex('by_entity_state_field', (q) =>
+        q.eq('entityId', args.entityId).eq('state', 'proposed').eq('field', args.field)
+      )
       .collect()
 
     const proposalId = await ctx.db.insert('changeLog', {
@@ -108,9 +112,7 @@ export const propose = mutation({
     })
 
     for (const row of live) {
-      if (row.state === 'proposed' && row.field === args.field && row._id !== proposalId) {
-        await ctx.db.patch(row._id, { state: 'superseded', supersededBy: proposalId })
-      }
+      await ctx.db.patch(row._id, { state: 'superseded', supersededBy: proposalId })
     }
 
     return proposalId
@@ -244,20 +246,29 @@ export const broadcast = mutation({
   },
 })
 
-/** Table-wide alerts, newest first. */
+/** The most alerts one read returns, whatever the caller asks for. */
+const MAX_ALERTS = 100
+
+/**
+ * Table-wide alerts, newest first.
+ *
+ * Reads only the newest `limit` alert rows, in order, off `by_game_field`.
+ * It used to collect the Game's entire change log — every HP tick, every
+ * ownership change, every proposal — and filter for alerts in JS, which on a
+ * reactive query meant every write to any sheet in the Game re-ran a read that
+ * grew for the life of the campaign.
+ */
 export const alerts = query({
   args: { gameId: v.id('games'), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
+    const limit = Math.min(Math.max(Math.floor(args.limit ?? 20), 0), MAX_ALERTS)
     const rows = await ctx.db
       .query('changeLog')
-      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-      .collect()
+      .withIndex('by_game_field', (q) => q.eq('gameId', args.gameId).eq('field', 'alert'))
+      .order('desc')
+      .take(limit)
 
-    return rows
-      .filter((r) => r.field === 'alert')
-      .sort((a, b) => b.ts - a.ts)
-      .slice(0, args.limit ?? 20)
-      .map((r) => ({ _id: r._id, message: String(r.after), ts: r.ts, actorId: r.actorId }))
+    return rows.map((r) => ({ _id: r._id, message: String(r.after), ts: r.ts, actorId: r.actorId }))
   },
 })

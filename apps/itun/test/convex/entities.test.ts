@@ -131,14 +131,41 @@ async function seedGame(t: Ctx) {
   return { organizer, player, gameId }
 }
 
+/**
+ * Mirror a pilot up the way the client does, and return its server id.
+ *
+ * `upsertByAppId` is the one path a client creates and edits an ownable entity
+ * through — a generic `create` / `update` pair that no client called was
+ * removed — so the tests exercise the rules where they are actually enforced.
+ */
+async function mirrorPilot(
+  t: Ctx,
+  user: { as: ReturnType<Ctx['withIdentity']> },
+  gameId: Id<'games'> | null,
+  body: Record<string, unknown> = pilotBody()
+): Promise<Id<'pilots'>> {
+  const appId = String(body.id)
+  await user.as.mutation(api.entities.upsertByAppId, { table: 'pilots', appId, gameId, body })
+  const row = await t.run(
+    async (ctx) =>
+      await ctx.db
+        .query('pilots')
+        .withIndex('by_app_id', (q) => q.eq('appId', appId))
+        .first()
+  )
+  if (row === null) throw new Error(`pilot ${appId} was not mirrored`)
+  return row._id
+}
+
 describe('every write Zod-parses first', () => {
   test('a malformed pilot body is rejected, not stored', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 
     await expect(
-      u.as.mutation(api.entities.create, {
+      u.as.mutation(api.entities.upsertByAppId, {
         table: 'pilots',
+        appId: 'p1',
         gameId: null,
         body: { nonsense: true },
       })
@@ -152,7 +179,7 @@ describe('every write Zod-parses first', () => {
   test('a well-formed pilot body is stored', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    await u.as.mutation(api.entities.create, { table: 'pilots', gameId: null, body: pilotBody() })
+    await mirrorPilot(t, u, null)
 
     const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
     expect(rows).toHaveLength(1)
@@ -165,7 +192,7 @@ describe('reading is per-game, writing is per-entity', () => {
   test('a member sees the whole crew, including entities they do not own', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedGame(t)
-    await player.as.mutation(api.entities.create, { table: 'pilots', gameId, body: pilotBody() })
+    await mirrorPilot(t, player, gameId)
 
     const seen = await organizer.as.query(api.entities.listForGame, { gameId })
     // This is what makes crew vitals and read-only drill-in possible.
@@ -185,16 +212,13 @@ describe('reading is per-game, writing is per-entity', () => {
   test("a crewmate cannot write another player's pilot", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedGame(t)
-    const pilotId = await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      body: pilotBody(),
-    })
+    await mirrorPilot(t, player, gameId)
 
     await expect(
-      organizer.as.mutation(api.entities.update, {
+      organizer.as.mutation(api.entities.upsertByAppId, {
         table: 'pilots',
-        entityId: pilotId,
+        appId: 'p1',
+        gameId,
         body: pilotBody({ name: 'Hijacked' }),
       })
     ).rejects.toThrow(/another player/i)
@@ -208,61 +232,50 @@ describe('reading is per-game, writing is per-entity', () => {
         await ctx.db.insert('pilots', {
           gameId,
           ownerId: null,
+          appId: 'p1',
           body: pilotBody(),
           updatedAt: 1,
         })
     )
 
     // Editing an unclaimed pre-gen would let anyone quietly take it without
-    // going through assignment, which is the act the Change Log records.
+    // going through a claim, which is the act the Change Log records.
     await expect(
-      organizer.as.mutation(api.entities.update, {
+      organizer.as.mutation(api.entities.upsertByAppId, {
         table: 'pilots',
-        entityId: pilotId,
+        appId: 'p1',
+        gameId,
         body: pilotBody({ name: 'Mine now' }),
       })
     ).rejects.toThrow(/unclaimed/i)
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
+    expect((row?.body as { name: string } | undefined)?.name).toBe('Roach-Boy')
   })
 
   test('the owner can write their own', async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
-    const pilotId = await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      body: pilotBody(),
-    })
+    const pilotId = await mirrorPilot(t, player, gameId)
 
-    await player.as.mutation(api.entities.update, {
-      table: 'pilots',
-      entityId: pilotId,
-      body: pilotBody({ name: 'Renamed' }),
-    })
+    await mirrorPilot(t, player, gameId, pilotBody({ name: 'Renamed' }))
 
-    const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row).not.toBeNull()
     expect((row?.body as { name: string } | undefined)?.name).toBe('Renamed')
   })
 
-  test("an id from another table cannot be written through the table it isn't in", async () => {
+  test("an id from another table cannot be reached through the table it isn't in", async () => {
     const t = testConvex()
     const { player, gameId } = await seedGame(t)
-    const pilotId = await player.as.mutation(api.entities.create, {
-      table: 'pilots',
-      gameId,
-      body: pilotBody(),
-    })
+    const pilotId = await mirrorPilot(t, player, gameId)
 
     // A Convex id is table-tagged, but `db.get` returns a document from ANY
-    // table — so a handler that casts the string would fetch this pilot, parse
-    // the payload with the MECH schema, and patch it back over the pilot.
+    // table — so a handler that casts the string would fetch this pilot
+    // through the MECH endpoint and act on it as if it were one.
     await expect(
-      player.as.mutation(api.entities.update, {
-        table: 'mechs',
-        entityId: pilotId,
-        body: mechBody(),
-      })
+      player.as.mutation(api.entities.remove, { table: 'mechs', entityId: pilotId })
     ).rejects.toThrow(/no longer exists/i)
+    expect(await t.run(async (ctx) => await ctx.db.get(pilotId))).not.toBeNull()
   })
 
   test('a row from a table this endpoint does not serve is not writable at all', async () => {
@@ -281,12 +294,9 @@ describe('reading is per-game, writing is per-entity', () => {
     )
 
     await expect(
-      player.as.mutation(api.entities.update, {
-        table: 'mechs',
-        entityId: patternId,
-        body: mechBody(),
-      })
+      player.as.mutation(api.entities.remove, { table: 'mechs', entityId: patternId })
     ).rejects.toThrow(/no longer exists/i)
+    expect(await t.run(async (ctx) => await ctx.db.get(patternId))).not.toBeNull()
   })
 })
 
@@ -566,10 +576,13 @@ describe('refusals say why', () => {
     await owner.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
     const pilotId = await t.run(async (ctx) => (await ctx.db.query('pilots').first())?._id)
 
+    expect(pilotId).toBeDefined()
+
     const err = await stranger.as
-      .mutation(api.entities.update, {
+      .mutation(api.entities.upsertByAppId, {
         table: 'pilots',
-        entityId: pilotId as string,
+        appId: 'p1',
+        gameId: null,
         body: pilotBody({ name: 'not yours' }),
       })
       .then(
@@ -697,5 +710,86 @@ describe('claiming twice is a no-op, not a second copy', () => {
     // that drew the same pilot-to-crawler link twice is still wrong.
     expect(links).toHaveLength(1)
     expect(patterns).toHaveLength(1)
+  })
+})
+
+/**
+ * Patterns and shelf NPCs are addressed by the id inside their body, which the
+ * `appId` column now carries so the lookup is one indexed read rather than a
+ * scan of everything the owner holds.
+ */
+describe('patterns and shelf NPCs mirror by their body id', () => {
+  test('a pattern saved twice is one row, carrying its id as appId', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+
+    await u.as.mutation(api.entities.upsertMechPattern, { body: patternBody() })
+    await u.as.mutation(api.entities.upsertMechPattern, {
+      body: patternBody({ name: 'Mule, revised' }),
+    })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.appId).toBe('pat1')
+    expect((rows[0]?.body as { name: string } | undefined)?.name).toBe('Mule, revised')
+
+    await u.as.mutation(api.entities.removeMechPattern, { patternId: 'pat1' })
+    expect(await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())).toEqual([])
+  })
+
+  test('a row from before the column is still found, and gains the column', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    const legacyId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechPatterns', {
+          ownerId: u.userId,
+          gameId: null,
+          body: patternBody(),
+        })
+    )
+
+    await u.as.mutation(api.entities.upsertMechPattern, {
+      body: patternBody({ name: 'Found it' }),
+    })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?._id).toBe(legacyId)
+    expect(rows[0]?.appId).toBe('pat1')
+  })
+
+  test("somebody else's row with the same id is neither found nor touched", async () => {
+    const t = testConvex()
+    const me = await makeUser(t, 'Me')
+    const them = await makeUser(t, 'Them')
+    await them.as.mutation(api.entities.upsertMechPattern, { body: patternBody() })
+
+    // Export/import copies a build between people keeping its id, so two
+    // owners legitimately share one. Scoping by owner is what keeps them apart.
+    await me.as.mutation(api.entities.removeMechPattern, { patternId: 'pat1' })
+    await me.as.mutation(api.entities.upsertMechPattern, { body: patternBody({ name: 'Mine' }) })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
+    expect(rows).toHaveLength(2)
+    const theirs = rows.find((r) => r.ownerId === them.userId)
+    expect((theirs?.body as { name: string } | undefined)?.name).toBe('Mule loadout')
+  })
+
+  test('a shelf NPC upserts and removes by its body id the same way', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+
+    await u.as.mutation(api.entities.upsertEncounterNpc, { body: { id: 'npc1', name: 'Wretch' } })
+    await u.as.mutation(api.entities.upsertEncounterNpc, {
+      body: { id: 'npc1', name: 'Wretch, wounded' },
+    })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.appId).toBe('npc1')
+
+    await u.as.mutation(api.entities.removeEncounterNpc, { npcId: 'npc1' })
+    expect(await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())).toEqual([])
   })
 })

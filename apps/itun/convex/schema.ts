@@ -139,6 +139,32 @@ export default defineSchema({
     templateOrigin: v.optional(v.string()),
     /** Dashboard dial show/hide + order. Carried over from Workspace unchanged. */
     cockpitPrefs: v.optional(v.any()),
+    /**
+     * What the Games list says about this table — kept current by the triggers
+     * in `model/entities.ts`, never written by a mutation directly.
+     *
+     * Denormalised because `games.listMine` is subscribed from several screens
+     * at once and used to derive these by collecting every membership, pilot,
+     * mech and crawler of every Game the caller belongs to. That made the list
+     * as expensive as the whole account, and — worse, because it is reactive —
+     * made an HP tick on anybody's sheet in any of your Games re-run it. Read
+     * from here instead, the list depends on one document per Game, and that
+     * document changes only when one of these four values does.
+     *
+     * Optional because rows that predate the column have none until
+     * `maintenance.backfillGameSummaries` runs or the next membership or
+     * roster change refreshes them; readers compute it live meanwhile
+     * (`summaryOf`).
+     */
+    summary: v.optional(
+      v.object({
+        memberCount: v.number(),
+        pilotCount: v.number(),
+        mechCount: v.number(),
+        /** The first crawler's name, or null before one exists. */
+        crawlerName: v.union(v.string(), v.null()),
+      })
+    ),
   }),
 
   /**
@@ -285,7 +311,10 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId'])
+    // `ownerId` alone is a prefix of this, so it also serves every "all of
+    // mine" read; the second column is for "mine on the shelf" (`gameId:
+    // null`), which used to collect everything the owner held and filter.
+    .index('by_owner_game', ['ownerId', 'gameId'])
     .index('by_app_id', ['appId']),
 
   mechs: defineTable({
@@ -321,7 +350,10 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId'])
+    // `ownerId` alone is a prefix of this, so it also serves every "all of
+    // mine" read; the second column is for "mine on the shelf" (`gameId:
+    // null`), which used to collect everything the owner held and filter.
+    .index('by_owner_game', ['ownerId', 'gameId'])
     .index('by_app_id', ['appId']),
 
   /**
@@ -396,7 +428,10 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId'])
+    // `ownerId` alone is a prefix of this, so it also serves every "all of
+    // mine" read; the second column is for "mine on the shelf" (`gameId:
+    // null`), which used to collect everything the owner held and filter.
+    .index('by_owner_game', ['ownerId', 'gameId'])
     .index('by_app_id', ['appId']),
 
   /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */
@@ -442,10 +477,15 @@ export default defineSchema({
      * Set on a shelf, where a container with no owner would be the invalid row.
      */
     ownerId: v.optional(v.union(v.id('users'), v.null())),
+    /**
+     * The id inside the body, lifted into a column so a write can find its row
+     * with one indexed read. See `mechPatterns.appId` — same reason.
+     */
+    appId: v.optional(v.string()),
     body: v.any(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId']),
+    .index('by_owner_app_id', ['ownerId', 'appId']),
 
   /**
    * A saved mech pattern. Personal — there is no sharing.
@@ -459,9 +499,22 @@ export default defineSchema({
   mechPatterns: defineTable({
     ownerId: v.id('users'),
     gameId: v.union(v.id('games'), v.null()),
+    /**
+     * The id inside the body, lifted into a column.
+     *
+     * A pattern's identity has always been `body.id`, and the mirror found its
+     * row by collecting every pattern the owner had and comparing bodies in JS.
+     * Carrying it here makes that one read on `by_owner_app_id`.
+     *
+     * Optional because rows written before the column existed have none until
+     * `maintenance.backfillBodyAppIds` runs; `findOwnedByAppId` falls back to
+     * those rows alone (`appId` absent) so they are still found meanwhile.
+     */
+    appId: v.optional(v.string()),
     body: v.any(),
   })
-    .index('by_owner', ['ownerId'])
+    // `ownerId` alone is a prefix, so this also serves "all of mine".
+    .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_game', ['gameId']),
 
   /**
@@ -500,8 +553,13 @@ export default defineSchema({
     state: changeLogState,
     supersededBy: v.optional(v.id('changeLog')),
   })
-    .index('by_entity', ['entityId'])
-    .index('by_game', ['gameId'])
+    // `entityId` alone is a prefix of this. The rest is for `proposals.propose`,
+    // which supersedes live proposals against one field and used to collect an
+    // entity's entire history to find them.
+    .index('by_entity_state_field', ['entityId', 'state', 'field'])
+    // `gameId` alone is a prefix of this. `ts` last so `proposals.alerts` can
+    // read the newest N alerts in order instead of the whole log.
+    .index('by_game_field', ['gameId', 'field', 'ts'])
     .index('by_game_state', ['gameId', 'state']),
 
   /**

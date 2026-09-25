@@ -221,10 +221,16 @@ The design pass Phase 3 deferred, plus the ownership rules it exposed as missing
   `remove` now cascade link pruning the way the client always has.
 
 **Known gaps, deliberately left:**
-- **No read-only drill-in.** ADR-030 §5 permits reading a crewmate's sheet;
-  `crew.readEntity` exists on the server with no consumer, because ITUN's sheet
-  is an editing surface. Rows for entities you do not own therefore offer
-  vitals and an owner, but no link.
+- **No read-only drill-in.** ADR-030 §5 permits reading a crewmate's sheet,
+  but ITUN's sheet is an editing surface, so rows for entities you do not own
+  offer vitals and an owner, but no link. A `crew.readEntity` query existed for
+  it with no consumer and was removed (2026-09-25) along with seven other
+  public functions nothing called — `entities.create` / `update`,
+  `games.rename` / `transferOrganizer`, `mediator.updateNpc`,
+  `ownership.assign` / `leaveGame`. A public function nobody calls is reachable
+  surface nothing exercises; `tools/check-convex-callers.ts` (in
+  `validate:all`) now fails on one. Rebuild each alongside the screen that
+  calls it.
 - **Adopted copies re-sync only on the way in.** Opening a row through the
   roster overwrites this browser's copy from the server, so the crawler a
   crewmate just edited is current when you open it — but a sheet already open
@@ -403,12 +409,49 @@ bunx convex run maintenance:dedupeAppIds --prod
 bunx convex run maintenance:dedupeAppIds '{"apply": true}' --prod
 ```
 
+It is an action that walks each table a page at a time along `by_app_id`
+(where every copy of an app id sits next to its siblings), one mutation per
+page, so it keeps working as the tables grow past what one mutation may read.
+A run is therefore not one transaction; it is idempotent, so a failed run is
+resumed by running it again.
+
 It keeps one row per app id (an owned row over an unclaimed one, then the most
 recently written) and reports how many `changeLog` rows — audit history and
 pending Mediator proposals alike — still point at a copy it would delete. Those
 address entities by Convex id rather than `appId`, so they do not follow the
 survivor.
 
+#### Denormalised columns and their backfills
+
+Two reads were made cheap by storing something the rows already implied:
+
+- **`games.summary`** — member, pilot and mech counts and the crawler's name,
+  which the Games list shows. `games.listMine` used to derive them by
+  collecting every membership, pilot, mech and crawler of every Game you
+  belong to, and because it is reactive that subscribed the list to every
+  sheet at every one of your tables. The summary is kept current by triggers
+  (`convex-helpers`) on those four tables, registered in
+  `convex/model/entities.ts`; they fire only when something arrives, leaves,
+  moves or — for the crawler — is renamed, so an HP tick costs nothing. **Every
+  mutation must be built with `mutation` / `internalMutation` from
+  `model/entities.ts`**, which is what runs them; Biome refuses the generated
+  builders anywhere else in `convex/`.
+- **`appId` on `mechPatterns` and `encounterNpcs`** — the id already inside the
+  body, lifted into a column behind `by_owner_app_id`, so a mirrored write finds
+  its row with one indexed read instead of collecting everything the owner has.
+
+Rows older than either column have none. Readers cope (a live count; a lookup
+that falls back to rows with no `appId`), so deploy order does not matter, but
+the savings arrive only once these have run once per deployment:
+
+```bash
+bunx convex run maintenance:backfillGameSummaries --prod
+bunx convex run maintenance:backfillBodyAppIds --prod
+```
+
+Both are idempotent. A row written straight to a table from the Convex
+dashboard bypasses the triggers; `backfillGameSummaries` is also the repair
+for that.
 ### Netlify
 
 | Site               | Serves                           | Notes                                                                                                                                        |
