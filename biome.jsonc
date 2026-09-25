@@ -718,7 +718,7 @@
       // PERMANENT exemption from useConsistentTypeDefinitions. Every file here
       // declares a `declare global { interface … }` module augmentation, which
       // is the ONE thing `type` cannot express: declaration merging into an
-      // existing interface (`Window`, discord.js's `Client`, TanStack Router's
+      // existing interface (`Window`, TanStack Router's
       // `Register`) requires the `interface` keyword by language rule, not by
       // preference. Rewriting any of these as `type` is a compile error, so
       // this list is a statement of fact, not a burn-down.
@@ -728,7 +728,6 @@
       // bottom), so nothing can re-enable them. This list is now only the real
       // source files that need the exemption.
       "includes": [
-        "apps/discord-bot/src/events/interactionCreate.ts",
         "apps/itun/src/main.tsx",
         "apps/srd/src/components/islands/OgCardIsland.tsx",
         "packages/component-lib/src/components/shared/KofiButton.tsx"

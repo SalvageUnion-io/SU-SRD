@@ -33,7 +33,7 @@ in `apps/discord-bot` (the Discord bot's Worker).
 ├── apps/
 │   ├── srd/                    # Static SRD reference site (in-house SSG in srd/ssg + React islands)
 │   ├── itun/                   # Character builder & game manager (React 19)
-│   ├── discord-bot/            # Discord.js bot for rolling on SU tables
+│   ├── discord-bot/            # Discord bot (HTTP interactions on a Worker) for rolling on SU tables
 │   └── su-assets/              # Cloudflare Worker serving entity artwork from R2
 ├── packages/
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset

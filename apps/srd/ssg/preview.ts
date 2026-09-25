@@ -46,6 +46,7 @@ async function resolveFile(dir: string, pathname: string): Promise<string | null
   try {
     decoded = decodeURIComponent(pathname)
   } catch {
+    // Malformed percent-encoding: no such file, so the caller serves a 404.
     return null
   }
   const target = normalize(join(dir, decoded))

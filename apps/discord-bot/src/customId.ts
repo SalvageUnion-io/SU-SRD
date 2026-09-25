@@ -7,7 +7,7 @@
  * 100 chars by Discord). We namespace every id `su:<action>:<payload>` so it
  * never collides with another bot's components, and parse it back on click.
  *
- * This is a LEAF module: it imports discord.js only. Command handlers import it
+ * This is a LEAF module: it imports `@discordjs/builders` and `discord-api-types` only. Command handlers import it
  * to attach rows; the button router (`buttons.ts`) imports it to parse ids.
  * Keeping it dependency-free of the command modules avoids an import cycle.
  */

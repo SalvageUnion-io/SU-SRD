@@ -135,6 +135,7 @@ function readManifest(): Manifest {
   try {
     return JSON.parse(readFileSync(MANIFEST_PATH, 'utf8')) as Manifest
   } catch {
+    // Missing or unparseable cache: rebuild every screenshot rather than fail.
     return {}
   }
 }
@@ -204,6 +205,7 @@ function pointPageAtOgImage(entity: Entity): boolean {
   try {
     html = readFileSync(htmlPath, 'utf8')
   } catch {
+    // Unreadable page: treat as "not using the default image" and skip it.
     return false
   }
   const defaultUrl = new URL(DEFAULT_OG_IMAGE, SITE_URL).href
