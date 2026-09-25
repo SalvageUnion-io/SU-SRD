@@ -13,6 +13,7 @@ import {
   buildLegacyExportBundle,
   countStranded,
   isStranded,
+  mergeExportBundles,
   selectStranded,
   shelve,
 } from '../legacyMigration'
@@ -191,5 +192,36 @@ describe('buildLegacyExportBundle', () => {
     expect(bundle.entities.pilots).toHaveLength(1)
     expect(bundle.mechPatterns).toHaveLength(1)
     expect(bundle.schemaVersion).toBe(2)
+  })
+})
+
+describe('mergeExportBundles', () => {
+  const empty: LegacyLocalData = {
+    pilots: [],
+    mechs: [],
+    crawlers: [],
+    softLinks: [],
+    mechPatterns: [],
+    encounterNpcs: [],
+  }
+
+  test('unions both, and the primary copy wins on a shared id', () => {
+    const tab = buildLegacyExportBundle({ ...empty, pilots: [{ id: 'a', name: 'tab' }] })
+    const device = buildLegacyExportBundle({
+      ...empty,
+      pilots: [
+        { id: 'a', name: 'device' },
+        { id: 'b', name: 'device' },
+      ],
+      mechPatterns: [{ id: 'p' }],
+    })
+
+    const merged = mergeExportBundles(tab, device)
+
+    expect(merged.entities.pilots).toEqual([
+      { id: 'a', name: 'tab' },
+      { id: 'b', name: 'device' },
+    ] as never)
+    expect(merged.mechPatterns).toEqual([{ id: 'p' }] as never)
   })
 })
