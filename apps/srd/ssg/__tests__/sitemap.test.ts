@@ -56,12 +56,11 @@ describe('URL selection', () => {
     expect(count).toBe(3)
   })
 
-  it('applies the URL filter — /image, /greembeem, .og.png and /og-card never appear', async () => {
+  it('applies the URL filter — /image, .og.png and /og-card never appear', async () => {
     // The safety net for a page whose registration forgets `sitemap: false`, so
     // it has to bite on the URL alone.
     const { count, urlsets } = await emit([
       '/about',
-      '/greembeem',
       '/og-card',
       '/schema/chassis/item/aegis',
       '/schema/chassis/item/aegis.og.png',

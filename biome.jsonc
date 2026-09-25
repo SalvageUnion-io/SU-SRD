@@ -73,6 +73,13 @@
       // committed copy differ from what the generator emits, which is exactly
       // what ssg/__tests__/navCatalog.drift.test.ts asserts against.
       "!apps/srd/src/generated",
+      // srd's `/greembeem` easter egg: a Wikipedia pastiche that used to be a
+      // TSX page rendering this exact markup, and is now the rendered document
+      // itself (audit AP-18). It is a byte-for-byte build artefact — its dead
+      // `href="#"` anchors and `role="button"` edit links ARE the page, which the
+      // TSX carried as `biome-ignore-all` — and formatting it would change what
+      // ships (and `ssg/snapshot.ts` would report it).
+      "!apps/srd/public/greembeem",
       // The srd output snapshot (ssg/snapshot.ts --update). Generated and
       // committed, and deliberately written ONE LINE PER PAGE so that "23 pages
       // changed" is 23 changed lines in review — which is the only reason

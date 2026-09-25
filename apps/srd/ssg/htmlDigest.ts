@@ -184,7 +184,8 @@ export const normalizeText = (html: string): string =>
 
 /**
  * The visible text of a page's `<main>`, normalized — or null when the page has
- * no `<main>` at all (the two `bare` document pages, `greembeem` and `og-card`).
+ * no `<main>` at all (the `bare` document page `og-card`, and the static
+ * `greembeem` document copied in from `public/`).
  */
 export const mainText = (html: string): string | null => {
   const inner = extractMainInner(html)
