@@ -19,14 +19,14 @@
 
 | System | Where | Size (2026-09-25) | End state |
 | --- | --- | --- | --- |
-| Tailwind utilities | `className=` / `cn()` / `cva()` in the three UI workspaces | **316 files** (`tailwind-utility-file`) | gone |
+| Tailwind utilities | `className=` / `cn()` / `cva()`, plus class strings held in constants and lookup maps, in the three UI workspaces | **329 files** (`tailwind-utility-file`) | gone |
 | `.su-*` package stylesheet | `packages/component-lib/src/styles/index.css` | 894 lines | **stays** — the one stylesheet |
 | `theme.css` (`@theme`) | `packages/component-lib/src/styles/theme.css` | 490 lines | folded into `index.css`, deleted |
 | Dashboard `.pc-*` scope | `components/dashboard/{DashboardCanvas,DashboardGrid,instruments}.css` via `styles/dashboard.css` | **129 classes** (`pc-class-defined`), ~1,370 lines | folded into `.su-*`, deleted |
 | Typed tokens | `packages/component-lib/src/design/tokens.ts` | imported by 8 `.tsx` files, all Ladle catalog pages or harnesses | **stays** — the one token source |
 
-Tailwind files by workspace: `apps/itun` 86, `apps/srd` 24, component-lib 206
-(`shared` 63, `chrome` 50, `referenceEntity` 21, `dashboard` 21, `wizard` 20,
+Tailwind files by workspace: `apps/itun` 88, `apps/srd` 24, component-lib 217
+(`shared` 65, `chrome` 52, `referenceEntity` 25, `dashboard` 21, `wizard` 20,
 `sheet` 11, `stat` 8, the rest ≤ 3). `bun run check:styling --report` prints the
 current per-file list; it is the work-list, so it is not copied here.
 
@@ -44,15 +44,23 @@ pre-push) make the retiring systems a number that can only go **down**:
 
 | Rule | Counts | Baseline |
 | --- | --- | --- |
-| `tailwind-utility-file` | UI source files (stories included, tests excluded) with ≥ 1 Tailwind utility in a class-list context | 316 |
+| `tailwind-utility-file` | UI source files (stories included, tests excluded) with ≥ 1 Tailwind utility — in a class-list context, or as a class string held elsewhere | 329 |
 | `pc-class-defined` | distinct `.pc-*` classes defined by the Dashboard stylesheets | 129 |
 
 `check:tokens` (`tools/check-design-tokens.ts`) ratchets the same way on raw
 colours (22) and arbitrary font sizes (2).
 
-The detector (`tools/lib/tailwindClasses.ts`, unit-tested) reads only
-`className=` values and `cn(` / `clsx(` / `cva(` arguments, so a style object's
-`display: 'flex'` — the pattern the migration moves **to** — never counts.
+The detector (`tools/lib/tailwindClasses.ts`, unit-tested) reads two places:
+every utility in a `className=` value or a `cn(` / `clsx(` / `cva(` argument,
+and every **other** string literal made wholly of utilities — the
+`const DARK_BUTTON = 'border-paper/40 …'` constant and the
+`{ '1': 'bg-tl-1 text-ink' }` lookup map, which the first version of the scan
+missed in 13 files. Outside a class-list context it is deliberately
+conservative: a style object's `display: 'flex'` — the pattern the migration
+moves **to** — never counts, nor does a lone bare token (`'hidden'`) or a lone
+CSS keyword / header name that shares a utility's shape (`'flex-start'`,
+`'content-type'`). It is still a heuristic, so it is **not** the final
+oracle — the built CSS is (see P6's exit).
 
 **Every phase PR lowers the baselines** with
 `bun run check:styling --update-baseline` (and `check:tokens` likewise) and
@@ -140,7 +148,13 @@ each srd PR carries a visual check of the affected pages.
 - **Prerequisite:** the ADR recording the styling change (tokens + one
   stylesheet replacing "Base UI + Tailwind v4"), written before the first app
   PR so the apps' docs have something to point at.
-- **Exit:** `tailwind-utility-file` is 0.
+- **Exit:** `tailwind-utility-file` is 0 **and** the built CSS of both apps
+  and of Ladle emits no Tailwind utility rules (an empty `@layer utilities`).
+  The second half is the oracle the first cannot be: Tailwind generates a rule
+  for every candidate it finds in **any** source string, so a class list the
+  heuristic scan missed — a string built by concatenation, a class passed
+  through data — still shows up there. A non-empty layer is a work-list, not a
+  footnote: each rule in it names a class something still depends on.
 
 ### P7 — Remove Tailwind
 
@@ -156,6 +170,9 @@ each srd PR carries a visual check of the affected pages.
   re-target `check:tokens` from `@theme` entries to `tokens.ts`.
 - **Exit:** `grep -ri tailwind` finds only historical references; `bun run
   check` green; built CSS size recorded before and after (#802's success list).
+  None of those three notices an element that silently lost its styling — the
+  srd gate digests text, not markup — so P7 must not start until P6's
+  empty-`@layer utilities` check has passed on the commit it branches from.
 
 ## 4. The rules every phase applies
 

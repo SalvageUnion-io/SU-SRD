@@ -19,8 +19,9 @@ evidence behind the rules below live in
 - **Target pattern:** [`src/design/tokens.ts`](src/design/tokens.ts) (typed
   scale) + [`src/styles/index.css`](src/styles/index.css) (the one stylesheet
   every consumer loads; `--su-*` properties and `.su-*` classes). ITUN also
-  loads `styles/dashboard.css` (the Dashboard `.pc-*` rules) from its dashboard
-  route; nothing else may.
+  loads `styles/dashboard.css` (the Dashboard `.pc-*` rules) via its
+  `Dashboard.tsx`; inside this package only the Dashboard stories and the
+  `_dashboardStage.tsx` harness import it. Nothing else may.
 - **The split is per-PROPERTY.** A property with no stateful or responsive
   variant on that element → style object. A property with **any** (`:hover`,
   `:focus-visible`, `:disabled`, `@media`, pseudo-elements, sibling selectors)
@@ -66,7 +67,7 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
 **The standard, in one line: ONE public component = ONE co-located story file = ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.** Every clause is enforced by `src/story-coverage.test.ts`; the contributor-facing explanation lives in [`docs/design-system/ladle-styleguide.md`](../../docs/design-system/ladle-styleguide.md).
 
 - **No multi-component gallery story files.** A story file demonstrates exactly one component. A file that renders several sibling primitives leaves all but one of them with **no sidebar entry at all** — they look covered to a text-matching guard while being undiscoverable in the catalog, which is the exact failure a styleguide exists to prevent.
-- **`src/stories/` is for catalog pages only** — the flat set `Styleguide`, `Theme`, `Typography`, `Layout`, `RenderingMatrix`, plus `_harness.tsx`. No subdirectories, and every page there is a `Foundations/*` story. Anything with a backing component belongs beside that component.
+- **`src/stories/` is for catalog pages only** — the flat set `Styleguide`, `Theme`, `Typography`, `Layout`, `Sizing`, `RenderingMatrix`, plus the underscore-prefixed scaffolding (`_harness.tsx`, `_dashboardStage.tsx`, `_stories.css`). No subdirectories, and every page there is a `Foundations/*` story. Anything with a backing component belongs beside that component.
 - **Sub-groups are sanctioned, not ad-hoc.** Only Compositions has them — Entity, Catalog, Dashboard, Wizard, Shell — and a cluster earns one only at **3+ siblings**; everything else stays a direct leaf. Atoms and Containers are deliberately **flat** lists of peers, which stays scannable and keeps `/` search a single hop. Nesting never exceeds `Group/Sub-group/Leaf`. Adding a sub-group means editing both `SUBGROUPS` in the guard and `storyOrder` in `.ladle/config.mjs`.
 - **Titles are unique.** Two files may not claim the same title (it silently collapses the nav).
 

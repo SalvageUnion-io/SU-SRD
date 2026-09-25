@@ -175,21 +175,20 @@ export function isTailwindUtility(token: string): boolean {
 }
 
 /**
- * The class-list CONTEXTS of a source file: the value of every `className=`
- * attribute, and the arguments of every `cn(` / `clsx(` / `cva(` call. Scoping
- * to these (rather than every string literal) is what keeps a style object's
- * `display: 'flex'` or `alignItems: 'flex-start'` — the pattern the migration is
- * moving TO — from counting as Tailwind.
+ * `[start, end)` spans of the class-list CONTEXTS of a source file: the value
+ * of every `className=` attribute, and the arguments of every `cn(` / `clsx(` /
+ * `cva(` call. Inside a context every literal is a class list, so an ambiguous
+ * lone token (`'flex'`, `'hidden'`) counts there and nowhere else.
  */
-export function classContexts(src: string): string[] {
-  const out: string[] = []
-  const balanced = (start: number, open: string, close: string): string => {
+function classContextSpans(src: string): Array<[number, number]> {
+  const out: Array<[number, number]> = []
+  const balanced = (start: number, open: string, close: string): [number, number] => {
     let depth = 0
     for (let i = start; i < src.length && i < start + 4000; i++) {
       if (src[i] === open) depth++
-      else if (src[i] === close && --depth === 0) return src.slice(start, i + 1)
+      else if (src[i] === close && --depth === 0) return [start, i + 1]
     }
-    return src.slice(start, start + 4000)
+    return [start, Math.min(src.length, start + 4000)]
   }
   for (const m of src.matchAll(/\bclassName\s*=\s*(["'{])/g)) {
     const at = (m.index ?? 0) + m[0].length - 1
@@ -197,7 +196,7 @@ export function classContexts(src: string): string[] {
     if (opener === '{') out.push(balanced(at, '{', '}'))
     else {
       const end = src.indexOf(opener as string, at + 1)
-      out.push(src.slice(at, end === -1 ? at + 1 : end + 1))
+      out.push([at, end === -1 ? at + 1 : end + 1])
     }
   }
   for (const m of src.matchAll(/\b(?:cn|clsx|cva)\(/g)) {
@@ -206,14 +205,119 @@ export function classContexts(src: string): string[] {
   return out
 }
 
-/** Every Tailwind utility token in a source text's class-list contexts. */
+/** The class-list contexts of a source file, as text (see `classContextSpans`). */
+export function classContexts(src: string): string[] {
+  return classContextSpans(src).map(([a, b]) => src.slice(a, b))
+}
+
+/**
+ * Lone literals that happen to have a Tailwind utility's shape but, outside a
+ * class-list context, are far more likely something else — a CSS value
+ * (`alignItems: 'flex-start'`, `'ease-in-out'`) or one of the non-CSS strings
+ * listed below. Found by diffing the scan against the whole UI tree; extend it
+ * when a new false match appears rather than weakening the lone-token rule.
+ */
+const CSS_KEYWORD_COLLISIONS = new Set([
+  'flex-start',
+  'flex-end',
+  'border-box',
+  'content-box',
+  'padding-box',
+  'fill-box',
+  'stroke-box',
+  'text-top',
+  'text-bottom',
+  'break-word',
+  'break-all',
+  'break-spaces',
+  'scroll-position',
+  'ease-in',
+  'ease-out',
+  'ease-in-out',
+  'list-item',
+  // Not CSS, but the same shape, and each is live as a non-class literal here:
+  // HTTP header names, toast/popover positions, and a game-data slug.
+  'content-type',
+  'content-length',
+  'content-security-policy',
+  'content-disposition',
+  'content-encoding',
+  'top-left',
+  'top-right',
+  'top-center',
+  'bottom-left',
+  'bottom-right',
+  'bottom-center',
+  'self-destruct',
+])
+
+/**
+ * The text immediately before a style-object value: `key: '…'` where the key
+ * is a CSS property. A style object is the migration's TARGET pattern, so its
+ * values never count — even multi-token ones.
+ */
+const CSS_PROPERTY_KEY =
+  /(?:^|[{,\s])['"]?(?:display|position|visibility|overflow[XY]?|float|clear|cursor|resize|appearance|content|isolation|(?:align|justify|place)(?:Items|Content|Self)|flex(?:Direction|Wrap|Flow|Grow|Shrink|Basis)?|grid\w*|gap|rowGap|columnGap|order|(?:margin|padding|inset)\w*|top|right|bottom|left|(?:min|max)?(?:Width|Height|width|height)|boxSizing|aspectRatio|object(?:Fit|Position)|font\w*|lineHeight|letterSpacing|text\w*|whiteSpace|wordBreak|overflowWrap|hyphens|verticalAlign|color|background\w*|border\w*|outline\w*|boxShadow|opacity|mixBlendMode|filter|backdropFilter|transform\w*|transition\w*|animation\w*|willChange|pointerEvents|userSelect|touchAction|zIndex|listStyle\w*|fill|stroke\w*|accentColor|caretColor|scroll\w*|columns|columnCount|tableLayout|borderCollapse)['"]?\s*:\s*$/
+
+/**
+ * Is this literal, found OUTSIDE a class-list context, a class list anyway?
+ * The shapes that matter are a constant (`const DARK = 'border-x bg-y'`) and a
+ * lookup map (`{ small: 'text-sm', large: 'text-lg' }`) later handed to
+ * `className`. Every token must be a utility; a lone token must additionally
+ * be a prefixed or variant form (a bare `'flex'` / `'hidden'` is as likely a
+ * union member or a CSS value) and not a CSS keyword collision; and a
+ * style-object value never counts.
+ */
+function isLooseClassList(text: string, before: string): boolean {
+  const tokens = text.trim().split(/\s+/).filter(Boolean)
+  if (tokens.length === 0 || !tokens.every(isTailwindUtility)) return false
+  if (CSS_PROPERTY_KEY.test(before)) return false
+  if (tokens.length === 1) {
+    const token = tokens[0] as string
+    const bare = bareUtility(token)
+    if (CSS_KEYWORD_COLLISIONS.has(bare)) return false
+    if (bare === token && TW_STANDALONE.has(bare)) return false
+  }
+  return true
+}
+
+const LITERAL = /'([^'\\\n]*)'|"([^"\\\n]*)"|`([^`]*)`/g
+
+function literalText(lit: RegExpMatchArray): string {
+  return (lit[1] ?? lit[2] ?? lit[3] ?? '').replace(/\$\{[^}]*\}/g, ' ')
+}
+
+/**
+ * Every Tailwind utility token in a source text: each utility inside a
+ * class-list context, plus every token of any OTHER literal that is wholly a
+ * class list (`isLooseClassList`). The second half is what stops a class
+ * string held in a constant or a lookup map from escaping the ratchet — and
+ * from passing the plan's P6 exit check only to lose its styling silently when
+ * P7 removes Tailwind.
+ */
 export function tailwindUtilitiesIn(src: string): string[] {
+  const clean = stripComments(src)
+  const spans = classContextSpans(clean)
   const found: string[] = []
-  for (const context of classContexts(stripComments(src))) {
-    for (const lit of context.matchAll(/'([^'\\\n]*)'|"([^"\\\n]*)"|`([^`]*)`/g)) {
-      const text = (lit[1] ?? lit[2] ?? lit[3] ?? '').replace(/\$\{[^}]*\}/g, ' ')
-      for (const token of text.split(/\s+/))
+  for (const [a, b] of spans) {
+    for (const lit of clean.slice(a, b).matchAll(LITERAL)) {
+      for (const token of literalText(lit).split(/\s+/))
         if (token && isTailwindUtility(token)) found.push(token)
+    }
+  }
+  const inContext = (i: number): boolean => spans.some(([a, b]) => i >= a && i < b)
+  for (const lit of clean.matchAll(LITERAL)) {
+    const at = lit.index ?? 0
+    if (inContext(at)) continue
+    const lineStart = clean.lastIndexOf('\n', at - 1) + 1
+    if (/\b(?:import|from|require)\b/.test(clean.slice(lineStart, at))) continue
+    // A quoted object KEY (`{ 'align-items': … }`) is a name, not a class list.
+    const end = at + lit[0].length
+    if (/[{,]\s*$/.test(clean.slice(Math.max(0, at - 40), at)) && /^\s*:/.test(clean.slice(end)))
+      continue
+    const text = literalText(lit)
+    if (isLooseClassList(text, clean.slice(Math.max(0, at - 80), at))) {
+      for (const token of text.split(/\s+/)) if (token) found.push(token)
     }
   }
   return found

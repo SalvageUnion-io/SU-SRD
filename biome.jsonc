@@ -189,8 +189,9 @@
           "level": "error",
           "options": { "style": "type" }
         },
-        // House rule: "Import types with `import type` syntax". Same story as the rule above — asserted in prose, enforced
-        // by nothing, so BOTH shapes survived: 225 files use a separate
+        // House rule: "Import types with `import type` syntax". Same story as
+        // the rule above — asserted in prose, enforced by nothing, so BOTH
+        // shapes survived: 225 files use a separate
         // `import type { … }` statement alongside a value import from the same
         // specifier, while ~100 sites inline `{ type X, Y }`. Neither is wrong;
         // having both for the same job is. `separatedType` is the majority

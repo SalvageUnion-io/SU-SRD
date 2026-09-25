@@ -1,6 +1,7 @@
 ---
 paths:
   - 'apps/itun/src/stores/**'
+  - 'apps/itun/src/hooks/**'
   - 'apps/itun/src/lib/db/**'
   - 'apps/itun/src/lib/connection/**'
   - 'apps/itun/src/lib/snapshot/**'

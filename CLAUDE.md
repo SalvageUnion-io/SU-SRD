@@ -25,7 +25,7 @@ the ADRs and architecture docs this file points to.
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
 - Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). If a visual change needs iteration, ask for a screenshot before adjusting further. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
-- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check:styling` fails a change that adds a Tailwind file or a `.pc-*` class.
+- Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check:styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
 ## Build & Validation
 
