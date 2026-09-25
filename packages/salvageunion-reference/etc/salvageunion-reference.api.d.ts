@@ -1149,7 +1149,7 @@ export declare function extractStaticEntitySummary(entity: SURefEntity): StaticE
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js';
 import { SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js';
-import { type LoadOptions } from './ModelFactory.js';
+import type { LoadOptions } from './ModelFactory.js';
 import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from './types/index.js';
 export { BaseModel, type ModelWithMetadata } from './BaseModel.js';
 export { parseContentBlockString, replaceChassisPlaceholder, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
