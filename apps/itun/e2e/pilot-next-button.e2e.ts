@@ -1,4 +1,3 @@
-import { expect, test } from '@playwright/test'
 import {
   advanceUntilVisible,
   choiceCardByName,
@@ -6,6 +5,10 @@ import {
   pickByName,
   waitForReady,
 } from './_helpers'
+import { expect, test } from './fixtures'
+
+// Anonymous on purpose: wizard panes render the same signed in or not.
+test.use({ account: 'anonymous' })
 
 /**
  * Regression guard: the Class step's Next CTA must open once — and only once —

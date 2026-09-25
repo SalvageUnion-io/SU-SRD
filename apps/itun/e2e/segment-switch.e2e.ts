@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
 import { assignPilotOnMechSheet, buildMech, buildPilot, openSheetFor } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Mobile segment switch (design §3.7, plan 4.8) — at the 390 endpoint a

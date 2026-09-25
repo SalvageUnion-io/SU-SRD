@@ -11,10 +11,11 @@
  * The distinction that matters most:
  *
  *   **Solo is not Disconnected.** Somebody who never signs in is not "offline";
- *   they are using the app exactly as it worked before accounts existed. They
- *   see no banner, and no write of theirs is ever refused. Only a user who
- *   opted into a Game can end up in `disconnected`, and the read-only cost is
- *   the honest price of having chosen a server of record for shared state.
+ *   they are anonymous. They see no NOT CONNECTED banner and no write of theirs
+ *   is ever refused — those writes go to the in-memory backend and last as long
+ *   as the tab (ADR-034; there is no durable anonymous backend). Only a
+ *   signed-in user can end up in `disconnected`, and the read-only cost is the
+ *   honest price of having chosen a server of record.
  *
  * And a fourth state that is *not* one of the three, which is why it is named:
  *
@@ -35,10 +36,9 @@ export type ConnectionInputs = {
   /**
    * Whether a Convex deployment URL was compiled in (`VITE_CONVEX_URL`).
    *
-   * False is a legitimate, supported build: CI, a contributor who has not run
-   * `convex dev`, or a deliberately backend-free deployment. Such a build is
-   * permanently Solo rather than broken — which is only true because anonymous
-   * play is first-class (ADR-030 §1).
+   * False is a legitimate, supported build: CI, or a contributor who has not run
+   * `convex dev`. Such a build is permanently Solo rather than broken — usable,
+   * with nothing kept beyond the tab.
    */
   convexConfigured: boolean
   /**
@@ -88,7 +88,7 @@ export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode 
  * Disconnected blocks writes rather than queueing them (ADR-030 §1): an outbox
  * would reintroduce conflict resolution through the back door, which is the
  * thing choosing a server of record was meant to avoid. Solo writes are never
- * blocked — IndexedDB is that user's source of truth, not a cache.
+ * blocked — they go to the in-memory backend, which has nothing to conflict with.
  *
  * `connecting` blocks too, for a different reason: not "the server said no" but
  * "we do not yet know which store this belongs in". A write let through in that

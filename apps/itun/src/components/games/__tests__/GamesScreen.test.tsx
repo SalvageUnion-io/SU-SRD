@@ -34,7 +34,7 @@ describe('GamesScreen in a Solo build', () => {
         <GamesScreen />
       </ConnectionProvider>
     )
-    expect(screen.getByText(/saved on this device/i)).toBeTruthy()
+    expect(screen.getByText(/shared games are unavailable/i)).toBeTruthy()
     // No create/join affordance should be offered when it cannot possibly work.
     expect(screen.queryByLabelText('New game name')).toBeNull()
     expect(screen.queryByLabelText('Invite code')).toBeNull()

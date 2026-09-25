@@ -1,5 +1,8 @@
-import { expect, test } from '@playwright/test'
 import { waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
+
+// Anonymous on purpose: this spec is about the offline shell a visitor gets.
+test.use({ account: 'anonymous' })
 
 /**
  * Offline — the one spec that proves ITUN is actually a PWA rather than merely

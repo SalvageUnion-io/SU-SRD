@@ -34,65 +34,30 @@ concurrency:
 
 jobs:
   e2e-itun:
-    # ITUN Playwright suite against a self-contained static build (no deploy
-    # preview on main): Playwright's webServer builds the bundle and serves it
-    # with `vite preview`. The snapshot publish path soft-skips (no Functions
-    # backend); that round-trip is covered by the snapshot unit tests.
+    # The full ITUN Playwright suite, SIGNED IN, against a THROWAWAY self-hosted
+    # Convex backend and a production bundle built against it.
+    #
+    # Why signed in: an anonymous visitor's builds are in-memory only (ADR-034),
+    # so a spec that builds something and reads it back after a reload is by
+    # definition a test of the signed-in path. The suite used to force
+    # `VITE_REQUIRE_ACCOUNT=false` to keep a durable anonymous backend (`local`)
+    # alive for itself — proving a storage mode no player could reach. That
+    # backend and the flag are retired; `apps/itun/e2e/fixtures.ts` signs each
+    # durable spec up with a fresh account through the `TestAuthBridge` seam,
+    # and the anonymous specs (first run, offline, the sign-in hand-off) opt out.
+    #
+    # Why a throwaway backend: enabling `ITUN_TEST_AUTH` on production would put
+    # a password auth provider on the live app, and the dev deployment is shared
+    # — every spec mints a fresh account and would fill it with junk. A container
+    # destroyed with the runner has neither problem and needs no credentials,
+    # which is why this job requests no secrets at all.
+    #
+    # This absorbed the old `e2e-itun-signin` job, which ran only
+    # `signin-save.e2e.ts` against the same backend. One job, one backend, one
+    # build: the hand-off spec and the specs that depend on its seam can no
+    # longer disagree about how the build was made.
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/itun
-        run: bunx playwright install chromium
-
-      - name: Run E2E tests
-        working-directory: apps/itun
-        run: bunx playwright test
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-itun
-          path: apps/itun/playwright-report/
-          retention-days: 7
-
-  e2e-itun-signin:
-    # The anonymous-build → sign-in → save hand-off, against a THROWAWAY
-    # self-hosted Convex backend.
-    #
-    # Why this job exists at all: `apps/itun/e2e/signin-save.e2e.ts` had never
-    # executed anywhere. It needs a reachable deployment with the test-only
-    # password provider enabled; no workflow set any of its three variables, so
-    # its `test.skip` fired in every environment including this one — a spec
-    # that was written, correct, and permanently silent.
-    #
-    # Why not an existing deployment: enabling `ITUN_TEST_AUTH` on production
-    # would put a password auth provider on the live app, and the dev
-    # deployment is shared — this spec mints a fresh account per run and would
-    # fill it with junk. A container destroyed with the runner has neither
-    # problem and needs no credentials, which is why this job requests no
-    # secrets at all.
-    #
-    # Kept OUT of `e2e-itun` deliberately. That job is the working coverage; if
-    # the backend spin-up below needs iteration it must not take the rest of
-    # the suite down with it.
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -213,14 +178,16 @@ jobs:
         working-directory: apps/itun
         run: bunx playwright install chromium
 
-      # ITUN_E2E_EXPECT_AUTH_SEAM is the point of the whole job. With it set the
-      # spec THROWS when the seam is absent instead of skipping, so this can
-      # never rejoin the pile of green-because-it-did-nothing runs it came from.
-      - name: Run the sign-in/save spec
+      # ITUN_E2E_EXPECT_AUTH_SEAM is what keeps this honest. Without it a spec
+      # that needs an account SKIPS when the seam is missing (the right call in
+      # an ordinary build); with it, a missing seam THROWS — so a regression in
+      # the seam or a lost build variable fails the run instead of turning the
+      # whole suite green-because-it-did-nothing.
+      - name: Run E2E tests
         working-directory: apps/itun
         env:
           ITUN_E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test signin-save.e2e.ts
+        run: bunx playwright test
 
       - name: Backend logs on failure
         if: failure()
@@ -236,7 +203,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-itun-signin
+          name: playwright-report-itun
           path: apps/itun/playwright-report/
           retention-days: 7
 
@@ -513,9 +480,9 @@ jobs:
         run: bash tools/smoke-production.sh
 
   # ONE notifier, computed from `needs` rather than restated in two inverted
-  # `if:` expressions. The two-job version drifted twice: convex-parity and
-  # e2e-itun-signin were each added to `needs:` and to one condition but not
-  # the other, so a red run could fail to open the issue — or CLOSE it.
+  # `if:` expressions. The two-job version drifted twice: convex-parity and a
+  # since-merged sign-in job were each added to `needs:` and to one condition
+  # but not the other, so a red run could fail to open the issue — or CLOSE it.
   # Deriving the verdict from `toJSON(needs)` means a job added to `needs:`
   # is reported and judged with no second list to update.
   #
@@ -527,7 +494,7 @@ jobs:
   # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
   # run, which is a human action rather than a regression.
   notify:
-    needs: [e2e-itun, e2e-itun-signin, e2e-srd, observability-probe, convex-parity, a11y-srd, production-smoke]
+    needs: [e2e-itun, e2e-srd, observability-probe, convex-parity, a11y-srd, production-smoke]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
@@ -542,7 +509,7 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
-            const ALWAYS_RUNS = new Set(['e2e-itun', 'e2e-srd', 'e2e-itun-signin', 'production-smoke'])
+            const ALWAYS_RUNS = new Set(['e2e-itun', 'e2e-srd', 'production-smoke'])
             const label = 'nightly-e2e-failure'
             const { owner, repo } = context.repo
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`

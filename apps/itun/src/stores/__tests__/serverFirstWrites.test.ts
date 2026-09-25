@@ -19,6 +19,11 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import * as db from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { withSignedInBackend } from './signedInBackend'
+
+// These assert durability — a write surviving a rehydrate or a direct read of
+// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+withSignedInBackend()
 
 afterEach(async () => {
   const store = useEntityStore.getState()

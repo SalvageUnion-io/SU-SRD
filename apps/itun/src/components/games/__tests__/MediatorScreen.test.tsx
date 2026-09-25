@@ -36,7 +36,7 @@ describe('MediatorScreen in a Solo build', () => {
         <MediatorScreen gameId="whatever" />
       </ConnectionProvider>
     )
-    expect(screen.getByText(/playing solo/i)).toBeTruthy()
+    expect(screen.getByText(/needs a connected account/i)).toBeTruthy()
     // None of the mediator affordances should be reachable — an inert console
     // is worse than an honest explanation.
     expect(screen.queryByLabelText('NPC name')).toBeNull()

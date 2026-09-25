@@ -1,4 +1,3 @@
-import { expect, test } from '@playwright/test'
 import {
   assignCrawlerOnPilotSheet,
   assignPilotOnMechSheet,
@@ -7,6 +6,7 @@ import {
   buildPilot,
   openSheetFor,
 } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Wired build + snapshot publish/open round-trip, against the Header C

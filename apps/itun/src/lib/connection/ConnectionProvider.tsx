@@ -82,7 +82,7 @@ function useConnectionState(signedIn: boolean, authSettled: boolean): Connection
    *
    * The `setProbed` re-render this used to force is gone with the backend
    * dependency: nothing renders differently the moment the probe resolves.
-   * `LegacyLocalData` awaits the same cached promise itself, which is what makes
+   * `AccountReconciler` awaits the same cached promise itself, which is what makes
    * the answer visible where it now matters.
    */
   useEffect(() => {

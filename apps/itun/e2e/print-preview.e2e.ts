@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
 import { buildPilot, openSheetFor } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Print preview — A4 and US Letter, against the Header C LiveSheet shell.

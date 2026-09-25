@@ -1,4 +1,3 @@
-import { expect, test } from '@playwright/test'
 import {
   advanceUntilVisible,
   choiceCardByName,
@@ -6,6 +5,10 @@ import {
   selectedOption,
   waitForReady,
 } from './_helpers'
+import { expect, test } from './fixtures'
+
+// Anonymous on purpose: wizard panes render the same signed in or not.
+test.use({ account: 'anonymous' })
 
 /**
  * Visual / interactive contract for the WizShell Class step master-detail:

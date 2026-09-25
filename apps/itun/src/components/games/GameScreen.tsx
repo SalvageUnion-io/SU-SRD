@@ -138,8 +138,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
         <Card>
           <div className="p-4">
             <Text>
-              A Game is shared state, so it needs a connected account. You are playing solo — your
-              builds are on this device and need no account at all.
+              A Game is shared state, so it needs a connected account. You are not signed in, or not
+              connected right now.
             </Text>
           </div>
         </Card>

@@ -1,11 +1,9 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { AppHeader, EntityHrefProvider, Toaster } from 'component-lib'
 import { useState } from 'react'
+import { AccountReconciler } from '../components/account/AccountReconciler'
 import { AccountStrip } from '../components/account/AccountStrip'
-import { LegacyLocalData } from '../components/account/LegacyLocalData'
-import { ShelfSync } from '../components/account/ShelfSync'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
-import { AnonymousWorkPromoter, UnsavedWorkBanner } from '../components/account/UnsavedWorkBanner'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
@@ -46,24 +44,14 @@ function RootComponent() {
           data, so it paints immediately instead of sitting behind the full
           preload. */}
         <NotConnectedBanner />
-        {/* The account gate (ADR-034 decision 1). Both live here, above the
-            game-data gate, because they are facts about the SESSION rather
-            than about any route: work that will not survive the tab is worth
-            saying on every screen, and the promoter has to outlive the banner
-            — signing in unmounts the banner at exactly the moment the
-            promotion needs to run. */}
-        <UnsavedWorkBanner />
-        <AnonymousWorkPromoter />
-        {/* The other half of the same gate (ADR-035): a browser holding a
-            pre-account roster. Signed out it says so and offers both doors;
-            signed in it moves those rows into the account by itself. Root, not
-            the Account screen — it is a fact about the browser, and its
-            predecessor went unseen for living on a page nobody had to open. */}
-        <LegacyLocalData />
-        {/* Fills the local cache from the server of record. Renders nothing;
-            mounted here because a roster is needed on every route, not only
-            the one that happens to list it. */}
-        <ShelfSync />
+        {/* The account gate (ADR-034 decision 1) and the migration off
+            device-only storage (ADR-035), as one surface: says what is at
+            stake while signed out, moves it into the account on sign-in, and
+            keeps the local cache filled from the server. Above the game-data
+            gate because it is a fact about the SESSION and the BROWSER, not
+            about any route — and it must stay mounted across the sign-in flip,
+            which is exactly when its work runs. */}
+        <AccountReconciler />
         {/* A test seam, compiled out of production builds — see its header. */}
         <TestAuthBridge />
         <AppHeader

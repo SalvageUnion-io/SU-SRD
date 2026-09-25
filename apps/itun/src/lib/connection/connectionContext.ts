@@ -36,7 +36,7 @@ export type ConnectionState = {
 /**
  * The default is Solo, and that is load-bearing rather than arbitrary: a
  * component rendered outside any provider (a test, a story, a stray subtree)
- * should behave like the fully-local pre-accounts app, never like a broken
+ * should behave like an anonymous visitor (writes allowed), never like a broken
  * connected one. Defaulting to `disconnected` would make such a component
  * silently refuse writes.
  */

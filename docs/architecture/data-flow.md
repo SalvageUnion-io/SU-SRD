@@ -11,13 +11,17 @@ Player data has **two persistence domains**, chosen by connection mode
 
 | Mode             | Who                | Truth     | Reads                 | Writes      |
 | ---------------- | ------------------ | --------- | --------------------- | ----------- |
-| **Solo**         | not signed in      | IndexedDB | local                 | local       |
+| **Solo**         | not signed in      | nothing   | in-memory backend     | in-memory   |
 | **Connected**    | signed in, online  | Convex    | reactive subscription | to Convex   |
 | **Disconnected** | signed in, offline | Convex    | local cache           | **blocked** |
 
-**Solo is not Disconnected.** Anonymous play is first-class and permanent: a
-build with no `VITE_CONVEX_URL` compiled in (CI, a fresh checkout, a deliberately
-backend-free deploy) is permanently Solo, and no Solo write is ever refused. A
+**Solo is not Disconnected.** Anonymous play is allowed and nothing about it is
+durable ([ADR-034](../adrs/ADR-034-account-required-persistence.md)): writes go
+to an in-memory backend and are gone on reload, and signing in is what keeps
+them (`AccountReconciler` sends them to the account). A build with no
+`VITE_CONVEX_URL` compiled in (CI, a fresh checkout) is permanently Solo, and no
+Solo write is ever refused. There used to be a durable anonymous IndexedDB
+backend (`local`) in builds without `VITE_REQUIRE_ACCOUNT`; both are retired. A
 signed-in user who loses connectivity goes **read-only** rather than falling back
 to IndexedDB — falling back would fork their data against the server of record
 and reintroduce the conflict resolution that choosing a server of record exists
@@ -71,7 +75,7 @@ cross-referenced entity without per-route preload lists.
 
 ---
 
-## Dynamic Player Data (IndexedDB — Solo truth, Connected cache)
+## Dynamic Player Data (IndexedDB — the signed-in cache)
 
 **Location:** `apps/itun/src/lib/db/`
 
@@ -174,18 +178,17 @@ see the header comment in `convex/schema.ts`.
 so the backend swaps without rewriting the store. `src/stores/entityBackend.ts`
 picks it:
 
-- `selectBackend()` returns `'local'` unless the app is genuinely Connected —
-  not signed in, no Convex URL compiled in, or offline all resolve away from
-  `'remote'`. The ordering is deliberate: the worst outcome in this migration is
-  a Solo user's writes silently going nowhere.
-- Disconnected returns `'blocked'` and throws `WritesBlockedOffline`; it never
-  falls back to local. Surfaces check `canWrite` before offering the affordance.
-- In `'remote'`, `mirrorWrite()` mirrors the local write to Convex **addressed
-  by app id**, not by Convex's own `_id` (an indexed `appId` column stands in for
-  a mapping table). It is an **upsert** — an entity built while Solo has no
-  server row until the account is claimed — and **fire-and-forget**: the local
-  write already succeeded and is what the UI reads, so a mirror failure warns
-  rather than rolling back.
+- `selectBackend()` has exactly three answers: `'remote'` when the app is
+  genuinely Connected, `'memory'` when it is anonymous (including any build with
+  no Convex URL compiled in), and `'blocked'` while Disconnected or mid-handshake.
+  The durable anonymous `'local'` backend is gone (ADR-034/ADR-035).
+- `'blocked'` throws `WritesBlockedOffline`; it never falls back to IndexedDB.
+  Surfaces check `canWrite` before offering the affordance.
+- In `'remote'`, `commitEntityWrite()` (and its siblings) write to Convex
+  **addressed by app id**, not by Convex's own `_id` (an indexed `appId` column
+  stands in for a mapping table), and are **awaited**: a write the server refused
+  did not happen, and the caller is told so. They replaced the fire-and-forget
+  `mirrorWrite()` family, which suited a local store that was authoritative.
 
 Reactive reads use `convex/react` (`useQuery`) directly in the Connected
 surfaces (`src/components/games/`, `src/components/account/`,

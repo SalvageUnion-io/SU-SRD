@@ -19,18 +19,28 @@ import type { SoftLink } from '../lib/schemas/softLink'
  * in-memory cache, its lazy hydration and its broadcast behaviour are all
  * untouched by this file.
  *
- * ## There are exactly three places a write can go
+ * ## There are exactly three answers, and one of them is "nowhere"
  *
- * `remote` when the app is genuinely Connected; `memory` when it is anonymous
- * in a build that requires an account; `local` only in a build that does not
- * require one (CI, `bun run dev`, a deliberately backend-free deploy). There is
- * no fourth case and, since
- * [ADR-035](../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md), no
- * exemption: a browser holding a pre-account roster no longer keeps the durable
- * local backend, it gets that roster **migrated** instead — see
- * `lib/account/legacyMigration.ts`.
+ * `remote` when the app is genuinely Connected, `memory` when it is anonymous,
+ * and `blocked` while it is Disconnected or still completing the auth
+ * handshake. There is no fourth case.
  *
- * ## Disconnected does not fall back to local
+ * There used to be: `local`, the durable IndexedDB backend an anonymous visitor
+ * got in any build that did not set `VITE_REQUIRE_ACCOUNT`. Production always
+ * set it, so `local` only ever ran in CI, `bun run dev` and the e2e suite —
+ * which meant the suite spent its effort proving a storage mode no player could
+ * reach, and had to force the flag off to do it. It was retired along with the
+ * flag: anonymous is in-memory everywhere, and the durable path the tests
+ * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
+ * for unit tests, the `TestAuthBridge` seam for e2e).
+ *
+ * A browser still holding a pre-account roster does not get a durable
+ * anonymous backend either
+ * ([ADR-035](../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md)):
+ * its rows stay in IndexedDB untouched and are **migrated** into the account
+ * on sign-in by `AccountReconciler`.
+ *
+ * ## Disconnected does not fall back to IndexedDB
  *
  * A signed-in user who loses connectivity is **read-only** (D14), not
  * quietly-writing-to-IndexedDB. Falling back would fork their data against the
@@ -50,15 +60,28 @@ type AuthState = {
    * (`convexConfigured` is then false and the mode is Solo regardless).
    */
   authSettled?: boolean
+  /**
+   * Whether a Convex deployment is compiled in. Defaults to the real answer
+   * (`convexClient !== null`); `ConnectionProvider` never sets it.
+   *
+   * It exists for the unit tests. With `local` retired, the only durable
+   * backend is `remote`, and the test build has no `VITE_CONVEX_URL` — so
+   * without this there would be no way to exercise the IndexedDB cache a
+   * signed-in player writes through. Setting it `true` with no client is
+   * "signed in, with every server commit a no-op", which is exactly what the
+   * `convexClient === null` early returns below already do. See
+   * `src/stores/__tests__/signedInBackend.ts`, the one caller.
+   */
+  convexConfigured?: boolean
 }
 
 /**
  * Read once per write rather than subscribed — the store is not a component.
  *
- * The initial value has to be one that cannot block a Solo build's writes, and
- * `authSettled: true` is that value: with no Convex URL compiled in,
- * `selectBackend` short-circuits to Solo before this is consulted, and with one
- * compiled in `ConnectionProvider` pushes the real value on mount.
+ * The initial value is anonymous and settled, which resolves to `memory`: with
+ * no Convex URL compiled in, `selectBackend` short-circuits to Solo before this
+ * is consulted, and with one compiled in `ConnectionProvider` pushes the real
+ * value on mount.
  */
 let authState: AuthState = { signedIn: false, online: true, authSettled: true }
 
@@ -72,52 +95,12 @@ export function setEntityBackendAuthState(next: AuthState): void {
   authState = next
 }
 
-export type BackendKind = 'local' | 'remote' | 'blocked' | 'memory'
+export type BackendKind = 'remote' | 'blocked' | 'memory'
 
-/**
- * Whether this build requires an account to persist anything
- * ([ADR-034](../../../../docs/adrs/ADR-034-account-required-persistence.md)
- * decision 1).
- *
- * **The code default stays OFF; production opts in.** `apps/itun/.env.production`
- * sets this to `true`, and Vite loads that file only for a production build — so
- * the shipped app requires an account while tests, dev and a fresh checkout do
- * not.
- *
- * That split is deliberate and was arrived at the hard way. Defaulting to ON
- * when the variable is *unset* flips every environment that never sets it —
- * CI, the test runner, a contributor's first `bun run dev`. Measured: twelve
- * wizard, chooser and starter-set tests failed, all of them correctly, because
- * they assert Solo durability and the flip removes it. A flag whose safe value
- * depends on remembering to set it is the wrong way round; the deploy is the
- * thing that should have to say so out loud.
- *
- * To exercise the gate locally: `VITE_REQUIRE_ACCOUNT=true bun run dev:itun`.
- *
- * **It is now the only condition.** It used to share the decision with a probe
- * for a pre-account roster, and a browser that had one kept the durable local
- * backend indefinitely — the migration window that never closed, and the second
- * source of truth ADR-035 removes. Anonymous is anonymous: the rows stay on
- * disk, `LegacyLocalData` says so and offers a download, and signing in
- * reconciles them into the account (`lib/account/legacyMigration.ts`).
- *
- * Read once at module scope like every other `import.meta.env` flag here. A
- * build-time switch rather than a runtime one is deliberate: "does this build
- * require an account" must not be able to change under a running session, which
- * would strand work in a store the app had stopped reading.
- */
-export const accountRequired = import.meta.env.VITE_REQUIRE_ACCOUNT === 'true'
-
-/**
- * Which backend a write should use right now.
- *
- * Exported for tests and for surfaces that want to explain themselves — a
- * button that would be `blocked` should say why rather than fail on click.
- */
 /** The mode the store layer currently believes it is in. */
 function currentMode(): ConnectionMode {
   return resolveConnectionMode({
-    convexConfigured: convexClient !== null,
+    convexConfigured: authState.convexConfigured ?? convexClient !== null,
     authSettled: authState.authSettled ?? true,
     signedIn: authState.signedIn,
     online: authState.online,
@@ -125,43 +108,38 @@ function currentMode(): ConnectionMode {
 }
 
 /**
- * The backend rule, as a pure function of its inputs.
+ * The backend rule, as a pure function of the connection mode.
  *
  * Split out from `selectBackend` for the same reason `resolveConnectionMode` is
  * a pure function beside `useConnection`: the rule is the part worth testing,
- * and it is otherwise reachable only through a module-scope
- * `import.meta.env` read that a test cannot vary. The wrapper below supplies the
- * real inputs; this is what the tests drive.
+ * and every mode can be driven here without a Convex client.
+ *
+ * Anonymous (`solo`) is `memory` unconditionally
+ * ([ADR-034](../../../../docs/adrs/ADR-034-account-required-persistence.md)
+ * decision 1). There is no build flag and no exemption for a browser that
+ * already holds a roster (ADR-035): those rows stay on disk and are migrated on
+ * sign-in rather than loaded into the anonymous session — loading them would
+ * make `AccountReconciler` promote the whole store without knowing what the
+ * account already holds, so a sign-out/sign-in round trip would re-claim owned
+ * rows and report them as builds that could not be saved.
  */
-export function backendForMode(mode: ConnectionMode, requireAccount: boolean): BackendKind {
-  // Anonymous, in a build that requires an account: nothing durable, with no
-  // exemption for a browser that already holds a roster. Checked BEFORE the Solo
-  // branch, because Solo is exactly the state this replaces — testing it after
-  // would make the flag dead code.
-  //
-  // The legacy-roster exemption that used to sit here is gone (ADR-035). It read
-  // a probe that nothing ever resolved to `absent`, so it did not open a
-  // migration window, it made the durable local backend permanent for anyone who
-  // had ever built anything. The roster is not abandoned by removing it: the rows
-  // stay in IndexedDB, `LegacyLocalData` tells a signed-out visitor they are
-  // there and offers a download, and signing in reconciles them into the account.
-  //
-  // They are deliberately NOT loaded into the anonymous session. Doing that would
-  // arm `AnonymousWorkPromoter`, which promotes the whole store without knowing
-  // what the account already holds — so a sign-out/sign-in round trip would
-  // re-claim owned rows and report them to the player as builds that could not be
-  // saved. See ADR-035's rejected alternatives.
-  if (mode === 'solo' && requireAccount) return 'memory'
-  if (mode === 'solo') return 'local'
+export function backendForMode(mode: ConnectionMode): BackendKind {
+  if (mode === 'solo') return 'memory'
   if (usesServerOfRecord(mode)) return 'remote'
   // `connecting` lands here alongside `disconnected`, and deliberately: writing
-  // locally before the handshake resolves is exactly the silent fork this
+  // anywhere before the handshake resolves is exactly the silent fork this
   // module exists to prevent.
   return 'blocked'
 }
 
+/**
+ * Which backend a write should use right now.
+ *
+ * Exported for tests and for surfaces that want to explain themselves — a
+ * button that would be `blocked` should say why rather than fail on click.
+ */
 export function selectBackend(): BackendKind {
-  return backendForMode(currentMode(), accountRequired)
+  return backendForMode(currentMode())
 }
 
 /**
@@ -328,7 +306,7 @@ export async function commitChangeLog(
  * `mechPatterns` has none and needs none — a pattern's own id already is its app
  * id, which makes the upsert idempotent.
  *
- * Same early return as every other commit here: in Solo or anonymous mode there
+ * Same early return as every other commit here: in an anonymous session there
  * is no server of record to reach, and this is a no-op rather than an error.
  */
 export async function commitPatternWrite(

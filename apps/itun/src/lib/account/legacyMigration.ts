@@ -67,7 +67,7 @@ export function shelve<T extends object>(body: T): T {
 }
 
 /** The ids of the entities the server said this account already owns. */
-function servedIds(rows: readonly ServedRow[]): Set<string> {
+export function servedIds(rows: readonly ServedRow[]): Set<string> {
   const ids = new Set<string>()
   for (const row of rows) {
     const id = (row.body as { id?: unknown } | null)?.id

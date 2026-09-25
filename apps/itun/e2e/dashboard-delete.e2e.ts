@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
 import { buildPilot, waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Dashboard delete flow: create a pilot, confirm the delete dialog, verify

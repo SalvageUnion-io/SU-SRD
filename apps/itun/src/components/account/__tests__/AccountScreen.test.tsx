@@ -35,13 +35,13 @@ describe('AccountScreen in a Solo build', () => {
     expect(screen.getByText('Account')).toBeTruthy()
   })
 
-  test('explains that data is local rather than offering an account', () => {
+  test('says nothing built here is kept, rather than offering an account', () => {
     render(
       <ConnectionProvider>
         <AccountScreen />
       </ConnectionProvider>
     )
-    expect(screen.getByText(/saved on this device/i)).toBeTruthy()
+    expect(screen.getByText(/nothing you build here is kept/i)).toBeTruthy()
   })
 
   test('SignInControl renders nothing at all', () => {

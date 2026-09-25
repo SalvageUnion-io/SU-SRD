@@ -11,6 +11,11 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 import { _clearAllStores, _resetDbSingleton, crawlers, mechs, softLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { withSignedInBackend } from './signedInBackend'
+
+// These assert durability — a write surviving a rehydrate or a direct read of
+// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+withSignedInBackend()
 
 function resetEntityStore(): void {
   useEntityStore.setState({

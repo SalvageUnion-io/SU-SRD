@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
 import { advanceUntilVisible, clickNext, fillIdentity, pickByName, waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * CrawlerBuilder corner cases. The wizard is Crawler Type → Statistics →

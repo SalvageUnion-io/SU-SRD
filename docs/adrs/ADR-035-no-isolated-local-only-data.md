@@ -257,7 +257,9 @@ original rows.
 **Load the device rows into the anonymous in-memory session so a signed-out user
 still sees them.** Rejected, and it was the most tempting option — it preserves
 the signed-out experience exactly. It also re-creates the defect in a new place:
-those rows would arm `AnonymousWorkPromoter`, which promotes the whole store
+those rows would arm `AnonymousWorkPromoter` (since folded into `AccountReconciler`,
+which keeps the same rule: session work is sent as-is, device rows only after
+comparing against `listMine`), which promotes the whole store
 without knowing what the account already holds, so a sign-out/sign-in round trip
 would re-claim rows the account already had and report them to the player as
 builds that "could not be saved". The promoter is right to be uninformed; it is

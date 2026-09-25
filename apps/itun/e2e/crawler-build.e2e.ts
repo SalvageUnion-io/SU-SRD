@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
-import { expect, test } from '@playwright/test'
 import { advanceUntilVisible, fillIdentity, pickByName, waitForReady } from './_helpers'
+import { expect, test } from './fixtures'
 
 /**
  * Drive the wizard to a created 'Iron Wagon'. Three steps gate — Crawler Type,

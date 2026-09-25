@@ -373,11 +373,17 @@ export function Roster() {
           </div>
           <ContainerSwitcher activeContainer={activeContainer} onSelect={setActiveContainer} />
         </div>
-        {/* Standing durability notice (not the recurring backup-nudge toast):
-            ITUN is local-first with no backend, so this line is always visible
-            next to the export controls to keep the "browser-only" fact honest. */}
+        {/* Standing durability notice (not the recurring backup-nudge toast),
+            next to the export controls. It said "your data lives only in this
+            browser" to everybody, which since ADR-034 is true of nobody: a
+            signed-in player's builds are on the server, and an anonymous
+            visitor's are not even in the browser — only in this tab. */}
         <p className="mt-2.5 font-body text-xs text-wk-muted">
-          Your data lives only in this browser — export a backup regularly.
+          {mode === 'solo'
+            ? 'Nothing here is kept until you sign in — download a backup to keep it yourself.'
+            : mode === 'connecting'
+              ? 'Download a backup any time to keep a copy yourself.'
+              : 'Saved to your account. A downloaded backup is still yours to keep.'}
         </p>
       </div>
 
@@ -606,7 +612,8 @@ function FirstRunWelcome() {
         Build your first pilot
       </AppLink>
       <p className="max-w-prose font-body text-xs text-wk-muted">
-        Everything you make lives only in this browser. Sign in to share builds with a Game.
+        Sign in to keep what you build and share it with a Game — until then it lives only in this
+        tab.
       </p>
     </div>
   )

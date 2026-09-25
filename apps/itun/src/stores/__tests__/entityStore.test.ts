@@ -12,6 +12,11 @@ import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
 import { _clearAllStores, _resetDbSingleton, pilots as dbPilots } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { withSignedInBackend } from './signedInBackend'
+
+// These assert durability — a write surviving a rehydrate or a direct read of
+// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+withSignedInBackend()
 
 // `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
 // sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and

@@ -176,10 +176,12 @@ function AccountBody() {
     <Card>
       <div className="flex flex-col gap-3 p-4">
         <Text>
-          You are playing solo. Everything you build is saved on this device and needs no account.
+          You are not signed in. You can build anything without an account, but nothing is kept — it
+          lives in this tab until you sign in or download it.
         </Text>
         <Text variant="hint" className="text-left">
-          Signing in lets you join a game with other people and carry your builds between devices.
+          Signing in saves your builds to your account, carries them between devices, and lets you
+          join a game with other people.
         </Text>
         <div>
           <SignInControl />
@@ -199,7 +201,8 @@ export function AccountScreen() {
         <Card>
           <div className="p-4">
             <Text>
-              This build has no account service configured, so everything is saved on this device.
+              This build has no account service configured, so nothing you build here is kept —
+              download a backup before closing the tab.
             </Text>
           </div>
         </Card>

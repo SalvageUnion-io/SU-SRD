@@ -14,12 +14,12 @@ paths:
 # Data access in ITUN — stores and Convex
 
 Two persistence domains; work out which one you are in before writing a hook.
-The storage modes themselves (Solo / Connected / Disconnected, the account
-gate) are owned by [`apps/itun/CLAUDE.md`](../../apps/itun/CLAUDE.md).
+The storage modes themselves (Solo / Connected / Disconnected) are owned by
+[`apps/itun/CLAUDE.md`](../../apps/itun/CLAUDE.md).
 
 | Domain | Path | Truth |
 | --- | --- | --- |
-| **Player entities** — pilots, mechs, crawlers, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); IndexedDB only in a gate-off build |
+| **Player entities** — pilots, mechs, crawlers, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); nothing when anonymous (in-memory backend) |
 | **Accounts, Games, invites, ownership, proposals, crew** | Convex `useQuery` / `useMutation` from `convex/react` | Convex, always |
 
 Resolve the connection mode with `useConnection()` or
@@ -36,10 +36,12 @@ await useEntityStore.getState().update('pilots', id, { hp: next })
 ```
 
 The store's call shape is the same in every mode. `src/stores/entityBackend.ts`
-picks the backend (`selectBackend()` → `local | remote | blocked | memory`):
-`memory` is an anonymous visitor in a production build (nothing persists),
-`blocked` is signed-in-and-offline — **read-only**, not a write queue, so check
-`canWrite` before offering the affordance.
+picks the backend (`selectBackend()` → `remote | blocked | memory`): `memory` is
+any anonymous visitor, in every build (nothing persists — there is no `local`
+backend any more), `blocked` is signed-in-and-offline or mid-handshake —
+**read-only**, not a write queue, so check `canWrite` before offering the
+affordance. A unit test that asserts durability runs signed in via
+`withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
 
 ## Accounts / Games / ownership — Convex hooks
 
