@@ -39,6 +39,7 @@ import { makeStore } from './crud'
 import { _clearMemoryStores } from './memoryStore'
 import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
+import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
 
 /**
  * Current IndexedDB schema version. Bump together with a migrations/ entry.
@@ -165,6 +166,7 @@ export function openItunDatabase(
         // already fails the open with the failure logged below.
         try {
           await runMigrationsFn(db, transaction, oldVersion)
+          noteLegacyUpgrade(oldVersion, DB_VERSION)
         } catch (err) {
           console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
           // Guard against a transaction that already settled (e.g. auto-committed
@@ -209,6 +211,9 @@ export function openItunDatabase(
           return
         }
         finish(() => resolve(db))
+        // Only now: an upgrade whose transaction aborted did not happen, and
+        // must not be counted. See `upgradeTelemetry.ts`.
+        void flushLegacyUpgrade()
       },
       (err: unknown) => finish(() => reject(err))
     )
