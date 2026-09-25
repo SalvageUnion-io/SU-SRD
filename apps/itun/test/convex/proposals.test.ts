@@ -133,6 +133,58 @@ describe('the Mediator proposes; the player writes', () => {
     expect((mech?.body as { currentSP: number } | undefined)?.currentSP).toBe(10)
   })
 
+  test('a pilot stored before a field was retired still takes a proposal', async () => {
+    // `equipmentLoadouts` left the strict PilotSchema (audit AP-18), but rows
+    // written while it existed still carry it. Apply re-parses the STORED body,
+    // so without the legacy normaliser every proposal to such a pilot would be
+    // refused as not fitting the sheet — and the row is healed on the way.
+    const t = testConvex()
+    const { gm, player, gameId } = await seedTable(t)
+    const pilotId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId,
+          ownerId: player.userId,
+          body: {
+            id: 'p1',
+            schemaVersion: 1,
+            name: 'Yara Voss',
+            callsign: 'Ghost',
+            classRef: 'scavenger',
+            abilities: [],
+            equipment: [],
+            motto: '',
+            keepsake: '',
+            appearance: '',
+            background: '',
+            conditions: [],
+            currentHP: 10,
+            partners: [],
+            equipmentLoadouts: {},
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          updatedAt: 1,
+        })
+    )
+    await gm.as.mutation(api.proposals.propose, {
+      entityId: pilotId,
+      entityType: 'pilot',
+      field: 'currentHP',
+      before: 10,
+      after: 7,
+    })
+    const [pending] = await player.as.query(api.proposals.pending, { gameId })
+    await player.as.mutation(api.proposals.apply, {
+      proposalId: pending?._id as Id<'changeLog'>,
+    })
+
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
+    const body = row?.body as Record<string, unknown> | undefined
+    expect(body?.currentHP).toBe(7)
+    expect(body && 'equipmentLoadouts' in body).toBe(false)
+  })
+
   test("a player cannot propose to their own or a crewmate's entity", async () => {
     const t = testConvex()
     const { player, mechId } = await seedTable(t)

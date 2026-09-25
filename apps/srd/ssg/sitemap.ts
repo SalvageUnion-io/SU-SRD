@@ -40,17 +40,11 @@ const SITEMAP_ENTRY_LIMIT = 45_000
  * The URL filter. It takes the FULL page URL.
  *
  * - `/image`    — image routes are not pages
- * - `/greembeem`— standalone noindex pastiche document
  * - `.og.png`   — the generated per-entity social images
  * - `/og-card`  — the build-only screenshot surface
  */
 function passesSitemapFilter(page: string): boolean {
-  return (
-    !page.includes('/image') &&
-    !page.includes('/greembeem') &&
-    !page.includes('.og.png') &&
-    !page.includes('/og-card')
-  )
+  return !page.includes('/image') && !page.includes('.og.png') && !page.includes('/og-card')
 }
 
 /**

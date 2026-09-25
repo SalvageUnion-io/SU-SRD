@@ -93,34 +93,69 @@ function read(rel: string): string {
 
 const barrel = read('index.ts')
 
-// 1. Discover component definitions and the file each is defined in.
-const componentFiles = [...new Glob('**/*.tsx').scanSync(SRC)].filter(
-  (f) => !f.includes('.stories.') && !f.includes('__tests__')
-)
-const definedIn = new Map<string, string>()
-for (const f of componentFiles) {
-  const src = read(f)
-  for (const m of src.matchAll(/export function ([A-Z][A-Za-z0-9]+)/g)) {
-    if (m[1] && !definedIn.has(m[1])) definedIn.set(m[1], f)
-  }
-  for (const m of src.matchAll(/export const ([A-Z][A-Za-z0-9]+)\s*=\s*(?!createContext)/g)) {
-    if (m[1] && !definedIn.has(m[1])) definedIn.set(m[1], f)
-  }
+/**
+ * App-owned component folders whose stories this catalog also serves (see
+ * `.ladle/config.mjs`). Components that only one app used were moved out of the
+ * library in the component-lib boundary audit (PK-02) and took their stories
+ * with them; the catalog still shows them, so the taxonomy and co-location
+ * rules below still apply to them. Paths are relative to SRC, like the rest.
+ */
+const APP_STORY_ROOTS = ['../../../apps/itun/src/components', '../../../apps/srd/src/components']
+
+/** `**` + pattern under SRC and every app root, as SRC-relative paths. */
+function scan(pattern: string, { apps }: { apps: boolean }): string[] {
+  const roots = apps ? ['.', ...APP_STORY_ROOTS] : ['.']
+  return roots.flatMap((root) =>
+    [...new Glob(pattern).scanSync(join(SRC, root))].map((f) => (root === '.' ? f : `${root}/${f}`))
+  )
 }
 
-// 2. Keep only components re-exported from the public barrel.
-const publicComponents = [...definedIn.keys()]
+const isComponentFile = (f: string) => !f.includes('.stories.') && !f.includes('__tests__')
+
+// 1. Discover component definitions and the directories each is defined in.
+//    Library and app files alike, since an app story must sit beside the app
+//    component it demonstrates. A name can be defined in more than one place,
+//    so each maps to a SET of directories.
+function definitionsIn(files: string[]): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>()
+  const add = (name: string | undefined, file: string) => {
+    if (!name) return
+    out.set(name, (out.get(name) ?? new Set()).add(dirname(file)))
+  }
+  for (const f of files) {
+    const src = read(f)
+    for (const m of src.matchAll(/export function ([A-Z][A-Za-z0-9]+)/g)) add(m[1], f)
+    for (const m of src.matchAll(/export const ([A-Z][A-Za-z0-9]+)\s*=\s*(?!createContext)/g))
+      add(m[1], f)
+  }
+  return out
+}
+
+const libDefinitions = definitionsIn(scan('**/*.tsx', { apps: false }).filter(isComponentFile))
+const allDefinitions = definitionsIn(scan('**/*.tsx', { apps: true }).filter(isComponentFile))
+
+// 2. Keep only LIBRARY components re-exported from the public barrel. Coverage
+//    is a promise about this package's public API; an app component has no
+//    barrel to be public in.
+const publicComponents = [...libDefinitions.keys()]
   .filter((name) => new RegExp(`\\b${name}\\b`).test(barrel))
   .sort()
 
-/** Directory of the file a component is defined in, or null if it isn't ours. */
+/** The library directory a public component is defined in, or null. */
 function dirOfComponent(name: string): string | null {
-  const file = definedIn.get(name)
-  return file ? dirname(file) : null
+  const dirs = libDefinitions.get(name)
+  return dirs ? ([...dirs][0] ?? null) : null
 }
 
-// 3. Index every story file: its directory, its meta title, and what it imports.
-const storyFiles = [...new Glob('**/*.stories.tsx').scanSync(SRC)]
+/** Whether `name` is a component defined in `dir` (library or app). */
+function isDefinedIn(name: string, dir: string): boolean {
+  return allDefinitions.get(name)?.has(dir) ?? false
+}
+
+// 3. Index every story file — library and app — : its directory, its meta
+//    title, and what it imports.
+const storyFiles = scan('**/*.stories.tsx', { apps: true })
+const libStoryFiles = scan('**/*.stories.tsx', { apps: false })
 
 /**
  * Extract ONLY the default-export META title: the first `title: '...'` AFTER the
@@ -252,7 +287,7 @@ describe('Ladle catalog: taxonomy', () => {
       const segments = title.split('/')
       const last = (segments.at(-1) ?? '').replace(/ /g, '')
       const sub = segments.length === 3 ? (segments[1] ?? '').replace(/ /g, '') : ''
-      const local = [...s.imports].filter((n) => dirOfComponent(n) === s.dir)
+      const local = [...s.imports].filter((n) => isDefinedIn(n, s.dir))
       const candidates = new Set([s.base, ...local])
       const matches = [...candidates].some(
         (c) =>
@@ -291,7 +326,7 @@ describe('Ladle catalog: co-location', () => {
     const offenders = stories
       .filter((s) => !s.file.startsWith('stories/'))
       .filter((s) => !PROTOTYPE_STORIES.has(s.file))
-      .filter((s) => ![...s.imports].some((n) => dirOfComponent(n) === s.dir))
+      .filter((s) => ![...s.imports].some((n) => isDefinedIn(n, s.dir)))
       .map(
         (s) =>
           `${s.file}: imports no component defined in its own directory —` +
@@ -351,7 +386,7 @@ describe('Ladle catalog: co-location', () => {
       )
     }
 
-    const storyImports = new Set(storyFiles.flatMap(importsOf))
+    const storyImports = new Set(libStoryFiles.flatMap(importsOf))
     const otherImports = new Set(
       [...modules, ...[...new Glob('**/*.test.{ts,tsx}').scanSync(SRC)]].flatMap(importsOf)
     )

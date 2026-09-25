@@ -13,9 +13,9 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { SheetSkeleton } from 'component-lib'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { Sheet } from '../../../components/sheet/Sheet'
+import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
 import type { EntityRef } from '../../../lib/schemas/entity'
 import { useEntityStore } from '../../../stores/entityStore'
 

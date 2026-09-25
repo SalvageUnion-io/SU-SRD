@@ -24,7 +24,6 @@
  * of the CLIENT island, where the narrow list is the point.
  */
 
-import { StaticEntityContent } from 'component-lib'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { extractStaticEntitySummary } from '../lib/gameData'
@@ -33,6 +32,7 @@ import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { resolveTraitHref } from '../lib/staticLinks'
 import { Island } from '../runtime/Island'
 import { EntityCardStatic } from './EntityCardStatic'
+import { StaticEntityContent } from './StaticEntityContent'
 
 type EntityViewProps = {
   item: SURefEntity

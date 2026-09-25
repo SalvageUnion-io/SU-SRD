@@ -45,11 +45,9 @@ export type DocumentMeta = {
  *
  * A bare page is still a full member of the island system: the built asset tags
  * and the island-props script are injected into the rendered string either way,
- * and the island-collection window is open around the render. That is the whole
- * difference from `registerDocument` in `ssg/render.tsx`, which renders a
- * standalone document with NO assets and NO island support — right for a page
- * that ships neither (greembeem), wrong for one whose entire purpose is to mount
- * an island against the site stylesheet (og-card).
+ * and the island-collection window is open around the render. A document
+ * that needs neither assets nor islands is not a page at all: it is a static
+ * file in `public/` (as `greembeem` is — audit AP-18).
  */
 export type DocumentShell = 'base' | 'bare'
 
@@ -69,8 +67,7 @@ export type PageResult = { meta: DocumentMeta; children: ReactNode; shell?: Docu
  * than indexing the record, so a missing asset throws instead of rendering an
  * empty `src`.
  *
- * Empty for surfaces that get no build assets at all — endpoints, and the
- * standalone `registerDocument` pages.
+ * Empty for surfaces that get no build assets at all — endpoints.
  */
 export type BuiltAssets = Readonly<Record<string, string>>
 

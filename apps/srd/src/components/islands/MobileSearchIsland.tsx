@@ -1,10 +1,10 @@
-import { MobileSearchDialog } from 'component-lib'
+import { MobileSearchDialog } from '../MobileSearchDialog'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
 /**
  * Mobile top-nav search for the srd. The generic trigger + sheet chrome lives
- * in component-lib's `MobileSearchDialog`; srd keeps its `SearchIsland`
+ * in `MobileSearchDialog`; srd keeps its `SearchIsland`
  * combobox and injects it as the sheet content (with the width override that
  * makes the fixed-width combobox input fill the sheet).
  */

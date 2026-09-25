@@ -12,8 +12,7 @@
  * the chooser reads as a sibling surface, not a bolted-on screen.
  */
 
-import { ModeDoor } from 'component-lib'
-import { cn } from '../../lib/utils'
+import { cn, ModeDoor } from 'component-lib'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { AppLink } from '../shared/AppLink'
 

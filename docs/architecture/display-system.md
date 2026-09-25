@@ -127,7 +127,7 @@ it in `referenceEntity/pattern/`.
 Prefer **data-shape checks** (`'coreTrees' in data`) over schema-name
 comparisons, so the display layer stays schema-agnostic and new entity types
 work without edits. `getClassSelections`
-(`referenceEntity/classSelectionUtils.ts`) is the pattern.
+(`apps/srd/src/lib/classSelections.ts`) is the pattern.
 
 ## Choices and grants
 

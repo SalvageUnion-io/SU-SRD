@@ -30,3 +30,8 @@
 @import './index.css' layer(su-base);
 
 @source '..';
+/* App-owned components whose stories this catalog also serves (see
+ * `.ladle/config.mjs`). Without these, a class used only there would render
+ * unstyled in Ladle while looking fine in the app. */
+@source '../../../../apps/itun/src/components';
+@source '../../../../apps/srd/src/components';

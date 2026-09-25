@@ -161,11 +161,10 @@ const STYLING_BASE: Record<string, string> = {
     "@layer theme, base, su-base, components, utilities;\n@import 'component-lib/styles/index.css' layer(su-base);\n",
   'apps/srd/src/styles/global.css':
     "@layer theme, base, su-base, components, utilities;\n@import 'component-lib/styles/index.css' layer(su-base);\n",
-  'packages/component-lib/src/components/dashboard/DashboardCanvas.css':
-    '.pc-used { color: red }\n',
-  'packages/component-lib/src/components/dashboard/DashboardGrid.css': '',
-  'packages/component-lib/src/components/dashboard/instruments.css': '',
-  'packages/component-lib/src/components/dashboard/Thing.tsx':
+  'packages/component-lib/src/styles/dashboard/DashboardCanvas.css': '.pc-used { color: red }\n',
+  'packages/component-lib/src/styles/dashboard/DashboardGrid.css': '',
+  'packages/component-lib/src/styles/dashboard/instruments.css': '',
+  'apps/itun/src/components/dashboard/Thing.tsx':
     'export const T = () => <div className="pc-used" />\n',
 }
 

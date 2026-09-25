@@ -11,9 +11,9 @@
  * make `ssg/` a runtime dependency of the app.
  */
 
-import { Footer } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { DocumentMeta } from '../../ssg/types'
+import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'

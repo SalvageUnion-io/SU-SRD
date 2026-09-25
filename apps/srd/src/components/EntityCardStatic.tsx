@@ -1,14 +1,14 @@
 import {
-  ClassAbilityTree,
   EntityDetailLinkProvider,
   EntityHrefProvider,
-  getClassSelections,
   PatternHrefProvider,
   ReferenceEntityCard,
 } from 'component-lib'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { getClassSelections } from '../lib/classSelections'
 import { srdEntityHref } from '../lib/entityHref'
 import { srdPatternHref } from '../lib/patternHref'
+import { ClassAbilityTree } from './ClassAbilityTree'
 
 type EntityCardStaticProps = {
   item: SURefEntity

@@ -34,7 +34,8 @@
  *
  * Measured at the time of writing: 1,039 pages, **3** distinct executable
  * inline scripts — the `js`-class snippet on every page, plus one each on
- * `/about` and `/greembeem`.
+ * `/about` and `/greembeem` (a static file from `public/`, hashed all the same
+ * because this reads the finished `dist`).
  */
 
 import { createHash } from 'node:crypto'

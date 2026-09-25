@@ -150,7 +150,7 @@ that preloads `npcs`, `crawler-bays`, `crawlers`, `actions` and `traits`, and
 3. **Actions & traits.** Pick from the reference lists. Selected actions render
    as compact, header-only `ReferenceEntityCard`s (the repo's listing default).
 4. **Identity.** Name, position, description, keepsake, motto, with
-   `RollTableButton` (component-lib `components/wizard/`) wherever the data has a table to roll on.
+   `RollTableButton` (`apps/itun/src/components/wizard/`) wherever the data has a table to roll on.
 5. **Review.** The finished card, then create.
 
 Step gates live in `src/lib/rules/creation.ts` with the others. There are almost

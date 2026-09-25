@@ -65,8 +65,8 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // --- Advancement, on the live sheet ---
   //
   // This used to walk /pilots/$id → /pilots/$id/edit and re-run the wizard in
-  // "edit mode". Both routes are gone: /pilots/$id is now a bare redirect
-  // (see its route file) and the per-entity detail page was collapsed into the
+  // "edit mode". Both routes are gone: /pilots/$id is now a Worker 301
+  // (src/worker/retiredRoutes.ts) and the detail page was collapsed into the
   // live sheet, which under ADR-021 is the Free Edit surface — you edit in
   // place rather than replaying Guided Creation. The INTENT is unchanged and is
   // what matters: an ability beyond the creation budget can be added, and it

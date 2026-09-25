@@ -20,6 +20,7 @@ import type { EntityRowStat } from 'component-lib'
 import {
   Button,
   buttonVariants,
+  cn,
   EmptyState,
   EntityRow,
   ModalShell,
@@ -44,7 +45,6 @@ import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
-import { cn } from '../../lib/utils'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'

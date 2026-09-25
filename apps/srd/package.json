@@ -21,6 +21,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@base-ui/react": "catalog:",
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
     "@sentry/browser": "catalog:",

@@ -1,9 +1,8 @@
 /**
- * The route registry boundary: `resolveRoutes` / `renderRoute` / `register` /
- * `registerDocument`.
+ * The route registry boundary: `resolveRoutes` / `renderRoute` / `register`.
  *
  * `ssg/routes.ts` is the one place that says what the site emits, and it says it
- * entirely through these four functions. What they must get right is the
+ * entirely through these three functions. What they must get right is the
  * `RouteContext` a page is handed (its params, its props, and a `url`/`pathname`
  * that always carry a trailing slash) and the two things `register` erases on
  * the way out: the concrete route path, and whether that path is sitemap-eligible.
@@ -14,9 +13,8 @@
 
 import { describe, expect, it } from 'bun:test'
 import { SITE_URL } from '../../src/lib/constants'
-import { Island } from '../../src/runtime/Island'
 import type { BuildAssets } from '../document'
-import { register, registerDocument, resolveRoutes, withTrailingSlash } from '../render'
+import { register, resolveRoutes, withTrailingSlash } from '../render'
 import type { PageModule, RouteContext } from '../types'
 
 const NO_ASSETS: BuildAssets = { scripts: [], styles: [], built: {} }
@@ -181,85 +179,5 @@ describe('register', () => {
 
     routes[0]?.render(NO_ASSETS)
     expect(contexts).toHaveLength(1)
-  })
-})
-
-describe('registerDocument', () => {
-  it('renders the page’s own <html> with no shell and no injected assets', () => {
-    const registration = registerDocument({
-      pattern: '/greembeem',
-      document: () => (
-        <html lang="en">
-          <head>
-            <title>Greembeem</title>
-          </head>
-          <body>
-            <p>pastiche</p>
-          </body>
-        </html>
-      ),
-    })
-
-    const routes = registration.resolve()
-    expect(routes).toHaveLength(1)
-    expect(routes[0]?.route).toBe('/greembeem')
-
-    const html = routes[0]?.render(ASSETS) ?? ''
-    expect(html).toBe(
-      '<!doctype html><html lang="en"><head><title>Greembeem</title></head>' +
-        '<body><p>pastiche</p></body></html>'
-    )
-    // Everything BaseLayout would have added is exactly what must NOT appear on
-    // these pages. `ssg/snapshot.ts` catches the same slip over the real build;
-    // these assertions catch it here, without needing one.
-    expect(html).not.toContain('rel="canonical"')
-    expect(html).not.toContain('og:title')
-    expect(html).not.toContain('/assets/styles-CAFEBABE.css')
-    expect(html).not.toContain('/assets/islands-DEADBEEF.js')
-  })
-
-  it('is never sitemap-eligible — there is no opt-in', () => {
-    const registration = registerDocument({
-      pattern: '/greembeem',
-      document: () => <html lang="en" />,
-    })
-    expect(registration.sitemap).toBe(false)
-  })
-
-  it('still gives the document a trailing-slashed url and an empty builtAssets', () => {
-    let seen: RouteContext<Record<string, string>, undefined> | undefined
-    registerDocument({
-      pattern: '/greembeem',
-      document: (ctx) => {
-        seen = ctx
-        return <html lang="en" />
-      },
-    })
-      .resolve()[0]
-      ?.render(ASSETS)
-
-    expect(seen?.pathname).toBe('/greembeem/')
-    expect(seen?.url.href).toBe(`${SITE_URL}/greembeem/`)
-    expect(seen?.params).toEqual({})
-    expect(seen?.builtAssets).toEqual({})
-  })
-
-  it('fails the build if a document page renders an <Island>', () => {
-    // These pages ship no islands entry, so a placeholder here would be a
-    // component that never mounts — and its props would be dropped silently.
-    const registration = registerDocument({
-      pattern: '/greembeem',
-      document: () => (
-        <html lang="en">
-          <body>
-            <Island name="SearchIsland" />
-          </body>
-        </html>
-      ),
-    })
-
-    expect(() => registration.resolve()[0]?.render(NO_ASSETS)).toThrow(
-      'rendered outside an island collection window'
-    )
   })
 })

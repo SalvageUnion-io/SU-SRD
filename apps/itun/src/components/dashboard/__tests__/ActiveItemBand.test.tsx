@@ -22,7 +22,7 @@ describe('ActiveItemBand', () => {
 
   // The band's stamp carries the MOUNT STATE, not the entity name: the rail
   // above it already stamps the identity, and the two used to render the same
-  // string twice, ~40px apart. See ActiveItemBandView.stampLabel.
+  // string twice, ~40px apart. See ActiveItemBandModel.stampLabel.
   test('boarded → shows the mech band and its bays', () => {
     render(<ActiveItemBand mech={mech} pilot={null} />)
     expect(screen.getByText('Boarded')).toBeTruthy()

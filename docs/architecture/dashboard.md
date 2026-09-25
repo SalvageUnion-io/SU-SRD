@@ -5,10 +5,11 @@
 > `apps/itun` (ITUN), composing a player's **Pilot + Mech + Crawler**
 > into one screen. (Named the "Play Cockpit" / "Pit HUD" in earlier design passes;
 > renamed to **Dashboard** — the former build-list home is now the **Roster**.)
-> **Built and shipped** — the store-wired containers live in
-> `apps/itun/src/components/dashboard/` (with tests in its `__tests__/`), the
-> presentational instruments in `packages/component-lib/src/components/dashboard/`,
-> and the route is `/dashboard/$id` (`apps/itun/src/routes/dashboard/$id.tsx`).
+> **Built and shipped** — the whole Dashboard, store-wired containers and
+> presentational instruments alike, lives in `apps/itun/src/components/dashboard/`
+> (with tests in its `__tests__/`), its `.pc-*` stylesheets in
+> `packages/component-lib/src/styles/dashboard/`, and the route is
+> `/dashboard/$id` (`apps/itun/src/routes/dashboard/$id.tsx`).
 > The design was explored turn-by-turn (v18→v62), the
 > **layout locked at v52**, prototyped as self-contained HTML, then implemented
 > across Phases 1–8. This document is the design record for that shipped surface.
@@ -254,8 +255,8 @@ entity-display system exactly as every other surface does — no Dashboard fork,
 Dashboard-only entity renderer. Concretely: `ReferenceEntityCard` is THE renderer
 for any SRD entity in the display, and `RollTable` is THE roll-table renderer.
 Both are consumed by `DisplayPanel`
-(`packages/component-lib/src/components/dashboard/DisplayPanel.tsx`) — read that
-file for the live wiring.
+(`apps/itun/src/components/dashboard/DisplayPanel.tsx`) — read that file for the
+live wiring.
 
 Per `.claude/rules/display-system.md`, component/prop inventories are deliberately
 **not** reproduced here: they go stale and an agent following them reaches for
@@ -270,21 +271,25 @@ access to the package. They are gone from the real build.
 
 ### 3.2 New Dashboard-specific components
 
-Everything that is _instrument_, not _document_, is new. It landed **split by
-responsibility**, not all in the app:
+Everything that is _instrument_, not _document_, is new, and all of it lives in
+ITUN (`apps/itun/src/components/dashboard/`):
 
-- **Presentational instruments** live in `component-lib`
-  (`packages/component-lib/src/components/dashboard/`). Barrel-exported:
-  `DashboardCanvas`, `DashboardGrid`, `RailBar`, `ActiveItemBand`, `Dial`,
-  `DialConfig`, `DisplayPanel`, `ActionsDeck`, `DowntimeWizard`. Internal to that
-  directory (not barrel-exported): `DashboardGauge`, `SrdExplorer`,
-  `TablePickerOverlay`. These are legacy-tier (bespoke dark-world CSS in `DashboardCanvas.css` /
-  `DashboardGrid.css` / `instruments.css`, not yet on the canon tokens). The components
-  import **no** CSS: the three files ship bundled as the package export
-  `component-lib/styles/dashboard.css`, imported once by ITUN's `Dashboard.tsx`. A
-  component-side `import './x.css'` rode the barrel into srd's stylesheet (audit PK-01).
-- **Store-wired containers** live in `apps/itun/src/components/dashboard/` and
-  fill those shells with entity/rules state. Full tree in §6.
+- **Presentational instruments** — `DashboardCanvas`, `DashboardGrid`, `RailBar`,
+  `Dial`, `DashboardGauge`, `SrdExplorer`, `TablePickerOverlay`. They landed in
+  `component-lib` first, with ITUN as their only consumer, and moved into the
+  app in the component-lib boundary audit (PK-02). Their Ladle stories moved
+  with them and are still served by the one catalog.
+- **Store-wired instruments** — `ActionsDeck`, `ActiveItemBand`, `DialConfig`,
+  `DisplayPanel`, `DowntimeWizard`. Each used to be two files, a presentational
+  view in `component-lib` and a binding here importing it `as XView`; each is
+  one file now (PK-03), exporting the bound component and, where a story needs
+  it, its presentational `…Frame` half.
+- **Styling** is still the library's: the legacy-tier dark-world CSS
+  (`DashboardCanvas.css` / `DashboardGrid.css` / `instruments.css`, not yet on the
+  canon tokens) lives in `packages/component-lib/src/styles/dashboard/` and ships
+  as the package export `component-lib/styles/dashboard.css`, imported once by
+  `Dashboard.tsx`. No component imports CSS: a component-side `import './x.css'`
+  once rode the barrel into srd's stylesheet (audit PK-01). Full tree in §6.
 - The segmented "instrument gauge" (`vbar`/`segGauge`/`gcells` in the mockup)
   shipped as `DashboardGauge`, a Dashboard-local primitive distinct from
   `component-lib`'s `VitalGauge`. Two gauges exist; if that is revisited,
@@ -310,8 +315,7 @@ What survives of the vocabulary:
 
 **Dashboard contract:** entity-level buttons and drill-in links are pushed as
 `controls` on `ReferenceEntityCard`. `DisplayPanel`
-(`packages/component-lib/src/components/dashboard/DisplayPanel.tsx` and its ITUN
-container `apps/itun/src/components/dashboard/DisplayPanel.tsx`) is the reference
+(`apps/itun/src/components/dashboard/DisplayPanel.tsx`) is the reference
 implementation — read it rather than trusting a description here.
 
 ### 3.4 Slot injection points
@@ -513,10 +517,8 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 
 ## 6. Component architecture
 
-The shipped split is: presentational shells in
-`packages/component-lib/src/components/dashboard/`, store-wired containers in
-`apps/itun/src/components/dashboard/`. **Those two directories are the roster** —
-read them rather than trusting a tree here. The composition below reflects what
+Everything lives in `apps/itun/src/components/dashboard/`. **That directory is
+the roster** — read it rather than trusting a tree here. The composition below reflects what
 `Dashboard.tsx` actually renders; every name in it is a real module.
 
 ```

@@ -20,11 +20,10 @@
  * // deliberately omitted rather than rendered dead.
  */
 
-import { Field } from 'component-lib'
+import { cn, Field } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { Mech } from '../../lib/schemas/mech'
-import { cn } from '../../lib/utils'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { SheetPatch } from './sheetViewProps'
 

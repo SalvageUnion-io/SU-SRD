@@ -25,18 +25,19 @@
  * ...but not the parts of it srd never ships (audit PK-01/PK-05). Tailwind
  * emits a utility for every class-shaped token it finds under an `@source`, so
  * scanning stories, tests and the ITUN-only folders put ~9% of srd's selectors
- * in its stylesheet for markup no srd page renders. `dashboard/`, `sheet/` and
- * `wizard/` are rendered by ITUN alone — srd imports nothing from them, and
- * nothing srd renders imports them either. If srd ever renders one, delete its
- * line here, or its utilities will silently be missing.
+ * in its stylesheet for markup no srd page renders. The ITUN-only folders
+ * (`dashboard/`, `sheet/`, `wizard/`) have since left the library for ITUN
+ * itself (audit PK-02), so only the story and test exclusions remain.
  */
 @source not '../../../../packages/component-lib/src/**/*.stories.tsx';
 @source not '../../../../packages/component-lib/src/**/*.test.{ts,tsx}';
 @source not '../../../../packages/component-lib/src/**/__tests__';
 @source not '../../../../packages/component-lib/src/stories';
-@source not '../../../../packages/component-lib/src/components/dashboard';
-@source not '../../../../packages/component-lib/src/components/sheet';
-@source not '../../../../packages/component-lib/src/components/wizard';
+/*
+ * srd's own site-only components keep their Ladle stories beside them (see
+ * `packages/component-lib/.ladle/config.mjs`); their demo markup is not srd's.
+ */
+@source not '../**/*.stories.tsx';
 
 /*
  * Cross-document view transitions.

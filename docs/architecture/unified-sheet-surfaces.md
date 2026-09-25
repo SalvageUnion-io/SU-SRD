@@ -358,11 +358,15 @@ and the measurement was what made the phase safe to close.
 any phase can violate it.
 
 **Why it is this early.** There is precedent in this repo for a route quietly
-ceasing to resolve and only a bookmark noticing:
-`apps/itun/src/routes/sheet/$kind/$id_.share.tsx` exists solely to stop a
-retired URL dead-ending, and its header explains that the edge rule alone was
-not enough because the service worker answers navigations from cache. A
-unification that moves route families will meet that same problem three times.
+ceasing to resolve and only a bookmark noticing. The retired Share Snapshot
+URL (`/sheet/:kind/:id/share`) once needed its own client-side redirect route,
+because the Worker's 301 alone was not enough: the service worker answered the
+navigation from its precache and the Worker never saw it. That route is gone;
+`apps/itun/src/worker/retiredRoutes.ts` now feeds both the Worker's 301 and the
+service worker's `navigateFallbackDenylist`, and it is the denylist half that
+makes the 301 sufficient. Do not reintroduce per-URL redirect routes — add the
+retired shape to that table. A unification that moves route families will meet
+that same problem three times.
 
 **Work.**
 
@@ -371,12 +375,13 @@ unification that moves route families will meet that same problem three times.
   coverage in `apps/itun/src/worker/__tests__/routing.test.ts` and the route
   tests in `apps/itun/src/routes/__tests__/`.
 - A retired-URL table: every share URL shape the app has ever served, and what
-  answers it now. `apps/itun/src/routes/__tests__/retiredShareRoute.test.tsx` is
-  the pattern; the table is the thing that is new, because the rule is about the
-  set and not about one route.
-- The guard must cover **both halves of the PWA problem**: the route registered
-  in the app, and the Worker's own path handling in
-  `apps/itun/src/worker/index.ts`.
+  answers it now. `apps/itun/src/worker/retiredRoutes.ts` is that table for the
+  retired app routes (the Worker 301s each one, and the service worker's
+  navigation denylist is built from it); share URLs belong in the same table,
+  because the rule is about the set and not about one route.
+- The guard must cover **both halves of the PWA problem**: the service worker
+  answering a navigation from its precache, and the Worker's own path handling
+  in `apps/itun/src/worker/index.ts`.
 
 **Gate.**
 
@@ -555,8 +560,8 @@ costs a permanent second route family. Redirected requires knowing what to
 redirect *to*, which requires the index from decision **a**, which does not
 exist for ownerless snapshots — so "redirect" may be undecidable for exactly the
 links that have been in the wild longest. Note that a redirect must satisfy the
-governing rule, which the service-worker problem in
-`apps/itun/src/routes/sheet/$kind/$id_.share.tsx` shows is not free.
+governing rule, which the service-worker problem (see
+`apps/itun/src/worker/retiredRoutes.ts`) shows is not free.
 
 ---
 

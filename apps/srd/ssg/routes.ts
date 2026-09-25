@@ -17,7 +17,6 @@ import { botPrivacyPage } from '../src/pages/bot/privacy.page'
 import { botTermsPage } from '../src/pages/bot/terms.page'
 import { changelogPage } from '../src/pages/changelog.page'
 import { discordPage } from '../src/pages/discord.page'
-import { greembeemPage } from '../src/pages/greembeem.page'
 import { indexPage } from '../src/pages/index.page'
 import { ogCardPage } from '../src/pages/og-card.page'
 import { schemaListingPage } from '../src/pages/schema/[schemaId]/index.page'
@@ -25,7 +24,7 @@ import { patternPage } from '../src/pages/schema/[schemaId]/item/[itemId]/patter
 import { itemPage } from '../src/pages/schema/[schemaId]/item/[itemId].page'
 import { searchPage } from '../src/pages/search.page'
 import type { RouteRegistration } from './render'
-import { register, registerDocument } from './render'
+import { register } from './render'
 
 export const routes: RouteRegistration[] = [
   register(indexPage),
@@ -46,11 +45,9 @@ export const routes: RouteRegistration[] = [
   // `sitemap: false` keeps it out of sitemap-0.xml (the URL filter in
   // ssg/sitemap.ts also drops `/og-card`).
   register(ogCardPage, { sitemap: false }),
-  // SITEMAP_EXCLUDED. A standalone document (its own <html>, its own <style>,
-  // none of the site's css or js) — hence `registerDocument`, not `register`.
-  // `registerDocument` is unconditionally `sitemap: false`, and ssg/sitemap.ts
-  // also filters any `/greembeem` path. It is also noindexed.
-  registerDocument(greembeemPage),
+  // `/greembeem` is not a route: it is a finished static document with no data
+  // behind it any more, so it ships as `public/greembeem/index.html` and Vite
+  // copies it into dist like any other public file (audit AP-18).
 
   // ---------------------------------------------------------------------
   // Endpoints (llms.txt, search-index.json, schema/[schemaId].json) are NOT

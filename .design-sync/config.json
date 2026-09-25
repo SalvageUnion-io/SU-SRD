@@ -39,10 +39,6 @@
     "ReferenceEntityCard": {
       "viewport": "900x1900"
     },
-    "ClassAbilityTree": {
-      "cardMode": "column",
-      "viewport": "900x1600"
-    },
     "Content": {
       "cardMode": "column",
       "viewport": "900x1200"
@@ -50,26 +46,11 @@
     "MasonryColumns": {
       "viewport": "900x1200"
     },
-    "StaticEntityContent": {
-      "viewport": "900x1100"
-    },
     "VitalGauge": {
       "viewport": "900x900"
     },
     "Stat": {
       "viewport": "900x900"
-    },
-    "ClassAbilityStep": {
-      "viewport": "900x1900"
-    },
-    "EquipmentStep": {
-      "viewport": "900x1900"
-    },
-    "CrawlerTypeSelectStep": {
-      "viewport": "900x1900"
-    },
-    "SystemsList": {
-      "viewport": "900x1400"
     },
     "WizShell": {
       "cardMode": "column",
@@ -79,23 +60,9 @@
       "cardMode": "column",
       "viewport": "900x1100"
     },
-    "BackgroundStep": {
-      "viewport": "900x1000"
-    },
-    "DisplayPanel": {
-      "viewport": "900x1300"
-    },
-    "ActionsDeck": {
-      "viewport": "900x1300"
-    },
     "ModalShell": {
       "cardMode": "single",
       "primaryStory": "Action",
-      "viewport": "900x700"
-    },
-    "MobileSearchDialog": {
-      "cardMode": "single",
-      "primaryStory": "OpenSheet",
       "viewport": "900x700"
     },
     "NavDrawer": {
@@ -134,10 +101,6 @@
       "primaryStory": "Statuses",
       "viewport": "900x700"
     },
-    "ActiveItemBand": {
-      "cardMode": "column",
-      "viewport": "900x900"
-    },
     "AppHeader": {
       "cardMode": "column",
       "viewport": "1200x700"
@@ -161,10 +124,6 @@
     "PatternHrefProvider": {
       "cardMode": "column",
       "viewport": "900x1900"
-    },
-    "SheetHero": {
-      "cardMode": "column",
-      "viewport": "900x900"
     },
     "EntityRow": {
       "viewport": "900x1000"

@@ -82,12 +82,13 @@ voice; `font-body` is prose. A square stamped label is
 
 ## 4. Scoped surfaces
 
-Three scopes re-tone their subtree. Set them on a wrapper, then children read
-`--tone` automatically:
+The live-sheet scopes re-tone their subtree. Set one on a wrapper, then
+children read `--tone` automatically:
 
 - `sheet--pilot` / `sheet--mech` / `sheet--crawler` — the live-sheet surfaces.
-- `pc-root` with `data-mount="mech|pilot|crawler"` — the dashboard HUD scope.
-  **Every `pc-*` instrument requires it**; outside it they are unstyled.
+
+(The dashboard HUD's `pc-root` scope and its `pc-*` instruments belong to the
+ITUN app, not this design system, and are not in its stylesheet.)
 
 Dashboard rule worth knowing: it is **warm-paper instruments on a dark ground**.
 `bg-ink-deep` goes *behind* things; the instrument chassis is `bg-band-cream`,

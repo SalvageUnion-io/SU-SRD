@@ -15,9 +15,8 @@
  * accessibility regression, not a consolidation.
  */
 
-import { buttonVariants } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { cn } from '../../lib/utils'
 import { AppLink } from './AppLink'
 
 /** Full-viewport centering shell every standalone panel screen sits in. */

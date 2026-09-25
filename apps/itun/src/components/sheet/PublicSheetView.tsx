@@ -8,13 +8,13 @@
  * every route (audit AP-11). Tests render it directly.
  */
 
-import { buttonVariants, SheetSkeleton } from 'component-lib'
+import { buttonVariants, cn } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
-import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 import { PublicSheet } from './PublicSheet'
+import { SheetSkeleton } from './SheetSkeleton'
 
 const KINDS = ['pilot', 'mech', 'crawler'] as const
 type PublicKind = (typeof KINDS)[number]

@@ -1,12 +1,3 @@
-/**
- * render — turn one route into an HTML string.
- *
- * The same entry point is used by `ssg/build.ts` and (later) `ssg/dev.ts`, so
- * dev and prod can never diverge in what they render.
- */
-
-import type { ReactNode } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { SITE_URL } from '../src/lib/constants'
 import type { BuildAssets } from './document'
 import { renderDocument } from './document'
@@ -120,59 +111,5 @@ export function register<Params extends Record<string, string>, Props>(
         route: resolved.route,
         render: (assets: BuildAssets) => renderRoute(resolved, assets),
       })),
-  }
-}
-
-/**
- * A page that owns its ENTIRE document — `<html>` downwards — instead of
- * returning a `<main>` subtree for `BaseLayout` to wrap.
- *
- * Two pages are written this way: `greembeem`
- * (a standalone Wikipedia pastiche with its own reset, its own `<style>` and no
- * site chrome) and `og-card` (a build-only screenshot surface). Both are
- * `noindex` and both are excluded from the sitemap, so none of what
- * `BaseLayout` adds — canonical URL, Open Graph, favicons, nav, footer,
- * speculation rules — belongs on them. Routing them through `renderDocument`
- * would inject all of it, and `ssg/snapshot.ts` reports every one of those tags
- * appearing (canonical, the og/twitter digest, and a `<main>` where there was
- * none).
- *
- * These pages get NO injected build assets: they are not part of the island
- * system, so there is no islands entry to load and no stylesheet to link. A
- * document page must therefore not render `<Island>` — no collection window is
- * open, and `<Island>` throws when it is used outside one.
- */
-export type DocumentPageModule = {
-  /** Route pattern. Document pages are single fixed routes. */
-  pattern: string
-  /** The whole document tree, `<html>` downwards. */
-  document: (ctx: RouteContext<Record<string, string>, undefined>) => ReactNode
-}
-
-export function registerDocument(module: DocumentPageModule): RouteRegistration {
-  return {
-    pattern: module.pattern,
-    // Never. A standalone document page is by definition not a reader-facing
-    // page of this site: both of them (greembeem, and anything written this way
-    // later) are noindex and own their whole `<html>`. There is no opt-in.
-    sitemap: false,
-    resolve: () => {
-      const pathname = withTrailingSlash(module.pattern)
-      const ctx: RouteContext<Record<string, string>, undefined> = {
-        params: {},
-        props: undefined,
-        url: new URL(pathname, SITE_URL),
-        pathname,
-        // A document page gets no build assets at all (see the doc comment
-        // above) — no stylesheet, no islands entry, and no emitted images.
-        builtAssets: {},
-      }
-      return [
-        {
-          route: module.pattern,
-          render: () => `<!doctype html>${renderToStaticMarkup(module.document(ctx))}`,
-        },
-      ]
-    },
   }
 }

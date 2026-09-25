@@ -32,7 +32,7 @@ import { deepStrip } from '../schemas/deepStrip'
 import { EncounterNpcSchema } from '../schemas/encounterNpc'
 import { MechSchema } from '../schemas/mech'
 import { MechPatternSchema } from '../schemas/pattern'
-import { PilotSchema } from '../schemas/pilot'
+import { normalizeLegacyPilotRecord, PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import { CHANGE_LOG_ENTITY_INDEX, makeChangeLogStore } from './changeLog'
 import { makeStore } from './crud'
@@ -53,7 +53,7 @@ import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
  * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
  * it writes.)
  */
-export const DB_VERSION = 15
+export const DB_VERSION = 16
 
 const DB_NAME = 'itun-v1'
 
@@ -387,6 +387,9 @@ export async function deleteEntityWithSoftLinks(
 export const pilots = makeStore(getDb, PilotSchema, STORE_NAMES.pilots, {
   hasUpdatedAt: true,
   salvageSchema: deepStrip(PilotSchema),
+  // A pilot cached from a Convex row stored before a field was removed still
+  // carries it; heal it on the way in rather than warning through salvage.
+  normalize: normalizeLegacyPilotRecord,
 })
 export const mechs = makeStore(getDb, MechSchema, STORE_NAMES.mechs, {
   hasUpdatedAt: true,

@@ -20,14 +20,13 @@
  * card strips them to avoid double-rendering.
  */
 
-import { Field, ReferenceEntityCard, Stat } from 'component-lib'
+import { cn, Field, ReferenceEntityCard, Stat } from 'component-lib'
 import { useState } from 'react'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { cn } from '../../lib/utils'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'

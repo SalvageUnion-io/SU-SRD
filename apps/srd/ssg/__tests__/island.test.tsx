@@ -76,9 +76,9 @@ describe('Island placeholder markup', () => {
   })
 
   it('throws when rendered outside a collection window', () => {
-    // Guards `registerDocument` pages (greembeem), which get no island support
-    // at all: a stray `<Island>` there must fail the build, not emit a
-    // placeholder whose props were silently dropped on the floor.
+    // Guards any render that happens outside a page's collection window: a
+    // stray `<Island>` there must fail the build, not emit a placeholder whose
+    // props were silently dropped on the floor.
     expect(() => renderToStaticMarkup(<Island name="SearchIsland" />)).toThrow(
       '<Island name="SearchIsland"> rendered outside an island collection window.'
     )

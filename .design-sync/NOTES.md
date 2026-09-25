@@ -58,16 +58,17 @@ documented in `src/styles/ladle.css`.
 package dir — a repo-root path is silently skipped with a `! cssEntry: …` line.
 Hence `.ds-css/` inside the package rather than under `.design-sync/`.
 
-### Three dashboard stylesheets are invisible to the converter
+### No dashboard stylesheet, and no dashboard components
 
-`DashboardCanvas.css`, `DashboardGrid.css` and `instruments.css` are **not**
-reachable from `index.css`. The components import no CSS at all: the three ship
-as the package export `component-lib/styles/dashboard.css`, which ITUN imports
-from its `Dashboard` (a component-side `import './x.css'` rode the barrel into
-srd — audit PK-01). So without explicit `@import`s in the Tailwind entry the
-entire `.pc-*` instrument vocabulary is missing and every dashboard component
-renders unstyled. They are imported unlayered and last, which is how ITUN's
-JS-side import lands them.
+The Dashboard instruments, the live-sheet presentation and the wizard steps
+left component-lib for ITUN, and srd's site-only components left for srd
+(audit PK-02), so none of them is part of this design system any more and
+their previews were deleted with them. That also retired the special case this
+section used to describe: the three `.pc-*` stylesheets
+(`styles/dashboard/*.css`, shipped as `component-lib/styles/dashboard.css`) are
+not reachable from `index.css`, and the Tailwind entry had to `@import` them
+explicitly or every instrument rendered unstyled. With no instrument left to
+render, the import and the `InstrumentStage` preview harness are gone too.
 
 ## The ORM must be a bundle export (`extraEntries`)
 

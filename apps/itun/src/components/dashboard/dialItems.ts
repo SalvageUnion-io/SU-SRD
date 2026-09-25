@@ -10,7 +10,6 @@
  * Active Item uses); statless items are a big centered title — no stats.
  */
 
-import type { DialItem as DialCellItem } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
 import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
@@ -27,6 +26,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
+import type { DialItem as DialCellItem } from './Dial'
 
 export type DialItem = DialCellItem & { kind: DialKind }
 

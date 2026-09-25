@@ -1,10 +1,14 @@
-import { isSchemaName } from 'component-lib'
 import type {
   EnhancedSchemaMetadata,
   SURefEntity,
   SURefObjectPattern,
 } from 'salvageunion-reference'
-import { nameToSlug, normalizePatternName, visiblePatterns } from 'salvageunion-reference'
+import {
+  isSchemaName,
+  nameToSlug,
+  normalizePatternName,
+  visiblePatterns,
+} from 'salvageunion-reference'
 import {
   getEntitySchemas,
   getModel,

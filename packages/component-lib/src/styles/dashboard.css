@@ -4,17 +4,19 @@
  *
  * It is a package EXPORT (`component-lib/styles/dashboard.css`) and is imported
  * by the app that renders the dashboard, never by a component module. The
- * components under `components/dashboard/` used to `import './x.css'` as a side
- * effect, and because the barrel re-exports them, every consumer of
- * `component-lib` bundled these ~1,400 lines of `.pc-*` rules whether it drew a
- * dashboard or not — srd shipped (and its service worker precached) 20 KB of
- * CSS no srd page can use (audit PK-01). Only ITUN renders a dashboard, so only
- * ITUN imports this file (`apps/itun/src/components/dashboard/Dashboard.tsx`),
- * plus the Ladle stories that stage dashboard instruments.
+ * dashboard components used to `import './x.css'` as a side effect, and while
+ * they were barrel-exported from here every consumer of `component-lib`
+ * bundled these ~1,400 lines of `.pc-*` rules whether it drew a dashboard or
+ * not — srd shipped (and its service worker precached) 20 KB of CSS no srd page
+ * can use (audit PK-01). The components have since moved into ITUN (PK-02);
+ * the stylesheets stayed here, in `./dashboard/`, because styling is this
+ * package's to own and the Tailwind-removal plan folds them into `index.css`.
+ * Only ITUN imports this file (`apps/itun/src/components/dashboard/Dashboard.tsx`,
+ * and its Ladle stories via `_dashboardStage.tsx`).
  *
  * The order below is the order the barrel used to load them in and is kept on
  * purpose: DashboardCanvas.css, then instruments.css, then DashboardGrid.css.
  */
-@import '../components/dashboard/DashboardCanvas.css';
-@import '../components/dashboard/instruments.css';
-@import '../components/dashboard/DashboardGrid.css';
+@import './dashboard/DashboardCanvas.css';
+@import './dashboard/instruments.css';
+@import './dashboard/DashboardGrid.css';

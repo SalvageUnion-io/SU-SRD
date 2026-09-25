@@ -29,11 +29,10 @@
  *   className   — optional class override for the trigger button
  */
 
-import { Button, FieldError, ModalShell, Radio } from 'component-lib'
+import { Button, cn, FieldError, ModalShell, Radio } from 'component-lib'
 import { useState } from 'react'
 import { usePilots } from '../../hooks/entities'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from './useSoftLinks'
 import { resolveLinkType } from './useSoftLinks'

@@ -30,7 +30,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 // ── file gathering ─────────────────────────────────────────────────────────
 
 const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
-const DASHBOARD_DIR = 'packages/component-lib/src/components/dashboard'
+const DASHBOARD_DIR = 'packages/component-lib/src/styles/dashboard'
 
 /**
  * UI source a Tailwind class could live in. Tests are excluded because they
@@ -570,7 +570,7 @@ function preflight(root: string): void {
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/component-lib':
       'is the OWNER this gate checks apps against, not an app to audit. Its dashboard ' +
-      'CSS is read separately via DASHBOARD_DIR.',
+      'CSS (src/styles/dashboard/) is read separately via DASHBOARD_DIR.',
   })
 }
 

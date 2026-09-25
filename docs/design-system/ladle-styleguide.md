@@ -620,24 +620,20 @@ entity names like `'Cargo Hold'`, a `title:` prop, a code-sample string — are 
 | catalog pages are tokens  | a page in `src/stories/` isn't a `Foundations/*` story                                                                                                                                                          |
 | no orphan stories         | a story imports no component defined in **its own directory** (a screen mock-up dropped into an unrelated folder) and isn't a listed prototype                                                                  |
 | prototype list is fresh   | a `PROTOTYPE_STORIES` entry no longer exists                                                                                                                                                                    |
-| title names its component | a title's last segment is neither the story's own basename nor a component defined in its directory. A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` correctly names `DashboardGauge` |
+| title names its component | a title's last segment is neither the story's own basename nor a component defined in its directory. A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` correctly names ITUN's DashboardGauge |
 
-**The one bounded exception — `PROTOTYPE_STORIES`.** Two stories are frozen **"before" captures** from
-the style-unification refresh (`Compositions/Wizard/Mech Install Step`, `.../New Entity Screen`). Each
-reproduces an ITUN wizard surface inline — app components cannot be imported cross-package — so the
-refreshed primitives can be compared against the legacy appearance they replace. They originate from
-`test(component-lib): Legacy "before" captures for dashboard + wizard surfaces`, and a sibling pass has
-already deleted 16 comparison-only captures, keeping these two as the app-surface ones.
+**The one bounded exception — `PROTOTYPE_STORIES` — is empty, and that is the steady state.** It held
+two frozen "before" captures of ITUN wizard surfaces from the style-unification refresh; both were
+deleted rather than re-justified. A story with no backing component still fails CI until someone names
+it in that list with a reason, so the exception stays visible and countable instead of becoming a norm.
 
-Because they have no backing component, they are named explicitly in the guard rather than letting "a
-story with no component" become an unexamined norm: a new componentless story fails CI until someone
-justifies adding it to that list. They live in `src/components/wizard/` — a home named for what they
-are, not filed beside an unrelated primitive.
-
-**Do not "fix" them.** They are deliberately frozen and do **not** track the ITUN components they
-mirror — preserving the "before" state is the entire point. So don't reconcile them against the app,
-and don't extract a component out of them; either would defeat the capture. They retire by **deletion**,
-once the refresh they document has landed.
+**App stories are in scope.** Components only one app renders live in that app (audit PK-02) — ITUN's
+Dashboard instruments, sheet presentation and wizard steps under `apps/itun/src/components/`, srd's
+site-only components under `apps/srd/src/components/` — and their stories sit beside them there.
+`.ladle/config.mjs` globs both folders into the one catalog, and the guard holds them to every rule in
+the table above except coverage, which is a promise about the library's barrel. They are plain
+component exports (the apps do not depend on `@ladle/react`) and import `Caption` from
+`component-lib/stories/harness`.
 
 Add a new group or sub-group only by extending both the guard's `GROUPS`/`SUBGROUPS` **and** the
 `storyOrder` list in `config.mjs` (§3).
