@@ -18,7 +18,24 @@
 # BUMPING: change the version, then replace every hash for that tool from the
 # upstream release — actionlint's `actionlint_<v>_checksums.txt` release asset,
 # zizmor's `https://pypi.org/pypi/zizmor/<v>/json` (`digests.sha256` per wheel).
+#
+# LOCALLY it needs network access (first run only) and python3. Without either
+# it skips with a notice and exits 0, so `bun run check` still works offline;
+# in CI (`CI` set) a missing prerequisite or failed fetch is a hard failure.
 set -euo pipefail
+
+# Skip with a notice locally; fail in CI, where the gate must actually run.
+skip_or_fail() {
+  if [ -n "${CI:-}" ]; then
+    echo "lint-workflows: $1" >&2
+    exit 1
+  fi
+  echo "lint-workflows: SKIPPED locally — $1 (CI runs it)." >&2
+  exit 0
+}
+
+command -v curl >/dev/null 2>&1 || skip_or_fail "curl is not installed"
+command -v python3 >/dev/null 2>&1 || skip_or_fail "python3 is not installed"
 
 ACTIONLINT_VERSION=1.7.12
 ZIZMOR_VERSION=1.30.1
@@ -53,7 +70,8 @@ actionlint="$cache/actionlint-$ACTIONLINT_VERSION"
 if [ ! -x "$actionlint" ]; then
   tarball="$cache/actionlint_${ACTIONLINT_VERSION}_${os}_${arch}.tar.gz"
   curl -sSfL -o "$tarball" \
-    "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${os}_${arch}.tar.gz"
+    "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_${os}_${arch}.tar.gz" ||
+    { rm -f "$tarball"; skip_or_fail "could not download actionlint (no network?)"; }
   got=$(sha256 "$tarball")
   if [ "$got" != "$al_sha" ]; then
     echo "lint-workflows: actionlint tarball sha256 mismatch (got $got, want $al_sha)" >&2
@@ -71,7 +89,8 @@ fi
 zizmor_venv="$cache/zizmor-$ZIZMOR_VERSION"
 if [ ! -x "$zizmor_venv/bin/zizmor" ]; then
   rm -rf "$zizmor_venv"
-  python3 -m venv "$zizmor_venv"
+  python3 -m venv "$zizmor_venv" ||
+    { rm -rf "$zizmor_venv"; skip_or_fail "python3 cannot create a venv (install python3-venv)"; }
   cat >"$cache/zizmor-requirements.txt" <<EOF
 zizmor==${ZIZMOR_VERSION} \\
   --hash=sha256:eee12266b793cb87ad4a7e3af2e72404f8a63e3de5eb099b80bf7b1cfd232a8e \\
@@ -82,7 +101,8 @@ zizmor==${ZIZMOR_VERSION} \\
   --hash=sha256:f9eb092f089e35fa9fb3b70aeec0a19eca7dacf2ab161f1d50b18351895f085c
 EOF
   "$zizmor_venv/bin/pip" install --quiet --disable-pip-version-check \
-    --require-hashes --only-binary=:all: -r "$cache/zizmor-requirements.txt"
+    --require-hashes --only-binary=:all: -r "$cache/zizmor-requirements.txt" ||
+    { rm -rf "$zizmor_venv"; skip_or_fail "could not install zizmor (no network, or a wheel hash mismatch)"; }
 fi
 
 cd "$root"

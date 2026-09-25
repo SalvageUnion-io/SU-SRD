@@ -116,6 +116,10 @@ jobs:
     timeout-minutes: 30
     outputs:
       sha: ${{ steps.target.outputs.sha }}
+      # `true` when HEAD is older than the recorded deploy on a `workflow_run`
+      # — a newer commit's CI finished first and already shipped. The `record`
+      # job must not move the tag back in that case.
+      stale: ${{ steps.surfaces.outputs.stale }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -176,9 +180,19 @@ jobs:
       # whose deploy never ran (audit CI-01). The logic, its reasoning and its
       # tests live in tools/deploy-surfaces.ts; it fails SAFE (no record, a
       # shared path or `force_all` deploys everything).
+      #
+      # It also refuses to go BACKWARDS on a `workflow_run`. ci.yml runs every
+      # commit on main to completion, so an older commit's CI can finish after
+      # a newer one has already deployed; diffing newer->older would ship the
+      # older tree over the newer one. Such a run is `stale`: nothing deploys
+      # and the record stays put. Only a dispatch (the rollback path) passes
+      # `--allow-backwards`.
       - name: Decide which surfaces to deploy
         id: surfaces
-        run: bun tools/deploy-surfaces.ts ${{ inputs.force_all && '--force-all' || '' }}
+        run: >-
+          bun tools/deploy-surfaces.ts
+          ${{ inputs.force_all && '--force-all' || '' }}
+          ${{ github.event_name == 'workflow_dispatch' && '--allow-backwards' || '' }}
 
       # Bundle ALL FOUR before ANY of them ships.
       #
@@ -192,6 +206,7 @@ jobs:
       # `--dry-run` needs no credential, so this also runs before the credential
       # guards below have any effect.
       - name: Bundle every Worker before deploying any
+        if: steps.surfaces.outputs.stale != 'true'
         run: |
           set -euo pipefail
           # itun's Worker declares `assets.directory: ./dist`, and wrangler
@@ -597,6 +612,10 @@ jobs:
   # older record and over-deploys, which is the safe direction.
   record:
     needs: deploy
+    # A stale run (an older commit whose CI finished after a newer deploy)
+    # shipped nothing, and moving the record to it would make the NEXT run diff
+    # from the older commit. Only a dispatch may move the record backwards.
+    if: needs.deploy.outputs.stale != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -616,7 +635,9 @@ jobs:
             const { owner, repo } = context.repo
             const ref = 'tags/deployed/cloudflare'
             try {
-              // force: a rollback dispatch legitimately moves the record BACKWARDS.
+              // force: a rollback DISPATCH legitimately moves the record
+              // BACKWARDS. A `workflow_run` never reaches here going backwards:
+              // deploy-surfaces marks that run stale and this job is skipped.
               await github.rest.git.updateRef({ owner, repo, ref, sha, force: true })
             } catch (error) {
               if (error.status !== 422 && error.status !== 404) throw error

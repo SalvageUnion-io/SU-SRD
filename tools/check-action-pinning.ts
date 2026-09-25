@@ -172,7 +172,8 @@ function runnerCalls(contents: string): { line: number; runner: string; tool: st
 }
 
 /**
- * `tool@4.108.0` is pinned; `tool`, `tool@latest` and `tool@4` are not. A scoped name keeps its leading `@`, hence `lastIndexOf`.
+ * `tool@4.108.0` is pinned; `tool`, `tool@latest` and `tool@4` are not. A
+ * scoped name keeps its leading `@`, hence `lastIndexOf`.
  *
  * This tested only that SOME `@` followed position 0, so every mutable tag
  * passed — `@latest`, `@next`, `@beta`, a bare major. The message this gate

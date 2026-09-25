@@ -182,6 +182,13 @@ The part that interacts with CI:
   shell version omitted them, so an edit to `SPECIAL_THANKS.md` never shipped
   srd's about page. The decision lives in `tools/deploy-surfaces.ts` and is
   unit-tested in `tools/__tests__/deploy-surfaces.test.ts`.
+- **Never backwards on a `workflow_run`.** CI on `main` runs every commit to
+  completion, so an older commit's CI can finish after a newer one has already
+  deployed. Diffing newer->older would ship the older tree for every surface the
+  newer commit touched and then move the record back. When HEAD is an ancestor
+  of the record, the run is `stale`: nothing deploys and `record` is skipped.
+  Only a dispatch (`--allow-backwards`, the rollback path) may deploy an older
+  commit and move the record to it.
 - `record` is its own job so `contents: write` is held by a REST call, never by
   the job that checks out and runs the tree. If it fails, the next deploy just
   diffs from an older record and over-deploys — the safe direction.

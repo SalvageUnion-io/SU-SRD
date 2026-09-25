@@ -61,8 +61,9 @@ pre-push:
       #
       # Even so this is a local fast path, NOT a narrowing of the gate: CI runs
       # the full suite (`test:coverage` + `test:tools`) on every code PR and
-      # that is what branch protection requires. Falls back to the full suite when there is no origin/main to
-      # diff against — a missing base must never mean "nothing to test".
+      # that is what branch protection requires. Falls back to the full suite
+      # when there is no origin/main to diff against — a missing base must
+      # never mean "nothing to test".
       run: |
         base=$(git merge-base HEAD origin/main 2>/dev/null || true)
         if [ -z "$base" ]; then
@@ -81,7 +82,10 @@ pre-push:
       # remote two ways it never sees: a merge/rebase conflict resolution, and
       # anything committed with `--no-verify`. A full-tree lint is 0.45s — far
       # cheaper than a CI round-trip to learn the same thing.
-      run: bun run lint
+      #
+      # `check:biome` (`biome ci .`), not `lint`: it is exactly what CI runs,
+      # so import order and formatting are caught here too, not only lint rules.
+      run: bun run check:biome
 
     schemas:
       # The likeliest avoidable CI bounce: `salvageunion-reference`'s generated
