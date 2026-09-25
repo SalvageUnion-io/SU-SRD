@@ -43,7 +43,10 @@ The mode is resolved by one pure function, `resolveConnectionMode()` in
 ### How It Works
 
 Game data ships as JSON and is loaded via `preload()` (dynamic `import()`, so
-the corpus can be code-split). Zod schemas validate data at model construction.
+the corpus can be code-split). The load is **trusted** by default: the committed
+files are validated against their Zod schemas in CI and proven parse-stable
+(`lib/dataCanonical.test.ts`), so `preload()` installs them without re-parsing —
+pass `{ validate: true }` to opt back in (audit PK-04).
 Each entity type gets a `BaseModel<T>` with O(1) ID lookups via an internal
 `Map`. See [package-contracts.md](package-contracts.md) for the `preload()` API
 and the module-scope-call hazard.

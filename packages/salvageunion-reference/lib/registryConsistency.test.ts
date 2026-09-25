@@ -2,7 +2,7 @@
  * Registry consistency (audit item 23).
  *
  * Adding a schema touches several hand-maintained registries: ModelFactory's
- * dataLoaders / zodSchemaMap / schemaDisplayNames, plus
+ * dataLoaders / schemaDisplayNames, the generated zodSchemaMap module, plus
  * index.ts's LazyModel instances (SCHEMA_REGISTRY / lazyModelMap / static
  * accessors). The loader maps must stay static-literal (bundler-analyzable
  * dynamic imports), so they cannot be derived — instead this test pins every
@@ -13,6 +13,7 @@
  * zodSchemaMap directly, so it is covered transitively.
  */
 import { describe, expect, test } from 'bun:test'
+import { zodSchemaMap } from './generated/zodSchemaMap.generated.js'
 import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from './ModelFactory.js'
 
 function sorted(keys: Iterable<string>): string[] {
@@ -23,7 +24,7 @@ describe('schema registry consistency', () => {
   test('every ModelFactory registry covers the same schema ids', () => {
     const canonical = sorted(_registryKeySets.dataLoaders)
     expect(canonical.length).toBeGreaterThan(20)
-    expect(sorted(_registryKeySets.zodSchemaMap)).toEqual(canonical)
+    expect(sorted(Object.keys(zodSchemaMap))).toEqual(canonical)
     expect(sorted(Object.keys(schemaDisplayNames))).toEqual(canonical)
   })
 

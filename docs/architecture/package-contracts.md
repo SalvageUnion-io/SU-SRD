@@ -135,7 +135,7 @@ All JSON data files (~1.1 MB total) are loaded via dynamic `import()` at runtime
 3. After each schema loads, the `LazyModel` receives a "backing" model via `_install()`. All subsequent data-access calls delegate to the backing model.
 4. Before `preload()`, any data-access call throws a descriptive error.
 
-Zod schemas are still statically imported because they are code (types + validation), not data, and must be available at compilation time.
+The Zod entity schemas are **not** on this path. A load is trusted by default: CI validates every committed file (`validate:schemas`) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. `preload(ids, { validate: true })` restores the parse and reaches the schemas (`lib/generated/zodSchemaMap.generated.ts`) through a dynamic `import()`, so a bundler never links them into a chunk the trusted path needs. Types are unaffected — they are inferred from the schemas at compile time.
 
 ### preload() API
 
@@ -145,6 +145,9 @@ await SalvageUnionReference.preload('all')
 
 // Load only specific schemas (enables code-splitting):
 await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
+
+// Re-validate against the Zod schemas (off by default — see above):
+await SalvageUnionReference.preload('all', { validate: true })
 
 // Check whether a schema is loaded:
 SalvageUnionReference.isLoaded('chassis') // boolean
@@ -158,7 +161,7 @@ Accessing a model before its schema is loaded throws:
 Schema "chassis" not loaded. Call SalvageUnionReference.preload(['chassis']) or SalvageUnionReference.preload('all') first.
 ```
 
-**Enumeration risk:** Only schema IDs registered in `ModelFactory.ts`'s `dataLoaders` map are valid. Passing an unrecognised ID to `preload()` throws `No loader found for schema ID: <id>`. When adding new schemas, both the data loader and the `LazyModel` instance in `index.ts` must be added together or neither will work.
+**Enumeration risk:** Only schema IDs registered in the generated `dataLoaders` map (`lib/generated/modelFactoryRegistry.generated.ts`, from `lib/schemas/registry.ts`) are valid. Passing an unrecognised ID to `preload()` throws `No loader found for schema ID: <id>`. When adding new schemas, both the data loader and the `LazyModel` instance in `index.ts` must be added together or neither will work.
 
 ### Reference String Protocol
 

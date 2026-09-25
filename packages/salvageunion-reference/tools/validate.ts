@@ -37,7 +37,7 @@
  * comment; that tradeoff is unchanged by this runner.
  */
 
-import { zodSchemaMap } from '../lib/ModelFactory.js'
+import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated.js'
 import { checkAllFiles } from './checkUniqueIdsLogic.js'
 import { fixMissingIds } from './generateMissingIds.js'
 import type { DataBag } from './loadData.js'

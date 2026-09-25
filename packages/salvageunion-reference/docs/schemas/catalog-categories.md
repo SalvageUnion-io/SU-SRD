@@ -28,6 +28,7 @@ Catalog categories for organizing schemas in the UI
     "classes",
     "abilities",
     "equipment"
-  ]
+  ],
+  "flat": false
 }
 ```

@@ -14,6 +14,7 @@ import type { ModelWithMetadata } from './BaseModel.js'
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
 import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js'
 import type { LazyModel } from './LazyModel.js'
+import type { LoadOptions } from './ModelFactory.js'
 import {
   getLoadedModel,
   isSchemaLoaded,
@@ -38,7 +39,12 @@ export {
 } from './contentBlockHelpers.js'
 // Export helper functions for common operations
 export * from './helpers.js'
-export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js'
+export {
+  type EnhancedSchemaMetadata,
+  getDataMaps,
+  getSchemaCatalog,
+  type LoadOptions,
+} from './ModelFactory.js'
 // Export the granted-equipment choice resolver (pure view computation)
 export {
   type ChoicePrompt,
@@ -193,6 +199,11 @@ export class SalvageUnionReference {
    * Load schemas before use.
    *
    * @param schemas - Array of schema IDs to load, or `'all'` to load everything.
+   * @param options - `{ validate: true }` re-parses each file through its Zod
+   *   schema. Off by default: the committed data is validated in CI and proven
+   *   parse-stable, so a trusted load returns the same rows at a fraction of
+   *   the cost and keeps the schemas out of client bundles. See
+   *   `LoadOptions` in `ModelFactory.ts`.
    * @returns Promise that resolves when all requested schemas are loaded.
    *
    * @example
@@ -202,8 +213,8 @@ export class SalvageUnionReference {
    * // Load only what you need (enables code-splitting):
    * await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
    */
-  public static async preload(schemas: string[] | 'all'): Promise<void> {
-    await loadSchemas(schemas)
+  public static async preload(schemas: string[] | 'all', options?: LoadOptions): Promise<void> {
+    await loadSchemas(schemas, options)
 
     // Install backing models into all LazyModel wrappers for loaded schemas
     const ids = schemas === 'all' ? Object.keys(lazyModelsById) : schemas

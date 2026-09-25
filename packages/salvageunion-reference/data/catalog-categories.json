@@ -2,17 +2,20 @@
   {
     "id": "pilot",
     "name": "Pilot",
-    "schemas": ["classes", "abilities", "equipment"]
+    "schemas": ["classes", "abilities", "equipment"],
+    "flat": false
   },
   {
     "id": "mech",
     "name": "Mech",
-    "schemas": ["chassis", "systems", "modules"]
+    "schemas": ["chassis", "systems", "modules"],
+    "flat": false
   },
   {
     "id": "crawler",
     "name": "Crawler",
-    "schemas": ["crawlers", "crawler-bays", "crawler-tech-levels"]
+    "schemas": ["crawlers", "crawler-bays", "crawler-tech-levels"],
+    "flat": false
   },
   {
     "id": "denizens",
@@ -26,12 +29,14 @@
       "npcs",
       "squads",
       "vehicles"
-    ]
+    ],
+    "flat": false
   },
   {
     "id": "reference",
     "name": "Reference",
-    "schemas": ["distances", "keywords", "roll-tables", "sources", "tech-levels", "traits"]
+    "schemas": ["distances", "keywords", "roll-tables", "sources", "tech-levels", "traits"],
+    "flat": false
   },
   {
     "id": "guides",

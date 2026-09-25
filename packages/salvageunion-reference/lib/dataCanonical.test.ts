@@ -1,0 +1,59 @@
+/**
+ * The committed data is already in its parsed form (audit PK-04).
+ *
+ * `preload()` is trusted by default: it installs each data file as loaded,
+ * WITHOUT running it through `z.array(schema).parse`. That is only equivalent
+ * to the validating load it replaced if parsing would change nothing — no
+ * `.default()` left to fill, no unknown key for a non-strict object to strip,
+ * no transform to apply. This test is the proof, per schema, and the reason
+ * the trusted path is safe to be the default.
+ *
+ * When it fails, the data file is missing a value its schema would default
+ * (write the default into the file — `catalog-categories.json` spells out
+ * `"flat": false` for exactly this reason) or the schema gained a transform
+ * (then the transform belongs in the data, or that schema cannot take the
+ * trusted path). Do not "fix" it by turning validation back on everywhere.
+ */
+import { afterAll, describe, expect, test } from 'bun:test'
+import { dataLoaders } from './generated/modelFactoryRegistry.generated.js'
+import { zodSchemaMap } from './generated/zodSchemaMap.generated.js'
+import { getDataMaps, resetAllForTesting, SalvageUnionReference } from './index.js'
+import { z } from './zod.js'
+
+const schemaIds = Object.keys(dataLoaders)
+
+afterAll(async () => {
+  // Leave the global load state as the other suites expect to find it.
+  resetAllForTesting()
+  await SalvageUnionReference.preload('all')
+})
+
+describe('committed data is parse-stable', () => {
+  test.each(schemaIds)('%s: a Zod parse returns the file unchanged', async (id) => {
+    const loader = dataLoaders[id]
+    const schema = zodSchemaMap[id]
+    if (!loader || !schema) throw new Error(`registry is missing ${id}`)
+    const raw = await loader()
+    const parsed = z.array(schema).parse(raw)
+    // toStrictEqual: an `undefined`-valued key a default would add, or a key
+    // a strip would drop, both count as a difference.
+    expect(parsed).toStrictEqual(raw)
+  })
+})
+
+describe('trusted and validating loads agree', () => {
+  test('preload() with and without { validate: true } installs identical rows', async () => {
+    resetAllForTesting()
+    await SalvageUnionReference.preload('all')
+    const trusted = getDataMaps().dataMap
+
+    resetAllForTesting()
+    await SalvageUnionReference.preload('all', { validate: true })
+    const validated = getDataMaps().dataMap
+
+    expect(Object.keys(validated).sort()).toEqual([...schemaIds].sort())
+    for (const id of schemaIds) {
+      expect(validated[id]).toStrictEqual(trusted[id])
+    }
+  })
+})
