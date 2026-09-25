@@ -8,7 +8,7 @@ ephemerally/non-editably
 > [`ssg/`](ssg/) ([ADR-031](../../docs/adrs/ADR-031-srd-vite-ssg.md), superseding
 > ADR-012). No `.astro` files, no `astro.config.mjs`, no `client:*` directives,
 > no file-based routing. The contract is [`ssg/DESIGN.md`](ssg/DESIGN.md) —
-> **read it first.** This file is the one place that states this; others point here.
+> **read it first.** This file is the canonical statement of this; others point here.
 
 ## Stack
 

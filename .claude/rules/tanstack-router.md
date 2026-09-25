@@ -16,6 +16,10 @@ paths:
   for load-time preparation such as `SalvageUnionReference.preload([...])` or
   snapshot retrieval. Neither reads player entities: those come from the
   stores in the component (see `itun-data-access.md`).
-- Crash handling is global: the router's `defaultErrorComponent` (`main.tsx`,
-  `src/components/shared/RouteErrors.tsx`) already reports. Do not add a
-  per-route `errorComponent` that reports again.
+- Crash handling is global. Reporting happens once, in the `createRoot` hooks
+  `main.tsx` installs (`reactRootErrorHandlers` in `src/lib/observability.ts`),
+  which React calls for every error any boundary catches. The error components
+  (`RouteErrorComponent` as the router's `defaultErrorComponent`, and
+  `RootErrorComponent`, in `src/components/shared/RouteErrors.tsx`) only
+  render. A per-route `errorComponent` must likewise only render — never call
+  `captureException` from one, or every crash is reported twice.

@@ -56,7 +56,7 @@ Three current sources, in this order:
 
 Card sizing is two orthogonal axes, `size` (`large | medium | small`) and `extent` (`full | head | catalog`), defined in `components/shared/displayMode.ts` — not boolean `compact`/`listing` props, which no longer exist. Nested cards derive their own rendering from those plus nesting depth.
 
-Prefer composing from existing shared components over building custom UI, and prefer merging into an existing primitive over adding a twelfth atom. Drop to raw Base UI only when the library genuinely cannot express the layout. Reference the project's existing patterns: and the Biome-enforced code style in `biome.jsonc`.
+Prefer composing from existing shared components over building custom UI, and prefer merging into an existing primitive over adding a twelfth atom. Drop to raw Base UI only when the library genuinely cannot express the layout. Follow the project's existing patterns and the Biome-enforced code style in `biome.jsonc`.
 
 ## How You Work
 
