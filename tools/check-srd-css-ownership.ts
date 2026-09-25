@@ -33,7 +33,7 @@
  *
  * ## What this asserts
  *
- 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
+ * 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
  *    `src/runtime/styles.entry.ts`.
  * 2. No **shipping** `component-lib` module may import a stylesheet (stories,
  *    tests and the Ladle-only `src/stories/` tree are exempt). A component-side

@@ -191,6 +191,7 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 {
   ".": "./src/index.ts",
   "./design/tokens": "./src/design/tokens.ts",
+  "./styles/dashboard.css": "./src/styles/dashboard.css",
   "./styles/index.css": "./src/styles/index.css",
   "./styles/theme.css": "./src/styles/theme.css"
 }

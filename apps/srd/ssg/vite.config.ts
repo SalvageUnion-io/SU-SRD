@@ -54,6 +54,8 @@ export default defineConfig({
           // this deploy" rather than failing it. An ABSENT credential is a
           // different thing, and `deploy-cloudflare.yml` refuses to build
           // without one; this covers the blip, not the gap.
+          // No plugin usage telemetry to Sentry from CI builds.
+          telemetry: false,
           errorHandler: (error) => {
             console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
           },

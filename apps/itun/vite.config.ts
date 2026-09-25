@@ -115,6 +115,8 @@ export default defineConfig({
           // only the deploy credentials were ported — so every production event
           // was a minified stack. `deploy-cloudflare.yml` now refuses to build
           // without all three; this handler covers the blip, not the gap.
+          // No plugin usage telemetry to Sentry from CI builds.
+          telemetry: false,
           errorHandler: (error) => {
             console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
           },

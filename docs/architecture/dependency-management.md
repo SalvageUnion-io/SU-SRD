@@ -200,8 +200,8 @@ this had held only by accident:
   declarations that only existed to satisfy those peers (`@base-ui/react`,
   `clsx`, `class-variance-authority`, `tailwind-merge`) were removed — knip
   reports them unused once nothing asks for them — and with the library as
-  their only consumer those four left the catalog for literal pins in
-  `component-lib`, per the two-manifest rule above.
+  their only consumer those four left the catalog for direct declarations in
+  `component-lib` (a caret range for three, an exact pin for `@base-ui/react`), per the two-manifest rule above.
 - `qrcode` was a `component-lib` dependency used by one ITUN-only component.
   `SnapshotQr` moved into `apps/itun/src/components/sheet/`, and `qrcode` (plus
   `@types/qrcode`) moved with it.
