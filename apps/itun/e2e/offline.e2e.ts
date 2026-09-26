@@ -159,9 +159,13 @@ test('an unvisited route also resolves offline — the shell is not one page', a
   // this is worth asserting rather than assuming: it is what distinguishes
   // ITUN's offline story from `srd`'s, where an unvisited page genuinely 404s
   // offline because each one is its own HTML file (see the plan's P7).
-  await page.goto('/roster')
+  // A REAL route this test has not visited: the SPA shell must serve it from
+  // cache and route it. (`/roster` used to be here — no such route exists, so
+  // it asserted only that the offline not-found page carried the app title.)
+  await page.goto('/about')
   await waitForReady(page)
   await expect(page).toHaveTitle(/In The Union Now/i)
+  await expect(page.getByText(/page not found/i)).toHaveCount(0)
 
   await context.setOffline(false)
 })

@@ -101,8 +101,17 @@ test('work built anonymously survives signing in to save it', async ({ page }, t
   // whole distinction ADR-034 draws.
   await page.reload()
   await waitForReady(page)
-  await gotoStable(page, '/roster')
+  // The roster is `/` (`src/routes/index.tsx`). There is no `/roster` route:
+  // it renders "Page not found", which is why this spec failed every nightly
+  // it ran — and why the version before it, which asserted only that the
+  // first-run Welcome heading was ABSENT there, passed without proving a thing.
+  await gotoStable(page, '/')
   await waitForReady(page)
 
+  // On the roster (its "Saved Builds" heading renders on every roster, empty
+  // or not), and not on its first-run face: an empty roster also shows the
+  // Welcome block, so its absence is what rules that out.
+  await expect(page.getByRole('heading', { name: /Saved Builds/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Welcome to In the Union Now/i })).toHaveCount(0)
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible()
 })
