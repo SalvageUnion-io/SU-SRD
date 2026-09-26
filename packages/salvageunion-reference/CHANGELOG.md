@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.12.1...salvageunion-reference-v2.13.0) (2026-09-26)
+
+
+### Features
+
+* **tools:** single check runner, merged rule engine and workflow checker [audit 8/14] ([#995](https://github.com/SalvageUnion-io/SU-SRD/issues/995)) ([b265f4d](https://github.com/SalvageUnion-io/SU-SRD/commit/b265f4d6cbdaebeac896935db3d41c73781d3042))
+
+
+### Performance Improvements
+
+* **itun:** trusted reference-data load, itun chunk splitting, drop unused TanStack Query [audit 6/14] ([#992](https://github.com/SalvageUnion-io/SU-SRD/issues/992)) ([5784772](https://github.com/SalvageUnion-io/SU-SRD/commit/5784772b65955a8945203999273f819b46ca6a71))
+
 ## [2.12.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.12.0...salvageunion-reference-v2.12.1) (2026-09-25)
 
 
