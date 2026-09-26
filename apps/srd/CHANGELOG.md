@@ -2,6 +2,18 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.10.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.4...srd-v2.10.0) (2026-09-26)
+
+
+### Features
+
+* **tools:** single check runner, merged rule engine and workflow checker [audit 8/14] ([#995](https://github.com/SalvageUnion-io/SU-SRD/issues/995)) ([b265f4d](https://github.com/SalvageUnion-io/SU-SRD/commit/b265f4d6cbdaebeac896935db3d41c73781d3042))
+
+
+### Performance Improvements
+
+* **itun:** trusted reference-data load, itun chunk splitting, drop unused TanStack Query [audit 6/14] ([#992](https://github.com/SalvageUnion-io/SU-SRD/issues/992)) ([5784772](https://github.com/SalvageUnion-io/SU-SRD/commit/5784772b65955a8945203999273f819b46ca6a71))
+
 ## [2.9.4](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.3...srd-v2.9.4) (2026-09-25)
 
 
