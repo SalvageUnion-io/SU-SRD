@@ -108,8 +108,10 @@ test('work built anonymously survives signing in to save it', async ({ page }, t
   await gotoStable(page, '/')
   await waitForReady(page)
 
-  // On the roster, and not on its first-run face: a roster that came back
-  // empty shows the Welcome block instead of the saved build.
+  // On the roster (its "Saved Builds" heading renders on every roster, empty
+  // or not), and not on its first-run face: an empty roster also shows the
+  // Welcome block, so its absence is what rules that out.
   await expect(page.getByRole('heading', { name: /Saved Builds/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Welcome to In the Union Now/i })).toHaveCount(0)
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible()
 })
