@@ -1,7 +1,8 @@
 import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
-// Anonymous on purpose: wizard panes render the same signed in or not.
+// Anonymous on purpose: wizard panes render the same signed in or not. The one
+// exception is the sheet spec below, which reloads — see its describe block.
 test.use({ account: 'anonymous' })
 
 /**
@@ -102,6 +103,14 @@ test.describe('dashboard surfaces created entities with their identity', () => {
 })
 
 test.describe('sheet renders the right pilot identity', () => {
+  // Signed in, overriding the file's anonymous default. `openSheetFor` reaches
+  // the sheet through a full `page.goto('/')`, and an anonymous visitor's build
+  // lives in the in-memory backend (ADR-034), so the reload threw the pilot
+  // away and the roster came back on its first-run Welcome — no row to open.
+  // This was durable until #999 retired the `local` backend the suite used to
+  // force on; the file-wide anonymous tag was added in the same change.
+  test.use({ account: 'signed-in' })
+
   test('opening a pilot sheet shows their name and class context', async ({ page }) => {
     // buildPilot deterministically picks Engineer, which is what the ability
     // assertions below depend on.
