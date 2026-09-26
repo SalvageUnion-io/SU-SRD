@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.18.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.18.0...itun-v1.18.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* **itun:** point the two signed-in-path e2e specs at real state [nightly e2e] ([#1006](https://github.com/SalvageUnion-io/SU-SRD/issues/1006)) ([3fb7dbf](https://github.com/SalvageUnion-io/SU-SRD/commit/3fb7dbf40d5bfb0f18368b7415ab009f0e079524))
+
 ## [1.18.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.17.8...itun-v1.18.0) (2026-09-26)
 
 
