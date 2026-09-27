@@ -7,13 +7,23 @@
 # this workflow the only way to run one was a maintainer's own machine with
 # `bunx convex run --prod`, so a backfill a PR asked for could sit unrun.
 #
-# SAFETY, in order of importance:
-#   * `workflow_dispatch` only — never on a schedule or a push.
-#   * `main` only. A dispatch from any other ref is refused before the key is
-#     read, so a branch cannot run code of its own with production credentials.
+# SAFETY:
+#   * `workflow_dispatch` only — never on a schedule or a push. Dispatching
+#     needs write access to the repo, and forks cannot trigger it.
+#   * `main` only, as an ACCIDENT guard. A dispatch runs the workflow file from
+#     the dispatched ref, so someone with write access could edit this `if:` on
+#     a branch — but they could equally push any workflow that reads the
+#     repo-level secret. The real controls are write access and `main`'s
+#     ruleset; a GitHub Environment restricted to `main` would be the hard
+#     boundary for this workflow and `deploy-cloudflare.yml` alike.
 #   * An allowlist. `task` is a `choice` input AND the step re-checks it with a
 #     `case`, so adding a function to run here is a reviewed change to this
 #     file, never a free-text argument.
+#   * PRODUCTION, explicitly. `--prod` is passed, and the key must be a
+#     production deploy key (`prod:`) or a project key (`project:`). Without
+#     `--prod` a project key sends `convex run` to the DEV deployment, while
+#     `convex deploy` still targets prod — so this would have gone green
+#     against the wrong database.
 #   * The key is exposed to the one step that uses it.
 #
 # Every function listed must be idempotent: a re-run must be safe, because a
@@ -70,9 +80,16 @@ jobs:
               exit 1
               ;;
           esac
-          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
-            echo "FATAL: no CONVEX_DEPLOY_KEY secret; nothing was run." >&2
-            exit 1
-          fi
+          case "$CONVEX_DEPLOY_KEY" in
+            prod:* | project:*) ;;
+            "")
+              echo "FATAL: no CONVEX_DEPLOY_KEY secret; nothing was run." >&2
+              exit 1
+              ;;
+            *)
+              echo "FATAL: CONVEX_DEPLOY_KEY is not a production deploy key or a project key; refusing to run." >&2
+              exit 1
+              ;;
+          esac
           echo "Running maintenance:$TASK against production"
-          bunx convex run "maintenance:$TASK" '{}'
+          bunx convex run "maintenance:$TASK" '{}' --prod
