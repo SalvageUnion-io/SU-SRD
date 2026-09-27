@@ -460,9 +460,14 @@ Two reads were made cheap by storing something the rows already implied:
 
 Rows older than either column have none. Readers cope (a live count; a lookup
 that falls back to rows with no `appId`), so deploy order does not matter, but
-the savings arrive only once these have run once per deployment:
+the savings arrive only once these have run once per deployment. For
+production, dispatch the **Convex maintenance** workflow
+(`.github/workflows/convex-maintenance.yml`, `main` only) once per task; it runs
+the function with the repo's `CONVEX_DEPLOY_KEY`. From a machine with
+production access the same thing is:
 
 ```bash
+cd apps/itun
 bunx convex run maintenance:backfillGameSummaries --prod
 bunx convex run maintenance:backfillBodyAppIds --prod
 ```
