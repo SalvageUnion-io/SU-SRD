@@ -96,14 +96,13 @@ declares which areas make it relevant:
   each pinned to an exact version and verified against a recorded sha256 before
   it runs. zizmor's config is `.github/zizmor.yml`; its pinning policy is the
   same first-party line `tools/check-workflows.ts` draws. Every checkout
-  sets `persist-credentials: false` except `catalog-update.yml`, whose action
-  pushes with it.
+  sets `persist-credentials: false`.
 - **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
   drift — reference package artifacts and `routeTree.gen.ts`), typecheck, knip,
   and the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
   `architecture`, `observability`, `convex-codegen`, `convex-callers`,
-  `catalog`, `worker-env`.
+  `worker-env`.
 
 The test suite and the srd build are in the registry too (`bun run check` runs
 them) but not in the `ci` profile: they are the `coverage` and `build-srd`
@@ -155,13 +154,13 @@ those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
   anything `shared`) changes. Nothing built them on a PR before, so a story
   that no longer compiled merged green.
 
-wrangler is a catalogued devDependency of all four Worker apps (audit CI-09), so
+wrangler is a devDependency of all four Worker apps (audit CI-09), so
 every bundle and deploy runs the version `bun.lock` resolved — audited, behind
-the 3-day release-age gate and updated by the catalog workflow. It used to be
+the 3-day release-age gate and updated by Renovate. It used to be
 `bunx wrangler@4.108.0`, written out nine times outside the lockfile, because
 the wrangler of that era dragged `sharp` and `undici` versions with HIGH
 advisories into the tree; 4.132.0 no longer does. Keep `compatibility_date` in
-the four `wrangler.jsonc` files at or below the workerd the catalogued wrangler
+the four `wrangler.jsonc` files at or below the workerd that wrangler
 bundles.
 
 ## `pr-title`

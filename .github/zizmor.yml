@@ -12,16 +12,9 @@ rules:
         'github/*': ref-pin
         '*': hash-pin
 
-  # bunfig.toml refuses npm versions younger than 3 days, so Dependabot waits
-  # the same 3 days (`cooldown.default-days` in dependabot.yml). zizmor's
-  # default of 7 would make the two disagree.
-  dependabot-cooldown:
-    config:
-      days: 3
-
   # Suggests the `$/` self-repository syntax for local actions. Every
-  # `./.github/actions/setup-bun` reference would change, and the two repo
-  # guards that parse workflows (check-workflows' pinning, the Dependabot
-  # `directories:` glob) are written against `./`. Advisory-only upstream.
+  # `./.github/actions/setup-bun` reference would change, and check-workflows'
+  # pinning and bun-version checks are written against `./`. Advisory-only
+  # upstream.
   self-repository:
     disable: true

@@ -23,6 +23,6 @@
     "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {
-    "wrangler": "catalog:"
+    "wrangler": "4.132.0"
   }
 }

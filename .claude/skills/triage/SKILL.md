@@ -73,7 +73,7 @@ For every step, use the first route that works and record which one you used:
 4. **Dependency and security PRs**
 
    ```bash
-   gh pr list --author app/dependabot --state open
+   gh pr list --author app/renovate --state open
    gh run list --workflow=codeql.yml --limit 3 --json conclusion
    ```
 
