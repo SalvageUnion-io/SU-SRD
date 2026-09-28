@@ -17,7 +17,6 @@ export const Default = () => {
     <div className="sheet--pilot bg-paper p-4">
       <Caption>ClassAbilityStep</Caption>
       <ClassAbilityStep
-        isEdit={false}
         classId={classId}
         selectedAbilities={selectedAbilities}
         onSelectClass={setClassId}

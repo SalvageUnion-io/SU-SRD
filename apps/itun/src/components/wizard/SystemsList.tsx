@@ -10,10 +10,9 @@ type SystemsListProps = {
    * type's Armament-Bay allowance, read from its stored `mutations` (1, or 2
    * for a Battle Crawler; Core Book p. 213 / p. 216). Once this many weapons
    * are installed, the remaining cards disable with a reason chip until one
-   * is removed. `undefined` lifts the cap entirely (edit mode's soft regime —
-   * plan §5.2: budgets undefined, over-cap warns instead).
+   * is removed.
    */
-  maxSelectable?: number
+  maxSelectable: number
   /**
    * How many WEAPONS systems are currently installed. The cap counts weapons
    * only — NOT `selectedSystemSlugs.length`. A crawler may also carry
@@ -34,8 +33,7 @@ type SystemsListProps = {
  * (guided create: Tech 1 only); selection is HARD-capped at `maxSelectable`
  * — the type's mutations-derived Armament-Bay allowance — and an at-cap card
  * dims with a reason chip naming the gate (mockup Screen 02), visible, never
- * hidden. Edit mode passes `maxSelectable: undefined` and keeps the soft
- * over-cap warning instead.
+ * hidden.
  */
 export function SystemsList({
   systems,
@@ -44,7 +42,7 @@ export function SystemsList({
   installedWeaponCount,
   onChange,
 }: SystemsListProps) {
-  const atCap = maxSelectable !== undefined && installedWeaponCount >= maxSelectable
+  const atCap = installedWeaponCount >= maxSelectable
 
   function toggle(systemId: string) {
     if (selectedSystemSlugs.includes(systemId)) {

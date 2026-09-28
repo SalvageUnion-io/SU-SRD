@@ -1,5 +1,5 @@
 import type { StepRule } from 'component-lib'
-import { Banner, OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SURefCrawler,
@@ -10,21 +10,17 @@ import type {
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationCrawlerWeapon, isWeaponSystem } from 'salvageunion-reference/rules'
 import { useMechs, usePilots } from '../../hooks/entities'
-import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
-import type { CrawlerWizardStepId, StepGateResult } from '../../lib/rules/creation'
+import type { CrawlerWizardStepId } from '../../lib/rules/creation'
 import {
   clampCrawlerCreationDraft,
   crawlerCreationStepGate,
   crawlerWeaponSlotsFor,
 } from '../../lib/rules/creation'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
-import type { SoftWarning } from '../../lib/rules/types'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
-import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import {
   crawlerFormToCreateInput,
-  crawlerFormToUpdatePatch,
   EMPTY_CRAWLER_FORM_STATE,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
@@ -42,12 +38,8 @@ import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
 
-/**
- * Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). Edit mode
- * (§5.2) hides the display-only Statistics step and keeps the rest
- * (1, 3, 4, 5, Review).
- */
-const CREATE_STEPS: readonly CrawlerWizardStepId[] = [
+/** Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). */
+const STEPS: readonly CrawlerWizardStepId[] = [
   'type',
   'stats',
   'weapons',
@@ -55,7 +47,6 @@ const CREATE_STEPS: readonly CrawlerWizardStepId[] = [
   'identity',
   'review',
 ]
-const EDIT_STEPS: readonly CrawlerWizardStepId[] = CREATE_STEPS.filter((s) => s !== 'stats')
 
 /** Stepper-rail labels (mockup Screen 03 `.rlabel`). */
 const STEP_LABELS: Record<CrawlerWizardStepId, string> = {
@@ -78,41 +69,12 @@ const STEP_TITLES: Record<CrawlerWizardStepId, string> = {
 }
 
 type CrawlerBuilderProps = {
-  /** Called on successful create/save with the crawler's id. */
+  /** Called on successful create with the crawler's id. */
   onComplete: (crawlerId: string) => void
   /** Called when the user cancels. */
   onCancel: () => void
-  /** Leaves the guided flow for the blank Free-Edit path (P3.3). Create only. */
+  /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
-  /**
-   * Id of an existing crawler being edited. When provided, handleSubmit takes
-   * the update branch (never duplicates), the hard creation gates relax to
-   * presence checks, budgets lift (no weapon cap), and the TL filter lifts
-   * (all tech levels — plan §5.2).
-   */
-  crawlerId?: string
-  /**
-   * Initial form state — pass `crawlerToFormState(crawler)` in edit mode.
-   * Defaults to the empty creation state.
-   */
-  initialState?: CrawlerWizardFormState
-}
-
-/** Edit-mode gates: presence checks only (plan §5.2 — soft regime). */
-function crawlerEditStepGate(
-  step: CrawlerWizardStepId,
-  form: CrawlerWizardFormState
-): StepGateResult {
-  const hasName = form.name.trim() !== ''
-  switch (step) {
-    // Editing a legacy (untyped) crawler can advance without a type — the
-    // type stays absent and the stored TL is preserved.
-    case 'identity':
-    case 'review':
-      return hasName ? { ok: true } : { ok: false, reason: 'Name your Crawler to continue' }
-    default:
-      return { ok: true }
-  }
 }
 
 /** Slot pips for the tracker tab: ●○ (capped so the tab stays a tab). */
@@ -140,21 +102,9 @@ function slotPips(used: number, max: number): string {
  *     appear; NPC HP is fixed by data; crew flavor is optional;
  *   - the name is required; `upgradePool` is fixed at 0 (input removed);
  *     `scrapPool` is an explicit optional input relocated to step 5;
- *   - Banner is REMOVED from the create flow — nothing can be in
- *     violation. Edit mode keeps the soft regime (§5.2): Statistics hidden,
- *     budgets undefined, TL filter lifted, gates relaxed to presence checks,
- *     advisory warnings remain.
+ *   - there is no warnings Banner — nothing can be in violation.
  */
-export function CrawlerBuilder({
-  onComplete,
-  onCancel,
-  onOffRules,
-  crawlerId,
-  initialState,
-}: CrawlerBuilderProps) {
-  const isEdit = crawlerId !== undefined
-  const steps = isEdit ? EDIT_STEPS : CREATE_STEPS
-
+export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuilderProps) {
   // Read straight from the ORM: this renders inside GameDataReady, whose
   // preload('all') has already resolved, so these are synchronous. crawlers
   // drives the type selection (and its mutations-derived budgets);
@@ -178,20 +128,18 @@ export function CrawlerBuilder({
   const mechCount = useMechs().length
 
   // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
-  // wins over the pristine initial state; cleared on submit/cancelled exit.
-  // Create-mode drafts pass through the deterministic clamp (§5.3): illegal
-  // types/weapons drop, then weapons clamp NEWEST-first to the type's slots;
-  // removals are announced once, by toast.
-  const draftKey = wizardDraftKey('crawler', crawlerId)
+  // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
+  // through the deterministic clamp (§5.3): illegal types/weapons drop, then
+  // weapons clamp NEWEST-first to the type's slots; removals are announced
+  // once, by toast.
+  const draftKey = wizardDraftKey('crawler')
   const clampRemovedRef = useRef<string[] | null>(null)
   const [form, setForm] = useState<CrawlerWizardFormState>(() => {
     const draft = readWizardDraft<CrawlerWizardFormState>(draftKey)
-    if (draft && !isEdit) {
-      const { form: clamped, removed } = clampCrawlerCreationDraft(draft)
-      if (removed.length > 0) clampRemovedRef.current = removed
-      return clamped
-    }
-    return draft ?? initialState ?? EMPTY_CRAWLER_FORM_STATE
+    if (!draft) return EMPTY_CRAWLER_FORM_STATE
+    const { form: clamped, removed } = clampCrawlerCreationDraft(draft)
+    if (removed.length > 0) clampRemovedRef.current = removed
+    return clamped
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -200,30 +148,21 @@ export function CrawlerBuilder({
       toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
     }
   }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_CRAWLER_FORM_STATE)
+  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_CRAWLER_FORM_STATE)
 
-  // The step machine + the upsert-or-create submit, shared with the pilot and
-  // mech wizards (`useWizardFlow`) — but the crawler is the wizard that made
-  // the hook's two escape hatches necessary, and both are wired here:
-  //
-  //   - `afterUpdate` runs `applyCrawlerCrewAndTypeEdit`, a SECOND lifecycle
-  //     write the other two wizards have no counterpart for. It needs the
-  //     record as it was BEFORE the wizard patch, because the patch overwrites
-  //     `type` and the crew/NPC reset is decided by the OLD type.
-  //   - `toCreateInput` is a closure rather than the bare projection: a fresh
-  //     crawler starts at its DERIVED full SP and pre-seeds the base bay set.
-  //
-  // The failure copy is also passed verbatim: the crawler's catch has never
-  // carried the "Please retry." suffix the other two use.
+  // The step machine + the create submit, shared with the pilot and mech
+  // wizards (`useWizardFlow`). `toCreateInput` is a closure rather than the
+  // bare projection: a fresh crawler starts at its DERIVED full SP and
+  // pre-seeds the base bay set. The failure copy is passed verbatim: the
+  // crawler's carries no "Please retry." suffix.
   const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
     entityType: 'crawler',
     noun: 'crawler',
-    steps,
-    initialStep: steps[0] ?? 'type',
+    steps: STEPS,
+    initialStep: 'type',
     submitStep: 'review',
     form,
     draftKey,
-    ...(crawlerId !== undefined ? { entityId: crawlerId } : {}),
     schema: CrawlerSchema,
     toCreateInput: (f) => {
       // Fresh crawlers start at FULL SP — the DERIVED max (bare tech-level
@@ -239,13 +178,6 @@ export function CrawlerBuilder({
       // Seed the full base bay set — the official sheets pre-print every bay.
       return crawlerFormToCreateInput(f, { maxSP, crawlerBays: seedDefaultCrawlerBays() })
     },
-    toUpdatePatch: crawlerFormToUpdatePatch,
-    // Crew/NPC edits + the type-NPC reset / orphan cleanup route through the
-    // shared multi-write helper (also used by the live sheet's inline build
-    // editor), so live HP/condition on bays + the type NPC survive an edit.
-    afterUpdate: async (store, id, before) => {
-      await applyCrawlerCrewAndTypeEdit(store, id, form, before?.type ?? null, types)
-    },
     failureMessage: 'Failed to save crawler.',
     onComplete,
   })
@@ -260,12 +192,12 @@ export function CrawlerBuilder({
 
   /**
    * Choose a crawler type (radio). The type's mutations re-derive the
-   * downstream budgets, so switching in create mode RE-CLAMPS step 3's
-   * weapons to the new Armament-Bay cap (newest dropped first) — never a
-   * silent mutation, the toast names what was removed (§5.3). Switching away
-   * from a previously-chosen type also drops that old type's crew entry
-   * (keyed by the old type id) so it can never persist as a phantom bay /
-   * stale type NPC on save.
+   * downstream budgets, so switching RE-CLAMPS step 3's weapons to the new
+   * Armament-Bay cap (newest dropped first) — never a silent mutation, the
+   * toast names what was removed (§5.3). Switching away from a
+   * previously-chosen type also drops that old type's crew entry (keyed by the
+   * old type id) so it can never persist as a phantom bay / stale type NPC on
+   * save.
    */
   function selectType(typeId: string) {
     if (form.type === typeId) return
@@ -273,15 +205,13 @@ export function CrawlerBuilder({
     if (form.type !== null) delete nextCrew[form.type]
 
     let nextSystems = form.systems
-    if (!isEdit) {
-      const slots = crawlerWeaponSlotsFor(typeId)
-      if (form.systems.length > slots) {
-        const dropped = form.systems.slice(slots).map(weaponName)
-        nextSystems = form.systems.slice(0, slots)
-        toast.info(
-          `Type changed — this type mounts ${slots} Weapons System${slots === 1 ? '' : 's'}; removed ${dropped.join(', ')}.`
-        )
-      }
+    const slots = crawlerWeaponSlotsFor(typeId)
+    if (form.systems.length > slots) {
+      const dropped = form.systems.slice(slots).map(weaponName)
+      nextSystems = form.systems.slice(0, slots)
+      toast.info(
+        `Type changed — this type mounts ${slots} Weapons System${slots === 1 ? '' : 's'}; removed ${dropped.join(', ')}.`
+      )
     }
     updateForm({ type: typeId, crew: nextCrew, systems: nextSystems })
   }
@@ -296,15 +226,14 @@ export function CrawlerBuilder({
 
   /**
    * The Armament-Bay catalog: WEAPONS systems only (the bay holds nothing
-   * else — Core Book p.213). Guided create is HARD-filtered to Tech 1
-   * (`isLegalCreationCrawlerWeapon`); edit lifts the TL filter entirely
-   * (plan §5.2). Systems with non-numeric TL (Bio/Nanite) are never Tech 1.
+   * else — Core Book p.213), HARD-filtered to Tech 1
+   * (`isLegalCreationCrawlerWeapon`). Systems with non-numeric TL
+   * (Bio/Nanite) are never Tech 1.
    */
-  const weaponCatalog = useMemo(() => {
-    const weapons = allSystems.filter((s) => isWeaponSystem(s))
-    if (isEdit) return weapons
-    return weapons.filter((s) => isLegalCreationCrawlerWeapon(s.techLevel))
-  }, [allSystems, isEdit])
+  const weaponCatalog = useMemo(
+    () => allSystems.filter((s) => isWeaponSystem(s) && isLegalCreationCrawlerWeapon(s.techLevel)),
+    [allSystems]
+  )
 
   const chosenSystems = form.systems
     .map((id) => allSystems.find((s) => s.id === id))
@@ -312,91 +241,46 @@ export function CrawlerBuilder({
 
   // The Armament-Bay cap comes from the type's STORED `mutations` rows
   // (weapon_slots; Battle = 2) — plan §4.3, replacing the old action-name
-  // string match. Create clamps at this; edit lifts the budget (§5.2).
+  // string match. Selection clamps at this.
   const weaponSlots = crawlerWeaponSlotsFor(form.type)
   const installedWeaponCount = form.systems.filter((id) => {
     const system = allSystems.find((s) => s.id === id)
     return system ? isWeaponSystem(system) : false
   }).length
 
-  // Edit-mode advisory capacity warning (soft — never blocks; §5.2). The
-  // create flow renders NO Banner: violations are impossible by
-  // construction.
-  const crawlerCapacity = useMemo(() => {
-    const weaponSystems = form.systems.filter((id) => {
-      const system = allSystems.find((s) => s.id === id)
-      return system ? isWeaponSystem(system) : false
-    })
-    return computeCrawlerCapacity({
-      techLevel: form.techLevel ?? 0,
-      bays: [],
-      weaponSystems,
-      isBattleCrawler: weaponSlots > 1,
-    })
-  }, [form.techLevel, form.systems, allSystems, weaponSlots])
-  const isOverCapacity = crawlerCapacity.violations.some(
-    (v) => v.kind === 'weapon-systems-over-capacity'
-  )
+  // Next-gating (§5.3): the hard step gates. The gate's reason renders in the
+  // footerNote so a locked Next always explains itself.
+  const gate = crawlerCreationStepGate(step, form)
 
-  const capacityWarnings: SoftWarning[] = isOverCapacity
-    ? [
-        {
-          code: 'weapon-systems-over-capacity',
-          severity: 'warn',
-          message: `Over capacity — ${crawlerCapacity.weaponSystemsUsed} weapon systems installed, ${crawlerCapacity.weaponSystemsMax} supported for this crawler type. You can still save; review before play.`,
-        },
-      ]
-    : []
-  const capacityNotice =
-    isEdit && (step === 'weapons' || step === 'review') ? (
-      <Banner warnings={capacityWarnings} />
-    ) : undefined
-
-  // Next-gating (§5.3): guided create runs the hard step gates; edit runs
-  // presence checks. The gate's reason renders in the footerNote so a locked
-  // Next always explains itself.
-  const gate = isEdit ? crawlerEditStepGate(step, form) : crawlerCreationStepGate(step, form)
-
-  // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213
-  // (create); edit variants describe the lifted soft regime.
+  // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213.
   const stepRule: StepRule = (() => {
     switch (step) {
       case 'type':
-        return isEdit
-          ? {
-              rule: 'Change your Crawler type — one of five. Changing it resets the special NPC and re-derives the Armament-Bay cap and Max SP; over-cap weapons warn, never block.',
-              cite: 'Core Book · pp.216–217',
-            }
-          : {
-              rule: (
-                <>
-                  Once all players have created their Pilot and Mech, the final step is for everyone
-                  to create the Union Crawler they share. Your Crawler type provides a unique
-                  Ability that only it can do, as well as a special NPC who resides on the Crawler
-                  and confers their own bonuses.{' '}
-                  <span className="text-wk-muted">
-                    (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
-                    {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
-                  </span>
-                </>
-              ),
-              cite: 'Core Book · p.212 · Crawler types pp.216–217',
-            }
+        return {
+          rule: (
+            <>
+              Once all players have created their Pilot and Mech, the final step is for everyone to
+              create the Union Crawler they share. Your Crawler type provides a unique Ability that
+              only it can do, as well as a special NPC who resides on the Crawler and confers their
+              own bonuses.{' '}
+              <span className="text-wk-muted">
+                (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
+                {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
+              </span>
+            </>
+          ),
+          cite: 'Core Book · p.212 · Crawler types pp.216–217',
+        }
       case 'stats':
         return {
           rule: 'Your Crawler has a set of statistics based on its Tech Level. This includes its Structure Points, Upkeep, and Upgrade cost. Note these down on your Crawler Sheet.',
           cite: 'Core Book · p.212 · Crawler Stats p.218',
         }
       case 'weapons':
-        return isEdit
-          ? {
-              rule: 'Mount Weapons Systems in the Armament Bay — any tech level. Over-capacity warns on the sheet, never blocks.',
-              cite: 'Core Book · p.213',
-            }
-          : {
-              rule: 'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.',
-              cite: 'Core Book · p.213 · The System list p.162',
-            }
+        return {
+          rule: 'A Union Crawler can mount a single Weapons System in its Armament Bay. To start, this can be any Tech 1 Weapons System of the players’ choice — a Battle Crawler mounts two. Note this down on your Crawler Sheet.',
+          cite: 'Core Book · p.213 · The System list p.162',
+        }
       case 'crew':
         return {
           rule: 'The Crawler is made of a number of Bays. Each Bay has an NPC assigned to it based on their experience and skill in operating the Bay. You can flesh them out with a Name, Background, Keepsake, and Motto. Each has 4 HP.',
@@ -409,18 +293,16 @@ export function CrawlerBuilder({
         }
       case 'review':
         return {
-          rule: isEdit
-            ? 'Check the changes, then save.'
-            : 'Check the build, then create your Crawler.',
-          cite: isEdit ? undefined : 'Core Book · pp.212–213',
+          rule: 'Check the build, then create your Crawler.',
+          cite: 'Core Book · pp.212–213',
         }
     }
   })()
 
-  // Tracker tab in the action pill (create only — edit lifts the budgets):
-  // the WEAPONS pip chip rides on the Armament step (mockup Screen 03).
+  // Tracker tab in the action pill: the WEAPONS pip chip rides on the
+  // Armament step (mockup Screen 03).
   const trackers =
-    !isEdit && step === 'weapons' ? (
+    step === 'weapons' ? (
       <WizTracker
         label="Weapons"
         value={
@@ -437,21 +319,18 @@ export function CrawlerBuilder({
   return (
     <WizShell
       kind="crawler"
-      eyebrow={isEdit ? 'Edit Crawler' : 'Union Crawler'}
-      steps={steps.map((s) => STEP_LABELS[s])}
+      eyebrow="Union Crawler"
+      steps={STEPS.map((s) => STEP_LABELS[s])}
       active={currentIndex}
       onStepClick={(i) => {
-        const s = steps[i]
+        const s = STEPS[i]
         if (s) setStep(s)
       }}
       title={STEP_TITLES[step]}
       tintedStepCard
-      notice={capacityNotice}
       trackers={trackers}
       footerNote={footerNote}
-      escapeAction={
-        !isEdit && !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined
-      }
+      escapeAction={!gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined}
       onBack={currentIndex > 0 ? goBack : undefined}
       onCancel={() => {
         clearWizardDraft(draftKey)
@@ -461,7 +340,7 @@ export function CrawlerBuilder({
       onNext={goNext}
       nextDisabled={!gate.ok}
       busy={isSubmitting}
-      submitLabel={isEdit ? 'Save Crawler' : 'Create Crawler ✦'}
+      submitLabel="Create Crawler ✦"
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
       {step === 'type' && (
@@ -474,7 +353,7 @@ export function CrawlerBuilder({
         <SystemsList
           systems={weaponCatalog}
           selectedSystemSlugs={form.systems}
-          maxSelectable={isEdit ? undefined : weaponSlots}
+          maxSelectable={weaponSlots}
           installedWeaponCount={installedWeaponCount}
           onChange={(systems) => updateForm({ systems })}
         />

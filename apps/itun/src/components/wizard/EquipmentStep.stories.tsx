@@ -15,8 +15,11 @@ export const Default = () => {
       <EquipmentStep
         selectedEquipment={selected}
         budget={3}
-        onToggle={(id) =>
-          setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+        onCountChange={(id, next) =>
+          setSelected((prev) => [
+            ...prev.filter((x) => x !== id),
+            ...new Array<string>(next).fill(id),
+          ])
         }
       />
     </div>

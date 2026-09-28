@@ -24,8 +24,6 @@ import {
 export type ChassisPattern = SURefChassis['patterns'][number]
 
 type MechChassisStepProps = {
-  /** Edit mode lifts the Tech-1 filter and the legal-starting pattern filter. */
-  isEdit: boolean
   /** Chassis slug ref ('' while unchosen). */
   chassisName: string
   /** Current pattern name — drives the strip's radio state. */
@@ -77,36 +75,34 @@ function PatternSelCard({
 
 /**
  * Step 2 · Craft your Mech Chassis (Mech Workshop p.94) — exactly one, radio
- * semantics. Create mode is HARD (plan §4.2): only Tech 1 chassis render
+ * semantics, enforced HARD (plan §4.2): only Tech 1 chassis render
  * (package `isLegalCreationChassis` — higher TLs are never shown), each card
  * foot shows its crafting cost (`COSTS n SCRAP`), and picking one debits the
  * 20-Scrap budget. Below the pick, a "Start from a pattern?" strip offers
  * ONLY the stored-flag `legalStarting` patterns (or Custom build); picking a
- * pattern prefills steps 4–5 and debits accordingly. Edit mode lifts every
- * filter (all TLs, all patterns) — the soft regime.
+ * pattern prefills steps 4–5 and debits accordingly.
  */
 export function MechChassisStep({
-  isEdit,
   chassisName,
   patternName,
   onSelectChassis,
   onSelectPattern,
   onSelectCustom,
 }: MechChassisStepProps) {
-  const chassisPool = useMemo(() => {
-    const all = SalvageUnionReference.Chassis.all()
-    const pool = isEdit ? [...all] : all.filter((c) => isLegalCreationChassis(c.techLevel))
-    return pool.sort((a, b) => a.name.localeCompare(b.name))
-  }, [isEdit])
+  const chassisPool = useMemo(
+    () =>
+      SalvageUnionReference.Chassis.all()
+        .filter((c) => isLegalCreationChassis(c.techLevel))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    []
+  )
 
   const selectedChassis = chassisName
     ? chassisPool.find((c) => matchesRef(c, chassisName))
     : undefined
 
   const patternPool: ChassisPattern[] = selectedChassis
-    ? isEdit
-      ? visiblePatterns(selectedChassis.patterns)
-      : legalStartingPatterns(visiblePatterns(selectedChassis.patterns))
+    ? legalStartingPatterns(visiblePatterns(selectedChassis.patterns))
     : []
 
   // Compare NORMALIZED: mechs saved before the data dropped the " Pattern"
@@ -118,12 +114,12 @@ export function MechChassisStep({
 
   return (
     <div className="w-full space-y-5">
-      <Slab variant="solid" label={isEdit ? 'Chassis' : 'Tech 1 Chassis'} count="Choose 1" />
+      <Slab variant="solid" label="Tech 1 Chassis" count="Choose 1" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
           const reason =
-            !isEdit && cost > MECH_CREATION_SCRAP_CAP
+            cost > MECH_CREATION_SCRAP_CAP
               ? `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
               : undefined
           return (
@@ -138,7 +134,7 @@ export function MechChassisStep({
               onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
               hide={{ actions: true, choices: true, patterns: true }}
               footMeta={[
-                ...(isEdit ? [] : [{ label: 'Costs', value: `${cost} scrap` }]),
+                { label: 'Costs', value: `${cost} scrap` },
                 ...(reason ? [{ label: reason, value: '' }] : []),
               ]}
             />

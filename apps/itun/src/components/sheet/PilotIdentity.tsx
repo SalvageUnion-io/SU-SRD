@@ -11,7 +11,7 @@
  * 2 lifts the chead row into the card chrome) — this panel is CONTROLLED via
  * the `editing` prop rather than owning its own toggle state. Class is
  * picker-backed — its edit affordance opens the ONE shared picker modal
- * (changing class KEEPS abilities, matching the old edit-mode semantics).
+ * (changing class KEEPS abilities).
  *
  * Its body is `ClassPathPicker`, NOT the shared `EntitySearcher` that every
  * other reference-entity picker in this app routes through (#713). This is the

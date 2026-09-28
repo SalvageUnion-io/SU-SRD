@@ -7,9 +7,9 @@
  *
  * A type change is DESTRUCTIVE and stateful: it resets the crawler's special
  * type NPC to the new type's default, drops the orphaned old type's Keepsake/
- * Motto selections, and leaves every bay's live state untouched — the exact
- * multi-write the wizard's edit branch performs, via the shared
- * applyCrawlerCrewAndTypeEdit helper. A confirm step guards the change.
+ * Motto selections, and leaves every bay's live state untouched — one
+ * multi-write, via the applyCrawlerCrewAndTypeEdit helper. A confirm step
+ * guards the change.
  */
 
 import { Button, EntitySearcher, ModalShell, toast } from 'component-lib'

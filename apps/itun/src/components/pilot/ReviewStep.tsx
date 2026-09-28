@@ -12,8 +12,6 @@ type SURFind<T> = { find: (fn: (x: T) => boolean) => T | undefined }
 
 type ReviewStepProps = {
   form: PilotWizardFormState
-  /** Shown in edit mode — Training Points are advancement currency (plan 3.3). */
-  trainingPoints?: number
   submitError: string | null
   /** Injectable SUR for testing. */
   _sur?: {
@@ -28,7 +26,7 @@ type ReviewStepProps = {
  * left, the chosen ability + equipment cards stacked on the right (equipment
  * carries an 'Intact' status badge — fresh gear).
  */
-export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewStepProps) {
+export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
   const surClasses = _sur?.Classes ?? SalvageUnionReference.Classes
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
@@ -58,9 +56,6 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
     ['Appearance', form.appearance || '—'],
     ['Background', form.background || '—'],
   ]
-  if (trainingPoints !== undefined) {
-    rows.push(['Training Pts', String(trainingPoints)])
-  }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">

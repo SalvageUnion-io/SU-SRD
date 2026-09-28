@@ -1,30 +1,27 @@
 import { FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
 type MechReviewStepProps = {
   form: MechWizardFormState
-  /** True when editing an existing mech (suppresses the fresh 'Intact' badge). */
-  isEdit: boolean
   submitError: string | null
   /**
-   * Unspent Tech 1 Scrap (create mode) — rendered as the banking callout
+   * Unspent Tech 1 Scrap — rendered as the banking callout
    * "N Tech 1 Scrap banks to your Union Crawler". TEXT ONLY, deliberately:
    * no cross-entity write (ADR-007 automation boundary) — the crawler's
    * Scrap Pool field is the manual landing spot.
    */
-  bankedScrap?: number
+  bankedScrap: number
 }
 
 /**
  * Review step (design §3.2 Review — undrawn for mechs; reuses the pilot
  * pattern): kv-panel of the build's fields on the left (with Save-as-pattern
  * below it), the chosen system + module cards stacked on the right (fresh
- * installs carry an 'Intact' status badge in create mode).
+ * installs carry an 'Intact' status badge).
  */
-export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechReviewStepProps) {
+export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewStepProps) {
   const chosenSystems = form.systems.flatMap((ref) => {
     const found = resolveSystemRef(ref)
     return found ? [found] : []
@@ -41,14 +38,6 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
     ['Systems', form.systems.length > 0 ? form.systems.join(', ') : 'none'],
     ['Modules', form.modules.length > 0 ? form.modules.join(', ') : 'none'],
   ]
-  // Guided create grants no starting cargo (the input left the wizard in
-  // Phase 4) — the row only appears when an edited mech actually holds some.
-  if (form.cargoLots.length > 0) {
-    rows.push([
-      'Cargo',
-      `${form.cargoLots.length} lot${form.cargoLots.length === 1 ? '' : 's'} · ${totalLotUnits(form.cargoLots)} units`,
-    ])
-  }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
@@ -60,15 +49,13 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
           ))}
           {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
         </Panel>
-        {bankedScrap !== undefined && (
-          <Panel
-            data-testid="banking-callout"
-            className="mt-3 px-4 py-3 font-cond text-sm font-bold uppercase tracking-caps text-ink"
-          >
-            {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
-            Scrap Pool.
-          </Panel>
-        )}
+        <Panel
+          data-testid="banking-callout"
+          className="mt-3 px-4 py-3 font-cond text-sm font-bold uppercase tracking-caps text-ink"
+        >
+          {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
+          Scrap Pool.
+        </Panel>
         {form.chassisName && (
           <div className="mt-3">
             <SavePatternButton
@@ -90,7 +77,7 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
             key={`${(entity as { id?: string }).id ?? 'entity'}-${i}`}
             data={entity}
             size="medium"
-            status={isEdit ? undefined : 'intact'}
+            status="intact"
             hide={{ actions: true, choices: true }}
           />
         ))}

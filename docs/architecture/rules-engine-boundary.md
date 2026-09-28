@@ -270,15 +270,14 @@ snapshot remains a frozen point-in-time entity with no history. Full decision in
 
 This doc is the target. Where the code stands today:
 
-- **Wizard** enforces Guided Creation **hard** on the create path
+- **Wizard** enforces Guided Creation **hard**
   (`PilotWizard.tsx`, `MechWizard.tsx`, `CrawlerBuilder.tsx`): illegal options are
   filtered out rather than rendered, `Next` is gated by the step gates in
   `lib/rules/creation.ts` with the unmet requirement in the footer note,
   cross-step invalidation and draft-restore clamping are announced by toast, and
-  the advisory `Banner` is removed from the create flow — nothing can be in
-  violation. The deliberate exit is `OffRulesEscape` (leave the wizard for the
-  blank Free-Edit path). **Edit** mode keeps the soft regime: presence-only gates,
-  lifted filters/budgets, advisory warnings on Review.
+  there is no advisory `Banner` — nothing can be in violation. The deliberate
+  exit is `OffRulesEscape` (leave the wizard for the blank Free-Edit path). The
+  wizard only creates; an existing entity is edited on the Live Sheet.
 - **Dashboard** is **built** at `/dashboard/$id` (`src/components/dashboard/`,
   Phases 1–7; design: [dashboard.md](dashboard.md), decision:
   [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)), composing

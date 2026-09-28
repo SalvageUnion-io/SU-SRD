@@ -36,8 +36,6 @@ export { EmptyState } from './components/chrome/EmptyState'
 export { Field, Input, Select } from './components/chrome/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './components/chrome/FieldError'
-// Icon glyphs — currentColor, 1em, CSP-safe (ruleset §5, atom 11)
-export { Glyph } from './components/chrome/glyphs'
 export { InlineEditField } from './components/chrome/InlineEditField'
 export { Textarea } from './components/chrome/inputs'
 /**

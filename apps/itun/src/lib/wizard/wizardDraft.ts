@@ -20,9 +20,12 @@ const PREFIX = 'itun-wizard-draft'
 
 type WizardKind = 'pilot' | 'mech' | 'crawler'
 
-/** Draft slot: one per kind for creates, one per entity for edits. */
-export function wizardDraftKey(kind: WizardKind, entityId?: string): string {
-  return entityId ? `${PREFIX}:${kind}:edit:${entityId}` : `${PREFIX}:${kind}:new`
+/**
+ * Draft slot: one per wizard kind. The `:new` suffix is load-bearing — it is
+ * the key drafts already in sessionStorage were written under.
+ */
+export function wizardDraftKey(kind: WizardKind): string {
+  return `${PREFIX}:${kind}:new`
 }
 
 /** Read a stored draft; null when absent or unparseable (corrupt → cleared). */

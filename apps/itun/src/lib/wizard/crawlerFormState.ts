@@ -3,14 +3,11 @@
  *
  * CrawlerWizardFormState is the layout-agnostic seam between the wizard UI
  * and the persisted Crawler entity:
- *   - `crawlerToFormState` maps a stored crawler onto initial wizard state
- *     (edit-mode prefill — greenfield per plan 3.1).
- *   - `crawlerFormToCreateInput` builds the create() payload (seeded bays,
- *     full SP for the tech level).
- *   - `crawlerFormToUpdatePatch` builds the update() patch for the upsert
- *     branch. It contains ONLY wizard-owned fields — live-play state
- *     (crawlerBays + NPC state, bayChoices, currentSP, cargoLots,
- *     maxSpModifier, workspaceId, …) is never clobbered by an edit pass.
+ *   - `crawlerFormToUpdatePatch` projects the wizard-owned record fields.
+ *   - `crawlerFormToCreateInput` builds the create() payload (those fields,
+ *     seeded bays with the crew folded in, full SP for the tech level).
+ *   - `crawlerFormCrewToPatches` splits the crew form into the targeted
+ *     patches `applyCrawlerCrewAndTypeEdit` writes onto a stored crawler.
  *
  * All functions are pure over their inputs — no store, no React. The only
  * exception is `seedDefaultCrawlerBays`, which reads the SRD bay catalog.
@@ -19,7 +16,6 @@
 import type { ChoiceSelections } from 'component-lib'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { parseCrawlerTechLevel } from '../crawlerLevel'
 import type { ResolvedNpc } from '../crawlerRefs'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
 import { readReference } from '../readReference'
@@ -33,30 +29,6 @@ export type CrewNpcForm = {
   description?: string
   keepsake?: string
   motto?: string
-}
-
-/** First value of a single-element choice-selection array, or undefined. */
-function firstSelection(
-  selections: ChoiceSelections | undefined,
-  choiceId: string | undefined
-): string | undefined {
-  if (!selections || !choiceId) return undefined
-  const v = selections[choiceId]?.[0]
-  return v && v.length > 0 ? v : undefined
-}
-
-/** Read a crew form's structured Name/Description + Keepsake/Motto from storage. */
-function crewFormFromStorage(
-  npc: ResolvedNpc | undefined,
-  npcState: CrawlerNpcState | undefined,
-  selections: ChoiceSelections | undefined
-): CrewNpcForm {
-  return {
-    name: npcState?.npcName,
-    description: npcState?.npcDescription,
-    keepsake: firstSelection(selections, findNpcChoiceByName(npc, 'Keepsake')?.id),
-    motto: firstSelection(selections, findNpcChoiceByName(npc, 'Motto')?.id),
-  }
 }
 
 /** Scrap-pool form shape: every TL bucket present (zeros allowed). */
@@ -76,7 +48,7 @@ export type CrawlerWizardFormState = {
   name: string
   /** Freeform crawler description (maps to Crawler.description). */
   description: string
-  /** Numeric tech level 1–6; new crawlers fix this at 1, edit preserves stored. */
+  /** Numeric tech level 1–6; a new crawler is fixed at 1. */
   techLevel: number | null
   /** Chosen crawler-type ref (SRD id); null until chosen. */
   type: string | null
@@ -105,42 +77,6 @@ export const EMPTY_CRAWLER_FORM_STATE: CrawlerWizardFormState = {
   upgradePool: 0,
 }
 
-/** Maps a stored crawler onto wizard initial state (edit-mode prefill). */
-export function crawlerToFormState(crawler: Crawler): CrawlerWizardFormState {
-  const crew: Record<string, CrewNpcForm> = {}
-
-  // Hydrate each base bay's crew form (structured name/desc + Keepsake/Motto).
-  for (const entry of crawler.crawlerBays ?? []) {
-    const bay = resolveCrawlerBay(entry.bayRef)
-    if (!bay?.npc) continue
-    crew[entry.bayRef] = crewFormFromStorage(bay.npc, entry, crawler.bayChoices?.[entry.bayRef])
-  }
-
-  // Hydrate the crawler-type's special NPC, keyed by the type ref.
-  if (crawler.type) {
-    const typeEntity = resolveCrawlerType(crawler.type)
-    if (typeEntity?.npc) {
-      crew[crawler.type] = crewFormFromStorage(
-        typeEntity.npc,
-        crawler.typeNpc,
-        crawler.bayChoices?.[crawler.type]
-      )
-    }
-  }
-
-  return {
-    name: crawler.name,
-    description: crawler.description ?? '',
-    // Keep the stored tech level on edit — only create fixes it at 1.
-    techLevel: parseCrawlerTechLevel(crawler.techLevel) ?? null,
-    type: crawler.type ?? null,
-    systems: [...crawler.systems],
-    crew,
-    scrapPool: { ...EMPTY_SCRAP_POOL, ...(crawler.scrapPool ?? {}) },
-    upgradePool: crawler.upgradePool ?? 0,
-  }
-}
-
 /**
  * Normalizes the form's scrap pool for persistence: zero buckets are
  * stripped (the schema reads absent buckets as 0).
@@ -153,7 +89,7 @@ export function toScrapPoolPatch(pool: ScrapPoolForm): ScrapPool {
   return out
 }
 
-/** Wizard-owned crawler fields — the only fields an edit save may touch. */
+/** Wizard-owned crawler record fields — the ones the form captures. */
 type CrawlerWizardPatch = Pick<
   Crawler,
   'name' | 'description' | 'techLevel' | 'type' | 'systems' | 'scrapPool' | 'upgradePool'
@@ -167,12 +103,10 @@ export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerW
     name: form.name.trim(),
     description: form.description.trim() || undefined,
     techLevel: `tech-${form.techLevel}`,
-    // The chosen crawler type — additive wizard-owned field. Crew/NPC edits do
-    // NOT go through this patch (they route through crawlerFormCrewToPatches so
-    // live HP/condition survive an edit save).
+    // Crew/NPC details are not record fields: the create input folds them into
+    // the seeded bays and `typeNpc`.
     ...(form.type !== null ? { type: form.type } : {}),
     systems: form.systems,
-    // Always present in the patch so buckets can be zeroed out on edit.
     scrapPool: toScrapPoolPatch(form.scrapPool),
     upgradePool: form.upgradePool,
   }
@@ -238,7 +172,7 @@ function npcChoiceSelections(
 /**
  * Default structured state for a crawler-type's special NPC: its max HP from
  * the SRD `npc.hitPoints` (when present; Augmented's A.I. is 0 → absent). Used
- * to RESET the type NPC when the wizard switches a crawler to a different type.
+ * to RESET the type NPC when a stored crawler switches to a different type.
  */
 export function defaultTypeNpcState(types: SURefCrawler[], typeRef: string): CrawlerNpcState {
   const type = types.find((t) => t.id === typeRef || t.name === typeRef)
@@ -306,7 +240,7 @@ export function crawlerFormToCreateInput(
 }
 
 /**
- * Crew edits applied on an edit-mode save. The returned patches route through
+ * Crew edits applied to a stored crawler. The returned patches route through
  * targeted `updateCrawlerBay` calls + a single `bayChoices` merge + a `typeNpc`
  * patch (mirroring how the sheet persists) so live HP/condition on bays and the
  * type NPC are never clobbered by an edit pass.

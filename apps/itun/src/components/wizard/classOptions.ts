@@ -35,10 +35,9 @@ function isSpecialisationClass(cls: unknown): cls is SURefClass {
 export type SelectableBaseClass = SURefClass & { coreTrees: string[] }
 
 /**
- * Selectable classes for the wizard. Create mode: base classes only.
- * Edit mode (`includeSpecialisations`): base classes plus Advanced/Hybrid
- * specialisation classes — selection is allowed regardless of prerequisites;
- * unmet prereqs surface as pre-save soft warnings (plan 3.3, never block).
+ * Selectable classes: base classes, plus — with `includeSpecialisations` (the
+ * sheet's class picker) — the Advanced/Hybrid specialisation classes,
+ * selectable regardless of prerequisites.
  */
 export function selectableClasses(
   sur: SURClassesAccessor | undefined,

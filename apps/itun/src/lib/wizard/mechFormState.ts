@@ -3,13 +3,9 @@
  *
  * MechWizardFormState is the layout-agnostic seam between the wizard UI and
  * the persisted Mech entity:
- *   - `mechToFormState` maps a stored mech onto initial wizard state
- *     (edit-mode prefill — greenfield per plan 3.1).
- *   - `mechFormToCreateInput` builds the create() payload.
- *   - `mechFormToUpdatePatch` builds the update() patch for the upsert
- *     branch. It contains ONLY wizard-owned fields — live-play state
- *     (currentSP/EP/Heat, conditions, item conditions/uses, maxima
- *     modifiers, heat-check state, …) is never clobbered by an edit pass.
+ *   - `mechFormToUpdatePatch` projects the wizard-owned fields.
+ *   - `mechFormToCreateInput` builds the create() payload: those fields plus
+ *     the fresh mech's starting live-play state.
  *
  * All functions are pure — no store, no React. `mechFormToCreateInput` reads
  * the reference ORM (chassis stats) and so requires `chassis` preloaded.
@@ -19,7 +15,6 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Mech } from '../schemas/mech'
-import type { PartnerInstance } from '../schemas/partner'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
@@ -54,23 +49,7 @@ export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
   appearance: '',
 }
 
-/** Maps a stored mech onto wizard initial state (edit-mode prefill). */
-export function mechToFormState(mech: Mech): MechWizardFormState {
-  return {
-    name: mech.name,
-    chassisName: mech.chassisRef,
-    patternName: mech.patternName ?? '',
-    systems: [...mech.systems],
-    modules: [...mech.modules],
-    cargoLots: mech.cargoLots.map((lot) => ({ ...lot })),
-    quirk: mech.quirk ?? '',
-    // Read-fallback: pre-split mechs carry their notes in the deprecated
-    // `description`; surface them under Appearance (heals on next save).
-    appearance: mech.appearance ?? mech.description ?? '',
-  }
-}
-
-/** Wizard-owned mech fields — the only fields an edit save may touch. */
+/** Wizard-owned mech fields — the ones the form captures. */
 type MechWizardPatch = Pick<
   Mech,
   | 'name'
@@ -94,30 +73,14 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
     cargoLots: form.cargoLots,
     quirk: form.quirk.trim() || undefined,
     appearance: form.appearance.trim() || undefined,
-    // Clear the deprecated field on save (its content moved to `appearance`).
+    // The deprecated notes field stays unset (its content lives in `appearance`).
     description: undefined,
   }
 }
 
-/**
- * Reconcile a mech's drones against the chassis + pattern it now carries.
- *
- * Kept OUT of `mechFormToUpdatePatch` on purpose: that patch is the set of
- * fields an edit may overwrite blind, and a partner carries live-play state
- * (structure, energy, heat, per-item conditions, cargo) that an edit must
- * preserve. Reconciliation needs the stored partners as input, so the wizard
- * runs it on the update path via `afterUpdate` instead.
- *
- * `reseedLoadout` because a mech's drones wear the pattern: a pattern change
- * re-cuts their systems and modules exactly as it re-cuts the mech's own.
- */
-export function mechFormToPartners(
-  form: MechWizardFormState,
-  existing?: readonly PartnerInstance[]
-) {
-  return syncPartners(existing, mechPartnerSeeds(form.chassisName, form.patternName), {
-    reseedLoadout: true,
-  })
+/** The drones a fresh mech's chassis grants, kitted by its pattern. */
+export function mechFormToPartners(form: MechWizardFormState) {
+  return syncPartners(undefined, mechPartnerSeeds(form.chassisName, form.patternName))
 }
 
 /**

@@ -1,8 +1,6 @@
 /**
  * Crawler edit-save crew/type multi-write — the fragile persistence used by the
- * live sheet's inline type editor (CrawlerTypeEditModal). It is derived from the
- * crawler wizard's original edit branch (CrawlerBuilder.handleSubmit); the
- * wizard now only creates, so this is the single live caller.
+ * live sheet's inline type editor (CrawlerTypeEditModal).
  *
  * It writes:
  *   - Per-bay `updateCrawlerBay` calls (structured NPC name/description) so a

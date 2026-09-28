@@ -1,16 +1,11 @@
 import type { StepRule } from 'component-lib'
-import { Banner, OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { useEffect, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  enrichPilotSnapshot,
-  evaluatePilotWarnings,
-  isLegalCreationAbility,
-} from 'salvageunion-reference/rules'
-import { usePilot } from '../../hooks/entities'
+import { isLegalCreationAbility } from 'salvageunion-reference/rules'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
-import type { PilotWizardStepId, StepGateResult } from '../../lib/rules/creation'
+import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import {
   PILOT_BASE_AP,
@@ -19,19 +14,13 @@ import {
 } from '../../lib/rules/derivedStats'
 import { PilotSchema } from '../../lib/schemas/pilot'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
-import {
-  EMPTY_PILOT_FORM_STATE,
-  pilotFormToCreateInput,
-  pilotFormToPartners,
-  pilotFormToUpdatePatch,
-} from '../../lib/wizard/pilotFormState'
+import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import {
   clearWizardDraft,
   readWizardDraft,
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
-import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
@@ -43,11 +32,8 @@ import { useWizardFlow } from '../wizard/useWizardFlow'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 
-/**
- * Book-order steps (Pilot Bay pp.18–19 + Review — plan §4.1). Edit mode
- * (§5.2) hides the display-only Stats briefing and keeps the rest.
- */
-const CREATE_STEPS: readonly PilotWizardStepId[] = [
+/** Book-order steps (Pilot Bay pp.18–19 + Review — plan §4.1). */
+const STEPS: readonly PilotWizardStepId[] = [
   'stats',
   'classAbility',
   'equipment',
@@ -58,7 +44,6 @@ const CREATE_STEPS: readonly PilotWizardStepId[] = [
   'appearance',
   'review',
 ]
-const EDIT_STEPS: readonly PilotWizardStepId[] = CREATE_STEPS.filter((s) => s !== 'stats')
 
 /** Stepper-rail labels (mockup Screen 01 `.rlabel`). */
 const STEP_LABELS: Record<PilotWizardStepId, string> = {
@@ -100,24 +85,12 @@ type SURDeps = {
 }
 
 type PilotWizardProps = {
-  /** Called on successful create/save with the pilot's id. */
+  /** Called on successful create with the pilot's id. */
   onComplete: (pilotId: string) => void
   /** Called when the user cancels. */
   onCancel: () => void
-  /** Leaves the guided flow for the blank Free-Edit path (P3.3). Create only. */
+  /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
-  /**
-   * Id of an existing pilot being edited. When provided, handleSubmit takes
-   * the update branch (never duplicates), the hard creation gates relax to
-   * presence checks, budgets lift, and every option filter lifts (all
-   * levels, all TLs, Advanced/Hybrid classes — plan §5.2).
-   */
-  pilotId?: string
-  /**
-   * Initial form state — pass `pilotToFormState(pilot)` in edit mode.
-   * Defaults to the empty creation state.
-   */
-  initialState?: PilotWizardFormState
   /**
    * Injectable roll table deps for testing — omit in production.
    * Used to stub the SalvageUnionReference.RollTables accessor in tests.
@@ -128,26 +101,6 @@ type PilotWizardProps = {
    * Omit in production — uses the real SalvageUnionReference module.
    */
   _sur?: SURDeps
-}
-
-/** Edit-mode gates: today's presence checks only (plan §5.2 — soft regime). */
-function pilotEditStepGate(step: PilotWizardStepId, form: PilotWizardFormState): StepGateResult {
-  const hasClass = form.classId !== ''
-  const hasIdentity = form.name.trim() !== '' && form.callsign.trim() !== ''
-  switch (step) {
-    case 'classAbility':
-      return hasClass ? { ok: true } : { ok: false, reason: 'Choose your class to continue' }
-    case 'callsign':
-      return hasIdentity
-        ? { ok: true }
-        : { ok: false, reason: 'Enter a Name and Callsign to continue' }
-    case 'review':
-      if (!hasClass) return { ok: false, reason: 'Choose your class to continue' }
-      if (!hasIdentity) return { ok: false, reason: 'Enter a Name and Callsign to continue' }
-      return { ok: true }
-    default:
-      return { ok: true }
-  }
 }
 
 /**
@@ -162,16 +115,12 @@ function pilotEditStepGate(step: PilotWizardStepId, form: PilotWizardFormState):
  *     unmet requirement renders in the footerNote;
  *   - cross-step invalidation (class change clears a now-illegal ability) and
  *     draft-restore clamping are deterministic and always announced by toast;
- *   - Banner is REMOVED from the create flow — nothing can be in
- *     violation. Edit mode keeps the soft regime (§5.2): presence gates,
- *     lifted filters, advisory warnings on Review.
+ *   - there is no warnings Banner — nothing can be in violation.
  */
 export function PilotWizard({
   onComplete,
   onCancel,
   onOffRules,
-  pilotId,
-  initialState,
   _rollDeps,
   _sur,
 }: PilotWizardProps) {
@@ -182,25 +131,19 @@ export function PilotWizard({
     Equipment: SalvageUnionReference.Equipment,
   }
 
-  const isEdit = pilotId !== undefined
-  const existingPilot = usePilot(pilotId)
-  const steps = isEdit ? EDIT_STEPS : CREATE_STEPS
-
   // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
-  // wins over the pristine initial state; cleared on submit/cancelled exit.
-  // Create-mode drafts are passed through the deterministic clamp (§5.3) —
-  // violations from a pre-enforcement draft resolve oldest-first to the 1/2
-  // budgets and the removals are announced once, by toast.
-  const draftKey = wizardDraftKey('pilot', pilotId)
+  // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
+  // through the deterministic clamp (§5.3) — violations from a
+  // pre-enforcement draft resolve oldest-first to the 1/2 budgets and the
+  // removals are announced once, by toast.
+  const draftKey = wizardDraftKey('pilot')
   const clampRemovedRef = useRef<string[] | null>(null)
   const [form, setForm] = useState<PilotWizardFormState>(() => {
     const draft = readWizardDraft<PilotWizardFormState>(draftKey)
-    if (draft && !isEdit) {
-      const { form: clamped, removed } = clampPilotCreationDraft(draft)
-      if (removed.length > 0) clampRemovedRef.current = removed
-      return clamped
-    }
-    return draft ?? initialState ?? EMPTY_PILOT_FORM_STATE
+    if (!draft) return EMPTY_PILOT_FORM_STATE
+    const { form: clamped, removed } = clampPilotCreationDraft(draft)
+    if (removed.length > 0) clampRemovedRef.current = removed
+    return clamped
   })
   useEffect(() => {
     const removed = clampRemovedRef.current
@@ -209,65 +152,35 @@ export function PilotWizard({
       toast.info(`Draft trimmed to creation limits — removed ${removed.join(', ')}.`)
     }
   }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_PILOT_FORM_STATE)
+  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_PILOT_FORM_STATE)
 
-  // The step machine + the upsert-or-create submit, shared verbatim with the
-  // mech and crawler wizards (`useWizardFlow`). The pilot needs neither of its
-  // escape hatches: no extra update-path lifecycle work, and its create input
-  // is a plain projection of the form.
+  // The step machine + the create submit, shared with the mech and crawler
+  // wizards (`useWizardFlow`); the pilot's create input is a plain projection
+  // of the form.
   const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
     entityType: 'pilot',
     noun: 'pilot',
-    steps,
-    initialStep: steps[0] ?? 'classAbility',
+    steps: STEPS,
+    initialStep: 'stats',
     submitStep: 'review',
     form,
     draftKey,
-    ...(pilotId !== undefined ? { entityId: pilotId } : {}),
     schema: PilotSchema,
     toCreateInput: pilotFormToCreateInput,
-    toUpdatePatch: pilotFormToUpdatePatch,
-    // A partner cannot outlive its grant: dropping the Survey Drone equipment
-    // drops the drone, and adding it back grants a fresh one. Runs here rather
-    // than in the patch because a partner holds live-play state (structure,
-    // energy, heat, cargo) that reconciliation has to preserve, and that means
-    // reading the stored partners — which `before` carries.
-    afterUpdate: async (store, id, before) => {
-      const partners = pilotFormToPartners(form, before?.partners)
-      await store.update('pilot', id, { partners }, WIZARD_TXN)
-    },
     failureMessage: 'Failed to save pilot. Please retry.',
     onComplete,
   })
-
-  // Pre-save soft warnings (plan §5.2): EDIT-mode Review only — the create
-  // flow is hard-enforced, so nothing can be in violation and the banner is
-  // gone from it entirely.
-  const softWarnings = useMemo(() => {
-    if (!isEdit || step !== 'review' || _sur) return []
-    const before = existingPilot ? enrichPilotSnapshot(existingPilot) : { abilities: [] }
-    const after = enrichPilotSnapshot({
-      abilities: form.abilities,
-      classRef: form.classId,
-    })
-    return evaluatePilotWarnings({ before, after }, { entityType: 'pilot' })
-  }, [isEdit, step, _sur, existingPilot, form.abilities, form.classId])
 
   function updateForm(patch: Partial<PilotWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
   /**
-   * Class pick (radio). Creation clears a now-illegal ability with a toast
-   * (§5.3 cross-step invalidation — never a silent mutation); a still-legal
-   * pick survives (e.g. Salvager → Engineer keeping a shared core tree).
-   * Edit keeps abilities — a specialising pilot retains learned core trees.
+   * Class pick (radio). Clears a now-illegal ability with a toast (§5.3
+   * cross-step invalidation — never a silent mutation); a still-legal pick
+   * survives (e.g. Salvager → Engineer keeping a shared core tree).
    */
   function handleSelectClass(classId: string) {
-    if (isEdit) {
-      updateForm({ classId })
-      return
-    }
     if (classId === form.classId) return
     const cls = sur.Classes.find((c) => (c as { id: string }).id === classId) as
       | { coreTrees?: string[] }
@@ -294,21 +207,13 @@ export function PilotWizard({
     updateForm({ classId, abilities: kept })
   }
 
-  /** Ability pick: creation is a RADIO (the pick replaces); edit toggles. */
+  /** Ability pick is a RADIO: the pick replaces; re-picking it clears. */
   function handleSelectAbility(abilityId: string) {
-    if (!isEdit) {
-      updateForm({ abilities: form.abilities.includes(abilityId) ? [] : [abilityId] })
-      return
-    }
-    updateForm({
-      abilities: form.abilities.includes(abilityId)
-        ? form.abilities.filter((x) => x !== abilityId)
-        : [...form.abilities, abilityId],
-    })
+    updateForm({ abilities: form.abilities.includes(abilityId) ? [] : [abilityId] })
   }
 
   /**
-   * Create-mode equipment count-stepper write: duplicates allowed, the total
+   * Equipment count-stepper write: duplicates allowed, the total
    * clamped at the 2-pick budget; decrements drop the OLDEST copies first
    * (the same determinism as the draft clamp).
    */
@@ -339,22 +244,11 @@ export function PilotWizard({
     })
   }
 
-  /** Edit-mode equipment toggle (uncapped — plan §5.2). */
-  function toggleEquipment(equipmentId: string) {
-    updateForm({
-      equipment: form.equipment.includes(equipmentId)
-        ? form.equipment.filter((x) => x !== equipmentId)
-        : [...form.equipment, equipmentId],
-    })
-  }
+  // Next-gating (§5.3): the hard step gates. The gate's reason renders in the
+  // footerNote so a locked Next always explains itself.
+  const gate = pilotCreationStepGate(step, form)
 
-  // Next-gating (§5.3): guided create runs the hard step gates; edit runs
-  // presence checks. The gate's reason renders in the footerNote so a locked
-  // Next always explains itself.
-  const gate = isEdit ? pilotEditStepGate(step, form) : pilotCreationStepGate(step, form)
-
-  // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19 (create);
-  // edit variants describe the lifted soft regime.
+  // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19.
   const stepRule: StepRule = (() => {
     switch (step) {
       case 'stats':
@@ -363,25 +257,15 @@ export function PilotWizard({
           cite: 'Core Book · p.18 · Pilot Stats p.20',
         }
       case 'classAbility':
-        return isEdit
-          ? {
-              rule: 'Choose your pilot class and abilities — any class, any tree, any level. Specialisation prerequisites and rule caps warn on Review, never block.',
-              cite: 'Core Book · pp.18–19',
-            }
-          : {
-              rule: 'There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier. Each is differentiated by the different Ability trees they can pick from. Your Pilot starts with 1 Ability of your choice. The Salvager is an exception: as a ‘jack of all trades’ Class, they can pick from any of the Core Ability trees — however, they can never advance beyond them.',
-              cite: 'Core Book · p.18 · Pilot Classes pp.26–77',
-            }
+        return {
+          rule: 'There are six core Pilot classes; Engineer, Hacker, Hauler, Salvager, Scout, and Soldier. Each is differentiated by the different Ability trees they can pick from. Your Pilot starts with 1 Ability of your choice. The Salvager is an exception: as a ‘jack of all trades’ Class, they can pick from any of the Core Ability trees — however, they can never advance beyond them.',
+          cite: 'Core Book · p.18 · Pilot Classes pp.26–77',
+        }
       case 'equipment':
-        return isEdit
-          ? {
-              rule: 'Choose Pilot Equipment — any tech level, uncapped. Inventory-slot overages warn on the sheet, never block.',
-              cite: 'Core Book · pp.18–19',
-            }
-          : {
-              rule: 'You may choose two pieces of Tech 1 Pilot Equipment from the list. Note these in your inventory. Most items fill 1 Inventory Slot; Heavy and Portable gear fills 2.',
-              cite: 'Core Book · p.19 · Pilot Equipment pp.78–87',
-            }
+        return {
+          rule: 'You may choose two pieces of Tech 1 Pilot Equipment from the list. Note these in your inventory. Most items fill 1 Inventory Slot; Heavy and Portable gear fills 2.',
+          cite: 'Core Book · p.19 · Pilot Equipment pp.78–87',
+        }
       case 'callsign':
         return {
           rule: 'Your Pilot’s Callsign is the name everyone on the Union Crawler refers to them as. It is typically a nickname, but can be their actual name. Pick or roll on the Callsign Table, or have everyone else at the table choose one for your Pilot based on their impression of them. Callsigns may also change in play in this manner.',
@@ -409,10 +293,8 @@ export function PilotWizard({
         }
       case 'review':
         return {
-          rule: isEdit
-            ? 'Check the changes, then save.'
-            : `Recap: 1 class · 1 ability · 2 Tech 1 items · ${PILOT_BASE_HP} HP · ${PILOT_BASE_AP} AP · ${PILOT_BASE_INVENTORY_SLOTS} slots. Check the build, then create.`,
-          cite: isEdit ? undefined : 'Core Book · pp.18–19',
+          rule: `Recap: 1 class · 1 ability · 2 Tech 1 items · ${PILOT_BASE_HP} HP · ${PILOT_BASE_AP} AP · ${PILOT_BASE_INVENTORY_SLOTS} slots. Check the build, then create.`,
+          cite: 'Core Book · pp.18–19',
         }
     }
   })()
@@ -429,7 +311,7 @@ export function PilotWizard({
             value={
               <span data-testid="ability-count">
                 {form.abilities.length}
-                {isEdit ? '' : ` / ${STARTING_ABILITY_BUDGET}`}
+                {` / ${STARTING_ABILITY_BUDGET}`}
               </span>
             }
           />
@@ -441,12 +323,11 @@ export function PilotWizard({
             value={
               <span data-testid="equipment-count">
                 {form.equipment.length}
-                {isEdit ? '' : ` / ${STARTING_EQUIPMENT_BUDGET}`}
+                {` / ${STARTING_EQUIPMENT_BUDGET}`}
               </span>
             }
           />
         )
-        if (isEdit) return picks
         const slotsUsed = pilotInventoryUsed({ equipment: form.equipment, genericInventory: [] })
         return (
           <>
@@ -470,21 +351,18 @@ export function PilotWizard({
   return (
     <WizShell
       kind="pilot"
-      eyebrow={isEdit ? 'Edit Pilot' : 'Pilot Bay'}
-      steps={steps.map((s) => STEP_LABELS[s])}
+      eyebrow="Pilot Bay"
+      steps={STEPS.map((s) => STEP_LABELS[s])}
       active={currentIndex}
       onStepClick={(i) => {
-        const s = steps[i]
+        const s = STEPS[i]
         if (s) setStep(s)
       }}
       title={STEP_TITLES[step]}
       tintedStepCard
-      notice={isEdit && step === 'review' ? <Banner warnings={softWarnings} /> : undefined}
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
-      escapeAction={
-        !isEdit && !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined
-      }
+      escapeAction={!gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined}
       onBack={currentIndex > 0 ? goBack : undefined}
       onCancel={() => {
         clearWizardDraft(draftKey)
@@ -494,13 +372,12 @@ export function PilotWizard({
       onNext={goNext}
       nextDisabled={!gate.ok}
       busy={isSubmitting}
-      submitLabel={isEdit ? 'Save Pilot' : 'Create Pilot ✦'}
+      submitLabel="Create Pilot ✦"
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
       {step === 'stats' && <StatsStep />}
       {step === 'classAbility' && (
         <ClassAbilityStep
-          isEdit={isEdit}
           classId={form.classId}
           selectedAbilities={form.abilities}
           onSelectClass={handleSelectClass}
@@ -511,9 +388,8 @@ export function PilotWizard({
       {step === 'equipment' && (
         <EquipmentStep
           selectedEquipment={form.equipment}
-          onToggle={toggleEquipment}
           onCountChange={handleEquipmentCount}
-          budget={isEdit ? undefined : STARTING_EQUIPMENT_BUDGET}
+          budget={STARTING_EQUIPMENT_BUDGET}
           _sur={{ Equipment: sur.Equipment }}
         />
       )}
@@ -568,7 +444,6 @@ export function PilotWizard({
       {step === 'review' && (
         <ReviewStep
           form={form}
-          trainingPoints={isEdit ? (existingPilot?.trainingPoints ?? 0) : undefined}
           submitError={submitError}
           _sur={
             _sur

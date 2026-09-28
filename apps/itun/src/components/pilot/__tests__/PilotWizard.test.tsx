@@ -1,13 +1,13 @@
 /**
- * Integration tests for PilotWizard (create + edit on the WizShell skeleton),
- * restructured to the Pilot Bay's book order (wizard-refresh Phase 3):
+ * Integration tests for PilotWizard on the WizShell skeleton, in the Pilot
+ * Bay's book order (wizard-refresh Phase 3):
  *
  *   Stats → Class & Ability (merged) → Equipment → Callsign → Background →
  *   Motto → Keepsake → Appearance → Review → submit
  *
- * Create mode is HARD-enforced (1 ability radio, exactly 2 Tech-1 equipment
- * via count-steppers, gated Next); edit mode keeps the soft regime. Uses the
- * real wizard, real SalvageUnionReference data, real Zod validation, and a
+ * Creation is HARD-enforced (1 ability radio, exactly 2 Tech-1 equipment
+ * via count-steppers, gated Next). Uses the real wizard, real
+ * SalvageUnionReference data, real Zod validation, and a
  * fake-indexeddb-backed entityStore.
  *
  * fake-indexeddb/auto and SalvageUnionReference are preloaded via bunfig.toml.
@@ -17,7 +17,6 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
-import { pilotFormToCreateInput, pilotToFormState } from '../../../lib/wizard/pilotFormState'
 import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
 import { PilotWizard } from '../PilotWizard'
@@ -341,126 +340,6 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     expect(getPickByName('Mass Field Maintenance').getAttribute('aria-pressed')).toBe('true')
     await clickNext() // → Equipment
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
-  }, 30000)
-})
-
-// ---------------------------------------------------------------------------
-// Edit mode: soft regime — merged step order minus Stats, lifted filters
-// ---------------------------------------------------------------------------
-
-async function seedEngineerPilot() {
-  const classId = idOf('Engineer', SalvageUnionReference.Classes)
-  const input = pilotFormToCreateInput({
-    name: 'Mira Voss',
-    description: '',
-    classId,
-    abilities: [
-      idOf('Engineering Expertise', SalvageUnionReference.Abilities),
-      idOf('Jury Rig', SalvageUnionReference.Abilities),
-      idOf('Mass Field Maintenance', SalvageUnionReference.Abilities),
-    ],
-    equipment: [],
-    callsign: 'Sparks',
-    motto: 'Measure twice',
-    keepsake: 'A bent wrench',
-    appearance: 'Grease-stained',
-    background: 'Workshop kid.',
-  })
-  return useEntityStore.getState().create('pilot', input)
-}
-
-describe('PilotWizard — edit mode', () => {
-  it('starts at Class & Ability (no Stats step), allows a level-2 pick uncapped, and updates without duplicating', async () => {
-    const pilot = await seedEngineerPilot()
-    const onComplete = mock(() => {})
-
-    render(
-      <PilotWizard
-        pilotId={pilot.id}
-        initialState={pilotToFormState(pilot)}
-        onComplete={onComplete}
-        onCancel={() => {}}
-      />
-    )
-
-    // Eyebrow flips to edit mode; the first step is the merged Class &
-    // Ability (Stats is hidden in edit — §5.2) with every level offered.
-    expect(screen.getByText('Edit Pilot')).toBeTruthy()
-    expect(screen.queryByText('Your Stats')).toBeNull()
-    await pick('Talk Shop') // Mechanical Knowledge level 2 — edit lifts allLevels
-    expect(screen.getByTestId('ability-count').textContent).toBe('4') // uncapped, no budget suffix
-    await clickNext() // → Equipment
-    await clickNext() // → Callsign (prefilled name/callsign)
-    await clickNext() // → Background
-    await clickNext() // → Motto
-    await clickNext() // → Keepsake
-    await clickNext() // → Appearance
-    await clickNext() // → Review
-    // Review → 'Save Pilot' (never 'Create')
-    const save = screen.getByRole('button', { name: /Save Pilot/i })
-    await act(async () => {
-      fireEvent.click(save)
-    })
-
-    await waitFor(() => {
-      const pilots = useEntityStore.getState().list('pilot')
-      // Upsert branch: same record updated — never a duplicate create.
-      expect(pilots.length).toBe(1)
-      const p = must(pilots[0])
-      expect(p.id).toBe(pilot.id)
-      expect(p.abilities.length).toBe(4)
-      expect(p.abilities).toContain(idOf('Talk Shop', SalvageUnionReference.Abilities))
-      // Live-play state untouched by the wizard patch.
-      expect(p.currentHP).toBe(pilot.currentHP)
-      expect(p.callsign).toBe('Sparks')
-      // Assert inside waitFor: the wizard persists to the store before invoking
-      // onComplete in a later microtask, so a bare assertion here races under
-      // heavy parallel load.
-      expect(onComplete).toHaveBeenCalledWith(pilot.id)
-    })
-  }, 30000)
-
-  it('offers Advanced/Hybrid specialisation classes in edit mode', async () => {
-    const pilot = await seedEngineerPilot()
-    render(
-      <PilotWizard
-        pilotId={pilot.id}
-        initialState={pilotToFormState(pilot)}
-        onComplete={() => {}}
-        onCancel={() => {}}
-      />
-    )
-    expect(screen.getByRole('button', { name: 'Cyborg' })).toBeTruthy()
-  }, 30000)
-
-  it('shows a pre-save soft warning for an out-of-order pick but never blocks saving', async () => {
-    const pilot = await seedEngineerPilot()
-    render(
-      <PilotWizard
-        pilotId={pilot.id}
-        initialState={pilotToFormState(pilot)}
-        onComplete={() => {}}
-        onCancel={() => {}}
-      />
-    )
-
-    // 'Auto-Turret' is Forging level 3; level 2 ('Mech-Gyver') is not taken.
-    await pick('Auto-Turret')
-    await clickNext() // → Equipment
-    await clickNext() // → Callsign
-    await clickNext() // → Background
-    await clickNext() // → Motto
-    await clickNext() // → Keepsake
-    await clickNext() // → Appearance
-    await clickNext() // → Review
-
-    // Advisory banner present…
-    await waitFor(() => {
-      expect(screen.getByRole('alert').textContent).toContain('taken in order')
-    })
-    // …and the save CTA is still enabled (warnings never block in edit).
-    const save = screen.getByRole('button', { name: /Save Pilot/i })
-    expect((save as HTMLButtonElement).disabled).toBe(false)
   }, 30000)
 })
 
