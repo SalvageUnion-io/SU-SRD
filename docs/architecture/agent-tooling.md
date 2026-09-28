@@ -43,14 +43,7 @@ something outside the file.
 | `convex`  | stdio — `bunx convex mcp start --project-dir apps/itun` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
 | `context7` | http — `https://mcp.context7.com/mcp`           | None — keyless on the free tier                                     | Version-pinned docs for this repo's dependencies |
 
-**That is the whole set — five servers, and this table is now asserted against
-`.mcp.json` by `tools/check-doc-drift.ts`.** It had drifted in both directions
-at once, which is why the assertion exists: it claimed *"Cloudflare — the actual
-host. No MCP server is declared; use `wrangler`"* while two Cloudflare servers
-WERE declared, and it carried live rows for `netlify`, `render` and `github`,
-none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and the
-since-deleted cutover plan and did not touch this file — and because root prose
-matched no CI path filter at the time, the doc-drift check never ran on that PR.
+**That is the whole set — five servers.** `.mcp.json` is the definition.
 
 CLAUDE.md sends agents here *instead of* enumerating accounts, so a wrong row
 here is followed rather than checked. There is no declared `github` server: use
