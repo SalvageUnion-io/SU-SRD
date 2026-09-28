@@ -18,9 +18,8 @@
  * ## Why this page is `shell: 'bare'`
  *
  * It owns its whole `<html>` document. It is not a reader-facing page: it has no canonical URL, no Open Graph block, no
- * nav, no footer and no `<main>`. `ssg/snapshot.ts` holds all of that (its
- * `main` digest is `null` and its canonical is absent), and
- * `ssg/__tests__/render.test.tsx` asserts it directly. It is still a full island page though — the
+ * nav, no footer and no `<main>`; `ssg/__tests__/render.test.tsx` asserts that.
+ * It is still a full island page though — the
  * built stylesheet and the islands entry are injected before `</head>`, which is
  * what makes the screenshotted tile the real, Tailwind-styled Catalog card.
  *

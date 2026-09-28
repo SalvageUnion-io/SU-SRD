@@ -242,11 +242,8 @@ async function main(): Promise<void> {
 
   // The same class of silent catastrophe one level up: a registry that resolves
   // to nothing (a bad glob, an exception swallowed inside resolve()) would emit
-  // an empty dist and still exit 0, and the deploy would happily publish it. The
-  // floor is deliberately low — it is a smoke alarm, not a budget. The exact
-  // page COUNT is held by `ssg/snapshot.ts`, whose file-set check fails on any
-  // route dropped from `routes.ts`; this only catches the total collapse, where
-  // there would be no snapshot comparison worth reading anyway.
+  // an empty dist and still exit 0, and the deploy would happily publish it.
+  // `ssg/__tests__/routes.test.ts` holds the per-route and total floors.
   if (count === 0) {
     throw new Error('[ssg] refusing to finish: the route registry rendered 0 pages.')
   }

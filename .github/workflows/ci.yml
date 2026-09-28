@@ -252,13 +252,8 @@ jobs:
       - name: Build srd
         run: bun --filter srd build
 
-      # `gate` = build + these two; split so the build runs once and the
-      # Playwright tier below serves the same dist.
       - name: Check printed examples against the built site
         run: bun --filter srd check:examples
-
-      - name: Check built output against the snapshot
-        run: bun --filter srd snapshot
 
       - name: Cache Playwright browsers
         uses: actions/cache@v6

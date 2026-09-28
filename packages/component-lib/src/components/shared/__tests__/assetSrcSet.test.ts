@@ -15,9 +15,7 @@ import { ASSET_RENDER_WIDTHS, assetSrcSetFor } from '../assetSrcSet.ts'
  * chassis. After: 30,588 B.
  *
  * Nothing else can catch a regression here. A missing or wrong `srcset` leaves
- * markup that looks entirely correct and simply downloads the master, and the
- * srd output snapshot compares `<main>` TEXT so it cannot see image attributes
- * at all — it is explicitly documented as not covering them.
+ * markup that looks entirely correct and simply downloads the master.
  */
 
 const WITH_ARTWORK = SalvageUnionReference.Chassis.all().filter(

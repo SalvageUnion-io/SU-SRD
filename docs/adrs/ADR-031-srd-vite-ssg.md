@@ -18,6 +18,10 @@ could no longer be regenerated, so `ssg/parity.ts` was deleted and replaced by a
 self-hosted snapshot gate over the site's own last-blessed output. Read
 everything below about parity in the past tense.
 
+**Amended 2026-09-28 — the snapshot gate is deleted too.** In 51 days it caught
+no regression and needed 17 re-blesses. srd's output is now held by targeted
+checks; see "Verification" in [`ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
+
 ## Context
 
 ADR-012 chose "**Astro, static, React islands**", and explicitly treated the
@@ -202,5 +206,3 @@ left, and no available version fixed it.
   props blob is `type="application/json"`, not executable script.
 - New interactive features are still scoped as islands rather than turning the
   site into an SPA — ADR-012's closing constraint survives its framework.
-- `tools/check-doc-drift.ts` now tracks **Vite's** major for `apps/srd` where it
-  tracked Astro's, so a stale "Vite N" claim in the docs still fails CI.

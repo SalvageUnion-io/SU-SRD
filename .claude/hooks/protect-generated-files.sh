@@ -28,19 +28,17 @@ fi
 
 # Auto-generated files that must not be hand-edited.
 #
-# Keep this in step with what `bun run check:schemas` diffs and what the build
+# Keep this in step with what `bun run check generated` diffs and what the build
 # regenerates — a path that CI fails on for drift but that is missing here is a
 # trap: the agent edits it, the edit looks accepted, and CI rejects it later
 # with a message about drift rather than about the edit.
 PROTECTED_PATTERNS=(
   "*packages/salvageunion-reference/schemas/*.schema.json"
   "*packages/salvageunion-reference/lib/generated/*"
-  "*packages/salvageunion-reference/etc/*"
   "*routeTree.gen.ts"
   "*/dist/*"
   "*tsconfig.tsbuildinfo"
   "*apps/itun/convex/_generated/*"
-  "*apps/srd/ssg/output-snapshot.json"
   "*bun.lock"
   "*tools/a11y-baseline.json"
   "*tools/styling-baseline.json"
@@ -53,10 +51,9 @@ for pattern in "${PROTECTED_PATTERNS[@]}"; do
     $pattern)
       echo "BLOCKED: $FILE_PATH is auto-generated and must not be hand-edited." >&2
       echo "" >&2
-      echo "  JSON schemas / docs / lib/generated / etc: edit the Zod schemas in" >&2
+      echo "  JSON schemas / docs / lib/generated: edit the Zod schemas in" >&2
       echo "  packages/salvageunion-reference/lib/schemas/ and run 'bun run build:package'." >&2
       echo "  routeTree.gen.ts: TanStack Router regenerates it." >&2
-      echo "  output-snapshot.json: run 'bun --filter srd snapshot:update' and READ the diff." >&2
       echo "  bun.lock: change the manifest and let the resolver rewrite it." >&2
       echo "  baselines: these ratchet down on their own; do not edit to make a check pass." >&2
       exit 2

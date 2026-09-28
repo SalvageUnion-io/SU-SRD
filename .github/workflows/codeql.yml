@@ -78,7 +78,6 @@ jobs:
           # output, and test code never ships.
           config: |
             paths-ignore:
-              - packages/salvageunion-reference/etc
               - '**/*.generated.ts'
               - '**/routeTree.gen.ts'
               - '**/__tests__/**'

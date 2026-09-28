@@ -58,8 +58,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // `typescript-classic` is an npm alias for typescript@6 (see root package.json).
-// This file is now its ONLY consumer — `generateApiReport.ts`, the other one,
-// moved to the repo's TypeScript 7 because it only ever needed the `tsc` binary.
+// This file is its only consumer.
 //
 // This tool cannot follow, and the reason is structural rather than a pending
 // chore. TypeScript 7's `typescript` package exports `./lib/version.cjs` as `.`,

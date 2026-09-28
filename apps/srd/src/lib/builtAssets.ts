@@ -21,9 +21,8 @@ export const ELDRIDGE_COAST_MAP = 'src/assets/eldridge-coast-map.webp'
  *
  * Throws rather than returning an empty `src`: the only way to miss is to drop
  * the asset's import from `src/runtime/assets.entry.ts`, and a silently broken
- * `<img>` in a static build is a regression `ssg/snapshot.ts` cannot see either
- * — it digests page TEXT and metadata, and an image is neither. Failing loudly
- * at build time is the signal, which is why this throws.
+ * `<img>` in a static build is a regression no page-text check sees. Failing
+ * loudly at build time is the signal, which is why this throws.
  */
 export function builtAssetUrl(assets: BuiltAssets, source: string): string {
   const url = assets[source]

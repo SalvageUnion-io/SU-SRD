@@ -80,14 +80,13 @@ only thing between a diff and an unbuilt merge — so:
 - **`tools/check-workflows.ts` (its `path-filters` half) asserts every app's
   `workspace:*` dependency is covered by that app's group.** `packages/observability` was once missing
   from `shared`, so a change to it ran checks but skipped all three builds (and
-  with them the srd snapshot gate, the routeTree staleness check and both
-  Playwright tiers).
+  with them the routeTree staleness check and both Playwright tiers).
 - **Root prose is in `shared`.** `ABOUT_JRVS.md`, `LLM_STATEMENT.md` and
   `SPECIAL_THANKS.md` are read by srd's about page (rendered into
   `about/index.html`), imported `?raw` by ITUN, and asserted on by a
   component-lib test. #731 added one name to `SPECIAL_THANKS.md`, CI skipped
-  `build-srd`, `main` went green with a stale snapshot, and the next three PRs to
-  trigger that job were red on a difference none of them made.
+  `build-srd`, and the next three PRs to trigger that job were red on a
+  difference none of them made.
 - **`code` vs `docs`** (audit CI-11). `code` is source, tools and the Claude hook
   scripts (the hook tests in `tools/__tests__/` exercise `.claude/hooks/**`).
   `docs` is `docs/**`, root `CLAUDE.md` / `README.md` / `CONTRIBUTING.md`,
@@ -119,25 +118,23 @@ even after one fails, and the step log ends in a pass/fail table. Each check
 declares which areas make it relevant:
 
 - **Always**: Biome (`biome ci .` — lint, format *and* the organizeImports
-  assist), `workflows` (aggregate gate, path filters, SHA pinning, Bun version,
+  assist), `workflows` (aggregate gate, path filters, bunx pinning, Bun version,
   Convex deploy guard), `styling` (design tokens, styling ownership, srd
   stylesheet entry) and `actionlint`.
 - **`actionlint`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
   each pinned to an exact version and verified against a recorded sha256 before
-  it runs. zizmor's config is `.github/zizmor.yml`; its pinning policy is the
-  same first-party line `tools/check-workflows.ts` draws. Every checkout
+  it runs. zizmor's config is `.github/zizmor.yml`; its `unpinned-uses`
+  policy SHA-pins every third-party action. Every checkout
   sets `persist-credentials: false`.
 - **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
   drift — reference package artifacts and `routeTree.gen.ts`), typecheck and
   knip.
 - **`deps`**: the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
-  `architecture`, `observability`, `convex-codegen`, `convex-callers`,
-  `worker-env`.
+  `architecture`, `observability`, `convex-codegen`, `convex-callers`.
 
-The test suite and the srd build are in the registry too (`bun run check` runs
-them) but not in the `ci` profile: they are the `coverage` and `build-srd`
-jobs.
+The test suite is in the registry too (`bun run check` runs it) but not in the
+`ci` profile: it is the `coverage` job.
 
 ## The test gate — `coverage`
 
@@ -164,9 +161,7 @@ All five `needs: [changes]` only (audit CI-02). They consume no artifact from
 `static-checks` or the tests, and `CI Success` already fails the PR if any of
 those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
 
-- **`build-srd`** builds once, then runs `check:examples` and the output
-  snapshot as separate steps (what `bun --filter srd gate` chains, split so
-  failure attribution survives and the Playwright tier serves the same `dist`).
+- **`build-srd`** builds once, then runs `check:examples` against that `dist`.
   The PR-blocking browser tier (smoke + bundle budget) is folded in rather than
   a separate job, because a separate job cost a second full build. Add a spec
   to the run line, not a job. Then the axe-core accessibility scan runs against
@@ -222,7 +217,7 @@ times out reports green.
 ## Deploy set (`deploy-cloudflare.yml`)
 
 The deploy workflow's own comments carry its guard rationale (provenance check,
-credential guards, Sentry, the srd snapshot it deliberately does not re-run).
+credential guards, Sentry).
 The part that interacts with CI:
 
 - **Shape: `plan` -> `build-srd` / `build-itun` -> `push-convex` -> `deploy-*`
@@ -248,9 +243,9 @@ The part that interacts with CI:
   a cache from an identical renderer is restored, and the script re-renders the
   entities whose data changed. Chromium is cached under ci.yml's Playwright key.
 - **The artifacts are built in the deploy, not taken from CI's run.** Neither
-  CI build is a production artifact: srd's is built with no Sentry DSN because
-  the output snapshot is blessed against that build, and itun's is a Solo
-  client with no `VITE_CONVEX_URL`. And CI path-filters per commit while the
+  CI build is a production artifact: srd's is built with no Sentry DSN, and
+  itun's is a Solo client with no `VITE_CONVEX_URL`. And CI path-filters per
+  commit while the
   deploy ships per last recorded deploy, so a surface can need deploying on a
   commit where CI skipped its build. Build once, in the deploy, and ship that.
 - **A failed `deploy-*` job does not stop the others** — they run in parallel

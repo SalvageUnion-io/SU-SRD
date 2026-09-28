@@ -23,8 +23,7 @@
  * SSR-only module** never reaches Vite, because the client bundle is fed only
  * from `styles.entry.ts`. Its authored rules — hand-written selectors,
  * keyframes, `@layer` blocks — simply never ship. The build is green, typecheck
- * is green, and the output snapshot digests `<main>` TEXT and meta tags, not
- * CSS. Nothing anywhere reports it.
+ * is green, and nothing anywhere reports it.
  *
  * The `styling` rule set does not cover this either: its `dead-app-css`
  * rule looks for class selectors that are *unreferenced*, so a stylesheet whose

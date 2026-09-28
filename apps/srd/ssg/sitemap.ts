@@ -6,9 +6,9 @@
  *   sitemap-index.xml   one <sitemap> entry per urlset file
  *   sitemap-0.xml       the urlset itself
  *
- * The shape is fixed and held by `ssg/output-snapshot.json`: no newlines, no
- * indentation, no `<lastmod>` / `<changefreq>` / `<priority>`, and four
- * namespace declarations on `<urlset>` that nothing uses but crawlers accept.
+ * The shape is fixed: no newlines, no indentation, no `<lastmod>` /
+ * `<changefreq>` / `<priority>`, and four namespace declarations on `<urlset>`
+ * that nothing uses but crawlers accept.
  *
  * ## Two independent exclusion mechanisms, on purpose
  *
@@ -50,7 +50,7 @@ function passesSitemapFilter(page: string): boolean {
 /**
  * URL ordering: a numeric-aware `en` collator, so `.../30mm-autocannon/` and
  * `.../50-cal-machine-gun/` sort BEFORE `.../120mm-cannon/`, where a plain
- * lexicographic sort would disagree. The snapshot holds the order.
+ * lexicographic sort would disagree.
  */
 const collator = new Intl.Collator('en', { numeric: true })
 

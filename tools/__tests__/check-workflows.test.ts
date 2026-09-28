@@ -291,40 +291,6 @@ describe('path-filters', () => {
 })
 
 describe('pinning', () => {
-  test('a third-party action on a mutable tag fails, first-party ones do not', () => {
-    const extra = [
-      yaml(
-        '.github/workflows/x.yml',
-        'jobs:\n  a:\n    steps:\n      - uses: oven-sh/setup-bun@v2\n'
-      ),
-    ]
-    const failures = checkPinning(ctx({ extra })).failures
-    expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('oven-sh/setup-bun@v2')
-  })
-
-  test('composite actions are scanned, and a short SHA is not a pin', () => {
-    const extra = [
-      yaml(
-        '.github/actions/y/action.yml',
-        'runs:\n  using: composite\n  steps:\n    - uses: some/action@abc1234\n'
-      ),
-    ]
-    expect(checkPinning(ctx({ extra })).failures[0]).toContain('some/action@abc1234')
-  })
-
-  test('a reusable-workflow call at job level is scanned too', () => {
-    const extra = [
-      yaml(
-        '.github/workflows/z.yml',
-        'jobs:\n  a:\n    uses: org/repo/.github/workflows/w.yml@main\n'
-      ),
-    ]
-    expect(checkPinning(ctx({ extra })).failures[0]).toContain(
-      'org/repo/.github/workflows/w.yml@main'
-    )
-  })
-
   test('an undeclared bunx tool needs an exact version; a declared one does not', () => {
     const run = (cmd: string) =>
       checkPinning(

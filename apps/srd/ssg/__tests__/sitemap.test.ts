@@ -134,8 +134,8 @@ describe('ordering', () => {
 
 describe('XML shape', () => {
   it('reproduces the urlset preamble byte for byte, unused namespaces included', async () => {
-    // news/xhtml/image/video are declared and nothing here uses them. They stay
-    // because the output snapshot holds these bytes.
+    // news/xhtml/image/video are declared and nothing here uses them; the
+    // preamble is pinned byte for byte so a change to it is deliberate.
     const { urlsets } = await emit(['/about'])
 
     expect(urlsets['sitemap-0.xml']).toBe(

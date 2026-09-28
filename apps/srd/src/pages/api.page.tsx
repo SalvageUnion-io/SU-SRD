@@ -53,9 +53,8 @@ function buildSamples() {
   /**
    * The entity the samples describe: the first chassis by slug.
    *
-   * Deterministic on purpose. Picking "whatever is first in the file" would
-   * make the output snapshot churn on unrelated data edits, and picking at
-   * random would make this page's diff meaningless.
+   * Deterministic on purpose: picking "whatever is first in the file" would
+   * change this page on unrelated data edits.
    */
   const entity = [...SalvageUnionReference.Chassis.all()].sort((a, b) =>
     getEntitySlug(a).localeCompare(getEntitySlug(b))

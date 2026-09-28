@@ -20,12 +20,12 @@
  * ## Profiles
  *
  *   full      everything — `bun run check`
- *   fast      the ~12s inner loop: no test suite, no srd build, no network,
- *             no regeneration — `bun run check:fast`
+ *   fast      the ~12s inner loop: no test suite, no network, no
+ *             regeneration — `bun run check:fast`
  *   pre-push  fast + generated-file drift (the suite runs separately, scoped by
  *             `--changed` — see lefthook.yml)
- *   ci        everything except the test suite and the srd build, which run in
- *             CI's own `coverage` and `build-srd` jobs
+ *   ci        everything except the test suite, which runs in CI's own
+ *             `coverage` job
  *
  * Positional ids run exactly those checks, whatever the profile:
  * `bun run check styling workflows`. `--list` prints the registry.
@@ -55,6 +55,8 @@ export type CheckSpec = {
   id: string
   /** What it guards, one line — printed by `--list`. */
   guards: string
+  /** How to fix a failure, one line — printed under the failure banner and by `--list`. */
+  fix: string
   cmd: string[]
   /** Repo-relative working directory; the root when absent. */
   cwd?: string
@@ -80,6 +82,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'generated',
     guards:
       'committed generated files match their generators (schemas, docs, registry, route tree)',
+    fix: 'commit the files it just regenerated; never hand-edit a generated file',
     cmd: ['bun', 'tools/check-generated.ts'],
     first: true,
     areas: ['code'],
@@ -88,18 +91,14 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'test',
     guards: 'the full test suite, every workspace plus tools/',
+    fix: 'fix the test; `bun --filter <workspace> test` reruns one workspace',
     cmd: ['bun', 'run', 'test'],
-    profiles: ['full'],
-  },
-  {
-    id: 'srd-output',
-    guards: 'the built srd site matches its committed output snapshot',
-    cmd: ['bun', '--filter', 'srd', 'gate'],
     profiles: ['full'],
   },
   {
     id: 'typecheck',
     guards: 'TypeScript across every workspace and tools/',
+    fix: 'fix the type error',
     cmd: ['bun', 'run', 'typecheck'],
     areas: ['code'],
     profiles: ALL,
@@ -107,6 +106,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'knip',
     guards: 'no unused files, exports or dependencies',
+    fix: 'delete what it lists; the /knip-triage skill covers the two exceptions',
     cmd: ['bun', 'run', 'knip'],
     areas: ['code'],
     profiles: ALL,
@@ -114,12 +114,14 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'biome',
     guards: 'lint, format and import order (`biome ci .`)',
+    fix: '`bun run format`, then fix what remains',
     cmd: ['bunx', 'biome', 'ci', '.'],
     profiles: ALL,
   },
   {
     id: 'data',
     guards: 'the reference dataset: ids, slugs, references, schemas, parity, …',
+    fix: 'fix the data: each diagnostic names the file and record',
     cmd: ['bun', 'tools/validate.ts'],
     cwd: 'packages/salvageunion-reference',
     areas: REPO_INVARIANT,
@@ -127,7 +129,8 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'doc-drift',
-    guards: 'live docs, skills and rules stay true to the tree',
+    guards: 'cited paths, bun scripts and markdown links exist; agent-doc size budgets',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); cut a doc over its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -135,6 +138,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'architecture',
     guards: 'no module-scope ORM calls, no inlined pool defaults, component-lib size cap',
+    fix: 'move the ORM call inside a function, use `resolvePool`, or extract a seam under the size cap',
     cmd: ['bun', 'tools/check-architecture.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -142,6 +146,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'observability',
     guards: 'Sentry can report: DSN gating, CSP ingest host, Worker wrapping',
+    fix: 'change the CSP and Sentry wiring in every source for that app together',
     cmd: ['bun', 'tools/check-observability.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -149,6 +154,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'convex-codegen',
     guards: 'convex/_generated/api.d.ts registers exactly the modules on disk',
+    fix: 'regenerate with `bunx convex dev` (needs a deployment); never hand-edit convex/_generated/',
     cmd: ['bun', 'tools/check-convex-codegen.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -156,32 +162,29 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'convex-callers',
     guards: 'every public Convex function has a shipped caller',
+    fix: 'delete the function, or make it `internal*` if only the server calls it',
     cmd: ['bun', 'tools/check-convex-callers.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
   },
   {
-    id: 'worker-env',
-    guards: "each Worker's Env type matches its wrangler.jsonc bindings",
-    cmd: ['bun', 'tools/check-worker-env.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
     id: 'workflows',
-    guards: 'CI aggregate gate, path filters, SHA pinning, Bun version, Convex deploy guard',
+    guards: 'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard',
+    fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
     profiles: ALL,
   },
   {
     id: 'styling',
     guards: 'design tokens, styling ownership, srd stylesheet entry (ratcheted)',
+    fix: "follow the rule's printed fix; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline`",
     cmd: ['bun', 'tools/check-styling.ts'],
     profiles: ALL,
   },
   {
     id: 'audit',
     guards: 'no high-severity advisory in the dependency tree',
+    fix: 'upgrade or override the vulnerable package (docs/architecture/dependency-management.md)',
     cmd: ['bun', 'audit', '--audit-level=high'],
     // A PR that moves neither bun.lock nor a manifest cannot change the tree;
     // audit-watch.yml scans the unchanged tree for new advisories weekly.
@@ -191,6 +194,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'actionlint',
     guards: 'actionlint + zizmor over .github/ (pinned, hash-verified binaries)',
+    fix: "fix the finding; zizmor's config is .github/zizmor.yml",
     cmd: ['tools/lint-workflows.sh'],
     profiles: ['full', 'ci'],
   },
@@ -302,7 +306,7 @@ async function runOne(spec: CheckSpec, root: string): Promise<CheckResult> {
 
 /**
  * Run `first` checks one at a time, then the rest with at most `jobs` in
- * flight. `onDone` fires as each finishes, so progress is visible live.
+ * flight. `onDone` fires as each finishes.
  */
 export async function runChecks(
   specs: readonly CheckSpec[],
@@ -321,6 +325,16 @@ export async function runChecks(
   await Promise.all(workers)
   const order = new Map(specs.map((s, i) => [s.id, i]))
   return results.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+}
+
+/** A failed check's report: the banner, the registry's fix hint, then the check's own output. */
+export function formatFailure(result: CheckResult, fix: string): string {
+  return [
+    `━━━ ${result.id} failed (exit ${result.code}) ━━━`,
+    `fix: ${fix}`,
+    '',
+    result.output || '(no output)',
+  ].join('\n')
 }
 
 export function formatTable(results: readonly CheckResult[]): string {
@@ -348,6 +362,7 @@ async function main(argv: readonly string[]): Promise<number> {
     const width = Math.max(...CHECKS.map((c) => c.id.length))
     for (const c of CHECKS) {
       console.log(`${c.id.padEnd(width)}  [${c.profiles.join(' ')}]  ${c.guards}`)
+      console.log(`${' '.repeat(width)}  fix: ${c.fix}`)
     }
     return 0
   }
@@ -358,16 +373,17 @@ async function main(argv: readonly string[]): Promise<number> {
   }
   const label = opts.ids.length > 0 ? opts.ids.join(' ') : `profile ${opts.profile}`
   const areas = opts.areas === null ? '' : ` (areas: ${opts.areas.join(', ') || 'none'})`
-  console.log(`Running ${specs.length} check(s) — ${label}${areas}\n`)
+  console.log(`Running ${specs.length} check(s) — ${label}${areas}`)
 
+  // Nothing streams on success: the table at the end is the whole report.
   const ci = process.env.GITHUB_ACTIONS === 'true'
   const results = await runChecks(specs, {
     root: join(import.meta.dir, '..'),
     jobs: opts.jobs,
     onDone: (r) => {
-      console.log(`${r.code === 0 ? '✓' : '✗'} ${r.id} (${r.seconds.toFixed(1)}s)`)
-      if (r.code === 0 && opts.verbose && r.output) console.log(indent(r.output))
-      if (r.code === 0 && ci && r.output) {
+      if (r.code !== 0 || !r.output) return
+      if (opts.verbose) console.log(`${r.id}:\n${indent(r.output)}`)
+      if (ci) {
         console.log(`::group::${r.id} output`)
         console.log(r.output)
         console.log('::endgroup::')
@@ -375,10 +391,11 @@ async function main(argv: readonly string[]): Promise<number> {
     },
   })
 
+  const fixOf = new Map(specs.map((s) => [s.id, s.fix]))
   for (const r of results.filter((x) => x.code !== 0)) {
-    console.log(`\n━━━ ${r.id} failed (exit ${r.code}) ━━━`)
-    if (ci) console.log(`::error title=check ${r.id} failed::bun tools/check.ts ${r.id}`)
-    console.log(r.output || '(no output)')
+    const fix = fixOf.get(r.id) ?? ''
+    if (ci) console.log(`::error title=check ${r.id} failed::${fix}`)
+    console.log(`\n${formatFailure(r, fix)}`)
   }
   console.log(`\n${formatTable(results)}`)
   return results.every((r) => r.code === 0) ? 0 : 1

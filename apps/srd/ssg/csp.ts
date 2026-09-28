@@ -16,10 +16,6 @@
  * derived from `dist/` after rendering, and the build FAILS if the placeholder
  * it substitutes into is missing.
  *
- * The generated `_headers` is content-digested by `ssg/snapshot.ts`, so a
- * changed hash shows up as a snapshot diff and gets read in review rather than
- * landing unnoticed.
- *
  * ## What is and is not hashed
  *
  * Only scripts the browser EXECUTES. `application/ld+json` (JSON-LD),

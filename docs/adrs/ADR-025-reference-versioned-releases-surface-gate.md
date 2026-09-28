@@ -5,6 +5,12 @@
 Accepted. **Partially supersedes [ADR-014](ADR-014-json-api-public-interface-npm-retired.md)**
 (the CHANGELOG-freeze clause only; ADR-014's no-npm stance is preserved).
 
+**The TypeScript API-report half of the surface gate is withdrawn (2026-09-28).**
+The package is private and every consumer is typechecked in this repo, so a
+changed export already fails the typecheck of whatever imports it. The report,
+its generator and `tsconfig.api.json` are deleted. The versioned releases and
+the JSON-schema drift check stand.
+
 ## Context
 
 [ADR-014](ADR-014-json-api-public-interface-npm-retired.md) established that the

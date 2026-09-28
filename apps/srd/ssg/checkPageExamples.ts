@@ -22,11 +22,8 @@
  * a `bun test` file it could only fail there or — worse — skip, and a check
  * that skips when the build is missing reads as a pass while asserting nothing.
  *
- * `gate` chains it immediately after the build that produces its input. CI does
- * not run `gate` — it runs `build`, then this via `check:examples`, then
- * `snapshot`, as three steps of `build-srd` so each failure stays separately
- * attributable and the build happens once. Either way it runs where `dist` is
- * guaranteed.
+ * CI's `build-srd` job runs it via `check:examples` right after the build that
+ * produces its input, so it runs where `dist` is guaranteed.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -52,8 +49,7 @@ function emittedEntityNames(): Set<string> {
     try {
       parsed = JSON.parse(readFileSync(join(schemaDir, file), 'utf8'))
     } catch {
-      // Not this check's concern: the snapshot gate digests every JSON
-      // endpoint and flags one that stops parsing.
+      // This check reads names; an endpoint that does not parse has none.
       continue
     }
     if (!Array.isArray(parsed)) continue
