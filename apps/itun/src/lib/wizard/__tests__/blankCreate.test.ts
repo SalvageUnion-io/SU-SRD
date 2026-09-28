@@ -91,7 +91,7 @@ describe('createBlank — mech', () => {
     expect(() => MechSchema.parse(mech)).not.toThrow()
     expect(mech?.chassisRef).toBe('mule')
 
-    const mule = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
     expect(mech?.currentSP).toBe(mule?.structurePoints)
     expect(mech?.currentEP).toBe(mule?.energyPoints)
     expect(mech?.currentHeat).toBe(0)

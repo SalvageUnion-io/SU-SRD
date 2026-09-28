@@ -376,7 +376,7 @@ IndexedDB is the on-device layer.
 const ALL_CHASSIS = SalvageUnionReference.Chassis.all()
 
 // BAD — same problem inside a constant declaration
-const DEFAULT_OPTION = SalvageUnionReference.Equipment.find((e) => e.id === 'default')
+const DEFAULT_OPTION = SalvageUnionReference.Equipment.getById('default')
 ```
 
 **Correct patterns:**

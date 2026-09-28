@@ -17,7 +17,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const ability = (name: string) => {
-  const found = SalvageUnionReference.Abilities.all().find((a) => a.name === name)
+  const found = SalvageUnionReference.Abilities.getByName(name)
   if (!found) throw new Error(`${name} fixture missing`)
   return found
 }

@@ -166,7 +166,6 @@ against a live clock. Both populations now use the same factories, and
 
 ```typescript
 test('model finds item by slug', () => {
-  // Indexed lookup — never `.find((x) => x.id === …)` (see the package's CLAUDE.md).
   const item = SalvageUnionReference.Chassis.getBySlug('mule')
   expect(item).toBeDefined()
 })

@@ -12,7 +12,7 @@ import { crawlerPopulationRange } from '../crawlerPopulationRange'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const tier = (name: string) => {
-  const found = SalvageUnionReference.CrawlerTechLevels.all().find((t) => t.name === name)
+  const found = SalvageUnionReference.CrawlerTechLevels.getByName(name)
   if (!found) throw new Error(`${name} fixture missing`)
   return found
 }
@@ -74,7 +74,7 @@ describe('crawlerPopulationRange', () => {
   })
 
   test('returns undefined for an entity that has no population band', () => {
-    const mule = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Mule')
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
     if (!mule) throw new Error('Mule fixture missing')
     expect(crawlerPopulationRange(mule)).toBeUndefined()
   })

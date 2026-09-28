@@ -29,7 +29,7 @@ describe('mechFormToUpdatePatch', () => {
 
 describe('mechFormToCreateInput', () => {
   it('seeds a fresh mech at full chassis SP/EP with Heat 0', () => {
-    const mule = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
     expect(mule).toBeDefined()
     if (!mule) throw new Error('expected the Mule chassis in reference data')
 

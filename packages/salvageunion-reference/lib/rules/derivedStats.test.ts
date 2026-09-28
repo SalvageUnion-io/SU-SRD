@@ -474,7 +474,7 @@ describe('crawler derivation', () => {
   })
 
   it('the Battle type’s +5 applies AT READ from its stored max_sp_bonus mutation', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle).toBeDefined()
     const base = crawlerMaxSP({ techLevel: 'tech-1' })
     // By id AND by name (stored type refs resolve id-or-name, like bay refs).
@@ -485,7 +485,7 @@ describe('crawler derivation', () => {
   })
 
   it('type bonus stacks with the hand-edit modifier, decomposed by crawlerMaxSPParts', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     const parts = crawlerMaxSPParts({
       techLevel: 'tech-1',
       type: battle?.id,

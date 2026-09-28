@@ -114,11 +114,11 @@ describe('crawlerFormToCreateInput', () => {
 
   it('folds the crew + type NPC into bays, bayChoices and typeNpc', () => {
     const commandBay = defined(
-      SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'),
+      SalvageUnionReference.CrawlerBays.getByName('Command Bay'),
       'Command Bay'
     )
     const battle = defined(
-      SalvageUnionReference.Crawlers.find((c) => c.id === BATTLE_TYPE_ID),
+      SalvageUnionReference.Crawlers.getById(BATTLE_TYPE_ID),
       'Battle crawler type'
     )
     const input = crawlerFormToCreateInput(
@@ -164,7 +164,7 @@ describe('crawlerFormToCreateInput', () => {
 describe('crawlerFormCrewToPatches', () => {
   it('splits crew into bay patches, bayChoices and a typeNpc patch', () => {
     const commandBay = defined(
-      SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'),
+      SalvageUnionReference.CrawlerBays.getByName('Command Bay'),
       'Command Bay'
     )
     const commandKeepsakeId = defined(

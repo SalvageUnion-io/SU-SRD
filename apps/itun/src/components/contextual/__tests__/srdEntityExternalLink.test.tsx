@@ -16,7 +16,7 @@ import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
 describe('srdEntityExternalLink', () => {
   it('builds a "View in SRD →" link for a catalog entity', () => {
-    const chassis = must(SalvageUnionReference.Chassis.find((c) => c.name === 'Mule'))
+    const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
     const node = srdEntityExternalLink(chassis)
     expect(node).toBeTruthy()
 

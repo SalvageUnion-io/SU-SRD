@@ -18,19 +18,19 @@ import { formatProvenance, resolveAdditionalSources } from '../provenance'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const equipmentNamed = (name: string) => {
-  const found = SalvageUnionReference.Equipment.all().find((e) => e.name === name)
+  const found = SalvageUnionReference.Equipment.getByName(name)
   if (!found) throw new Error(`${name} equipment fixture missing`)
   return found
 }
 
 const droneNamed = (name: string) => {
-  const found = SalvageUnionReference.Drones.all().find((d) => d.name === name)
+  const found = SalvageUnionReference.Drones.getByName(name)
   if (!found) throw new Error(`${name} drone fixture missing`)
   return found
 }
 
 const chassisNamed = (name: string) => {
-  const found = SalvageUnionReference.Chassis.all().find((c) => c.name === name)
+  const found = SalvageUnionReference.Chassis.getByName(name)
   if (!found) throw new Error(`${name} chassis fixture missing`)
   return found
 }

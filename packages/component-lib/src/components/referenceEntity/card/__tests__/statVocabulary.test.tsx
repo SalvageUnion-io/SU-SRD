@@ -15,13 +15,13 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const action = (name: string) => {
-  const found = SalvageUnionReference.Actions.all().find((a) => a.name === name)
+  const found = SalvageUnionReference.Actions.getByName(name)
   if (!found) throw new Error(`${name} action fixture missing`)
   return found
 }
 
 const mule = () => {
-  const found = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Mule')
+  const found = SalvageUnionReference.Chassis.getByName('Mule')
   if (!found) throw new Error('Mule fixture missing')
   return found
 }

@@ -73,7 +73,7 @@ describe('buildLookupEmbed — exhaustive validity across the whole dataset', ()
 
 describe('buildLookupEmbed — content depth', () => {
   test('a weapon system renders its action text, stats, and linked traits', () => {
-    const gun = SalvageUnionReference.Systems.find((s) => s.name === '.50 Cal Machine Gun')
+    const gun = SalvageUnionReference.Systems.getByName('.50 Cal Machine Gun')
     expect(gun).toBeDefined()
     if (!gun) throw new Error('expected the .50 Cal Machine Gun system')
     const e = buildLookupEmbed({ ...gun, schemaName: 'systems' }, 'systems')
@@ -95,7 +95,7 @@ describe('buildLookupEmbed — content depth', () => {
     // the suffix is a redundant echo and must be stripped — mirroring the web's
     // stripHostParenthetical. The suffix stays in the DATA (uniqueness), only
     // the rendered title drops it.
-    const arm = SalvageUnionReference.Systems.find((s) => s.name === 'Multi-Function Repair Arm')
+    const arm = SalvageUnionReference.Systems.getByName('Multi-Function Repair Arm')
     expect(arm).toBeDefined()
     if (!arm) throw new Error('expected the Multi-Function Repair Arm system')
     const e = buildLookupEmbed({ ...arm, schemaName: 'systems' }, 'systems')
@@ -114,7 +114,7 @@ describe('buildLookupEmbed — content depth', () => {
   })
 
   test('a chassis renders its stat grid and links patterns without inlining them', () => {
-    const goliath = SalvageUnionReference.Chassis.find((c) => c.name === 'Goliath')
+    const goliath = SalvageUnionReference.Chassis.getByName('Goliath')
     expect(goliath).toBeDefined()
     if (!goliath) throw new Error('expected the Goliath chassis')
     const e = buildLookupEmbed({ ...goliath, schemaName: 'chassis' }, 'chassis')
@@ -137,7 +137,7 @@ describe('buildLookupEmbed — content depth', () => {
   })
 
   test('[[Trait]] references in body text become links, never literal brackets', () => {
-    const overpower = SalvageUnionReference.Abilities.find((a) => a.name === 'Overpower')
+    const overpower = SalvageUnionReference.Abilities.getByName('Overpower')
     expect(overpower).toBeDefined()
     if (!overpower) throw new Error('expected the Overpower ability')
     const e = buildLookupEmbed({ ...overpower, schemaName: 'abilities' }, 'abilities')
@@ -186,7 +186,7 @@ describe('buildLookupEmbed — content depth', () => {
 describe('markdown label escaping', () => {
   /** A real chassis, used as the carrier for adversarial label content. */
   function goliath(): SURefEntity {
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === 'Goliath')
+    const chassis = SalvageUnionReference.Chassis.getByName('Goliath')
     if (!chassis) throw new Error('expected the Goliath chassis')
     return chassis
   }

@@ -86,12 +86,9 @@ row it was given — the rows are the imported JSON module's own objects now.
 ### Looking an entity up
 
 `BaseModel` indexes `id` (eagerly) plus `name` and `slug` (lazily, on first
-use). Use `getById` / `getByName` / `getBySlug` — never
-`model.find((e) => e.id === x)` or `model.find((e) => e.name === x)`, which are
-linear scans of the whole schema.
-
-Every way a caller can arrive has an indexed accessor, so there is no case that
-needs a predicate:
+use). Every way a caller can arrive has an indexed accessor, so there is no
+case that needs a predicate (Biome's `noModelFindByKey` plugin,
+`tools/biome/noModelFindByKey.grit`, rejects an identity `find` on a model):
 
 | You hold                                     | Use                                               |
 | -------------------------------------------- | ------------------------------------------------- |
@@ -119,10 +116,7 @@ wearing a predicate's clothes — use `resolveRef(SomeModel, ref)`.
 import { SalvageUnionReference, type SURefChassis } from 'salvageunion-reference'
 
 // All models extend BaseModel<T>, created via ModelFactory.
-// Address an entity through an INDEX — see "Looking an entity up" above. This
-// example used to be `.find((c) => c.id === 'some-id')`, which is precisely the
-// linear scan that section bans; the demonstration outweighed the rule, and the
-// scan spread from here.
+// Address an entity through an INDEX — see "Looking an entity up" above.
 const chassis = SalvageUnionReference.Chassis.getById('some-id')
 const ironMongrel = SalvageUnionReference.Chassis.getBySlug('iron-mongrel')
 const allWeapons = SalvageUnionReference.Equipment.all()

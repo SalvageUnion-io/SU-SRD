@@ -161,7 +161,7 @@ describe('medBayStatus', () => {
   })
 
   it('resolves the bay by id ref as well as by name', () => {
-    const medBayId = SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Med Bay')?.id
+    const medBayId = SalvageUnionReference.CrawlerBays.getByName('Med Bay')?.id
     expect(medBayId).toBeDefined()
     if (!medBayId) throw new Error('expected the Med Bay in reference data')
     const status = medBayStatus(
@@ -418,7 +418,7 @@ describe('downtimePilotPatch', () => {
   })
 
   it('keeps the Orbital Lance exception when keyed by equipment id', () => {
-    const lanceId = SalvageUnionReference.Equipment.find((e) => e.name === ORBITAL_LANCE)?.id
+    const lanceId = SalvageUnionReference.Equipment.getByName(ORBITAL_LANCE)?.id
     expect(lanceId).toBeDefined()
     if (!lanceId) throw new Error('expected the Orbital Lance in reference data')
     const pilot = makePilot({ equipmentUses: { 'First Aid Kit': 2, [lanceId]: 2 } })

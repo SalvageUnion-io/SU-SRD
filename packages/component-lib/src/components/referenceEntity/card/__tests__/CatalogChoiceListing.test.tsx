@@ -10,7 +10,7 @@ import type { ChoiceSelections } from '../../choiceCard/choiceSelectionHelpers'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const armamentBay = () => {
-  const bay = SalvageUnionReference.CrawlerBays.all().find((b) => b.name === 'Armament Bay')
+  const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
   if (!bay) throw new Error('Armament Bay fixture missing')
   return bay
 }

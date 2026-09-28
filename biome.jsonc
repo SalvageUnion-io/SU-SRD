@@ -22,6 +22,9 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
   "root": true,
+  // Rules Biome has no built-in for, written in GritQL. Each file states what
+  // it matches and why.
+  "plugins": ["./tools/biome/noModelFindByKey.grit"],
   "files": {
     "ignoreUnknown": true,
     "includes": [

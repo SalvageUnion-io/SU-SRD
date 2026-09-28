@@ -12,7 +12,7 @@ export default {
 }
 
 function listItems(actionName: string): { label?: string; value?: unknown }[] {
-  const action = SalvageUnionReference.Actions.all().find((a) => a.name === actionName)
+  const action = SalvageUnionReference.Actions.getByName(actionName)
   return (action?.content ?? []).filter((b) => b?.type === 'list-item')
 }
 

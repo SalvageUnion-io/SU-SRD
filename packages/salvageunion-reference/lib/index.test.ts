@@ -120,7 +120,7 @@ describe('SalvageUnionReference.Guides', () => {
   })
 
   it('should find a guide by name', () => {
-    const guide = SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot')
+    const guide = SalvageUnionReference.Guides.getByName('Create a Pilot')
     expect(guide).toBeDefined()
     expect(guide?.name).toBe('Create a Pilot')
     expect(guide?.guideType).toBe('character-creation')
@@ -195,7 +195,7 @@ describe('SalvageUnionReference.Guides', () => {
   })
 
   it('should support paperOnly on guide steps', () => {
-    const guide = defined(SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot'))
+    const guide = defined(SalvageUnionReference.Guides.getByName('Create a Pilot'))
     expect(guide).toBeDefined()
     const paperOnlySteps = guide.steps.filter((s) => s.paperOnly)
     expect(paperOnlySteps.length).toBeGreaterThan(0)
@@ -203,7 +203,7 @@ describe('SalvageUnionReference.Guides', () => {
   })
 
   it('should default paperOnly to undefined when not set', () => {
-    const guide = defined(SalvageUnionReference.Guides.find((g) => g.name === 'Create a Pilot'))
+    const guide = defined(SalvageUnionReference.Guides.getByName('Create a Pilot'))
     const nonPaperStep = guide.steps.find((s) => !s.paperOnly)
     expect(nonPaperStep).toBeDefined()
     expect(defined(nonPaperStep).paperOnly).toBeUndefined()

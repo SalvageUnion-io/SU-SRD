@@ -37,7 +37,7 @@ const SNIPER_NAME = 'Custom Sniper Rifle'
 let SNIPER_ID = ''
 
 beforeAll(async () => {
-  const sniper = SalvageUnionReference.Equipment.all().find((e) => e.name === SNIPER_NAME)
+  const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
 })

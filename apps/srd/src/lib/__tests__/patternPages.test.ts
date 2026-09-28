@@ -26,7 +26,7 @@ const chassisWithPatterns = () =>
   SalvageUnionReference.Chassis.all().filter((c) => visiblePatterns(c.patterns ?? []).length > 0)
 
 const mule = () => {
-  const found = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Mule')
+  const found = SalvageUnionReference.Chassis.getByName('Mule')
   if (!found) throw new Error('Mule fixture missing')
   return found
 }

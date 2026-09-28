@@ -12,7 +12,7 @@ import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
  * System Slots 16 — spanning both `primary` (SP/EP/SV/Heat) and non-primary
  * (System Slots) config entries.
  */
-const muleFound = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
+const muleFound = SalvageUnionReference.Chassis.getByName('Mule')
 if (!muleFound) throw new Error('Mule chassis missing from reference data')
 const mule: SURefMetaEntity = muleFound
 

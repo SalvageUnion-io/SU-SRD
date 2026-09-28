@@ -57,7 +57,7 @@ describe('computeMechCapacity — happy path', () => {
   })
 
   it('reports correct max slots matching real chassis data', () => {
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === MULE_CHASSIS)
+    const chassis = SalvageUnionReference.Chassis.getByName(MULE_CHASSIS)
     expect(chassis).toBeDefined()
     const mech: MechInput = { chassisRef: MULE_CHASSIS, systems: [], modules: [] }
     const result = computeMechCapacity(mech)
@@ -69,7 +69,7 @@ describe('computeMechCapacity — happy path', () => {
 
   it('exactly at max capacity produces no violations', () => {
     // Mule has 16 system slots — fill exactly to cap with 1-slot systems
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === MULE_CHASSIS)
+    const chassis = SalvageUnionReference.Chassis.getByName(MULE_CHASSIS)
     const max = chassis?.systemSlots ?? 0
     const systems = Array.from({ length: max }, (_, i) => ({
       ref: `FakeSystem${i}`,
@@ -87,7 +87,7 @@ describe('computeMechCapacity — happy path', () => {
 describe('computeMechCapacity — system-over-slots violation', () => {
   it('raises system-over-slots when system usage exceeds chassis cap', () => {
     // Force over-capacity with explicit slotCosts
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === MULE_CHASSIS)
+    const chassis = SalvageUnionReference.Chassis.getByName(MULE_CHASSIS)
     const max = chassis?.systemSlots ?? 0
     const systems = [{ ref: '.50 Cal Machine Gun', slotCost: max + 1 }]
 

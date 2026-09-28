@@ -18,7 +18,7 @@ export default {
   title: 'Compositions/Entity/Catalog Choice Modal',
 }
 
-const bay = SalvageUnionReference.CrawlerBays.all().find((b) => b.name === 'Armament Bay')
+const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
 const choice = bay ? (getChoices(bay) ?? [])[0] : undefined
 
 /** The editable card flow: Choose… button → modal pick → the chosen entity as a real listing card. */

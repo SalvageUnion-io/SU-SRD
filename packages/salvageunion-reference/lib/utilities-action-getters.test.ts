@@ -113,9 +113,7 @@ describe('Action Property Getters', () => {
 
   describe('getRange', () => {
     test('should get range from system (action property)', () => {
-      const system = getReference()
-        .Systems.all()
-        .find((s) => s.name === 'Assault Rifle')
+      const system = getReference().Systems.getByName('Assault Rifle')
       if (system) {
         const range = getRange(system)
         expect(range).toBeDefined()
@@ -155,9 +153,7 @@ describe('Action Property Getters', () => {
 
   describe('getDamage', () => {
     test('should get damage from system (action property)', () => {
-      const system = getReference()
-        .Systems.all()
-        .find((s) => s.name === 'Assault Rifle')
+      const system = getReference().Systems.getByName('Assault Rifle')
       if (system) {
         const damage = getDamage(system)
         expect(damage).toBeDefined()

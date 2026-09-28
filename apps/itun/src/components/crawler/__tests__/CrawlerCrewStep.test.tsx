@@ -80,7 +80,7 @@ describe('CrawlerCrewStep', () => {
   })
 
   it('the selected type’s special NPC HEADS the roster with its full field set', () => {
-    const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
+    const battle = must(SalvageUnionReference.Crawlers.getByName('Battle'))
     const { container } = render(
       <CrawlerCrewStep bays={crewedBays()} selectedType={battle} crew={{}} onChange={() => {}} />
     )
@@ -94,7 +94,7 @@ describe('CrawlerCrewStep', () => {
   })
 
   it('Augmented edge: A.I. NPC shows Name/Background only (no Keepsake/Motto)', () => {
-    const augmented = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Augmented'))
+    const augmented = must(SalvageUnionReference.Crawlers.getByName('Augmented'))
     render(<CrawlerCrewStep bays={[]} selectedType={augmented} crew={{}} onChange={() => {}} />)
     expandRow('Augmented')
     expect(screen.getByRole('button', { name: /union crawler a\.i\. name/i })).toBeTruthy()

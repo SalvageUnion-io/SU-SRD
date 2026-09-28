@@ -512,7 +512,7 @@ describe('Property Extractors', () => {
 
   describe('getAssetUrl', () => {
     it('should extract asset_url from chassis', () => {
-      const chassis = getReference().Chassis.find((c) => c.name === 'Mule')
+      const chassis = getReference().Chassis.getByName('Mule')
       const assetUrl = getAssetUrl(defined(chassis))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -520,7 +520,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from bio-titans', () => {
-      const titan = getReference().BioTitans.find((t) => t.name === 'Typhon')
+      const titan = getReference().BioTitans.getByName('Typhon')
       const assetUrl = getAssetUrl(defined(titan))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -528,7 +528,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from creatures', () => {
-      const creature = getReference().Creatures.find((c) => c.name === 'Artl')
+      const creature = getReference().Creatures.getByName('Artl')
       const assetUrl = getAssetUrl(defined(creature))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -536,7 +536,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from NPCs', () => {
-      const npc = getReference().NPCs.find((n) => n.name === 'Wastelander')
+      const npc = getReference().NPCs.getByName('Wastelander')
       const assetUrl = getAssetUrl(defined(npc))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -737,7 +737,7 @@ describe('SRD site URLs', () => {
   })
 
   it('links a real entity at the slug its own page uses', () => {
-    const mule = defined(getReference().Chassis.find((c) => c.name === 'Mule'))
+    const mule = defined(getReference().Chassis.getByName('Mule'))
     expect(srdEntityUrl('chassis', getEntitySlug(mule))).toBe(
       'https://salvageunion.io/schema/chassis/item/mule'
     )

@@ -38,9 +38,7 @@ describe('resolveDataValueForTechLevel', () => {
 
   it('resolves the real Custom Sniper Rifle damage from reference data', async () => {
     const { SalvageUnionReference } = await import('./index.js')
-    const sniper = SalvageUnionReference.Equipment.all().find(
-      (e) => e.name === 'Custom Sniper Rifle'
-    )
+    const sniper = SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle')
     expect(sniper?.techLevel).toBe(1)
     const dv = sniper?.content
       ?.flatMap((b) => (Array.isArray(b.value) ? b.value : []))

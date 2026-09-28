@@ -52,7 +52,7 @@ describe('stripHostParenthetical', () => {
 
 describe('nested action rendering', () => {
   const naniteSifter = () => {
-    const found = SalvageUnionReference.Systems.all().find((s) => s.name === 'Nanite Sifter')
+    const found = SalvageUnionReference.Systems.getByName('Nanite Sifter')
     if (!found) throw new Error('Nanite Sifter not in fixtures')
     return found
   }
@@ -67,9 +67,7 @@ describe('nested action rendering', () => {
   })
 
   test('outside any host context the full disambiguated name renders', () => {
-    const refine = SalvageUnionReference.Actions.all().find(
-      (a) => a.name === 'Refine (Nanite Sifter)'
-    )
+    const refine = SalvageUnionReference.Actions.getByName('Refine (Nanite Sifter)')
     if (!refine) throw new Error('Refine (Nanite Sifter) not in fixtures')
 
     render(<ReferenceEntityCard data={refine as never} />)
@@ -88,12 +86,12 @@ describe('nested action rendering', () => {
  */
 describe('action parenthetical display rule', () => {
   const fabricationArm = () => {
-    const found = SalvageUnionReference.Systems.all().find((s) => s.name === 'Fabrication Arm')
+    const found = SalvageUnionReference.Systems.getByName('Fabrication Arm')
     if (!found) throw new Error('Fabrication Arm not in fixtures')
     return found
   }
   const action = (name: string) => {
-    const found = SalvageUnionReference.Actions.all().find((a) => a.name === name)
+    const found = SalvageUnionReference.Actions.getByName(name)
     if (!found) throw new Error(`${name} not in fixtures`)
     return found
   }
@@ -120,7 +118,7 @@ describe('action parenthetical display rule', () => {
     cleanup()
 
     // Inside its owner (Machine Gun Squad) — same, still no `(NPC)`.
-    const owner = SalvageUnionReference.Squads.all().find((s) => s.name === 'Machine Gun Squad')
+    const owner = SalvageUnionReference.Squads.getByName('Machine Gun Squad')
     if (!owner) throw new Error('Machine Gun Squad not in fixtures')
     render(<ReferenceEntityCard data={owner} />)
     expect(screen.getByText('First Aid Kit')).toBeTruthy()

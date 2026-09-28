@@ -248,7 +248,7 @@ describe('PilotWizard — hard creation enforcement', () => {
       (a) => (a as { level: number | string }).level === 1
     )
     expect(level1.length).toBe(25) // 15 core + 10 advanced-tree level-1s in the catalog
-    const salvager = SalvageUnionReference.Classes.find((c) => c.name === 'Salvager') as {
+    const salvager = SalvageUnionReference.Classes.getByName('Salvager') as {
       coreTrees: string[]
     }
     const legal = level1.filter((a) =>

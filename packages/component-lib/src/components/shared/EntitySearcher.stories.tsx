@@ -131,7 +131,7 @@ export const Cells: Story = () => {
 export const CatalogPicker: Story = () => {
   const [open, setOpen] = useState(false)
   const [selections, setSelections] = useState<ChoiceSelections>({})
-  const bay = SalvageUnionReference.CrawlerBays.all().find((b) => b.name === 'Armament Bay')
+  const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
   const choice = bay ? (getChoices(bay) ?? [])[0] : undefined
   if (!choice) return <Caption>Armament Bay fixture missing.</Caption>
   const chosen = selections[choice.id]?.[0]
