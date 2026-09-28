@@ -20,7 +20,7 @@
  * Uses toBeTruthy() not toBeInTheDocument() (Wave 4 workaround).
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Toaster, toast } from 'component-lib'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
@@ -30,6 +30,12 @@ import { mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../ActiveItemBand'
 import { ActiveItemBand } from '../ActiveItemBand'
+
+// A mounting Toaster replays every toast still active, including ones other
+// files raised without a Toaster; their timers would then fire outside act().
+beforeEach(() => {
+  toast.dismiss()
+})
 
 afterEach(() => {
   // Sonner's toast state is module-global — clear it so a refusal never leaks

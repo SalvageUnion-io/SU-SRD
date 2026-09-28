@@ -8,12 +8,15 @@
  *   - Dep-injection via SnapshotPageInner props
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
+import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { SnapshotPageInner } from '../../components/sheet/SnapshotPage'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
+
+beforeAll(hydrateStores)
 
 // Preload chassis data so MechSheet can resolve chassis without throwing
 afterEach(() => {

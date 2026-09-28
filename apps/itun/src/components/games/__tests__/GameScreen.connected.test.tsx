@@ -1,5 +1,5 @@
-import { afterAll, describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { act, render, screen } from '@testing-library/react'
 
 /**
  * `GameScreen` — one Game, connected.
@@ -23,17 +23,23 @@ const convexMocks = await installConvexMocks({ router: true })
 
 const { GameScreen } = await import('../GameScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { hydrateStores } = await import('../../__tests__/hydrateStores')
+
+beforeAll(hydrateStores)
 
 function withQueries(answers: QueryAnswers): void {
   setQueryAnswers(answers)
 }
 
+// Async act: the roster inside flips its hydrated flag from a promise after mount.
 const wrap = () =>
-  render(
-    <ConnectionProvider>
-      <GameScreen gameId="g1" />
-    </ConnectionProvider>
-  )
+  act(async () => {
+    render(
+      <ConnectionProvider>
+        <GameScreen gameId="g1" />
+      </ConnectionProvider>
+    )
+  })
 
 const GAME = {
   _id: 'g1',
@@ -65,9 +71,9 @@ const REST: QueryAnswers = {
 }
 
 describe('GameScreen', () => {
-  test('a plain member gets no invite management', () => {
+  test('a plain member gets no invite management', async () => {
     withQueries({ ...REST, 'games:get': GAME })
-    wrap()
+    await wrap()
 
     // The server refuses a non-Organizer's invites.list outright, so offering
     // the panel here would be a control that only ever errors.
@@ -75,7 +81,7 @@ describe('GameScreen', () => {
     expect(screen.queryByLabelText('Invite note')).toBeNull()
   })
 
-  test('every panel states its name in its header band', () => {
+  test('every panel states its name in its header band', async () => {
     // A pending proposal, so the inbox renders at all (it returns null when
     // there is nothing to answer).
     withQueries({
@@ -83,7 +89,7 @@ describe('GameScreen', () => {
       'games:get': { ...GAME, organizer: true },
       'proposals:pending': [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }],
     })
-    wrap()
+    await wrap()
 
     // These titles used to sit inside each panel's body as a small grey stamp.
     // They are the Card's header now, and `Invite someone` in particular
@@ -100,9 +106,9 @@ describe('GameScreen', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Game' })).toBeTruthy()
   })
 
-  test('an Organizer gets invite management', () => {
+  test('an Organizer gets invite management', async () => {
     withQueries({ ...REST, 'games:get': { ...GAME, organizer: true } })
-    wrap()
+    await wrap()
 
     expect(screen.getByText('Create invite code')).toBeTruthy()
     expect(screen.getByLabelText('Invite note')).toBeTruthy()
@@ -120,7 +126,7 @@ describe('GameScreen', () => {
    * the Game. Delete the panel and the whole GM surface silently strands again,
    * with every other test still green.
    */
-  test('an Organizer can appoint a Mediator', () => {
+  test('an Organizer can appoint a Mediator', async () => {
     withQueries({
       ...REST,
       'games:get': { ...GAME, organizer: true },
@@ -129,7 +135,7 @@ describe('GameScreen', () => {
         { userId: 'u2', displayName: 'Bly', mediator: false, organizer: false, joinedAt: 2 },
       ],
     })
-    wrap()
+    await wrap()
 
     expect(screen.getByRole('heading', { level: 2, name: 'Who mediates' })).toBeTruthy()
     // One per member — the Organizer can appoint themselves OR somebody else,
@@ -138,25 +144,25 @@ describe('GameScreen', () => {
     expect(screen.getAllByRole('button', { name: 'Make Mediator' })).toHaveLength(2)
   })
 
-  test('a plain member is not offered the Mediator appointment', () => {
+  test('a plain member is not offered the Mediator appointment', async () => {
     withQueries({ ...REST, 'games:get': GAME })
-    wrap()
+    await wrap()
 
     // `setMediator` calls requireOrganizer, so this would only ever error.
     expect(screen.queryByRole('heading', { level: 2, name: 'Who mediates' })).toBeNull()
   })
 
-  test('a game you are not in explains itself instead of crashing', () => {
+  test('a game you are not in explains itself instead of crashing', async () => {
     withQueries({ ...REST, 'games:get': null })
-    wrap()
+    await wrap()
 
     expect(screen.getByText(/not in this game/i)).toBeTruthy()
     expect(screen.queryByText('Create invite code')).toBeNull()
   })
 
-  test('still loading is not the same as not a member', () => {
+  test('still loading is not the same as not a member', async () => {
     withQueries({ ...REST, 'games:get': undefined })
-    wrap()
+    await wrap()
 
     expect(screen.getByText(/Loading this game/i)).toBeTruthy()
     expect(screen.queryByText(/not in this game/i)).toBeNull()

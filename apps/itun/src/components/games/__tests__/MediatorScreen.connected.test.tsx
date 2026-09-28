@@ -1,5 +1,5 @@
-import { afterAll, describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { act, render, screen } from '@testing-library/react'
 
 /**
  * `MediatorScreen` in its connected state.
@@ -25,17 +25,23 @@ const convexMocks = await installConvexMocks()
 
 const { MediatorScreen } = await import('../MediatorScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { hydrateStores } = await import('../../__tests__/hydrateStores')
+
+beforeAll(hydrateStores)
 
 function withQueries(answers: QueryAnswers): void {
   setQueryAnswers(answers)
 }
 
+// Async act: the crew roster inside flips its hydrated flag from a promise after mount.
 const wrap = () =>
-  render(
-    <ConnectionProvider>
-      <MediatorScreen gameId="g1" />
-    </ConnectionProvider>
-  )
+  act(async () => {
+    render(
+      <ConnectionProvider>
+        <MediatorScreen gameId="g1" />
+      </ConnectionProvider>
+    )
+  })
 
 const CLAIMED_PILOT = {
   _id: 'p1',
@@ -98,9 +104,9 @@ function mediatingQueries(
 }
 
 describe('who the Mediator surface is for', () => {
-  test('somebody who does not mediate is told so, and gets none of the tools', () => {
+  test('somebody who does not mediate is told so, and gets none of the tools', async () => {
     withQueries({ 'mediator:amMediator': false })
-    wrap()
+    await wrap()
 
     expect(screen.getByText(/You do not mediate this game/i)).toBeTruthy()
     // The refusal has to be total: a visible propose form that the server would
@@ -110,17 +116,17 @@ describe('who the Mediator surface is for', () => {
     expect(screen.queryByLabelText('NPC name')).toBeNull()
   })
 
-  test('while the role is still unknown it says so rather than guessing', () => {
+  test('while the role is still unknown it says so rather than guessing', async () => {
     // Rendering the tools optimistically would flash the whole Mediator surface
     // at a player who is about to be refused it.
     withQueries({ 'mediator:amMediator': undefined })
-    wrap()
+    await wrap()
     expect(screen.getByText('Loading…')).toBeTruthy()
   })
 
-  test('the Mediator gets every panel', () => {
+  test('the Mediator gets every panel', async () => {
     withQueries(mediatingQueries({ viewerId: 'u1', pilots: [CLAIMED_PILOT], mechs: [] }))
-    wrap()
+    await wrap()
 
     expect(screen.getByText('Propose a change')).toBeTruthy()
     expect(screen.getByText('Tell the table')).toBeTruthy()
@@ -129,7 +135,7 @@ describe('who the Mediator surface is for', () => {
 })
 
 describe('proposing a change', () => {
-  test('only claimed entities are offered as targets', () => {
+  test('only claimed entities are offered as targets', async () => {
     withQueries(
       mediatingQueries({
         viewerId: 'u1',
@@ -137,7 +143,7 @@ describe('proposing a change', () => {
         mechs: [],
       })
     )
-    wrap()
+    await wrap()
 
     // An unclaimed pre-gen has nobody to answer the proposal, so offering it
     // would build a dead end into the form.
@@ -145,7 +151,7 @@ describe('proposing a change', () => {
     expect(screen.queryByRole('option', { name: 'Pre-gen (pilot)' })).toBeNull()
   })
 
-  test('mechs are offered alongside pilots, labelled by kind', () => {
+  test('mechs are offered alongside pilots, labelled by kind', async () => {
     withQueries(
       mediatingQueries({
         viewerId: 'u1',
@@ -153,21 +159,21 @@ describe('proposing a change', () => {
         mechs: [{ ...CLAIMED_PILOT, _id: 'm1', name: 'Iron Mongrel' }],
       })
     )
-    wrap()
+    await wrap()
     expect(screen.getByRole('option', { name: 'Iron Mongrel (mech)' })).toBeTruthy()
   })
 
-  test('it says out loud that it is asking, not setting', () => {
+  test('it says out loud that it is asking, not setting', async () => {
     // The propose/confirm rule is the whole point of the surface; if the
     // wording ever drifts to sounding authoritative, this should fail.
     withQueries(mediatingQueries({ viewerId: 'u1', pilots: [], mechs: [] }))
-    wrap()
+    await wrap()
     expect(screen.getByText(/You are asking, not setting/i)).toBeTruthy()
   })
 
-  test('Propose stays disabled until there is a target and a value', () => {
+  test('Propose stays disabled until there is a target and a value', async () => {
     withQueries(mediatingQueries({ viewerId: 'u1', pilots: [CLAIMED_PILOT], mechs: [] }))
-    wrap()
+    await wrap()
 
     const button = screen.getByText('Propose').closest('button')
     expect(button?.disabled).toBe(true)
@@ -175,20 +181,20 @@ describe('proposing a change', () => {
 })
 
 describe('the rest of the table', () => {
-  test('recent alerts are shown back, and Send needs a message', () => {
+  test('recent alerts are shown back, and Send needs a message', async () => {
     withQueries(
       mediatingQueries(
         { viewerId: 'u1', pilots: [], mechs: [] },
         { alerts: [{ _id: 'a1', message: 'The crawler is taking fire.' }] }
       )
     )
-    wrap()
+    await wrap()
 
     expect(screen.getByText('The crawler is taking fire.')).toBeTruthy()
     expect(screen.getByText('Send').closest('button')?.disabled).toBe(true)
   })
 
-  test('the tray is named as private, and an unnamed NPC still reads as something', () => {
+  test('the tray is named as private, and an unnamed NPC still reads as something', async () => {
     withQueries(
       mediatingQueries(
         { viewerId: 'u1', pilots: [], mechs: [] },
@@ -200,7 +206,7 @@ describe('the rest of the table', () => {
         }
       )
     )
-    wrap()
+    await wrap()
 
     expect(screen.getByText(/Only you can see this/i)).toBeTruthy()
     // A blank row would look like a rendering bug in the middle of a session.

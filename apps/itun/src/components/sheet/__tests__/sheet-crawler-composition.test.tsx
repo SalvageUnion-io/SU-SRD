@@ -14,17 +14,20 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module().
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
+
+beforeAll(hydrateStores)
 
 afterEach(() => {
   cleanup()

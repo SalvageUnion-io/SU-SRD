@@ -15,13 +15,16 @@
  * Dep-injected stores, no `mock.module()`, matching `wiringComponents.test.tsx`.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import type { AssignCrewStore } from '../AssignPilotToCrawler'
 import { AssignPilotToCrawler } from '../AssignPilotToCrawler'
+
+beforeAll(hydrateStores)
 
 function pilot(id: string, name: string): Pilot {
   return {

@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
  * `InvitePanel` — mint, read back, revoke.
@@ -117,13 +117,16 @@ describe('revoking', () => {
 })
 
 describe('minting', () => {
-  test('passes the note, seat and door through', () => {
+  test('passes the note, seat and door through', async () => {
     renderPanel([])
 
     fireEvent.change(screen.getByLabelText('Invite note'), { target: { value: '  for Sam  ' } })
     fireEvent.change(screen.getByLabelText('Invite seat'), { target: { value: 'mediator' } })
     fireEvent.click(screen.getByLabelText('Require approval'))
-    fireEvent.click(screen.getByText('Create invite code'))
+    // Async act: a successful mint resets the form from the mutation's promise.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Create invite code'))
+    })
 
     expect(calls[0]?.args).toMatchObject({
       gameId: 'g1',

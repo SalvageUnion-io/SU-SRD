@@ -14,7 +14,7 @@
  * Fixture/store setup mirrors Sheet-topbar-segments.test.tsx.
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -22,10 +22,14 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
+
+// Each, not All: the afterEach below un-hydrates the live store.
+beforeEach(hydrateStores)
 
 afterEach(() => {
   cleanup()
@@ -218,10 +222,11 @@ describe('Sheet — rail unlink availability (unified edit language)', () => {
   test('unlink is always available on an editable sheet, never on read-only', () => {
     // The rail's Unassign link id is derived from the LIVE store's softLinks
     // (composition only exposes resolved entities), so seed the real store —
-    // composition + PublishButton still read the injected snapshots.
+    // composition + PublishButton still read the injected snapshots. Every
+    // type is marked hydrated so no read starts a load that lands after act().
     useEntityStore.setState({
       softLinks: [mechToPilot],
-      hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: true },
+      hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
     })
 
     const { unmount } = render(

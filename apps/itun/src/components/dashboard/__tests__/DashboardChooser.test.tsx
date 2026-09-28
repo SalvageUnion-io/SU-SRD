@@ -9,7 +9,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { DashboardChooser } from '../DashboardChooser'
@@ -86,10 +86,11 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  // Unmount before the reset: this hook runs before the preload's cleanup, and a
+  // mounted chooser answers the reset by starting hydrations that resolve after act().
+  cleanup()
   await _clearAllStores()
-  act(() => {
-    resetEntityStore()
-  })
+  resetEntityStore()
 })
 
 describe('ensureDashboardLinks', () => {

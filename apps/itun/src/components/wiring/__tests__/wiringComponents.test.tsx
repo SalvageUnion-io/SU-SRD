@@ -9,16 +9,19 @@
  *   - Cancel closes without creating a link
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import type { AssignCrawlerStore } from '../AssignCrawlerToPilot'
 import { AssignCrawlerToPilot } from '../AssignCrawlerToPilot'
 import type { AssignPilotStore } from '../AssignPilotToMech'
 import { AssignPilotToMech } from '../AssignPilotToMech'
+
+beforeAll(hydrateStores)
 
 // ---------------------------------------------------------------------------
 // Fake data

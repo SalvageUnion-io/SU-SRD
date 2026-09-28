@@ -7,7 +7,7 @@
  * the sheet, mirroring the app-wide mount in routes/__root.tsx.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { Toaster, toast } from 'component-lib'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -16,6 +16,12 @@ import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { MechSheet } from '../MechSheet'
+
+// A mounting Toaster replays every toast still active, including ones other
+// files raised without a Toaster; their timers would then fire outside act().
+beforeEach(() => {
+  toast.dismiss()
+})
 
 afterEach(() => {
   // Sonner's toast state is module-global — clear it so toasts never leak

@@ -321,10 +321,11 @@ describe('ShareStatusDialog — backend feature-detect', () => {
   test('hides Publish and shows the unavailable note when the service is down', async () => {
     renderDialog({ probeFn: probeDown })
 
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /publish/i })).toBeNull()
-    })
-    const note = screen.getByRole('note')
+    // Wait for the note to appear, not for the button to go: a failing
+    // `expect(element).toBeNull()` poll serialises the whole DOM graph into its
+    // message, which cost seconds per failed poll.
+    const note = await screen.findByRole('note')
+    expect(screen.queryByRole('button', { name: /publish/i })).toBeNull()
     expect(note.textContent).toContain('Publishing unavailable')
     expect(note.getAttribute('title')).toContain('/api/snapshots')
   })

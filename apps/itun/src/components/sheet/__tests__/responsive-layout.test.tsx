@@ -22,13 +22,14 @@
  *  - afterEach cleanup()
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { act, cleanup, render } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Roster } from '../../roster/Roster'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
@@ -36,6 +37,8 @@ import { CrawlerSheet } from '../CrawlerSheet'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 import { SnapshotSheet } from '../SnapshotSheet'
+
+beforeAll(hydrateStores)
 
 // ---------------------------------------------------------------------------
 // Preload reference data
@@ -224,7 +227,11 @@ describe('CrawlerSheet responsive layout — body section', () => {
 
 describe('Roster responsive layout — sections render', () => {
   test('Roster renders with its max-w outer container', async () => {
-    const { container } = render(<Roster />)
+    // Async act: Roster flips its hydrated flag from a promise after mount.
+    let container!: HTMLElement
+    await act(async () => {
+      container = render(<Roster />).container
+    })
     const main = container.querySelector('main')
     expect(main).toBeTruthy()
   })
