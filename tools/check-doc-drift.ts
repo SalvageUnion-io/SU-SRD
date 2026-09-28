@@ -69,7 +69,7 @@ const LIVE_INSTRUCTION_DOC_DIRS = [
   'docs/architecture',
 ]
 
-export function liveInstructionDocs(root: string): string[] {
+function liveInstructionDocs(root: string): string[] {
   return [
     'CLAUDE.md',
     'README.md',
@@ -507,7 +507,7 @@ export function checkDocSizes(
 
 // ─── runner ─────────────────────────────────────────────────────────────────
 
-export const CHECKS = [
+const CHECKS = [
   checkBacktickedPathsExist,
   checkReferencedScripts,
   (root: string) => checkMarkdownLinks(root),
