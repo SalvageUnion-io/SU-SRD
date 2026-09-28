@@ -63,7 +63,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ### Hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite, the srd build and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and the **full** suite whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs the full suite.
+- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite, the srd build and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and `bun run test:coverage` (CI's gate: the full suite plus per-workspace coverage floors) whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs `test:coverage`.
 
 ## Repository Overview
 

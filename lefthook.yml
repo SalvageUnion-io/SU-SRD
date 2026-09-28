@@ -67,20 +67,19 @@ pre-push:
       # about to push, not just the last commit. On a long-lived branch that
       # over-selects, which is the safe direction.
       #
-      # Even so this is a local fast path, NOT a narrowing of the gate: CI runs
-      # the full suite (`test:coverage` + `test:tools`) on every code PR and
-      # that is what branch protection requires. Falls back to the full suite
-      # when there is no origin/main to diff against — a missing base must
-      # never mean "nothing to test".
+      # The full suite here is `test:coverage`, CI's own gate (coverage floors
+      # included), so a floor breach fails the push rather than CI. The fast
+      # path is not a narrowing of that gate: CI runs it on every code PR.
+      # A missing base falls back to the full suite, never to "nothing to test".
       run: |
         base=$(git merge-base HEAD origin/main 2>/dev/null || true)
         if [ -z "$base" ]; then
-          echo "pre-push: no origin/main to diff against — running the full suite"
-          bun run test
+          echo "pre-push: no origin/main to diff against — running CI's test gate"
+          bun run test:coverage
         elif git diff --name-only "$base" -- packages test bunfig.toml package.json bun.lock 'apps/*/package.json' | grep -q .; then
-          echo "pre-push: shared code or dependency manifests changed — running the full suite"
+          echo "pre-push: shared code or dependency manifests changed — running CI's test gate"
           echo "          (bun test --changed does not cross workspace boundaries)"
-          bun run test
+          bun run test:coverage
         else
           bun --filter "*" test --changed="$base" && bun test ./tools --changed="$base"
         fi

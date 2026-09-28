@@ -67,7 +67,7 @@ bun --filter itun typecheck     # typecheck one workspace
 > so it runs. It is still not identical to the per-workspace run — the preload
 > *sets* differ, and one component-lib SSR test fails only from the root. Use
 > `bun run test` as the source of truth; CI runs the same files (instrumented,
-> via `test:coverage` + `test:tools`).
+> via `test:coverage`).
 
 ## Conventions
 

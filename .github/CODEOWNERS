@@ -33,7 +33,6 @@
 
 # The ratchets. Each is a committed baseline that a check compares against, so
 # editing one is how you make a failing check pass without fixing anything.
-/coverage-baseline.json                            @alxjrvs
 /tools/a11y-baseline.json                          @alxjrvs
 /tools/styling-baseline.json                       @alxjrvs
 

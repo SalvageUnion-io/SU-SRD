@@ -29,7 +29,7 @@ the corpus size, not just the finding count.
 | Id | Script | Guards | When it fails | Baseline |
 | --- | --- | --- | --- | --- |
 | `generated` | `check-generated.ts` | Regenerates the reference package's schemas, docs, registry and API report plus ITUN's `routeTree.gen.ts`, then fails on any tracked change OR untracked file. Runs first and alone, because it writes files. | Commit the regenerated files it just wrote; never hand-edit them. | — |
-| `test` | `bun run test` | The full suite, every workspace plus `tools/`. Not in the `ci` profile — CI's `coverage` job runs it. | Fix the test. | `coverage-baseline.json` (CI only) |
+| `test` | `bun run test` | The full suite, every workspace plus `tools/`. Not in the `ci` profile — CI's `coverage` job runs the same files through `run-coverage.ts`. | Fix the test. | — |
 | `srd-output` | `bun --filter srd gate` | The built srd site against `apps/srd/ssg/output-snapshot.json`. Not in `ci` — `build-srd` runs it. | Use the `/srd-gate` skill: read the diff, then re-bless. | `output-snapshot.json` |
 | `typecheck` | `bun run typecheck` | Every workspace, plus `tools/` and `test/` via `tsconfig.tools.json`. | Fix the type error. | — |
 | `knip` | `bun run knip` | No unused files, exports or dependencies. | Use the `/knip-triage` skill. | — |
@@ -51,8 +51,7 @@ the corpus size, not just the finding count.
 
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
-| `run-coverage.ts` | `test:coverage` (CI) | Runs each workspace's coverage and retries when Bun silently writes no `lcov.info`. | — |
-| `coverage-report.ts` | CI coverage job | Aggregates lcov and fails if a workspace drops more than the tolerance below its floor. Raise the floor to lock in a gain. | `coverage-baseline.json` (repo root) |
+| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's `test:coverage` plus the `tools/` suite, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
 | `a11y-scan.ts` | `build-srd` in `ci.yml` (every srd PR) and `e2e-nightly.yml` | WCAG 2.1 AA scan (Playwright + axe-core) of the pages keyed in the baseline. Fails on a violation not accepted per page, and on a stale entry. | `a11y-baseline.json` |
 | `check-convex-parity.ts` | `check:convex-parity:live` (nightly) | Every Convex function this repo defines exists on the deployment. Its static half is `workflows`' `convex-guard`. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
@@ -73,6 +72,6 @@ renderer) lives with its only consumer, in `apps/itun/scripts/`.
 
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
-`tailwindClasses.ts` (the Tailwind-file ratchet's detector), `parse-lcov.ts`
-and `r2.ts` (a SigV4 R2 client, because `wrangler r2 object` cannot list).
+`tailwindClasses.ts` (the Tailwind-file ratchet's detector) and `r2.ts` (a
+SigV4 R2 client, because `wrangler r2 object` cannot list).
 `rules/` holds the three styling rule sets.

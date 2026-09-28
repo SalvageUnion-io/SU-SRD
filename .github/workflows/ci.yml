@@ -81,7 +81,6 @@ jobs:
               - 'test/**'
               - 'bunfig.toml'
               - 'patches/**'
-              - 'coverage-baseline.json'
               # root prose rendered by srd + itun and asserted on by
               # component-lib tests — the #731 incident (ci.md)
               - 'ABOUT_JRVS.md'
@@ -162,9 +161,9 @@ jobs:
           if [ "$DOCS" = "true" ]; then areas="${areas:+$areas,}docs"; fi
           bun tools/check.ts --profile=ci --areas="$areas"
 
-  # THE test gate. One instrumented run of every workspace (with the #818
-  # reporter-flake retry in run-coverage.ts), the coverage ratchet, and the
-  # tools suite. There is no second, uninstrumented run (audit CI-03).
+  # THE test gate: every workspace instrumented and held to its line-coverage
+  # floor, plus the tools suite, concurrently (tools/run-coverage.ts). There is
+  # no second, uninstrumented run.
   coverage:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
@@ -179,26 +178,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Test with coverage
+      - name: Tests with coverage floors
         run: bun run test:coverage
-
-      # Not a workspace, so run-coverage.ts does not reach it.
-      - name: Test tools
-        if: ${{ !cancelled() }}
-        run: bun run test:tools
-
-      - name: Aggregate coverage report + ratchet
-        if: always()
-        run: bun tools/coverage-report.ts
-
-      - name: Upload coverage report artifact
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-report
-          path: coverage-report/
-          retention-days: 14
-          if-no-files-found: warn
 
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them (audit CI-02).

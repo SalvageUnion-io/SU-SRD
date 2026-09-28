@@ -42,7 +42,6 @@ PROTECTED_PATTERNS=(
   "*apps/itun/convex/_generated/*"
   "*apps/srd/ssg/output-snapshot.json"
   "*bun.lock"
-  "*coverage-baseline.json"
   "*tools/a11y-baseline.json"
   "*tools/styling-baseline.json"
   "*.vscode/settings.json"
