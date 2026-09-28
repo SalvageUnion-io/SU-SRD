@@ -5,8 +5,7 @@
  * Both are injected by string surgery on `</head>` / `</body>` rather than
  * threaded through the React tree, so the injection points, their ORDER, and
  * the `<!doctype>` prefix are wire format: `src/runtime/islands.client.ts`
- * parses the props tag it emits, and `ssg/snapshot.ts` reads the head tags
- * `BaseLayout` produces from `DocumentMeta` across the whole built site.
+ * parses the props tag it emits.
  */
 
 import { describe, expect, it } from 'bun:test'

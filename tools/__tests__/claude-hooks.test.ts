@@ -241,7 +241,6 @@ describe('protect-generated-files.sh', () => {
     ['anything under dist', 'apps/srd/dist/index.html'],
     // Unlisted before, all silently allowed.
     ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
-    ['the srd output snapshot', 'apps/srd/ssg/output-snapshot.json'],
     ['the lockfile', 'bun.lock'],
     ['the styling baseline', 'tools/styling-baseline.json'],
     ['generated editor settings', '.vscode/settings.json'],

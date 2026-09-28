@@ -81,15 +81,8 @@
       // itself (audit AP-18). It is a byte-for-byte build artefact — its dead
       // `href="#"` anchors and `role="button"` edit links ARE the page, which the
       // TSX carried as `biome-ignore-all` — and formatting it would change what
-      // ships (and `ssg/snapshot.ts` would report it).
+      // ships.
       "!apps/srd/public/greembeem",
-      // The srd output snapshot (ssg/snapshot.ts --update). Generated and
-      // committed, and deliberately written ONE LINE PER PAGE so that "23 pages
-      // changed" is 23 changed lines in review — which is the only reason
-      // committing a 680 KB digest is useful rather than just large. Biome's
-      // JSON formatter re-wraps those entries across ~13,700 lines, destroying
-      // exactly the property the format exists for.
-      "!apps/srd/ssg/output-snapshot.json",
       "!**/convex/_generated",
       "!packages/salvageunion-reference/lib/generated",
       // Astro's old codegen cache. apps/srd has not built through Astro since

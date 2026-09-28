@@ -23,8 +23,7 @@
  * - `navigateFallback: null` — this is a static site, so an unvisited page
  *   should 404 offline rather than resolve to a stale shell.
  * - `sourcemap: false` and `cleanupOutdatedCaches: true` are not workbox's
- *   defaults. Keep them, or `dist/sw.js.map` appears in the output —
- *   which `ssg/snapshot.ts`'s file-set check reports as a new path.
+ *   defaults. Keep them, or `dist/sw.js.map` ships in the output.
  * - `skipWaiting` / `clientsClaim`: a new build takes over immediately
  *   (auto-update semantics).
  */
@@ -49,10 +48,7 @@ import { generateSW } from 'workbox-build'
  * offline caching, which is a progressive enhancement this site works fine
  * without — there is no fallback to attempt and nothing to tell the user.
  *
- * Nothing downstream depends on the registration succeeding: only the precache
- * revision hash in `sw.js` moves, and `ssg/snapshot.ts` holds `sw.js` as
- * presence-only precisely because that hash changes on every asset change.
- * Digesting it would make the gate churn on every dependency bump.
+ * Nothing downstream depends on the registration succeeding.
  */
 const REGISTER_SW =
   "if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {})})}"

@@ -10,7 +10,7 @@ moment one fails and you need to know what it guards and how to fix it.
 
 ```bash
 bun run check                 # every gate, in parallel, ending in a pass/fail table
-bun run check:fast            # the inner loop: no suite, no srd build, no network
+bun run check:fast            # the inner loop: no suite, no network
 bun run check styling data    # just these (ids below); `bun run check --list` prints them all
 ```
 
@@ -30,7 +30,6 @@ the corpus size, not just the finding count.
 | --- | --- | --- | --- | --- |
 | `generated` | `check-generated.ts` | Regenerates the reference package's schemas, docs and registry plus ITUN's `routeTree.gen.ts`, then fails on any tracked change OR untracked file. Runs first and alone, because it writes files. | Commit the regenerated files it just wrote; never hand-edit them. | — |
 | `test` | `bun run test` | The full suite, every workspace plus `tools/`. Not in the `ci` profile — CI's `coverage` job runs the same files through `run-coverage.ts`. | Fix the test. | — |
-| `srd-output` | `bun --filter srd gate` | The built srd site against `apps/srd/ssg/output-snapshot.json`. Not in `ci` — `build-srd` runs it. | Use the `/srd-gate` skill: read the diff, then re-bless. | `output-snapshot.json` |
 | `typecheck` | `bun run typecheck` | Every workspace, plus `tools/` and `test/` via `tsconfig.tools.json`. | Fix the type error. | — |
 | `knip` | `bun run knip` | No unused files, exports or dependencies. | Use the `/knip-triage` skill. | — |
 | `biome` | `biome ci .` | Lint, format and import order, plus the GritQL plugins in `biome/` (listed under `plugins` in `biome.jsonc`; `noModelFindByKey` rejects an identity `find` on a reference model). | `bun run format`, then fix what remains; a plugin's message names the fix. | — |

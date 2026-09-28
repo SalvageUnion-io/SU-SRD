@@ -20,9 +20,9 @@ describe('selection', () => {
     expect(CHECKS.filter((c) => c.first).map((c) => c.id)).toEqual(['generated'])
   })
 
-  test('fast skips the suite, the srd build, the network and regeneration', () => {
+  test('fast skips the suite, the network and regeneration', () => {
     const fast = ids(['--profile=fast'])
-    for (const slow of ['test', 'srd-output', 'audit', 'actionlint', 'generated']) {
+    for (const slow of ['test', 'audit', 'actionlint', 'generated']) {
       expect(fast).not.toContain(slow)
     }
     expect(fast).toContain('typecheck')
@@ -36,10 +36,9 @@ describe('selection', () => {
     expect(ids(['--profile=pre-push'])).toContain('workflows')
   })
 
-  test('ci leaves the suite and the srd build to their own jobs', () => {
+  test('ci leaves the suite to its own job', () => {
     const ci = ids(['--profile=ci'])
     expect(ci).not.toContain('test')
-    expect(ci).not.toContain('srd-output')
     expect(ci).toContain('audit')
     expect(ci).toContain('actionlint')
   })
@@ -70,7 +69,7 @@ describe('selection', () => {
 
   test('positional ids override the profile; --skip removes', () => {
     expect(ids(['audit', 'styling'])).toEqual(['styling', 'audit'])
-    expect(ids(['--skip=test,srd-output'])).not.toContain('test')
+    expect(ids(['--skip=test,audit'])).not.toContain('test')
   })
 
   test('unknown ids, profiles, areas and flags are usage errors', () => {

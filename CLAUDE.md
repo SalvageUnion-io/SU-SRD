@@ -37,8 +37,8 @@ bun install              # first-time setup (generated files are committed; no c
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # ITUN dev server
 
-bun run check:fast       # ~12s inner loop: every gate except the suite, the srd build,
-                         # the network and regeneration
+bun run check:fast       # ~12s inner loop: every gate except the suite, the network
+                         # and regeneration
 bun run check            # THE full gate (~35s), every check in tools/check.ts in parallel,
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
@@ -47,7 +47,6 @@ bun --filter <workspace> test      # one workspace: salvageunion-reference, comp
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
 bun run build            # package + srd + ITUN (the bot has no build; wrangler bundles it)
-bun --filter srd gate    # srd build + output-snapshot diff — use the /srd-gate skill
 
 bun run reap             # list abandoned .claude/worktrees/ checkouts (--force removes them)
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
@@ -63,7 +62,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 ### Hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite, the srd build and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and `bun run test:coverage` (CI's gate: the full suite plus per-workspace coverage floors) whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs `test:coverage`.
+- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and `bun run test:coverage` (CI's gate: the full suite plus per-workspace coverage floors) whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs `test:coverage`.
 
 ## Repository Overview
 
@@ -111,7 +110,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 ## `.claude/`
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/srd-gate` (read the snapshot diff before re-blessing), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
+- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
 - `bun run reap` when repo-wide grep starts returning duplicates from old worktrees.
 
 ## External Integrations & MCP Servers

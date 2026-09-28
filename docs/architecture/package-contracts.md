@@ -288,8 +288,7 @@ for rendering) + React 19 islands — see
   endpoints are `src/endpoints/*.ts` (`EndpointModule`) registered in
   `ssg/endpoints.ts`. Nothing is discovered from the filesystem.
 - `bun ssg/build.ts` builds; `bun ssg/dev.ts` serves through the same
-  `ssg/render.tsx`; `bun --filter srd gate` (`ssg/snapshot.ts`) diffs the built output
-  against a committed snapshot and runs in CI.
+  `ssg/render.tsx`.
 - **Hard rule:** no `.css` import may be reachable from an SSR module. All css is
   imported from `src/runtime/styles.entry.ts` (a client-bundle entry); all static
   assets from `src/runtime/assets.entry.ts`, addressed via

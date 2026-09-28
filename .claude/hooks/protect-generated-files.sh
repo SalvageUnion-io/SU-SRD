@@ -39,7 +39,6 @@ PROTECTED_PATTERNS=(
   "*/dist/*"
   "*tsconfig.tsbuildinfo"
   "*apps/itun/convex/_generated/*"
-  "*apps/srd/ssg/output-snapshot.json"
   "*bun.lock"
   "*tools/a11y-baseline.json"
   "*tools/styling-baseline.json"
@@ -55,7 +54,6 @@ for pattern in "${PROTECTED_PATTERNS[@]}"; do
       echo "  JSON schemas / docs / lib/generated: edit the Zod schemas in" >&2
       echo "  packages/salvageunion-reference/lib/schemas/ and run 'bun run build:package'." >&2
       echo "  routeTree.gen.ts: TanStack Router regenerates it." >&2
-      echo "  output-snapshot.json: run 'bun --filter srd snapshot:update' and READ the diff." >&2
       echo "  bun.lock: change the manifest and let the resolver rewrite it." >&2
       echo "  baselines: these ratchet down on their own; do not edit to make a check pass." >&2
       exit 2

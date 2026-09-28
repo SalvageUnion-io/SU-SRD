@@ -20,12 +20,12 @@
  * ## Profiles
  *
  *   full      everything — `bun run check`
- *   fast      the ~12s inner loop: no test suite, no srd build, no network,
- *             no regeneration — `bun run check:fast`
+ *   fast      the ~12s inner loop: no test suite, no network, no
+ *             regeneration — `bun run check:fast`
  *   pre-push  fast + generated-file drift (the suite runs separately, scoped by
  *             `--changed` — see lefthook.yml)
- *   ci        everything except the test suite and the srd build, which run in
- *             CI's own `coverage` and `build-srd` jobs
+ *   ci        everything except the test suite, which runs in CI's own
+ *             `coverage` job
  *
  * Positional ids run exactly those checks, whatever the profile:
  * `bun run check styling workflows`. `--list` prints the registry.
@@ -89,12 +89,6 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'test',
     guards: 'the full test suite, every workspace plus tools/',
     cmd: ['bun', 'run', 'test'],
-    profiles: ['full'],
-  },
-  {
-    id: 'srd-output',
-    guards: 'the built srd site matches its committed output snapshot',
-    cmd: ['bun', '--filter', 'srd', 'gate'],
     profiles: ['full'],
   },
   {
