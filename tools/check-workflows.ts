@@ -36,6 +36,9 @@
  *                 build job, every deploy job needs every build job and the
  *                 push, the smoke job needs every deploy job, and the deploy
  *                 record needs the smoke job to have SUCCEEDED (audit CI-12).
+ *                 A build job uploads an artifact built from source; a pass
+ *                 that downloads one and re-uploads it (srd's OG render) is
+ *                 not a build, and only what ships its output waits for it.
  *                 Every one of those jobs sits downstream of a job that is
  *                 skipped by design, so each must carry an explicit status
  *                 function in its `if:` — the implicit `success()` is false
@@ -573,16 +576,19 @@ const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
 /**
  * The deploy workflow's job graph keeps its orderings (audit CI-12):
  *
- *   1. the job that pushes the Convex backend needs every job that uploads an
- *      artifact — a failed build of ANY surface stops the push, rather than
- *      leaving a new backend under the old client until the next green run;
- *   2. every job that ships (`bun run deploy`) needs every job that uploads an
- *      artifact and the push — all builds finish, and the backend is pushed,
- *      before any traffic moves;
+ *   1. the job that pushes the Convex backend needs every build job (one that
+ *      uploads an artifact and downloads none) — a failed build of ANY surface
+ *      stops the push, rather than leaving a new backend under the old client
+ *      until the next green run;
+ *   2. every job that ships (`bun run deploy`) needs every build job and the
+ *      push — all builds finish, and the backend is pushed, before any
+ *      traffic moves;
  *   3. the job that runs the smoke list needs every job that ships;
  *   4. the job holding `contents: write` (the deploy record) needs the smoke
  *      job and requires `needs.<smoke>.result == 'success'` — the record moves
- *      only once what shipped has answered.
+ *      only once what shipped has answered;
+ *   5. a job that downloads an artifact needs every job that uploads it — a
+ *      deploy cannot race the post-build pass whose output it ships.
  *
  * And every job from the push onwards whose ancestors include a job with its
  * own `if:` (other than the root gate) carries an explicit status function.
@@ -604,8 +610,11 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const jobsWhere = (pred: (step: Yaml) => boolean) =>
     [...new Set(steps.filter(({ step }) => pred(step)).map(({ where }) => jobOf(where)))].sort()
 
-  const builders = jobsWhere(
-    (step) => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@')
+  const uses = (step: Yaml, action: string) =>
+    typeof step.uses === 'string' && step.uses.startsWith(`actions/${action}@`)
+  const downloaders = new Set(jobsWhere((step) => uses(step, 'download-artifact')))
+  const builders = jobsWhere((step) => uses(step, 'upload-artifact')).filter(
+    (job) => !downloaders.has(job)
   )
   const pushers = jobsWhere((step) => runs(step).includes('convex deploy'))
   const shippers = jobsWhere((step) => /\bbun run deploy\b/.test(runs(step)))
@@ -618,7 +627,8 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
     .sort()
 
   const failures: string[] = []
-  if (builders.length === 0) failures.push(`${DEPLOY} has no job that uploads a build artifact.`)
+  if (builders.length === 0)
+    failures.push(`${DEPLOY} has no job that builds an artifact from source.`)
   if (shippers.length === 0) failures.push(`${DEPLOY} has no job that runs \`bun run deploy\`.`)
   if (smokers.length === 0) failures.push(`${DEPLOY} has no job that runs ${SMOKE_SCRIPT}.`)
   if (recorders.length === 0)
@@ -638,6 +648,16 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   requireBefore(shippers, pushers, 'the backend must be pushed before any surface ships.')
   requireBefore(smokers, shippers, 'the smoke list must run after every deploy.')
   requireBefore(recorders, smokers, 'the deploy record must move only after the smoke list passed.')
+
+  const artifact = (step: Yaml) =>
+    isObject(step.with) && typeof step.with.name === 'string' ? step.with.name : ''
+  for (const { where, step } of steps.filter(({ step }) => uses(step, 'download-artifact'))) {
+    const name = artifact(step)
+    const producers = jobsWhere((s) => uses(s, 'upload-artifact') && artifact(s) === name)
+    if (producers.length === 0)
+      failures.push(`${DEPLOY} ${where} downloads \`${name}\`, which no job uploads.`)
+    requireBefore([jobOf(where)], producers, `it downloads \`${name}\`, which that job uploads.`)
+  }
 
   const ifOf = (id: string): string => {
     const job = jobs[id]

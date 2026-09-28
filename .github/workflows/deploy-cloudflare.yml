@@ -24,6 +24,8 @@ name: Deploy (Cloudflare)
 #   build-srd  / build-itun   one job per surface that HAS a build, in
 #              parallel. Each uploads the exact `dist` it produced. Neither
 #              pushes anything anywhere.
+#   og-srd     renders srd's OG images into build-srd's `dist`. Best-effort, so
+#              only `deploy-srd` waits for it.
 #   push-convex  the Convex backend push, only once EVERY build is green, and
 #              before any traffic moves.
 #   deploy-*   one job per surface, in parallel, and NONE starts until EVERY
@@ -413,7 +415,7 @@ jobs:
   # su-assets and the bot have no build: wrangler bundles their Worker source
   # at deploy time, and `plan` has already proved both bundles.
 
-  # srd — static, but the OG pass needs a browser.
+  # srd — static. Its OG images are `og-srd`'s job, below.
   build-srd:
     needs: plan
     if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true'
@@ -429,18 +431,6 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The OG screenshot pass never fails the build: a missing browser or a
-      # wedged render logs and leaves those pages on the default og:image,
-      # capped by OG_SCREENSHOTS_BUDGET_MS. The worst case is "some previews are
-      # generic", never a failed deploy. `og:generate` (build + screenshots in
-      # one script) is deliberately NOT used here — see the steps below.
-      - name: Install Chromium for the srd OG pass
-        run: bun --filter srd og:install-browser
-
-      # Build and OG pass are separate steps rather than one `og:generate`, so
-      # each carries only its own environment: the build takes the commit ref and
-      # the Sentry DSN, the screenshot pass takes its budget. It also keeps the
-      # best-effort half independently skippable from the half that must succeed.
       - name: Build srd
         env:
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
@@ -496,8 +486,74 @@ jobs:
       # names are content-addressed and digesting them would make the gate churn
       # on every dependency bump until somebody switched it off.
 
-      # Additive and non-fatal by design: a missing browser or a
-      # wedged render leaves those pages on the default og:image.
+      # `include-hidden-files`: the artifact is what ships, byte for byte, so
+      # it must not silently drop a dotfile the build emitted.
+      - name: Upload the srd build
+        uses: actions/upload-artifact@v7
+        with:
+          name: srd-build
+          path: apps/srd/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  # srd's OG images, rendered into build-srd's `dist` and re-uploaded as the
+  # artifact `deploy-srd` ships. The render never fails (a missing browser or a
+  # wedged page keeps the default og:image), so nothing but `deploy-srd` waits.
+  og-srd:
+    needs: [plan, build-srd]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ needs.plan.outputs.sha }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      # The same key as ci.yml's, so either workflow's save serves both.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Chromium
+        run: bun --filter srd og:install-browser
+
+      # The script re-renders only entities whose data changed since the cached
+      # manifest; it cannot see a rendering change. So the key's first half
+      # hashes everything that renders a card, and only a cache from an
+      # identical renderer is restored.
+      - name: Key the OG cache
+        id: og-key
+        env:
+          RENDER: >-
+            ${{ hashFiles('bun.lock', 'packages/component-lib/src/**',
+            'packages/component-lib/public/**', 'packages/salvageunion-reference/lib/**',
+            'packages/salvageunion-reference/schemas/**', 'apps/srd/src/**', 'apps/srd/ssg/**',
+            'apps/srd/scripts/**', 'apps/srd/public/**') }}
+          DATA: ${{ hashFiles('packages/salvageunion-reference/data/**') }}
+        run: |
+          echo "render=$RENDER" >> "$GITHUB_OUTPUT"
+          echo "data=$DATA" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the OG renders
+        uses: actions/cache@v6
+        with:
+          path: apps/srd/node_modules/.cache/srd-og
+          key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
+          restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
+
+      - name: Download the srd build
+        uses: actions/download-artifact@v8
+        with:
+          name: srd-build
+          path: apps/srd/dist
+
       - name: Render srd OG images
         working-directory: apps/srd
         env:
@@ -505,8 +561,6 @@ jobs:
           OG_SCREENSHOTS_BUDGET_MS: '300000'
         run: bun scripts/og-screenshots.ts
 
-      # `include-hidden-files`: the artifact is what ships, byte for byte, so
-      # it must not silently drop a dotfile the build emitted.
       - name: Upload the srd artifact
         uses: actions/upload-artifact@v7
         with:
@@ -648,7 +702,7 @@ jobs:
         run: bun run deploy
 
   deploy-srd:
-    needs: [plan, build-srd, build-itun, push-convex]
+    needs: [plan, build-srd, build-itun, push-convex, og-srd]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -30,6 +30,11 @@ Writing the same version into several manifests is fine: Renovate updates every
 occurrence in the same grouped PR. There is no Bun catalog, because Renovate's
 `bun` manager does not read one.
 
+`bun audit --audit-level=high` gates every PR that changes `bun.lock` or a
+`package.json` (the `deps` area of the `static-checks` job); a PR that changes
+neither cannot change the verdict, and `audit-watch.yml` audits the unchanged
+tree weekly.
+
 ## What waits for approval
 
 Two kinds of update wait on the **Dependency Dashboard** issue instead of
@@ -75,7 +80,7 @@ must track `.bun-version` exactly), **not** lowering the number.
 # Audit
 
 - **Merge gate:** `bun audit --audit-level=high` (the `audit` check, in CI's
-  `static-checks` job). There are no suppressed advisories. If you add an
+  `static-checks` job, on any PR that changes `bun.lock` or a `package.json`). There are no suppressed advisories. If you add an
   `--ignore`, write down what would remove it, next to it.
 - **Below the gate:** `.github/workflows/audit-watch.yml` runs `bun audit` at
   every severity weekly and keeps one tracking issue open while it reports

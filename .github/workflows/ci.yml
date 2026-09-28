@@ -37,7 +37,12 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read # checkout, and the merged PR's head commit
+      pull-requests: read # the paths filter, and the merged-PR lookup
+      checks: read # the merged PR's `CI Success`
     outputs:
+      tested: ${{ steps.tested.outputs.tested }}
       itun: ${{ steps.filter.outputs.itun || steps.all.outputs.all }}
       web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
       bot: ${{ steps.filter.outputs.bot || steps.all.outputs.all }}
@@ -45,8 +50,11 @@ jobs:
       ladle: ${{ steps.filter.outputs.ladle || steps.all.outputs.all }}
       code: ${{ steps.filter.outputs.code || steps.all.outputs.all }}
       docs: ${{ steps.filter.outputs.docs || steps.all.outputs.all }}
+      deps: ${{ steps.filter.outputs.deps || steps.all.outputs.all }}
     steps:
+      # On a PR the filter lists files through the API; only a push diffs with git.
       - name: Checkout
+        if: github.event_name == 'push'
         uses: actions/checkout@v7
         with:
           persist-credentials: false
@@ -58,9 +66,45 @@ jobs:
         if: github.event_name == 'merge_group'
         run: echo "all=true" >> "$GITHUB_OUTPUT"
 
+      # A squash merge whose tree is its PR head's already passed CI as that PR:
+      # every area stays empty, so `CI Success` passes at once and the deploy
+      # starts. Anything unproven runs everything (ci.md, "Reusing the PR's run").
+      - name: Reuse the merged PR's green run
+        id: tested
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -uo pipefail
+          full() {
+            echo "tested=false" >> "$GITHUB_OUTPUT"
+            echo "Full run: $1"
+            exit 0
+          }
+          pr=$(gh api "repos/$REPO/commits/$SHA/pulls" | jq -er --arg sha "$SHA" \
+            'map(select(.merged_at != null and .merge_commit_sha == $sha)) | .[0] // empty
+             | "\(.number) \(.head.sha)"') \
+            || full "found no PR merged as $SHA (or the lookup failed)"
+          read -r number head <<< "$pr"
+          here=$(git rev-parse 'HEAD^{tree}') || full "cannot read the tree of $SHA"
+          there=$(gh api "repos/$REPO/git/commits/$head" --jq '.tree.sha') \
+            || full "cannot read #$number's head commit $head"
+          [ "$here" = "$there" ] || full "tree $here is not #$number's head tree $there"
+          conclusions=$(gh api "repos/$REPO/commits/$head/check-runs?check_name=CI%20Success&filter=latest&per_page=100" \
+            --jq '[.check_runs[] | select(.app.slug == "github-actions") | .conclusion // "pending"] | join(" ")') \
+            || full "cannot read #$number's checks"
+          [ -n "$conclusions" ] || full "#$number's head $head has no CI Success"
+          for c in $conclusions; do
+            [ "$c" = success ] || full "#$number's CI Success on $head is $c"
+          done
+          echo "tested=true" >> "$GITHUB_OUTPUT"
+          echo "::notice title=CI reused::tree $here passed CI as #$number ($head); nothing re-runs"
+
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
-        if: github.event_name != 'merge_group'
+        if: github.event_name != 'merge_group' && steps.tested.outputs.tested != 'true'
         with:
           filters: |
             shared: &shared
@@ -127,11 +171,17 @@ jobs:
               - 'CONTRIBUTING.md'
               - '.claude/**'
               - '.mcp.json'
+            # What the dependency audit reads: a PR that moves neither cannot
+            # change its verdict.
+            deps:
+              - 'bun.lock'
+              - '**/package.json'
 
   static-checks:
-    # No job-level `if:` — this job is an input to `CI Success` and must always
-    # report. Its one step always runs; each check gates itself by area.
+    # Skipped only when `changes` proved this tree already passed CI; every
+    # other run reports, and each check gates itself by area.
     needs: [changes]
+    if: needs.changes.outputs.tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -148,17 +198,19 @@ jobs:
       # `bun run check` and pre-push run. Add a gate THERE, never as a step
       # here. The areas decide which checks a diff needs: always-on checks
       # (Biome, workflows, styling, actionlint/zizmor) run on every PR; repo
-      # invariants (doc drift, data, …) on code OR docs; typecheck, knip,
-      # generated-file drift and the audit on code only. Every check runs even
+      # invariants (doc drift, data, …) on code OR docs; typecheck, knip and
+      # generated-file drift on code; the audit on deps. Every check runs even
       # after one fails, and the log ends in a pass/fail table.
       - name: Run checks
         env:
           CODE: ${{ needs.changes.outputs.code }}
           DOCS: ${{ needs.changes.outputs.docs }}
+          DEPS: ${{ needs.changes.outputs.deps }}
         run: |
           areas=""
           if [ "$CODE" = "true" ]; then areas="code"; fi
           if [ "$DOCS" = "true" ]; then areas="${areas:+$areas,}docs"; fi
+          if [ "$DEPS" = "true" ]; then areas="${areas:+$areas,}deps"; fi
           bun tools/check.ts --profile=ci --areas="$areas"
 
   # THE test gate: every workspace instrumented and held to its line-coverage

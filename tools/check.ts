@@ -39,7 +39,7 @@
  *   bun tools/check.ts                          # full
  *   bun tools/check.ts --profile=fast
  *   bun tools/check.ts styling workflows        # just these
- *   bun tools/check.ts --profile=ci --areas=code,docs
+ *   bun tools/check.ts --profile=ci --areas=code,docs,deps
  *   bun tools/check.ts --skip=audit --jobs=4
  *   bun tools/check.ts --list
  */
@@ -48,7 +48,8 @@ import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
 
 export type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
-export type Area = 'code' | 'docs'
+export type Area = 'code' | 'docs' | 'deps'
+const AREAS: readonly Area[] = ['code', 'docs', 'deps']
 
 export type CheckSpec = {
   id: string
@@ -182,7 +183,9 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'audit',
     guards: 'no high-severity advisory in the dependency tree',
     cmd: ['bun', 'audit', '--audit-level=high'],
-    areas: ['code'],
+    // A PR that moves neither bun.lock nor a manifest cannot change the tree;
+    // audit-watch.yml scans the unchanged tree for new advisories weekly.
+    areas: ['deps'],
     profiles: ['full', 'ci'],
   },
   {
@@ -228,9 +231,9 @@ export function parseArgs(argv: readonly string[]): Options {
     } else if (flag === '--fast') opts.profile = 'fast'
     else if (flag === '--areas') {
       const areas = value.split(',').filter(Boolean)
-      const bad = areas.filter((a) => a !== 'code' && a !== 'docs')
+      const bad = areas.filter((a) => !(AREAS as readonly string[]).includes(a))
       if (bad.length > 0)
-        throw new UsageError(`unknown area(s): ${bad.join(', ')} (known: code, docs)`)
+        throw new UsageError(`unknown area(s): ${bad.join(', ')} (known: ${AREAS.join(', ')})`)
       opts.areas = areas as Area[]
     } else if (flag === '--skip') opts.skip = value.split(',').filter(Boolean)
     else if (flag === '--jobs') {

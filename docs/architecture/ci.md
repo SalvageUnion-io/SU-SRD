@@ -37,6 +37,30 @@ and (with the deploy diffing only `HEAD^..HEAD`) leave any surface touched only
 by that commit un-deployed while everything stayed green (audit CI-01). See
 "Deploy set" below for the other half of the fix.
 
+## Reusing the PR's run on `main`
+
+`main` requires strict status checks and merges by squash, so a merge commit's
+tree is normally byte-identical to the PR head that just passed `CI Success`.
+Re-testing it put ~85 s of CI in front of every deploy. On a `push` to `main`
+the `changes` job therefore looks up the merged PR (`GET
+/repos/{owner}/{repo}/commits/{sha}/pulls`, the PR whose `merge_commit_sha` is
+this commit), and reuses its result only when:
+
+- `HEAD^{tree}` equals the tree of the PR's head commit, and
+- every latest `CI Success` check-run from GitHub Actions on that head commit
+  concluded `success`.
+
+Then the paths filter is skipped, every area output is empty (read as false),
+`static-checks` and the build jobs skip, and `CI Success` passes within seconds,
+which fires the deploy. The deploy takes nothing from CI's jobs: it builds its
+own artifacts. A direct push, a different tree, a check that is missing, pending
+or red, or any API error runs everything. What a reused run does not repeat is
+anything time-dependent on an unchanged tree: a new advisory is
+`audit-watch.yml`'s job.
+
+The job holds `checks: read` for the check-run lookup; nothing else in it can
+write.
+
 ## Timeouts
 
 Every job declares `timeout-minutes`. GitHub's default is 360, so a hung job does
@@ -71,14 +95,20 @@ only thing between a diff and an unbuilt merge — so:
   drift, architecture, data and the rest the `code`/`docs` areas select —
   which read exactly those files, and before they were in any
   filter a CLAUDE.md-only PR could not run the CLAUDE.md guard (#942) — but not
-  the test suite, the typecheck or the audit, which nothing in those files can
+  the test suite or the typecheck, which nothing in those files can
   affect. That was ~140 runner-seconds per docs PR.
+- **`deps`** is `bun.lock` and every `package.json`, the only files that can
+  change what `bun audit` reports, so only a PR touching one runs the audit. A
+  new advisory against an unchanged tree is `audit-watch.yml`'s to report
+  (weekly), not an unrelated PR's to fail.
+- On a PR the filter lists changed files through the API, so the job checks
+  out nothing; a `push` diffs with git and checks out.
 
 ## `static-checks`
 
 Six jobs merged into one (they spent 134 s in `Setup Bun` between them to do
-23 s of work). No job-level `if:`: it is an input to `CI Success` and must always
-report.
+23 s of work). Its only job-level `if:` skips it when `changes` reused the PR's
+run (above); otherwise it always reports.
 
 It has ONE step: `bun tools/check.ts --profile=ci --areas=<code,docs>`. The
 list of checks is the registry in `tools/check.ts` — the same one `bun run
@@ -98,8 +128,9 @@ declares which areas make it relevant:
   same first-party line `tools/check-workflows.ts` draws. Every checkout
   sets `persist-credentials: false`.
 - **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
-  drift — reference package artifacts and `routeTree.gen.ts`), typecheck, knip,
-  and the dependency audit.
+  drift — reference package artifacts and `routeTree.gen.ts`), typecheck and
+  knip.
+- **`deps`**: the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
   `architecture`, `observability`, `convex-codegen`, `convex-callers`,
   `worker-env`.
@@ -205,6 +236,17 @@ The part that interacts with CI:
   conditionally skipped job carries an explicit status function — the implicit
   `success()` is false whenever any ancestor was skipped, which once kept
   `record` from running on every deploy that left a surface unchanged.
+- **srd's OG images are `og-srd`'s, off every other surface's path.** The render
+  (~97 s cold) cannot fail the deploy — a page it misses keeps the default
+  og:image — so it is not a build: it downloads `build-srd`'s `dist`, renders
+  into it and uploads the artifact `deploy-srd` ships, and only `deploy-srd`
+  waits for it. `deploy-order` asserts that a job downloading an artifact needs
+  the job that uploads it. The script's content-hash cache
+  (`apps/srd/node_modules/.cache/srd-og`) persists through `actions/cache`,
+  keyed on a hash of every render input (component-lib, srd's source and
+  scripts, the reference library, `bun.lock`) and then the reference data; only
+  a cache from an identical renderer is restored, and the script re-renders the
+  entities whose data changed. Chromium is cached under ci.yml's Playwright key.
 - **The artifacts are built in the deploy, not taken from CI's run.** Neither
   CI build is a production artifact: srd's is built with no Sentry DSN because
   the output snapshot is blessed against that build, and itun's is a Solo
@@ -235,8 +277,14 @@ The part that interacts with CI:
 - **No record, a shared path, or `force_all`** deploys everything. The shared
   set includes the three root prose files for the #731 reason above — the old
   shell version omitted them, so an edit to `SPECIAL_THANKS.md` never shipped
-  srd's about page. The decision lives in `tools/deploy-surfaces.ts` and is
-  unit-tested in `tools/__tests__/deploy-surfaces.test.ts`.
+  srd's about page. It excludes what never reaches an artifact: `test/`, and
+  every `.github/` file except this workflow and `.github/actions/`. A release
+  commit ships only srd and itun, which render the reference `CHANGELOG.md`: a
+  `packages/*/package.json` whose only change is its version ships nothing,
+  because no surface embeds a package's version. A test fails if a new app
+  source reads a manifest or CHANGELOG those rules do not account for. The
+  decision lives in `tools/deploy-surfaces.ts` and is unit-tested in
+  `tools/__tests__/deploy-surfaces.test.ts`.
 - **Never backwards on a `workflow_run`.** CI on `main` runs every commit to
   completion, so an older commit's CI can finish after a newer one has already
   deployed. Diffing newer->older would ship the older tree for every surface the

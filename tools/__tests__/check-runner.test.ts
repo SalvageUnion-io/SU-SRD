@@ -53,6 +53,12 @@ describe('selection', () => {
     expect(docs).not.toContain('generated')
   })
 
+  test('the audit runs only when a dependency manifest or the lockfile moved', () => {
+    expect(ids(['--profile=ci', '--areas=code,docs'])).not.toContain('audit')
+    expect(ids(['--profile=ci', '--areas=deps'])).toContain('audit')
+    expect(ids([])).toContain('audit')
+  })
+
   test('with no area active only the always-on checks run', () => {
     expect(ids(['--profile=ci', '--areas='])).toEqual([
       'biome',

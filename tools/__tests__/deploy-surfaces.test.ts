@@ -3,7 +3,13 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { decideSurfaces, planDeploy, SURFACES } from '../deploy-surfaces'
+import {
+  decideSurfaces,
+  isVersionOnlyBump,
+  planDeploy,
+  READ_BY,
+  SURFACES,
+} from '../deploy-surfaces'
 
 const EVERYTHING = { assets: true, srd: true, itun: true, bot: true }
 const NOTHING = { assets: false, srd: false, itun: false, bot: false }
@@ -46,7 +52,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
   test.each([
     'packages/component-lib/src/index.ts',
     'packages/observability/src/cloudflare.ts',
-    'test/happydom.ts',
+    'packages/salvageunion-reference/package.json',
     'package.json',
     'bun.lock',
     'bunfig.toml',
@@ -54,12 +60,35 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'patches/x.patch',
     '.bun-version',
     '.github/workflows/deploy-cloudflare.yml',
+    '.github/actions/setup-bun/action.yml',
     // rendered into srd's about page and ITUN's bundle — the #731 shape
     'SPECIAL_THANKS.md',
     'ABOUT_JRVS.md',
     'LLM_STATEMENT.md',
   ])('a shared path (%s) deploys everything', (path) => {
     expect(decideSurfaces([path], false)).toEqual(EVERYTHING)
+  })
+
+  test.each([
+    'test/happydom.ts',
+    '.github/workflows/ci.yml',
+    '.github/workflows/codeql.yml',
+    '.github/dependabot.yml',
+    '.release-please-manifest.json',
+  ])('a path that ships in no artifact (%s) deploys nothing', (path) => {
+    expect(decideSurfaces([path], false)).toEqual(NOTHING)
+  })
+
+  test('the reference CHANGELOG deploys only the surfaces that render it', () => {
+    expect(decideSurfaces(['packages/salvageunion-reference/CHANGELOG.md'], false)).toEqual({
+      ...NOTHING,
+      srd: true,
+      itun: true,
+    })
+  })
+
+  test('a CHANGELOG nothing is known to read is still shared', () => {
+    expect(decideSurfaces(['packages/component-lib/CHANGELOG.md'], false)).toEqual(EVERYTHING)
   })
 
   test('a directory that merely shares a prefix does not match', () => {
@@ -69,6 +98,29 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
   test('a root file that only starts like a shared one is not shared', () => {
     expect(decideSurfaces(['package.json.bak', 'bun.lockb.md'], false)).toEqual(NOTHING)
+  })
+})
+
+describe('deploy-surfaces — isVersionOnlyBump', () => {
+  const manifest = (version: string, extra: object = {}) =>
+    JSON.stringify({ name: 'ref', version, dependencies: { a: '^1.0.0' }, ...extra }, null, 2)
+
+  test('a release bump changes nothing but the version', () => {
+    expect(isVersionOnlyBump(manifest('2.13.1'), manifest('2.13.2'))).toBe(true)
+  })
+
+  test('a bump that also moves a dependency, a script or an export is not', () => {
+    expect(isVersionOnlyBump(manifest('1.0.0'), manifest('1.0.1', { scripts: { b: 'x' } }))).toBe(
+      false
+    )
+    expect(
+      isVersionOnlyBump(manifest('1.0.0'), manifest('1.0.1', { dependencies: { a: '^2.0.0' } }))
+    ).toBe(false)
+  })
+
+  test('an unparseable side or an unchanged manifest is not a bump', () => {
+    expect(isVersionOnlyBump('{', manifest('1.0.0'))).toBe(false)
+    expect(isVersionOnlyBump(manifest('1.0.0'), manifest('1.0.0'))).toBe(false)
   })
 })
 
@@ -210,5 +262,76 @@ describe('deploy-surfaces — script against a real git history', () => {
     git(work, 'checkout', '--quiet', '--detach', b)
     const c = commit('apps/srd/page.tsx')
     expect(decide(c)).toMatchObject({ stale: 'false', srd: 'true', assets: 'false' })
+  })
+
+  /** A release commit: the reference package's version, CHANGELOG and manifest-of-manifests. */
+  test('a release bump ships only the surfaces that render the CHANGELOG', () => {
+    const manifest = 'packages/salvageunion-reference/package.json'
+    const write = (path: string, text: string) => {
+      mkdirSync(join(work, dirname(path)), { recursive: true })
+      writeFileSync(join(work, path), text)
+    }
+    git(work, 'checkout', '--quiet', '--detach', b)
+    write(manifest, '{\n  "name": "ref",\n  "version": "1.0.0"\n}\n')
+    git(work, 'add', '-A')
+    git(work, 'commit', '--quiet', '-m', 'add ref')
+    const base = git(work, 'rev-parse', 'HEAD')
+    git(work, 'push', '--quiet', '--force', 'origin', `${base}:refs/tags/deployed/cloudflare`)
+
+    write(manifest, '{\n  "name": "ref",\n  "version": "1.0.1"\n}\n')
+    write('packages/salvageunion-reference/CHANGELOG.md', '## 1.0.1\n')
+    write('.release-please-manifest.json', '{}\n')
+    git(work, 'add', '-A')
+    git(work, 'commit', '--quiet', '-m', 'chore: release main')
+    const release = git(work, 'rev-parse', 'HEAD')
+    expect(decide(release)).toEqual({
+      stale: 'false',
+      assets: 'false',
+      srd: 'true',
+      itun: 'true',
+      bot: 'false',
+    })
+
+    write(manifest, '{\n  "name": "ref",\n  "version": "1.0.2",\n  "main": "x.ts"\n}\n')
+    git(work, 'add', '-A')
+    git(work, 'commit', '--quiet', '-m', 'bump and change')
+    expect(decide(git(work, 'rev-parse', 'HEAD'))).toMatchObject({ assets: 'true', bot: 'true' })
+  })
+})
+
+/**
+ * A version-only `packages/*` manifest bump ships nothing, and the reference
+ * CHANGELOG ships only READ_BY's surfaces. Both hold only while no other
+ * shipped source reads those files; a new reader fails here.
+ */
+describe('deploy-surfaces — the narrowed paths have no unlisted reader', () => {
+  const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
+
+  test('every manifest or CHANGELOG an app reads is its own or listed in READ_BY', () => {
+    const listed = Bun.spawnSync(['git', 'ls-files', 'apps', 'packages'], { cwd: REPO })
+    const sources = listed.stdout
+      .toString()
+      .split('\n')
+      .filter((f) => /\.(ts|tsx|js|mjs)$/.test(f))
+      .filter((f) => !/(__tests__|\/e2e\/|\/tools\/|\.test\.|\.stories\.)/.test(f))
+    const unlisted: string[] = []
+    let reads = 0
+    for (const file of sources) {
+      const text = readFileSync(join(REPO, file), 'utf8')
+      for (const [, spec = ''] of text.matchAll(
+        /['"]([^'"\s]*(?:CHANGELOG\.md|package\.json))(?:\?raw)?['"]/g
+      )) {
+        reads++
+        const target = spec.startsWith('.') ? join(dirname(file), spec) : spec
+        const app = file.match(/^apps\/([^/]+)\//)?.[1]
+        const surface = Object.entries(SURFACES).find(([, dir]) => dir === app)?.[0]
+        if (app && target.startsWith(`apps/${app}/`)) continue
+        if (surface && READ_BY[target]?.some((s) => s === surface)) continue
+        unlisted.push(`${file} reads ${target}`)
+      }
+    }
+    expect(sources.length).toBeGreaterThan(500)
+    expect(reads).toBeGreaterThan(0)
+    expect(unlisted).toEqual([])
   })
 })
