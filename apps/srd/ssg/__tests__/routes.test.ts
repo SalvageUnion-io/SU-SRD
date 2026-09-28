@@ -6,11 +6,19 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
+import type { BuildAssets } from '../document'
 import { outputPathFor } from '../outputPath'
 import { routes } from '../routes'
 
 /** Well under the ~1,040 pages the site emits: a collapse detector, not a budget. */
 const PAGE_FLOOR = 900
+
+const ASSETS: BuildAssets = {
+  scripts: ['/assets/islands.js'],
+  styles: ['/assets/styles.css'],
+  built: { [ELDRIDGE_COAST_MAP]: '/assets/eldridge-coast-map.webp' },
+}
 
 describe('route registry', () => {
   const resolved = routes.map((r) => ({ pattern: r.pattern, pages: r.resolve() }))
@@ -23,5 +31,10 @@ describe('route registry', () => {
     const pages = resolved.flatMap((r) => r.pages.map((p) => outputPathFor(p.route)))
     expect(new Set(pages).size).toBe(pages.length)
     expect(pages.length).toBeGreaterThanOrEqual(PAGE_FLOOR)
+  })
+
+  it.each(routes.map((r) => r.pattern))('renders the first %s page to a document', (pattern) => {
+    const first = resolved.find((r) => r.pattern === pattern)?.pages[0]
+    expect(first?.render(ASSETS)).toStartWith('<!doctype html>')
   })
 })
