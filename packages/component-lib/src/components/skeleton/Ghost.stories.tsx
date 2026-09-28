@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import { space } from '../../design/tokens'
+import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Ghost } from './Skeleton'
 

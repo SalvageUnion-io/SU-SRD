@@ -87,8 +87,5 @@
     "assets:export": "bun tools/export-lp-assets.ts",
     "assets:upload": "bun tools/upload-lp-assets.ts",
     "ladle": "bun --filter component-lib ladle"
-  },
-  "patchedDependencies": {
-    "@ladle/react@5.1.1": "patches/@ladle%2Freact@5.1.1.patch"
   }
 }

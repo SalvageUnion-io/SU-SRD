@@ -1,6 +1,6 @@
-import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
+import type { Story } from '../../../stories/_harness'
 import { ChoiceGroups } from './ChoiceGroups'
 
 export default {

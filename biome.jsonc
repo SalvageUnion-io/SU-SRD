@@ -665,7 +665,8 @@
               "options": {
                 "paths": {
                   "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "idb": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props."
+                  "idb": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props.",
+                  "@ladle/react": "Take `Story` from src/stories/_harness.tsx. Any import from '@ladle/react', even `import type`, puts Ladle's own UI source (typings-for-build/app/src/ui.tsx) under tsc, and it fails TypeScript 7's JSX checks."
                 },
                 "patterns": [
                   {

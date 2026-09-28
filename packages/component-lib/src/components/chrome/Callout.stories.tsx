@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { Story } from '../../stories/_harness'
 import { Callout } from './Callout'
 
 /**

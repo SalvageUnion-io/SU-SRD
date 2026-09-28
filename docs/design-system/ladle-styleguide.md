@@ -13,7 +13,7 @@ override them).
 > `Story`, exported from a file with `export default { title: 'Group/Title Case' }`, driven by
 > **real SRD data**, grouped Foundations → Atoms → Containers → Compositions. We do not
 > use args/argTypes/controls/decorators/MSW — interactivity is plain `useState`. Don't change the
-> pinned `@ladle/react@5.1.1` or its patch without reading §9.
+> pinned `@ladle/react@5.1.1`, or import from it, without reading §9.
 
 ---
 
@@ -187,13 +187,13 @@ crashes or blank stories:
 
 ## 4. The GlobalProvider — one canvas, one data gate
 
-`.ladle/components.tsx` exports a single `Provider` of type `GlobalProvider`. This wraps **every**
+`.ladle/components.tsx` exports a single `Provider` (props typed locally, not as Ladle's
+`GlobalProvider` — see §9). This wraps **every**
 story, and is where cross-cutting concerns belong so no individual story has to repeat them.
 
 Our provider does two jobs:
 
 ```tsx
-import type { GlobalProvider } from '@ladle/react'
 import { Suspense, use, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import '../src/styles/ladle.css'
@@ -208,7 +208,7 @@ function PreloadGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-export const Provider: GlobalProvider = ({ children }) => (
+export const Provider = ({ children }: { children: ReactNode }) => (
   <div
     className="min-h-screen bg-paper"
     style={{ padding: '1rem', fontFamily: 'Fira Code, monospace' }}
@@ -428,8 +428,8 @@ four-rung exception) before it is renamed.
 ### 6.1 The story module shape
 
 ```tsx
-import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { Story } from '../../stories/_harness'
 import { Stat } from './Stat'
 
 // Ladle wants the file to export story components; the default export carries meta.
@@ -712,26 +712,17 @@ Two load-bearing details:
 
 ---
 
-## 9. Pinning & the load-bearing patch (do not casually change)
+## 9. Pinning, and why nothing imports `@ladle/react`
 
-Ladle is pinned and patched. This is deliberate and called out as load-bearing in the design-system
-docs — treat it as such.
+- **Pinned to `@ladle/react@5.1.1`** (exact, in `packages/component-lib/package.json`).
+- **No source file imports from `@ladle/react`, not even a type.** Its type entry re-exports Ladle's
+  own UI source (`typings-for-build/app/src/ui.tsx`), so any import puts that file under `tsc`, and
+  TypeScript 7 (`tsgo`) reports JSX errors in it that Ladle's `@ts-ignore` lines no longer suppress.
+  Stories take `Story` from `src/stories/_harness.tsx`, and `.ladle/components.tsx` types its
+  `Provider` props itself. Biome's `noRestrictedImports` rejects the import in component-lib.
+- CI builds the stories on every component-lib change (`build-ladle`).
 
-- **Pinned to `@ladle/react@5.1.1`** via root `package.json` `patchedDependencies`
-  (`@ladle/react@5.1.1` → `patches/@ladle%2Freact@5.1.1.patch`). `component-lib` declares `^5.1.1`,
-  but the patch pins the resolved version, so a `bun install` that bumps it will break the patch.
-- **The patch adds one line** — `// @ts-nocheck` — to Ladle's vendored build artifact
-  `typings-for-build/app/src/ui.tsx`. The TypeScript 7 (`tsgo`) upgrade changed JSX error attribution
-  so Ladle's existing `@ts-ignore` lines no longer suppress errors in that vendored file. We only
-  consume the `Story`/`GlobalProvider` types from the package barrel, so `@ts-nocheck` on the vendored
-  UI is safe.
-- This sits alongside srd's pinned TS6 foothold as a load-bearing consequence of the TS7 migration
-  (see the repo memory _ts7-upgrade-ts6-footholds_ and
-  [`canonical-primitive-language.md`](./canonical-primitive-language.md)). The Bun-version guard
-  (`tools/check-workflows.ts`) runs in `bun run check` near this discipline, and
-  CI now builds the stories on every component-lib change (`build-ladle`).
-
-**If you bump Ladle:** re-verify the patch still applies (or regenerate it), re-run `ladle build`,
+**If you bump Ladle:** re-run `ladle build`,
 confirm no story renders blank (the two classic blank-story causes are the double React plugin, §5.1,
 and a broken preload gate, §4), **and re-verify the shell relayout** (§5.5) — its `appendToHead` CSS
 targets Ladle's internal shell classes (`.ladle-aside` / `.ladle-main` / `.ladle-addons`), which are not

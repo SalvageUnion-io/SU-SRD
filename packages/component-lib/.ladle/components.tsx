@@ -1,4 +1,3 @@
-import type { GlobalProvider } from '@ladle/react'
 import { Suspense, use, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import '../src/styles/ladle.css'
@@ -32,7 +31,10 @@ function PreloadGate({ children }: { children: ReactNode }) {
 // no longer needs its own `bg-paper` wrapper, and the couple that lacked one no
 // longer render on Ladle's bare default). Padding + mono font are kept from the
 // original inline frame.
-export const Provider: GlobalProvider = ({ children }) => (
+//
+// Typed locally rather than as Ladle's `GlobalProvider`: importing any type from
+// `@ladle/react` puts Ladle's own UI source under this package's typecheck.
+export const Provider = ({ children }: { children: ReactNode }) => (
   <div
     className="min-h-screen bg-paper"
     style={{ padding: '1rem', fontFamily: 'Fira Code, monospace' }}

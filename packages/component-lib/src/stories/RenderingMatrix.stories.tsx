@@ -1,4 +1,3 @@
-import type { Story } from '@ladle/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Badge } from '../components/chrome/Badge'
@@ -16,6 +15,7 @@ import {
   tracking,
   weight,
 } from '../design/tokens'
+import type { Story } from './_harness'
 
 export default {
   title: 'Foundations/Rendering Matrix',

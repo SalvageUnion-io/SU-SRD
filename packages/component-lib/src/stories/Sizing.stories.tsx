@@ -1,4 +1,3 @@
-import type { Story } from '@ladle/react'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../components/base/Text'
@@ -6,6 +5,7 @@ import { Badge } from '../components/chrome/Badge'
 import { borderWidth, color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import type { SizeRung } from '../styles/sizing'
 import { DEFAULT_RUNG } from '../styles/sizing'
+import type { Story } from './_harness'
 import { Caption } from './_harness'
 import './_stories.css'
 

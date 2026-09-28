@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import { useEffect, useRef } from 'react'
+import type { Story } from '../../stories/_harness'
 import { NavDrawer } from './NavDrawer'
 import { SearchField } from './SearchField'
 

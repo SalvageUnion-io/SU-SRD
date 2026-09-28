@@ -1,4 +1,4 @@
-import type { Story } from '@ladle/react'
+import type { Story } from '../../stories/_harness'
 import { Button } from './Button'
 import { EmptyState } from './EmptyState'
 import { Glyph } from './glyphs'

@@ -1,7 +1,7 @@
-import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
+import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
 import { Button } from '../../chrome/Button'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
