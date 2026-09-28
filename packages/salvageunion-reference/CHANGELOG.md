@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.2](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.1...salvageunion-reference-v2.13.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **reference:** read-then-compare without an existence check [audit-2 P1] ([#1012](https://github.com/SalvageUnion-io/SU-SRD/issues/1012)) ([d01e720](https://github.com/SalvageUnion-io/SU-SRD/commit/d01e72072cfe435d759617c083d263e850dcf8b6))
+
 ## [2.13.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.0...salvageunion-reference-v2.13.1) (2026-09-28)
 
 
