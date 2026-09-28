@@ -5,7 +5,7 @@
  * InstantiateFromPattern button.
  *
  * Data fetching: subscribes to usePatternStore (audit item 22) — patterns get
- * the same lazy hydration, cross-tab broadcast, and backup-nudge discipline
+ * the same lazy hydration and cross-tab broadcast discipline
  * as every other collection (they previously bypassed the store layer with a
  * one-shot db read into local state).
  *

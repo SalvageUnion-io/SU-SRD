@@ -3,20 +3,15 @@
  *
  * WizardFormState is the layout-agnostic seam between the wizard UI and the
  * persisted Pilot entity:
- *   - `pilotToFormState` maps a stored pilot onto initial wizard state
- *     (edit mode prefill — greenfield per plan 3.1).
- *   - `pilotFormToCreateInput` builds the create() payload.
- *   - `pilotFormToUpdatePatch` builds the update() patch for the upsert
- *     branch. It contains ONLY wizard-owned fields — live-play state
- *     (currentHP/AP, conditions, equipment conditions/uses/choices,
- *     injuries, trainingPoints, …) is never clobbered by an edit pass.
+ *   - `pilotFormToUpdatePatch` projects the wizard-owned fields.
+ *   - `pilotFormToCreateInput` builds the create() payload: those fields plus
+ *     the fresh pilot's starting live-play state.
  *
  * All functions are pure — no store, no React.
  */
 
 import { pilotMaxAP, pilotMaxHP } from '../rules/derivedStats'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
-import type { PartnerInstance } from '../schemas/partner'
 import type { Pilot } from '../schemas/pilot'
 
 /** Shape of form state carried through the pilot wizard. */
@@ -46,23 +41,7 @@ export const EMPTY_PILOT_FORM_STATE: PilotWizardFormState = {
   description: '',
 }
 
-/** Maps a stored pilot onto wizard initial state (edit-mode prefill). */
-export function pilotToFormState(pilot: Pilot): PilotWizardFormState {
-  return {
-    name: pilot.name,
-    classId: pilot.classRef,
-    abilities: [...pilot.abilities],
-    equipment: [...pilot.equipment],
-    callsign: pilot.callsign,
-    motto: pilot.motto,
-    keepsake: pilot.keepsake,
-    appearance: pilot.appearance,
-    background: pilot.background,
-    description: pilot.description ?? '',
-  }
-}
-
-/** Wizard-owned pilot fields — the only fields an edit save may touch. */
+/** Wizard-owned pilot fields — the ones the form captures. */
 type PilotWizardPatch = Pick<
   Pilot,
   | 'name'
@@ -93,22 +72,13 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
 }
 
 /**
- * Reconcile a pilot's partners against the equipment they now carry.
- *
- * Kept OUT of `pilotFormToUpdatePatch` for the same reason as the mech's: a
- * partner holds live-play state an edit must not clobber, and reconciliation
- * needs the stored partners as input. The wizard runs it via `afterUpdate`.
+ * The partners a fresh pilot's equipment grants.
  *
  * Equipment gates, abilities count: Mecha Packmaster turns one Mecha Companion
- * entry into two companions (`partnerGrantCount`). No `reseedLoadout` — a
- * pilot's partner is kitted out in play, and re-cutting it from a bare seed
- * would delete a loadout nothing can restore.
+ * entry into two companions (`partnerGrantCount`).
  */
-export function pilotFormToPartners(
-  form: PilotWizardFormState,
-  existing?: readonly PartnerInstance[]
-) {
-  return syncPartners(existing, pilotPartnerSeeds(form.equipment, form.abilities))
+export function pilotFormToPartners(form: PilotWizardFormState) {
+  return syncPartners(undefined, pilotPartnerSeeds(form.equipment, form.abilities))
 }
 
 /**

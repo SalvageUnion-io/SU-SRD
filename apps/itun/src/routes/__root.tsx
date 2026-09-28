@@ -6,7 +6,6 @@ import { AccountStrip } from '../components/account/AccountStrip'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
-import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
@@ -74,7 +73,6 @@ function RootComponent() {
           </GameDataReady>
         </CopyFeedbackProvider>
         <Toaster />
-        <BackupNudgeToast />
       </EntityHrefProvider>
     </AppConvexProvider>
   )

@@ -1,9 +1,10 @@
 import { v } from 'convex/values'
+import { containerOf, SHELF, sameContainer } from '../src/lib/container'
 import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { internalAction } from './_generated/server'
-import { bodyAppId, internalMutation, refreshGameSummary } from './model/entities'
+import { internalMutation, PARSERS } from './model/entities'
 
 /**
  * One-off repairs that operate on the whole deployment.
@@ -44,16 +45,12 @@ import { bodyAppId, internalMutation, refreshGameSummary } from './model/entitie
  * transaction: a page applied stays applied if a later page fails, and running
  * it again resumes the work, because every repair here is idempotent.
  *
- * ## The backfills
+ * ## The container repair
  *
- * Two columns are denormalised from data that already existed, and rows older
- * than the column have none until one of these runs. Readers cope with the gap
- * (see each column's comment in `schema.ts`), so the order of deploy and
- * backfill does not matter — but the read-path savings only arrive once it
- * has run:
+ * `repairContainers` makes every owned body name the container its row is
+ * filed in. It runs once, from `.github/workflows/convex-maintenance.yml`:
  *
- *     bunx convex run maintenance:backfillGameSummaries --prod
- *     bunx convex run maintenance:backfillBodyAppIds --prod
+ *     bunx convex run maintenance:repairContainers --prod
  */
 
 /** Rows one page of a repair reads, unless the caller asks for another size. */
@@ -286,93 +283,102 @@ export const dedupeAppIds = internalAction({
   },
 })
 
-/** Where a paginated walk over a whole table has got to. */
-type BackfillPage = { updated: number; cursor: string; isDone: boolean }
+/** The tables whose body carries a container the client reads, with their parsers. */
+const CONTAINED = {
+  pilots: PARSERS.pilots,
+  mechs: PARSERS.mechs,
+  crawlers: PARSERS.crawlers,
+} as const
+type ContainedTable = keyof typeof CONTAINED
 
-/** One page of `backfillGameSummaries`. */
-export const backfillGameSummariesPage = internalMutation({
-  args: { cursor: v.union(v.string(), v.null()), pageSize: v.optional(v.number()) },
-  handler: async (ctx, args): Promise<BackfillPage> => {
-    const page = await ctx.db
-      .query('games')
-      .paginate({ cursor: args.cursor, numItems: args.pageSize ?? DEFAULT_PAGE_SIZE })
-    let updated = 0
-    for (const game of page.page) {
-      // Recomputed even where one exists, so this doubles as a repair should a
-      // stored summary ever disagree with the rows.
-      if (await refreshGameSummary(ctx, game._id)) updated += 1
-    }
-    return { updated, cursor: page.continueCursor, isDone: page.isDone }
-  },
-})
+/** What one page of `repairContainers` did, and where the next page starts. */
+type RepairPage = { repaired: number; skipped: number; cursor: string; isDone: boolean }
 
 /**
- * Store `games.summary` on every Game — see that column in `schema.ts`.
- * Idempotent: a Game whose stored summary is already right is not written.
+ * One page of `repairContainers`, for one table: `body.gameId := row.gameId`
+ * on every owned row whose body names a different container.
+ *
+ * The column is the authority because it is what the server enforces
+ * ownership and container against, so repairing toward it needs no membership
+ * lookup and cannot move an entity somewhere it was not already filed. Bodies
+ * are compared through `containerOf`, because a pre-ADR-030 body has no
+ * `gameId` and resolves through `workspaceId`.
+ *
+ * Unowned rows (a communal crawler, an unclaimed pre-gen) are the table's, not
+ * a player's, and are left alone. A body that no longer parses is counted as
+ * skipped and left exactly as it is.
  */
-export const backfillGameSummaries = internalAction({
-  args: { pageSize: v.optional(v.number()) },
-  handler: async (ctx, args): Promise<{ updated: number }> => {
-    let updated = 0
-    let cursor: string | null = null
-    for (;;) {
-      const page: BackfillPage = await ctx.runMutation(
-        internal.maintenance.backfillGameSummariesPage,
-        { cursor, pageSize: args.pageSize }
-      )
-      updated += page.updated
-      if (page.isDone) return { updated }
-      cursor = page.cursor
-    }
-  },
-})
-
-const bodyIdTable = v.union(v.literal('mechPatterns'), v.literal('encounterNpcs'))
-
-/** One page of `backfillBodyAppIds`, for one table. */
-export const backfillBodyAppIdsPage = internalMutation({
+export const repairContainersPage = internalMutation({
   args: {
-    table: bodyIdTable,
+    table: v.union(v.literal('pilots'), v.literal('mechs'), v.literal('crawlers')),
     cursor: v.union(v.string(), v.null()),
     pageSize: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<BackfillPage> => {
+  handler: async (ctx, args): Promise<RepairPage> => {
     const page = await ctx.db
       .query(args.table)
       .paginate({ cursor: args.cursor, numItems: args.pageSize ?? DEFAULT_PAGE_SIZE })
-    let updated = 0
+    let repaired = 0
+    let skipped = 0
+
     for (const row of page.page) {
-      if (row.appId !== undefined) continue
-      const appId = bodyAppId(row.body)
-      if (appId === undefined) continue
-      await ctx.db.patch(row._id, { appId })
-      updated += 1
+      if (!row.ownerId) continue
+      const body = row.body as Record<string, unknown> | null
+      if (typeof body !== 'object' || body === null) {
+        skipped += 1
+        continue
+      }
+
+      const declared = row.gameId === null ? SHELF : { kind: 'game' as const, gameId: row.gameId }
+      if (sameContainer(containerOf(body), declared)) continue
+
+      const parsed = CONTAINED[args.table].safeParse({ ...body, gameId: row.gameId ?? null })
+      if (!parsed.success) {
+        skipped += 1
+        continue
+      }
+
+      await ctx.db.patch(row._id, { body: parsed.data, updatedAt: Date.now() })
+      repaired += 1
     }
-    return { updated, cursor: page.continueCursor, isDone: page.isDone }
+
+    return { repaired, skipped, cursor: page.continueCursor, isDone: page.isDone }
   },
 })
 
+type RepairReport = {
+  repaired: number
+  skipped: number
+  byKind: Partial<Record<ContainedTable, number>>
+}
+
 /**
- * Lift `body.id` into the `appId` column on patterns and NPCs written before
- * the column existed. Until it runs, `findOwnedByAppId` still finds those rows
- * through its fallback; after, the fallback reads an empty range.
+ * Repair every owned body whose container disagrees with its row, across all
+ * accounts. Idempotent: a repaired body agrees with its row, so a second run
+ * reports `repaired: 0`.
  */
-export const backfillBodyAppIds = internalAction({
-  args: { pageSize: v.optional(v.number()) },
-  handler: async (ctx, args): Promise<{ updated: number }> => {
-    let updated = 0
-    for (const table of ['mechPatterns', 'encounterNpcs'] as const) {
+export const repairContainers = internalAction({
+  args: {
+    /** Rows per page. Only tests have a reason to set it. */
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<RepairReport> => {
+    const report: RepairReport = { repaired: 0, skipped: 0, byKind: {} }
+    for (const table of ['pilots', 'mechs', 'crawlers'] as const) {
       let cursor: string | null = null
       for (;;) {
-        const page: BackfillPage = await ctx.runMutation(
-          internal.maintenance.backfillBodyAppIdsPage,
-          { table, cursor, pageSize: args.pageSize }
-        )
-        updated += page.updated
+        const page: RepairPage = await ctx.runMutation(internal.maintenance.repairContainersPage, {
+          table,
+          cursor,
+          pageSize: args.pageSize,
+        })
+        report.repaired += page.repaired
+        report.skipped += page.skipped
+        if (page.repaired > 0) report.byKind[table] = (report.byKind[table] ?? 0) + page.repaired
         if (page.isDone) break
         cursor = page.cursor
       }
     }
-    return { updated }
+    return report
   },
 })

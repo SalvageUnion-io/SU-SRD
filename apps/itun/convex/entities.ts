@@ -64,13 +64,9 @@ import { entityRefType, softLinkType } from './schema'
  * the store calls on every edit. Three concerns that used to share it were
  * split out (audit AP-07), each into a module that says what it is:
  *
- *  - `claim.ts` — bringing a device's roster into an account (`claimLocal`,
- *    `repairContainers`).
+ *  - `claim.ts` — bringing a device's roster into an account (`claimLocal`).
  *  - `shelf.ts` — the shelf-only collections, saved patterns and the NPC tray.
  *  - `changeLog.ts` — the client's Change Log append.
- *
- * The block at the bottom of this file keeps their old `entities:*` paths
- * answering for one release — see "Transitional aliases" there.
  */
 
 const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
@@ -698,35 +694,3 @@ async function pruneSoftLinksFor(ctx: MutationCtx, appId: string): Promise<void>
 
   await Promise.all([...outgoing, ...incoming].map((link) => ctx.db.delete(link._id)))
 }
-
-/* -------------------------------------------------------------------------- */
-/* Transitional aliases                                                       */
-/* -------------------------------------------------------------------------- */
-
-/*
- * The functions AP-07 moved out of this module, still answering at their OLD
- * paths (`entities:claimLocal`, …) for one release.
- *
- * Convex deploys first and the client ships after it, and ITUN's service worker
- * is `registerType: 'prompt'` — a tab that was open across the deploy keeps
- * running the previous bundle until its user accepts the update, which can be
- * days. That bundle calls these by their old names. Without the aliases its
- * pattern and NPC saves would fail outright, its reconciler's claim would
- * error, and its Change Log rows — a fire-and-forget write — would be dropped
- * silently.
- *
- * The same registered function is exported twice; there is no second
- * implementation to drift. `tools/check-convex-callers.ts` sees these
- * re-exports as public functions and lists each in `ALLOWED_WITHOUT_CALLER`
- * with this reason, so they cannot outstay their welcome unnoticed: delete this
- * block and those entries together, in the first release after this one has
- * been in production long enough for stale tabs to have updated.
- */
-export { appendChangeLog } from './changeLog'
-export { claimLocal, repairContainers } from './claim'
-export {
-  removeEncounterNpc,
-  removeMechPattern,
-  upsertEncounterNpc,
-  upsertMechPattern,
-} from './shelf'

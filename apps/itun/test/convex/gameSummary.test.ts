@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { api, internal } from '../../convex/_generated/api'
+import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { testConvex } from './harness'
 
@@ -213,8 +213,8 @@ describe('an ordinary sheet edit does not touch the Game', () => {
   })
 })
 
-describe('a Game that predates the column', () => {
-  /** Rows written straight to the table bypass the triggers, as history did. */
+describe('a Game with no stored summary', () => {
+  /** Rows written straight to the table bypass the triggers. */
   async function legacyGame(t: Ctx) {
     const me = await makeUser(t, 'Me')
     const gameId = await t.run(async (ctx) => {
@@ -238,7 +238,7 @@ describe('a Game that predates the column', () => {
     return { me, gameId }
   }
 
-  test('lists with a live count until it is backfilled', async () => {
+  test('lists with a live count', async () => {
     const t = testConvex()
     const { me, gameId } = await legacyGame(t)
     expect(await storedSummary(t, gameId)).toBeNull()
@@ -250,22 +250,5 @@ describe('a Game that predates the column', () => {
       mechCount: 0,
       crawlerName: 'Old',
     })
-  })
-
-  test('the backfill stores it, and a second run writes nothing', async () => {
-    const t = testConvex()
-    const { gameId } = await legacyGame(t)
-
-    const first = await t.action(internal.maintenance.backfillGameSummaries, { pageSize: 1 })
-    expect(first.updated).toBe(1)
-    expect(await storedSummary(t, gameId)).toEqual({
-      memberCount: 1,
-      pilotCount: 1,
-      mechCount: 0,
-      crawlerName: 'Old',
-    })
-
-    const second = await t.action(internal.maintenance.backfillGameSummaries, {})
-    expect(second.updated).toBe(0)
   })
 })

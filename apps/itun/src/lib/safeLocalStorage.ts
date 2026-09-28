@@ -26,7 +26,7 @@
  *
  * Every operation is best-effort and total: reads return `null` when anything
  * goes wrong, writes report whether they landed and never throw. Persistence
- * here is a convenience — a dial layout, a nudge counter, the current container
+ * here is a convenience — a dial layout, the current container
  * — so a failure must degrade the preference, never the app.
  */
 
@@ -75,11 +75,11 @@ export function writeLocal(key: string, value: string): boolean {
 }
 
 /**
- * Deliberately no `removeLocal` / `isLocalStorageAvailable` yet. The two
- * remaining hand-rolled callers (`backupNudge.ts`, `publishedSnapshots.ts`)
- * need them and are owned elsewhere, and the dead-code gate treats an export
- * with no consumer as dead. Add them here — same `backing()` + `try` shape as
- * above — in the change that converts those modules, not before.
+ * Deliberately no `removeLocal` / `isLocalStorageAvailable` yet. The
+ * remaining hand-rolled caller (`publishedSnapshots.ts`) needs them and is
+ * owned elsewhere, and the dead-code gate treats an export with no consumer as
+ * dead. Add them here — same `backing()` + `try` shape as above — in the change
+ * that converts that module, not before.
  */
 
 /**

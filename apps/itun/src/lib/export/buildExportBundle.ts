@@ -1,7 +1,6 @@
 import { useEncounterStore } from '../../stores/encounterStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { EntityType } from '../../stores/types'
-import { recordExport } from '../backupNudge'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
@@ -85,8 +84,6 @@ export async function buildExportBundle(
     mechPatterns,
     encounterNpcs,
   }
-  // A full backup resets the backup-nudge clock (plan 2.6).
-  recordExport()
   return bundle
 }
 

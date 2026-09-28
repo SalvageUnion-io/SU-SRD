@@ -5,7 +5,7 @@
  * store.
  *
  * Built on makeHydratedCollectionSlice (ADR-003 discipline: lazy
- * auto-hydration, write-through, cross-tab invalidation, backup nudge).
+ * auto-hydration, write-through, cross-tab invalidation).
  * Container scoping mirrors the roster — records resolve through
  * `containerOf`; `listForContainer(null)` returns everything, which is what a
  * Solo user always gets (no account means no Games to scope to).

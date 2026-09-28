@@ -1,11 +1,7 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  isLegalCreationClass,
-  legalCreationAbilities,
-  offeredAbilityTrees,
-} from 'salvageunion-reference/rules'
+import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { selectableClasses } from './classOptions'
 
 type SURClassesAccessor = {
@@ -16,33 +12,15 @@ type SURAbilitiesAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
 }
 
-type ClassLike = {
-  id: string
-  name: string
-  coreTrees?: string[]
-  advancedTree?: string
-  legendaryTree?: string
-  hybrid?: boolean
-}
-
 type ClassAbilityStepProps = {
-  /** Edit mode lifts every creation filter and keeps multi-select abilities. */
-  isEdit: boolean
   classId: string
   selectedAbilities: string[]
   /** Radio semantics — a new class replaces the old. */
   onSelectClass: (classId: string) => void
-  /**
-   * Create mode: radio — the pick REPLACES the current ability.
-   * Edit mode: toggle — uncapped multi-select (advancement, soft warnings).
-   */
+  /** Radio semantics — the pick REPLACES the current ability. */
   onSelectAbility: (abilityId: string) => void
   /** Injectable SUR for testing. */
   _sur?: { Classes: SURClassesAccessor; Abilities: SURAbilitiesAccessor }
-}
-
-function levelOrder(l: number | 'L' | 'G'): number {
-  return typeof l === 'number' ? l : l === 'L' ? 90 : 99
 }
 
 /**
@@ -52,12 +30,8 @@ function levelOrder(l: number | 'L' | 'G'): number {
  * Level-1 ability picker for that class's trees. Only LEGAL abilities render
  * (package `legalCreationAbilities`: level 1 ∧ tree ∈ coreTrees — the
  * Salvager sees all 15 core-tree Level-1s); the pick is a radio, exactly 1.
- *
- * Edit mode lifts the filters (specialisation classes appear; every level of
- * every class tree, Slab-grouped, uncapped toggle) — the soft regime.
  */
 export function ClassAbilityStep({
-  isEdit,
   classId,
   selectedAbilities,
   onSelectClass,
@@ -67,13 +41,9 @@ export function ClassAbilityStep({
   const surClasses: SURClassesAccessor = _sur?.Classes ?? SalvageUnionReference.Classes
   const surAbilities: SURAbilitiesAccessor = _sur?.Abilities ?? SalvageUnionReference.Abilities
 
-  const classes = selectableClasses(surClasses, isEdit)
-  const legalClasses = isEdit
-    ? classes.base
-    : classes.base.filter((c) => isLegalCreationClass(c.coreTrees))
-  const selectedClass: ClassLike | undefined = [...classes.base, ...classes.specialisations].find(
-    (c) => c.id === classId
-  )
+  const { base } = selectableClasses(surClasses, false)
+  const legalClasses = base.filter((c) => isLegalCreationClass(c.coreTrees))
+  const selectedClass = base.find((c) => c.id === classId)
 
   // The injectable accessor is `unknown`-typed for test seams (itun's
   // PilotWizard passes the same shape), so the ONE cast lives here at the
@@ -107,62 +77,22 @@ export function ClassAbilityStep({
     />
   )
 
-  // Create mode: the class's legal Level-1 pool, flat. The card names its own
-  // tree in the seam pill (`[Forging | 1]`), so the pool needs no extra label.
+  // The class's legal Level-1 pool, flat. The card names its own tree in the
+  // seam pill (`[Forging | 1]`), so the pool needs no extra label.
   const legalPool = legalCreationAbilities(allAbilities, selectedClass?.coreTrees).sort((a, b) =>
     a.tree.localeCompare(b.tree)
   )
-
-  // Edit mode: every level of every offered tree, Slab-grouped.
-  const selectedTrees = allAbilities
-    .filter((a) => selectedAbilities.includes(a.id))
-    .map((a) => a.tree)
-  // Trees offered in EDIT mode. `offeredAbilityTrees` owns this: core +
-  // advanced + legendary, a HYBRID's two borrowed trees, and the trees of
-  // already-selected abilities so a pilot keeps their learned (sealed) trees
-  // visible and toggleable.
-  const editTrees = selectedClass
-    ? offeredAbilityTrees(selectedClass, { allLevels: true, selectedTrees })
-    : []
-  const editAbilitiesIn = (tree: string): SURefAbility[] =>
-    allAbilities
-      .filter((a) => a.tree === tree)
-      .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))
 
   return (
     <div className="w-full space-y-5">
       <Slab variant="solid" label="Pilot Class" count="Choose 1" />
       <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
-      {isEdit && classes.specialisations.length > 0 && (
-        <>
-          <Slab variant="solid" label="Advanced / Hybrid" count="Requires 6 core abilities" />
-          <MasonryColumns maxColumns={2}>
-            {classes.specialisations.map(renderClassCard)}
-          </MasonryColumns>
-        </>
-      )}
 
       {selectedClass === undefined ? (
         <EmptyState
           headline="No Class Selected"
           body="Pick a class to reveal its first-Ability choices."
         />
-      ) : isEdit ? (
-        <>
-          <Slab variant="solid" label="Abilities" count="Any level" />
-          {editTrees.map((tree) => {
-            const treeAbilities = editAbilitiesIn(tree)
-            if (treeAbilities.length === 0) return null
-            return (
-              <section key={tree} className="space-y-3">
-                <Slab variant="solid" label={tree} count="Tree" />
-                <MasonryColumns maxColumns={2}>
-                  {treeAbilities.map(renderAbilityCard)}
-                </MasonryColumns>
-              </section>
-            )
-          })}
-        </>
       ) : (
         <>
           <Slab

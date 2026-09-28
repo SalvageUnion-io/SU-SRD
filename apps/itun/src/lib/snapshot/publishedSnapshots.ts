@@ -3,8 +3,8 @@
  *
  * Shared snapshots live forever server-side (no TTL), and the app is
  * local-first with no auth, so the snapshot id IS the capability to revoke it.
- * We keep the ids the user has published in localStorage (the backupNudge
- * pattern) so the Share screen can show — and revoke — their own shared links.
+ * We keep the ids the user has published in localStorage so the Share screen
+ * can show — and revoke — their own shared links.
  *
  * This is not a source of truth for what exists server-side; it's a convenience
  * ledger. A cleared browser simply forgets its links (the snapshots persist),

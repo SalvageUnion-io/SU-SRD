@@ -112,7 +112,7 @@ question the earlier records left open:
   when the grant appears and destroyed when the grant goes — unequip the Survey
   Drone equipment and the drone goes with it; change a mech's chassis and its
   drones change with it. Reconciliation runs on the pilot sheet's equipment
-  toggle and on both wizards' create and `afterUpdate` paths.
+  toggle and on both wizards' create paths.
 - **There is therefore no standalone remove control**, and its absence is the
   point rather than an omission. A partner that could be dropped on its own
   would be unrecoverable, because nothing would ever grant it back. This is

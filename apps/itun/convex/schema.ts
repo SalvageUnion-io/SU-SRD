@@ -151,10 +151,8 @@ export default defineSchema({
      * from here instead, the list depends on one document per Game, and that
      * document changes only when one of these four values does.
      *
-     * Optional because rows that predate the column have none until
-     * `maintenance.backfillGameSummaries` runs or the next membership or
-     * roster change refreshes them; readers compute it live meanwhile
-     * (`summaryOf`).
+     * Optional because a Game is inserted before the membership whose trigger
+     * first fills it; `summaryOf` computes it live for a row that has none.
      */
     summary: v.optional(
       v.object({
@@ -506,9 +504,8 @@ export default defineSchema({
      * row by collecting every pattern the owner had and comparing bodies in JS.
      * Carrying it here makes that one read on `by_owner_app_id`.
      *
-     * Optional because rows written before the column existed have none until
-     * `maintenance.backfillBodyAppIds` runs; `findOwnedByAppId` falls back to
-     * those rows alone (`appId` absent) so they are still found meanwhile.
+     * Optional because a body need not carry an id; a row without one cannot
+     * be addressed by `findOwnedByAppId`.
      */
     appId: v.optional(v.string()),
     body: v.any(),

@@ -17,9 +17,10 @@ type Form = { name: string; items: string[] }
 const EMPTY: Form = { name: '', items: [] }
 
 describe('wizardDraft', () => {
-  test('keys separate create drafts from per-entity edit drafts', () => {
+  test('keys one draft slot per wizard kind', () => {
     expect(wizardDraftKey('pilot')).toBe('itun-wizard-draft:pilot:new')
-    expect(wizardDraftKey('mech', 'abc')).toBe('itun-wizard-draft:mech:edit:abc')
+    expect(wizardDraftKey('mech')).toBe('itun-wizard-draft:mech:new')
+    expect(wizardDraftKey('crawler')).toBe('itun-wizard-draft:crawler:new')
   })
 
   test('a dirty form persists and reads back; pristine forms never write', () => {
@@ -39,7 +40,7 @@ describe('wizardDraft', () => {
   })
 
   test('clearWizardDraft removes the stored draft', () => {
-    const key = wizardDraftKey('crawler', 'c1')
+    const key = wizardDraftKey('crawler')
     sessionStorage.setItem(key, JSON.stringify({ name: 'X', items: [] }))
     clearWizardDraft(key)
     expect(readWizardDraft<Form>(key)).toBeNull()

@@ -261,7 +261,7 @@ The part that interacts with CI:
 ## Production maintenance (`convex-maintenance.yml`)
 
 A `workflow_dispatch`-only workflow that runs one allowlisted, idempotent Convex
-maintenance function (today the two backfills in `apps/itun/convex/maintenance.ts`)
+maintenance function (today `repairContainers` in `apps/itun/convex/maintenance.ts`)
 against production with `CONVEX_DEPLOY_KEY`. It passes `--prod` explicitly and
 refuses any key that is not `prod:` or `project:`, because a project key without
 `--prod` sends `convex run` to the dev deployment. Its `main`-only `if:` is an

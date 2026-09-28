@@ -16,7 +16,7 @@ import type { ReactElement } from 'react'
  * `convexMock.ts` for the capture/restore discipline.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
 import { pilotFixture } from '../../__tests__/fixtures'
 
 let authed = false
@@ -72,7 +72,6 @@ const convexMocks = await installConvexMocks({
     useMutation: (ref: unknown) => async (args: Record<string, unknown>) => {
       const name = getFunctionName(ref as never)
       mutations.push({ name, args })
-      if (name === 'claim:repairContainers') return { repaired: 0, skipped: 0 }
       if (gate !== null) await gate
       const result = server === null ? claimResult : serverClaim(args, server)
       return { ...result, byKind: {} }
@@ -85,7 +84,9 @@ const { ConnectionProvider } = await import('../../../lib/connection/ConnectionP
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const db = await import('../../../lib/db/index')
-const { _resetLegacyProbe, probeLegacyLocalData } = await import('../../../lib/db/legacyLocalData')
+const { _resetLegacyProbe, legacyLocalDataState, probeLegacyLocalData } = await import(
+  '../../../lib/db/legacyLocalData'
+)
 const { promotionState, resetPromotionStateForTesting } = await import(
   '../../../lib/account/promotionState'
 )
@@ -110,6 +111,11 @@ async function signIn(view: { rerender: (ui: ReactElement) => void }): Promise<v
 
 function claims() {
   return mutations.filter((m) => m.name === 'claim:claimLocal')
+}
+
+/** Renders of the signed-in half: only it reads `games.listMine`. */
+function signedInRenders() {
+  return queryCalls().filter((c) => c.name === 'games:listMine').length
 }
 
 const Tree = () => (
@@ -389,11 +395,10 @@ describe('signing in', () => {
     expect(screen.queryByText(/not saved/i)).toBeNull()
 
     // Signing in again (to any account) sends nothing and reports nothing.
+    const before = signedInRenders()
     authed = true
     view.rerender(<Tree />)
-    await waitFor(() =>
-      expect(mutations.some((m) => m.name === 'claim:repairContainers')).toBe(true)
-    )
+    await waitFor(() => expect(signedInRenders()).toBeGreaterThan(before))
     expect(claims()).toHaveLength(0)
     expect(promotionState()).toBe('idle')
     expect(screen.queryByText(/could not be saved/i)).toBeNull()
@@ -438,11 +443,10 @@ describe('signing in', () => {
     })
     expect(screen.queryByText(/not saved/i)).toBeNull()
 
+    const before = signedInRenders()
     authed = true
     view.rerender(<Tree />)
-    await waitFor(() =>
-      expect(mutations.filter((m) => m.name === 'claim:repairContainers').length).toBeGreaterThan(0)
-    )
+    await waitFor(() => expect(signedInRenders()).toBeGreaterThan(before))
     expect(claims()).toHaveLength(1)
     expect(screen.queryByText(/could not be saved/i)).toBeNull()
   })
@@ -471,9 +475,8 @@ describe('signing in', () => {
     authed = true
     render(<Tree />)
 
-    await waitFor(() =>
-      expect(mutations.some((m) => m.name === 'claim:repairContainers')).toBe(true)
-    )
+    // The device pass closes the migration window once it finds nothing to send.
+    await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
     expect(claims()).toHaveLength(0)
   })
 })

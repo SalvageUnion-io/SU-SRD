@@ -8,13 +8,10 @@ import { expect, test } from './fixtures'
  *  - The craft steps show their budget trackers — Scrap plus the slot budget
  *    for whichever of Systems / Modules is being crafted.
  *
- * Both cases were written against a Chassis → Pattern → Loadout → Identity →
- * Review wizard that no longer exists. There is no "Custom Pattern" card (a
- * chassis is picked directly), and no combined Loadout step with TL filter
- * chips and a 'Loadout · {name}' panel — that HUD is edit-mode only
- * (`if (!isEdit) return undefined` in MechWizard), while create mode shows the
- * WizTracker pill asserted below. Nothing about the first step is gated either:
- * "Gain Scrap" is informational, so Next is open from the start.
+ * A chassis is picked directly (there is no "Custom Pattern" card), and the
+ * craft steps report their budgets in the WizTracker pill asserted below. The
+ * first step is not gated: "Gain Scrap" is informational, so Next is open from
+ * the start.
  */
 
 test('wizard gates progress until chassis + name are set', async ({ page }) => {

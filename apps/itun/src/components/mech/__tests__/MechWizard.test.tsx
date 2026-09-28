@@ -1,7 +1,7 @@
 /**
  * Integration tests for MechWizard (wizard-refresh Phase 4): the Mech
  * Workshop's 8 book steps + Review (pp.94–95) with HARD 20-Scrap + slot
- * enforcement in create mode, and the soft edit regime.
+ * enforcement.
  *
  * Exercises the flow Gain Scrap → Chassis → Statistics → Systems → Modules →
  * Quirk → Appearance → Pattern Name → Review → submit using the real wizard,
@@ -16,9 +16,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
-import { mechFormToCreateInput, mechToFormState } from '../../../lib/wizard/mechFormState'
 import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { must } from '../../__tests__/must'
 import { MechWizard } from '../MechWizard'
 
@@ -338,118 +336,5 @@ describe('MechWizard — legalStarting pattern strip', () => {
       expect(m.systems).toEqual(expectedSystems)
       expect(m.modules).toEqual(expectedModules)
     })
-  }, 45000)
-})
-
-// ---------------------------------------------------------------------------
-// Edit mode: soft regime — steps 2,4,5,6,7,8,Review; filters lifted
-// ---------------------------------------------------------------------------
-
-async function seedMuleMech() {
-  const input = mechFormToCreateInput({
-    name: 'Iron Fist',
-    quirk: '',
-    appearance: '',
-    chassisName: 'mule',
-    patternName: 'Iron Fist',
-    systems: ['cargo-pod'],
-    modules: [],
-    cargoLots: [],
-  })
-  return useEntityStore.getState().create('mech', input)
-}
-
-describe('MechWizard — edit mode (soft regime)', () => {
-  it('hides the briefing steps, lifts the filters, and updates without duplicating', async () => {
-    const mech = await seedMuleMech()
-    // Live-play state that the wizard patch must never clobber.
-    await useEntityStore.getState().update(
-      'mech',
-      mech.id,
-      {
-        currentSP: 5,
-        conditions: ['Vulnerable'],
-        systemConditions: { 'cargo-pod': 'damaged' },
-      },
-      LIVE_SHEET_MANUAL
-    )
-    const onComplete = mock(() => {})
-
-    render(
-      <MechWizard
-        mechId={mech.id}
-        initialState={mechToFormState(mech)}
-        onComplete={onComplete}
-        onCancel={() => {}}
-      />
-    )
-
-    // Edit chrome: no Gain Scrap / Statistics steps, no scrap tracker.
-    expect(screen.getByText('Edit Mech')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Gain Scrap/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /Mech Statistics/i })).toBeNull()
-    expect(screen.queryByTestId('scrap-remaining')).toBeNull()
-
-    // Chassis step: filters lifted — a Tech 2 chassis is offered.
-    const higherTl = SalvageUnionReference.Chassis.find((c) => c.techLevel === 2)
-    expect(screen.getByRole('radio', { name: must(higherTl).name })).toBeTruthy()
-    expect(getNextButton().disabled).toBe(false)
-    await clickNext() // → Systems (soft InstallStep — TL chips, add beyond caps)
-
-    expect(screen.getByRole('group', { name: /Filter by tech level/i })).toBeTruthy()
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Add Armour Plating' }))
-    })
-    await clickNext() // → Modules
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Add Comms Module' }))
-    })
-    await clickNext() // → Quirk
-    await clickNext() // → Appearance
-    await clickNext() // → Pattern Name (prefilled)
-    await clickNext() // → Review
-
-    await submit(/Save Mech/i)
-
-    await waitFor(() => {
-      const mechs = useEntityStore.getState().list('mech')
-      // Upsert branch: same record updated — never a duplicate create.
-      expect(mechs.length).toBe(1)
-      const m = must(mechs[0])
-      expect(m.id).toBe(mech.id)
-      expect([...m.systems].sort()).toEqual(['armour-plating', 'cargo-pod'])
-      expect(m.modules).toEqual(['comms-module'])
-      // Live-play state untouched by the wizard patch.
-      expect(m.currentSP).toBe(5)
-      expect(m.conditions).toEqual(['Vulnerable'])
-      expect(m.systemConditions).toEqual({ 'cargo-pod': 'damaged' })
-      // Assert inside waitFor: the wizard persists to the store before invoking
-      // onComplete in a later microtask, so a bare assertion here races under
-      // heavy parallel load.
-      expect(onComplete).toHaveBeenCalledWith(mech.id)
-    })
-  }, 45000)
-
-  it('over-slot installs warn but never block in edit mode', async () => {
-    const mech = await seedMuleMech()
-    render(
-      <MechWizard
-        mechId={mech.id}
-        initialState={mechToFormState(mech)}
-        onComplete={() => {}}
-        onCancel={() => {}}
-      />
-    )
-
-    await clickNext() // → Systems
-    await clickNext() // → Modules
-    // Mule has 2 module slots — install three 1-slot modules to breach it.
-    for (const name of ['Comms Module', 'Equipment Locker', 'Firewall']) {
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: `Add ${name}` }))
-      })
-    }
-    expect(screen.getByText(/Module slots exceeded/i)).toBeTruthy()
-    expect(getNextButton().disabled).toBe(false)
   }, 45000)
 })

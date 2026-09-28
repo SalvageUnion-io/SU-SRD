@@ -373,11 +373,11 @@ export function Roster() {
           </div>
           <ContainerSwitcher activeContainer={activeContainer} onSelect={setActiveContainer} />
         </div>
-        {/* Standing durability notice (not the recurring backup-nudge toast),
-            next to the export controls. It said "your data lives only in this
-            browser" to everybody, which since ADR-034 is true of nobody: a
-            signed-in player's builds are on the server, and an anonymous
-            visitor's are not even in the browser — only in this tab. */}
+        {/* Standing durability notice, next to the export controls. It said
+            "your data lives only in this browser" to everybody, which since
+            ADR-034 is true of nobody: a signed-in player's builds are on the
+            server, and an anonymous visitor's are not even in the browser —
+            only in this tab. */}
         <p className="mt-2.5 font-body text-xs text-wk-muted">
           {mode === 'solo'
             ? 'Nothing here is kept until you sign in — download a backup to keep it yourself.'

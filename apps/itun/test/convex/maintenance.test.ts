@@ -267,34 +267,3 @@ describe('dedupeAppIds pages', () => {
     expect(rows.map((r) => r.appId).sort()).toEqual(['a', 'b', 'c'])
   })
 })
-
-describe('backfillBodyAppIds', () => {
-  test("lifts a legacy row's body id into the column, once", async () => {
-    const t = testConvex()
-    const u = await makeUser(t, 'A')
-    const patternId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('mechPatterns', {
-          ownerId: u.userId,
-          gameId: null,
-          body: { id: 'pat1', name: 'Mule loadout' },
-        })
-    )
-    const npcId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('encounterNpcs', {
-          gameId: null,
-          ownerId: u.userId,
-          body: { id: 'npc1', name: 'Wretch' },
-        })
-    )
-
-    const first = await t.action(internal.maintenance.backfillBodyAppIds, {})
-    expect(first.updated).toBe(2)
-    expect((await t.run(async (ctx) => await ctx.db.get(patternId)))?.appId).toBe('pat1')
-    expect((await t.run(async (ctx) => await ctx.db.get(npcId)))?.appId).toBe('npc1')
-
-    const second = await t.action(internal.maintenance.backfillBodyAppIds, {})
-    expect(second.updated).toBe(0)
-  })
-})

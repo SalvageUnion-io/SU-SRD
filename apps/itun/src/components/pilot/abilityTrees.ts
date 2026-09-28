@@ -21,7 +21,7 @@ export type ClassLike = {
 /**
  * Trees offered for the given class.
  *
- * Edit mode (`allLevels`) adds the advanced and legendary trees, a HYBRID's two
+ * `allLevels` adds the advanced and legendary trees, a HYBRID's two
  * borrowed trees, and the trees of already-selected abilities — so a pilot who
  * advanced into a Hybrid keeps their learned (now sealed) core trees visible
  * and toggleable.

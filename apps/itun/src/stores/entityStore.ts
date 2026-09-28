@@ -26,7 +26,6 @@
  */
 
 import { create } from 'zustand'
-import { recordDataWrite } from '../lib/backupNudge'
 import { moveTo } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
@@ -343,7 +342,6 @@ function broadcastNameFor(type: EntityType): StoreName {
 
 function afterWrite(type: EntityType): void {
   publish(broadcastNameFor(type))
-  recordDataWrite()
 }
 
 /**
