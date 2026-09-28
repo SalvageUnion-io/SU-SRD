@@ -44,12 +44,9 @@ name: Deploy (Cloudflare)
 #
 # WHY THE ARTIFACTS ARE BUILT HERE AND NOT TAKEN FROM CI'S RUN. The audit's
 # first suggestion was to deploy the `dist` CI already built on the main push.
-# Neither CI build is the production artifact, and cannot be without breaking
-# the gate it exists for:
-#   - srd: CI builds with NO Sentry DSN, because the output snapshot is blessed
-#     against that build and the DSN changes the emitted chunk set (see
-#     `build-srd` below). Production must ship the DSN, source maps and the OG
-#     images, none of which CI produces.
+# Neither CI build is the production artifact:
+#   - srd: CI builds with no Sentry DSN, and production must ship the DSN,
+#     source maps and the OG images, none of which CI produces.
 #   - itun: CI builds a Solo client with no `VITE_CONVEX_URL`, so its smoke and
 #     bundle-budget specs run with the account gate off. Production must be
 #     compiled against the production deployment's URL (`ITUN_CONVEX_URL`
@@ -454,37 +451,6 @@ jobs:
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: srd
         run: bun --filter srd build
-
-      # The srd output snapshot is deliberately NOT re-run here, and the reason
-      # is that it cannot pass in this job — not that it is inconvenient.
-      #
-      # The snapshot is blessed against a build with NO Sentry DSN, which is what
-      # `bun run gate` produces locally and what CI's `build-srd` job runs on
-      # every PR. This job builds WITH srd's `VITE_SENTRY_DSN`, because production
-      # must ship Sentry. Measured — the DSN changes the emitted chunk set:
-      #
-      #   with a DSN:     assets/prod-[hash].js, assets/rolldown-runtime-[hash].js
-      #   without a DSN:  assets/preload-helper-[hash].js
-      #
-      # and the snapshot asserts the emitted file set in both directions, so it
-      # failed on exactly those three paths with the page content identical.
-      #
-      # Neither repair works. Blessing the DSN build breaks `build-srd` and every
-      # contributor's local `bun run gate`, since nobody outside Actions has the
-      # DSN. Dropping the DSN here reintroduces the silent Sentry-less production
-      # build this workflow was fixed to prevent.
-      #
-      # So the gate stays where its precondition holds — CI, on every PR — and
-      # this workflow verifies the DEPLOYED artifact instead, via the `smoke`
-      # job. That is the honest division: a content gate on the reproducible
-      # build, a behaviour check on the thing actually serving.
-      #
-      # If you are tempted to re-add it, there is a second trap waiting: it must
-      # also run BEFORE the OG pass, which emits 2,011 `.og.png` files the
-      # snapshot has never contained. That one is not fixable by blessing either
-      # — `apps/srd/CLAUDE.md` excludes binary assets on purpose, because their
-      # names are content-addressed and digesting them would make the gate churn
-      # on every dependency bump until somebody switched it off.
 
       # `include-hidden-files`: the artifact is what ships, byte for byte, so
       # it must not silently drop a dotfile the build emitted.
