@@ -149,7 +149,7 @@ describe('Card', () => {
     // is named by its border-glossary token rather than the literal, so the
     // assertion tracks the token the component actually emits.
     const wrapper = rootEl(container)
-    expect(wrapper.style.borderWidth).toBe('var(--bw-entity)')
+    expect(wrapper.style.borderTopWidth).toBe('var(--bw-entity)')
   })
 
   test('frame="chrome" draws the nested sub-panel border weight', () => {
@@ -159,7 +159,7 @@ describe('Card', () => {
       </Card>
     )
     const wrapper = rootEl(container)
-    expect(wrapper.style.borderWidth).toBe('var(--bw-chrome)')
+    expect(wrapper.style.borderTopWidth).toBe('var(--bw-chrome)')
   })
 
   test('frame weight is subtracted from the inner clip radius', () => {

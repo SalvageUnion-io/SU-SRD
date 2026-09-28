@@ -257,11 +257,15 @@ export function Card({
             // `border: var(--bw-chrome) solid var(--color-ink)` as
             // `border-width: var(--color-ink)`), so the shorthand is untestable
             // in this repo's test environment. Longhand is unambiguous in both.
+            // Widths are per side because the foot varies: React warns when a
+            // re-render changes a longhand that a shorthand in the same object covers.
             {
-              borderWidth,
               borderStyle: 'solid',
               borderColor: effectiveBorderColor,
-              ...(rendersFooter ? {} : { borderBottomWidth: `calc(${borderWidth} * 2)` }),
+              borderTopWidth: borderWidth,
+              borderRightWidth: borderWidth,
+              borderBottomWidth: rendersFooter ? borderWidth : `calc(${borderWidth} * 2)`,
+              borderLeftWidth: borderWidth,
             }
           : {}),
         ...cardStyle?.style,
