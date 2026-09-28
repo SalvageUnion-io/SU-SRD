@@ -52,7 +52,6 @@
       "Bash(bunx convex env remove*)",
       "Bash(bunx convex import*)",
       "Bash(bun run deploy-commands*)",
-      "Bash(gh pr merge*)",
       "Bash(gh repo delete*)",
       "Bash(gh release delete*)",
       "Bash(gh secret *)",
