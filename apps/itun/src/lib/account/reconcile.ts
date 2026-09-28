@@ -309,8 +309,7 @@ async function adoptLocally(work: LocalWork): Promise<void> {
  * Signed out there are two separate things somebody could lose — this tab's
  * work and this device's rows — and asking them to take two downloads to be
  * safe is how one of them does not get taken. The session bundle already
- * carries the envelope (and has reset the backup nudge, which is correct: it is
- * a real export of this session's work); the device rows are appended.
+ * carries the envelope; the device rows are appended.
  */
 export function combineBundles(session: ExportBundle | null, device: ExportBundle | null) {
   if (session === null) return device

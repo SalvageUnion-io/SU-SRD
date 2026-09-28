@@ -47,5 +47,4 @@ unaffected.
   `BroadcastChannel` (localStorage fallback) so concurrent tabs re-read
   instead of clobbering each other.
 - **Backups**: export (Download all) is the only backup path for local-first
-  data. `src/lib/backupNudge.ts` tracks un-exported writes and exposes a
-  toast-ready nudge subscription.
+  data.

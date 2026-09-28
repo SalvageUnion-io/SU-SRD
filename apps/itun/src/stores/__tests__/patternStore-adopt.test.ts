@@ -14,7 +14,6 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { BACKUP_NUDGE_WRITE_THRESHOLD, getBackupNudgeState } from '../../lib/backupNudge'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import { usePatternStore } from '../patternStore'
@@ -92,41 +91,5 @@ describe('adopt', () => {
       usePatternStore.getState().adopt({ id: 'bad' } as unknown as MechPattern)
     ).rejects.toBeDefined()
     expect(usePatternStore.getState().list()).toHaveLength(0)
-  })
-})
-
-describe('adopt does not count as a user write', () => {
-  test('a sync of many patterns never triggers the backup nudge', async () => {
-    // The one place `adopt` deliberately diverges from the slice's other
-    // writers. `afterWrite()` calls `recordDataWrite()`, which drives the
-    // backup nudge at BACKUP_NUDGE_WRITE_THRESHOLD (25) against a
-    // localStorage-persistent counter.
-    //
-    // Routing adoption through it meant a signed-in player with 25+ saved
-    // patterns was told to "back up your data" after a sync in which they had
-    // written nothing — and again on every later sync. `entityStore.adopt` and
-    // `forget` both publish without recording, for exactly this reason.
-    const before = getBackupNudgeState().dirtyWrites
-
-    for (let i = 0; i < BACKUP_NUDGE_WRITE_THRESHOLD + 5; i += 1) {
-      await usePatternStore.getState().adopt(pattern(`sync-${i}`))
-    }
-
-    expect(getBackupNudgeState().dirtyWrites).toBe(before)
-  })
-
-  test('an ordinary create still counts', async () => {
-    // Control: the nudge must still work. If `adopt` were fixed by disabling
-    // the counter outright, this would fail.
-    const before = getBackupNudgeState().dirtyWrites
-    await usePatternStore.getState().create({
-      schemaVersion: 1,
-      name: 'Hand-saved',
-      chassisRef: 'mule',
-      systems: [],
-      modules: [],
-      cargoLots: [],
-    } as never)
-    expect(getBackupNudgeState().dirtyWrites).toBeGreaterThan(before)
   })
 })

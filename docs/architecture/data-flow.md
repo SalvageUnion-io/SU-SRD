@@ -218,9 +218,6 @@ shared state):
 - **`activeContainerStore`** — the current container: a Game, or the Shelf.
   Only consulted in Connected mode; a Solo user has one unfiltered pile.
 
-Writes also call `recordDataWrite()` (`lib/backupNudge`), which periodically
-nudges the user to export a backup — the local-first analogue of durability.
-
 ---
 
 ## No TanStack Query
@@ -271,7 +268,6 @@ db.pilots.put(record)  ──►  Zod validate ──►  IndexedDB write (itun-
 Zustand set(): in-memory pilots array updated   ──►  React re-renders
     │
     ├──►  broadcast: publishStoreChange('pilots')  ──►  other tabs re-hydrate
-    ├──►  recordDataWrite(): maybe show backup nudge
     └──►  Connected only: mirrorWrite('pilot', { kind: 'upsert', appId, gameId, body })
               └──►  convex api.entities.upsertByAppId  (fire-and-forget)
 

@@ -22,9 +22,7 @@ type ExportAllButtonProps = {
    * Exists for the claim card, where declining is terminal and may only go
    * quiet once a backup has genuinely been TAKEN — "we offered" is not the same
    * fact as "they have a copy", and treating them as one is how a roster is lost
-   * by somebody who meant to deal with it later. `buildExportBundle` already
-   * calls `recordExport()`, but that is persisted state with no change
-   * notification, so a caller that must re-render needs telling directly.
+   * by somebody who meant to deal with it later.
    */
   onExported?: () => void
   /**

@@ -4,11 +4,11 @@
  *
  * encounterStore and patternStore both follow the same
  * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read,
- * write-through persistence (db first, then in-memory set()), cross-tab
- * invalidation via lib/db/broadcast, and the backup nudge on every write.
+ * write-through persistence (db first, then in-memory set()), and cross-tab
+ * invalidation via lib/db/broadcast.
  * Before this factory each store hand-rolled that skeleton (~650 lines
  * across three copies) — which is exactly how mechPatterns ended up
- * BYPASSING the layer entirely (direct db reads, no broadcast, no nudge).
+ * BYPASSING the layer entirely (direct db reads, no broadcast).
  *
  * The collection key is parametrized (`encounterNpcs`,
  * `mechPatterns`) so each store's public state shape is unchanged —
@@ -21,7 +21,6 @@
  * the philosophy, not the shape.
  */
 
-import { recordDataWrite } from '../lib/backupNudge'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import type { StoreName } from '../lib/db/stores'
 import { captureException } from '../lib/observability'
@@ -133,7 +132,6 @@ export function makeHydratedCollectionSlice<
 
   function afterWrite(): void {
     if (shouldBroadcast === undefined || shouldBroadcast()) publishStoreChange(storeName)
-    recordDataWrite()
   }
 
   return function slice(
@@ -188,15 +186,7 @@ export function makeHydratedCollectionSlice<
               : [cached, ...list]
           })(),
         })
-        // `publish`, NOT `afterWrite()`. This is the one place the two differ,
-        // and the difference matters: `afterWrite` also calls
-        // `recordDataWrite()`, which drives the backup nudge. A cache fill is
-        // not a user write — `entityStore.adopt` and `forget` both publish
-        // alone for exactly this reason. Routing adoption through `afterWrite`
-        // meant a signed-in player with 25+ saved patterns was told to back up
-        // their data after a sync in which they had written nothing, and it
-        // accrued again on every sync (the counter is localStorage-persistent).
-        if (shouldBroadcast === undefined || shouldBroadcast()) publishStoreChange(storeName)
+        afterWrite()
         return cached
       },
 

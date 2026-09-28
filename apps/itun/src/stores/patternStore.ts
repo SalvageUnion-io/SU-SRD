@@ -3,10 +3,9 @@
  *
  * Patterns previously BYPASSED the store layer: PatternList read
  * db.mechPatterns directly into local useEffect state and SavePatternButton
- * called db.mechPatterns.create() — so pattern writes never reached the
- * backup nudge (un-exported patterns could go stale-lossy) and never
- * published cross-tab broadcast (other tabs kept stale lists). Routing them
- * through the shared collection slice closes both gaps.
+ * called db.mechPatterns.create() — so pattern writes never published
+ * cross-tab broadcast (other tabs kept stale lists). Routing them through the
+ * shared collection slice closes that gap.
  *
  * Patterns are immutable after creation (create/delete only in the UI), but
  * the slice's update() comes along for free should that change.

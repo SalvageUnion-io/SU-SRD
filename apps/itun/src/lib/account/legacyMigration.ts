@@ -229,12 +229,6 @@ export function selectStranded(
  * reads the in-memory backend, so `buildExportBundle` would hand somebody
  * downloading their pre-account roster an empty file. This reads the rows that
  * are actually on the disk.
- *
- * It deliberately does **not** call `recordExport()`. That resets the backup
- * nudge, which tracks un-exported writes to the *account* — a legacy download is
- * evidence about the device, and letting it silence the nudge would mean a
- * signed-in player's real edits went unnudged because of a file they took for a
- * different reason.
  */
 export function buildLegacyExportBundle(local: LegacyLocalData): ExportBundle {
   return {

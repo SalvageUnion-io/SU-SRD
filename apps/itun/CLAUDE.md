@@ -146,7 +146,6 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
   ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
-- Backup nudge (`src/lib/backupNudge.ts`) tracks un-exported writes.
 - **Do not add a Sentry SDK to `convex/`.** The browser bundle
   (`src/lib/observability.ts`) and the Worker (`src/worker/index.ts`, via
   `observability/cloudflare`) each own one; Convex uses its first-party
