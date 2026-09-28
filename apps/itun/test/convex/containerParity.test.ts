@@ -10,12 +10,11 @@
  * a separate step that never happened, and nothing anywhere failed as a result.
  * A rule that only lives in prose gets followed until the day somebody is busy.
  *
- * So this asserts the *shape* rather than the wiring: for every IndexedDB object
- * store there is a Convex table that could receive it. It deliberately does NOT
- * assert that writes are mirrored — that is P4's job and would fail today by
- * design (see `docs/architecture/persistence-and-pwa.md`). What it catches is
- * the cheaper and more common mistake: adding store number nine and forgetting
- * the server entirely.
+ * So this asserts both halves: for every IndexedDB object store there is a
+ * Convex table that could receive it, and a client commit path that actually
+ * writes to it (the store → commit-path table is in
+ * `docs/architecture/data-flow.md`). The first catches the cheaper and more
+ * common mistake: adding store number nine and forgetting the server entirely.
  *
  * ## Reading a failure
  *

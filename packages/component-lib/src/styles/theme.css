@@ -160,7 +160,7 @@
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
   --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground (was su-ink-dark) */
 
-  /* Ink-opacity ramp (canonical-primitive-language.md §3) — hairlines,
+  /* Ink-opacity ramp (ruleset.md, foundations) — hairlines,
      placeholders, ghosts, disabled fills. This replaces the neutral greys of
      the shadow family (su-grey/-light/-medium/-dark, su-muted, su-ink-soft,
      su-sand, su-input-bg), which were true neutrals fighting the warm paper.
@@ -219,7 +219,7 @@
      which are correct and untouched). */
 
   /* Workshop (light) ground — the step off-paper that makes a card read as a
-     panel (style-unification-pass.md §2.5). */
+     panel. */
   --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
   --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
   /* The muted secondary-text tone. RETONED from #6c7780, which failed WCAG 2.1
@@ -276,8 +276,7 @@
   /* `--animate-heat-pulse` (design review U-1) is DELETED. It defined a
      status-bad ring that breathed outward at heat cap, and no component ever
      applied it — U-1 shipped as the colour escalation only (`heatLevel.ts`
-     `heatDangerFrom`, consumed by VitalGauge), which is recorded at
-     docs/design/itun-design-review.md:145. A keyframe nothing references is a
+     `heatDangerFrom`, consumed by VitalGauge). A keyframe nothing references is a
      claim about the UI that the UI does not honour; if the pulse is wanted, it
      comes back with the call site that applies it.
 

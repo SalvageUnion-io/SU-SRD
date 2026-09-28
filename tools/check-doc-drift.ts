@@ -203,7 +203,7 @@ export function splitMarkdownBlocks(
 
 /**
  * Docs an agent reads as a description of the code *as it is now*. Anything not
- * in here (docs/design/, plan-docs/, docs/design-system/, the ADR bodies) is
+ * in here (docs/design-system/, the ADR bodies) is
  * allowed to describe the past.
  */
 // `.claude/skills` was the blind spot in this list, and it is where BOTH of the

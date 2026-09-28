@@ -48,8 +48,8 @@ something outside the file.
 at once, which is why the assertion exists: it claimed *"Cloudflare — the actual
 host. No MCP server is declared; use `wrangler`"* while two Cloudflare servers
 WERE declared, and it carried live rows for `netlify`, `render` and `github`,
-none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and
-`cloudflare-cutover.md` and did not touch this file — and because root prose
+none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and the
+since-deleted cutover plan and did not touch this file — and because root prose
 matched no CI path filter at the time, the doc-drift check never ran on that PR.
 
 CLAUDE.md sends agents here *instead of* enumerating accounts, so a wrong row

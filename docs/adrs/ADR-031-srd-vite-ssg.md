@@ -7,41 +7,16 @@ Astro static site with React islands).
 
 What ADR-012 _decided_ is unchanged and is re-affirmed here: `srd` is a
 statically pre-rendered, no-backend, CDN-cacheable site with React islands for
-the few interactive parts, deployed to Netlify. **Only the machine that produces
-it changes.** Astro is replaced by an in-house static-site generator at
+the few interactive parts. **Only the machine that produces it changes.** Astro
+is replaced by an in-house static-site generator at
 [`apps/srd/ssg/`](../../apps/srd/ssg/), whose implementation contract is
 [`ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md). This ADR records _why_; that
 file records _how_, and is the one to read before changing the build.
 
-**Amended 2026-08-07 — decision 6 has been REPLACED.** `ssg/parity.ts`, its
-`make-parity-baseline.ts` companion and their tests (2,109 lines) were
-**deleted**: the "shelf life" this ADR called out under _Consequences_ had
-arrived, and the gate's Astro baseline was gone from every checkout, so it could
-not run at all. Everything below about parity should be read in the past tense.
-
-Its replacement is **`ssg/snapshot.ts`**, a self-hosted snapshot gate, and the
-swap is a deliberate change of KIND. Parity compared against a foreign
-**oracle** — Astro's own output — which is strictly stronger while it lasts,
-because it can catch output that was wrong from the very first build. It lasted
-until the oracle became unregenerable. The snapshot gate compares against **our
-own last-blessed output**, which is a weaker assertion (a wrong output committed
-as the snapshot stays wrong) traded for one that cannot expire:
-
-| | parity (retired) | snapshot (now) |
-| --- | --- | --- |
-| baseline | archived Astro `dist`, ~56 MB | our own output, ~680 KB digest |
-| in a fresh checkout | absent | committed |
-| regenerate | install ~2,200 Astro-era packages | `bun run snapshot:update`, ~3s |
-| in CI | **never** | yes, in `build-srd` |
-| catches wrong-from-the-start output | yes | no |
-
-The nine files that told people to run a gate nobody could run are the whole
-argument: a weaker check that actually executes beats a stronger one that does
-not. Coverage is otherwise the same — file set, head metadata, JSON-LD, `<main>`
-text, all 899 JSON endpoints, `llms.txt` — and `isInsertionOf`, parity's best
-idea, is carried over for `/changelog`. Parity's HTML-analysis layer survives
-verbatim as `ssg/htmlDigest.ts`, verified identical to the deleted code across
-all 1,039 pages; what rotted was the baseline, never the scanning.
+**Amended 2026-08-07 — decision 6 is retired.** The parity gate's Astro baseline
+could no longer be regenerated, so `ssg/parity.ts` was deleted and replaced by a
+self-hosted snapshot gate over the site's own last-blessed output. Read
+everything below about parity in the past tense.
 
 ## Context
 
@@ -131,15 +106,10 @@ under Bun. `astro`, `@astrojs/react`, `@astrojs/sitemap`, `@astrojs/check` and
    finished `dist`; `ClientRouter` → cross-document
    `@view-transition { navigation: auto }`; `prefetch` →
    `<script type="speculationrules">`; `astro check` → `tsc --noEmit`.
-6. **`ssg/parity.ts` was the acceptance gate** — kept rather than discarded on
-   green at the time, and since **retired** (see the amendment under _Status_;
-   the clause below describes what it did, not what exists).
-   It compared the built `dist` semantically against an
-   archived Astro baseline: the exact emitted file set both directions, per-page
-   `<title>` / description / canonical / every `og:*` and `twitter:*` / robots /
-   every JSON-LD block deep-compared, the normalized visible text of `<main>`,
-   all 899 JSON endpoints parsed and deep-compared, and byte-identical
-   `llms.txt`.
+6. **`ssg/parity.ts` was the acceptance gate** (since retired — see _Status_).
+   It compared the built `dist` semantically against an archived Astro
+   baseline: file set, head metadata, JSON-LD, `<main>` text, all 899 JSON
+   endpoints and `llms.txt`.
 7. **srd's `typescript@6.0.3` pin is deleted**; the workspace typechecks on the
    repo's TypeScript 7 like every other one.
 
@@ -168,11 +138,6 @@ generator proper (`build.ts`, `dev.ts`, `render.tsx`, `document.tsx`,
 `vite.config.ts`) and 897 were the parity harness. That is traded against a
 dependency that cost this repo three commits in its entire history.
 
-The 897-line parity harness has since been replaced by `ssg/htmlDigest.ts` +
-`ssg/snapshot.ts` (see _Status_), which are smaller but not free. The standing
-cost is still roughly as stated: a ~1,491-line generator plus a verification
-harness. What changed is that the harness now runs.
-
 **This is not a free win, and it should not be sold as one.** Astro's routing,
 sitemap, PWA and SSR were maintained by other people, tested against far more
 sites than this one, and improved without anyone here doing anything. None of
@@ -189,10 +154,6 @@ left, and no available version fixed it.
   `ssrLoadModule`. It is slower than a client-rendered dev shell would be, on
   purpose. If someone "optimizes" dev into a SPA fallback, what developers look
   at stops being what ships, and production-only bugs become writable again.
-  Every document dev serves was, at migration time, diffed whole against the
-  built file for the same route; keep the shared path even though the gate that
-  proved it is gone — with parity retired, dev rendering through the production
-  path is now the *main* thing keeping the two honest.
 - **The css/SSR stub is load-bearing and order-sensitive.** The SSR pass runs
   under Bun, not through Vite, and `component-lib`'s barrel reaches modules that
   `import './x.css'`. `ssg/build.ts` registers a `Bun.plugin` stubbing `.css` to
@@ -209,32 +170,17 @@ left, and no available version fixed it.
   "jsxDEV_… is not a function". `ssg/build.ts` saves and restores the previous
   value around the Vite call. Anything else that invokes Vite programmatically in
   the same process needs the same guard.
-- **`envPrefix: 'PUBLIC_'` is an observability guard, not a style choice.** Astro
-  exposed `PUBLIC_`-prefixed env to the client; Vite's default is `VITE_`.
-  Without the override, `import.meta.env.PUBLIC_SENTRY_DSN` inlines as
-  `undefined`, Sentry initialises with no DSN, and the build, the bundle and the
-  deploy all still look healthy — the exact silent failure
-  `tools/check-observability.ts` exists to catch. Renaming the variables instead
-  was rejected because the values are already configured in the Netlify UI.
-  **Amended 2026-09-25 (ADR-033 P8): the override is gone — do not re-add it.**
-  The reason for keeping it died with Netlify: the build env is now set only by
-  `deploy-cloudflare.yml`, so srd moved to Vite's default `VITE_` prefix and reads
-  `VITE_SENTRY_DSN` / `VITE_COMMIT_REF`. Re-adding `envPrefix: 'PUBLIC_'` now
-  causes the very failure it once prevented — `VITE_SENTRY_DSN` stops reaching
-  the bundle and srd's Sentry goes dark with every check green. The workflow
+- **srd reads Vite's default `VITE_` env prefix — do not re-add
+  `envPrefix: 'PUBLIC_'`.** The override existed only because Netlify's UI held
+  `PUBLIC_`-named values; the build env is now set only by
+  `deploy-cloudflare.yml`. Re-adding it makes `VITE_SENTRY_DSN` inline as
+  `undefined`, and srd's Sentry goes dark with every check green. The workflow
   still sets the `PUBLIC_` names alongside, solely so a rollback dispatch to a
-  pre-rename commit builds with Sentry on; that shim is removed once the deploy
-  record is past the rename.
-- **The parity gate had a shelf life, and it expired.** Its baseline was an
-  archived Astro build, so once that baseline was gone `ssg/parity.ts` was a
-  historical record of a clean migration rather than a live gate. That is what
-  happened: no checkout had a baseline, regenerating one meant installing ~2,200
-  Astro-era packages, and the gate was never in CI in the first place — so it
-  had quietly become a documented instruction nobody could follow. It was
-  replaced on 2026-08-07 by `ssg/snapshot.ts` (see _Status_).
-  **The lesson generalises: a verification baseline that lives outside the
-  system it checks will eventually stop being regenerable.** If a future gate
-  needs an oracle, plan its expiry at the same time as its adoption.
+  pre-rename commit builds with Sentry on.
+- **A verification baseline that lives outside the system it checks will
+  eventually stop being regenerable** — the parity gate's Astro baseline did.
+  If a future gate needs an oracle, plan its expiry at the same time as its
+  adoption.
 - **The route registry must be maintained by hand.** A new page that nobody adds
   to `ssg/routes.ts` is simply not built, and nothing fails. That is the stated
   trade for having one file that tells you what the site emits.
@@ -242,21 +188,12 @@ left, and no available version fixed it.
 ### Carried over unchanged
 
 - **The root `typescript-classic` alias (`npm:typescript@6.0.3`) stays.** It is
-  not Astro residue: `tools/check-architecture.ts` and
-  `packages/salvageunion-reference/tools/generateApiReport.ts` both import it for
-  the TypeScript 6 compiler API. Astro was never its only consumer, and deleting
-  it during an "Astro leftovers" sweep breaks both tools.
-
-  > **Amended (2026-08-05, post-Astro streamline).** Still true, but for ONE
-  > consumer rather than two. `generateApiReport.ts` moved to the repo's
-  > TypeScript 7: it only ever needed the `tsc` **binary** (it drives the
-  > compiler through `--project`, never the API), and TS 7 emits the same 427
-  > public symbols for that report. `tools/check-architecture.ts` cannot follow
-  > and remains the sole consumer — TS 7's `typescript` entry point exports only
-  > `lib/version.cjs`, and its replacement `typescript/unstable/*` API is
-  > Project/Snapshot-based with no single-file `createSourceFile`/`forEachChild`
-  > to walk. The alias goes when that API stabilises, not before.
-- No auth, no backend, no user data; Netlify static deploy with no functions.
+  not Astro residue: `tools/check-architecture.ts` imports it for the
+  TypeScript 6 compiler API, because TS 7's replacement `typescript/unstable/*`
+  API has no single-file `createSourceFile`/`forEachChild` to walk. The alias
+  goes when that API stabilises, not in an "Astro leftovers" sweep.
+- No auth, no backend, no user data; a static deploy with no functions (a
+  Cloudflare Worker serving static assets since ADR-033).
   [ADR-030](ADR-030-accounts-games-server-of-record.md) explicitly leaves `srd`
   public and login-free.
 - Read-only choices ([ADR-010](ADR-010-srd-choices-ephemeral-vs-persisted.md))

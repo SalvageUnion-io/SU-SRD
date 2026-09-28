@@ -10,8 +10,7 @@
  * characters, and had nowhere to put anything else.
  *
  * A container is an ordered list of blocks. Text is text, rules are rules, and
- * the layout is whatever the content needs. See
- * `docs/design/discord-bot-roll-experience.md` §5.
+ * the layout is whatever the content needs.
  *
  * ## What V2 costs, and what it does not
  *

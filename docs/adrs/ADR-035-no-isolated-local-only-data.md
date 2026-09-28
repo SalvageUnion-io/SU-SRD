@@ -202,14 +202,11 @@ open forever — and `mayPrune` off with it — over rows that were never at ris
 - **A signed-out player can no longer browse builds this browser is holding.**
   Before, a returning Solo user opened the app and saw their roster. Now they see
   a count and two doors. This is the honest reading of "persistence requires an
-  account" and it is the cost of having one source of truth rather than two —
-  but it is a capability that genuinely existed yesterday and does not today, so
-  it is recorded here rather than in a commit message.
+  account" and it is the cost of having one source of truth rather than two.
 
-- **Cache pruning finally arms.** `mayPrune` has always required
-  `legacyLocalDataState() === 'absent'`, which nothing could produce, so
-  `ShelfSync`'s prune was dead code in every browser that had ever held a build.
-  A completed migration now sets it. The corollary is the guard: a migration that
+- **Cache pruning arms only after a complete migration.** `mayPrune` requires
+  `legacyLocalDataState() === 'absent'`, which a completed migration sets. The
+  corollary is the guard: a migration that
   strands even one row leaves the state `present`, so a browser that cannot fully
   reconcile never prunes. Pruning off is a stale cache; pruning on too early is
   deleted work.
@@ -220,11 +217,9 @@ open forever — and `mayPrune` off with it — over rows that were never at ris
   that cannot repair the browser it failed on, which is exactly how the
   `localStorage` claim marker failed before it.
 
-- **`claimLocal` needed a repeat guard it did not have.** The NPC tray was the
-  one claimed kind with no identity check, which was survivable while claiming
-  was a button somebody pressed once and is not survivable when the same call
-  runs on every signed-in load. It now matches on the id inside the body, like
-  patterns.
+- **`claimLocal` must be safe to repeat**, because it runs on every signed-in
+  load. Every claimed kind matches on an identity, NPCs included (the id inside
+  the body, like patterns).
 
 - **The repair is a write against the account on every signed-in load.** It is
   one indexed read of the caller's own rows and, in the steady state, zero
@@ -258,11 +253,8 @@ original rows.
 **Load the device rows into the anonymous in-memory session so a signed-out user
 still sees them.** Rejected, and it was the most tempting option — it preserves
 the signed-out experience exactly. It also re-creates the defect in a new place:
-those rows would arm `AnonymousWorkPromoter` (since folded into `AccountReconciler`,
-which keeps the same rule: session work is sent as-is, device rows only after
-comparing against `listMine`), which promotes the whole store
-without knowing what the account already holds, so a sign-out/sign-in round trip
-would re-claim rows the account already had and report them to the player as
-builds that "could not be saved". The promoter is right to be uninformed; it is
-for work built in this tab. Reconciliation needs `listMine`, and only the
-signed-in path has it.
+session work is promoted as-is, without knowing what the account already holds,
+so a sign-out/sign-in round trip would re-claim rows the account already had and
+report them as builds that "could not be saved". `AccountReconciler` keeps the
+rule this implies: session work is sent as-is, device rows only after comparing
+against `listMine`, which only the signed-in path has.

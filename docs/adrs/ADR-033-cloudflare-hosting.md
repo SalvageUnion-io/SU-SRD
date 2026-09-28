@@ -2,9 +2,15 @@
 
 ## Status
 
-**Accepted. Delivery is phased — see
-[architecture/cloudflare-cutover.md](../architecture/cloudflare-cutover.md) for
-the executable plan, its per-phase gates and current progress.**
+**Accepted and delivered.** Every production hostname is served by a
+Cloudflare Worker — `intheunionnow.com` since 2026-08-19, `salvageunion.io` and
+`assets.salvageunion.io` since 2026-08-31. The Render account is deleted;
+deleting the retired Netlify sites is the operator's step. The phased cutover
+plan was deleted once every phase closed; code comments that cite a phase
+(`ADR-033 P4`) mean that plan:
+`git show c2476d1c:docs/architecture/cloudflare-cutover.md`. Current
+identifiers (Workers, buckets, zones) are in
+[architecture/agent-tooling.md](../architecture/agent-tooling.md).
 
 Amends [ADR-004](ADR-004-snapshot-netlify-functions.md): snapshots keep the
 endpoint shape, the ID scheme, the payload cap and the unauthenticated contract
@@ -138,8 +144,8 @@ sides is far from those ceilings — but it does mean the credential blast radiu
 under Consequences is a live concern rather than a theoretical one, and it
 removes the argument that a dedicated account would isolate nothing.
 
-**R2 is not yet enabled on the account** and must be activated in the dashboard
-before P1, P3 or P6 can run. KV and D1 are already available.
+R2 is enabled on the account and holds this project's two buckets,
+`su-lp-assets` and `su-itun-snapshots`, beside one unrelated project's.
 
 **7. A failed gate halts the phase.** No gate is worked around, relaxed, or
 retried with different parameters to obtain a pass, and no later phase begins
@@ -220,3 +226,62 @@ classic nameserver-migration hazards do not apply here — but both zones move.
 not a rollback concern; both origins answer for the length of the TTL regardless.
 The plan freezes snapshot writes at a known instant and reconciles a final delta
 before the flip.
+
+## Credentials
+
+Only GitHub Actions holds deploy credentials (decision 4), so CI holds a token
+that can deploy production. The bar it is held to:
+
+- A Cloudflare API token scoped to *Workers Scripts: Edit* and, for R2,
+  **narrowed to the named buckets** rather than account-wide. Cloudflare scopes
+  R2 per bucket but not Workers per script, so the Workers half can edit any
+  Worker on the account (§6). Narrow the half that can be narrowed, and do not
+  describe the other half as contained.
+- Stored as an Actions secret. Never in a `wrangler.jsonc`, never in a `.env`
+  git can see.
+- Every deploy is gated on CI succeeding for the same commit on `main`, so a red
+  gate cannot deploy. A green gate suffices: production deploys need no
+  environment approval.
+
+## Accepted risks
+
+- **No rollback**, chosen deliberately.
+- **The CI token reaches the whole personal account**, including RANDSUM's two
+  Workers (see Consequences). Adding anything else to the account widens this.
+- **The bot displays permanently offline** in every server.
+- **Sentry liveness telemetry changed shape** — `client.guilds.cache.size` does
+  not exist under HTTP interactions.
+
+## Configuration outside the repo
+
+Two things are configured in the Cloudflare dashboard and are invisible to
+`grep`: Images Transformations (enabled per zone), and one **Redirect Rule** per
+zone sending `www` to the apex.
+
+| Zone                | When host equals        | Then                                          |
+| ------------------- | ----------------------- | --------------------------------------------- |
+| `salvageunion.io`   | `www.salvageunion.io`   | 301 → `https://salvageunion.io` + path, query |
+| `intheunionnow.com` | `www.intheunionnow.com` | 301 → `https://intheunionnow.com` + path, query |
+
+`_redirects` cannot do this: Cloudflare lists domain-level redirects as
+unsupported and ignores malformed rules silently. Built from the dashboard's
+"Redirect from WWW to root" template, two settings matter: tick **Preserve query
+string** (off by default; srd has `/search?q=…`), and when it offers to create a
+proxied `www` record, **decline** — wrangler's custom-domain attach creates that
+record and fails with 409 Conflict if one already exists. `www` stays attached
+as a Worker custom domain so that a missing rule serves the site, with correct
+canonicals, rather than an error.
+
+## Follow-up: Convex → D1
+
+Out of scope, with its own future ADR; recorded because decision 5 binds today.
+Schema translation to SQLite is the easy part. Three things are not:
+
+1. **Reactivity.** D1 has no subscriptions, and ADR-030 makes the reactive model
+   the product feature. Cloudflare's answer is Durable Objects with hibernating
+   WebSockets (a real design exercise) or polling (a product downgrade).
+2. **Auth.** Discord OAuth terminates on Convex via `@convex-dev/auth`.
+   Replacing it means owning the OAuth flow, session issuance and refresh, and
+   the `authAccounts` lookup the Discord bot uses to resolve a snowflake.
+3. **Transactions.** Convex mutations are serializable by default; invariants
+   the platform guarantees today would have to become explicit.
