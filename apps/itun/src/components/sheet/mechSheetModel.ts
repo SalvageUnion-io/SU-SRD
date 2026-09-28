@@ -16,12 +16,14 @@ import { linesFromBreakdown } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   computeMechCapacity,
+  mechMaxEPParts,
+  mechMaxHeatParts,
+  mechMaxSPParts,
   resolveChassisRef,
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { useCargo } from '../../lib/cargo/useCargo'
-import { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'

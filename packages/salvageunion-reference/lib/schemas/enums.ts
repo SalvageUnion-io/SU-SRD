@@ -57,13 +57,6 @@ export const ActionTypeSchema = z
 export const DamageTypeSchema = z.enum(['HP', 'SP']).describe('Type of damage (HP or SP)')
 
 /**
- * Type of advanced class
- */
-export const ClassTypeSchema = z
-  .enum(['Advanced', 'Hybrid'])
-  .describe('Type of advanced class (Advanced or Hybrid)')
-
-/**
  * Ability tree name
  */
 export const TreeSchema = z

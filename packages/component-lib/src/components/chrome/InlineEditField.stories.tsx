@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import { useState } from 'react'
+import type { Story } from '../../stories/_harness'
 import { InlineEditField } from './InlineEditField'
 
 export default {

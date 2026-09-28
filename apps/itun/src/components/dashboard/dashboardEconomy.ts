@@ -18,9 +18,9 @@
  * confirmation itself stays an explicit call at the UI layer.
  */
 
+import type { Roll } from 'salvageunion-reference/rules'
 import type { CraftableItem } from '../../lib/rules/crafting'
 import { craftedLot, craftQuote } from '../../lib/rules/crafting'
-import type { Roll } from '../../lib/rules/heatCheck'
 import type { AreaSalvageResult } from '../../lib/rules/salvage'
 import { performAreaSalvage } from '../../lib/rules/salvage'
 import {

@@ -96,7 +96,6 @@ Each workspace's own `CLAUDE.md` loads when you work in it; [`package-contracts.
 - Relative imports only, `type` over `interface`, no `any`, `import type`, named exports (routes and Worker entries excepted) — **all Biome rules**, so `bun run lint` is the authority ([`biome.jsonc`](biome.jsonc)).
 - **Bun** for package management — never npm/yarn.
 - Game-data types come from `salvageunion-reference` as `SURef*` (`SURefChassis`, `SURefSchemaName`, …).
-- Look entities up by index — `SalvageUnionReference.Chassis.getById(id)` / `.getBySlug(slug)` / `.getByName(name)` — never `find((e) => e.id === x)`; see the package's `CLAUDE.md`.
 - Generated files (`routeTree.gen.ts`, `schemas/*.schema.json`, `lib/generated/`) are never hand-edited.
 - When a prop must reach nested entity cards, pass it explicitly (there is no shared display context; card size is the `size` × `extent` pair in `packages/component-lib/src/components/shared/displayMode.ts`) and typecheck immediately.
 

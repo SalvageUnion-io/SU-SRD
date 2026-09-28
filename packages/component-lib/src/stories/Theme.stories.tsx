@@ -1,4 +1,3 @@
-import type { Story } from '@ladle/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { statBlockRowStarts } from '../components/stat/pipRows'
 import {
@@ -11,6 +10,7 @@ import {
   tracking,
   weight,
 } from '../design/tokens'
+import type { Story } from './_harness'
 
 export default {
   title: 'Foundations/Theme',

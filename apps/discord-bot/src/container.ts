@@ -54,7 +54,7 @@ import { truncate } from './format.js'
  *
  * `EMBED_LIMIT.total` (6000) does **not** apply to a container: it is a
  * different budget with a different shape, which is why this module carries its
- * own guard rather than reusing `enforceEmbedLimits`.
+ * own guard.
  */
 export const V2_LIMIT = {
   /** Components in one message, counting the container and everything inside. */
@@ -118,8 +118,7 @@ export function containerComponentCount(data: ContainerData): number {
 /**
  * Trim a container to fit, shedding whole blocks from the end.
  *
- * Shedding from the end is the same choice `enforceEmbedLimits` makes and for
- * the same reason: the blocks that matter most — the headline and the outcome —
+ * Shedding from the end is deliberate: the blocks that matter most — the headline and the outcome —
  * are authored first, and half a provenance line is worse than none. Buttons
  * are never shed, because a roll result that loses its "Roll again" stops being
  * the thing people use.

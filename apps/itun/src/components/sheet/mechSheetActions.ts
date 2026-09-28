@@ -18,10 +18,12 @@
 
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import type { SoftWarning } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
-import type { SoftWarning } from '../../lib/rules/types'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { ItemCondition, Mech } from '../../lib/schemas/mech'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
+import type { Mech } from '../../lib/schemas/mech'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
@@ -29,7 +31,6 @@ import { freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
 
 export type ItemKind = 'system' | 'module'
 

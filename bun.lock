@@ -158,9 +158,6 @@
       },
     },
   },
-  "patchedDependencies": {
-    "@ladle/react@5.1.1": "patches/@ladle%2Freact@5.1.1.patch",
-  },
   "overrides": {
     "fast-uri": ">=3.1.6 <4",
     "filelist": ">=1.0.6",

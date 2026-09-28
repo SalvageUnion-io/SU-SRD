@@ -354,28 +354,29 @@ describe('Ladle catalog: co-location', () => {
   })
 
   /**
-   * NOTHING LIVES ONLY IN THE CATALOG.
+   * NOTHING LIVES ONLY IN THE CATALOG, OR ONLY IN A TEST.
    *
-   * A module whose only importers are `.stories.tsx` files is not a component —
-   * it is a prototype that the catalog keeps alive. It ships in no app, is
-   * exercised by no test, and yet is maintained, refactored and reviewed as
-   * though it were product code. `LiveSheetPoster` was 621 such lines: a
-   * genuinely good design exploration that nonetheless had to be read, moved
-   * and kept compiling by everyone who touched this package.
+   * A module whose only importers are `.stories.tsx` or test files is not a
+   * component — it is a prototype that the catalog keeps alive. It ships in no
+   * app, and yet is maintained, refactored and reviewed as though it were
+   * product code. `LiveSheetPoster` was 621 such lines: a genuinely good design
+   * exploration that nonetheless had to be read, moved and kept compiling by
+   * everyone who touched this package.
    *
-   * The rule is the same one that applies to test-only code: delete it, or move
-   * it to a harness location where its role is explicit. Explore in a branch or
-   * a design doc — the catalog demonstrates what ships.
+   * Only a production module counts as an importer: a test that renders a
+   * component proves the test runs, not that anything ships it. Delete such a
+   * module, or move it to a harness location where its role is explicit.
    *
    * HARNESS FILES ARE EXEMPT BY NAMING, not by allowlist: a leading underscore
    * (`_harness.tsx`, `_dashboardStage.tsx`) marks shared story scaffolding,
    * which is exactly the "move it to a harness location" outcome. That keeps the
    * exemption self-documenting instead of a list that goes stale.
    */
-  test('no module exists only to be rendered by a story', () => {
-    const modules = [...new Glob('**/*.{ts,tsx}').scanSync(SRC)]
-      .filter((f) => !f.endsWith('.stories.tsx'))
-      .filter((f) => !f.includes('__tests__') && !/\.test\.tsx?$/.test(f))
+  test('no module exists only to be rendered by a story or a test', () => {
+    const isTest = (f: string) => f.includes('__tests__') || /\.test\.tsx?$/.test(f)
+    const files = [...new Glob('**/*.{ts,tsx}').scanSync(SRC)]
+    const modules = files
+      .filter((f) => !f.endsWith('.stories.tsx') && !isTest(f))
       .filter((f) => !basename(f).startsWith('_'))
 
     const importsOf = (file: string) => {
@@ -386,17 +387,19 @@ describe('Ladle catalog: co-location', () => {
       )
     }
 
-    const storyImports = new Set(libStoryFiles.flatMap(importsOf))
-    const otherImports = new Set(
-      [...modules, ...[...new Glob('**/*.test.{ts,tsx}').scanSync(SRC)]].flatMap(importsOf)
+    const productionImports = new Set(modules.flatMap(importsOf))
+    const catalogOrTestImports = new Set(
+      [...libStoryFiles, ...files.filter(isTest)].flatMap(importsOf)
     )
 
     const offenders = modules
       .filter((f) => {
         const key = f.replace(/\.tsx?$/, '')
-        return storyImports.has(key) && !otherImports.has(key)
+        return catalogOrTestImports.has(key) && !productionImports.has(key)
       })
-      .map((f) => `${f} is imported only by stories — delete it, or make it a _harness file`)
+      .map(
+        (f) => `${f} is imported only by stories or tests — delete it, or make it a _harness file`
+      )
       .sort()
     expect(offenders).toEqual([])
   })

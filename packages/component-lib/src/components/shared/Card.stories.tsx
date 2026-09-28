@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import type { Story } from '../../stories/_harness'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
 import type { CardFootMeta } from './Card'

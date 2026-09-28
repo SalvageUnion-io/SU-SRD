@@ -1,9 +1,9 @@
 /**
  * SnapshotStorage — thin abstraction over the blob store.
  *
- * Implementations: InMemoryStorage (tests) and createR2Storage (production),
- * held to one contract by `__tests__/storageConformance.test.ts`. ADR-033 §3
- * covers why snapshots live in R2.
+ * One implementation, createR2Storage, held to its contract by
+ * `__tests__/storageConformance.test.ts`. ADR-033 §3 covers why snapshots
+ * live in R2.
  */
 
 export type PutOptions = {
@@ -21,30 +21,6 @@ export type SnapshotStorage = {
   put(id: string, payload: unknown, options?: PutOptions): Promise<PutResult>
   /** Removes a snapshot by id. Idempotent — deleting a missing id is a no-op. */
   delete(id: string): Promise<void>
-}
-
-// ---------------------------------------------------------------------------
-// In-memory implementation (test / local-dev stub)
-// ---------------------------------------------------------------------------
-
-export class InMemoryStorage implements SnapshotStorage {
-  private readonly store = new Map<string, unknown>()
-
-  async get(id: string): Promise<unknown | null> {
-    return this.store.has(id) ? (this.store.get(id) ?? null) : null
-  }
-
-  async put(id: string, payload: unknown, options?: PutOptions): Promise<PutResult> {
-    if (options?.onlyIfNew && this.store.has(id)) {
-      return { modified: false }
-    }
-    this.store.set(id, payload)
-    return { modified: true }
-  }
-
-  async delete(id: string): Promise<void> {
-    this.store.delete(id)
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -89,9 +65,8 @@ export type R2BucketLike = {
  *
  * ## `onlyIfNew` is a check-then-set
  *
- * The same semantics as `InMemoryStorage`, so the conformance suite can hold
- * both to one contract. The race it leaves open is already guarded upstream: `generateUniqueId` only proposes ids that do not exist, over a
- * 40-bit space.
+ * The race it leaves open is already guarded upstream: `generateUniqueId` only
+ * proposes ids that do not exist, over a 40-bit space.
  *
  * R2 does support a genuinely atomic conditional put, which would close that
  * race outright. It is not used here because changing the contract and porting

@@ -1,4 +1,4 @@
-import type { Story } from '@ladle/react'
+import type { Story } from '../../stories/_harness'
 import { CatalogTile } from './CatalogTile'
 
 /**

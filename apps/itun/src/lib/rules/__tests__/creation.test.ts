@@ -401,7 +401,7 @@ function crawlerForm(overrides: Partial<CrawlerWizardFormState> = {}): CrawlerWi
 }
 
 function typeIdOf(name: string): string {
-  const type = SalvageUnionReference.Crawlers.find((c) => c.name === name)
+  const type = SalvageUnionReference.Crawlers.getByName(name)
   if (!type) throw new Error(`crawler type "${name}" not found`)
   return type.id
 }

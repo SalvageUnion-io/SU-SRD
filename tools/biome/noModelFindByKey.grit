@@ -1,0 +1,27 @@
+// A reference model is indexed by id, name and slug (BaseModel.getById /
+// getByName / getBySlug), so `find((e) => e.id === x)` on one is a linear scan
+// of the whole schema with an O(1) answer beside it. This matches that
+// predicate on `SalvageUnionReference.<Model>` and on any `.all()` result.
+// A find over a local alias of `.all()` is out of its reach.
+language js(typescript, jsx)
+
+or {
+  `SalvageUnionReference.$model.find($pred)`,
+  `$source.all().find($pred)`,
+  `($source.all() as $type).find($pred)`
+} as $call where {
+  $pred <: or {
+    `($p) => $p.$key === $v`,
+    `$p => $p.$key === $v`,
+    `($p) => $v === $p.$key`,
+    `$p => $v === $p.$key`,
+    `({ $key }) => $key === $v`,
+    `({ $key }) => $v === $key`
+  },
+  $key <: or {
+    `id`,
+    `slug`,
+    `name`
+  },
+  register_diagnostic(span=$call, message="Look a reference entity up by index: getById / getByName / getBySlug (or resolveRef for an id-or-name ref), not find().", severity="error")
+}

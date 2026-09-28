@@ -15,11 +15,11 @@
 
 import { EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
-import { resolvePool } from 'salvageunion-reference/rules'
+import { crawlerMaxSPParts, resolvePool } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
-import { crawlerMaxSPParts } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
@@ -34,7 +34,6 @@ import { LiveSheet } from './LiveSheet'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import { RailCta } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 

@@ -186,14 +186,16 @@ unset): `currentHP`, `currentSP`, `currentEP`, `currentHeat`;
 `systemConditions` / `moduleConditions` maps; `itemUses`; the overload flags
 `shutdown` / `vulnerable` / `destroyed`; `lastHeatCheck`; and hand-edit
 modifiers (`maxSpModifier`, `maxEpModifier`, `maxHeatModifier`,
-`maxCargoModifier`). Derived maxima are computed in `src/lib/rules/derivedStats.ts`.
+`maxCargoModifier`). Derived maxima are computed in `salvageunion-reference/rules`
+(`lib/rules/derivedStats.ts`).
 
 ---
 
 ## The rules controls — where they live today
 
-The rules **math** all still exists under `apps/itun/src/lib/rules/*`
-(injectable rollers, unit-tested) and is imported by submodule path.
+The rules **math** lives in `salvageunion-reference/rules` (pure, injectable
+rollers, unit-tested), plus ITUN's app-local modules under
+`apps/itun/src/lib/rules/*`, imported by submodule path.
 The **surfaces** on top of it were reorganized by the poster redesign and the
 ADR-021 surface split: most play controls moved off the Live Sheet onto the
 Dashboard, and several were deleted outright. Every surviving surface follows
@@ -204,14 +206,17 @@ narrative choices stay player-driven.
 
 - **Take Damage / Critical Damage / Critical Injury** — `MechBand.tsx` and
   `PilotBand.tsx` (the Active Item band's mech and on-foot bands) over `dashboardRules.ts` (`mechDamagePatch`, `critDamagePatch`,
-  `pilotDamagePatch`, `critInjuryPatch`) → `lib/rules/takeDamage.ts`. The SP/HP
+  `pilotDamagePatch`, `critInjuryPatch`) → `salvageunion-reference/rules`. The SP/HP
   value of a self-declared hit auto-applies; the Critical roll at 0 and marking
   the mech Destroyed are explicit player-confirmed steps.
 - **Reactor** — Push / Heat Check / Vent / Shutdown, see above.
 - **Action activation & core roll** — `ActionsDeck.tsx` over `activationPatch`
-  and `lib/rules/coreMechanic.ts`.
+  and `salvageunion-reference/rules` (`performCoreRoll`).
 - **Downtime** — `DowntimeWizard.tsx`, which uses `mechBayStatus` /
   `medBayStatus` from `lib/rules/downtime.ts`.
+- **Area Salvage, crafting, scrapping a mech** — `CrawlerBand.tsx` over
+  `dashboardEconomy.ts` → `lib/rules/salvage.ts` (pp.244-248),
+  `lib/rules/crafting.ts` (p.222/p.244) and `lib/rules/scrapMech.ts` (p.248).
 
 **On the Live Sheet / encounter tray:**
 
@@ -221,19 +226,6 @@ narrative choices stay player-driven.
   availability.
 - Per-card activation and repair on `MechItemCard.tsx` / `MechSheet.tsx`
   (`setItemUses`, `repairItem`, `cycleItemCondition`).
-
-**Rules modules with no UI surface today.** These are live, tested pure
-modules that currently have _no_ component consumer — their controls were
-deleted in the redesign (see the `CrawlerSheet.tsx` / `MechSheet.tsx` header
-comments) and not re-homed:
-
-- `lib/rules/salvage.ts` (pp.244-248) — `SalvageControl` deleted.
-- `lib/rules/crafting.ts` (p.222/p.244) — `CraftingControl` deleted.
-- `lib/rules/scrapMech.ts` (p.248) — `ScrapMechControl` deleted.
-- `salvageunion-reference`'s `lib/rules/mediatorTables.ts` (Reaction / Morale /
-  Retreat, Workshop Manual p.268) — `encounter/MediatorRollControl.tsx` deleted.
-  Because nothing imports it, its names are not on the `salvageunion-reference/rules`
-  barrel; add them back when a surface does.
 
 **Surfaces that no longer exist** — do not reference them: `HeatCheckControl`,
 `TakeDamageControl`, `PilotTakeDamageControl`, `SalvageControl`,

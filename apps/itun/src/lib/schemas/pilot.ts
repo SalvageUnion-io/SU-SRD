@@ -1,7 +1,7 @@
 import { z } from 'salvageunion-reference/zod'
 import { partnersFromLoadouts } from '../db/migrations/11-equipment-loadouts-to-partners'
 import { isRecord } from '../isRecord'
-import { ItemConditionMapSchema } from './mech'
+import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
 
 /**

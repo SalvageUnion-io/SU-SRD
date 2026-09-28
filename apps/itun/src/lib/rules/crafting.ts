@@ -16,13 +16,13 @@
  * `quote.pool` and deposits `craftedLot(item)` into the crawler hold.
  */
 
+import type { TechLevel } from 'salvageunion-reference/rules'
 import { scrapCostFor } from 'salvageunion-reference/rules'
 import type { CargoLot } from '../schemas/cargoLot'
 import { makeUnitLot } from '../schemas/cargoLot'
 import type { ScrapPool } from '../schemas/crawler'
 import type { PoolDraw } from './crawlerEconomy'
 import { drawFromPool, poolAvailableAtOrAbove } from './crawlerEconomy'
-import type { TechLevel } from './types'
 
 /** The bay whose presence + Intact condition gates crafting (p.222). */
 export const CRAFTING_BAY = 'Crafting Bay'

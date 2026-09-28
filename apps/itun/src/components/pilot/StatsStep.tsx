@@ -3,7 +3,7 @@ import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
-} from '../../lib/rules/derivedStats'
+} from 'salvageunion-reference/rules'
 
 /**
  * Step 1 · Your Stats (Pilot Bay p.18) — display-only briefing step. Every

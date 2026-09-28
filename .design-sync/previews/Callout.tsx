@@ -12,7 +12,7 @@ function Body({ children }: { children: ReactNode }) {
 }
 
 function useListItems(actionName: string) {
-  const action = SalvageUnionReference.Actions.all().find((a) => a.name === actionName)
+  const action = SalvageUnionReference.Actions.getByName(actionName)
   return ((action?.content ?? []) as { type?: string; label?: string; value?: unknown }[]).filter(
     (b) => b?.type === 'list-item',
   )

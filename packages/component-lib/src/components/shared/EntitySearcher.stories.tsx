@@ -1,6 +1,6 @@
-import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { getChoices, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -131,7 +131,7 @@ export const Cells: Story = () => {
 export const CatalogPicker: Story = () => {
   const [open, setOpen] = useState(false)
   const [selections, setSelections] = useState<ChoiceSelections>({})
-  const bay = SalvageUnionReference.CrawlerBays.all().find((b) => b.name === 'Armament Bay')
+  const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
   const choice = bay ? (getChoices(bay) ?? [])[0] : undefined
   if (!choice) return <Caption>Armament Bay fixture missing.</Caption>
   const chosen = selections[choice.id]?.[0]

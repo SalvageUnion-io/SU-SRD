@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { ownerChipFor, UNCLAIMED_LABEL, viewerMayEdit } from '../ownerChip'
+import { ownerChipFor, UNCLAIMED_LABEL } from '../ownerChip'
 
 /**
  * Owner chips (D32).
@@ -63,26 +63,5 @@ describe('your own entities', () => {
   test('a signed-out viewer owns nothing', () => {
     const chip = ownerChipFor('u1', lookup(null))
     expect(chip.mine).toBe(false)
-  })
-})
-
-describe('viewerMayEdit mirrors the server rule', () => {
-  test('the owner may edit', () => {
-    expect(viewerMayEdit('u1', 'u1')).toBe(true)
-  })
-
-  test('a crewmate may not — a Mediator proposes instead', () => {
-    expect(viewerMayEdit('u2', 'u1')).toBe(false)
-  })
-
-  test('an unclaimed entity is not editable until assigned', () => {
-    // Otherwise a pre-gen could be quietly taken by editing it, bypassing the
-    // assignment act the Change Log records.
-    expect(viewerMayEdit(null, 'u1')).toBe(false)
-    expect(viewerMayEdit(undefined, 'u1')).toBe(false)
-  })
-
-  test('a signed-out viewer may not edit anything in a game', () => {
-    expect(viewerMayEdit('u1', null)).toBe(false)
   })
 })

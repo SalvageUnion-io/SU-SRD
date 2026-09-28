@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { Story } from '../../stories/_harness'
 import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
 import { InsideTooltipContext } from '../ui/insideTooltipContext'

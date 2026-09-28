@@ -7,7 +7,6 @@
  */
 
 import type { BadgeTone, StatState } from 'component-lib'
-import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSP,
   mechMaxEP,
@@ -15,7 +14,9 @@ import {
   mechMaxSP,
   pilotMaxAP,
   pilotMaxHP,
-} from '../../lib/rules/derivedStats'
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import type { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'

@@ -66,23 +66,3 @@ export function ownerChipFor(ownerId: string | null | undefined, lookup: OwnerLo
     mine: false,
   }
 }
-
-/**
- * Whether the viewer may edit this entity.
- *
- * Mirrors the server rule exactly (`assertMayWrite`): the owner may write, and
- * nobody else — not even a Mediator, who proposes instead. Unclaimed entities
- * are not editable until assigned, so a pre-gen cannot be quietly taken by
- * editing it.
- *
- * This is a *courtesy* for the UI, never the boundary. The server check is the
- * boundary, and it is tested separately.
- */
-export function viewerMayEdit(
-  ownerId: string | null | undefined,
-  viewerId: string | null
-): boolean {
-  if (viewerId === null) return false
-  if (ownerId === null || ownerId === undefined) return false
-  return ownerId === viewerId
-}

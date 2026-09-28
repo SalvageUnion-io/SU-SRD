@@ -32,7 +32,7 @@ import { PilotSheet } from '../PilotSheet'
 // the same key PilotWizard/EquipmentStep persist (onToggle(item.id)) — rather
 // than the display name.
 beforeAll(async () => {
-  const sniper = SalvageUnionReference.Equipment.all().find((e) => e.name === SNIPER_NAME)
+  const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
 })

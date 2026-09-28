@@ -70,17 +70,6 @@ export function sameContainer(a: Container, b: Container): boolean {
   return a.kind === b.kind
 }
 
-/** True when the entity is on the owner's shelf rather than in a Game. */
-export function isOnShelf(entity: ContainerFields): boolean {
-  return containerOf(entity).kind === 'shelf'
-}
-
-/** The Game id, or null when the entity is shelved. */
-export function gameIdOf(entity: ContainerFields): string | null {
-  const container = containerOf(entity)
-  return container.kind === 'game' ? container.gameId : null
-}
-
 /** The patch that moves an entity into a container. */
 export function moveTo(container: Container): { gameId: string | null } {
   return { gameId: container.kind === 'game' ? container.gameId : null }

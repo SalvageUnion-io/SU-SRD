@@ -1,5 +1,5 @@
-import type { Story } from '@ladle/react'
 import { useState } from 'react'
+import type { Story } from '../../stories/_harness'
 import { WizShell, WizTracker } from './WizShell'
 
 export default {

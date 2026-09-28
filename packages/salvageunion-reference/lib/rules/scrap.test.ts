@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
-import { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js'
+import { scrapCostFor, tierUpgradeCost } from './scrap.js'
 import type { ScrapableItem } from './types.js'
 
 // ---------------------------------------------------------------------------
@@ -18,38 +18,26 @@ const tl3Item: ScrapableItem = { salvageValue: 5, techLevel: 3 }
 const tl6Item: ScrapableItem = { salvageValue: 12, techLevel: 6 }
 const zeroValueItem: ScrapableItem = { salvageValue: 0, techLevel: 1 }
 
-describe('salvageValueFor', () => {
-  it('returns the salvageValue field directly', () => {
-    expect(salvageValueFor(tl1Item)).toBe(2)
-    expect(salvageValueFor(tl3Item)).toBe(5)
-    expect(salvageValueFor(tl6Item)).toBe(12)
+describe('scrapCostFor', () => {
+  it('returns the salvageValue field — items are bought and sold at one price', () => {
+    expect(scrapCostFor(tl1Item)).toBe(2)
+    expect(scrapCostFor(tl3Item)).toBe(5)
+    expect(scrapCostFor(tl6Item)).toBe(12)
   })
 
-  it('returns 0 for an item with salvageValue 0', () => {
-    expect(salvageValueFor(zeroValueItem)).toBe(0)
+  it('returns 0 for a zero-value item', () => {
+    expect(scrapCostFor(zeroValueItem)).toBe(0)
   })
 
   it('works with real system data from salvageunion-reference', () => {
-    const system = SalvageUnionReference.Systems.find((s) => s.name === '.50 Cal Machine Gun')
+    const system = SalvageUnionReference.Systems.getByName('.50 Cal Machine Gun')
     expect(system).toBeDefined()
     if (!system) return
     const item: ScrapableItem = {
       salvageValue: system.salvageValue,
       techLevel: system.techLevel as 1,
     }
-    expect(salvageValueFor(item)).toBe(system.salvageValue)
-  })
-})
-
-describe('scrapCostFor', () => {
-  it('returns the same value as salvageValueFor (buy == sell)', () => {
-    expect(scrapCostFor(tl1Item)).toBe(salvageValueFor(tl1Item))
-    expect(scrapCostFor(tl3Item)).toBe(salvageValueFor(tl3Item))
-    expect(scrapCostFor(tl6Item)).toBe(salvageValueFor(tl6Item))
-  })
-
-  it('returns 0 for a zero-value item', () => {
-    expect(scrapCostFor(zeroValueItem)).toBe(0)
+    expect(scrapCostFor(item)).toBe(system.salvageValue)
   })
 })
 

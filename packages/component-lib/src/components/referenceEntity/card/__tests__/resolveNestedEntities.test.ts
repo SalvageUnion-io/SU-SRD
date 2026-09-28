@@ -20,7 +20,7 @@ import {
 } from '../resolveNestedEntities'
 
 const chassis = (name: string): SURefMetaEntity => {
-  const match = SalvageUnionReference.Chassis.all().find((c) => c.name === name)
+  const match = SalvageUnionReference.Chassis.getByName(name)
   if (!match) throw new Error(`fixture missing: chassis ${name}`)
   return match as SURefMetaEntity
 }
@@ -77,7 +77,7 @@ describe('resolveNestedEntities', () => {
 
   test("a crawler's embedded commander is synthesized into an npcs-schema entity", () => {
     const groups = resolveNestedEntities(
-      SalvageUnionReference.Crawlers.all().find((c) => c.name === 'Augmented') as SURefMetaEntity
+      SalvageUnionReference.Crawlers.getByName('Augmented') as SURefMetaEntity
     )
     const npcs = group(groups, 'NPCs')
     expect(npcs).toBeDefined()
@@ -90,14 +90,14 @@ describe('resolveNestedEntities', () => {
   })
 
   test('an ability that grants equipment surfaces it under "Grants"', () => {
-    const ability = SalvageUnionReference.Abilities.all().find((a) => a.name === 'Auto-Turret')
+    const ability = SalvageUnionReference.Abilities.getByName('Auto-Turret')
     if (!ability) throw new Error('fixture missing: Auto-Turret')
     const grants = group(resolveNestedEntities(ability as SURefMetaEntity), 'Grants')
     expect(names(grants?.entities ?? [])).toContain('Auto-Turret')
   })
 
   test('an entity with nothing nested resolves to no groups at all', () => {
-    const plain = SalvageUnionReference.Systems.all().find((s) => s.name === 'Red Laser')
+    const plain = SalvageUnionReference.Systems.getByName('Red Laser')
     if (!plain) throw new Error('fixture missing: Red Laser')
     expect(resolveNestedEntities(plain as SURefMetaEntity)).toEqual([])
   })

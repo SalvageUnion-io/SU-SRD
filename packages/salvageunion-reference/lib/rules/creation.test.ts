@@ -38,7 +38,7 @@ import {
 const CORE_CLASS_NAMES = ['Engineer', 'Hacker', 'Hauler', 'Salvager', 'Scout', 'Soldier'] as const
 
 function classByName(name: string): SURefClass {
-  const cls = SalvageUnionReference.Classes.find((c) => c.name === name)
+  const cls = SalvageUnionReference.Classes.getByName(name)
   if (!cls) throw new Error(`class "${name}" not found`)
   return cls
 }
@@ -296,7 +296,7 @@ describe('crawlerWeaponSlots / crawlerMaxSpBonus (stored mutations, never string
   })
 
   it('the REAL Battle type mutations yield 2 slots and +5 max SP', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle?.mutations).toBeDefined()
     expect(crawlerWeaponSlots(battle?.mutations)).toBe(2)
     expect(crawlerMaxSpBonus(battle?.mutations)).toBe(5)

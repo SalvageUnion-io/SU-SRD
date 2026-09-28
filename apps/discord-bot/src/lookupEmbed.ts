@@ -315,11 +315,9 @@ function footerFor(entity: SURefEntity): string {
  * shed trailing description with a link-out note rather than emit an invalid
  * embed. Measures rendered markdown (URLs included).
  *
- * Sheds **description**, where `gameEmbed`'s `enforceEmbedLimits` sheds
- * **fields**. That is not duplication: a lookup entry is one long description
- * with a few fields beside it, and a sheet is the other way round, so each
- * trims the part that actually holds its content. `stripDanglingLink` and the
- * per-element caps are shared via `format.ts`.
+ * Sheds **description**, because a lookup entry is one long description with
+ * a few fields beside it. `stripDanglingLink` and the caps come from
+ * `format.ts`.
  */
 function enforce(embed: LookupEmbed): LookupEmbed {
   embed.title = truncate(embed.title, LIMIT.title)

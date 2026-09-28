@@ -62,7 +62,7 @@ const OK: StepGateResult = { ok: true }
 
 function findClass(classId: string): SURefClass | undefined {
   if (!classId) return undefined
-  return SalvageUnionReference.Classes.find((c) => c.id === classId)
+  return SalvageUnionReference.Classes.getById(classId)
 }
 
 /**
@@ -87,11 +87,11 @@ function coreTreesOf(cls: SURefClass | undefined): ClassCoreTrees | undefined {
 }
 
 function findAbility(abilityId: string): SURefAbility | undefined {
-  return SalvageUnionReference.Abilities.find((a) => a.id === abilityId)
+  return SalvageUnionReference.Abilities.getById(abilityId)
 }
 
 function findEquipment(equipmentId: string): SURefEquipment | undefined {
-  return SalvageUnionReference.Equipment.find((e) => e.id === equipmentId)
+  return SalvageUnionReference.Equipment.getById(equipmentId)
 }
 
 function classAbilityGate(form: PilotWizardFormState): StepGateResult {

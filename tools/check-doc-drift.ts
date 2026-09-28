@@ -622,7 +622,6 @@ export function checkSupersededAdrCitations(root: string): CheckResult {
  * owner, not a way to silence a real dead symbol.
  */
 const NOT_COMPONENT_LIB_SYMBOLS = new Map<string, string>([
-  ['Story', "@ladle/react's story type, not a component"],
   ['Foundations', 'Ladle nav namespace (a story `title:` prefix)'],
   ['Atoms', 'Ladle nav namespace'],
   ['Compositions', 'Ladle nav namespace'],

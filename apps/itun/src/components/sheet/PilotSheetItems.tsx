@@ -18,7 +18,7 @@ import {
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
-import type { ItemCondition } from '../../lib/schemas/mech'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'

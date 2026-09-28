@@ -12,9 +12,6 @@ import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import type { ChassisStats } from './derivedStats.js'
 import {
-  clampCrawlerCurrentStats,
-  clampMechCurrentStats,
-  clampPilotCurrentStats,
   crawlerMaxSP,
   crawlerMaxSPParts,
   injuryMaxHpPenalty,
@@ -88,21 +85,6 @@ describe('pilot derivation', () => {
     expect(isPilotDead(dying)).toBe(true)
     expect(isPilotDead({})).toBe(false)
   })
-
-  it('clamps current HP/AP down to the derived maxima', () => {
-    const pilot = {
-      maxHpModifier: 0,
-      injuries: [{ severity: 'major' as const, note: '' }], // maxHP 8
-      currentHP: 10,
-      currentAP: 5,
-    }
-    expect(clampPilotCurrentStats(pilot)).toEqual({ currentHP: 8 })
-  })
-
-  it('returns an empty patch when nothing exceeds the maxima', () => {
-    expect(clampPilotCurrentStats({ currentHP: 3, currentAP: 2 })).toEqual({})
-    expect(clampPilotCurrentStats({})).toEqual({})
-  })
 })
 
 // House choice: Stat Training is ALWAYS derived from the crawler tier —
@@ -171,14 +153,6 @@ describe('pilot Stat Training follows the crawler tech level', () => {
     expect(pilotMaxHP({ injuries, crawlerTechLevel: 3 })).toBe(2)
     expect(isPilotDead({ injuries, crawlerTechLevel: 3 })).toBe(false)
   })
-
-  it('clamps current HP/AP against the tier-derived maxima', () => {
-    expect(clampPilotCurrentStats({ crawlerTechLevel: 3, currentHP: 14, currentAP: 7 })).toEqual({})
-    expect(clampPilotCurrentStats({ crawlerTechLevel: 2, currentHP: 14, currentAP: 7 })).toEqual({
-      currentHP: 12,
-      currentAP: 6,
-    })
-  })
 })
 
 // ---------------------------------------------------------------------------
@@ -226,20 +200,6 @@ describe('mech derivation', () => {
     if (!real) return
     const mech = { chassisRef: real.name, maxSpModifier: 1 }
     expect(mechMaxSP(mech)).toBe((real.structurePoints ?? 0) + 1)
-  })
-
-  it('clamps current SP/EP/Heat to derived maxima', () => {
-    const mech = {
-      ...bare,
-      maxHeatModifier: -1, // heat cap shrank to 4
-      currentSP: 12,
-      currentEP: 6,
-      currentHeat: 5,
-    }
-    expect(clampMechCurrentStats(mech, chassis)).toEqual({
-      currentSP: 10,
-      currentHeat: 4,
-    })
   })
 })
 
@@ -474,7 +434,7 @@ describe('crawler derivation', () => {
   })
 
   it('the Battle type’s +5 applies AT READ from its stored max_sp_bonus mutation', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle).toBeDefined()
     const base = crawlerMaxSP({ techLevel: 'tech-1' })
     // By id AND by name (stored type refs resolve id-or-name, like bay refs).
@@ -485,7 +445,7 @@ describe('crawler derivation', () => {
   })
 
   it('type bonus stacks with the hand-edit modifier, decomposed by crawlerMaxSPParts', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     const parts = crawlerMaxSPParts({
       techLevel: 'tech-1',
       type: battle?.id,
@@ -505,13 +465,5 @@ describe('crawler derivation', () => {
   it('unresolvable techLevel slug yields the modifier alone (≥ 0)', () => {
     expect(crawlerMaxSP({ techLevel: 'garbage' })).toBe(0)
     expect(crawlerMaxSP({ techLevel: 'garbage', maxSpModifier: 5 })).toBe(5)
-  })
-
-  it('clamps current SP to the derived max', () => {
-    const max = crawlerMaxSP({ techLevel: 'tech-1' })
-    expect(clampCrawlerCurrentStats({ techLevel: 'tech-1', currentSP: max + 10 })).toEqual({
-      currentSP: max,
-    })
-    expect(clampCrawlerCurrentStats({ techLevel: 'tech-1', currentSP: max })).toEqual({})
   })
 })

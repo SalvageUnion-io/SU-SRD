@@ -79,6 +79,7 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
@@ -90,7 +91,6 @@ import { CrawlerBayCard } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
 import { SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
-import { runWrite } from './sheetWrite'
 
 type CrawlerSheetProps = {
   crawler: Crawler

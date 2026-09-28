@@ -357,25 +357,3 @@ export function searchIn<T extends SURefEntity>(
 
   return results.map((r) => r.entity as T & { schemaName: SURefEnumSchemaName })
 }
-
-/**
- * Get search suggestions based on partial query
- * Returns unique entity names that match the query
- */
-export function getSuggestions(
-  query: string,
-  options?: {
-    schemas?: SURefEnumSchemaName[]
-    limit?: number
-  }
-): string[] {
-  const results = search({
-    query,
-    schemas: options?.schemas,
-    limit: options?.limit || 10,
-  })
-
-  // Return unique names
-  const names = new Set(results.map((r) => r.entityName))
-  return Array.from(names)
-}

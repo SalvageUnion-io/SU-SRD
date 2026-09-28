@@ -83,6 +83,7 @@ describe('BaseModel name/slug indexes', () => {
     expect(model.getByName('Unique')?.id).toBe('c')
     // Identity against the model's own rows, not `rows`: the model stamps
     // `schemaName` on a shallow copy and never mutates what it was given.
+    // biome-ignore lint/plugin/noModelFindByKey: the linear scan is the reference the index is proven against
     expect(model.getByName('Repeated')).toBe(model.all().find((r) => r.name === 'Repeated'))
     expect(rows[0]).not.toHaveProperty('schemaName')
   })

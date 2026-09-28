@@ -9,7 +9,6 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { halfSalvageScrap } from '../../../lib/rules/salvage'
 import { must } from '../../__tests__/must'
 import {
   cycleCondition,
@@ -80,14 +79,6 @@ describe('repairScrapCost', () => {
     expect(repairScrapCost(5)).toBe(2)
     expect(repairScrapCost(4)).toBe(2)
     expect(repairScrapCost(7)).toBe(3)
-  })
-
-  test('agrees with halfSalvageScrap — one rule, not two', () => {
-    // The salvage side of the same phrase lives in src/lib/rules/salvage.ts and
-    // has always floored. These disagreed for every odd Salvage Value.
-    for (const sv of [1, 2, 3, 4, 5, 6, 7, 16]) {
-      expect(repairScrapCost(sv)).toBe(halfSalvageScrap(sv))
-    }
   })
 
   test('minimum 1, even for SV 0/undefined', () => {

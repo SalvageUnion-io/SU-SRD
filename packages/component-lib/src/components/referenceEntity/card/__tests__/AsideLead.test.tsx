@@ -29,14 +29,14 @@ const FLOAT = 'md:float-left'
 
 /** The Engineer — a class with artwork and ability trees. */
 const engineer = () => {
-  const found = SalvageUnionReference.Classes.all().find((c) => c.name === 'Engineer')
+  const found = SalvageUnionReference.Classes.getByName('Engineer')
   if (!found) throw new Error('Engineer fixture missing')
   return found
 }
 
 /** The Mule — an artwork-bearing chassis carrying patterns with loadouts. */
 const mule = () => {
-  const found = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Mule')
+  const found = SalvageUnionReference.Chassis.getByName('Mule')
   if (!found) throw new Error('Mule fixture missing')
   return found
 }

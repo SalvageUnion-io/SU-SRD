@@ -1,6 +1,6 @@
-import type { Story } from '@ladle/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, radius, space, tracking, weight } from '../design/tokens'
+import type { Story } from './_harness'
 import { Caption } from './_harness'
 
 export default {
@@ -207,7 +207,7 @@ export const Conventions: Story = () => (
         padding: space[16],
       }}
     >
-      {`import type { Story } from '@ladle/react'
+      {`import type { Story } from './_harness'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Stat } from './Stat'
 

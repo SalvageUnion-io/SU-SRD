@@ -13,13 +13,12 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
-import type { SURefAbility, SURefClass } from '../schemas/index.js'
+import type { SURefClass } from '../schemas/index.js'
 import type { AdvancementDataset } from './advancement.js'
 import {
   advancementOptionsFor,
   gateTreeFor,
   hybridGrantedTrees,
-  inferOriginClass,
   originsForHybrid,
   resolveAdvancementTrees,
 } from './advancement.js'
@@ -235,91 +234,6 @@ describe('resolveAdvancementTrees', () => {
     const trees = resolveAdvancementTrees(data, 'Engineer', 'Cyborg')
     expect(trees.originUnresolved).toBe(true)
     expect(trees.sealed).toEqual([])
-  })
-})
-
-describe('inferOriginClass', () => {
-  const treesOf = (names: string[]): string[] => {
-    const abilities = SalvageUnionReference.Abilities.all() as SURefAbility[]
-    return names.map((n) => {
-      const a = abilities.find((x) => x.name === n)
-      if (a === undefined) throw new Error(`no such ability: ${n}`)
-      return a.tree
-    })
-  }
-
-  it('recovers the origin of any rules-legal pilot, from either end', () => {
-    // The guarantee: 6 core abilities = 3 in the gate tree (which the hybrid
-    // grants, so it proves nothing) + 3 more that only the origin owns.
-    for (const { hybrid, edges } of RING) {
-      for (const { origin, gate, sealed } of edges) {
-        const held = [gate, gate, gate, ...sealed]
-        const result = inferOriginClass(data, hybrid, held)
-        expect(result.state).toBe('determined')
-        expect(result.origin).toBe(origin)
-      }
-    }
-  })
-
-  it('resolves from a single exclusive ability', () => {
-    // One Hacking ability is enough: no Soldier could ever hold it.
-    const result = inferOriginClass(data, 'Cyborg', treesOf(['Hacking Kit']))
-    expect(result.state).toBe('determined')
-    expect(result.origin).toBe('Hacker')
-  })
-
-  it('is ambiguous when every held tree is one the hybrid grants anyway', () => {
-    // Augmentation and Gladiatorial Combat are both conferred BY Cyborg, so
-    // holding them says nothing about which side the pilot came from.
-    const result = inferOriginClass(data, 'Cyborg', ['Augmentation', 'Gladiatorial Combat'])
-    expect(result.state).toBe('ambiguous')
-    expect(result.origin).toBeUndefined()
-    expect(result.candidates.slice().sort()).toEqual(['Hacker', 'Soldier'])
-  })
-
-  it('is ambiguous for a pilot with no abilities at all', () => {
-    expect(inferOriginClass(data, 'Cyborg', []).state).toBe('ambiguous')
-  })
-
-  it('is contradictory when both origins are evidenced', () => {
-    // Only reachable by free editing — no legal pilot holds both.
-    const result = inferOriginClass(data, 'Cyborg', ['Hacking', 'Tactical Warfare'])
-    expect(result.state).toBe('contradictory')
-    expect(result.origin).toBeUndefined()
-  })
-
-  it('reports unexplained trees without letting them override real evidence', () => {
-    // A Hacker-turned-Cyborg who free-edited in a Forging ability is still,
-    // evidently, a Hacker. The stray tree is surfaced, not weighted.
-    const result = inferOriginClass(data, 'Cyborg', ['Hacking', 'Electronics', 'Forging'])
-    expect(result.state).toBe('determined')
-    expect(result.origin).toBe('Hacker')
-    expect(result.unexplainedTrees).toEqual(['Forging'])
-  })
-
-  it('returns no candidates for a class that is not a hybrid', () => {
-    expect(inferOriginClass(data, 'Hacker', ['Hacking']).candidates).toEqual([])
-  })
-})
-
-describe('the exclusivity guarantee inference rests on', () => {
-  it('gives each hybrid two origins whose remaining core trees are disjoint', () => {
-    // If these ever overlap, inferOriginClass silently becomes a coin flip.
-    for (const { hybrid } of RING) {
-      const granted = hybridGrantedTrees(data, hybrid)
-      const exclusive = originsForHybrid(data, hybrid).map((name) =>
-        (data.classes.find((c) => c.name === name)?.coreTrees ?? []).filter(
-          (t) => !granted.includes(t)
-        )
-      )
-      expect(exclusive).toHaveLength(2)
-      const a = exclusive[0] ?? []
-      const b = exclusive[1] ?? []
-      expect(a.filter((t) => b.includes(t))).toEqual([])
-      // Two exclusive trees each is what makes 3 non-gate core picks decisive.
-      expect(a).toHaveLength(2)
-      expect(b).toHaveLength(2)
-    }
   })
 })
 

@@ -1,10 +1,8 @@
 /**
  * Pure embed-shaping tests — no discord.js interaction objects needed.
- * Uses real reference data (preloaded) so /lookup shapes match production.
  */
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { entityUrl, ROLL_ATTRIBUTION, truncate } from '../format.js'
+import { ROLL_ATTRIBUTION, stripDanglingLink, truncate } from '../format.js'
 
 describe('truncate', () => {
   test('passes short text through and caps long text', () => {
@@ -15,13 +13,26 @@ describe('truncate', () => {
   })
 })
 
-describe('entityUrl', () => {
-  test('matches the schema/item route shape', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]
-    if (!chassis) throw new Error('expected at least one chassis in reference data')
-    expect(entityUrl('chassis', chassis)).toMatch(
-      /^https:\/\/salvageunion\.io\/schema\/chassis\/item\/[a-z0-9-]+$/
-    )
+describe('stripDanglingLink', () => {
+  test('leaves a complete trailing link alone', () => {
+    const text = 'before [Armour Plating](https://salvageunion.io/x)'
+    expect(stripDanglingLink(text)).toBe(text)
+  })
+
+  test('drops a link cut before its closing bracket', () => {
+    expect(stripDanglingLink('kept [Armour Pla')).toBe('kept')
+  })
+
+  test('drops a link cut inside the URL', () => {
+    expect(stripDanglingLink('kept [Armour Plating](https://salvage')).toBe('kept')
+  })
+
+  test('leaves text with no bracket at all alone', () => {
+    expect(stripDanglingLink('no links here')).toBe('no links here')
+  })
+
+  test('handles an empty string', () => {
+    expect(stripDanglingLink('')).toBe('')
   })
 })
 

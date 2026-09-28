@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { containerOf, gameIdOf, isOnShelf, moveTo, sameContainer } from '../container'
+import { containerOf, moveTo, sameContainer } from '../container'
 
 /** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
 const DEFAULT_WORKSPACE_ID = 'default-workspace'
@@ -46,20 +46,6 @@ describe('the Default workspace is the shelf, not a game', () => {
 })
 
 describe('helpers', () => {
-  test('isOnShelf agrees with containerOf', () => {
-    expect(isOnShelf({ gameId: null })).toBe(true)
-    expect(isOnShelf({ gameId: 'g1' })).toBe(false)
-    expect(isOnShelf({ workspaceId: DEFAULT_WORKSPACE_ID })).toBe(true)
-  })
-
-  test('gameIdOf returns null for a shelved entity rather than undefined', () => {
-    // Callers write this straight into a nullable column, so the distinction
-    // between null and undefined has to survive the helper.
-    expect(gameIdOf({ gameId: null })).toBeNull()
-    expect(gameIdOf({})).toBeNull()
-    expect(gameIdOf({ gameId: 'g1' })).toBe('g1')
-  })
-
   test('moveTo produces a patch that round-trips', () => {
     expect(moveTo({ kind: 'shelf' })).toEqual({ gameId: null })
     expect(moveTo({ kind: 'game', gameId: 'g1' })).toEqual({ gameId: 'g1' })

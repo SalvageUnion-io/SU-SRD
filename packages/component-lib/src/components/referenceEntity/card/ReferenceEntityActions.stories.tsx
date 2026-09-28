@@ -1,7 +1,7 @@
-import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import type { SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
 import { extractVisibleActions, SalvageUnionReference } from 'salvageunion-reference'
+import type { Story } from '../../../stories/_harness'
 import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { resolveCardTone } from './entityCardTone'
 import { ReferenceEntityCard } from './ReferenceEntityCard'

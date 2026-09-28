@@ -24,7 +24,7 @@ import {
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const classByName = (name: string) => {
-  const found = SalvageUnionReference.Classes.all().find((c) => c.name === name)
+  const found = SalvageUnionReference.Classes.getByName(name)
   if (!found) throw new Error(`class fixture missing: ${name}`)
   return found
 }

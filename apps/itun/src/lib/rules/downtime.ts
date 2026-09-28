@@ -26,9 +26,8 @@
  *   Downtime. Paying it is a separate economy action (a later package) —
  *   this module only names the cost for the prompt.
  *
- * This module is PURE (no React, no store, no randomness): it resolves the
- * workspace scope from the SoftLink graph and computes per-entity patches the
- * caller applies through the entity store. Per ADR-007 every step is
+ * This module is PURE (no React, no store, no randomness): it computes
+ * per-entity patches the caller applies through the entity store. Per ADR-007 every step is
  * individually skippable — the runner dialog shows what will be applied and
  * the player deselects anything the table rules differently.
  */
@@ -36,6 +35,10 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   matchesRef,
+  mechMaxEP,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
   resolveChassisRef,
   resolveGauge,
   resolveInstalledRef,
@@ -43,10 +46,9 @@ import {
 import { parseCrawlerTechLevel } from '../crawlerLevel'
 import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler } from '../schemas/crawler'
-import type { ItemConditionMap, Mech } from '../schemas/mech'
+import type { ItemConditionMap } from '../schemas/itemCondition'
+import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
-import type { SoftLink } from '../schemas/softLink'
-import { mechMaxEP, mechMaxSP, pilotMaxAP, pilotMaxHP } from './derivedStats'
 
 // ---------------------------------------------------------------------------
 // Steps
@@ -83,49 +85,6 @@ export function allDowntimeSteps(): DowntimeSteps {
 
 /** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime (rules C3). */
 export const DOWNTIME_UPKEEP_SCRAP = 5
-
-// ---------------------------------------------------------------------------
-// Scope — the crawler's workspace over the SoftLink graph
-// ---------------------------------------------------------------------------
-
-export type DowntimeScope = {
-  /** Every pilot wired to the crawler (pilot-to-crawler links). */
-  pilots: Pilot[]
-  /** Each crew pilot's mech (mech-to-pilot links), deduplicated. */
-  mechs: Mech[]
-}
-
-type DowntimeScopeInput = {
-  crawler: Pick<Crawler, 'id'>
-  pilots: Pilot[]
-  mechs: Mech[]
-  links: SoftLink[]
-}
-
-/**
- * Resolves which pilots and mechs Downtime touches: the crawler's crew
- * (pilot-to-crawler links) plus each crew pilot's mech (mech-to-pilot links).
- * Orphaned links (deleted endpoints) resolve to nothing and are skipped.
- */
-export function resolveDowntimeScope({
-  crawler,
-  pilots,
-  mechs,
-  links,
-}: DowntimeScopeInput): DowntimeScope {
-  const crewIds = links
-    .filter((l) => l.type === 'pilot-to-crawler' && l.to.id === crawler.id)
-    .map((l) => l.from.id)
-  const crewIdSet = new Set(crewIds)
-  const crewPilots = pilots.filter((p) => crewIdSet.has(p.id))
-
-  const mechIds = new Set(
-    links.filter((l) => l.type === 'mech-to-pilot' && crewIdSet.has(l.to.id)).map((l) => l.from.id)
-  )
-  const crewMechs = mechs.filter((m) => mechIds.has(m.id))
-
-  return { pilots: crewPilots, mechs: crewMechs }
-}
 
 // ---------------------------------------------------------------------------
 // Med Bay gate (p.223)
@@ -348,26 +307,6 @@ function isNeverRecharge(ref: string): boolean {
   const equipment = SalvageUnionReference.Equipment.find((e) => matchesRef(e, ref))
   const name = equipment?.name ?? ref
   return NEVER_RECHARGE_EQUIPMENT.some((n) => n === name)
-}
-
-export type HealableInjuries = {
-  /** Minor injuries that heal this Downtime. */
-  minor: number
-  /** Major injuries that heal this Downtime. */
-  major: number
-  /** Injuries that stay (Med Bay Tech Level too low / bay not operational). */
-  remaining: number
-}
-
-/** How many of the pilot's injuries this Downtime heals, per the Med Bay bands. */
-export function healableInjuries(
-  pilot: Pick<Pilot, 'injuries'>,
-  medBay: MedBayStatus
-): HealableInjuries {
-  const injuries = pilot.injuries ?? []
-  const minor = medBay.healsMinor ? injuries.filter((i) => i.severity === 'minor').length : 0
-  const major = medBay.healsMajor ? injuries.filter((i) => i.severity === 'major').length : 0
-  return { minor, major, remaining: injuries.length - minor - major }
 }
 
 /**

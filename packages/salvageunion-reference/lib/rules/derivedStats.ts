@@ -55,9 +55,6 @@ export const PILOT_BASE_INVENTORY_SLOTS = 6
  * healthy pilot renders at 0 HP; the bot's own comment records the same worry
  * ("would render a fresh, undamaged crew as wiped out").
  *
- * It is NOT `clampPilotCurrentStats` / `clampMechCurrentStats`, which are
- * write-time clamps that lower an over-max stored value and deliberately leave
- * `undefined` alone. This is the read-time resolution.
  *
  * @param current - The stored value, or `undefined` if never set
  * @param max - The current derived maximum
@@ -256,26 +253,6 @@ export function pilotMaxInventorySlots(pilot: PilotDerivationInput): number {
 /** Dead-state check: derived max HP ≤ 0 means the pilot is dead. */
 export function isPilotDead(pilot: PilotDerivationInput): boolean {
   return pilotMaxHP(pilot) <= 0
-}
-
-/**
- * Clamp current HP/AP to the derived maxima (floor 0). Run on every recompute
- * — e.g. after an injury is added or a modifier edited — and persist the
- * returned patch when non-empty.
- */
-export function clampPilotCurrentStats(
-  pilot: PilotDerivationInput & { currentHP?: number; currentAP?: number }
-): Partial<{ currentHP: number; currentAP: number }> {
-  const patch: Partial<{ currentHP: number; currentAP: number }> = {}
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
-  if (pilot.currentHP !== undefined && pilot.currentHP > maxHP) {
-    patch.currentHP = maxHP
-  }
-  if (pilot.currentAP !== undefined && pilot.currentAP > maxAP) {
-    patch.currentAP = maxAP
-  }
-  return patch
 }
 
 // ---------------------------------------------------------------------------
@@ -542,30 +519,6 @@ export function mechMaxCargo(
 }
 
 /**
- * Clamp current SP/EP/Heat to the derived maxima. Run after any modifier or
- * chassis change and persist the returned patch when non-empty.
- * (Cargo is a slot count, not a current/max pair — over-capacity cargo is
- * displayed honestly, never clamped, per design §2.12.)
- */
-export function clampMechCurrentStats(
-  mech: MechDerivationInput & { currentSP?: number; currentEP?: number; currentHeat?: number },
-  chassis?: ChassisStats | null
-): Partial<{ currentSP: number; currentEP: number; currentHeat: number }> {
-  const c = resolveChassis(mech, chassis)
-  const patch: Partial<{ currentSP: number; currentEP: number; currentHeat: number }> = {}
-  if (mech.currentSP !== undefined && mech.currentSP > mechMaxSP(mech, c)) {
-    patch.currentSP = mechMaxSP(mech, c)
-  }
-  if (mech.currentEP !== undefined && mech.currentEP > mechMaxEP(mech, c)) {
-    patch.currentEP = mechMaxEP(mech, c)
-  }
-  if (mech.currentHeat !== undefined && mech.currentHeat > mechMaxHeat(mech, c)) {
-    patch.currentHeat = mechMaxHeat(mech, c)
-  }
-  return patch
-}
-
-/**
  * The unified read-time conditions vocabulary for a mech (plan 2.3): the
  * free-form `conditions[]` merged with the automation-written boolean flags
  * (shutdown → 'Shutdown', vulnerable → 'Vulnerable', destroyed → 'Destroyed'),
@@ -680,18 +633,4 @@ export function crawlerMaxSPParts(crawler: CrawlerDerivationInput): CrawlerMaxSP
 /** Derived crawler max SP — `crawlerMaxSPParts(crawler).total`. */
 export function crawlerMaxSP(crawler: CrawlerDerivationInput): number {
   return crawlerMaxSPParts(crawler).total
-}
-
-/**
- * Clamp current SP to the derived max. Persist the returned patch when
- * non-empty (e.g. after editing maxSpModifier or downgrading tech level).
- */
-export function clampCrawlerCurrentStats(
-  crawler: CrawlerDerivationInput & { currentSP?: number }
-): Partial<{ currentSP: number }> {
-  const maxSP = crawlerMaxSP(crawler)
-  if (crawler.currentSP !== undefined && crawler.currentSP > maxSP) {
-    return { currentSP: maxSP }
-  }
-  return {}
 }

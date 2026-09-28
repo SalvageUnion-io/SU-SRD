@@ -12,9 +12,8 @@ import { EntitySearcher, ModalShell } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefCrawler, SURefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isWeaponSystem } from 'salvageunion-reference/rules'
+import { computeCrawlerCapacity, isWeaponSystem } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import type { Crawler } from '../../lib/schemas/crawler'
 
 type CrawlerSystemsEditModalProps = {

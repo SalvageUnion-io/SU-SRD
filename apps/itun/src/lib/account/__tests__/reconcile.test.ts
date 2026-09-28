@@ -12,7 +12,6 @@ import { useEntityStore } from '../../../stores/entityStore'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import type { LocalWork } from '../reconcile'
 import {
-  captureSessionWork,
   combineBundles,
   countWork,
   reconcile,
@@ -73,16 +72,6 @@ describe('countWork', () => {
 
   test('nothing held is zero, so the banner stays away', () => {
     expect(countWork(EMPTY)).toBe(0)
-  })
-})
-
-describe('captureSessionWork', () => {
-  test('reads what the stores are holding, synchronously', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'cap-1' }))
-
-    const work = captureSessionWork()
-    expect(work.pilots).toHaveLength(1)
-    expect(Array.isArray(work.encounterNpcs)).toBe(true)
   })
 })
 

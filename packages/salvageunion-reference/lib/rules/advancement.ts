@@ -100,23 +100,6 @@ export type AdvancementTrees = {
   originUnresolved: boolean
 }
 
-/** How confidently an origin was recovered from a pilot's held trees. */
-export type OriginInferenceState = 'determined' | 'ambiguous' | 'contradictory'
-
-export type OriginInference = {
-  state: OriginInferenceState
-  /** Set only when `state` is 'determined'. */
-  origin?: string
-  /** The Core classes this hybrid can be reached from, always populated. */
-  candidates: readonly string[]
-  /**
-   * Held trees that no candidate origin and no granted tree explains — the
-   * fingerprint of a free-edited pilot. Reported so a surface can mention it;
-   * it never changes what is sealed.
-   */
-  unexplainedTrees: readonly string[]
-}
-
 function classNamed(
   data: AdvancementDataset,
   name: string | undefined
@@ -237,56 +220,6 @@ export function advancementOptionsFor(
   }
 
   return options
-}
-
-/**
- * Recover which Core class a hybrid pilot advanced out of, from the trees they
- * hold abilities in.
- *
- * This is reliable rather than a guess, and the rules are why: advancing
- * legally takes 6 Core abilities — 3 in the gate tree, which the hybrid grants
- * and which therefore proves nothing, plus 3 more that can only have come from
- * the origin's other two core trees. Those two trees are EXCLUSIVE to that
- * origin (verified disjoint across all five hybrids), so a rules-legal pilot
- * always carries at least three abilities only one origin can explain.
- *
- * Free Edit means that guarantee can be absent, hence three states:
- * - `determined`     — exactly one candidate is evidenced
- * - `ambiguous`      — no evidence either way (a pilot with no abilities, or
- *                      only abilities in trees the hybrid grants anyway)
- * - `contradictory`  — both candidates are evidenced, which no legal pilot can be
- *
- * Trees that no candidate explains are reported in `unexplainedTrees` but do
- * NOT change the verdict: positive evidence still resolves the origin, so a
- * pilot who free-edited one stray ability keeps their seals.
- */
-export function inferOriginClass(
-  data: AdvancementDataset,
-  hybridName: string,
-  heldTrees: readonly string[]
-): OriginInference {
-  const candidates = originsForHybrid(data, hybridName)
-  const granted = hybridGrantedTrees(data, hybridName)
-  const held = unique(heldTrees)
-
-  const evidenced: string[] = []
-  const explained = new Set<string>(granted)
-  for (const candidate of candidates) {
-    const cls = classNamed(data, candidate)
-    const exclusive = (cls?.coreTrees ?? []).filter((t) => !granted.includes(t))
-    for (const t of cls?.coreTrees ?? []) explained.add(t)
-    if (exclusive.some((t) => held.includes(t))) evidenced.push(candidate)
-  }
-
-  const unexplainedTrees = held.filter((t) => !explained.has(t))
-
-  if (evidenced.length === 1) {
-    return { state: 'determined', origin: evidenced[0], candidates, unexplainedTrees }
-  }
-  if (evidenced.length > 1) {
-    return { state: 'contradictory', candidates, unexplainedTrees }
-  }
-  return { state: 'ambiguous', candidates, unexplainedTrees }
 }
 
 /**

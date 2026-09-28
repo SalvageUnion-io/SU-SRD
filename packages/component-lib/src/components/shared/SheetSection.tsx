@@ -98,12 +98,9 @@ export function SectionManageButton({ label, onClick, className }: SectionManage
 }
 
 // ---------------------------------------------------------------------------
-// Per-card controls (redesign G4) — the ✕ remove (+ optional ⇄ swap) cluster
-// renders icon-only in the entity-card HEADER top-right via Card's card-level
-// `controls` slot (never in the foot). The `cardRemoveControls` factory that
-// builds that cluster, plus the shared editing cue it stamps onto the card,
-// live in `./editLanguage` (a components-free module). `CardRemoveButton` below
-// is the standalone button variant.
+// Per-card controls (redesign G4) — `CardRemoveButton` is the standalone ✕
+// remove button. The shared editing cue lives in `./editLanguage` (a
+// components-free module).
 // ---------------------------------------------------------------------------
 
 type CardRemoveButtonProps = {

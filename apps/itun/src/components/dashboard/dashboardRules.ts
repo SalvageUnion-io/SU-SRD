@@ -23,24 +23,31 @@ import type {
   SURefMetaEntity,
 } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { canActivateAction, resolveChassisRef, resolveRef } from 'salvageunion-reference/rules'
-import type { CoreRollBand } from '../../lib/rules/coreMechanic'
-import { describeOverloadOutcome } from '../../lib/rules/coreMechanic'
-import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
-import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type {
+  CoreRollBand,
   CriticalDamageEffect,
   CriticalInjuryEffect,
+  HeatCheckEffect,
   MechDamageEffect,
   PilotDamageEffect,
-} from '../../lib/rules/takeDamage'
+  Roll,
+} from 'salvageunion-reference/rules'
 import {
   applyMechDamage,
   applyPilotDamage,
+  canActivateAction,
+  clampHeat,
+  describeOverloadOutcome,
   performCriticalDamage,
   performCriticalInjury,
-} from '../../lib/rules/takeDamage'
-import type { ItemCondition, Mech } from '../../lib/schemas/mech'
+  performHeatCheck,
+  performPush,
+  resolveChassisRef,
+  resolveRef,
+} from 'salvageunion-reference/rules'
+import { heatCheckPatch } from '../../lib/rules/heatCheck'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
+import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
 import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
@@ -463,20 +470,6 @@ export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
     g.items.push(a)
   }
   return groups
-}
-
-/** Compact micro-meta tags for a deck card (range / damage / traits). */
-export function actionMicroMeta(pa: PlayAction): string[] {
-  const bits: string[] = []
-  const ranges = pa.action.range
-  if (ranges && ranges.length > 0) bits.push(ranges.map((r) => r[0]).join('/'))
-  const dmg = pa.action.damage
-  if (dmg) bits.push(`${dmg.amount} ${dmg.damageType}`)
-  for (const t of pa.action.traits ?? []) {
-    const label = t.type.toUpperCase()
-    bits.push(t.amount != null ? `${label} ${t.amount}` : label)
-  }
-  return bits
 }
 
 // ---------------------------------------------------------------------------

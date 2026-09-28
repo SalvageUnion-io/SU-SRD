@@ -33,13 +33,12 @@
  * module never picks for the player.
  */
 
+import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
-import type { Roll } from './heatCheck'
-import type { TechLevel } from './types'
 
 /**
  * The numeric scrap tech levels (pool bucket keys are tl1..tl6).

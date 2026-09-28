@@ -23,7 +23,7 @@ function fixedRoller(...rolls: number[]) {
 
 describe('rollOnTable', () => {
   test('flat table: one roll, range key and value from the matched band', () => {
-    const core = SalvageUnionReference.RollTables.find((t) => t.name === 'Core Mechanic')
+    const core = SalvageUnionReference.RollTables.getByName('Core Mechanic')
     expect(core).toBeDefined()
     const outcome = rollOnTable(defined(core).table, fixedRoller(20))
     if (!outcome.success || outcome.kind !== 'flat') throw new Error('expected flat success')
@@ -49,7 +49,7 @@ describe('rollOnTable', () => {
   })
 
   test('out-of-range roll surfaces the validator message', () => {
-    const core = SalvageUnionReference.RollTables.find((t) => t.name === 'Core Mechanic')
+    const core = SalvageUnionReference.RollTables.getByName('Core Mechanic')
     const outcome = rollOnTable(defined(core).table, fixedRoller(21))
     if (outcome.success) throw new Error('expected failure')
     expect(outcome.error).toContain('between 1 and 20')

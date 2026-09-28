@@ -15,7 +15,17 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import {
+  crawlerMaxSP,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
@@ -27,14 +37,6 @@ import {
   pilots,
   softLinks,
 } from '../../db/index'
-import {
-  crawlerMaxSP,
-  mechMaxEP,
-  mechMaxHeat,
-  mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
-} from '../../rules/derivedStats'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'

@@ -26,7 +26,7 @@ describe('itunEntityHref', () => {
   it('links entities whose schema has an SRD page', () => {
     // ORM entities carry their own `schemaName`, so this is the real shape
     // every card passes to the provider.
-    const chassis = must(SalvageUnionReference.Chassis.find((c) => c.name === 'Mule'))
+    const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
     expect(itunEntityHref(chassis)).toBe('https://salvageunion.io/schema/chassis/item/mule')
   })
 

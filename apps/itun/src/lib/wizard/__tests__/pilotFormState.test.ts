@@ -1,6 +1,7 @@
 /** Unit tests for the pilot wizard form-state mappers (plan 3.1). */
+
 import { describe, expect, it } from 'bun:test'
-import { pilotMaxHP } from '../../rules/derivedStats'
+import { pilotMaxHP } from 'salvageunion-reference/rules'
 import {
   EMPTY_PILOT_FORM_STATE,
   pilotFormToCreateInput,

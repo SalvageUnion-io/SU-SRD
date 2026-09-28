@@ -7,7 +7,9 @@
  * (crawler-tech-levels.json); everything else is pure arithmetic on
  * hand-crafted pools. The d20 / random-Bay pick is injected.
  */
+
 import { describe, expect, it } from 'bun:test'
+import type { Roll } from 'salvageunion-reference/rules'
 import type { ScrapPool } from '../../schemas/crawler'
 import {
   bayGate,
@@ -28,7 +30,6 @@ import {
   UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../crawlerEconomy'
-import type { Roll } from '../heatCheck'
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */
 function seqRoll(...values: number[]): Roll {

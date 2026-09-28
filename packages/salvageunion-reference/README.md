@@ -39,8 +39,8 @@ const { Abilities, Chassis, Equipment, Systems, Modules } = SalvageUnionReferenc
 const allChassis = Chassis.all()
 console.log(`Total chassis: ${allChassis.length}`)
 
-// Find by predicate (same as Array.find)
-const atlas = Chassis.find((c) => c.name === 'Atlas')
+// Look up by name (indexed; getById / getBySlug likewise)
+const atlas = Chassis.getByName('Atlas')
 if (atlas) {
   console.log(`${atlas.name}: ${atlas.structurePoints} SP`)
 }
@@ -153,7 +153,7 @@ import type { SURefChassis, SURefEquipment, SURefSystem } from 'salvageunion-ref
 const { Chassis, Equipment } = SalvageUnionReference
 
 // Fully typed
-const atlas: SURefChassis | undefined = Chassis.find((c) => c.name === 'Atlas')
+const atlas: SURefChassis | undefined = Chassis.getByName('Atlas')
 
 // Type-safe queries
 const heavyEquipment: SURefEquipment[] = Equipment.findAll((e) => (e.techLevel ?? 0) >= 3)
