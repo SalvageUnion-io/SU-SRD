@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.3](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.2...salvageunion-reference-v2.13.3) (2026-09-28)
+
+
+### Performance Improvements
+
+* ship less JS [audit-2 P10] ([#1014](https://github.com/SalvageUnion-io/SU-SRD/issues/1014)) ([c1c2294](https://github.com/SalvageUnion-io/SU-SRD/commit/c1c22940be4edb668a8ce1edd366dc5af2cb0a85))
+
 ## [2.13.2](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.1...salvageunion-reference-v2.13.2) (2026-09-28)
 
 

@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.10.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.10.0...srd-v2.10.1) (2026-09-28)
+
+
+### Performance Improvements
+
+* ship less JS [audit-2 P10] ([#1014](https://github.com/SalvageUnion-io/SU-SRD/issues/1014)) ([c1c2294](https://github.com/SalvageUnion-io/SU-SRD/commit/c1c22940be4edb668a8ce1edd366dc5af2cb0a85))
+
 ## [2.10.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.9.4...srd-v2.10.0) (2026-09-26)
 
 
