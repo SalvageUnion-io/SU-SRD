@@ -268,6 +268,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 - **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom` only — one instance per app
 - **Dependencies** (declared by the library itself, catalogued where shared): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
 - **Stylesheets are exports, never side-effect imports**: `component-lib/styles/index.css`, `theme.css`, and `dashboard.css` (the `.pc-*` dashboard bundle, imported only by ITUN). No shipping library module imports `.css` — `bun run check styling` (its `srd-css` rule set) enforces it (audit PK-01)
+- **`"sideEffects": ["**/*.css"]`** in its `package.json`: no library module runs code at import, so a bundler may drop any module whose exports go unused. That is what keeps srd's every-page nav islands from shipping the whole library. A module that must run at import (a registration, a global patch) has to be added to that list, or production builds will silently tree-shake it away
 - **No backend/data-source dependency** — fully data-source agnostic
 
 ### Design Principles
