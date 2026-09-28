@@ -12,12 +12,7 @@
 
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
 import { BaseModel } from './BaseModel.js'
-import {
-  getDataMaps,
-  resetAllForTesting,
-  SalvageUnionReference,
-  SchemaNotLoadedError,
-} from './index.js'
+import { resetAllForTesting, SalvageUnionReference, SchemaNotLoadedError } from './index.js'
 
 // After all preload tests complete, restore the global preload state so
 // other test files that run after this one see loaded schemas.
@@ -264,33 +259,11 @@ describe('SalvageUnionReference — access before preload throws', () => {
   })
 })
 
-describe('SalvageUnionReference.preload({ validate })', () => {
-  // The trusted default skips the Zod parse (audit PK-04); dataCanonical.test.ts
-  // proves per file that the parse is a no-op. This is the end-to-end half:
-  // both load paths install identical rows.
-  it('a trusted and a validating load install identical rows', async () => {
-    resetAllForTesting()
-    await SalvageUnionReference.preload('all')
-    const trusted = getDataMaps().dataMap
-
-    resetAllForTesting()
-    await SalvageUnionReference.preload('all', { validate: true })
-    const validated = getDataMaps().dataMap
-
-    expect(Object.keys(validated).sort()).toEqual(Object.keys(trusted).sort())
-    expect(Object.keys(validated).length).toBeGreaterThan(20)
-    for (const id of Object.keys(trusted)) {
-      expect(validated[id]).toStrictEqual(trusted[id])
-    }
-  })
-
-  it('an unknown schema id still fails loudly on either path', async () => {
+describe('SalvageUnionReference.preload() with an unknown schema id', () => {
+  it('fails loudly', async () => {
     resetAllForTesting()
     await expect(SalvageUnionReference.preload(['no-such-schema'])).rejects.toThrow(
       'No loader found for schema ID: no-such-schema'
     )
-    await expect(
-      SalvageUnionReference.preload(['no-such-schema'], { validate: true })
-    ).rejects.toThrow('No loader found for schema ID: no-such-schema')
   })
 })

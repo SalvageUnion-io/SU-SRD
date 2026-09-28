@@ -1,5 +1,5 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { AppHeader, EntityHrefProvider, Toaster } from 'component-lib'
+import { AppHeader, CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
 import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import { AccountStrip } from '../components/account/AccountStrip'
@@ -30,6 +30,11 @@ export const Route = createRootRoute({
   errorComponent: RootErrorComponent,
 })
 
+/** RollTable's Copy confirmation, raised on the `<Toaster />` below. */
+function toastCopied() {
+  toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
+}
+
 function RootComponent() {
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -59,13 +64,15 @@ function RootComponent() {
           LinkComponent={AppLink}
           utilityRow={<AccountStrip />}
         />
-        <GameDataReady>
-          <Outlet />
-          {/* Mounted on every route (inside the game-data gate, so search()
-            is always safe) so the Cmd/Ctrl+K shortcut works everywhere,
-            alongside the always-present AppHeader search trigger. */}
-          <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-        </GameDataReady>
+        <CopyFeedbackProvider value={toastCopied}>
+          <GameDataReady>
+            <Outlet />
+            {/* Mounted on every route (inside the game-data gate, so search()
+              is always safe) so the Cmd/Ctrl+K shortcut works everywhere,
+              alongside the always-present AppHeader search trigger. */}
+            <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+          </GameDataReady>
+        </CopyFeedbackProvider>
         <Toaster />
         <BackupNudgeToast />
       </EntityHrefProvider>

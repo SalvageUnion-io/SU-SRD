@@ -4,6 +4,14 @@
 
 Accepted
 
+**Amended 2026-09** — the RNG binding moved into the package. `lib/rules/dice.ts`
+exports `rollDie(sides)`, a `crypto.getRandomValues` roller that replaced the
+`@randsum/roller` calls in ITUN and component-lib, ITUN's `defaultRoll` among
+them. The binding stayed app-local only because it pulled in that dependency;
+a platform global does not. Every other rules function still takes the `Roll` as a parameter, so they
+stay deterministic. Where the text below says the package does not own the RNG
+binding, read it as history.
+
 ## Context
 
 Salvage Union's mechanics — heat generation, heat checks, push conditions,

@@ -116,6 +116,7 @@ export { Colophon } from './components/shared/Colophon'
 // ITUN's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/shared/ControlButtons'
 export { cardImageSizes } from './components/shared/cardImageSizes'
+export { CopyFeedbackProvider } from './components/shared/copyFeedbackContext'
 export { EntityGridRow } from './components/shared/EntityGrid'
 export type { EntityRowStat } from './components/shared/EntityRow'
 export { EntityRow } from './components/shared/EntityRow'

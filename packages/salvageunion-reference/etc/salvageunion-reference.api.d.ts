@@ -85,11 +85,8 @@ import { BaseModel } from './BaseModel.js';
 import { schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js';
 import { toPascalCase } from './naming.js';
 export { schemaDisplayNames, toPascalCase };
-export type LoadOptions = {
-    validate?: boolean;
-};
 export declare function isSchemaLoaded(schemaId: string): boolean;
-export declare function loadSchemas(schemas: string[] | 'all', options?: LoadOptions): Promise<void>;
+export declare function loadSchemas(schemas: string[] | 'all'): Promise<void>;
 export declare function getLoadedModel(schemaId: string, propertyName: string): BaseModel<unknown>;
 export declare function getLoadedModelBySchemaId(schemaId: string): BaseModel<unknown> | undefined;
 export declare function resetLoadStateForTesting(): void;
@@ -456,7 +453,6 @@ export declare function extractStaticEntitySummary(entity: SURefEntity): StaticE
 import type { ModelWithMetadata } from './BaseModel.js';
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js';
 import { SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js';
-import type { LoadOptions } from './ModelFactory.js';
 import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from './schemas/index.js';
 export { extractVisibleActions, getChassisAbilities, getChoices, getTraits, } from './actionResolution.js';
 export { getAssetUrl, SRD_SITE_URL, srdEntityPath, srdEntityUrl, srdSchemaPath, srdSchemaUrl, } from './assets.js';
@@ -511,7 +507,7 @@ export declare class SalvageUnionReference {
     static Sources: ModelWithMetadata<SchemaToEntityMap['sources']>;
     static TechLevels: ModelWithMetadata<SchemaToEntityMap['tech-levels']>;
     static CatalogCategories: ModelWithMetadata<SchemaToEntityMap['catalog-categories']>;
-    static preload(schemas: string[] | 'all', options?: LoadOptions): Promise<void>;
+    static preload(schemas: string[] | 'all'): Promise<void>;
     static isLoaded(schemaId: string): boolean;
     static findIn<T extends keyof SchemaToEntityMap>(schemaName: T, predicate: (entity: SchemaToEntityMap[T]) => boolean): (SchemaToEntityMap[T] & {
         schemaName: T;
@@ -960,6 +956,9 @@ export declare function clampCrawlerCurrentStats(crawler: CrawlerDerivationInput
 }>;
 export {};
 //# sourceMappingURL=derivedStats.d.ts.map
+// === lib/rules/dice.d.ts ===
+export declare function rollDie(sides: number): number;
+//# sourceMappingURL=dice.d.ts.map
 // === lib/rules/heatCheck.d.ts ===
 import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types.js';
 export declare function clampHeat(heat: number, cap: number): number;
@@ -998,6 +997,7 @@ export type { CrawlerMutationInput, MechCreationBudget, } from './creation.js';
 export { crawlerMaxSpBonus, crawlerWeaponSlots, isCrawlerWeaponPickComplete, isLegalCreationAbility, isLegalCreationChassis, isLegalCreationClass, isLegalCreationCrawlerWeapon, isLegalCreationEquipment, isLegalCreationModule, isLegalCreationSystem, isLegalStartingPattern, isPilotAbilityPickComplete, isPilotEquipmentPickComplete, legalCreationAbilities, legalStartingPatterns, MECH_CREATION_SCRAP_CAP, mechCreationBudget, PILOT_CREATION_ABILITY_PICKS, PILOT_CREATION_EQUIPMENT_PICKS, pilotEquipmentPicksRemaining, } from './creation.js';
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
 export { clampCrawlerCurrentStats, clampMechCurrentStats, clampPilotCurrentStats, crawlerMaxSP, crawlerMaxSPParts, injuryMaxHpPenalty, isPilotDead, mechMaxCargo, mechMaxCargoParts, mechMaxEP, mechMaxEPParts, mechMaxHeat, mechMaxHeatParts, mechMaxSP, mechMaxSPParts, PILOT_BASE_AP, PILOT_BASE_HP, PILOT_BASE_INVENTORY_SLOTS, pilotMaxAP, pilotMaxAPParts, pilotMaxHP, pilotMaxHPParts, pilotMaxInventorySlots, pilotMaxInventorySlotsParts, resolveGauge, resolvePool, resolvePoolStart, unifiedMechConditions, } from './derivedStats.js';
+export { rollDie } from './dice.js';
 export { canActivateAction, clampHeat, performHeatCheck, performPush, reactorOverloadOutcome, } from './heatCheck.js';
 export { enrichPilotSnapshot } from './pilotSnapshot.js';
 export { matchesRef, resolveChassisRef, resolveCrawlerBayRef, resolveCrawlerRef, resolveInstalledRef, resolveModuleRef, resolveRef, resolveSystemRef, } from './resolveRefs.js';
@@ -1431,9 +1431,6 @@ export type TableRow = {
 };
 export declare function tableRows(table: SURefObjectTable | undefined | null): TableRow[];
 //# sourceMappingURL=tableRows.d.ts.map
-// === lib/validateData.d.ts ===
-export declare function validateRows(schemaId: string, rawData: unknown[]): unknown[];
-//# sourceMappingURL=validateData.d.ts.map
 // === lib/zod.d.ts ===
 import { z } from 'zod';
 export { z };

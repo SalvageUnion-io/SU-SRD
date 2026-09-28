@@ -39,7 +39,7 @@
 
 import { Button, FieldError, ModalShell, Select, Slab, Stat } from 'component-lib'
 import { useReducer, useState } from 'react'
-import { resolvePool } from 'salvageunion-reference/rules'
+import { resolvePool, rollDie } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
@@ -62,7 +62,6 @@ import {
 } from '../../lib/rules/crawlerEconomy'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { Roll } from '../../lib/rules/heatCheck'
-import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
@@ -87,7 +86,7 @@ type CrawlerEconomyControlProps = {
   /** The open dialog; null renders nothing. */
   open: CrawlerEconomyDialog | null
   onClose: () => void
-  /** Injectable d20 / random-Bay roller — defaults to a randsum-backed roll. */
+  /** Injectable d20 / random-Bay roller — defaults to `rollDie`. */
   roll?: Roll
 }
 
@@ -96,7 +95,7 @@ export function CrawlerEconomyControl({
   store,
   open,
   onClose,
-  roll = defaultRoll,
+  roll = rollDie,
 }: CrawlerEconomyControlProps) {
   // Each dialog mounts only while open so its roll/result state resets.
   return (

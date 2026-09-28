@@ -39,11 +39,9 @@ import {
  *
  * The `schemas` data check (tools/validate.ts) and `generate:json-schemas`
  * import this directly, so data is validated against the exact schemas the runtime would
- * use rather than a parallel literal that could drift. At runtime only
- * `lib/validateData.ts` imports it, and ModelFactory reaches that module
- * through a dynamic `import()` when a caller passes `{ validate: true }` to
- * `preload()` — never statically, or every client bundle would carry the
- * schemas again.
+ * use rather than a parallel literal that could drift. No runtime module
+ * imports it — `preload()` trusts the committed data — or every client bundle
+ * would carry the schemas again (`lib/loadPathBundle.test.ts`).
  */
 export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
   abilities: AbilitySchema,

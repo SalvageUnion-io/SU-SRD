@@ -10,6 +10,10 @@ Accepted
 > parse-stable — and reaches the schemas through a dynamic `import()` only for
 > `{ validate: true }`, so they drop out of client bundles. Zod remains the
 > single source of types, JSON Schema and CI validation; that half is unchanged.
+>
+> **2026-09 amendment:** the `{ validate: true }` option is gone. No runtime
+> caller used it, so `preload()` never parses and no runtime module imports the
+> schemas at all; tests and tools import them directly.
 
 ## Context
 

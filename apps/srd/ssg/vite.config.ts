@@ -62,7 +62,7 @@ export default defineConfig({
       : false,
   ],
   // Fixes a dev-only bug: the island deps live under component-lib/node_modules
-  // (@base-ui, sonner, lucide-react, cva, @randsum) and were only DISCOVERED
+  // (@base-ui, sonner, lucide-react, cva) and were only DISCOVERED
   // when an island first imported them, so Vite re-ran its dep optimizer
   // mid-navigation and answered in-flight island chunk requests with 504
   // "Outdated Optimize Dep" — cards stuck on their skeletons, with transient

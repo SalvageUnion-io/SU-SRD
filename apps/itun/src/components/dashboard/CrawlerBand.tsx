@@ -9,9 +9,8 @@ import type { StepRule } from 'component-lib'
 import { RuleBrief } from 'component-lib'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolvePool } from 'salvageunion-reference/rules'
+import { resolvePool, rollDie } from 'salvageunion-reference/rules'
 import { crawlerMaxSPParts } from '../../lib/rules/derivedStats'
-import { defaultRoll } from '../../lib/rules/heatCheck'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -125,7 +124,7 @@ export function CrawlerBand({
     const c = fresh()
     const { result, patch } = areaSalvageOutcome(c, {
       areaTl: crawlerTl ?? 1,
-      roll: defaultRoll,
+      roll: rollDie,
     })
     if (patch)
       runWrite(

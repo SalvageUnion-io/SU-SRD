@@ -12,9 +12,8 @@
  *
  *   - lib/generated/zodSchemaMap.generated.ts
  *       zodSchemaMap — the entity Zod schemas keyed by schema id. Kept in its
- *       own module so the runtime loader reaches it (via lib/validateData.ts)
- *       only through a dynamic `import()` when validation is asked for, and bundlers leave the
- *       entity schemas out of the client chunks (audit PK-04).
+ *       own module because only tools and tests import it; the runtime loader
+ *       never does, so the entity schemas stay out of client chunks (audit PK-04).
  *
  *   - lib/generated/entityTypes.generated.ts
  *       the SURef* entity type aliases (`z.infer` of each registry schema)
@@ -153,8 +152,8 @@ function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
   return (
     GENERATED_HEADER +
     `// No Zod import here, on purpose: this module is on every consumer's load
-// path, and the entity schemas live in zodSchemaMap.generated.ts so that
-// only a validating load pulls them in (see ModelFactory.loadSchemas).
+// path, and the entity schemas live in zodSchemaMap.generated.ts, which no
+// runtime module imports (see ModelFactory.loadSchemas).
 
 // ---------------------------------------------------------------------------
 // Lazy loader registries — no JSON is imported at module scope. Keys must be
@@ -196,11 +195,9 @@ ${zodImports}
  *
  * The \`schemas\` data check (tools/validate.ts) and \`generate:json-schemas\`
  * import this directly, so data is validated against the exact schemas the runtime would
- * use rather than a parallel literal that could drift. At runtime only
- * \`lib/validateData.ts\` imports it, and ModelFactory reaches that module
- * through a dynamic \`import()\` when a caller passes \`{ validate: true }\` to
- * \`preload()\` — never statically, or every client bundle would carry the
- * schemas again.
+ * use rather than a parallel literal that could drift. No runtime module
+ * imports it — \`preload()\` trusts the committed data — or every client bundle
+ * would carry the schemas again (\`lib/loadPathBundle.test.ts\`).
  */
 export const zodSchemaMap: Record<string, z.ZodType<unknown>> = {
 ${zodSchemaMap}

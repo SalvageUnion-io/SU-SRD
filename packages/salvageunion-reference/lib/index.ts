@@ -14,7 +14,6 @@ import type { ModelWithMetadata } from './BaseModel.js'
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
 import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js'
 import type { LazyModel } from './LazyModel.js'
-import type { LoadOptions } from './ModelFactory.js'
 import {
   getLoadedModel,
   isSchemaLoaded,
@@ -276,12 +275,10 @@ export class SalvageUnionReference {
   /**
    * Load schemas before use.
    *
+   * Files are installed as committed, with no Zod parse: CI validates them and
+   * proves them parse-stable (see the header of `ModelFactory.ts`).
+   *
    * @param schemas - Array of schema IDs to load, or `'all'` to load everything.
-   * @param options - `{ validate: true }` re-parses each file through its Zod
-   *   schema. Off by default: the committed data is validated in CI and proven
-   *   parse-stable, so a trusted load returns the same rows at a fraction of
-   *   the cost and keeps the schemas out of client bundles. See
-   *   `LoadOptions` in `ModelFactory.ts`.
    * @returns Promise that resolves when all requested schemas are loaded.
    *
    * @example
@@ -291,8 +288,8 @@ export class SalvageUnionReference {
    * // Load only what you need (enables code-splitting):
    * await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
    */
-  public static async preload(schemas: string[] | 'all', options?: LoadOptions): Promise<void> {
-    await loadSchemas(schemas, options)
+  public static async preload(schemas: string[] | 'all'): Promise<void> {
+    await loadSchemas(schemas)
 
     // Install backing models into all LazyModel wrappers for loaded schemas
     const ids = schemas === 'all' ? Object.keys(lazyModelsById) : schemas

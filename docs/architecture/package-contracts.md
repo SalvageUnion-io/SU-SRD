@@ -142,7 +142,7 @@ All JSON data files (~1.1 MB total) are loaded via dynamic `import()` at runtime
 3. After each schema loads, the `LazyModel` receives a "backing" model via `_install()`. All subsequent data-access calls delegate to the backing model.
 4. Before `preload()`, any data-access call throws a descriptive error.
 
-The Zod entity schemas are **not** on this path. A load is trusted by default: CI validates every committed file (the `schemas` data check) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. `preload(ids, { validate: true })` restores the parse and reaches the schemas through a dynamic `import()` of `lib/validateData.ts` (which holds `lib/generated/zodSchemaMap.generated.ts` behind it), so a bundler never links them into a chunk the trusted path needs. Types are unaffected — they are inferred from the schemas at compile time.
+The Zod entity schemas are **not** on this path. Every load is trusted: CI validates every committed file (the `schemas` data check) and `lib/dataCanonical.test.ts` proves a Zod parse would return each one unchanged, so re-parsing on every load was pure repetition — ~87% of `preload('all')`'s time, in every tab and Worker isolate. No runtime module imports `lib/generated/zodSchemaMap.generated.ts` or Zod, so neither reaches an app bundle (`lib/loadPathBundle.test.ts`); tools and tests import them directly. Types are unaffected — they are inferred from the schemas at compile time.
 
 ### preload() API
 
@@ -152,9 +152,6 @@ await SalvageUnionReference.preload('all')
 
 // Load only specific schemas (enables code-splitting):
 await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])
-
-// Re-validate against the Zod schemas (off by default — see above):
-await SalvageUnionReference.preload('all', { validate: true })
 
 // Check whether a schema is loaded:
 SalvageUnionReference.isLoaded('chassis') // boolean
@@ -266,7 +263,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 ### Dependencies
 
 - **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom` only — one instance per app
-- **Dependencies** (declared by the library itself, catalogued where shared): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
+- **Dependencies** (declared by the library itself, catalogued where shared): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
 - **Stylesheets are exports, never side-effect imports**: `component-lib/styles/index.css`, `theme.css`, and `dashboard.css` (the `.pc-*` dashboard bundle, imported only by ITUN). No shipping library module imports `.css` — `bun run check styling` (its `srd-css` rule set) enforces it (audit PK-01)
 - **`"sideEffects": ["**/*.css"]`** in its `package.json`: no library module runs code at import, so a bundler may drop any module whose exports go unused. That is what keeps srd's every-page nav islands from shipping the whole library. A module that must run at import (a registration, a global patch) has to be added to that list, or production builds will silently tree-shake it away
 - **No backend/data-source dependency** — fully data-source agnostic

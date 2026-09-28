@@ -4,8 +4,8 @@
  * `bun run build:package` to regenerate.
  */
 // No Zod import here, on purpose: this module is on every consumer's load
-// path, and the entity schemas live in zodSchemaMap.generated.ts so that
-// only a validating load pulls them in (see ModelFactory.loadSchemas).
+// path, and the entity schemas live in zodSchemaMap.generated.ts, which no
+// runtime module imports (see ModelFactory.loadSchemas).
 
 // ---------------------------------------------------------------------------
 // Lazy loader registries — no JSON is imported at module scope. Keys must be

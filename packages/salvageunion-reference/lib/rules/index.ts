@@ -2,7 +2,8 @@
  * Rule-enforcement utilities barrel (ADR-006 — pure rules logic lives here).
  *
  * Pure TypeScript — no React, no IndexedDB, no app dependency.
- * All functions are synchronous; same input always yields same output.
+ * All functions are synchronous; same input always yields same output, except
+ * `rollDie`, the real-RNG `Roll` that callers inject into the rest.
  *
  * Prerequisites: the salvageunion-reference schemas used by these utilities
  * must be preloaded before the first call:
@@ -110,6 +111,7 @@ export {
   resolvePoolStart,
   unifiedMechConditions,
 } from './derivedStats.js'
+export { rollDie } from './dice.js'
 export {
   canActivateAction,
   clampHeat,
