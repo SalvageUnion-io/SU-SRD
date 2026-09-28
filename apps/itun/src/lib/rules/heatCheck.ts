@@ -1,24 +1,13 @@
 /**
- * Heat Check / Reactor Overload rules (Slice C, #199).
- *
- * The pure math (clampHeat, reactorOverloadOutcome, performHeatCheck,
- * performPush) moved to packages/salvageunion-reference/lib/rules/heatCheck.ts
- * (ADR-006). `heatCheckPatch` stays app-local: it assembles a `Partial<Mech>`
- * write-through patch using ITUN's own Zod-derived `Mech` type (ADR-007: the
- * app, not the rules package, decides what crosses into durable state).
+ * Heat Check / Reactor Overload — the app-local half. The pure math lives in
+ * `salvageunion-reference/rules` (ADR-006); `heatCheckPatch` stays here: it
+ * assembles a `Partial<Mech>` write-through patch using ITUN's own Zod-derived
+ * `Mech` type (ADR-007: the app, not the rules package, decides what crosses
+ * into durable state).
  */
 
-import type { Mech } from '../schemas/mech'
-
-export type { HeatCheckEffect, PushResult, Roll } from 'salvageunion-reference/rules'
-export {
-  clampHeat,
-  performHeatCheck,
-  performPush,
-  reactorOverloadOutcome,
-} from 'salvageunion-reference/rules'
-
 import type { HeatCheckEffect } from 'salvageunion-reference/rules'
+import type { Mech } from '../schemas/mech'
 
 /**
  * The single write-path mapping from a resolved Heat Check effect to the mech

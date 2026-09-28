@@ -6,10 +6,15 @@
 
 import { CountStepper } from 'component-lib'
 import { useEffect, useState } from 'react'
-import { resolvePool, resolvePoolStart, rollDie } from 'salvageunion-reference/rules'
+import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
+import {
+  pilotMaxAP,
+  pilotMaxHP,
+  resolvePool,
+  resolvePoolStart,
+  rollDie,
+} from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
-import type { CriticalInjuryEffect } from '../../lib/rules/takeDamage'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'

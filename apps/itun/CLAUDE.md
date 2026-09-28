@@ -116,12 +116,11 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 ## Combat / rules
 
 - Pure math lives in `salvageunion-reference` — `lib/rules/` (heat check, take
-  damage, core mechanic, …), imported via the `salvageunion-reference/rules`
-  subpath export, never the main barrel. `src/lib/rules/` is
-  ITUN's re-export + app-local layer: `heatCheck.ts` re-exports the package's
-  `performHeatCheck` / `performPush` / `clampHeat` and adds `heatCheckPatch`
-  (effect → `Partial<Mech>`); `derivedStats.ts` computes the derived maxima.
-  Every real die roll is the package's `rollDie(sides)`.
+  damage, core mechanic, derived maxima, …); import it from the
+  `salvageunion-reference/rules` subpath export, never the main barrel and
+  never through a local re-export. `src/lib/rules/` holds only ITUN's
+  app-local rules: e.g. `heatCheck.ts` adds `heatCheckPatch` (effect →
+  `Partial<Mech>`). Every real die roll is the package's `rollDie(sides)`.
 - **Play actions live on the Dashboard, not the Live Sheet.** Activation and
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,

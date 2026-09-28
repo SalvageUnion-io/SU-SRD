@@ -20,6 +20,7 @@
 import { buttonVariants, cn } from 'component-lib'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
@@ -41,7 +42,6 @@ import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
 import type { SheetPatch } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'

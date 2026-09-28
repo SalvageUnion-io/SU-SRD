@@ -9,13 +9,13 @@ import { Content, ReferenceEntityCard, useDetailModal } from 'component-lib'
 import type { ComponentProps, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 import { NpcInset } from './NpcInset'
-import { runWrite } from './sheetWrite'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 

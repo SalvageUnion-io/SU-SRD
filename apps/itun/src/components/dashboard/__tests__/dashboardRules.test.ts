@@ -9,7 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { Roll } from '../../../lib/rules/heatCheck'
+import type { Roll } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import type { PlayAction } from '../dashboardRules'
 import {

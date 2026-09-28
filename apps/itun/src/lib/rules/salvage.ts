@@ -1,3 +1,4 @@
+import type { Roll } from 'salvageunion-reference/rules'
 /**
  * Area Salvage rules (design-review R-3).
  *
@@ -17,8 +18,6 @@
  * item a jackpot yields is the table's call; this module never auto-picks one
  * (ADR-007).
  */
-
-import type { Roll } from './heatCheck'
 
 // ---------------------------------------------------------------------------
 // Area Salvage (p.248 / roll-tables.json "Area Salvage")

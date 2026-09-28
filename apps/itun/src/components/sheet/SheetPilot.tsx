@@ -9,11 +9,11 @@
  */
 
 import { EntityRow, Stat } from 'component-lib'
-import { resolvePool } from 'salvageunion-reference/rules'
+import { pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { runWrite } from '../../lib/runWrite'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
@@ -24,7 +24,6 @@ import { PilotSheet } from './PilotSheet'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
 import { RailCta } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 

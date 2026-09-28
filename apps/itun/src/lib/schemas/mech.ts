@@ -4,21 +4,6 @@ import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
 
 /**
- * Per-item condition states now live in `./itemCondition` — a leaf module, so
- * that `mech.ts` (which owns partners) and `partner.ts` (which needs the
- * condition map) do not import each other. Re-exported here because these names
- * have importers across the app and the move is not meant to be visible.
- *
- * @public re-export of the extracted condition vocabulary; see ./itemCondition.
- */
-export {
-  type ItemCondition,
-  type ItemConditionMap,
-  ItemConditionMapSchema,
-  ItemConditionSchema,
-} from './itemCondition'
-
-/**
  * Reactor Overload outcome categories (Core Book p.234-235). Distinct from the
  * raw d20 roll: maps the table band to a deterministic mech effect.
  * - meltdown: roll 1 — mech destroyed

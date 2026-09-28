@@ -11,15 +11,17 @@
  */
 
 import { linesFromBreakdown } from 'component-lib'
-import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import {
   crawlerMaxSPParts,
   mechMaxHeatParts,
   mechMaxSPParts,
   pilotMaxAPParts,
   pilotMaxHPParts,
-} from '../../lib/rules/derivedStats'
+  resolveChassisRef,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import type { Crawler } from '../../lib/schemas/crawler'

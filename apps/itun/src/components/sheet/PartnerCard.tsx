@@ -42,6 +42,7 @@ import {
   partnerTechLevel,
   resolvePartnerStatBlock,
 } from '../../lib/rules/partnerStats'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { PartnerInstance } from '../../lib/schemas/partner'
@@ -51,7 +52,6 @@ import { MechItemCard } from './MechItemCard'
 import { resolveModule, resolveSystem } from './mechItemRules'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay'
-import { runWrite } from './sheetWrite'
 
 type PartnerCardProps = {
   /**

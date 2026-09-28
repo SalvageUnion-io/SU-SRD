@@ -10,7 +10,7 @@
  * `conditions[]`. The two storage forms can never disagree on screen.
  */
 
-import { unifiedMechConditions } from '../../lib/rules/derivedStats'
+import { unifiedMechConditions } from 'salvageunion-reference/rules'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'

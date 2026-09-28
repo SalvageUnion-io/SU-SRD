@@ -15,8 +15,7 @@
  * on the right side of the ADR-007 boundary.
  */
 
-import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { crawlerMaxSP } from '../../lib/rules/derivedStats'
+import { crawlerMaxSP, resolveChassisRef } from 'salvageunion-reference/rules'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import { seedDefaultCrawlerBays } from '../../lib/wizard/crawlerFormState'
 import type { CreateInput, EntityForType } from '../../stores/types'

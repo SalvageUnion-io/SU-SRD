@@ -28,17 +28,22 @@
 import type { ReferenceCardEntity } from 'component-lib'
 import { Badge, Button, ReferenceEntityCard } from 'component-lib'
 import { useState } from 'react'
+import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
+  CORE_ROLL_BANDS,
   canActivateAction,
+  describePushOutcome,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  performCoreRoll,
+  pilotMaxAP,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
   rollDie,
 } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import type { CoreRollResult } from '../../lib/rules/coreMechanic'
-import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
-import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'

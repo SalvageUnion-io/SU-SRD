@@ -12,7 +12,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import type { ScrapPool } from '../../lib/schemas/crawler'
-import type { ItemCondition, Mech } from '../../lib/schemas/mech'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
+import type { Mech } from '../../lib/schemas/mech'
 
 export type MechItem = SURefSystem | SURefModule
 

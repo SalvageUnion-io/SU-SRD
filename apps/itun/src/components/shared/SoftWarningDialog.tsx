@@ -14,7 +14,7 @@
  */
 
 import { Banner, Button, ModalShell } from 'component-lib'
-import type { SoftWarning } from '../../lib/rules/types'
+import type { SoftWarning } from 'salvageunion-reference/rules'
 
 type SoftWarningDialogProps = {
   open: boolean

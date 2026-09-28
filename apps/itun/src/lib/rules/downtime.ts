@@ -35,6 +35,10 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   matchesRef,
+  mechMaxEP,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
   resolveChassisRef,
   resolveGauge,
   resolveInstalledRef,
@@ -42,9 +46,9 @@ import {
 import { parseCrawlerTechLevel } from '../crawlerLevel'
 import { resolveCrawlerBay } from '../crawlerRefs'
 import type { Crawler } from '../schemas/crawler'
-import type { ItemConditionMap, Mech } from '../schemas/mech'
+import type { ItemConditionMap } from '../schemas/itemCondition'
+import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
-import { mechMaxEP, mechMaxSP, pilotMaxAP, pilotMaxHP } from './derivedStats'
 
 // ---------------------------------------------------------------------------
 // Steps

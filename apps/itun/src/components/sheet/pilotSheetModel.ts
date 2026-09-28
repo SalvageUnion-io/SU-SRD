@@ -17,10 +17,14 @@ import { linesFromBreakdown } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolvePool } from 'salvageunion-reference/rules'
+import {
+  isPilotDead,
+  pilotMaxAPParts,
+  pilotMaxHPParts,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { readReference } from '../../lib/readReference'
-import { isPilotDead, pilotMaxAPParts, pilotMaxHPParts } from '../../lib/rules/derivedStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import type { ClassLike } from '../pilot/abilityTrees'

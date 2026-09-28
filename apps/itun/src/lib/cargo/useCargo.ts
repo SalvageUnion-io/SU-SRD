@@ -10,10 +10,10 @@
  * round-trip) live in cargoTransfer.ts.
  */
 
+import { mechMaxCargo } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { mechMaxCargo } from '../rules/derivedStats'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'

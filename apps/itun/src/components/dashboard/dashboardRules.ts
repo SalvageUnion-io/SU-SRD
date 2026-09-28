@@ -23,24 +23,31 @@ import type {
   SURefMetaEntity,
 } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { canActivateAction, resolveChassisRef, resolveRef } from 'salvageunion-reference/rules'
-import type { CoreRollBand } from '../../lib/rules/coreMechanic'
-import { describeOverloadOutcome } from '../../lib/rules/coreMechanic'
-import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
-import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type {
+  CoreRollBand,
   CriticalDamageEffect,
   CriticalInjuryEffect,
+  HeatCheckEffect,
   MechDamageEffect,
   PilotDamageEffect,
-} from '../../lib/rules/takeDamage'
+  Roll,
+} from 'salvageunion-reference/rules'
 import {
   applyMechDamage,
   applyPilotDamage,
+  canActivateAction,
+  clampHeat,
+  describeOverloadOutcome,
   performCriticalDamage,
   performCriticalInjury,
-} from '../../lib/rules/takeDamage'
-import type { ItemCondition, Mech } from '../../lib/schemas/mech'
+  performHeatCheck,
+  performPush,
+  resolveChassisRef,
+  resolveRef,
+} from 'salvageunion-reference/rules'
+import { heatCheckPatch } from '../../lib/rules/heatCheck'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
+import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
 import { resolveModule, resolveSystem } from '../sheet/mechItemRules'

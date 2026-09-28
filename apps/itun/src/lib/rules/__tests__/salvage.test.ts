@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Roll } from '../heatCheck'
+import type { Roll } from 'salvageunion-reference/rules'
 import { AREA_SALVAGE_LABEL, areaSalvageBand, performAreaSalvage } from '../salvage'
 
 /** Returns a Roll that always yields `value`, ignoring `sides`. */
