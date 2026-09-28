@@ -8,11 +8,8 @@
 # SILENTLY stop them being updated. .github/dependabot.yml still owns everything
 # that is not catalogued (per-workspace deps, GitHub Actions).
 #
-# DELETE THIS FILE the day dependabot-core supports `catalog:`, or the day the
-# Renovate trial (`renovate.json`; the steps are in
-# docs/architecture/dependency-management.md, "Renovate trial") proves out —
-# the whole point is coverage Dependabot cannot yet give, not a preference for
-# this tool.
+# DELETE THIS FILE the day dependabot-core supports `catalog:` — the whole
+# point is coverage Dependabot cannot yet give, not a preference for this tool.
 #
 # ---------------------------------------------------------------------------
 # THE ACTION IS PINNED TO A COMMIT SHA, DELIBERATELY.
