@@ -284,7 +284,13 @@ function generateVSCodeSettings(schemas: SchemaInfo[]): void {
   const content = `${JSON.stringify(settings, null, 2)}\n`
   // Write only on change: the Claude Code sandbox refuses writes under .vscode/,
   // and an unconditional rewrite failed every sandboxed build:package and push.
-  if (fs.existsSync(outputPath) && fs.readFileSync(outputPath, 'utf8') === content) {
+  let current: string | null = null
+  try {
+    current = fs.readFileSync(outputPath, 'utf8')
+  } catch {
+    // Absent: fall through and create it.
+  }
+  if (current === content) {
     console.log(`✅ .vscode/settings.json up to date (${schemas.length} mappings)`)
     return
   }
