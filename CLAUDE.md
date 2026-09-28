@@ -23,7 +23,7 @@ the ADRs and architecture docs this file points to.
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). If a visual change needs iteration, ask for a screenshot before adjusting further. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321) and `itun` (5173) in the browser preview. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
@@ -32,10 +32,10 @@ the ADRs and architecture docs this file points to.
 After any cross-package change, run typecheck, tests and lint before calling the task done, and check every consuming app (Tailwind `@source` paths, imports).
 
 ```bash
-bun install && bun run build:package   # first-time setup (regenerates JSON schemas; no compile step)
+bun install              # first-time setup (generated files are committed; no compile step)
 
-bun run dev              # build package + srd dev server (ssg/dev.ts, same render path as prod)
-bun run dev:itun         # build package + ITUN dev server
+bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
+bun run dev:itun         # ITUN dev server
 
 bun run check:fast       # ~12s inner loop: every gate except the suite, the srd build,
                          # the network and regeneration

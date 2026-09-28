@@ -54,8 +54,8 @@ if you touched build config.
 ### Common workspace-scoped commands
 
 ```bash
-bun run dev            # build:package + srd dev server
-bun run dev:itun       # build:package + ITUN dev server
+bun run dev            # srd dev server
+bun run dev:itun       # ITUN dev server
 
 bun --filter srd test          # test one workspace
 bun --filter itun typecheck     # typecheck one workspace

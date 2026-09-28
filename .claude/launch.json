@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "srd",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "dev"],
+      "port": 4321
+    },
+    {
+      "name": "itun",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "dev:itun"],
+      "port": 5173
+    }
+  ]
+}

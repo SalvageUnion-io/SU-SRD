@@ -59,9 +59,9 @@
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
-    "dev": "bun run build:package && bun --filter srd dev",
-    "dev:itun": "bun run build:package && bun --filter itun dev",
-    "build": "bun run build:package && bun run build:web && bun run build:itun",
+    "dev": "bun --filter srd dev",
+    "dev:itun": "bun --filter itun dev",
+    "build": "bun run build:web && bun run build:itun",
     "build:web": "bun --filter srd build",
     "build:itun": "bun --filter itun build",
     "build:package": "bun --filter salvageunion-reference build",

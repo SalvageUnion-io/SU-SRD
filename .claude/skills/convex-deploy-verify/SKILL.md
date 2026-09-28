@@ -42,10 +42,7 @@ omitting it fails with an opaque `Missing environment variable SITE_URL` 500
 from the OAuth callback rather than anything that points at configuration.
 
 For production the frontend origin is the **custom domain**
-(`https://intheunionnow.com`), which is now the Worker's own route — the
-`.netlify.app` subdomain it used to be distinguished from is decommission
-debris, and the `VITE_SITE_URL` that pointed at it is gone with the Netlify
-site's build config.
+(`https://intheunionnow.com`), the ITUN Worker's own route.
 
 ## 2. Bot credential, only if wiring the Discord bot
 
@@ -54,9 +51,10 @@ site's build config.
 # deployment that has not opted in cannot be talked to by a bot at all.
 bunx convex env set ITUN_BOT_SECRET <a long random string>
 
-# Render (suref-discord-bot) — BOTH, or the bot silently stays in Solo mode.
-ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
-ITUN_BOT_SECRET=<the same value>
+# The bot Worker — BOTH, or the bot silently stays in Solo mode.
+cd apps/discord-bot
+bunx wrangler secret put ITUN_CONVEX_SITE_URL   # https://<deployment>.convex.site
+bunx wrangler secret put ITUN_BOT_SECRET        # the same value as above
 ```
 
 `ITUN_CONVEX_SITE_URL` is the **HTTP-actions** origin (`.convex.site`) — not the
@@ -65,8 +63,8 @@ client URL (`.convex.cloud`), not the web origin.
 `ITUN_BOT_SECRET` is a **bearer credential**: whoever holds it can act as any
 Discord user who has linked an account. Bounded — it cannot invent a
 membership, reach an unlinked account, read somebody's shelf, or see
-`encounterNpcs` — but real. 1Password, never git, set it in the Render
-dashboard.
+`encounterNpcs` — but real. Keep it in 1Password, never git; `wrangler secret
+put` reads it from stdin, so it never lands in a transcript.
 
 ## 3. Verify without signing in
 
@@ -104,23 +102,12 @@ bunx convex env get AUTH_DISCORD_SECRET | tr -d '[:space:]' | wc -c
 
 A plausible length means present; `0` means absent.
 
-## 5. Switching production on (or off)
+## 5. Production's Convex URL
 
-Production builds in **Solo mode** until `VITE_CONVEX_URL` reaches the itun
-build. That is safe and deliberate, not an outage — a build with no Convex URL
-is the pre-accounts app, fully working.
-
-The build moved from Netlify to GitHub Actions (ADR-033 §4), so this is no
-longer a site setting:
-
-1. Add the prod redirect URI to the Discord application.
-2. `VITE_CONVEX_URL` is set from `ITUN_CONVEX_URL` in
-   `.github/workflows/deploy-cloudflare.yml`, and that workflow's `push-convex`
-   job fails before pushing if it differs from the canonical URL the deploy key
-   resolves to. It is a **build-time** variable: it takes effect on the next
-   deploy, not immediately.
-
-Reversing means changing that step. Local builds are unaffected either way.
+`VITE_CONVEX_URL` is set at build time from `ITUN_CONVEX_URL` in
+`.github/workflows/deploy-cloudflare.yml`; its `push-convex` job fails before
+pushing if that differs from the URL the deploy key resolves to. A change takes
+effect on the next deploy, not immediately.
 
 ## Report
 

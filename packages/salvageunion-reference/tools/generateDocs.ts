@@ -281,8 +281,15 @@ function generateVSCodeSettings(schemas: SchemaInfo[]): void {
   }
 
   const outputPath = path.join(REPO_ROOT, '.vscode', 'settings.json')
+  const content = `${JSON.stringify(settings, null, 2)}\n`
+  // Write only on change: the Claude Code sandbox refuses writes under .vscode/,
+  // and an unconditional rewrite failed every sandboxed build:package and push.
+  if (fs.existsSync(outputPath) && fs.readFileSync(outputPath, 'utf8') === content) {
+    console.log(`✅ .vscode/settings.json up to date (${schemas.length} mappings)`)
+    return
+  }
   fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-  fs.writeFileSync(outputPath, `${JSON.stringify(settings, null, 2)}\n`)
+  fs.writeFileSync(outputPath, content)
   console.log(`✅ Generated .vscode/settings.json (${schemas.length} mappings)`)
 }
 
