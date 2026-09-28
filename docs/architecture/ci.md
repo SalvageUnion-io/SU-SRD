@@ -119,13 +119,13 @@ even after one fails, and the step log ends in a pass/fail table. Each check
 declares which areas make it relevant:
 
 - **Always**: Biome (`biome ci .` — lint, format *and* the organizeImports
-  assist), `workflows` (aggregate gate, path filters, SHA pinning, Bun version,
+  assist), `workflows` (aggregate gate, path filters, bunx pinning, Bun version,
   Convex deploy guard), `styling` (design tokens, styling ownership, srd
   stylesheet entry) and `actionlint`.
 - **`actionlint`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
   each pinned to an exact version and verified against a recorded sha256 before
-  it runs. zizmor's config is `.github/zizmor.yml`; its pinning policy is the
-  same first-party line `tools/check-workflows.ts` draws. Every checkout
+  it runs. zizmor's config is `.github/zizmor.yml`; its `unpinned-uses`
+  policy SHA-pins every third-party action. Every checkout
   sets `persist-credentials: false`.
 - **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
   drift — reference package artifacts and `routeTree.gen.ts`), typecheck and

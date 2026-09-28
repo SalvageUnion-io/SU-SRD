@@ -17,10 +17,9 @@
  *                 ci.yml filter group gating that app's build job. `CI Success`
  *                 treats a skipped job as a pass, so an uncovered dependency
  *                 merges with its build never having run (the #731 shape).
- *   pinning       every third-party action is pinned to a full commit SHA, and
- *                 every `bunx`/`npx` tool with no manifest entry carries an
- *                 exact version. A tag is a mutable pointer, and these run in
- *                 jobs holding deploy credentials.
+ *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
+ *                 exact version: it runs in jobs holding deploy credentials.
+ *                 Action SHA pinning is zizmor's `unpinned-uses` (`actionlint`).
  *   bun-version   `.bun-version` is the one Bun: the root `bun-types` and
  *                 `packageManager` match it, no workflow pins Bun by hand
  *                 instead of using `./.github/actions/setup-bun`, and the Bun
@@ -343,15 +342,6 @@ export function checkPathFilters(ctx: WorkflowContext): CheckResult {
 
 // ─── pinning ────────────────────────────────────────────────────────────────
 
-/** Published by GitHub itself; a mutable tag here is not a third-party risk. */
-const FIRST_PARTY_OWNERS = new Set(['actions', 'github'])
-const SHA_PIN = /^[0-9a-f]{40}$/
-
-export function isThirdParty(ref: string): boolean {
-  if (ref.startsWith('./') || ref.startsWith('docker://')) return false
-  return !FIRST_PARTY_OWNERS.has(ref.split('/')[0] ?? '')
-}
-
 /**
  * Tools `bunx` resolves from the lockfile: EXACT dependency names of every
  * manifest. Not the unscoped half of scoped names — that once exempted `auth`,
@@ -400,20 +390,12 @@ function executableStrings(step: Yaml): string[] {
 export function checkPinning(ctx: WorkflowContext): CheckResult {
   const failures: string[] = []
   const local = locallyResolved(ctx)
-  let actions = 0
   let tools = 0
   if (ctx.files.length < 5) {
     failures.push(`only ${ctx.files.length} workflow file(s) scanned — expected at least 5.`)
   }
   for (const f of ctx.files) {
-    const refs: { where: string; ref: string }[] = []
-    // A job-level `uses:` calls a reusable workflow — the same supply chain.
-    for (const [job, def] of Object.entries(isObject(f.doc.jobs) ? f.doc.jobs : {})) {
-      if (isObject(def) && typeof def.uses === 'string')
-        refs.push({ where: `jobs.${job}`, ref: def.uses })
-    }
     for (const { where, step } of stepsOf(f)) {
-      if (typeof step.uses === 'string') refs.push({ where, ref: step.uses })
       for (const script of executableStrings(step)) {
         for (const { runner, tool } of runnerCalls(script)) {
           if (local.has(toolName(tool))) continue
@@ -428,23 +410,9 @@ export function checkPinning(ctx: WorkflowContext): CheckResult {
         }
       }
     }
-    for (const { where, ref } of refs) {
-      if (!isThirdParty(ref)) continue
-      actions++
-      const pin = ref.lastIndexOf('@') === -1 ? '' : ref.slice(ref.lastIndexOf('@') + 1)
-      if (!SHA_PIN.test(pin)) {
-        failures.push(
-          `${f.path} ${where}: \`${ref}\` is not pinned to a full commit SHA. Resolve the tag with ` +
-            "`gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq '.object.sha'` and write " +
-            '`<owner>/<repo>@<sha> # <version>`.'
-        )
-      }
-    }
   }
   return {
-    ok:
-      `${actions} third-party action reference(s) SHA-pinned and ${tools} one-off runner ` +
-      `call(s) version-pinned across ${ctx.files.length} file(s)`,
+    ok: `${tools} one-off runner call(s) version-pinned across ${ctx.files.length} file(s)`,
     failures,
   }
 }
@@ -700,7 +668,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
 export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'aggregator', label: 'CI aggregate gate', run: (ctx) => checkAggregator(ctx) },
   { id: 'path-filters', label: 'path filters', run: checkPathFilters },
-  { id: 'pinning', label: 'supply-chain pinning', run: checkPinning },
+  { id: 'pinning', label: 'runner pinning', run: checkPinning },
   { id: 'bun-version', label: 'Bun version', run: checkBunVersion },
   { id: 'convex-guard', label: 'Convex deploy guard', run: checkConvexGuard },
   { id: 'deploy-order', label: 'deploy job order', run: checkDeployOrder },

@@ -162,7 +162,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'workflows',
-    guards: 'CI aggregate gate, path filters, SHA pinning, Bun version, Convex deploy guard',
+    guards: 'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard',
     cmd: ['bun', 'tools/check-workflows.ts'],
     profiles: ALL,
   },
