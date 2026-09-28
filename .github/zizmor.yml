@@ -13,7 +13,6 @@ rules:
 
   # Suggests the `$/` self-repository syntax for local actions. Every
   # `./.github/actions/setup-bun` reference would change, and check-workflows'
-  # pinning and bun-version checks are written against `./`. Advisory-only
-  # upstream.
+  # bun-version check is written against `./`. Advisory-only upstream.
   self-repository:
     disable: true
