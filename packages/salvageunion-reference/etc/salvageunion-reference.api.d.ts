@@ -860,13 +860,6 @@ export declare function pilotMaxAP(pilot: PilotDerivationInput): number;
 export declare function pilotMaxInventorySlotsParts(pilot: PilotDerivationInput): StatBreakdown;
 export declare function pilotMaxInventorySlots(pilot: PilotDerivationInput): number;
 export declare function isPilotDead(pilot: PilotDerivationInput): boolean;
-export declare function clampPilotCurrentStats(pilot: PilotDerivationInput & {
-    currentHP?: number;
-    currentAP?: number;
-}): Partial<{
-    currentHP: number;
-    currentAP: number;
-}>;
 export type ChassisStats = {
     structurePoints?: number;
     energyPoints?: number;
@@ -911,15 +904,6 @@ export declare function mechMaxSP(mech: MechDerivationInput, chassis?: ChassisSt
 export declare function mechMaxEP(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
 export declare function mechMaxHeat(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
 export declare function mechMaxCargo(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
-export declare function clampMechCurrentStats(mech: MechDerivationInput & {
-    currentSP?: number;
-    currentEP?: number;
-    currentHeat?: number;
-}, chassis?: ChassisStats | null): Partial<{
-    currentSP: number;
-    currentEP: number;
-    currentHeat: number;
-}>;
 export declare function unifiedMechConditions(mech: {
     conditions: string[];
     shutdown?: boolean;
@@ -937,11 +921,6 @@ export type CrawlerMaxSPParts = StatBreakdown & {
 };
 export declare function crawlerMaxSPParts(crawler: CrawlerDerivationInput): CrawlerMaxSPParts;
 export declare function crawlerMaxSP(crawler: CrawlerDerivationInput): number;
-export declare function clampCrawlerCurrentStats(crawler: CrawlerDerivationInput & {
-    currentSP?: number;
-}): Partial<{
-    currentSP: number;
-}>;
 export {};
 //# sourceMappingURL=derivedStats.d.ts.map
 // === lib/rules/dice.d.ts ===
@@ -971,30 +950,29 @@ export {};
 //# sourceMappingURL=heatCheck.d.ts.map
 // === lib/rules/index.d.ts ===
 export type { AdvancementOption } from './advancement.js';
-export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees, } from './advancement.js';
-export { liveAdvancementDataset, offeredAbilityTrees, } from './advancementDataset.js';
+export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement.js';
+export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset.js';
 export { computeMechCapacity } from './capacity.js';
-export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities, } from './choiceCatalog.js';
-export { abilityContributions, sumContributions, } from './contributions.js';
-export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
+export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js';
+export { abilityContributions, sumContributions } from './contributions.js';
+export type { CoreRollBand, CoreRollResult } from './coreMechanic.js';
 export { CORE_ROLL_BANDS, coreRollBand, describeOverloadOutcome, describePushOutcome, performCoreRoll, } from './coreMechanic.js';
-export type { CrawlerCapacityInput, CrawlerCapacityResult, CrawlerCapacityViolation, } from './crawlerCapacity.js';
 export { computeCrawlerCapacity } from './crawlerCapacity.js';
 export { isWeaponSystem } from './crawlerSystems.js';
-export type { CrawlerMutationInput, MechCreationBudget, } from './creation.js';
+export type { CrawlerMutationInput, MechCreationBudget } from './creation.js';
 export { crawlerMaxSpBonus, crawlerWeaponSlots, isCrawlerWeaponPickComplete, isLegalCreationAbility, isLegalCreationChassis, isLegalCreationClass, isLegalCreationCrawlerWeapon, isLegalCreationEquipment, isLegalCreationModule, isLegalCreationSystem, isLegalStartingPattern, isPilotAbilityPickComplete, isPilotEquipmentPickComplete, legalCreationAbilities, legalStartingPatterns, MECH_CREATION_SCRAP_CAP, mechCreationBudget, PILOT_CREATION_ABILITY_PICKS, PILOT_CREATION_EQUIPMENT_PICKS, pilotEquipmentPicksRemaining, } from './creation.js';
-export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
-export { clampCrawlerCurrentStats, clampMechCurrentStats, clampPilotCurrentStats, crawlerMaxSP, crawlerMaxSPParts, injuryMaxHpPenalty, isPilotDead, mechMaxCargo, mechMaxCargoParts, mechMaxEP, mechMaxEPParts, mechMaxHeat, mechMaxHeatParts, mechMaxSP, mechMaxSPParts, PILOT_BASE_AP, PILOT_BASE_HP, PILOT_BASE_INVENTORY_SLOTS, pilotMaxAP, pilotMaxAPParts, pilotMaxHP, pilotMaxHPParts, pilotMaxInventorySlots, pilotMaxInventorySlotsParts, resolveGauge, resolvePool, resolvePoolStart, unifiedMechConditions, } from './derivedStats.js';
+export type { ChassisStats, StatBreakdown } from './derivedStats.js';
+export { crawlerMaxSP, crawlerMaxSPParts, isPilotDead, mechMaxCargo, mechMaxEP, mechMaxEPParts, mechMaxHeat, mechMaxHeatParts, mechMaxSP, mechMaxSPParts, PILOT_BASE_AP, PILOT_BASE_HP, PILOT_BASE_INVENTORY_SLOTS, pilotMaxAP, pilotMaxAPParts, pilotMaxHP, pilotMaxHPParts, pilotMaxInventorySlots, resolveGauge, resolvePool, resolvePoolStart, unifiedMechConditions, } from './derivedStats.js';
 export { rollDie } from './dice.js';
-export { canActivateAction, clampHeat, performHeatCheck, performPush, reactorOverloadOutcome, } from './heatCheck.js';
+export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck.js';
 export { enrichPilotSnapshot } from './pilotSnapshot.js';
 export { matchesRef, resolveChassisRef, resolveCrawlerBayRef, resolveCrawlerRef, resolveInstalledRef, resolveModuleRef, resolveRef, resolveSystemRef, } from './resolveRefs.js';
 export { statesMechanicalChange } from './rulesBearing.js';
 export { scrapCostFor, tierUpgradeCost } from './scrap.js';
-export { evaluateMechWarnings, evaluatePilotWarnings, evaluateSoftWarnings, } from './softWarnings.js';
-export type { CriticalDamageEffect, CriticalInjuryEffect, DamageKind, MechDamageEffect, MechDamageInput, PilotDamageEffect, PilotDamageInput, } from './takeDamage.js';
-export { applyMechDamage, applyPilotDamage, criticalDamageOutcome, criticalInjuryOutcome, mechEffectiveDamage, performCriticalDamage, performCriticalInjury, pilotEffectiveDamage, } from './takeDamage.js';
-export type { AbilityInput, AbilityTier, CapacityViolation, CargoCapacityResult, CargoItem, CargoItemCustom, CargoItemRef, CargoParent, CargoViolation, EditSnapshot, HeatCheckEffect, MechCapacityResult, MechInput, MechModuleSlot, MechSnapshot, MechSystemSlot, PilotSnapshot, PushResult, Roll, ScrapableItem, SoftWarning, SoftWarningContext, SoftWarningSeverity, SystemSnapshot, TechLevel, } from './types.js';
+export { evaluateSoftWarnings } from './softWarnings.js';
+export type { CriticalDamageEffect, CriticalInjuryEffect, MechDamageEffect, PilotDamageEffect, } from './takeDamage.js';
+export { applyMechDamage, applyPilotDamage, performCriticalDamage, performCriticalInjury, } from './takeDamage.js';
+export type { HeatCheckEffect, MechSnapshot, PilotSnapshot, Roll, SoftWarning, SoftWarningContext, TechLevel, } from './types.js';
 //# sourceMappingURL=index.d.ts.map
 // === lib/rules/pilotSnapshot.d.ts ===
 import type { PilotSnapshot } from './types.js';
