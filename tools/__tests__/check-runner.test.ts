@@ -1,7 +1,15 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
-import type { CheckSpec } from '../check'
-import { CHECKS, formatTable, parseArgs, runChecks, selectChecks, UsageError } from '../check'
+import type { CheckResult, CheckSpec } from '../check'
+import {
+  CHECKS,
+  formatFailure,
+  formatTable,
+  parseArgs,
+  runChecks,
+  selectChecks,
+  UsageError,
+} from '../check'
 
 /**
  * `tools/check.ts` is the one list of gates that `bun run check`, pre-push and
@@ -83,6 +91,15 @@ describe('selection', () => {
 })
 
 describe('registry', () => {
+  test('every check carries a one-line fix hint', () => {
+    for (const c of CHECKS) {
+      expect({ id: c.id, fix: c.fix.trim().length > 0 && !c.fix.includes('\n') }).toEqual({
+        id: c.id,
+        fix: true,
+      })
+    }
+  })
+
   test('every command points at something that exists', async () => {
     const root = join(import.meta.dir, '..', '..')
     for (const c of CHECKS) {
@@ -103,6 +120,7 @@ describe('runChecks', () => {
   const spec = (id: string, code: number, extra: Partial<CheckSpec> = {}): CheckSpec => ({
     id,
     guards: id,
+    fix: `fix ${id}`,
     cmd: ['bun', '-e', `console.log('${id} says hi'); process.exit(${code})`],
     profiles: ['full'],
     ...extra,
@@ -120,6 +138,12 @@ describe('runChecks', () => {
     ])
     expect(results[0]?.output).toBe('a says hi')
     expect(formatTable(results)).toContain('2 of 3 FAILED')
+    expect(formatFailure(results[0] as CheckResult, 'fix a').split('\n')).toEqual([
+      '━━━ a failed (exit 1) ━━━',
+      'fix: fix a',
+      '',
+      'a says hi',
+    ])
   })
 
   test('a `first` check finishes before any other starts', async () => {

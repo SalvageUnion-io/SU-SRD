@@ -463,14 +463,13 @@ const OVER_BUDGET: Record<string, number> = {
   '.claude/rules/display-system.md': 4_752,
   '.claude/rules/itun-data-access.md': 4_188,
   '.claude/rules/react-components.md': 4_465,
-  '.claude/rules/testing-patterns.md': 7_916,
+  '.claude/rules/testing-patterns.md': 7_830,
   'apps/discord-bot/CLAUDE.md': 8_337,
-  'apps/itun/CLAUDE.md': 14_000,
+  'apps/itun/CLAUDE.md': 13_865,
   'apps/srd/CLAUDE.md': 11_648,
-  'CLAUDE.md': 12_699,
-  'packages/component-lib/CLAUDE.md': 16_160,
-  'packages/salvageunion-reference/CLAUDE.md': 9_607,
-  'tools/CLAUDE.md': 9_253,
+  'CLAUDE.md': 12_530,
+  'packages/component-lib/CLAUDE.md': 16_137,
+  'packages/salvageunion-reference/CLAUDE.md': 9_361,
 }
 
 export function checkDocSizes(
