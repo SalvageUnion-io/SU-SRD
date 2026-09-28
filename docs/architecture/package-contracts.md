@@ -111,8 +111,7 @@ re-export every name individually, and only names with a consumer outside the
 package are listed — no `export *`. The Zod schemas are **not** on the main
 barrel — nothing outside the package imported them; the JSON Schema documents
 are `./schema-definitions`. To expose a new name, add it
-to the list; the API report (`etc/salvageunion-reference.api.d.ts`) then shows
-the addition in review.
+to the list.
 
 **Utility exports (representative — `lib/index.ts` is the source of truth):**
 `nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`

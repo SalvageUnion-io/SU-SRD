@@ -92,9 +92,6 @@
       "!apps/srd/ssg/output-snapshot.json",
       "!**/convex/_generated",
       "!packages/salvageunion-reference/lib/generated",
-      // Generated API-surface snapshot (tools/generateApiReport.ts, drift-checked
-      // in CI) — a raw declaration rollup, not hand-authored source.
-      "!packages/salvageunion-reference/etc",
       // Astro's old codegen cache. apps/srd has not built through Astro since
       // ADR-031, but `.astro/` survives on any working copy that predates the
       // migration — it is gitignored, so it is invisible to `git status` while

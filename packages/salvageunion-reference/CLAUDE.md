@@ -53,7 +53,7 @@ code imports from the module that owns the function — `entityFields.ts`,
 `lib/utilities.ts` was deleted — it was a wildcard barrel over those seven modules.
 
 To expose a new name, add it to the barrel's list in the same change as its
-first outside consumer. The API report makes that addition visible in review.
+first outside consumer.
 
 `lib/schemas/objects.ts` → `lib/schemas/objects/*.ts` is still a re-export
 barrel, one file per schema family (`primitives`, `content`, `tables`,

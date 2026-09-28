@@ -35,7 +35,6 @@ fi
 PROTECTED_PATTERNS=(
   "*packages/salvageunion-reference/schemas/*.schema.json"
   "*packages/salvageunion-reference/lib/generated/*"
-  "*packages/salvageunion-reference/etc/*"
   "*routeTree.gen.ts"
   "*/dist/*"
   "*tsconfig.tsbuildinfo"
@@ -53,7 +52,7 @@ for pattern in "${PROTECTED_PATTERNS[@]}"; do
     $pattern)
       echo "BLOCKED: $FILE_PATH is auto-generated and must not be hand-edited." >&2
       echo "" >&2
-      echo "  JSON schemas / docs / lib/generated / etc: edit the Zod schemas in" >&2
+      echo "  JSON schemas / docs / lib/generated: edit the Zod schemas in" >&2
       echo "  packages/salvageunion-reference/lib/schemas/ and run 'bun run build:package'." >&2
       echo "  routeTree.gen.ts: TanStack Router regenerates it." >&2
       echo "  output-snapshot.json: run 'bun --filter srd snapshot:update' and READ the diff." >&2

@@ -3,7 +3,7 @@
  *
  * Why this exists: `convex/_generated/**` is COMMITTED, and every other
  * generated artifact in this repo has a drift gate — the reference package's
- * registry/schemas/API report and `routeTree.gen.ts`, via
+ * registry/schemas and `routeTree.gen.ts`, via
  * `tools/check-generated.ts`. Convex's generated client had none, so it was
  * the one committed generated file that could silently go stale.
  *

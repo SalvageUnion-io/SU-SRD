@@ -26,8 +26,7 @@
     },
     "packages/salvageunion-reference": {
       "entry": ["tools/**/*.ts"],
-      "project": ["lib/**/*.ts", "tools/**/*.ts"],
-      "ignore": ["etc/**"]
+      "project": ["lib/**/*.ts", "tools/**/*.ts"]
     },
     "packages/observability": {
       // No `entry` here on purpose: knip derives both subpaths from the
