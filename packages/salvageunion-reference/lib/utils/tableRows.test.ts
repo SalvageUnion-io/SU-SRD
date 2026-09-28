@@ -12,10 +12,8 @@ import { tableRows } from './tableRows.js'
  * six tables before the fix — 0 rows in rendered HTML, every row inside a
  * `<script>`. Without JavaScript the page was a title and a source line.
  *
- * Nothing caught it. It typechecks, it lints, and the output snapshot compares
- * `<main>` TEXT, so a page whose text was 173 characters of chrome looked
- * exactly as legitimate as one with its table in it. The only signal was
- * fetching the page and stripping the scripts.
+ * Nothing caught it: it typechecks and it lints. The only signal was fetching
+ * the page and stripping the scripts.
  */
 
 // No `preload()` here on purpose — `test/reference-preload.ts` already runs
