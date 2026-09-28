@@ -41,30 +41,9 @@ full rationale.
 
 ### Entry Points
 
-```json
-{
-  ".": {
-    "types": "./lib/index.ts",
-    "default": "./lib/index.ts"
-  },
-  "./rules": {
-    "types": "./lib/rules/index.ts",
-    "default": "./lib/rules/index.ts"
-  },
-  "./zod": {
-    "types": "./lib/zod.ts",
-    "default": "./lib/zod.ts"
-  },
-  "./schema-definitions": {
-    "types": "./lib/schemaDefinitions.ts",
-    "default": "./lib/schemaDefinitions.ts"
-  },
-  "./testing": {
-    "types": "./lib/testing.ts",
-    "default": "./lib/testing.ts"
-  }
-}
-```
+`.`, `./rules`, `./zod`, `./schema-definitions` and `./testing`, each mapping
+`types` and `default` to the same `lib/*.ts` source file; the `exports` map in
+`packages/salvageunion-reference/package.json` is the definition.
 
 Consuming apps resolve `lib/index.ts` directly — there is no `dist/` build and
 no `development`/`import` condition split. `./rules` is the pure-math rules
@@ -80,11 +59,6 @@ the main barrel — only the srd `/schema/[id].schema.json` build route imports 
 whose overrides are type-checked against that schema, and `malformed<T>(value)`
 names a deliberately invalid input. Use them instead of `as unknown as SURef*`
 in tests.
-
-`tools/check-doc-drift.ts` (`bun run check doc-drift`) fails CI if this block
-ever falls out of sync with `packages/salvageunion-reference/package.json`'s
-actual `exports` map again — the exact class of drift a prior campaign PR had
-to fix by hand.
 
 ### Public API
 

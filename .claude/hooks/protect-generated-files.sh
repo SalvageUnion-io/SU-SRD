@@ -28,7 +28,7 @@ fi
 
 # Auto-generated files that must not be hand-edited.
 #
-# Keep this in step with what `bun run check:schemas` diffs and what the build
+# Keep this in step with what `bun run check generated` diffs and what the build
 # regenerates — a path that CI fails on for drift but that is missing here is a
 # trap: the agent edits it, the edit looks accepted, and CI rejects it later
 # with a message about drift rather than about the edit.

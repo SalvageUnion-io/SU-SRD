@@ -121,7 +121,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'doc-drift',
-    guards: 'live docs, skills and rules stay true to the tree',
+    guards: 'cited paths, bun scripts and markdown links exist; agent-doc size budgets',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

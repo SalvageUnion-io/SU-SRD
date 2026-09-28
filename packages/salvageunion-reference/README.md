@@ -104,7 +104,7 @@ const suggestions = SalvageUnionReference.getSuggestions('las')
 - Case-sensitive/insensitive options
 - Result limiting for performance
 
-See [Search API Documentation](docs/SEARCH_API.md) for complete details and examples.
+[`lib/search.ts`](lib/search.ts) defines the options (`SearchOptions`) and the result shape (`SearchResult`).
 
 ### Model API
 
