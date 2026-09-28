@@ -244,7 +244,6 @@ describe('protect-generated-files.sh', () => {
     ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
     ['the srd output snapshot', 'apps/srd/ssg/output-snapshot.json'],
     ['the lockfile', 'bun.lock'],
-    ['the coverage baseline', 'coverage-baseline.json'],
     ['the styling baseline', 'tools/styling-baseline.json'],
     ['generated editor settings', '.vscode/settings.json'],
   ])('blocks %s', async (_label, path) => {

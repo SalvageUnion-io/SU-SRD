@@ -21,11 +21,8 @@ core
 **/playwright-report/
 **/test-results/
 **/.playwright-mcp/
-# Coverage output (bun test --coverage lcov reporter / CI capture file)
+# Coverage output (each workspace's `test:coverage` lcov)
 **/coverage/
-coverage-output.txt
-# Aggregated coverage report artifact (tools/coverage-report.ts), CI-only
-/coverage-report/
 
 # Temporary declaration emit for the reference package's API surface report
 # (the committed snapshot lives at packages/salvageunion-reference/etc/)

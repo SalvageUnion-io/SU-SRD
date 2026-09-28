@@ -8,5 +8,9 @@
 # the bot has no DOM.
 preload = ["./test/env.ts", "../../test/reference-preload.ts"]
 
+# Coverage counts this workspace's own files, not the other workspaces'
+# sources its tests load (tools/run-coverage.ts gates on this total).
+coveragePathIgnorePatterns = ["../**"]
+
 [test.env]
 NODE_ENV = "test"

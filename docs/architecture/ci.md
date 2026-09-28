@@ -111,19 +111,22 @@ jobs.
 
 ## The test gate — `coverage`
 
-There is one test run per PR (audit CI-03): `bun run test:coverage` (every
-workspace, instrumented, via `tools/run-coverage.ts`), then `bun run test:tools`
-(not a workspace, so run-coverage does not reach it), then the per-workspace
-coverage ratchet against `coverage-baseline.json`.
+There is one test run per PR: `bun run test:coverage` (`tools/run-coverage.ts`)
+runs every workspace instrumented and the `tools/` suite, all concurrently, and
+fails a workspace whose line coverage is under its floor (`FLOORS` in the
+script). Each workspace's own run stays serial, since a parallel Bun coverage
+run counts lines differently; output is buffered per workspace, so a failure
+reads under its name.
 
-It used to run twice — an uninstrumented `test` job and this one — on the theory
-that a coverage-reporter hiccup should not fail the primary gate. That flake
-(#818: exit 0 with no lcov written) is now retried inside `run-coverage.ts`,
-which still fails immediately on a real test failure and never retries one, so
-the second run was pure cost.
+The floor is a per-workspace total, which Bun's own `coverageThreshold` cannot
+express: on Bun 1.4 it fails when any single file is under the threshold. The
+workspace bunfigs set `coveragePathIgnorePatterns = ["../**"]`, so the total
+counts only that workspace's files, not the other workspaces its tests load.
 
-Locally, `bun run test` is still the canonical full suite; it runs the same
-test files without instrumentation.
+Pre-push runs the same command when shared code or manifests change; app-only
+pushes take the `--changed` fast path and meet the floors in CI. Locally,
+`bun run test` is still the canonical full suite; it runs the same test files
+without instrumentation.
 
 ## Build jobs
 

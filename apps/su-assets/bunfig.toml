@@ -5,5 +5,10 @@
 # No `preload` — this workspace has no DOM, no IndexedDB and no reference-data
 # fixtures to stand up; the asset function is tested against plain Request /
 # Response objects.
+[test]
+# Coverage counts this workspace's own files, not the other workspaces'
+# sources its tests load (tools/run-coverage.ts gates on this total).
+coveragePathIgnorePatterns = ["../**"]
+
 [test.env]
 NODE_ENV = "test"
