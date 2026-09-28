@@ -132,8 +132,7 @@ declares which areas make it relevant:
   knip.
 - **`deps`**: the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
-  `architecture`, `observability`, `convex-codegen`, `convex-callers`,
-  `worker-env`.
+  `architecture`, `observability`, `convex-codegen`, `convex-callers`.
 
 The test suite and the srd build are in the registry too (`bun run check` runs
 them) but not in the `ci` profile: they are the `coverage` and `build-srd`

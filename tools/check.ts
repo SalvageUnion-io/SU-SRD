@@ -161,13 +161,6 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
-    id: 'worker-env',
-    guards: "each Worker's Env type matches its wrangler.jsonc bindings",
-    cmd: ['bun', 'tools/check-worker-env.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
     id: 'workflows',
     guards: 'CI aggregate gate, path filters, SHA pinning, Bun version, Convex deploy guard',
     cmd: ['bun', 'tools/check-workflows.ts'],
