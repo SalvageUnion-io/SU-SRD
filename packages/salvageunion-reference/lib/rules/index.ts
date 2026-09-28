@@ -15,9 +15,7 @@
  * crypto.randomUUID()) remain app-local in ITUN for now.
  *
  * Every name is re-exported explicitly, and only names with a consumer outside
- * the package are listed. A rules module can be live and tested without being
- * here (mediatorTables.ts has no UI surface today — see
- * docs/architecture/combat-loop.md); add its names when something imports them.
+ * the package are listed; add a name when something imports it.
  */
 
 export type { AdvancementOption } from './advancement.js'

@@ -541,10 +541,6 @@ export declare class SalvageUnionReference {
     }): (T & {
         schemaName: SURefEnumSchemaName;
     })[];
-    static getSuggestions(query: string, options?: {
-        schemas?: SURefEnumSchemaName[];
-        limit?: number;
-    }): string[];
     static resolveActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
     static getAllBySchemaNames<K extends keyof SchemaToEntityMap>(schemaNames: K[]): Array<{
         schemaName: K;
@@ -658,18 +654,10 @@ export type AdvancementTrees = {
     gate?: string;
     originUnresolved: boolean;
 };
-export type OriginInferenceState = 'determined' | 'ambiguous' | 'contradictory';
-export type OriginInference = {
-    state: OriginInferenceState;
-    origin?: string;
-    candidates: readonly string[];
-    unexplainedTrees: readonly string[];
-};
 export declare function hybridGrantedTrees(data: AdvancementDataset, hybridName: string): string[];
 export declare function originsForHybrid(data: AdvancementDataset, hybridName: string): string[];
 export declare function gateTreeFor(data: AdvancementDataset, originName: string, hybridName: string): string | undefined;
 export declare function advancementOptionsFor(data: AdvancementDataset, baseClassName: string): AdvancementOption[];
-export declare function inferOriginClass(data: AdvancementDataset, hybridName: string, heldTrees: readonly string[]): OriginInference;
 export declare function resolveAdvancementTrees(data: AdvancementDataset, originName: string | undefined, destName: string | undefined): AdvancementTrees;
 //# sourceMappingURL=advancement.d.ts.map
 // === lib/rules/advancementDataset.d.ts ===
@@ -1008,23 +996,6 @@ export type { CriticalDamageEffect, CriticalInjuryEffect, DamageKind, MechDamage
 export { applyMechDamage, applyPilotDamage, criticalDamageOutcome, criticalInjuryOutcome, mechEffectiveDamage, performCriticalDamage, performCriticalInjury, pilotEffectiveDamage, } from './takeDamage.js';
 export type { AbilityInput, AbilityTier, CapacityViolation, CargoCapacityResult, CargoItem, CargoItemCustom, CargoItemRef, CargoParent, CargoViolation, EditSnapshot, HeatCheckEffect, MechCapacityResult, MechInput, MechModuleSlot, MechSnapshot, MechSystemSlot, PilotSnapshot, PushResult, Roll, ScrapableItem, SoftWarning, SoftWarningContext, SoftWarningSeverity, SystemSnapshot, TechLevel, } from './types.js';
 //# sourceMappingURL=index.d.ts.map
-// === lib/rules/mediatorTables.d.ts ===
-import type { MediatorRollResult, MediatorTableId, Roll } from './types.js';
-export declare const MEDIATOR_TABLE_NAMES: Record<MediatorTableId, string>;
-export declare const MEDIATOR_TABLE_LABEL: Record<MediatorTableId, string>;
-export type FindRollTable = (name: string) => {
-    table?: unknown;
-} | undefined;
-type MediatorRollInput = {
-    table: MediatorTableId;
-    roll: Roll;
-    findTable: FindRollTable;
-    now?: () => Date;
-};
-export declare function performMediatorRoll({ table, roll, findTable, now, }: MediatorRollInput): MediatorRollResult | null;
-export declare function describeMediatorRoll(result: MediatorRollResult): string;
-export {};
-//# sourceMappingURL=mediatorTables.d.ts.map
 // === lib/rules/pilotSnapshot.d.ts ===
 import type { PilotSnapshot } from './types.js';
 export declare function enrichPilotSnapshot(pilot: {
@@ -1062,7 +1033,6 @@ export declare function statesMechanicalChange(text: string | undefined): RulesC
 //# sourceMappingURL=rulesBearing.d.ts.map
 // === lib/rules/scrap.d.ts ===
 import type { ScrapableItem, TechLevel } from './types.js';
-export declare function salvageValueFor(item: ScrapableItem): number;
 export declare function scrapCostFor(item: ScrapableItem): number;
 export declare function tierUpgradeCost(fromTL: TechLevel, toTL: TechLevel): number | null;
 //# sourceMappingURL=scrap.d.ts.map
@@ -1290,14 +1260,6 @@ export type CriticalInjuryResult = {
     outcome: CriticalInjuryOutcome;
     rolledAt: string;
 };
-export type MediatorTableId = 'reaction' | 'morale' | 'retreat';
-export type MediatorRollResult = {
-    table: MediatorTableId;
-    roll: number;
-    label?: string;
-    value: string;
-    rolledAt: string;
-};
 //# sourceMappingURL=types.d.ts.map
 // === lib/schemaDefinitions.d.ts ===
 export declare function getJsonSchemaDefinition(schemaId: string): Record<string, unknown> | undefined;
@@ -1355,10 +1317,6 @@ export declare function searchIn<T extends SURefEntity>(schemaName: SURefEnumSch
 }): (T & {
     schemaName: SURefEnumSchemaName;
 })[];
-export declare function getSuggestions(query: string, options?: {
-    schemas?: SURefEnumSchemaName[];
-    limit?: number;
-}): string[];
 //# sourceMappingURL=search.d.ts.map
 // === lib/searchRanking.d.ts ===
 export type SearchQuery = {

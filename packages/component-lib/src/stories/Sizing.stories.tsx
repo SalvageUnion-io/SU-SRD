@@ -5,7 +5,7 @@ import { Text } from '../components/base/Text'
 import { Badge } from '../components/chrome/Badge'
 import { borderWidth, color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import type { SizeRung } from '../styles/sizing'
-import { DEFAULT_RUNG, RUNG_FONT_SIZE, RUNG_INLINE_PAD } from '../styles/sizing'
+import { DEFAULT_RUNG } from '../styles/sizing'
 import { Caption } from './_harness'
 import './_stories.css'
 
@@ -13,11 +13,20 @@ export default {
   title: 'Foundations/Sizing',
 }
 
-// Migrated off Tailwind in #799 (epic #802). The specimens now read
-// `RUNG_FONT_SIZE` / `RUNG_INLINE_PAD` from `styles/sizing.ts` — the token-valued
-// half of the same ladder Badge and Button consume — so the page still cannot
-// drift from the code, and the values it PRINTS are the real sizes rather than
-// the names of utility classes that are on their way out of the build.
+// `RUNG_TYPE` / `RUNG_INLINE_PADDING` (`styles/sizing.ts`) as token values, so
+// the page prints real sizes rather than utility-class names. They port 1:1:
+// `text-sm` is `fontSize.sm`, and `px-2 py-1` is 8px/4px on Tailwind's 4px step.
+const RUNG_FONT_SIZE: Record<SizeRung, { label: string; body: string }> = {
+  full: { label: fontSize.sm, body: fontSize.lede },
+  compact: { label: fontSize.xs, body: fontSize.caption },
+  mini: { label: fontSize.badge, body: fontSize.note },
+}
+
+const RUNG_INLINE_PAD: Record<SizeRung, string> = {
+  full: `${space[4]} ${space[8]}`,
+  compact: `${space[2]} ${space[6]}`,
+  mini: `${space[2]} ${space[4]}`,
+}
 
 /** Ladder order, largest first — specimen iteration only (the catalog page). */
 const SIZE_RUNGS: readonly SizeRung[] = ['full', 'compact', 'mini']

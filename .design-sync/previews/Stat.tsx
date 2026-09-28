@@ -38,7 +38,7 @@ function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
 
 /**
  * One component, TWO anatomies — picked by `orientation`. There is no pip mode:
- * use `VitalGauge` for a fill bar and `BayStatus` for a bay tally.
+ * use `VitalGauge` for a fill bar.
  */
 export function Anatomies() {
   const s = useStats()

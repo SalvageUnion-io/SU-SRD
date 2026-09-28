@@ -1,7 +1,7 @@
 /**
  * Unit tests for downtime.ts — the Union Crawler Downtime Procedure
  * (Core Book p.227-228, design-review R-2). Every reset is covered:
- * scope resolution, the Med Bay gate, mech restore/repair/recharge, pilot
+ * the Med Bay gate, mech restore/repair/recharge, pilot
  * heal/train/recharge, and the once-per-Downtime flag clears.
  *
  * Uses REAL reference data (systems/modules/equipment/crawler-bays) so the
@@ -13,18 +13,15 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import type { Pilot } from '../../schemas/pilot'
-import type { SoftLink } from '../../schemas/softLink'
 import type { DowntimeSteps, MedBayStatus } from '../downtime'
 import {
   allDowntimeSteps,
   CHASSIS_DAMAGED_CONDITION,
   downtimeMechPatch,
   downtimePilotPatch,
-  healableInjuries,
   mechBayStatus,
   medBayStatus,
   repairableItems,
-  resolveDowntimeScope,
 } from '../downtime'
 
 // ---------------------------------------------------------------------------
@@ -83,23 +80,6 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
   }
 }
 
-function link(
-  id: string,
-  type: SoftLink['type'],
-  fromType: 'pilot' | 'mech',
-  fromId: string,
-  toType: 'pilot' | 'crawler',
-  toId: string
-): SoftLink {
-  return {
-    id,
-    type,
-    from: { type: fromType, id: fromId },
-    to: { type: toType, id: toId },
-    createdAt: NOW,
-  }
-}
-
 /** A fully-operational Med Bay at the given bands. */
 function medBay(overrides: Partial<MedBayStatus> = {}): MedBayStatus {
   return {
@@ -136,50 +116,6 @@ function findHighTlSystemName(minTl: number): string {
   if (!system) throw new Error(`No system at TL >= ${minTl} in reference data`)
   return system.name
 }
-
-// ---------------------------------------------------------------------------
-// resolveDowntimeScope
-// ---------------------------------------------------------------------------
-
-describe('resolveDowntimeScope', () => {
-  it('collects crew pilots and their mechs; ignores unlinked entities', () => {
-    const crawler = makeCrawler()
-    const crew = makePilot({ id: 'p-crew' })
-    const stray = makePilot({ id: 'p-stray' })
-    const crewMech = makeMech({ id: 'm-crew' })
-    const strayMech = makeMech({ id: 'm-stray' })
-    const links = [
-      link('l1', 'pilot-to-crawler', 'pilot', 'p-crew', 'crawler', crawler.id),
-      link('l2', 'mech-to-pilot', 'mech', 'm-crew', 'pilot', 'p-crew'),
-      // Stray pilot's mech link exists but the pilot is not crew.
-      link('l3', 'mech-to-pilot', 'mech', 'm-stray', 'pilot', 'p-stray'),
-    ]
-    const scope = resolveDowntimeScope({
-      crawler,
-      pilots: [crew, stray],
-      mechs: [crewMech, strayMech],
-      links,
-    })
-    expect(scope.pilots.map((p) => p.id)).toEqual(['p-crew'])
-    expect(scope.mechs.map((m) => m.id)).toEqual(['m-crew'])
-  })
-
-  it('skips orphaned links (deleted endpoints) and other crawlers', () => {
-    const crawler = makeCrawler()
-    const links = [
-      link('l1', 'pilot-to-crawler', 'pilot', 'p-gone', 'crawler', crawler.id),
-      link('l2', 'pilot-to-crawler', 'pilot', 'p-other', 'crawler', 'crawler-other'),
-    ]
-    const scope = resolveDowntimeScope({
-      crawler,
-      pilots: [makePilot({ id: 'p-other' })],
-      mechs: [],
-      links,
-    })
-    expect(scope.pilots).toEqual([])
-    expect(scope.mechs).toEqual([])
-  })
-})
 
 // ---------------------------------------------------------------------------
 // medBayStatus
@@ -401,32 +337,8 @@ describe('downtimeMechPatch', () => {
 })
 
 // ---------------------------------------------------------------------------
-// healableInjuries / downtimePilotPatch
+// downtimePilotPatch
 // ---------------------------------------------------------------------------
-
-describe('healableInjuries', () => {
-  const injured = makePilot({
-    injuries: [
-      { severity: 'minor', note: 'sprain' },
-      { severity: 'major', note: 'break' },
-    ],
-  })
-
-  it('counts per the Med Bay bands', () => {
-    expect(healableInjuries(injured, medBay())).toEqual({ minor: 1, major: 1, remaining: 0 })
-    expect(healableInjuries(injured, medBay({ healsMajor: false }))).toEqual({
-      minor: 1,
-      major: 0,
-      remaining: 1,
-    })
-    expect(
-      healableInjuries(
-        injured,
-        medBay({ operational: false, healsMinor: false, healsMajor: false })
-      )
-    ).toEqual({ minor: 0, major: 0, remaining: 2 })
-  })
-})
 
 describe('downtimePilotPatch', () => {
   it('heals injuries per the Med Bay bands, then restores HP to the RECOVERED max', () => {

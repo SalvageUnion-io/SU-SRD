@@ -14,7 +14,6 @@ import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import type { PlayAction } from '../dashboardRules'
 import {
   actionInRange,
-  actionMicroMeta,
   actionReachable,
   activationPatch,
   buildMechActions,
@@ -308,18 +307,6 @@ describe('deck filtering / grouping / range', () => {
     const bySource = groupBySource([s1, s2, s3])
     expect(bySource.map((g) => g.label)).toEqual(['Gun', 'Shield'])
     expect(bySource[0]?.items).toHaveLength(2)
-  })
-
-  test('actionMicroMeta renders range initials, damage, and traits', () => {
-    const pa = mkAction({
-      range: ['Close', 'Medium'],
-      damage: { damageType: 'HP', amount: 3 },
-      traits: [{ type: 'hot', amount: 2 }],
-    })
-    const meta = actionMicroMeta(pa)
-    expect(meta).toContain('C/M')
-    expect(meta).toContain('3 HP')
-    expect(meta).toContain('HOT 2')
   })
 })
 

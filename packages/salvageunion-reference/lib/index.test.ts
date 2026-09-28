@@ -31,7 +31,6 @@ describe('SalvageUnionReference static properties', () => {
         'findAllIn',
         'search',
         'searchIn',
-        'getSuggestions',
         'get',
         'getByNameIn',
         'exists',

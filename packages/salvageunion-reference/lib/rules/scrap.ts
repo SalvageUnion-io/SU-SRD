@@ -17,16 +17,6 @@ import { SalvageUnionReference } from '../index.js'
 import type { ScrapableItem, TechLevel } from './types.js'
 
 /**
- * Returns the sell (salvage) value of an item in units of its own tech level's
- * scrap. This is the `salvageValue` field from the reference data.
- *
- * Example: a TL-2 system with salvageValue 3 yields 3 TL-2 Scrap when salvaged.
- */
-export function salvageValueFor(item: ScrapableItem): number {
-  return item.salvageValue
-}
-
-/**
  * Returns the buy (install) cost of an item in units of its own tech level's
  * scrap. Per SRD rules the purchase cost equals the salvage value.
  *

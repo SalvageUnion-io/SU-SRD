@@ -928,11 +928,10 @@ export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
   const publicUrl = publicSheetUrl(webUrl, sheet.table, sheet.appId, sheet.publicRead)
   if (publicUrl !== null) {
     // Inserted after the vitals rail rather than appended, because
-    // `enforceEmbedLimits` sheds from the END. Appended, this would be the
+    // `enforceContainerLimits` sheds from the END. Appended, this would be the
     // FIRST thing dropped on a large sheet — a Salvager with many ability
-    // trees, a fully-fitted crawler — and it would be counted in the "N
-    // sections omitted" notice as though it were a section of the sheet. The
-    // one link that works without an account should not be the one that goes.
+    // trees, a fully-fitted crawler. The one link that works without an
+    // account should not be the one that goes.
     const afterVitals = fields.findIndex((f) => !f.inline)
     fields.splice(afterVitals === -1 ? fields.length : afterVitals, 0, {
       name: 'Share',

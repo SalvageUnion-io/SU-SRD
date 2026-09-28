@@ -150,7 +150,7 @@ export type CargoCapacityResult = {
 }
 
 /**
- * Minimal item shape consumed by `salvageValueFor` / `scrapCostFor`.
+ * Minimal item shape consumed by `scrapCostFor`.
  * Any SU entity with a salvageValue and techLevel satisfies this.
  */
 export type ScrapableItem = {
@@ -388,28 +388,6 @@ export type CriticalInjuryOutcome =
 export type CriticalInjuryResult = {
   roll: number
   outcome: CriticalInjuryOutcome
-  /** ISO timestamp of when this result was rolled. */
-  rolledAt: string
-}
-
-// ---------------------------------------------------------------------------
-// Mediator table structural types (moved with mediatorTables.ts).
-// ---------------------------------------------------------------------------
-
-/** The three Mediator tables the tray can roll (Workshop Manual p.268). */
-export type MediatorTableId = 'reaction' | 'morale' | 'retreat'
-
-/**
- * Recorded result of a Mediator table roll (Reaction / Morale / Retreat).
- * Snapshot-safe plain data — same shape discipline as HeatCheckResult.
- */
-export type MediatorRollResult = {
-  table: MediatorTableId
-  roll: number
-  /** Band label from the table entry (e.g. 'Friendly'), when present. */
-  label?: string
-  /** Full outcome text from the table entry. */
-  value: string
   /** ISO timestamp of when this result was rolled. */
   rolledAt: string
 }

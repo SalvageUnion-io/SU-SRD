@@ -45,7 +45,7 @@ function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
 
 /** Both anatomies at a glance — one component, picked by `orientation`. */
 export const Anatomies: Story = () => (
-  <Gallery rule="One component, TWO anatomies — the centred value box (default) and the horizontal [label | value] readout. No pip mode: use VitalGauge for a fill bar, BayStatus for a bay tally.">
+  <Gallery rule="One component, TWO anatomies — the centred value box (default) and the horizontal [label | value] readout. No pip mode: use VitalGauge for a fill bar.">
     <Cell label="default → box">
       <Stat label="SP" value={sp} />
     </Cell>

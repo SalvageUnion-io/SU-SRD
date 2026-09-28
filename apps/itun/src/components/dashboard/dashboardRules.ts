@@ -465,20 +465,6 @@ export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
   return groups
 }
 
-/** Compact micro-meta tags for a deck card (range / damage / traits). */
-export function actionMicroMeta(pa: PlayAction): string[] {
-  const bits: string[] = []
-  const ranges = pa.action.range
-  if (ranges && ranges.length > 0) bits.push(ranges.map((r) => r[0]).join('/'))
-  const dmg = pa.action.damage
-  if (dmg) bits.push(`${dmg.amount} ${dmg.damageType}`)
-  for (const t of pa.action.traits ?? []) {
-    const label = t.type.toUpperCase()
-    bits.push(t.amount != null ? `${label} ${t.amount}` : label)
-  }
-  return bits
-}
-
 // ---------------------------------------------------------------------------
 // Resolve flow — cost choice, variable Hot, Apply outcome (plan §5, D2)
 // ---------------------------------------------------------------------------

@@ -28,12 +28,12 @@ import type { EntityStatus } from './entityStatus'
  * prop (see StatBorderState); the fill/text/stamp stay constant. A value with a
  * `max` reads as `current /max` (current prominent, /max muted); a bare value
  * centres. Stat has NO pip mode: pip trackers were retired (use the value box; a
- * fill bar is `VitalGauge`), and the crawler-bay tally is its own `BayStatus`.
+ * fill bar is `VitalGauge`).
  */
 
 /** Stat tone (a public alias retained for consumers that key colour by stat). */
 export type StatTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'cw' | 'default'
-/** A tri-state condition value (crawler-bay condition — see `BayStatus`). */
+/** A tri-state condition value (e.g. a crawler bay's condition). */
 export type StatState = EntityStatus
 
 /**

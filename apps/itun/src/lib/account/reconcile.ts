@@ -67,27 +67,6 @@ export function countWork(work: LocalWork): number {
   )
 }
 
-/**
- * Read this session's work out of the in-memory caches.
- *
- * Synchronous and from `getState()` on purpose: `selectBackend()` reads live
- * auth state, so the instant a sign-in resolves it flips from `memory` to
- * `remote` and the stores start reading IndexedDB instead of the Maps. The
- * Zustand caches survive the flip; an `await` here would be a window in which
- * the first rehydrate blanks them and an empty roster gets "saved".
- */
-export function captureSessionWork(): LocalWork {
-  const entities = useEntityStore.getState()
-  return {
-    pilots: entities.list('pilot'),
-    mechs: entities.list('mech'),
-    crawlers: entities.list('crawler'),
-    softLinks: entities.list('softLink'),
-    mechPatterns: usePatternStore.getState().list(),
-    encounterNpcs: useEncounterStore.getState().list(),
-  }
-}
-
 /** A row's own id, or null for a row without one. */
 function rowId(row: unknown): string | null {
   const id = (row as { id?: unknown } | null)?.id

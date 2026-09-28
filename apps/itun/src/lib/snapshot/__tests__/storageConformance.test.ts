@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'bun:test'
 import type { R2BucketLike, SnapshotStorage } from '../storage'
-import { createR2Storage, InMemoryStorage } from '../storage'
+import { createR2Storage } from '../storage'
 
 /**
  * One contract, every implementation (ADR-033 §3).
  *
- * `SnapshotStorage` has three methods and two implementations: `InMemoryStorage`
- * (tests) and R2 (production). Any handler test run against `InMemoryStorage`
- * is only sound if the implementations genuinely agree — otherwise the handlers are verified against a stand-in that behaves
- * differently from the thing actually deployed.
- *
- * So the contract is asserted once, here, and every implementation is driven
- * through it. A new backend adds a row to the table below and nothing else.
+ * The `SnapshotStorage` contract is asserted once, here, and every
+ * implementation is driven through it. A new backend adds a row to the table
+ * below and nothing else.
  *
  * ## What this cannot cover, and what covers it instead
  *
@@ -52,7 +48,6 @@ function fakeR2Bucket(): R2BucketLike & { size(): number } {
 }
 
 const implementations: Array<{ name: string; make: () => SnapshotStorage }> = [
-  { name: 'InMemoryStorage', make: () => new InMemoryStorage() },
   { name: 'createR2Storage', make: () => createR2Storage(fakeR2Bucket()) },
 ]
 
