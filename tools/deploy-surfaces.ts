@@ -17,7 +17,9 @@
  *
  * Fails SAFE in every direction: no record, `--force-all`, or any change to a
  * shared path deploys everything. Under-deploying is the only outcome that can
- * serve a stale surface, so nothing here narrows on a guess.
+ * serve a stale surface, so nothing here narrows on a guess: the two narrowings
+ * of the shared set (a release's CHANGELOG, a version-only manifest bump) are
+ * backed by a test that fails when a new reader of those files appears.
  *
  * NEVER BACKWARDS ON ITS OWN. CI on `main` gives every commit its own run and
  * never cancels one, so two commits' runs can finish in either order. If B
@@ -52,10 +54,23 @@ type Surface = keyof typeof SURFACES
  * The three root prose files are rendered INTO srd's about page and bundled
  * `?raw` into ITUN (ci.yml's `shared` filter carries them for the same reason,
  * after #731), so an edit to one changes what those surfaces serve even though
- * nothing under `apps/` moved.
+ * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow
+ * and the setup action its jobs run can change what ships.
  */
 const SHARED =
-  /^(packages\/|test\/|package\.json$|bun\.lock$|bunfig\.toml$|tsconfig|patches\/|\.bun-version$|\.github\/|ABOUT_JRVS\.md$|LLM_STATEMENT\.md$|SPECIAL_THANKS\.md$)/
+  /^(packages\/|package\.json$|bun\.lock$|bunfig\.toml$|tsconfig|patches\/|\.bun-version$|\.github\/workflows\/deploy-cloudflare\.yml$|\.github\/actions\/|ABOUT_JRVS\.md$|LLM_STATEMENT\.md$|SPECIAL_THANKS\.md$)/
+
+/**
+ * Shared-path files that only some surfaces read, so a change ships just
+ * those. The reference CHANGELOG, which every data release rewrites, is
+ * rendered by srd's /changelog page and ITUN's changelog route.
+ */
+export const READ_BY: Readonly<Record<string, readonly Surface[]>> = {
+  'packages/salvageunion-reference/CHANGELOG.md': ['srd', 'itun'],
+}
+
+/** A workspace package's manifest. No surface embeds a package's version. */
+const PACKAGE_MANIFEST = /^packages\/[^/]+\/package\.json$/
 
 /**
  * The pure decision. `changed === null` means there is no usable deploy record,
@@ -65,12 +80,29 @@ export function decideSurfaces(
   changed: readonly string[] | null,
   forceAll: boolean
 ): Record<Surface, boolean> {
-  const all = forceAll || changed === null || changed.some((path) => SHARED.test(path))
+  const all =
+    forceAll ||
+    changed === null ||
+    changed.some((path) => SHARED.test(path) && !Object.hasOwn(READ_BY, path))
   const result = {} as Record<Surface, boolean>
   for (const [key, dir] of Object.entries(SURFACES) as [Surface, string][]) {
-    result[key] = all || (changed ?? []).some((path) => path.startsWith(`apps/${dir}/`))
+    result[key] =
+      all ||
+      (changed ?? []).some(
+        (path) => path.startsWith(`apps/${dir}/`) || (READ_BY[path]?.includes(key) ?? false)
+      )
   }
   return result
+}
+
+/** Two manifests that differ in nothing but `version`: a release bump. */
+export function isVersionOnlyBump(before: string, after: string): boolean {
+  try {
+    const rest = (text: string) => JSON.stringify({ ...JSON.parse(text), version: null })
+    return before !== after && rest(before) === rest(after)
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -134,12 +166,24 @@ function ancestryOf(base: string | null): Ancestry {
   return 'diverged'
 }
 
-/** Files that differ between the recorded deploy and HEAD, or null with no record. */
+/**
+ * Files that differ between the recorded deploy and HEAD, or null with no
+ * record. A `packages/*` manifest whose only change is its version is left
+ * out: it ships nothing, and release commits make one on every data release.
+ */
 function changedSince(base: string | null): string[] | null {
   if (base === null) return null
   const diff = git(['diff', '--name-only', base, 'HEAD'])
   if (!diff.ok) return null
-  return diff.out === '' ? [] : diff.out.split('\n')
+  if (diff.out === '') return []
+  return diff.out.split('\n').filter((path) => {
+    if (!PACKAGE_MANIFEST.test(path)) return true
+    const before = git(['show', `${base}:${path}`])
+    const after = git(['show', `HEAD:${path}`])
+    const bump = before.ok && after.ok && isVersionOnlyBump(before.out, after.out)
+    if (bump) console.log(`version-only bump, ships nothing: ${path}`)
+    return !bump
+  })
 }
 
 function main(): void {
