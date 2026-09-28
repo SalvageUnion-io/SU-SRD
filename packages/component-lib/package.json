@@ -28,18 +28,18 @@
   },
   "devDependencies": {
     "@ladle/react": "5.1.1",
-    "@tailwindcss/vite": "catalog:",
-    "@testing-library/jest-dom": "catalog:",
-    "@testing-library/react": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "vite": "catalog:"
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "7.0.0",
+    "@testing-library/react": "16.3.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vite": "^8.2.0"
   },
   "dependencies": {
-    "@base-ui/react": "catalog:",
+    "@base-ui/react": "1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "catalog:",
+    "lucide-react": "^1.28.0",
     "salvageunion-reference": "workspace:*",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0"

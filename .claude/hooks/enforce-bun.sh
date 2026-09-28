@@ -158,7 +158,7 @@ if $blocked; then
   echo "BLOCKED: this project uses bun, not npm/yarn/pnpm." >&2
   echo "" >&2
   echo "  install        -> bun install" >&2
-  echo "  add a dep      -> cd <workspace> && bun add <pkg>   (2+ manifests: use workspaces.catalog)" >&2
+  echo "  add a dep      -> cd <workspace> && bun add <pkg>" >&2
   echo "  run a script   -> bun run <script>" >&2
   echo "  one-off binary -> bunx <pkg>        (but NOT 'bunx npm ...', which is what this catches)" >&2
   echo "" >&2

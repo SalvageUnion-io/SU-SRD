@@ -30,7 +30,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm changing CI, a workflow, or how deploys pick what to ship** → [architecture/ci.md](architecture/ci.md) — why the path filters, the single test gate, the aggregate `CI Success` check and the `deployed/cloudflare` deploy record are shaped the way they are; `bun run check workflows actionlint` runs the workflow guards and actionlint + zizmor locally.
 
-**I'm adding, bumping or pinning a dependency** → [architecture/dependency-management.md](architecture/dependency-management.md) — the catalog (a dep used by 2+ manifests is declared once), `overrides` (one dedupe pin and four security floors), the `bun audit` gate, and `bunfig.toml`'s 3-day install cooldown, which makes a **caret range resolve silently downward** instead of erroring.
+**I'm adding, bumping or pinning a dependency** → [architecture/dependency-management.md](architecture/dependency-management.md) — Renovate (non-majors auto-merge weekly; majors wait on the Dependency Dashboard), `overrides` (four security floors), the `bun audit` gate, and `bunfig.toml`'s 3-day install cooldown, which makes a **caret range resolve silently downward** instead of erroring.
 
 **I'm working on the move to Cloudflare** → [adrs/ADR-033-cloudflare-hosting.md](adrs/ADR-033-cloudflare-hosting.md) (**the decisions** — read before revisiting any of them, especially R2-over-KV) + [architecture/cloudflare-cutover.md](architecture/cloudflare-cutover.md) (**the executable plan** — phase order, per-phase gates, progress table). Hard cutover, no rollback: **a failed gate halts the phase and is never worked around.** Do not execute from issue #830, which the ADR supersedes.
 
@@ -56,7 +56,7 @@ conventions, then the relevant architecture doc below.
 | [display-system.md](architecture/display-system.md)                   | The two card shells (ReferenceEntityCard / Card), size × extent, controls                              |
 | [data-flow.md](architecture/data-flow.md)                             | Reference data + player data hydration; the two persistence domains (IndexedDB / Convex), Zustand      |
 | [package-contracts.md](architecture/package-contracts.md)             | Package APIs, dependency rules, cross-package change checklist                                         |
-| [dependency-management.md](architecture/dependency-management.md)     | Pinning, the catalog, `overrides`, the audit gate and the install cooldown — and why each exists        |
+| [dependency-management.md](architecture/dependency-management.md)     | Renovate, the install cooldown, the audit gate, `overrides` and knip — and why each exists             |
 | [ci.md](architecture/ci.md)                                           | Why `ci.yml` and the deploy workflow are shaped the way they are — triggers, path filters, the one test gate, the deploy record |
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md)     | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix                                   |
 | [dashboard.md](architecture/dashboard.md)                             | The Dashboard (Guided-Play surface) design — layout, instruments, canvas                               |

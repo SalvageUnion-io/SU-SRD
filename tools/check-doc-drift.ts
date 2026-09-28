@@ -829,41 +829,6 @@ const FRAMEWORKS: FrameworkFact[] = [
   },
 ]
 
-type CatalogHost = {
-  catalog?: Record<string, string>
-  catalogs?: Record<string, Record<string, string>>
-}
-
-/**
- * Resolve a `catalog:` specifier to the version the root actually declares.
- *
- * `catalog:` uses the DEFAULT catalog; `catalog:<name>` selects a NAMED one —
- * in both cases the key inside the catalog is the package name, never the
- * suffix. Returns undefined for an unknown catalog or a missing entry.
- *
- * Both fields are read from `workspaces` AND from the top level of
- * package.json, because Bun accepts either ("If you put `catalog` or `catalogs`
- * at the top level of the package.json file, that will work too"). This repo
- * uses the `workspaces` form, but the fallback is not hypothetical tidiness:
- * dependabot-core #12522 rewrites this field, and a check that returns
- * undefined here fails `bun run check` with "has the dependency moved?" —
- * pointing at the dependency rather than at the rewrite that actually broke it.
- */
-function resolveCatalog(root: string, spec: string, dependency: string): string | undefined {
-  const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as CatalogHost & {
-    workspaces?: string[] | CatalogHost
-  }
-  const ws = rootPkg.workspaces
-  const hosts: CatalogHost[] = [...(ws && !Array.isArray(ws) ? [ws] : []), rootPkg]
-
-  const name = spec.slice('catalog:'.length).trim()
-  for (const host of hosts) {
-    const found = name === '' ? host.catalog?.[dependency] : host.catalogs?.[name]?.[dependency]
-    if (found !== undefined) return found
-  }
-  return undefined
-}
-
 function installedMajor(root: string, fact: FrameworkFact): string | null {
   const manifestPath = join(root, fact.manifest)
   if (!existsSync(manifestPath)) return null
@@ -871,16 +836,8 @@ function installedMajor(root: string, fact: FrameworkFact): string | null {
     dependencies?: Record<string, string>
     devDependencies?: Record<string, string>
   }
-  let range =
+  const range =
     manifest.dependencies?.[fact.dependency] ?? manifest.devDependencies?.[fact.dependency]
-
-  // Shared deps are declared once in the root `workspaces.catalog` and referenced
-  // as `catalog:` (or `catalog:<name>`) from each workspace, so the manifest no
-  // longer carries a version to read. Resolve one hop to the catalog. Without
-  // this the check reports "has the dependency moved?" for every catalogued
-  // framework — which is exactly what it did when catalogs landed.
-  if (range?.startsWith('catalog:')) range = resolveCatalog(root, range, fact.dependency)
-
   const major = range?.match(/(\d+)/)
   return major?.[1] ?? null
 }
@@ -1138,29 +1095,6 @@ const COUNT_CLAIMS: CountClaim[] = [
     pattern: /\b(\d+)\s+ADRs\b/,
     label: 'ADR count in docs/README.md',
     actual: (root) => adrFiles(root).length,
-  },
-  {
-    doc: 'CLAUDE.md',
-    pattern: /\b(\d+) deps, \d+ references\b/,
-    label: 'catalog entry count in CLAUDE.md',
-    actual: (root) => {
-      const pkg = JSON.parse(read(root, 'package.json')) as {
-        workspaces?: { catalog?: Record<string, string> }
-      }
-      return Object.keys(pkg.workspaces?.catalog ?? {}).length
-    },
-  },
-  {
-    doc: 'CLAUDE.md',
-    pattern: /\b\d+ deps, (\d+) references\b/,
-    label: 'catalog reference count in CLAUDE.md',
-    actual: (root) => {
-      let total = 0
-      for (const rel of ['package.json', ...Object.values(workspaceManifests(root))]) {
-        total += (read(root, rel).match(/"catalog:"/g) ?? []).length
-      }
-      return total
-    },
   },
 ]
 

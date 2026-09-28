@@ -28,8 +28,7 @@
   "workers_dev": true,
   "main": "src/worker.ts",
 
-  // Held at or below what the catalogued wrangler (root package.json,
-  // `workspaces.catalog`) bundles as workerd, so
+  // Held at or below the workerd that the wrangler devDependency bundles, so
   // `wrangler dev` runs locally. A newer date fails with "requires compatibility
   // date X, but the newest date supported by this server binary is Y", which
   // reads like a config error and is really version skew.

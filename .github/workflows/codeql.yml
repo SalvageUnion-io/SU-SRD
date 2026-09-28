@@ -24,8 +24,8 @@ on:
   # `main` BEFORE the ruleset is changed — same reasoning as ci.yml's.
   merge_group:
   schedule:
-    # Mondays at 05:30 UTC — same cadence as Dependabot, offset from the
-    # top of the hour to avoid the scheduling stampede.
+    # Mondays at 05:30 UTC, after Renovate's weekly window and offset from
+    # the top of the hour to avoid the scheduling stampede.
     - cron: '30 5 * * 1'
 
 # Cancel superseded runs, mirroring ci.yml. This became load-bearing when the

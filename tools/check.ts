@@ -160,13 +160,6 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
-    id: 'catalog',
-    guards: 'workspaces.catalog: shared deps declared once, no orphans',
-    cmd: ['bun', 'tools/check-catalog.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
     id: 'worker-env',
     guards: "each Worker's Env type matches its wrangler.jsonc bindings",
     cmd: ['bun', 'tools/check-worker-env.ts'],
