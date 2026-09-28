@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../../stores/playStateStore'
@@ -39,15 +39,22 @@ function stubStore(entities: Array<Mech | Pilot>): { store: PlayStore; calls: Ca
   return { store, calls }
 }
 
+/** Click a control whose write resolves before the band updates its own state. */
+async function clickAndSettle(el: HTMLElement): Promise<void> {
+  await act(async () => {
+    fireEvent.click(el)
+  })
+}
+
 describe('ActiveItemBand rules buttons', () => {
   beforeEach(() => {
     usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
   })
 
-  test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, plan §5.1)', () => {
+  test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, plan §5.1)', async () => {
     const { store, calls } = stubStore([mech])
     render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
-    fireEvent.click(screen.getByText('Vent'))
+    await clickAndSettle(screen.getByText('Vent'))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.patch).toEqual({ currentHeat: 0, vulnerable: true })
   })
@@ -59,23 +66,23 @@ describe('ActiveItemBand rules buttons', () => {
     expect(calls[0]?.patch).toEqual({ shutdown: true })
   })
 
-  test('Take Dmg applies the entered SP damage', () => {
+  test('Take Dmg applies the entered SP damage', async () => {
     const { store, calls } = stubStore([mech])
     render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
     fireEvent.click(screen.getByText('Take Dmg'))
     // Bump damage 1 → 3, then apply.
     fireEvent.click(screen.getByLabelText('Add one damage point'))
     fireEvent.click(screen.getByLabelText('Add one damage point'))
-    fireEvent.click(screen.getByText('Apply −3 SP'))
+    await clickAndSettle(screen.getByText('Apply −3 SP'))
     expect(calls[0]?.patch).toEqual({ currentSP: 7 })
   })
 
-  test('pilot Take Dmg applies HP damage after Dismount', () => {
+  test('pilot Take Dmg applies HP damage after Dismount', async () => {
     const { store, calls } = stubStore([mech, pilot])
     render(<ActiveItemBand mech={mech} pilot={pilot} store={store} />)
     fireEvent.click(screen.getByText('Dismount'))
     fireEvent.click(screen.getByText('Take Dmg'))
-    fireEvent.click(screen.getByText('Apply −1 HP'))
+    await clickAndSettle(screen.getByText('Apply −1 HP'))
     expect(calls[0]).toEqual({ type: 'pilot', id: 'p1', patch: { currentHP: 9 } })
   })
 
@@ -120,12 +127,12 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
     expect(calls).toHaveLength(0)
   })
 
-  test('a legal Push still performs the action, not the explanation', () => {
+  test('a legal Push still performs the action, not the explanation', async () => {
     const ok = { ...hotMech, currentHeat: 0 } // 0 + 2 <= 4
     const { store, calls } = stubStore([ok])
     render(<ActiveItemBand mech={ok} pilot={null} store={store} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /push/i }))
+    await clickAndSettle(screen.getByRole('button', { name: /push/i }))
 
     expect(screen.queryByText(/Quick Ref/i)).toBeNull()
     expect(calls.length).toBeGreaterThan(0)

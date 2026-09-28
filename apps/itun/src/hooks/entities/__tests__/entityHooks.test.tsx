@@ -16,7 +16,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -67,6 +67,9 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  // Unmount before the reset: this hook runs before the preload's cleanup, and a
+  // mounted subscriber answers the reset by starting hydrations that resolve after act().
+  cleanup()
   await _clearAllStores()
   resetStores()
 })

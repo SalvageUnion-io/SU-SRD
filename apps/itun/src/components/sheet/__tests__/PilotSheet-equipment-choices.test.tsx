@@ -20,8 +20,11 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
 import { pilotFixture } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { PilotSheet } from '../PilotSheet'
+
+beforeAll(hydrateStores)
 
 // PilotSheet resolves equipment slugs via salvageunion-reference at render, and
 // the choice cards deep-link trait/keyword entities — preload 'all' so those

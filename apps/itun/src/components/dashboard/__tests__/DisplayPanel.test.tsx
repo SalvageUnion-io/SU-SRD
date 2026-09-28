@@ -13,8 +13,11 @@ import { fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { DisplayPanel } from '../DisplayPanel'
 import type { DialItem } from '../dialItems'
+
+beforeAll(hydrateStores)
 
 let chassisSlug = 'iron-mongrel'
 

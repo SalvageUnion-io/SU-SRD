@@ -10,12 +10,12 @@
  * act() hygiene: hydration (and delete) resolve through fake-indexeddb after
  * the initial act() block, so async store work is driven to completion with
  * settle() — repeated small act() blocks with the condition polled between
- * them — and the afterEach Zustand reset is act-wrapped (the component is
- * still mounted when it runs). State updates land inside act; no warnings.
+ * them — and afterEach unmounts before it resets the Zustand store. State
+ * updates land inside act; no warnings.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Roster } from '../Roster'
@@ -119,12 +119,11 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  // Unmount before the reset: this hook runs before the preload's cleanup, and a
+  // mounted Roster answers the reset by starting hydrations that resolve after act().
+  cleanup()
   await _clearAllStores()
-  // The Roster may still be mounted here (RTL cleanup runs after this
-  // hook), so the Zustand reset must happen inside act().
-  act(() => {
-    resetEntityStore()
-  })
+  resetEntityStore()
 })
 
 // ---------------------------------------------------------------------------

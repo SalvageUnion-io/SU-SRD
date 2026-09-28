@@ -24,11 +24,14 @@ import {
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
 import { ActionsDeck } from '../ActionsDeck'
 import type { PlayStore } from '../ActiveItemBand'
 import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+
+beforeAll(hydrateStores)
 
 type Call = { type: string; id: string; patch: Record<string, unknown> }
 

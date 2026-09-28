@@ -12,13 +12,16 @@
  *     still exists (no cascade)
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { must } from '../../__tests__/must'
 import type { SoftLinkStore } from '../useSoftLinks'
 import { resolveLinkType, useSoftLinks } from '../useSoftLinks'
+
+beforeAll(hydrateStores)
 
 // ---------------------------------------------------------------------------
 // Helpers
