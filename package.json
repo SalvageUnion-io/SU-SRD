@@ -50,7 +50,7 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "test": "bun run test:workspaces; a=$?; bun run test:tools; b=$?; [ \"$a\" = 0 ] && [ \"$b\" = 0 ]",
+    "test": "concurrently -g 'bun run test:workspaces' 'bun run test:tools'",
     "test:workspaces": "bun --filter \"*\" test",
     "test:coverage": "bun tools/run-coverage.ts",
     "test:tools": "bun test ./tools",
