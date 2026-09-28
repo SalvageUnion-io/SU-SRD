@@ -33,7 +33,7 @@
  *
  * A RE-EXPORT of a public function is a public function too: Convex registers
  * every export of a module, so `export { claimLocal } from './claim'` in
- * `entities.ts` makes `entities:claimLocal` callable by anyone. The check
+ * `entities.ts` would make `entities:claimLocal` callable by anyone. The check
  * follows `export { … } from './x'` and `export * from './x'` to sibling
  * modules and counts each re-exported public function under the re-exporting
  * module's name — otherwise a re-export would be reachable surface this check
@@ -41,7 +41,7 @@
  *
  * If a public function is genuinely meant to be called from outside this repo,
  * list it in `ALLOWED_WITHOUT_CALLER` with the reason. That list is empty on
- * purpose, apart from transitional aliases that name their own removal.
+ * purpose.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -53,25 +53,8 @@ const CONVEX_DIR = join(ROOT, 'apps/itun/convex')
 /** Directories whose non-test sources count as callers. */
 const CALLER_DIRS = [join(ROOT, 'apps/itun/src'), join(ROOT, 'apps/discord-bot/src')]
 
-/**
- * Stale-client aliases for the functions audit AP-07 moved out of
- * `entities.ts`. The CURRENT client calls them at their new paths; a tab still
- * running the bundle from before the move calls them here. See "Transitional
- * aliases" at the bottom of `convex/entities.ts` — remove these entries with
- * that block, one release after it shipped.
- */
-const AP07_ALIAS = 'AP-07 transitional alias: called by clients built before the entities.ts split'
-
 /** `module:name` → why it has no caller in this repo. */
-const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {
-  'entities:appendChangeLog': AP07_ALIAS,
-  'entities:claimLocal': AP07_ALIAS,
-  'entities:removeEncounterNpc': AP07_ALIAS,
-  'entities:removeMechPattern': AP07_ALIAS,
-  'entities:repairContainers': AP07_ALIAS,
-  'entities:upsertEncounterNpc': AP07_ALIAS,
-  'entities:upsertMechPattern': AP07_ALIAS,
-}
+const ALLOWED_WITHOUT_CALLER: Readonly<Record<string, string>> = {}
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
 const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])

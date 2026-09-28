@@ -414,9 +414,10 @@ that string is the redacted one.
 #### Repairing duplicated app ids
 
 `convex/maintenance.ts` holds operator-only repairs, reachable through
-`bunx convex run` and not from any client: `dedupeAppIds` (below) and two
-backfills, `backfillGameSummaries` and `backfillBodyAppIds`. `dedupeAppIds` undoes the
-damage described under "Claiming twice" in `convex/claim.ts`: rows sharing an
+`bunx convex run` and not from any client: `dedupeAppIds` (below) and the
+one-off `repairContainers` (see "Denormalised columns" below for how a repair is
+run in production). `dedupeAppIds` undoes the damage described under "Claiming
+twice" in `convex/claim.ts`: rows sharing an
 `appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
 write for that entity, permanently and silently.
 
@@ -439,7 +440,7 @@ pending Mediator proposals alike — still point at a copy it would delete. Thos
 address entities by Convex id rather than `appId`, so they do not follow the
 survivor.
 
-#### Denormalised columns and their backfills
+#### Denormalised columns
 
 Two reads were made cheap by storing something the rows already implied:
 
@@ -458,23 +459,19 @@ Two reads were made cheap by storing something the rows already implied:
   body, lifted into a column behind `by_owner_app_id`, so a mirrored write finds
   its row with one indexed read instead of collecting everything the owner has.
 
-Rows older than either column have none. Readers cope (a live count; a lookup
-that falls back to rows with no `appId`), so deploy order does not matter, but
-the savings arrive only once these have run once per deployment. For
-production, dispatch the **Convex maintenance** workflow
-(`.github/workflows/convex-maintenance.yml`, `main` only) once per task; it runs
-the function with the repo's `CONVEX_DEPLOY_KEY`. From a machine with
-production access the same thing is:
+A row written straight to a table from the Convex dashboard bypasses the
+triggers, so that Game's summary is stale until the next roster change made
+through a mutation recounts it.
+
+To run a maintenance function in production, dispatch the **Convex
+maintenance** workflow (`.github/workflows/convex-maintenance.yml`, `main`
+only); it runs the function with the repo's `CONVEX_DEPLOY_KEY`. From a machine
+with production access the same thing is:
 
 ```bash
 cd apps/itun
-bunx convex run maintenance:backfillGameSummaries --prod
-bunx convex run maintenance:backfillBodyAppIds --prod
+bunx convex run maintenance:repairContainers --prod
 ```
-
-Both are idempotent. A row written straight to a table from the Convex
-dashboard bypasses the triggers; `backfillGameSummaries` is also the repair
-for that.
 
 ### Hosting
 

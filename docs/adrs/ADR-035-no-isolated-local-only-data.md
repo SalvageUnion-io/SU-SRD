@@ -129,9 +129,10 @@ the old card**: the account owns it, so it is not isolated and nothing re-sends
 it — while its body still names a Workspace that migration v13 turned into a
 `gameId`. Owned, server-backed, and invisible.
 
-So `entities.repairContainers` runs once per signed-in session and applies
-decision 3 to rows already in the database. The rule is `body.gameId :=
-row.gameId`, and two things about it are deliberate:
+So `maintenance.repairContainers` applies decision 3 to rows already in the
+database, once, across every account (dispatched through
+`convex-maintenance.yml`). The rule is `body.gameId := row.gameId`, and two
+things about it are deliberate:
 
 - **The column is the authority, not membership.** "Shelve anything whose Game I
   am not a member of" is a different rule and a destructive one — it would move

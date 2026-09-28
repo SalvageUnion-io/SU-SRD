@@ -1,11 +1,11 @@
 # Run a named one-off Convex maintenance function against PRODUCTION, by hand.
 #
-# WHY THIS EXISTS. Backfills like `maintenance:backfillGameSummaries` are
-# internal actions: nothing in the app calls them, and running them needs
-# production credentials that live only in this repo's Actions secrets
-# (`CONVEX_DEPLOY_KEY`, the same key `deploy-cloudflare.yml` pushes with). Before
-# this workflow the only way to run one was a maintainer's own machine with
-# `bunx convex run --prod`, so a backfill a PR asked for could sit unrun.
+# WHY THIS EXISTS. Repairs like `maintenance:repairContainers` are internal
+# actions: nothing in the app calls them, and running them needs production
+# credentials that live only in this repo's Actions secrets
+# (`CONVEX_DEPLOY_KEY`, the same key `deploy-cloudflare.yml` pushes with).
+# Without this workflow the only way to run one is a maintainer's own machine
+# with `bunx convex run --prod`, so a repair a PR asked for could sit unrun.
 #
 # SAFETY:
 #   * `workflow_dispatch` only — never on a schedule or a push. Dispatching
@@ -35,17 +35,16 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: 'Maintenance function to run against production (idempotent backfills only)'
+        description: 'Maintenance function to run against production (idempotent repairs only)'
         required: true
         type: choice
         options:
-          - backfillGameSummaries
-          - backfillBodyAppIds
+          - repairContainers
 
 permissions:
   contents: read
 
-# One at a time: two backfills paging the same tables concurrently is wasted
+# One at a time: two repairs paging the same tables concurrently is wasted
 # work at best.
 concurrency:
   group: convex-maintenance
@@ -74,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$TASK" in
-            backfillGameSummaries | backfillBodyAppIds) ;;
+            repairContainers) ;;
             *)
               echo "FATAL: '$TASK' is not on this workflow's allowlist." >&2
               exit 1

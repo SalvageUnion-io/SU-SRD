@@ -277,7 +277,6 @@ function SignedInReconciler({
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
   const claimLocal = useMutation(api.claim.claimLocal)
-  const repairContainers = useMutation(api.claim.repairContainers)
 
   /** One device pass per mount: a live query re-emits, the reconciliation must not. */
   const deviceRan = useRef(false)
@@ -427,31 +426,6 @@ function SignedInReconciler({
     runDevice()
   }, [device, mine, games, runDevice, failure.device])
 
-  /**
-   * Repair bodies whose container disagrees with the row they are stored in.
-   *
-   * Deliberately NOT gated on this device holding anything: the rows it fixes
-   * are already in the account and may never have been on this browser. Silent
-   * either way — nothing is at risk, so Sentry is the audience, not a banner.
-   */
-  useEffect(() => {
-    if (repairDoneThisSession()) return
-    markRepairDone()
-    void repairContainers({})
-      .then((result) => {
-        if (result.skipped > 0) {
-          captureException(
-            new Error(`repairContainers skipped ${result.skipped} unparseable row(s)`)
-          )
-        }
-      })
-      .catch((err: unknown) => {
-        // Retry on the next load rather than remembering a failed pass as done.
-        clearRepairDone()
-        captureException(err, { source: 'repairContainers' })
-      })
-  }, [repairContainers])
-
   const messages = [failure.session, failure.device].filter((m): m is string => m !== null)
 
   return (
@@ -490,43 +464,6 @@ function SignedInReconciler({
       )}
     </>
   )
-}
-
-const REPAIR_KEY = 'itun.containersRepaired'
-
-/**
- * Whether the container repair has already run in this tab.
- *
- * `sessionStorage`, not a ref: the signed-in half remounts on every backend
- * transition (the handshake settling, connectivity returning), and each pass is
- * a `.collect()` over every owned row inside a write transaction. Session-scoped
- * rather than persisted, because a new session is exactly when a row repaired on
- * another device should be re-checked here. All three accessors swallow: a
- * browser that refuses storage still gets the repair, once per mount.
- */
-function repairDoneThisSession(): boolean {
-  try {
-    return sessionStorage.getItem(REPAIR_KEY) !== null
-  } catch {
-    // Storage denied: treat it as not done, so the (idempotent) repair runs.
-    return false
-  }
-}
-
-function markRepairDone(): void {
-  try {
-    sessionStorage.setItem(REPAIR_KEY, new Date().toISOString())
-  } catch {
-    // Nothing to do — the repair runs regardless.
-  }
-}
-
-function clearRepairDone(): void {
-  try {
-    sessionStorage.removeItem(REPAIR_KEY)
-  } catch {
-    // Nothing to do.
-  }
 }
 
 /**

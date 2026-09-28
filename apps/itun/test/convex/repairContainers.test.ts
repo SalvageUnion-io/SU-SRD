@@ -1,5 +1,5 @@
 /**
- * `claim.repairContainers` — the rows the migration cannot reach (ADR-035).
+ * `maintenance.repairContainers` — the rows the migration cannot reach (ADR-035).
  *
  * `shelveBody` fixes a body on the way in and `legacyMigration` sends what the
  * account does not hold. Neither touches a build that was **already claimed**
@@ -11,11 +11,12 @@
  * The rule under test is `body.gameId := row.gameId` — the column is the
  * authority, because it is what the server enforces container and ownership
  * against. These pin that it repairs toward the column in BOTH directions, and
- * that it never moves an entity somewhere it was not already filed.
+ * that it never moves an entity somewhere it was not already filed. It runs
+ * across every account, a page at a time.
  */
 
 import { describe, expect, test } from 'bun:test'
-import { api } from '../../convex/_generated/api'
+import { api, internal } from '../../convex/_generated/api'
 import { testConvex } from './harness'
 
 async function makeUser(t: ReturnType<typeof testConvex>, name: string) {
@@ -112,7 +113,7 @@ describe('a claimed build whose body names a Game that does not exist', () => {
         })
     )
 
-    const result = await me.as.mutation(api.claim.repairContainers, {})
+    const result = await t.action(internal.maintenance.repairContainers, {})
     expect(result.repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
@@ -136,7 +137,7 @@ describe('a claimed build whose body names a Game that does not exist', () => {
         })
     )
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBeNull()
@@ -155,7 +156,7 @@ describe('a claimed build whose body names a Game that does not exist', () => {
         })
     )
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBeNull()
@@ -176,13 +177,12 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(0)
   })
 
   test('running it twice repairs once — it converges rather than churning', async () => {
-    // Idempotence is not decoration here: this runs on every signed-in load, so
-    // a rule that rewrote on each pass would be a write storm against the
-    // account rather than a repair of it.
+    // A re-run must be safe: the workflow that runs it can be dispatched again,
+    // or retried after a partial failure.
     const t = testConvex()
     const me = await makeUser(t, 'Me')
     await t.run(
@@ -195,8 +195,8 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(1)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(0)
   })
 
   test('a build genuinely IN a Game keeps that Game', async () => {
@@ -216,39 +216,47 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(1)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(1)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBe(gameId)
   })
 
-  test("somebody else's rows are never read, let alone written", async () => {
+  test('every account is repaired, across pages', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
     const them = await makeUser(t, 'Them')
-    const id = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('pilots', {
-          gameId: null,
-          ownerId: them.userId,
-          body: pilotBody({ gameId: 'ws-abc' }),
-          updatedAt: 1,
-        })
-    )
+    const ids = await t.run(async (ctx) => {
+      const out = []
+      for (const [owner, id] of [
+        [me.userId, 'p1'],
+        [them.userId, 'p2'],
+        [them.userId, 'p3'],
+      ] as const) {
+        out.push(
+          await ctx.db.insert('pilots', {
+            gameId: null,
+            ownerId: owner,
+            body: pilotBody({ id, gameId: 'ws-abc' }),
+            updatedAt: 1,
+          })
+        )
+      }
+      return out
+    })
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
+    const result = await t.action(internal.maintenance.repairContainers, { pageSize: 1 })
+    expect(result.repaired).toBe(3)
+    expect(result.byKind).toEqual({ pilots: 3 })
 
-    const row = await t.run(async (ctx) => await ctx.db.get(id))
-    expect(gameIdOf(row)).toBe('ws-abc')
+    const rows = await t.run(async (ctx) => await Promise.all(ids.map((id) => ctx.db.get(id))))
+    expect(rows.map(gameIdOf)).toEqual([null, null, null])
   })
 
-  test('a communal crawler is out of reach — it has no owner', async () => {
-    // A crawler inside a Game carries `ownerId: null` (D8), so `by_owner` cannot
-    // return it. That is the right outcome: its body is the crew's rather than
-    // the caller's, and repairing it from one member's session would be a write
-    // into shared state on a rule nobody at that table asked for.
+  test('a communal crawler is left alone — it has no owner', async () => {
+    // A crawler inside a Game carries `ownerId: null` (D8): its body is the
+    // crew's rather than any one player's, so the repair does not write it.
     const t = testConvex()
-    const me = await makeUser(t, 'Me')
     const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
     const id = await t.run(
       async (ctx) =>
@@ -260,7 +268,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    expect((await me.as.mutation(api.claim.repairContainers, {})).repaired).toBe(0)
+    expect((await t.action(internal.maintenance.repairContainers, {})).repaired).toBe(0)
 
     const row = await t.run(async (ctx) => await ctx.db.get(id))
     expect(gameIdOf(row)).toBe('ws-abc')
@@ -282,7 +290,7 @@ describe('what it must not touch', () => {
         })
     )
 
-    const result = await me.as.mutation(api.claim.repairContainers, {})
+    const result = await t.action(internal.maintenance.repairContainers, {})
     expect(result.repaired).toBe(0)
     expect(result.skipped).toBe(1)
   })

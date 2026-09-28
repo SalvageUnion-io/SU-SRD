@@ -45,9 +45,7 @@ export const upsertMechPattern = mutation({
       })
       return
     }
-    // `appId` is written on the patch too, so a row from before the column
-    // existed gains it the first time it is saved.
-    await ctx.db.patch(existing._id, { appId: patternId, body: parsed })
+    await ctx.db.patch(existing._id, { body: parsed })
   },
 })
 
@@ -92,7 +90,7 @@ export const upsertEncounterNpc = mutation({
       })
       return
     }
-    await ctx.db.patch(existing._id, { appId: npcId, body: parsed })
+    await ctx.db.patch(existing._id, { body: parsed })
   },
 })
 

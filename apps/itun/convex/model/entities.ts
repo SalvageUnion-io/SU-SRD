@@ -128,12 +128,8 @@ export function bodyAppId(body: unknown): string | undefined {
 export type BodyIdTable = 'mechPatterns' | 'encounterNpcs'
 
 /**
- * One of the owner's own patterns or NPCs, addressed by the id in its body.
- *
- * One read on `by_owner_app_id` for every row written since that column
- * existed. A row written *before* it has no `appId`, so the fallback reads the
- * owner's rows that lack one — and only those, which is an empty range once
- * `maintenance.backfillBodyAppIds` has run — and matches the body instead.
+ * One of the owner's own patterns or NPCs, addressed by the id in its body:
+ * one read on `by_owner_app_id`.
  */
 export async function findOwnedByAppId(
   ctx: QueryCtx | MutationCtx,
@@ -143,20 +139,15 @@ export async function findOwnedByAppId(
 ): Promise<Doc<BodyIdTable> | null> {
   // Spelled out per table: `withIndex` cannot be typed over a union of tables,
   // even two whose index is declared identically.
-  const byKey = (key: string | undefined) =>
-    table === 'mechPatterns'
-      ? ctx.db
-          .query('mechPatterns')
-          .withIndex('by_owner_app_id', (q) => q.eq('ownerId', ownerId).eq('appId', key))
-      : ctx.db
-          .query('encounterNpcs')
-          .withIndex('by_owner_app_id', (q) => q.eq('ownerId', ownerId).eq('appId', key))
-
-  const indexed = await byKey(appId).first()
-  if (indexed !== null) return indexed
-
-  const legacy: Doc<BodyIdTable>[] = await byKey(undefined).collect()
-  return legacy.find((row) => bodyAppId(row.body) === appId) ?? null
+  return table === 'mechPatterns'
+    ? await ctx.db
+        .query('mechPatterns')
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', ownerId).eq('appId', appId))
+        .first()
+    : await ctx.db
+        .query('encounterNpcs')
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', ownerId).eq('appId', appId))
+        .first()
 }
 
 /**
@@ -243,9 +234,8 @@ export async function computeGameSummary(
 }
 
 /**
- * A Game's summary: the stored one, or a live count for a row that predates
- * the column. The fallback is the old cost, paid only until the row is
- * backfilled or next refreshed.
+ * A Game's summary: the stored one, or a live count for a row that has none
+ * (one written without the triggers, e.g. from the dashboard).
  */
 export async function summaryOf(
   ctx: QueryCtx | MutationCtx,
@@ -271,16 +261,13 @@ function sameSummary(a: GameSummaryFields | undefined, b: GameSummaryFields): bo
  * when a `games` document is written, so an unconditional patch would
  * reintroduce exactly the churn the column removes. A Game that is gone (the
  * last step of `games.destroy` or an account deletion) has nothing to update.
- *
- * Returns whether it wrote, which is what the backfill counts.
  */
-export async function refreshGameSummary(ctx: MutationCtx, gameId: Id<'games'>): Promise<boolean> {
+export async function refreshGameSummary(ctx: MutationCtx, gameId: Id<'games'>): Promise<void> {
   const game = await ctx.db.get(gameId)
-  if (game === null) return false
+  if (game === null) return
   const next = await computeGameSummary(ctx, gameId)
-  if (sameSummary(game.summary, next)) return false
+  if (sameSummary(game.summary, next)) return
   await ctx.db.patch(gameId, { summary: next })
-  return true
 }
 
 /**

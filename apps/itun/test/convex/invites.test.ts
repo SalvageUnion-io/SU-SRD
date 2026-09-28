@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import { api, internal } from '../../convex/_generated/api'
+import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import { refreshGameSummary } from '../../convex/model/entities'
 import { testConvex } from './harness'
 
 /**
@@ -428,9 +429,10 @@ describe('games.get and the row summary', () => {
       })
     })
     // Rows written straight to a table bypass the triggers that keep
-    // `games.summary` current — as a dashboard edit would. The backfill is the
-    // repair for exactly that, so it stands in for the mutations here.
-    await t.action(internal.maintenance.backfillGameSummaries, {})
+    // `games.summary` current, so recount it as a roster mutation would.
+    await t.run(async (ctx) => {
+      await refreshGameSummary(ctx, gameId)
+    })
 
     const game = await organizer.as.query(api.games.get, { gameId })
     expect(game).toMatchObject({

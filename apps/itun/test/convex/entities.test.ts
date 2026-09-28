@@ -408,14 +408,14 @@ describe('claiming local data on first sign-in', () => {
       type: 'mech-to-pilot',
     }
     // A first pass saves p1, a pattern and a link.
-    await u.as.mutation(api.entities.claimLocal, {
+    await u.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody()],
       mechs: [],
       softLinks: [link],
       mechPatterns: [patternBody()],
     })
 
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [
         pilotBody(), // already present
         pilotBody({ id: 'p2' }), // lands
@@ -442,7 +442,7 @@ describe('claiming local data on first sign-in', () => {
   test('a fully landed claim names nothing as stranded', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    const result = await u.as.mutation(api.entities.claimLocal, {
+    const result = await u.as.mutation(api.claim.claimLocal, {
       pilots: [pilotBody()],
       mechs: [],
     })
@@ -786,28 +786,6 @@ describe('patterns and shelf NPCs mirror by their body id', () => {
 
     await u.as.mutation(api.shelf.removeMechPattern, { patternId: 'pat1' })
     expect(await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())).toEqual([])
-  })
-
-  test('a row from before the column is still found, and gains the column', async () => {
-    const t = testConvex()
-    const u = await makeUser(t, 'A')
-    const legacyId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('mechPatterns', {
-          ownerId: u.userId,
-          gameId: null,
-          body: patternBody(),
-        })
-    )
-
-    await u.as.mutation(api.shelf.upsertMechPattern, {
-      body: patternBody({ name: 'Found it' }),
-    })
-
-    const rows = await t.run(async (ctx) => await ctx.db.query('mechPatterns').collect())
-    expect(rows).toHaveLength(1)
-    expect(rows[0]?._id).toBe(legacyId)
-    expect(rows[0]?.appId).toBe('pat1')
   })
 
   test("somebody else's row with the same id is neither found nor touched", async () => {
