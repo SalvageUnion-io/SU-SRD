@@ -5,13 +5,13 @@ the ADRs and architecture docs this file points to.
 
 ## Documentation Hub
 
-**Start at [`docs/README.md`](docs/README.md)** — it maps intent → doc.
+Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **35 of them** (ADR-001 through ADR-035). **Read an ADR's `## Status` header first**: several are superseded and the supersession is recorded only there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035). The three that govern:
-  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. What has landed: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **35 of them** (ADR-001 through ADR-035). **Read an ADR's `## Status` header first**: several are superseded or merged and that is recorded only there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035). The three that govern:
+  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops reference: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
-- **Hosting is Cloudflare, everywhere** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)): `apps/srd`, `apps/itun`, `apps/su-assets` and the Discord bot are Workers, snapshots live in R2. Netlify and Render host nothing. Before touching hosting, deploy config, the snapshot backend or the bot's transport, read the ADR and [`cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md). **A failed gate halts the phase and is never worked around**, and **snapshots go to R2, not Convex**.
+- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y, dependency management, CI).
 - **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
 

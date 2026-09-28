@@ -372,8 +372,8 @@ not in code comments.
 - [ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md) — provenance log &
   stat overrides.
 - [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md) — the Dashboard as
-  the distinct Guided-Play surface (design in [dashboard.md](dashboard.md); sub-decisions
-  ADR-016–020).
+  the distinct Guided-Play surface (architecture in [dashboard.md](dashboard.md); its
+  sub-decisions, formerly ADR-016–020, are merged into it).
 - [combat-loop.md](combat-loop.md) — the current (Sheet-hosted) resource loop;
   migrates to the Dashboard under this model.
 - [data-flow.md](data-flow.md) — how state is stored and hydrated.

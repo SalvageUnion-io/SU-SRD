@@ -28,7 +28,7 @@
   // not support domain-level rules — Cloudflare's own docs list them as
   // unsupported and say malformed definitions are ignored, so a www rule there
   // would silently do nothing. It is a zone-level Redirect Rule instead,
-  // recorded in docs/architecture/cloudflare-cutover.md §P7 so it is not
+  // recorded in ADR-033 ("Configuration outside the repo") so it is not
   // invisible config.
   //
   // Attaching www is deliberately the fail-safe half of that split: if the

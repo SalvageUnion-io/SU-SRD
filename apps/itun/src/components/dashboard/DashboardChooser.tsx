@@ -1,5 +1,5 @@
 /**
- * DashboardChooser — the launch chooser wizard for the Dashboard (plan §8, §9.8).
+ * DashboardChooser — the launch chooser wizard for the Dashboard (dashboard.md §8).
  *
  * A small three-step wizard (pilot → mech → crawler) rendered in a ModalShell.
  * On confirm it ensures the SoftLinks the Dashboard composition needs exist —

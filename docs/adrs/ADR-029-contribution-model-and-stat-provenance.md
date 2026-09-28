@@ -2,7 +2,9 @@
 
 ## Status
 
-**Proposed.** Subordinate to [ADR-021](ADR-021-itun-surface-taxonomy.md) (the
+**Accepted** and implemented — the model lives in
+`packages/salvageunion-reference/lib/rules/contributions.ts` and
+`lib/schemas/objects/contributions.ts`. Subordinate to [ADR-021](ADR-021-itun-surface-taxonomy.md) (the
 governing surface/mode taxonomy) and paired with the amendment to
 [ADR-022](ADR-022-provenance-log-and-overrides.md) that makes a cap override an
 absolute pin. Extends the "modified stats" rust language of

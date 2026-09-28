@@ -1,11 +1,10 @@
 /**
  * Design-token laws — the `tokens` rule set of `tools/check-styling.ts`.
  *
- * Plan phase 6 of the canonical primitive language (docs/design-system/
- * canonical-primitive-language.md §4) specified these checks and they were never
- * built. Their absence is why the `su-*` shadow token family survived: the drift
- * was never raw hex (which reads as obviously wrong), it was a parallel token
- * family that *looked* sanctioned at every call site.
+ * Nothing enforced these laws before this rule set. That absence is why the
+ * `su-*` shadow token family survived: the drift was never raw hex (which reads
+ * as obviously wrong), it was a parallel token family that *looked* sanctioned
+ * at every call site.
  *
  * Why this must exist as a build step rather than a review habit: these tokens
  * are Tailwind v4 `@theme` entries, so a deleted token does not fail typecheck —
@@ -223,7 +222,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'packages/component-lib/src/components/chrome/Slab.tsx',
     rules: ['gradient'],
     reason:
-      'Named exemption in canonical-primitive-language.md §Known-deviations: the Slab dashed leader is a deliberate control-panel shape built on ink tokens.',
+      'Named exemption: the Slab dashed leader (a repeating-linear-gradient) is a deliberate control-panel shape built on ink tokens, kept on purpose.',
   },
   {
     file: 'packages/component-lib/src/catalog/catalogColors.ts',

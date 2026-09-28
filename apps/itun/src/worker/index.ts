@@ -157,7 +157,7 @@ async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | nul
  *
  * Benchmarked locally on Apple silicon, `renderOgImage` took **47.6 ms cold**
  * and then ~15 ms warm. The documented budget is **10 ms CPU per invocation**
- * on Workers Free (`docs/architecture/cloudflare-cutover.md`), and edge CPUs are
+ * on Workers Free (ADR-033 §6), and edge CPUs are
  * slower than that laptop.
  *
  * If it does exceed the limit the failure is bad in a specific way: **a CPU-limit
@@ -165,8 +165,7 @@ async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | nul
  * built so an unfurl degrades to the site icon rather than a broken image —
  * never runs. The unfurl gets a Cloudflare error page instead.
  *
- * This is UNVERIFIED. The feature appears nowhere in the cutover doc's
- * measurement table, so it was never sized against the ceiling, and a local
+ * This is UNVERIFIED. It was never sized against the ceiling, and a local
  * benchmark is not evidence about workerd. It is deliberately not "fixed" on
  * that basis — rewriting the publish path to pre-render into R2 is a real
  * architectural change, and doing it speculatively would trade a possible

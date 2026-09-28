@@ -14,8 +14,7 @@
 ## Project Structure
 
 - Use repo-relative paths in notes; the checkout location differs per machine.
-- Design canon: `docs/design-system/ruleset.md` — the authoritative laws. Build
-  order in `canonical-primitive-language.md`.
+- Design canon: `docs/design-system/ruleset.md` — the authoritative laws.
 - Architecture docs: `docs/architecture/` (display-system, data-flow,
   accounts-and-games, package-contracts, seo-accessibility, dashboard)
 - Shared theme: `packages/component-lib/src/styles/theme.css` — **the single
@@ -83,7 +82,7 @@ the over-capacity red idiom, heat escalation, roll colour scope.
 
 Games make crawlers genuinely multi-user (ownership, claim/release, proposals,
 live crew vitals), so shared-space crawler UX is now a real requirement rather
-than a hypothetical. See `docs/architecture/accounts-and-games.md`.
+than a hypothetical. See ADR-030 (`docs/adrs/ADR-030-accounts-games-server-of-record.md`).
 
 ## Theme & Colour Notes
 
@@ -115,11 +114,3 @@ than a hypothetical. See `docs/architecture/accounts-and-games.md`.
 - Mobile touch targets: 44x44px min via `@media (pointer: coarse)`.
 - Colour is never the only signal — the roll/outcome readouts name the outcome
   in text and use colour only to reinforce it.
-
-## Historical UX reviews
-
-`docs/design/itun-design-review.md` (moved out of the repo root 2026-08-03) is a
-dated snapshot, not current state.
-Several gaps it names are closed — the app now has a global brand header
-(`AppHeader`, mounted in `routes/__root.tsx`), skeleton loading components, and
-heat colour escalation. Re-verify any gap against the code before repeating it.

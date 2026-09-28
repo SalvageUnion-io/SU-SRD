@@ -3,7 +3,7 @@
 ## Status
 
 Accepted, **but partially superseded by
-[ADR-025](ADR-025-versioned-internal-releases.md)** — its CHANGELOG-freeze
+[ADR-025](ADR-025-reference-versioned-releases-surface-gate.md)** — its CHANGELOG-freeze
 clause only. ADR-014's substantive decision (the served JSON API is the public
 interface; npm publishing stays retired) is **preserved** and still governs.
 

@@ -2,20 +2,15 @@
 
 ## Status
 
-**Accepted — governing ADR for identity, ownership, and sharing.**
+**Accepted and built — governing ADR for identity, ownership, and sharing.**
 
-**This ADR still governs.**
 [ADR-034](ADR-034-account-required-persistence.md) **partially supersedes it**,
 and the partial is the important word: §1 promises Solo mode — not signed in,
 IndexedDB as the source of truth — "must keep working forever", and **that one
-guarantee is withdrawn**. Persistence will require an account and IndexedDB
-becomes a cache of Convex. Everything else here — Games, memberships, roles,
-ownership, the two containers, Convex as server of record — is untouched, so
-citing this ADR remains correct for all of it.
-
-**Nothing is built yet**, so §1 still describes the app as it runs today. The
-phases and the one-way doors are in
-[architecture/persistence-and-pwa.md](../architecture/persistence-and-pwa.md).
+guarantee is withdrawn**. Persistence requires an account and IndexedDB is a
+cache of Convex; read §1's Solo row as history. Everything else here — Games,
+memberships, roles, ownership, the two containers, Convex as server of record —
+stands, so citing this ADR remains correct for all of it.
 
 **Supersedes [ADR-001](ADR-001-local-first-no-backend.md)** (local-first, no
 backend, no auth). **Amends [ADR-022](ADR-022-provenance-log-and-overrides.md)**
@@ -23,8 +18,7 @@ backend, no auth). **Amends [ADR-022](ADR-022-provenance-log-and-overrides.md)**
 [ADR-021](ADR-021-itun-surface-taxonomy.md) with an ownership axis without
 altering any of its enforcement modes.
 
-"Accepted" records the **decision**. Almost none of it is built yet; the phased
-delivery plan is in
+The operational reference (deployments, env vars, secrets, rotation) is
 [`accounts-and-games.md`](../architecture/accounts-and-games.md).
 
 ## Context
@@ -256,9 +250,8 @@ member) and `/mediator/:id` (the Mediator, who gets the private instruments
 below it) both open with the same three ontology-toned columns of `EntityRow`s
 the home Roster uses, with a create CTA per column and a Dashboard launch on the
 rows that support one. A Game asks "what have we got and what can I do with it"
-of a different container, and answering it in a second visual vocabulary — which
-the first cut did, as a stack of bordered cards with no way into a sheet and no
-way to make anything — is how an app stops feeling like one app.
+of a different container, and answering it in a second visual vocabulary is how
+an app stops feeling like one app.
 
 What a shared roster adds on top of the personal one: an owner chip per row,
 an **UNCLAIMED** stamp seal that opens the pick-up confirm, and creation gated by
@@ -350,12 +343,9 @@ Nothing anybody built is destroyed:
 | an **unclaimed** pilot or mech   | the deleting Organizer's shelf |
 | every **crawler**                | the deleting Organizer's shelf |
 
-The first row was always the rule. The other two are new: unclaimed entities and
-crawlers used to be deleted outright, on the reasoning that they had no shelf to
-fall back to — true at the time, since both need a shelf row carrying an owner.
-Both are expressible now, so both fall back, and the receiving shelf is the
-deleter's because they are the one person guaranteed to exist and to be looking
-at the consequence as it happens.
+The receiving shelf for the last two rows is the deleter's because they are the
+one person guaranteed to exist and to be looking at the consequence as it
+happens.
 
 What does go is the **table**: memberships, invites, pending join requests, the
 Mediator's opposition tray, and the soft links. A link is a fact about the
@@ -370,10 +360,7 @@ leave the server out of it, which needs no schema change. It is rejected on
 principle: offline-first in ITUN is ordinary PWA caching, so the local store is
 a **reflection** of Convex and never a second source of truth. A record with no
 server row to reflect is invisible on the player's other devices, invisible to
-sync, and lost with the browser's storage. `entityStore.adopt()` never mirrors,
-and `mirrorEntityWrite` used to skip a crawler with `gameId === null` for exactly
-this reason — that skip was the last place the client could hold data the server
-had never heard of, and it is now closed.
+sync, and lost with the browser's storage.
 
 ## Amendment to ADR-022
 
@@ -394,9 +381,8 @@ historyless, and bare**. ADR-004 is not modified.
   Deleting an account transfers Organizer to the longest-standing remaining
   member and removes that account's owned entities; **the Game and the communal
   crawler survive**, so a campaign never dies because one person quit.
-- **Anonymous use must keep working, forever.** Every feature that assumes a
-  `userId` needs a defined Solo behaviour. This is the single most likely source
-  of regressions.
+- **Anonymous use must keep working, forever.** Withdrawn by ADR-034: anonymous
+  use still works, but nothing it builds persists without an account.
 - **Convex cannot validate entity bodies.** The Zod schemas in
   `apps/itun/src/lib/schemas/` stay the source of truth and Convex stores bodies
   opaquely, so **every mutation must Zod-parse before persisting**. The
@@ -407,8 +393,8 @@ historyless, and bare**. ADR-004 is not modified.
 - **Cost scales with concurrent players, not accounts**, since an open Dashboard
   is a live subscription. No cap, seat limit, or paid tier is introduced; usage is
   instrumented and revisited at a real number.
-- **Two deploy targets.** The SPA stays on Netlify; Convex is a data backend, not
-  a host.
+- **Two deploy targets.** The SPA has its own host (a Cloudflare Worker since
+  ADR-033); Convex is a data backend, not a host.
 - Not adopted, deliberately: CRDTs or full offline sync; turn/initiative
   enforcement across players; net-new homebrew authoring; any change to snapshot
   sharing; accounts on `apps/srd`, which stays static, public, and login-free.

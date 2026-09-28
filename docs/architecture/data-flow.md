@@ -143,10 +143,11 @@ either all are removed together, or nothing changes (no orphaned links).
 **Location:** `apps/itun/convex/` (schema + 17 function modules) and
 `apps/itun/src/lib/connection/` (client wiring).
 
-For the delivery phases, permission rules, and the Convex/Discord
-operational reference, read
-[accounts-and-games.md](accounts-and-games.md) — this section covers only how
-the data reaches the client. Do not duplicate that document here.
+For the permission rules read
+[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) and
+`convex/model/permissions.ts`; for the Convex/Discord operational reference,
+[accounts-and-games.md](accounts-and-games.md). This section covers only how the
+data reaches the client.
 
 ### What lives server-side
 
@@ -195,6 +196,53 @@ surfaces (`src/components/games/`, `src/components/account/`,
 `src/components/container/`), provided by `AppConvexProvider`. Those
 subscriptions are the Connected-mode analogue of `entityStore`'s in-memory
 cache.
+
+### Every local store reaches Convex
+
+[ADR-034](../adrs/ADR-034-account-required-persistence.md) decision 2: Convex is
+the source of truth for every persisted record, and IndexedDB is only a cache of
+it. Every object store has a Convex table and a commit path in
+`src/stores/entityBackend.ts`:
+
+| Store                            | Commit path          | Called from          |
+| -------------------------------- | -------------------- | -------------------- |
+| `pilots`, `mechs`, `crawlers`    | `commitEntityWrite`  | `entityStore.ts`     |
+| `softLinks`                      | `commitSoftLink`     | `entityStore.ts`     |
+| `mechPatterns`                   | `commitPatternWrite` | `patternStore.ts`    |
+| `encounterNpcs`                  | `commitNpcWrite`     | `encounterStore.ts`  |
+| `changeLog`                      | `commitChangeLog`    | `entityChangeLog.ts` |
+| `workspaces`                     | none — retired; kept so migrations v10/v13 run | — |
+
+`apps/itun/test/convex/containerParity.test.ts` asserts both halves: every store
+has a table, and each store module actually calls its commit function. A new
+store needs both. The exemption list (`workspaces`) is what that test makes
+expensive to widen.
+
+- **The Change Log commit is the one fire-and-forget write**, on purpose: it is
+  provenance about a write that has already landed, and failing a player's edit
+  because its audit row did not arrive would trade the write for the record of
+  it.
+- **`encounterNpcs` is one table with two containers** — a Game's prepared
+  opposition (`gameId` set) or an owner's shelf tray — the same move the crawler
+  made in ADR-030's shelved-crawler amendment.
+- **If the schema cannot express where a record must live, the schema moves.**
+  A record never falls back to local-only.
+
+### Rules that outlived the persistence plan
+
+The phased plan that delivered ADR-034 and ADR-035 is deleted; these stay true.
+
+- **No change may leave a user's data reachable from fewer places than before
+  it ran.** A roster that exists only in IndexedDB is claimed or stays readable;
+  "it is gone" is never an acceptable outcome.
+- **A gate must assert the end state, not the mechanism.** Twice a gate passed
+  while data did not arrive: one proved a roster *could* be claimed, another
+  that a Convex *table existed*. Ask of any new gate: *if this row is not in
+  Convex, is it lost when the user opens the app on their phone?*
+- **Settled, with reasons in ADR-034:** an anonymous user's way out is export to
+  file; Discord stays the only sign-in provider; the export bundle deliberately
+  omits the Change Log.
+- **Still open:** nothing blocking.
 
 ---
 
@@ -285,7 +333,7 @@ read-only rather than forking against the server of record.
 
 ## Cross-References
 
-- [accounts-and-games.md](accounts-and-games.md) — ADR-030 delivery phases + the Convex/Discord operational reference
+- [accounts-and-games.md](accounts-and-games.md) — the Convex/Discord operational reference
 - `.claude/rules/itun-data-access.md` — which domain a given read/write belongs to
 - [ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md) — IndexedDB / `idb` / Zod-as-schema persistence
 - [ADR-003](../adrs/ADR-003-zustand-hydration.md) — Zustand store hydration + write-through

@@ -196,6 +196,8 @@ Contributions are welcome! Please:
 3. Validate changes with `bun run validate`
 4. Run type checking with `bun run typecheck`
 5. Follow existing data structure patterns
+6. Copy rules text from the source word-for-word — descriptions and effects are
+   verbatim, never paraphrased
 
 ### ID Requirements
 

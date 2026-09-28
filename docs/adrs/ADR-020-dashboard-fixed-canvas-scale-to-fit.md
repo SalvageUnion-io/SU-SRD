@@ -2,31 +2,7 @@
 
 ## Status
 
-Accepted — the Dashboard is **built** (realized in `apps/itun/src/components/dashboard/`, Phases 1–7, routed at `/dashboard/$id`; design in the [Dashboard design doc](../architecture/dashboard.md)). Sub-decision of
-[ADR-015](ADR-015-dashboard-distinct-play-surface.md).
+Accepted, and **merged into [ADR-015](ADR-015-dashboard-distinct-play-surface.md)** as
+its Dashboard decision 5. The number is kept because code cites it.
 
-## Context
-
-The Dashboard's defining promise is "always one screen, never scrolls" during play.
-That has to hold across desktop sizes without per-breakpoint layout churn, and
-degrade gracefully on phones and under large zoom.
-
-## Decision
-
-The Dashboard is a **fixed 1280×800 design canvas** scaled with a single
-`transform: scale(min(vw/1280, vh/800))`, letterboxed, clamped to ~`[0.62, 1.3]`.
-No-scroll is a **landscape-desktop contract**; below the clamp floor (and,
-tentatively, under large accessibility zoom) the canvas is abandoned for a
-**native stacked, scrolling phone layout** reusing the same instrument components.
-
-## Rationale
-
-A fixed canvas is the only way to guarantee "always one screen, never scrolls"
-across desktop sizes without per-breakpoint layout churn. The reflow floor is the
-escape hatch that keeps phones (and zoom users) usable.
-
-## Alternatives rejected
-
-A fully responsive fluid grid — rejected: cannot guarantee no-scroll at all sizes
-and reflows the locked frame. Scaling with no floor — rejected: fights browser zoom
-and becomes illegibly small on phones.
+Full text: `git show c2476d1c:docs/adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md`
