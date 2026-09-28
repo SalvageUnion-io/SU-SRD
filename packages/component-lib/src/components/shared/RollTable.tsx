@@ -1,10 +1,9 @@
-import { roll } from '@randsum/roller'
 import { Copy, X } from 'lucide-react'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
-import { toast } from 'sonner'
+import { rollDie } from 'salvageunion-reference/rules'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
@@ -12,6 +11,7 @@ import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
+import { useCopyFeedback } from './copyFeedbackContext'
 
 type DigestedRollTable = {
   order: number
@@ -297,14 +297,13 @@ function ResultActionBar({
   /** When provided, renders a Clear action that resets the current result. */
   onClear?: () => void
 }) {
+  const onCopied = useCopyFeedback()
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
-      navigator.clipboard.writeText(resultText).then(() => {
-        toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
-      })
+      navigator.clipboard.writeText(resultText).then(() => onCopied?.())
     },
-    [resultText]
+    [resultText, onCopied]
   )
 
   const handleReroll = useCallback(
@@ -479,8 +478,8 @@ function ColumnsRollTable({
   const handleRoll = () => {
     setResult(null)
     setRollAnnouncement('')
-    const colRoll = roll('1d20').total
-    const entryRoll = roll('1d20').total
+    const colRoll = rollDie(20)
+    const entryRoll = rollDie(20)
     const res = resultForColumnsTable(table, colRoll, entryRoll)
     setTimeout(() => {
       if (res.success) {
@@ -654,7 +653,7 @@ function StandardRollTable({
   const handleRoll = () => {
     setHighlightedKey(null)
     setRollAnnouncement('')
-    const { key } = resultForTable(table as SURefObjectTable, roll('1d20').total)
+    const { key } = resultForTable(table as SURefObjectTable, rollDie(20))
     setTimeout(() => {
       setHighlightedKey(key)
       const entry = digestedTable.find((d) => d.key === key)

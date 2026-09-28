@@ -17,10 +17,10 @@ import {
   resolveGauge,
   resolvePool,
   resolvePoolStart,
+  rollDie,
 } from 'salvageunion-reference/rules'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
-import { defaultRoll } from '../../lib/rules/heatCheck'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { CriticalDamageEffect } from '../../lib/rules/takeDamage'
 import { runWrite } from '../../lib/runWrite'
@@ -124,7 +124,7 @@ export function MechBand({
       heat: resolveGauge(m.currentHeat, cap),
       heatCap: cap,
       currentSP: resolvePoolStart(m.currentSP, spMax),
-      roll: defaultRoll,
+      roll: rollDie,
     })
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
@@ -139,7 +139,7 @@ export function MechBand({
     const { patch, effect, meltdown } = heatCheckOncePatch({
       heat: resolveGauge(m.currentHeat, cap),
       currentSP: resolvePoolStart(m.currentSP, spMax),
-      roll: defaultRoll,
+      roll: rollDie,
     })
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
@@ -185,7 +185,7 @@ export function MechBand({
   }
 
   function rollCritical() {
-    const { patch, effect } = critDamagePatch(defaultRoll)
+    const { patch, effect } = critDamagePatch(rollDie)
     runWrite(
       () => store.update('mech', mech.id, patch, DASHBOARD_TXN),
       () => setPrompt({ kind: 'crit', effect, log: describeCritDamage(effect) })

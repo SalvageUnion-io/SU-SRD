@@ -6,10 +6,9 @@
 
 import { CountStepper } from 'component-lib'
 import { useEffect, useState } from 'react'
-import { resolvePool, resolvePoolStart } from 'salvageunion-reference/rules'
+import { resolvePool, resolvePoolStart, rollDie } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
-import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { CriticalInjuryEffect } from '../../lib/rules/takeDamage'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -80,7 +79,7 @@ export function PilotBand({
   }
 
   function rollInjury() {
-    const { patch, effect } = critInjuryPatch(defaultRoll)
+    const { patch, effect } = critInjuryPatch(rollDie)
     runWrite(
       () => store.update('pilot', pilot.id, patch, DASHBOARD_TXN),
       () => setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })

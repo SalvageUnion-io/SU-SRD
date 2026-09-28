@@ -33,12 +33,12 @@ import {
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
+  rollDie,
 } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
-import { defaultRoll } from '../../lib/rules/heatCheck'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -563,7 +563,7 @@ export function ActionsDeck({ mech, pilot, crawler, mount = 'mech', store }: Act
   }
 
   function doRoll() {
-    setRoll(performCoreRoll(defaultRoll))
+    setRoll(performCoreRoll(rollDie))
     setPushLog(null)
     setApplied(false)
     setApplyRouted(false)
@@ -579,10 +579,10 @@ export function ActionsDeck({ mech, pilot, crawler, mount = 'mech', store }: Act
       // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
       // to SP 0 — one hit from destroyed — without it ever having taken damage.
       currentSP: resolvePoolStart(fresh.currentSP, mechMaxSP(fresh, chassis)),
-      roll: defaultRoll,
+      roll: rollDie,
     })
     runWrite(() => s.update('mech', mech.id, patch, DASHBOARD_TXN))
-    setRoll(performCoreRoll(defaultRoll))
+    setRoll(performCoreRoll(rollDie))
     setPushLog(describePushOutcome(nextHeat, effect))
     setApplied(false)
     setApplyRouted(false)

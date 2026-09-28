@@ -7,13 +7,13 @@
  *
  * Two seams make that testable without a production change:
  *
- *  - **The die.** `RollTable.tsx` calls `roll('1d20')` inline with no injected
- *    roller, so `@randsum/roller` is replaced here with a queue of chosen d20
- *    values. `mock.module` is process-global (see
- *    `.claude/rules/testing-patterns.md`), hence the capture-before-mock and
- *    the `afterAll` restore — `rollTableHelpers.ts` and `mechRollTables.ts`
- *    roll for real, and must keep doing so in every file that runs after this
- *    one.
+ *  - **The die.** `RollTable.tsx` calls `rollDie(20)` inline with no injected
+ *    roller, so `salvageunion-reference/rules` is replaced here with the real
+ *    module plus a `rollDie` that serves a queue of chosen d20 values.
+ *    `mock.module` is process-global (see `.claude/rules/testing-patterns.md`),
+ *    hence the capture-before-mock and the `afterAll` restore — every other
+ *    rules import must keep the real module in every file that runs after
+ *    this one.
  *  - **The reveal delay.** Both variants set state inside a 300ms
  *    `setTimeout`, so tests drive fake timers rather than sleeping.
  *
@@ -33,6 +33,7 @@ import {
   test,
 } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { CopyFeedbackProvider } from '../copyFeedbackContext'
 
 const ROLL_BUTTON = 'Roll on this table'
 /** The reveal delay both variants wrap their state update in. */
@@ -51,26 +52,26 @@ function nextRoll(): number {
 
 // Capture before mocking: a module namespace is a live view, so the spread has
 // to happen while it still reads as the real module.
-const realRoller = { ...(await import('@randsum/roller')) }
+const realRules = { ...(await import('salvageunion-reference/rules')) }
 
-mock.module('@randsum/roller', () => ({
-  ...realRoller,
-  roll: () => ({ total: nextRoll() }),
+mock.module('salvageunion-reference/rules', () => ({
+  ...realRules,
+  rollDie: () => nextRoll(),
 }))
 
 const { RollTable } = await import('../RollTable')
 
 afterAll(async () => {
-  mock.module('@randsum/roller', () => realRoller)
+  mock.module('salvageunion-reference/rules', () => realRules)
 
   // Prove the restore actually took. No other component-lib test rolls, so a
   // leaked mock would surface as "roll queue exhausted" thrown from some
   // unrelated file — exactly the confusing, far-away failure the
   // capture-and-restore dance exists to prevent. Assert it here instead.
-  const { roll } = await import('@randsum/roller')
-  const total = roll('1d20').total
+  const { rollDie } = await import('salvageunion-reference/rules')
+  const total = rollDie(20)
   if (!Number.isInteger(total) || total < 1 || total > 20) {
-    throw new Error(`@randsum/roller was not restored: roll('1d20') gave ${String(total)}`)
+    throw new Error(`salvageunion-reference/rules was not restored: rollDie(20) gave ${total}`)
   }
 })
 
@@ -256,6 +257,28 @@ describe('rolling a standard table', () => {
     fireEvent.click(screen.getByLabelText('Copy result to clipboard'))
 
     expect(copied).toEqual(['Nailed It: nothing goes wrong'])
+  })
+
+  test('Copy confirms through the app-provided CopyFeedbackProvider once written', async () => {
+    queued = [20]
+    let confirmed = 0
+    render(
+      <CopyFeedbackProvider
+        value={() => {
+          confirmed += 1
+        }}
+      >
+        <RollTable table={RANGE_TABLE} showCommand />
+      </CopyFeedbackProvider>
+    )
+    rollAndReveal()
+
+    fireEvent.click(screen.getByLabelText('Copy result to clipboard'))
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(confirmed).toBe(1)
   })
 
   test('a flat 1-20 table resolves on the rolled number itself', () => {

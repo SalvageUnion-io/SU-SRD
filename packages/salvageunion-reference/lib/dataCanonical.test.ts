@@ -1,20 +1,17 @@
 /**
  * The committed data is already in its parsed form (audit PK-04).
  *
- * `preload()` is trusted by default: it installs each data file as loaded,
- * WITHOUT running it through `z.array(schema).parse`. That is only equivalent
- * to the validating load it replaced if parsing would change nothing — no
- * `.default()` left to fill, no unknown key for a non-strict object to strip,
- * no transform to apply. This test is the proof, per schema, and the reason
- * the trusted path is safe to be the default. (That the two load paths then
- * install identical rows end to end is asserted in `preload.test.ts`, the one
- * suite allowed to drive `preload()` itself.)
+ * `preload()` installs each data file as loaded, WITHOUT running it through
+ * `z.array(schema).parse`. That is only equivalent to a validating load if
+ * parsing would change nothing — no `.default()` left to fill, no unknown key
+ * for a non-strict object to strip, no transform to apply. This test is the
+ * proof, per schema, and the reason the trusted load is safe.
  *
  * When it fails, the data file is missing a value its schema would default
  * (write the default into the file — `catalog-categories.json` spells out
  * `"flat": false` for exactly this reason) or the schema gained a transform
- * (then the transform belongs in the data, or that schema cannot take the
- * trusted path). Do not "fix" it by turning validation back on everywhere.
+ * (then the transform belongs in the data). Do not "fix" it by parsing in
+ * `preload()`: that puts Zod and every schema back in both client bundles.
  */
 import { describe, expect, test } from 'bun:test'
 import { dataLoaders } from './generated/modelFactoryRegistry.generated.js'

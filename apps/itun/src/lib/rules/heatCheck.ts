@@ -3,16 +3,11 @@
  *
  * The pure math (clampHeat, reactorOverloadOutcome, performHeatCheck,
  * performPush) moved to packages/salvageunion-reference/lib/rules/heatCheck.ts
- * (ADR-006). Two pieces stay app-local, outside the pure-math boundary that
- * package owns:
- *
- * - `defaultRoll` — depends on `@randsum/roller`, a concrete RNG binding.
- * - `heatCheckPatch` — assembles a `Partial<Mech>` write-through patch using
- *   ITUN's own Zod-derived `Mech` type (ADR-007: the app, not the rules
- *   package, decides what crosses into durable state).
+ * (ADR-006). `heatCheckPatch` stays app-local: it assembles a `Partial<Mech>`
+ * write-through patch using ITUN's own Zod-derived `Mech` type (ADR-007: the
+ * app, not the rules package, decides what crosses into durable state).
  */
 
-import { roll } from '@randsum/roller'
 import type { Mech } from '../schemas/mech'
 
 export type { HeatCheckEffect, PushResult, Roll } from 'salvageunion-reference/rules'
@@ -23,10 +18,7 @@ export {
   reactorOverloadOutcome,
 } from 'salvageunion-reference/rules'
 
-import type { HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
-
-/** Default roller — a uniform d-sides via randsum. Injectable for deterministic tests. */
-export const defaultRoll: Roll = (sides: number) => roll(`1d${sides}`).total
+import type { HeatCheckEffect } from 'salvageunion-reference/rules'
 
 /**
  * The single write-path mapping from a resolved Heat Check effect to the mech

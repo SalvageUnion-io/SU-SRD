@@ -63,15 +63,16 @@ applyMechDamage({ currentSP, amount, kind, vulnerable }): MechDamageEffect
 ### `apps/itun/src/lib/rules/heatCheck.ts`
 
 A thin app-local layer, imported by submodule path. It re-exports the package's
-heat-check functions and adds the two pieces that can't be pure:
+heat-check functions and adds the piece that needs ITUN's own types:
 
 ```typescript
-defaultRoll: Roll                                        // @randsum/roller binding
 heatCheckPatch(effect, currentHeat?): Partial<Mech>       // effect → durable-state patch
 ```
 
 The rest of `apps/itun/src/lib/rules/` follows the same shape — the package owns
-the math, the app owns the roller binding and the patch assembly.
+the math, the app owns the patch assembly. The real roller is the package's
+`rollDie(sides)` (`salvageunion-reference/rules`), passed wherever a `Roll` is
+taken.
 
 `reactorOverloadOutcome` bands a d20: `1` meltdown, `2–5` system destroyed,
 `6–10` module destroyed, `11–19` overheat, `20` safe.

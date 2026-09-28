@@ -65,25 +65,20 @@ public surface.
 
 ### Loading is trusted — keep the data parse-stable
 
-`preload()` does **not** Zod-parse by default (audit PK-04): the committed files
-are validated in CI, and `lib/dataCanonical.test.ts` proves that parsing each
-one would return it unchanged. Two consequences:
+`preload()` does **not** Zod-parse (audit PK-04): the committed files are
+validated in CI, and `lib/dataCanonical.test.ts` proves that parsing each one
+would return it unchanged. Two consequences:
 
 - **Write every default into the data.** A `.default()` value missing from a
   file, or a key a non-strict object would strip, fails that test — the trusted
-  load would hand consumers a row the validating one would not. Spell the value
-  out (`catalog-categories.json` carries `"flat": false` for this reason).
-- **Never statically import `lib/generated/zodSchemaMap.generated.ts`,
-  `lib/validateData.ts` or `lib/zod.ts` from the runtime graph.** `ModelFactory`
-  reaches `validateData.ts` (which holds the schema map) through a dynamic
-  `import()` only when a caller passes `{ validate: true }`; a static import
-  puts Zod and every entity schema back in both client bundles (srd then
-  ships Zod again; itun keeps a Zod chunk regardless for its own
-  `src/lib/schemas`, but regains every entity schema), and
-  `lib/loadPathBundle.test.ts` fails. Tools and tests may import them directly.
-  Keep the dynamic boundary at `validateData.ts`, not at `zod.ts`: a
-  dynamically imported namespace cannot be tree-shaken, and `import('./zod.js')`
-  drags every Zod locale along.
+  load would hand consumers a row a parse would not. Spell the value out
+  (`catalog-categories.json` carries `"flat": false` for this reason).
+- **Never import `lib/generated/zodSchemaMap.generated.ts` or `lib/zod.ts`
+  from the runtime graph, statically or dynamically.** Either puts Zod and
+  every entity schema back in both client bundles (srd then ships Zod again;
+  itun keeps a Zod chunk regardless for its own `src/lib/schemas`, but regains
+  every entity schema), and `lib/loadPathBundle.test.ts` fails. Tools and tests
+  may import them directly.
 
 `BaseModel` stamps `schemaName` on a shallow copy of each row, never on the
 row it was given — the rows are the imported JSON module's own objects now.

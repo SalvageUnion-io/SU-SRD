@@ -3,9 +3,9 @@
  * Isolated from React so they can be tested without a DOM.
  */
 
-import { roll } from '@randsum/roller'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { rollDie } from 'salvageunion-reference/rules'
 
 /** Roll IDs for pilot wizard identity fields. */
 export const PILOT_ROLL_TABLE_NAMES = {
@@ -31,7 +31,7 @@ export type RollTableDeps = {
  */
 const defaultRollTableDeps: RollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
-  rollD20: () => roll('1d20').total,
+  rollD20: () => rollDie(20),
 }
 
 /**

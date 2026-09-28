@@ -5,9 +5,9 @@
  * counterpart of mechRollTables.
  */
 
-import { roll } from '@randsum/roller'
 import type { SURefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { rollDie } from 'salvageunion-reference/rules'
 
 const CRAWLER_NAME_TABLE = 'Crawler Name'
 
@@ -19,7 +19,7 @@ export type CrawlerRollTableDeps = {
 
 const defaultDeps: CrawlerRollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
-  rollD20: () => roll('1d20').total,
+  rollD20: () => rollDie(20),
 }
 
 /**
