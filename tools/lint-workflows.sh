@@ -42,7 +42,8 @@ ZIZMOR_VERSION=1.30.1
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/su-srd-workflow-lint"
-mkdir -p "$cache"
+# A sandboxed agent cannot write $HOME/.cache; fall back to its temp dir.
+mkdir -p "$cache" 2>/dev/null || { cache="${TMPDIR:-/tmp}/su-srd-workflow-lint"; mkdir -p "$cache"; }
 
 case "$(uname -s)" in
   Linux) os=linux ;;
@@ -109,7 +110,13 @@ cd "$root"
 status=0
 
 echo "actionlint $ACTIONLINT_VERSION"
-"$actionlint" || status=1
+# A shellcheck that is on PATH but cannot run (e.g. an unconfigured mise shim)
+# is treated as absent rather than failing every workflow.
+actionlint_args=()
+if command -v shellcheck >/dev/null 2>&1 && ! shellcheck --version >/dev/null 2>&1; then
+  actionlint_args=(-shellcheck=)
+fi
+"$actionlint" ${actionlint_args[@]+"${actionlint_args[@]}"} || status=1
 
 echo "zizmor $ZIZMOR_VERSION"
 # --offline: every audit this repo gates on is static. An EMPTY GH_TOKEN is a

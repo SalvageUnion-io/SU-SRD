@@ -165,8 +165,15 @@ describe('typecheck-scoped.sh', () => {
     expect(await runHook('typecheck-scoped.sh', { tool_input: {} })).toBe(ALLOW)
   })
 
-  // A throwaway git repo whose `typecheck:tools` script is a stub, so the
-  // exit-code path and the root resolution are tested without running tsc.
+  // The fixture below stubs `typecheck`; this keeps the stub honest. The hook
+  // once called a script #995 had deleted, and a stubbed suite stayed green.
+  test('the script the hook runs exists in the real root manifest', async () => {
+    const manifest = await Bun.file(join(ROOT, 'package.json')).json()
+    expect(manifest.scripts.typecheck).toBeString()
+  })
+
+  // A throwaway git repo whose `typecheck` script is a stub, so the exit-code
+  // path and the root resolution are tested without running tsc.
   // Git hooks (lefthook's pre-push runs this suite) export GIT_DIR and friends,
   // which would point `git init` and the hook's `rev-parse` at the outer repo.
   const cleanEnv = Object.fromEntries(
@@ -177,10 +184,7 @@ describe('typecheck-scoped.sh', () => {
     const dir = mkdtempSync(join(tmpdir(), 'typecheck-hook-'))
     mkdirSync(join(dir, 'tools'))
     mkdirSync(join(dir, 'apps', 'srd'), { recursive: true })
-    writeFileSync(
-      join(dir, 'package.json'),
-      JSON.stringify({ scripts: { 'typecheck:tools': script } })
-    )
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ scripts: { typecheck: script } }))
     writeFileSync(join(dir, 'tools', 'x.ts'), 'export {}\n')
     await Bun.spawn(['git', 'init', '-q', dir], { env: cleanEnv }).exited
     return { dir, file: join(dir, 'tools', 'x.ts') }
@@ -232,7 +236,6 @@ describe('protect-generated-files.sh', () => {
     // The wildcard entry — the whole reason this suite exists. Allowed before.
     ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
-    ['generated docs', 'packages/salvageunion-reference/docs/schemas/chassis.md'],
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
     ['the API report', 'packages/salvageunion-reference/etc/salvageunion-reference.api.d.ts'],
     ['the router tree', 'apps/itun/src/routeTree.gen.ts'],
@@ -242,7 +245,7 @@ describe('protect-generated-files.sh', () => {
     ['the srd output snapshot', 'apps/srd/ssg/output-snapshot.json'],
     ['the lockfile', 'bun.lock'],
     ['the coverage baseline', 'coverage-baseline.json'],
-    ['a tools baseline', 'tools/design-tokens-baseline.json'],
+    ['the styling baseline', 'tools/styling-baseline.json'],
     ['generated editor settings', '.vscode/settings.json'],
   ])('blocks %s', async (_label, path) => {
     expect(await edit(path)).toBe(BLOCK)

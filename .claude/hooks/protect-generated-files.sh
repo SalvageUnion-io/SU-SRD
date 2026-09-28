@@ -34,22 +34,17 @@ fi
 # with a message about drift rather than about the edit.
 PROTECTED_PATTERNS=(
   "*packages/salvageunion-reference/schemas/*.schema.json"
-  "*packages/salvageunion-reference/docs/*"
   "*packages/salvageunion-reference/lib/generated/*"
   "*packages/salvageunion-reference/etc/*"
-  "*packages/salvageunion-reference/dist/*"
   "*routeTree.gen.ts"
-  "*database-generated.types.ts"
   "*/dist/*"
   "*tsconfig.tsbuildinfo"
-  # Generated or machine-managed, and all previously unprotected.
   "*apps/itun/convex/_generated/*"
   "*apps/srd/ssg/output-snapshot.json"
   "*bun.lock"
   "*coverage-baseline.json"
   "*tools/a11y-baseline.json"
-  "*tools/design-tokens-baseline.json"
-  "*tools/styling-ownership-baseline.json"
+  "*tools/styling-baseline.json"
   "*.vscode/settings.json"
 )
 
