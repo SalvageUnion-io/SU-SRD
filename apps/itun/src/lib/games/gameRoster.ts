@@ -61,6 +61,13 @@ export type RowCapabilities = {
   /** Crawler only: the table runner may make it the Game's primary (ADR-037). */
   makePrimary: boolean
   /**
+   * The viewer may take this row out of the Game, to My stuff — the move rules
+   * of ADR-037 read from inside the Game: a pilot or mech by its owner, a
+   * crawler by the table runner (`entities.moveCrawler`). `moveDestinations`
+   * is the same rule read from the entity's side.
+   */
+  removeFromGame: boolean
+  /**
    * The viewer may destroy this row outright. Mirrors `removeByAppId`, so:
    * the owner, and nobody else.
    *
@@ -177,7 +184,7 @@ export function moveDestinations(args: {
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'Shelf' }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'My stuff' }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,
@@ -204,6 +211,30 @@ export function moveDestinations(args: {
   }
   const runsThisTable = args.games.some((g) => g._id === current.gameId && g.tableRunner)
   return runsThisTable ? [here, shelf] : [here]
+}
+
+/** One column of a Game's roster, as the hub lists it. */
+export type RosterColumnGroups = {
+  /** The viewer's own rows — listed first, under YOURS. */
+  yours: RosterRow[]
+  /** Everyone else's, unclaimed included; the primary crawler leads. */
+  others: RosterRow[]
+}
+
+/**
+ * Split a column into the viewer's own rows and everyone else's.
+ *
+ * Yours lead because they are what you came to act on; the rest of the table
+ * is context. A crawler belongs to nobody, so a crawler column is all `others`,
+ * with the primary first — it is where new crew is assigned (ADR-037), so it
+ * is the one a reader looks for. The order is otherwise the listing's.
+ */
+export function groupColumn(rows: readonly RosterRow[]): RosterColumnGroups {
+  const yours = rows.filter((row) => row.owner?.mine === true)
+  const others = rows
+    .filter((row) => row.owner?.mine !== true)
+    .sort((a, b) => Number(b.primary) - Number(a.primary))
+  return { yours, others }
 }
 
 /**
@@ -280,6 +311,7 @@ export function ownableRows(args: {
         release: mine,
         scrap: false,
         makePrimary: false,
+        removeFromGame: mine,
         delete: mine,
       },
     }
@@ -319,6 +351,8 @@ export function crawlerRows(args: {
         scrap: args.tableRunner,
         // Mirrors `games.setPrimaryCrawler`: the table runner's call.
         makePrimary: args.tableRunner && !primary,
+        // Mirrors `entities.moveCrawler`: only the table runner moves a crawler.
+        removeFromGame: args.tableRunner,
         // A crawler is destroyed by scrapping it, which is the table runner's act
         // and already has its own control. A second delete verb beside it would
         // be the same destruction under a name the rules do not use.

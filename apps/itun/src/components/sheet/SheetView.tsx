@@ -88,6 +88,8 @@ function ConnectedSheetView({ kind, id }: SheetViewProps) {
     })
   }, [canonical, id, kind, router])
 
+  // `/games/$gameId` opens that Game on the hub (the route picks it, then lands
+  // on `/`) — a plain `/` could not say which Game to show.
   const crew = gameId === null ? undefined : { href: `/games/${gameId}`, label: 'the crew' }
 
   // Yours: the local copy, editable — unless the server says otherwise.

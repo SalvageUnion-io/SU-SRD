@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { setActiveContainer } from '../../stores/activeContainerStore'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
 
@@ -19,6 +20,9 @@ import { AppLink } from '../shared/AppLink'
  *
  * The code lives in the URL rather than in `sessionStorage`, so it survives the
  * OAuth round-trip and still works when pasted into a different browser.
+ *
+ * Your games are on the hub at `/` (there is no Games page), so every way out
+ * goes there — and joining picks the Game you joined, so the hub shows it.
  */
 
 /** What the invite is worth, phrased for the person holding it. */
@@ -47,7 +51,7 @@ function ConnectedJoin({ code }: { code: string }) {
             Check it for a typo, or ask whoever invited you for a fresh one.
           </Text>
           <div>
-            <AppLink href="/games">Go to your games</AppLink>
+            <AppLink href="/">Go to your games</AppLink>
           </div>
         </div>
       </Card>
@@ -63,7 +67,7 @@ function ConnectedJoin({ code }: { code: string }) {
             Ask {preview.invitedBy} for a fresh code.
           </Text>
           <div>
-            <AppLink href="/games">Go to your games</AppLink>
+            <AppLink href="/">Go to your games</AppLink>
           </div>
         </div>
       </Card>
@@ -80,7 +84,7 @@ function ConnectedJoin({ code }: { code: string }) {
             page — it will show up in your games once they do.
           </Text>
           <div>
-            <AppLink href="/games">Go to your games</AppLink>
+            <AppLink href="/">Go to your games</AppLink>
           </div>
         </div>
       </Card>
@@ -95,7 +99,9 @@ function ConnectedJoin({ code }: { code: string }) {
           setPending(true)
           return
         }
-        void navigate({ to: '/games/$gameId', params: { gameId: result.gameId } })
+        // Joined (or already in it): the hub shows that Game.
+        setActiveContainer({ kind: 'game', gameId: result.gameId })
+        void navigate({ to: '/' })
       })
       .catch((err: Error) => setError(err.message))
   }
@@ -207,10 +213,10 @@ export function JoinScreen({ code }: { code: string }) {
   return (
     <PageShell>
       <PageHeading className="w-fit">Join a game</PageHeading>
-      {/* The page shell is the full-width one every Game surface now uses, but
-          the form inside is capped: a Game screen is wide because it lists a
-          crew, and this one holds a six-character code. Stretching the card to
-          1440px would make the shells match by making the content worse. */}
+      {/* The page shell is the full-width one the hub uses, but the form
+          inside is capped: the hub is wide because it lists a crew, and this
+          holds a six-character code. Stretching the card to 1440px would make
+          the shells match by making the content worse. */}
       <div className="w-full max-w-xl">{body()}</div>
     </PageShell>
   )

@@ -7,8 +7,8 @@
  * the Roster's own "Showing" select (`ContainerSwitcher`) makes, offered from
  * every route rather than only from the Roster.
  *
- * It deliberately does **not** link to `/games`: picking a Game here is
- * choosing a container, not opening a management page.
+ * There is no Games page to link to: a Game's roster and every action on it
+ * are on the hub, so picking a Game here is choosing what the hub shows.
  *
  * Two renderings of one list, because the masthead has two shapes:
  *

@@ -475,7 +475,7 @@ export async function pruneLinksAcrossContainers(
 /* Game summaries                                                             */
 /* -------------------------------------------------------------------------- */
 
-/** What the Games list shows for a table. Stored on `games.summary`. */
+/** What a table holds, as the hub states it. Stored on `games.summary`. */
 export type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
 
 /**

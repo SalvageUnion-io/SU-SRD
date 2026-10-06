@@ -37,7 +37,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
     <Card
       headerBg="bg-ink"
       headerContent={
-        <Badge shape="stamp" as="h2" size="full">
+        <Badge shape="stamp" as="h3" size="full">
           Awaiting your answer
         </Badge>
       }

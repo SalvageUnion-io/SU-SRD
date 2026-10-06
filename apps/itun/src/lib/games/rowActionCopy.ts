@@ -12,8 +12,8 @@
  * "are you sure?" makes the reader work out the consequence themselves, which
  * is the one job the dialog exists to do for them.
  *
- * The personal shelf is called **"My stuff"** in anything written here — that
- * is the player's name for it. (Older strings elsewhere still say "shelf".)
+ * The personal shelf is called **"My stuff"** in anything a player reads — that
+ * is the player's name for it, here and everywhere else in the app.
  *
  * The tone is part of the copy because it is part of the message: `danger` for
  * anything that takes a build away from you or from the table, `default` for
@@ -50,6 +50,21 @@ export type MoveDestination = { kind: 'shelf' } | { kind: 'game'; name: string |
 
 /** A Game the reader cannot name (still loading, or one they have left). */
 const UNNAMED_GAME = 'this game'
+
+/**
+ * What a move out of a Game undoes (ADR-037: a move prunes every link it would
+ * leave straddling two containers). A pilot or mech loses its crawler and its
+ * pairing; a crawler loses the crew assigned to it.
+ */
+function clearedAssignments(kind: RowActionKind, from: string): string {
+  if (kind === 'pilot') {
+    return `Their crawler assignment in ${from} is cleared, and so is the mech they fly there, if any.`
+  }
+  if (kind === 'mech') {
+    return `Its crawler assignment in ${from} is cleared, and so is the pilot flying it there, if any.`
+  }
+  return `Everyone in ${from} assigned to it is unassigned.`
+}
 
 export const ROW_ACTION_COPY = {
   /**
@@ -160,9 +175,11 @@ export const ROW_ACTION_COPY = {
    * rest of the table was reading. It is the same record either way (a move
    * keeps its id), so it can always be moved back.
    *
-   * It does not promise anything about the build's wiring. A move patches
-   * `gameId` and nothing else — the crawler and pilot links ride along
-   * untouched — so the copy says only what changes.
+   * It names the wiring it undoes. A move prunes every assignment that would
+   * straddle two containers (ADR-037), so whatever the build was assigned to
+   * in the Game it leaves — its crawler, and the pilot or mech it was paired
+   * with — is cleared, and a crawler leaves its whole crew unassigned. The
+   * copy says so before the player commits, not after.
    */
   leaveGame(args: {
     name: string
@@ -180,6 +197,7 @@ export const ROW_ACTION_COPY = {
         title: `Take ${args.name} out of ${from}?`,
         body: [
           `${args.name} leaves the game's roster and goes back to My stuff, so the rest of the table won't see ${it} any more.`,
+          clearedAssignments(args.kind, from),
           `You can move ${it} back into the game later.`,
         ],
         confirmLabel: 'Move to My stuff',
@@ -194,6 +212,7 @@ export const ROW_ACTION_COPY = {
       title: `Move ${args.name} to ${to}?`,
       body: [
         `${args.name} leaves ${from}'s roster and joins ${to}'s, so ${from}'s table won't see ${it} any more.`,
+        clearedAssignments(args.kind, from),
         `You can move ${it} back later.`,
       ],
       confirmLabel: 'Move',

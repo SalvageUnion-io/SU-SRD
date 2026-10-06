@@ -36,7 +36,7 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
     <Card
       headerBg="bg-ink"
       headerContent={
-        <Badge shape="stamp" as="h2" size="full">
+        <Badge shape="stamp" as="h3" size="full">
           Downtime
         </Badge>
       }
@@ -69,7 +69,7 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
             />
 
             <div className="flex flex-col gap-1.5">
-              <PageHeading variant="section" as="h3">
+              <PageHeading variant="section" as="h4">
                 Finished this step
               </PageHeading>
               {state.completedBy.length === 0 && <Text variant="hint">Nobody yet.</Text>}

@@ -45,6 +45,9 @@ const navigations = convexMocks.navigations
 
 const { JoinScreen } = await import('../JoinScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { getActiveContainer, setActiveContainer } = await import(
+  '../../../stores/activeContainerStore'
+)
 
 function preview(over: Record<string, unknown> = {}) {
   return {
@@ -59,6 +62,7 @@ function preview(over: Record<string, unknown> = {}) {
 }
 
 function renderJoin(value: unknown) {
+  setActiveContainer({ kind: 'shelf' })
   setQueryAnswers({ 'invites:preview': value })
   navigations.length = 0
   redeemError = null
@@ -97,11 +101,12 @@ describe('a live invite', () => {
     expect(screen.getByText(/read each other/i)).toBeTruthy()
   })
 
-  test('accepting routes into the game', async () => {
+  test('accepting shows the game on the hub — there is no Games page to route to', async () => {
     renderJoin(preview())
     fireEvent.click(screen.getByText('Join this game'))
     await waitFor(() => expect(navigations).toHaveLength(1))
-    expect(navigations[0]).toMatchObject({ params: { gameId: 'g1' } })
+    expect(navigations[0]).toEqual({ to: '/' })
+    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
   })
 
   test('a refusal is surfaced in the server’s own words', async () => {
@@ -126,6 +131,9 @@ describe('a gated invite', () => {
     await waitFor(() => expect(screen.getByText(/Asked to join/)).toBeTruthy())
 
     expect(navigations).toHaveLength(0)
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    // The way out is the hub, where the game will appear once approved.
+    expect(screen.getByRole('link', { name: 'Go to your games' }).getAttribute('href')).toBe('/')
     redeemResult = { kind: 'joined', gameId: 'g1', granted: 0 }
   })
 })
@@ -135,6 +143,7 @@ describe('a code that is no good', () => {
     renderJoin(null)
     expect(screen.getByText(/not valid/i)).toBeTruthy()
     expect(screen.queryByText('Join this game')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Go to your games' }).getAttribute('href')).toBe('/')
   })
 
   test('each kind of dead code says which kind it is', () => {
@@ -193,4 +202,7 @@ describe('a visitor who is not signed in', () => {
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(() => {
+  setActiveContainer({ kind: 'shelf' })
+  convexMocks.restore()
+})

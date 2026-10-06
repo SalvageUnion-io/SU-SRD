@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 
 /**
- * `GameRoster` — the crew roster, connected.
+ * `GameRoster` — a Game's crew in the hub's columns, connected.
  *
  * What is worth testing here is not that three columns render; it is that the
  * surface tells the truth about **what you may do**, because every control on
@@ -15,10 +15,13 @@ import { ConvexError } from 'convex/values'
  *  - offering "create" in a Game with no crawler, which the server rejects
  *  - hiding the crawler CTA from the only person who can raise one
  *
+ * That each column lists YOUR rows first, framed under YOURS, and everyone
+ * else's below — the crewmates' with their name on the seal.
+ *
  * And, for every verb that changes who has a build — pick up, offer, copy,
- * delete, scrap — that it asks first: nothing reaches the server until the
- * confirm is pressed, Cancel leaves everything as it was, and a failure keeps
- * the dialog open with a reason.
+ * remove from game, delete, scrap — that it asks first: nothing happens until
+ * the confirm is pressed, Cancel leaves everything as it was, and a failure
+ * keeps the dialog open with a reason.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  * This component asks for: account.me, games.members, entities.listForGame.
@@ -27,7 +30,7 @@ import { ConvexError } from 'convex/values'
 
 import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { pilotFixture } from '../../__tests__/fixtures'
+import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
 
 /** Every mutation the surface ran, by `getFunctionName`, with its args. */
 const mutations: { name: string; args: unknown }[] = []
@@ -51,6 +54,13 @@ const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
 beforeAll(hydrateStores)
+
+afterAll(async () => {
+  // Leave the shared stores as this file found them: empty.
+  for (const id of ['a-mine', 'a-crawler']) {
+    await useEntityStore.getState().forget(id === 'a-crawler' ? 'crawler' : 'pilot', id)
+  }
+})
 
 beforeEach(() => {
   mutations.length = 0
@@ -122,7 +132,14 @@ async function renderAs(
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.
   await act(async () => {
-    render(<GameRoster gameId="g1" gameName="Tenacity" />)
+    render(
+      <GameRoster
+        gameId="g1"
+        gameName="Tenacity"
+        activeSegment="pilot"
+        onSegmentChange={() => {}}
+      />
+    )
   })
 }
 
@@ -277,7 +294,47 @@ describe('what the game will accept', () => {
   })
 })
 
-describe('copy to shelf', () => {
+describe('yours first, then everyone else', () => {
+  test('your rows lead each column under YOURS; the rest follow, with their holder named', async () => {
+    await renderAs(ME, listing({ pilots: [THEIR_PILOT, MY_PILOT, PRE_GEN] }))
+
+    const yours = screen.getByRole('list', { name: 'Yours' })
+    const others = screen.getByRole('list', { name: 'Everyone else' })
+    expect(within(yours).getByText('Roach-Boy')).toBeTruthy()
+    expect(within(yours).queryByText('Ash')).toBeNull()
+    // Everyone else's: the crewmate's (their name on the seal) and the
+    // unclaimed pre-gen, in the listing's order.
+    expect(within(others).getByText('Ash')).toBeTruthy()
+    expect(within(others).getByText('Mediator')).toBeTruthy()
+    expect(within(others).getByRole('button', { name: /Unclaimed/i })).toBeTruthy()
+
+    // YOURS is above everything else, whatever order the server listed them in.
+    const position = yours.compareDocumentPosition(others)
+    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test('with nothing of yours there is no YOURS group, only the crew', async () => {
+    await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
+    expect(screen.queryByRole('list', { name: 'Yours' })).toBeNull()
+    expect(screen.queryByRole('list', { name: 'Everyone else' })).toBeNull()
+    expect(screen.getByText('Ash')).toBeTruthy()
+  })
+
+  test('crawlers have no YOURS group — the primary leads', async () => {
+    const SECOND = {
+      _id: 's-crawler-2',
+      appId: 'a-crawler-2',
+      body: { id: 'a-crawler-2', name: 'Second Wind', techLevel: '1' },
+    }
+    await renderAs(ME, listing({ crawlers: [SECOND, CRAWLER], primaryCrawlerId: CRAWLER._id }))
+    const names = screen
+      .getAllByRole('link', { name: /^View / })
+      .map((link) => link.getAttribute('aria-label'))
+    expect(names).toEqual(['View #430 Tenacity', 'View Second Wind'])
+  })
+})
+
+describe('copy to My stuff', () => {
   test('every character offers it, including ones you do not own', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
 
@@ -285,7 +342,7 @@ describe('copy to shelf', () => {
     // view of every row, so copying what is on screen escalates nothing. It is
     // also the only way to keep a character when you walk away from the table:
     // releasing one leaves it behind, unclaimed.
-    expect(screen.getAllByRole('button', { name: 'Copy to shelf' })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: 'Copy to My stuff' })).toHaveLength(3)
   })
 
   test('the crawler does not — a deliberate hold, no longer an impossibility', async () => {
@@ -297,7 +354,7 @@ describe('copy to shelf', () => {
     // somebody keeps, so offering "copy the table's crawler to your shelf" is a
     // product decision that has not been made — and this test is what will fail
     // first, loudly and in the right place, when somebody makes it.
-    expect(screen.queryByRole('button', { name: 'Copy to shelf' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Copy to My stuff' })).toBeNull()
   })
 })
 
@@ -312,6 +369,18 @@ const localPilotNames = () =>
 function press(name: string): HTMLElement {
   fireEvent.click(screen.getByRole('button', { name }))
   return screen.getByRole('alertdialog')
+}
+
+/**
+ * Drive store work that outlasts one act() scope (IndexedDB) to completion in
+ * small act() blocks, polling `done` between them. Bounded at ~1s.
+ */
+async function settle(done: () => boolean): Promise<void> {
+  for (let i = 0; i < 200 && !done(); i++) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    })
+  }
 }
 
 /** Press the confirm button inside the open dialog, and let the work settle. */
@@ -337,13 +406,13 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Copy to shelf says the copy is separate, and copies nothing until confirmed', async () => {
+  test('Copy to My stuff says the copy is separate, and copies nothing until confirmed', async () => {
     // Signed out, so the copy's create stays in the in-memory backend: this
     // file's Convex client is a stub with no `mutation`, and the backend's auth
     // state is process-global, so another file can leave it signed in.
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
-    const dialog = press('Copy to shelf')
+    const dialog = press('Copy to My stuff')
 
     expect(dialog.textContent).toContain('Copy Vex Arlo to My stuff?')
     expect(dialog.textContent).toContain("won't sync back")
@@ -394,7 +463,7 @@ describe('every verb that changes who has a build asks first', () => {
 
   test.each([
     ['Offer to the crew', MY_PILOT],
-    ['Copy to shelf', MY_PILOT],
+    ['Copy to My stuff', MY_PILOT],
     ['Delete', MY_PILOT],
   ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
     await renderAs(ME, listing({ pilots: [pilot] }))
@@ -419,11 +488,11 @@ describe('every verb that changes who has a build asks first', () => {
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     press('Offer to the crew')
-    mutationError = new ConvexError('A build on your shelf is already yours')
+    mutationError = new ConvexError('A build in your My stuff is already yours')
 
     await confirmWith('Offer to the crew')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getByRole('alert').textContent).toBe('A build on your shelf is already yours')
+    expect(screen.getByRole('alert').textContent).toBe('A build in your My stuff is already yours')
   })
 
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
@@ -436,6 +505,70 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.getByRole('alert').textContent).toBe(
       '#430 Tenacity could not be scrapped. Try again.'
     )
+  })
+})
+
+describe('remove from game', () => {
+  /** This browser holds the copy a move is made on — `ShelfSync` brings it in. */
+  async function holdLocally(): Promise<void> {
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    await useEntityStore
+      .getState()
+      .adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
+  }
+  const gameIdOf = (id: string) => useEntityStore.getState().get('pilot', id)?.gameId
+
+  test('is offered on your own pilot once its copy is here, and on nobody else’s', async () => {
+    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
+    // Not yet in this browser: nothing to move from here.
+    expect(screen.queryByRole('button', { name: 'Remove from game' })).toBeNull()
+
+    cleanup()
+    await holdLocally()
+    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
+    expect(screen.getAllByRole('button', { name: 'Remove from game' })).toHaveLength(1)
+  })
+
+  test('asks first — naming the game and the assignments it clears — and moves nothing until confirmed', async () => {
+    await holdLocally()
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    const dialog = press('Remove from game')
+
+    expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
+    expect(dialog.textContent).toContain('goes back to My stuff')
+    expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
+    expect(gameIdOf('a-mine')).toBe('g1')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(gameIdOf('a-mine')).toBe('g1')
+  })
+
+  test('confirming moves the same record to My stuff', async () => {
+    await holdLocally()
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    press('Remove from game')
+
+    await confirmWith('Move to My stuff')
+    // The move writes through IndexedDB, which outlasts one act() scope.
+    await settle(() => screen.queryByRole('alertdialog') === null)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    // A move, never a copy: same id, `gameId` cleared.
+    expect(gameIdOf('a-mine')).toBeNull()
+  })
+
+  test('a crawler comes out at the table runner’s hand only', async () => {
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    await useEntityStore
+      .getState()
+      .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))
+
+    await renderAs(ME, listing({ crawlers: [CRAWLER] }))
+    expect(screen.queryByRole('button', { name: 'Remove from game' })).toBeNull()
+
+    cleanup()
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
+    const dialog = press('Remove from game')
+    expect(dialog.textContent).toContain('Everyone in Tenacity assigned to it is unassigned')
   })
 })
 

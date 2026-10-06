@@ -118,7 +118,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
 
       {requests !== undefined && requests.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <PageHeading variant="section" as="h3">
+          <PageHeading variant="section" as="h4">
             Asking to join
           </PageHeading>
           {requests.map((request) => (
@@ -156,7 +156,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
       )}
 
       <div className="flex flex-col gap-1.5">
-        <PageHeading variant="section" as="h3">
+        <PageHeading variant="section" as="h4">
           Codes
         </PageHeading>
         {invites === undefined && <ConvexPending />}
