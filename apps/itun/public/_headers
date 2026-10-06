@@ -1,62 +1,14 @@
 # Response headers for intheunionnow.com.
 #
 # Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
-# Assets (ADR-033). It is the app's ONLY source of security headers:
-# `src/worker/index.ts` forwards asset responses untouched, so without this file
-# production serves no CSP, no HSTS, no X-Frame-Options and no nosniff.
+# Assets (ADR-033). It carries Cache-Control and NOTHING ELSE.
 #
-# `tools/check-observability.ts` requires this file to exist (the app's
-# `wrangler.jsonc` declares `assets`) and its CSP to allow Sentry's ingest
-# origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the
-# browser.
-
-/*
-  X-Frame-Options: DENY
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), microphone=(), camera=()
-  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-  X-DNS-Prefetch-Control: on
-  # connect-src MUST list Sentry's ingest origin or the browser blocks every
-  # event before it leaves the page — a DSN alone is not enough, and that
-  # failure is silent AND looks healthy (zero errors reported).
-  #
-  # `de`, not `us`: this org is in Sentry's EU data region. A DSN issued in one
-  # region under a CSP written for the other is blocked in the browser and the
-  # project reports nothing — indistinguishable, from outside, from "no errors".
-  #
-  # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
-  # which fails CI if this drifts. Wildcarded subdomain because the host encodes
-  # the Sentry org id.
-  #
-  # The Convex entries are load-bearing for the same reason and fail the same
-  # silent way. The accounts client (ADR-030) opens a WebSocket to the
-  # deployment for its reactive queries and POSTs mutations over HTTPS, and
-  # `@convex-dev/auth` exchanges tokens against the deployment's `.site` origin.
-  # Omit these and every one of those is blocked before it leaves the page:
-  # VITE_CONVEX_URL is set, the client constructs happily, the app reports
-  # itself Connected — and nothing ever reaches the server. Sign-in simply
-  # never completes, with no error surface.
-  #
-  # Wildcarded per deployment name, like the Sentry host, because the deployment
-  # differs by context: production is `exuberant-porpoise-183`, while a branch
-  # deploy or a local `convex dev` points elsewhere. Both schemes are required —
-  # `wss:` does NOT inherit from `https:`.
-  # script-src carries NO 'unsafe-inline'. It used to, and that removed CSP's
-  # primary XSS control: with it, an injected <script> executes.
-  #
-  # Removing it cost nothing, which is the point — the built `dist/index.html`
-  # contains ZERO inline scripts (measured: two external <script src> tags and
-  # nothing else), so the directive was permitting a class of thing this app
-  # does not emit. Vite bundles every module; the PWA registration is external.
-  #
-  # If a build ever DOES need an inline script, do not put this back: give that
-  # script a sha256 hash here, the way apps/srd does. A single 'unsafe-inline'
-  # re-opens the whole origin.
-  #
-  # 'unsafe-inline' remains in style-src, deliberately — Tailwind and React
-  # inline styles need it, and style injection is not script execution.
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+# The security headers (CSP, HSTS, X-Frame-Options, nosniff, …) are set in code,
+# by `src/worker/securityHeaders.ts`, on every response: `wrangler.jsonc` sets
+# `assets.run_worker_first`, Cloudflare does not apply `_headers` to responses
+# Worker code generates, and the Worker overwrites asset responses too. A CSP
+# here would be a second copy that never decides what the browser gets.
+# tools/smoke-production.sh asserts the CSP and HSTS actually reach the browser.
 
 # Content-hashed bundle output from Vite's default assetsDir.
 /assets/*
@@ -78,7 +30,7 @@
 # client route (`/sheet/...`, `/p/...`) is answered by a response the Worker
 # builds, and `_headers` is not applied to those. So the Worker sets the same
 # value on every HTML document it sends — `SHELL_CACHE_CONTROL` in
-# `src/worker/index.ts` — and `src/worker/__tests__/routing.test.ts` fails if
-# the two stop agreeing.
+# `src/worker/securityHeaders.ts` — and `src/worker/__tests__/routing.test.ts`
+# fails if the two stop agreeing.
 /*.html
   Cache-Control: public, max-age=0, must-revalidate

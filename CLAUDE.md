@@ -118,7 +118,7 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
 - `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see "Cloud sessions" in `agent-tooling.md`.
-- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's `public/_headers` CSP against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
+- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's CSP source against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 
 ## Merging
 

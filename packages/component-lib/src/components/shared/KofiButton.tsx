@@ -16,7 +16,7 @@ import { cn } from '../../utils/cn'
  *
  * Requires the host CSP to allow `script-src https://storage.ko-fi.com`
  * (the button image is served from the same host, covered by `img-src https:`).
- * See each app's `public/_headers`.
+ * See srd's `public/_headers` and itun's `src/worker/securityHeaders.ts`.
  */
 
 const WIDGET_SRC = 'https://storage.ko-fi.com/cdn/widget/Widget_2.js'

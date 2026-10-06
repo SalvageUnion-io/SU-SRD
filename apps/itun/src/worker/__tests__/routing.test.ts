@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { Env } from '../index'
 import worker from '../index'
+import { ITUN_CSP } from '../securityHeaders'
 
 /** A snapshot as every published one was stored: `{ kind, entity }`. */
 const STORED = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker', name: 'Rusty' }) }
@@ -288,7 +289,7 @@ describe('every HTML document revalidates', () => {
   })
 
   it('agrees with the /*.html block of public/_headers', async () => {
-    // Two sources for one value, as with the CSP below: asserted, not trusted.
+    // Two sources for one value: asserted, not trusted.
     const headersFile = await Bun.file(new URL('../../../public/_headers', import.meta.url)).text()
     const lines = headersFile.split('\n')
     const block = lines.indexOf('/*.html')
@@ -495,12 +496,13 @@ describe('/og/s/:id.png', () => {
   // ---------------------------------------------------------------------
   // Security headers
   //
-  // Cloudflare does not apply `public/_headers` to responses Worker code
-  // GENERATES, and `wrangler.jsonc` sets `run_worker_first`, so every exit
-  // path below used to ship with no CSP, no HSTS and no nosniff. These assert
-  // the wrapper covers the paths a request can actually leave by — including
-  // the redirect, which is the one that cannot have its headers mutated in
-  // place and so is the likeliest to be missed by a per-return fix.
+  // `./securityHeaders.ts` is the app's only source of these: `public/_headers`
+  // carries Cache-Control alone, Cloudflare does not apply it to responses
+  // Worker code GENERATES, and `wrangler.jsonc` sets `run_worker_first`. These
+  // assert the wrapper covers the paths a request can actually leave by — an
+  // asset hit included, and the redirect, which is the one that cannot have its
+  // headers mutated in place and so is the likeliest to be missed by a
+  // per-return fix.
   // ---------------------------------------------------------------------
 
   it.each([
@@ -511,35 +513,27 @@ describe('/og/s/:id.png', () => {
     ['an og:image fallback', '/og/s/!!.png'],
     ['the SPA shell', '/s/AAAAAAAA'],
     ['a 404 for a missing file', '/nope.txt'],
+    ['an asset hit', '/assets/app.js'],
   ])('sets the security headers on %s', async (_label, path) => {
-    const env = envWith({ '/index.html': 'SPA' }, {})
+    const env = envWith({ '/index.html': 'SPA', '/assets/app.js': 'js' }, {})
     const res = await worker.fetch(req(path), env)
 
-    expect(res.headers.get('content-security-policy')).toContain("default-src 'self'")
+    expect(res.headers.get('content-security-policy')).toBe(ITUN_CSP)
     expect(res.headers.get('strict-transport-security')).toContain('max-age=63072000')
     expect(res.headers.get('x-frame-options')).toBe('DENY')
     expect(res.headers.get('x-content-type-options')).toBe('nosniff')
   })
 
-  it('keeps the CSP in lockstep with public/_headers', async () => {
-    // Two sources for one policy is a drift hazard, so it is asserted rather
-    // than trusted. tools/check-observability.ts holds the Sentry ingest origin
-    // to the same value in both; this holds the whole directive list.
-    const headersFile = await Bun.file(new URL('../../../public/_headers', import.meta.url)).text()
-    const declared = headersFile
-      .split('\n')
-      .find((line) => line.trim().startsWith('Content-Security-Policy:'))
-    expect(declared).toBeDefined()
-
+  it('serves ITUN_CSP verbatim', async () => {
+    // The one CSP source is the one that ships: tools/check-observability.ts
+    // reads ITUN_CSP for the Sentry ingest origin, so a Worker that served
+    // anything else would leave that gate checking a policy nobody receives.
     const env = envWith({ '/index.html': 'SPA' }, {})
     const served = (await worker.fetch(req('/pilots/x'), env)).headers.get(
       'content-security-policy'
     )
 
-    const normalise = (value: string) => value.replace(/\s+/g, ' ').trim().replace(/;$/, '')
-    expect(normalise(served ?? '')).toBe(
-      normalise((declared as string).replace('Content-Security-Policy:', ''))
-    )
+    expect(served).toBe(ITUN_CSP)
   })
 
   it('points the shell metadata at this route for a snapshot that exists', async () => {
