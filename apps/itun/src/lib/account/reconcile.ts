@@ -237,7 +237,7 @@ export async function reconcile(
  * Put session work into the signed-in cache under its own ids.
  *
  * `adopt` keeps each record's id, so the local copy IS the entity rather than a
- * fork of it — the same reason `GameRoster.ensureLocal` uses it.
+ * fork of it — the same reason `ShelfSync` uses it.
  */
 async function adoptLocally(work: LocalWork): Promise<void> {
   const report = (kind: string, err: unknown) => {

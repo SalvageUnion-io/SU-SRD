@@ -24,17 +24,15 @@
  * from the real one immediately. The entity is stamped with the Game on write
  * (`entityStore.create`) and mirrored up from there.
  *
- * ## What a row will and will not open
+ * ## What a row opens
  *
- * Only what you own offers a sheet, and the reasoning is in
- * `lib/games/gameRoster.ts` — ITUN's sheet is a live editing surface, so
- * opening a crewmate's would hand you an editor the server then refuses. The
- * crawler is the exception because it is genuinely communal.
- *
- * Rows you may open but have never held locally are **adopted on the way in**:
- * the server body is cached into IndexedDB under its own id, which is what
- * makes the sheet and the Dashboard work at all for a character built at
- * somebody else's table.
+ * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
+ * editable when the row is yours to edit — your own pilots and mechs, and the
+ * communal crawler — and read-only and live when it is a crewmate's; the rule
+ * is in `lib/games/gameRoster.ts` and the rendering in `SheetView`. Nothing is
+ * fetched on the way in: what you may edit is already in this browser
+ * (`ShelfSync` and `WiringSync` cache it), and what you may not is read from
+ * the Game's listing and never cached.
  *
  * ## Every verb that changes who has a build asks first
  *
@@ -54,7 +52,12 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
-import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
+import {
+  crawlerRows,
+  ownableRows,
+  rosterSheetHref,
+  tableCapabilities,
+} from '../../lib/games/gameRoster'
 import { rosterRowStats } from '../../lib/games/rosterRowStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -64,7 +67,7 @@ import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
 import { useConfirm } from '../shared/useConfirm'
 import { OwnerSeal } from './OwnerSeal'
-import { ensureLocal, useRowActions } from './useRowActions'
+import { useRowActions } from './useRowActions'
 
 type GameRosterProps = {
   gameId: string
@@ -182,18 +185,12 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     }
   }
 
-  async function openSheet(row: RosterRow) {
-    const localId = await ensureLocal(row)
-    if (localId === null) {
-      throw new Error('That build has not been saved anywhere this browser can open yet.')
-    }
-    await router?.navigate({ to: '/sheet/$kind/$id', params: { kind: row.kind, id: localId } })
-  }
-
   async function launchDashboard(row: RosterRow) {
-    const localId = await ensureLocal(row)
-    if (localId === null) throw new Error('That mech cannot be launched from this browser yet.')
-    await router?.navigate({ to: '/dashboard/$id', params: { id: localId } })
+    // Your own mech is in this browser already — `ShelfSync` caches everything
+    // you own — so there is nothing to fetch; a mech still on its way in has
+    // not arrived yet, and says so.
+    if (row.localId === null) throw new Error('That mech has not reached this browser yet.')
+    await router?.navigate({ to: '/dashboard/$id', params: { id: row.localId } })
   }
 
   /**
@@ -307,13 +304,11 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                           name={row.name}
                           stats={rosterRowStats(row)}
                           linkAs={AppLink}
-                          /* Every row is a door now. View goes to the frozen
-                             crew sheet (`GameEntitySheet`) for EVERY row,
-                             including your own: it is a plain anchor to a
-                             read-only surface, so it needs no adoption round
-                             trip and behaves like the Roster's View. Editing
-                             is the separate, owner-only verb beside it. */
-                          sheetHref={`/games/${gameId}/view/${row.kind}/${row.serverId}`}
+                          /* Every row is a door, and there is one: View, to
+                             the live sheet — editable when the row is yours
+                             to edit (`row.can.openSheet`), read-only when it
+                             is a crewmate's (`SheetView`). */
+                          sheetHref={rosterSheetHref(row)}
                           /* The primary crawler is where new crew is assigned
                              (ADR-037), so the roster says which one it is. */
                           meta={row.primary ? '★ Primary' : undefined}
@@ -329,18 +324,6 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                           }
                           actions={
                             <>
-                              {row.can.openSheet && (
-                                <Button
-                                  variant="default"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`open-${row.serverId}`, () => openSheet(row))
-                                  }
-                                >
-                                  Edit
-                                </Button>
-                              )}
                               {row.kind === 'mech' && row.can.openSheet && (
                                 <Button
                                   variant="primary"
@@ -436,7 +419,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       )}
 
       <p className="font-body text-xs text-wk-muted">
-        Sheets you open from here are cached in this browser and saved back to the game.{' '}
+        What you can edit opens to edit; a crewmate&rsquo;s pilot or mech opens read-only, as it
+        stands right now.{' '}
         <AppLink href="/" className={cn(buttonVariants({ variant: 'ghost', size: 'mini' }))}>
           Back to your builds
         </AppLink>

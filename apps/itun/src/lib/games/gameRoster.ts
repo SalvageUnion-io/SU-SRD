@@ -47,7 +47,10 @@ export type GameMember = {
 
 /** What the viewer may do with one row. */
 export type RowCapabilities = {
-  /** The viewer may open the row's EDITABLE live sheet. Mirrors `assertMayWrite`. */
+  /**
+   * The row's sheet opens EDITABLE for the viewer. Mirrors `assertMayWrite`.
+   * Every row opens (`rosterSheetHref`); this only says whether it opens to edit.
+   */
   openSheet: boolean
   /** Free, and the viewer is in the Game: they can take it. */
   claim: boolean
@@ -203,6 +206,17 @@ export function moveDestinations(args: {
   return runsThisTable ? [here, shelf] : [here]
 }
 
+/**
+ * The sheet a row opens: the live sheet route, one address whoever looks —
+ * `SheetView` makes it editable or read-only. Addressed by the app id every
+ * link uses; a template pre-gen has none and goes by its body id, and a row with
+ * neither by its row id, which the route also resolves.
+ */
+export function rosterSheetHref(row: RosterRow): string {
+  const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null
+  return `/sheet/${row.kind}/${row.appId ?? bodyId ?? row.serverId}`
+}
+
 /** Best-effort display name off an opaque server body. */
 function nameOf(body: unknown, fallback: string): string {
   const value = (body as Record<string, unknown> | null)?.name
@@ -221,18 +235,18 @@ function bodyOf(body: unknown): Record<string, unknown> {
  * whether a row can open a sheet *without a round trip*, not whether it may —
  * see `openSheet` below.
  *
- * `openSheet` means the EDITABLE live sheet, so it mirrors `assertMayWrite`:
+ * `openSheet` means the sheet opens EDITABLE, so it mirrors `assertMayWrite`:
  * only the owner. That is not the same as "only the owner may look" — ADR-030
- * §5 allows reading a crewmate's sheet, and every row is now readable through
- * the frozen crew view (`GameEntitySheet`), which renders the server body
- * behind a store that throws on write and caches nothing locally.
+ * §5 allows reading a crewmate's sheet, and every row opens the same live
+ * sheet, which renders a crewmate's read-only from the Game's listing behind a
+ * store that throws on write and caches nothing locally (`SheetView`).
  *
  * The distinction is the whole point. What was never safe was handing a
- * non-owner ITUN's *live* sheet — an editing surface backed by local storage,
- * whose writes the server then refuses, so it would silently stop saving. A
- * read-only surface has no such failure mode, so reading needs no capability
- * flag here: membership in the Game is the only gate, and the server's own
- * listing query already enforces it.
+ * non-owner ITUN's *editable* sheet — an editing surface backed by local
+ * storage, whose writes the server then refuses, so it would silently stop
+ * saving. A read-only rendering has no such failure mode, so reading needs no
+ * capability flag here: membership in the Game is the only gate, and the
+ * server's own queries already enforce it.
  */
 export function ownableRows(args: {
   kind: 'pilot' | 'mech'

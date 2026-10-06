@@ -127,12 +127,20 @@ async function renderAs(
 }
 
 describe('what a row offers', () => {
-  test('your own pilot offers the editable sheet', async () => {
+  test('your own pilot opens the live sheet — one View, no separate Edit', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     expect(screen.getByText('Roach-Boy')).toBeTruthy()
-    // Edit, not View: View is the read-only crew sheet every row carries, and
-    // the editable one is the extra verb ownership buys.
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeTruthy()
+    // One door per row, to the one sheet: it opens editable because it is
+    // yours (`SheetView`), so there is no second verb for editing.
+    const view = screen.getByRole('link', { name: 'View Roach-Boy' })
+    expect(view.getAttribute('href')).toBe('/sheet/pilot/a-mine')
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
+  })
+
+  test('a pre-gen with no app id opens by its body id', async () => {
+    await renderAs(ME, listing({ pilots: [PRE_GEN] }))
+    const view = screen.getByRole('link', { name: 'View Pre-gen' })
+    expect(view.getAttribute('href')).toBe('/sheet/pilot/a-free')
   })
 
   test('your own mech also offers the Dashboard', async () => {
@@ -152,17 +160,16 @@ describe('what a row offers', () => {
     expect(screen.queryByRole('button', { name: 'Offer to the crew' })).toBeNull()
   })
 
-  test("a crewmate's pilot names its holder and opens READ-ONLY", async () => {
+  test("a crewmate's pilot names its holder and opens the same live sheet", async () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     expect(screen.getByText('Ash')).toBeTruthy()
     // The seal names who holds it — the row's one ownership mark.
     expect(screen.getByText('Mediator')).toBeTruthy()
     // Readable: a shared table whose crew you cannot look at is not shared.
-    // The link goes to the frozen crew sheet, addressed by the SERVER id.
+    // The same address as your own rows; `SheetView` renders it read-only.
     const view = screen.getByRole('link', { name: /^View / })
-    expect(view.getAttribute('href')).toBe('/games/g1/view/pilot/s-theirs')
-    // But not editable — that would hand over an editor the server refuses.
+    expect(view.getAttribute('href')).toBe('/sheet/pilot/a-theirs')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // Nor is it takeable: somebody already holds it.
     expect(screen.queryByRole('button', { name: /Unclaimed/i })).toBeNull()
@@ -260,7 +267,9 @@ describe('what the game will accept', () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
 
     expect(screen.getByText('#430 Tenacity')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'View #430 Tenacity' }).getAttribute('href')).toBe(
+      '/sheet/crawler/a-crawler'
+    )
     // It has no owner at all, so it carries no ownership seal — neither a
     // claim invitation nor a holder's name. "Who owns the crawler" is not a
     // question the game asks.

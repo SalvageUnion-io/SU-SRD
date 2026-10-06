@@ -3,14 +3,14 @@
  *
  * ## Why this is its own module
  *
- * It began inside `components/sheet/frozenSheet.ts`, alongside the read-only
- * Zustand store that renders the result. It moved here when the snapshot
- * publish handler in the Cloudflare Worker needed the same parse, because
- * `frozenSheet.ts` imports `zustand` and the entity store and esbuild follows
- * the module, not the call. Publishing is retired (ADR-036), so today every
- * caller is a renderer again — but a parse that imports nothing but the
- * schemas is still the right shape for a module both platforms could reach,
- * so it stays, and every caller is an adapter around it.
+ * It began beside the read-only Zustand store that renders the result (now
+ * `components/sheet/readOnlySheetStore.ts`). It moved here when the snapshot
+ * publish handler in the Cloudflare Worker needed the same parse, because that
+ * store imports `zustand` and the entity store and esbuild follows the module,
+ * not the call. Publishing is retired (ADR-036), so today every caller is a
+ * renderer again — but a parse that imports nothing but the schemas is still
+ * the right shape for a module both platforms could reach, so it stays, and
+ * every caller is an adapter around it.
  */
 
 import { isRecord } from '../isRecord'

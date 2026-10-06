@@ -24,29 +24,13 @@ import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { useEntityStore } from '../../stores/entityStore'
 import type { Confirm } from '../shared/useConfirm'
 
-/**
- * Make sure this browser holds the row, then hand back the id a sheet route
- * takes. Adoption keeps the entity's own id, so the copy IS the entity rather
- * than a fork of it — see `entityStore.adopt`.
- */
-export async function ensureLocal(row: RosterRow): Promise<string | null> {
-  const id = row.body.id
-  if (typeof id !== 'string' || id.length === 0) return row.localId
-  // Adopted even when a copy is already here: the server is the source of
-  // record, and the copy may be stale — most obviously for the crawler, which
-  // the whole crew edits. Overwriting is safe because every local write
-  // mirrors up immediately, so a local copy is never legitimately ahead.
-  await useEntityStore.getState().adopt(row.kind, row.body as never)
-  return id
-}
-
 /** The table a pilot or mech row's ownership mutations address. */
 function ownableTable(row: RosterRow): 'pilots' | 'mechs' {
   return row.kind === 'pilot' ? 'pilots' : 'mechs'
 }
 
 export type RowActions = {
-  /** Claim an unclaimed character, then pull it into this browser. */
+  /** Claim an unclaimed character; `ShelfSync` brings it into this browser. */
   pickUp: (row: RosterRow) => void
   /** Hand a character you hold back to the crew. */
   offer: (row: RosterRow) => void
@@ -74,10 +58,10 @@ export function useRowActions(confirm: Confirm): RowActions {
       confirm({
         ...ROW_ACTION_COPY.pickUp(row.name),
         onConfirm: async () => {
+          // Nothing to pull down by hand: it is yours now, so it is in
+          // `listMine`, and `ShelfSync` caches it from there — the row's View
+          // opens it editable as soon as it lands.
           await claim({ table: ownableTable(row), entityId: row.serverId })
-          // Pull it down so it opens straight away — picking something up and
-          // then having nowhere to open it would be half a verb.
-          await ensureLocal(row)
         },
       }),
 
@@ -95,7 +79,7 @@ export function useRowActions(confirm: Confirm): RowActions {
     /**
      * Offered on every pilot and mech row, including a crewmate's and an
      * unclaimed pre-gen, because it is derived from what you may already read:
-     * membership of the Game grants the frozen crew view of every row, and
+     * membership of the Game grants a read-only view of every row's sheet, and
      * copying what is on your screen escalates nothing. It is also the only way
      * to keep a character when you walk away from a table — releasing one
      * leaves it behind, unclaimed.

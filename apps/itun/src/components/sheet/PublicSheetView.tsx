@@ -58,9 +58,7 @@ function PublicSheetQuery({ kind, appId }: { kind: PublicKind; appId: string }) 
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable />
 
-  return (
-    <PublicSheet kind={result.kind} body={result.body} pilotAbilities={result.pilotAbilities} />
-  )
+  return <PublicSheet appId={appId} answer={result} />
 }
 
 /**

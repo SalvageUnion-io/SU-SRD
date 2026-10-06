@@ -48,8 +48,8 @@ revokes them, and an old `/s/:id` redirects to the public sheet if its entity is
 public, else shows a "retired" page. The R2 bucket is read-only — never delete
 from it.
 
-The public sheet renders through `frozenSheet.ts`, as does the Game crew view.
-Don't add another read-only sheet renderer.
+Every read-only sheet — a crewmate's at `/sheet/:kind/:id`, the public one —
+is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 ## Stack
 
