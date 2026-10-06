@@ -17,10 +17,17 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  * This screen asks only `invites.preview`, from two components.
  */
 
+import type { FunctionReference } from 'convex/server'
+import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let redeemResult: unknown = { kind: 'joined', gameId: 'g1', granted: 0 }
 let redeemError: Error | null = null
+// The preview a decline test started from, re-served as declined once it lands.
+let declinedPreview: Record<string, unknown> = {}
+// Which mutations the screen called, by name — redeem and decline share the
+// stub, so the name is what tells "joined" from "declined" apart.
+const mutationCalls: string[] = []
 // Flipped per-test: the signed-out path is the one a stranger following a link
 // actually hits, so it needs exercising rather than assuming.
 let isAuthenticated = true
@@ -33,8 +40,17 @@ const convexMocks = await installConvexMocks({
   authReact: true,
   router: true,
   convexReact: {
-    useMutation: () => async () => {
+    useMutation: (ref: unknown) => async () => {
+      const name = getFunctionName(ref as FunctionReference<'mutation'>)
+      mutationCalls.push(name)
       if (redeemError !== null) throw redeemError
+      if (name === 'invites:decline') {
+        // What the live subscription does: the declined invite now previews
+        // as declined, which is exactly what the screen must not mistake for
+        // somebody else's dead code.
+        setQueryAnswers({ 'invites:preview': preview({ ...declinedPreview, status: 'declined' }) })
+        return null
+      }
       return redeemResult
     },
     useConvexAuth: () => ({ isAuthenticated, isLoading: false }),
@@ -57,6 +73,9 @@ function preview(over: Record<string, unknown> = {}) {
     requiresApproval: false,
     grantCount: 0,
     status: 'active',
+    expiresAt: null,
+    addressed: null,
+    forYou: null,
     ...over,
   }
 }
@@ -65,6 +84,7 @@ function renderJoin(value: unknown) {
   setActiveContainer({ kind: 'shelf' })
   setQueryAnswers({ 'invites:preview': value })
   navigations.length = 0
+  mutationCalls.length = 0
   redeemError = null
   isAuthenticated = true
   return render(
@@ -138,6 +158,37 @@ describe('a gated invite', () => {
   })
 })
 
+describe('an invite addressed to you (ADR-039)', () => {
+  test('can be declined, and a bearer code cannot', () => {
+    renderJoin(preview({ addressed: 'discord', forYou: true }))
+    expect(screen.getByText('Decline')).toBeTruthy()
+    cleanup()
+
+    // A bearer code may be meant for the whole table; one person's "no" must
+    // not close it for the rest.
+    renderJoin(preview())
+    expect(screen.queryByText('Decline')).toBeNull()
+  })
+
+  test('declining says so and goes nowhere', async () => {
+    declinedPreview = { addressed: 'discord', forYou: true }
+    renderJoin(preview(declinedPreview))
+    fireEvent.click(screen.getByText('Decline'))
+    await waitFor(() => expect(screen.getByText(/You declined the invite/)).toBeTruthy())
+
+    expect(mutationCalls).toEqual(['invites:decline'])
+    expect(navigations).toHaveLength(0)
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+  })
+
+  test('opened by a different Discord account, it says so before any button is pressed', () => {
+    renderJoin(preview({ addressed: 'discord', forYou: false }))
+    expect(screen.getByText(/sent to a different Discord account/)).toBeTruthy()
+    expect(screen.queryByText('Join this game')).toBeNull()
+    expect(screen.queryByText('Decline')).toBeNull()
+  })
+})
+
 describe('a code that is no good', () => {
   test('an unknown code says so and offers no sign-in', () => {
     renderJoin(null)
@@ -149,6 +200,7 @@ describe('a code that is no good', () => {
   test('each kind of dead code says which kind it is', () => {
     for (const [status, copy] of [
       ['revoked', /has been revoked/i],
+      ['declined', /was declined/i],
       ['expired', /has expired/i],
       ['exhausted', /already been used/i],
     ] as const) {
@@ -185,6 +237,18 @@ describe('a visitor who is not signed in', () => {
     expect(screen.getByText(/Sign in to accept/i)).toBeTruthy()
     // Not offered the button, because pressing it could not work yet.
     expect(screen.queryByText('Join this game')).toBeNull()
+  })
+
+  test('a Discord-addressed invite asks for that account in particular', () => {
+    isAuthenticated = false
+    setQueryAnswers({ 'invites:preview': preview({ addressed: 'discord' }) })
+    render(
+      <ConnectionProvider>
+        <JoinScreen code="A1B2C3D4" />
+      </ConnectionProvider>
+    )
+
+    expect(screen.getByText(/sent to one Discord account/i)).toBeTruthy()
   })
 
   test('a dead code is refused without ever prompting a sign-in', () => {

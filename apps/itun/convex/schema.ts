@@ -262,9 +262,45 @@ export default defineSchema({
      * Organizer tidies up.
      */
     revokedAt: v.optional(v.number()),
+
+    /**
+     * Who the invite is addressed to (ADR-039). Absent is a bearer code, as
+     * every invite was before. An addressed invite is always single use and is
+     * redeemable only by the account signed in with this Discord snowflake.
+     * `name` is the invitee's Discord handle as the bot saw it, shown to the
+     * Organizer and nobody else.
+     */
+    target: v.optional(
+      v.object({
+        kind: v.literal('discord'),
+        discordId: v.string(),
+        name: v.optional(v.string()),
+      })
+    ),
+
+    /** The addressee said no. Terminal, like a revoke, and only for a targeted invite. */
+    declinedAt: v.optional(v.number()),
+
+    /** Whether the `/su invite` DM carrying an addressed invite was delivered. */
+    delivery: v.optional(
+      v.object({
+        state: v.union(v.literal('queued'), v.literal('sent'), v.literal('failed')),
+        at: v.number(),
+        /** A short reason for a failure, worded for the Organizer. */
+        detail: v.optional(v.string()),
+      })
+    ),
+
+    /**
+     * The Discord interaction that minted this invite, when `/su invite` did.
+     * A retried interaction finds its invite here instead of minting another.
+     */
+    sourceInteractionId: v.optional(v.string()),
   })
     .index('by_code', ['code'])
-    .index('by_game', ['gameId']),
+    .index('by_game', ['gameId'])
+    .index('by_target_discord', ['target.discordId'])
+    .index('by_source_interaction', ['sourceInteractionId']),
 
   /** Who actually used which invite — the audit trail revocation alone can't give. */
   inviteRedemptions: defineTable({

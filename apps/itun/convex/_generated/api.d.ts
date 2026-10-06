@@ -25,6 +25,7 @@ import type * as mediator from "../mediator.js";
 import type * as model_bot from "../model/bot.js";
 import type * as model_botWire from "../model/botWire.js";
 import type * as model_entities from "../model/entities.js";
+import type * as model_invites from "../model/invites.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as ownership from "../ownership.js";
 import type * as proposals from "../proposals.js";
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   "model/bot": typeof model_bot;
   "model/botWire": typeof model_botWire;
   "model/entities": typeof model_entities;
+  "model/invites": typeof model_invites;
   "model/permissions": typeof model_permissions;
   ownership: typeof ownership;
   proposals: typeof proposals;

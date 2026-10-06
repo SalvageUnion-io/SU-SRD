@@ -317,6 +317,10 @@ same act as removing someone from the room.
 
 Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
 
+**Extended by [ADR-039](ADR-039-targeted-invites.md):** an invite may also carry
+an address — a Discord account, which alone may redeem it. An addressed invite
+is single use and its addressee may decline it.
+
 ## Amendment — the crawler can sit on a shelf, and deleting a Game destroys nothing
 
 §5 says the crawler is **communal**, and the schema expressed that by giving it
