@@ -6,9 +6,9 @@ import type { ReactElement } from 'react'
 /**
  * The one local → account surface (`AccountReconciler`).
  *
- * What these pin is behaviour a player can see or lose work to: the banner
- * appears only when there is something at stake and names it; signing in sends
- * exactly this tab's work and nothing a signed-in page load did not ask for;
+ * What these pin is behaviour a player can see or lose work to: signed out it
+ * renders nothing; signing in sends exactly this tab's work and nothing a
+ * signed-in page load did not ask for;
  * a device roster is compared before it is sent; and a result that resolved
  * with stranded rows is shown, with a retry that actually retries.
  *
@@ -66,7 +66,6 @@ function serverClaim(args: Record<string, unknown>, s: NonNullable<typeof server
 }
 
 const convexMocks = await installConvexMocks({
-  authReact: true,
   convexReact: {
     useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
     useMutation: (ref: unknown) => async (args: Record<string, unknown>) => {
@@ -159,7 +158,7 @@ afterEach(() => {
 })
 
 describe('signed out', () => {
-  test('nothing built and nothing on the device: nothing is said', async () => {
+  test('nothing built and nothing on the device: nothing is rendered', async () => {
     const { container } = render(<Tree />)
     // Let the device probe resolve before asserting it found nothing.
     await act(async () => {
@@ -168,35 +167,21 @@ describe('signed out', () => {
     expect(container.textContent).toBe('')
   })
 
-  test('work in this tab is named, with both ways out', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    render(<Tree />)
-
-    expect(screen.getByText(/1 build not saved\./i)).toBeTruthy()
-    expect(screen.getByText(/lives in this tab only/i)).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Download all' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Sign in with Discord/i })).toBeTruthy()
-  })
-
-  test('a pre-account roster on the device is named in the SAME banner', async () => {
+  test('work in this tab and rows on the device: still nothing is rendered', async () => {
+    // The signed-out banner was removed at the product owner's request. The
+    // capture still happens (the "signing in" tests below send it); only the
+    // notice is gone.
     await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    render(<Tree />)
-
-    // One banner, one download — not the two the old surfaces rendered.
-    await waitFor(() => expect(screen.getByText(/This device also holds 1 build/i)).toBeTruthy())
-    expect(screen.getAllByRole('button', { name: 'Download all' })).toHaveLength(1)
-  })
-
-  test('the device rows are not called pre-account builds', async () => {
-    // The probe reports `present` for ANY non-empty store — a returning
-    // player's own account cache included — so the copy may not claim more.
-    await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     const { container } = render(<Tree />)
+    await act(async () => {
+      await probeLegacyLocalData()
+    })
 
-    await waitFor(() => expect(screen.getByText(/This device holds 1 build\./i)).toBeTruthy())
-    expect(container.textContent).not.toMatch(/before accounts/i)
-    expect(container.textContent).toMatch(/bring anything missing into your account/i)
+    expect(legacyLocalDataState()).toBe('present')
+    expect(container.textContent).toBe('')
+    expect(screen.queryByRole('button')).toBeNull()
+    expect(screen.queryByRole('status')).toBeNull()
   })
 })
 
@@ -287,7 +272,7 @@ describe('signing in', () => {
     // Sign out: tab-1 is account A's now; only tab-2 is still this tab's work.
     authed = false
     view.rerender(<Tree />)
-    await waitFor(() => expect(screen.getByText(/1 build not saved/i)).toBeTruthy())
+    await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
 
     // Sign in to account B, which owns nothing and accepts everything.
     server = { owned: new Set(), unparseable: new Set() }
@@ -392,7 +377,6 @@ describe('signing in', () => {
     await act(async () => {
       await Promise.resolve()
     })
-    expect(screen.queryByText(/not saved/i)).toBeNull()
 
     // Signing in again (to any account) sends nothing and reports nothing.
     const before = signedInRenders()
@@ -418,7 +402,6 @@ describe('signing in', () => {
     await act(async () => {
       await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
     })
-    await waitFor(() => expect(screen.getByText(/1 build not saved/i)).toBeTruthy())
 
     authed = true
     view.rerender(<Tree />)
@@ -441,7 +424,6 @@ describe('signing in', () => {
     await act(async () => {
       await Promise.resolve()
     })
-    expect(screen.queryByText(/not saved/i)).toBeNull()
 
     const before = signedInRenders()
     authed = true

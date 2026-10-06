@@ -21,10 +21,10 @@
  *
  * ## The two sources still differ in one way, deliberately
  *
- * Session work was built in this tab by somebody who then pressed "sign in to
- * save this", so it is sent as-is and adopted into the local cache afterwards
- * (the backend flip would otherwise leave the screen showing nothing until the
- * next sync). Device work may already be in the account, so it is filtered
+ * Session work was built in this tab by somebody who then signed in, so it is
+ * sent as-is and adopted into the local cache afterwards (the backend flip
+ * would otherwise leave the screen showing nothing until the next sync).
+ * Device work may already be in the account, so it is filtered
  * through `selectStranded` against `entities.listMine` first, and is NOT
  * adopted — those rows are already on disk.
  */
@@ -35,7 +35,6 @@ import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { EncounterNpc } from '../schemas/encounterNpc'
-import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
 import type { ServedRoster } from './legacyMigration'
 import { servedIds } from './legacyMigration'
@@ -51,11 +50,11 @@ export type LocalWork = {
 }
 
 /**
- * How many records a selection holds. Zero means there is nothing to say.
+ * How many records a selection holds. Zero means there is nothing to send.
  *
  * Soft links are deliberately excluded from the COUNT: they are wiring between
- * things rather than things, so "3 builds" reads correctly while "5 builds"
- * (with two links) would not. They are still sent.
+ * things rather than things, so a selection holding only links holds no work.
+ * They are still sent alongside the rows they wire.
  */
 export function countWork(work: LocalWork): number {
   return (
@@ -280,28 +279,4 @@ async function adoptLocally(work: LocalWork): Promise<void> {
       report('npc', err)
     }
   }
-}
-
-/**
- * One backup holding both sources, for the single "Download all".
- *
- * Signed out there are two separate things somebody could lose — this tab's
- * work and this device's rows — and asking them to take two downloads to be
- * safe is how one of them does not get taken. The session bundle already
- * carries the envelope; the device rows are appended.
- */
-export function combineBundles(session: ExportBundle | null, device: ExportBundle | null) {
-  if (session === null) return device
-  if (device === null) return session
-  return {
-    ...session,
-    entities: {
-      pilots: [...session.entities.pilots, ...device.entities.pilots],
-      mechs: [...session.entities.mechs, ...device.entities.mechs],
-      crawlers: [...session.entities.crawlers, ...device.entities.crawlers],
-    },
-    softLinks: [...session.softLinks, ...device.softLinks],
-    mechPatterns: [...session.mechPatterns, ...device.mechPatterns],
-    encounterNpcs: [...session.encounterNpcs, ...device.encounterNpcs],
-  } satisfies ExportBundle
 }

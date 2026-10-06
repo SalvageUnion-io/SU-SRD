@@ -22,11 +22,11 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   calls `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an
   e2e spec signs in through `e2e/fixtures.ts`.
 - **One local → account reconciler.** `AccountReconciler` (root-mounted, over
-  `src/lib/account/reconcile.ts`) owns the signed-out banner and download, the
-  upload of this tab's anonymous work on sign-in, the migration of a pre-account
-  roster still in IndexedDB (reconciled against `entities.listMine`), and mounts
-  `ShelfSync`. Do not add a second surface that uploads local work; there is no
-  legacy exemption, no claim card, and no offer-and-decline path.
+  `src/lib/account/reconcile.ts`) owns the upload of this tab's anonymous work
+  on sign-in, the migration of a pre-account roster still in IndexedDB
+  (reconciled against `entities.listMine`), and mounts `ShelfSync`; signed out
+  it renders nothing. Do not add a second surface that uploads local work; there
+  is no legacy exemption, no claim card, and no offer-and-decline path.
 - **A container written twice must be written together** — the row's `gameId`
   column and the body's `gameId` (`shelveBody` in `convex/claim.ts`;
   `maintenance.repairContainers` repairs old rows toward the column).
