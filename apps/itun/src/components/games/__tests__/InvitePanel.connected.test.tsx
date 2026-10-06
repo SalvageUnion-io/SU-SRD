@@ -235,6 +235,18 @@ describe('an addressed invite (ADR-038)', () => {
     expect(screen.getByText(/DM not delivered \(their DMs are closed\)/)).toBeTruthy()
   })
 
+  test('once an invite is closed, how its delivery went is no longer shown', () => {
+    renderPanel([
+      invite({
+        target: { kind: 'discord', name: 'sam' },
+        status: 'revoked',
+        delivery: { state: 'queued', detail: null },
+      }),
+    ])
+    expect(screen.queryByText(/sending/)).toBeNull()
+    expect(screen.getByText(/sent to @sam/)).toBeTruthy()
+  })
+
   test('a declined invite reads as declined and offers no revoke', () => {
     renderPanel([invite({ target: { kind: 'discord', name: 'sam' }, status: 'declined' })])
     expect(screen.getByText('declined')).toBeTruthy()
