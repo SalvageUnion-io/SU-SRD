@@ -83,7 +83,7 @@ Player data is persisted to a single IndexedDB database via the [`idb`](https://
 wrapper (chosen over Dexie for size + Zod-as-schema-of-record — see the ADR
 comment at the top of `src/lib/db/index.ts`).
 
-- **Database:** `itun-v1`, current `DB_VERSION = 13`
+- **Database:** `itun-v1`, current `DB_VERSION = 17`
   (`src/lib/db/index.ts`).
 - **Object stores** (`src/lib/db/stores.ts` — the entity stores are keyed on
   `id`; `changeLog` is the one exception):
@@ -196,6 +196,15 @@ surfaces (`src/components/games/`, `src/components/account/`,
 `src/components/container/`), provided by `AppConvexProvider`. Those
 subscriptions are the Connected-mode analogue of `entityStore`'s in-memory
 cache.
+
+The cache is filled from two queries, both reconciled in
+`src/components/account/ShelfSync.tsx`: `entities.listMine` (everything the
+caller owns — `ShelfSync`) and `entities.listWiring` (every soft link they can
+see and every crawler in their Games — `WiringSync`,
+[ADR-037](../adrs/ADR-037-assignment-model.md)). Both adopt server-wins and prune
+only under the same guard (`lib/db/pruneRules.ts`). Soft links follow the
+assignment model in `src/lib/links/linkRules.ts`: drawn through `assignLink`,
+replacing what they conflict with, never across containers.
 
 ### Every local store reaches Convex
 

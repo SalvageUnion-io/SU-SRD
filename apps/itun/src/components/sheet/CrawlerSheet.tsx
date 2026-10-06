@@ -95,8 +95,9 @@ import { StorageManifest } from './StorageManifest'
 type CrawlerSheetProps = {
   crawler: Crawler
   /**
-   * The docked mech (the lead pilot's mech, resolved by the composition
-   * resolver) — the Hold's ← Load target. Null when nothing is docked.
+   * The docked mech (the first mech assigned to this crawler by its own
+   * `mech-to-crawler` link, resolved by the composition resolver) — the Hold's
+   * ← Load target. Null when nothing is docked.
    */
   mech?: Mech | null
   /**

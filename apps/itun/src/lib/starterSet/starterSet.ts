@@ -445,8 +445,10 @@ const STARTER_CRAWLER: Crawler = {
 export const STARTER_CRAWLERS: readonly Crawler[] = [STARTER_CRAWLER]
 
 // ---------------------------------------------------------------------------
-// SoftLinks — each pilot ↔ their mech (mech-to-pilot: from mech, to pilot) and
-// each pilot ↔ the crawler (pilot-to-crawler: from pilot, to crawler).
+// SoftLinks — each pilot ↔ their mech (mech-to-pilot: from mech, to pilot),
+// each pilot ↔ the crawler (pilot-to-crawler: from pilot, to crawler), and each
+// mech ↔ the crawler (mech-to-crawler: from mech, to crawler). A mech docks by
+// its OWN link since ADR-037 — it no longer reaches the bay through its pilot.
 // ---------------------------------------------------------------------------
 
 export const STARTER_SOFT_LINKS: readonly SoftLink[] = CREW.flatMap(({ pilot: p, mech: m }) => [
@@ -462,6 +464,13 @@ export const STARTER_SOFT_LINKS: readonly SoftLink[] = CREW.flatMap(({ pilot: p,
     from: { type: 'pilot' as const, id: p.id },
     to: { type: 'crawler' as const, id: STARTER_CRAWLER_ID },
     type: 'pilot-to-crawler' as const,
+    createdAt: SEED_TS,
+  },
+  {
+    id: `starter-link-bay-${m.id}`,
+    from: { type: 'mech' as const, id: m.id },
+    to: { type: 'crawler' as const, id: STARTER_CRAWLER_ID },
+    type: 'mech-to-crawler' as const,
     createdAt: SEED_TS,
   },
 ])

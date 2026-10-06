@@ -64,6 +64,32 @@ async function seedPilot(t: Ctx, userId: Id<'users'>, appId: string, gameId: Id<
   )
 }
 
+/**
+ * A crawler row for the link's `to` end. Since ADR-037 the server resolves the
+ * `to` end and requires it to share the `from` end's container, so a link to a
+ * crawler with no row is no longer written at all.
+ */
+async function seedCrawler(t: Ctx, userId: Id<'users'>, appId: string, gameId: Id<'games'> | null) {
+  return await t.run(
+    async (ctx) =>
+      await ctx.db.insert('crawlers', {
+        gameId,
+        ownerId: gameId === null ? userId : null,
+        appId,
+        body: {
+          id: appId,
+          schemaVersion: 1,
+          name: '#430',
+          techLevel: '1',
+          systems: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        updatedAt: Date.now(),
+      })
+  )
+}
+
 const LINK = {
   from: { type: 'pilot' as const, id: 'pilot-app-1' },
   to: { type: 'crawler' as const, id: 'crawler-app-1' },
@@ -76,6 +102,7 @@ describe('upsertSoftLink', () => {
     const u = await makeUser(t, 'A')
     const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
     await seedPilot(t, u.userId, 'pilot-app-1', gameId)
+    await seedCrawler(t, u.userId, 'crawler-app-1', gameId)
 
     await u.as.mutation(api.entities.upsertSoftLink, LINK)
 
@@ -89,6 +116,7 @@ describe('upsertSoftLink', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
     await seedPilot(t, u.userId, 'pilot-app-1', null)
+    await seedCrawler(t, u.userId, 'crawler-app-1', null)
 
     await u.as.mutation(api.entities.upsertSoftLink, LINK)
     await u.as.mutation(api.entities.upsertSoftLink, LINK)
@@ -97,20 +125,21 @@ describe('upsertSoftLink', () => {
     expect(links).toHaveLength(1)
   })
 
-  test('re-homes an existing link when its from end moves into a game', async () => {
+  test('re-files an existing link whose container drifted, rather than duplicating it', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
-    const pilotId = await seedPilot(t, u.userId, 'pilot-app-1', null)
-
-    await u.as.mutation(api.entities.upsertSoftLink, LINK)
-
     const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
-    await t.run(async (ctx) => await ctx.db.patch(pilotId, { gameId }))
+    await seedPilot(t, u.userId, 'pilot-app-1', gameId)
+    await seedCrawler(t, u.userId, 'crawler-app-1', gameId)
+    // A link filed on the shelf while both ends sit in the Game — what a move
+    // under the old code left behind.
+    await t.run(async (ctx) => await ctx.db.insert('softLinks', { gameId: null, ...LINK }))
+
     await u.as.mutation(api.entities.upsertSoftLink, LINK)
 
     const links = await t.run(async (ctx) => await ctx.db.query('softLinks').collect())
     // Moved, not duplicated: a link that stayed behind on the shelf would be
-    // invisible to the crew the pilot just joined.
+    // invisible to the crew the pilot joined.
     expect(links).toHaveLength(1)
     expect(links[0]?.gameId).toBe(gameId)
   })
@@ -142,8 +171,10 @@ describe('removeSoftLink', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
     await seedPilot(t, u.userId, 'pilot-app-1', null)
+    await seedCrawler(t, u.userId, 'crawler-app-1', null)
 
     await u.as.mutation(api.entities.upsertSoftLink, LINK)
+    expect(await t.run(async (ctx) => await ctx.db.query('softLinks').collect())).toHaveLength(1)
     await u.as.mutation(api.entities.removeSoftLink, LINK)
 
     const links = await t.run(async (ctx) => await ctx.db.query('softLinks').collect())
@@ -190,7 +221,9 @@ describe('entities.remove', () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
     const pilotId = await seedPilot(t, u.userId, 'pilot-app-1', null)
+    await seedCrawler(t, u.userId, 'crawler-app-1', null)
     await u.as.mutation(api.entities.upsertSoftLink, LINK)
+    expect(await t.run(async (ctx) => await ctx.db.query('softLinks').collect())).toHaveLength(1)
 
     await u.as.mutation(api.entities.remove, { table: 'pilots', entityId: pilotId })
 

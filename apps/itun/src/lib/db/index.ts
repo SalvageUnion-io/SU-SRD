@@ -51,9 +51,10 @@ import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
  * v10 creates the built-in Default workspace and backfills every unassigned
  * pilot/mech/crawler/encounterNpc into it; v13 then maps that onto a Game or
  * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
- * it writes.)
+ * it writes. v17 draws the `mech-to-crawler` link the old two-hop model implied
+ * — ADR-037.)
  */
-export const DB_VERSION = 16
+export const DB_VERSION = 17
 
 const DB_NAME = 'itun-v1'
 

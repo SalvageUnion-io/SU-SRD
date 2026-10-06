@@ -203,8 +203,13 @@ describe('Starter Set seed — soft link integrity', () => {
   const mechIds = new Set(STARTER_MECHS.map((m) => m.id))
   const crawlerIds = new Set(STARTER_CRAWLERS.map((c) => c.id))
 
-  test('one mech-to-pilot and one pilot-to-crawler link per pilot', () => {
-    expect(STARTER_SOFT_LINKS).toHaveLength(STARTER_PILOTS.length * 2)
+  test('one mech-to-pilot, one pilot-to-crawler and one mech-to-crawler link per pilot', () => {
+    // The mech docks by its own link (ADR-037), so a pilot-only crew link no
+    // longer puts the mech in the bay.
+    expect(STARTER_SOFT_LINKS).toHaveLength(STARTER_PILOTS.length * 3)
+    for (const type of ['mech-to-pilot', 'pilot-to-crawler', 'mech-to-crawler'] as const) {
+      expect(STARTER_SOFT_LINKS.filter((l) => l.type === type)).toHaveLength(STARTER_PILOTS.length)
+    }
   })
 
   test('every link endpoint references a seeded entity of the right type', () => {
@@ -212,6 +217,9 @@ describe('Starter Set seed — soft link integrity', () => {
       if (l.type === 'mech-to-pilot') {
         expect(mechIds.has(l.from.id)).toBe(true)
         expect(pilotIds.has(l.to.id)).toBe(true)
+      } else if (l.type === 'mech-to-crawler') {
+        expect(mechIds.has(l.from.id)).toBe(true)
+        expect(crawlerIds.has(l.to.id)).toBe(true)
       } else {
         expect(pilotIds.has(l.from.id)).toBe(true)
         expect(crawlerIds.has(l.to.id)).toBe(true)

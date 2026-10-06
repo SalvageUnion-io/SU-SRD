@@ -52,6 +52,18 @@
  * only state in which a local row can be trusted to have come from a
  * server-accepted write or from this component, which is what makes absence
  * mean deletion rather than not-yet-uploaded.
+ *
+ * ## …and its sibling, `WiringSync`, for assignments and Game crawlers
+ *
+ * `listMine` carries what the caller owns, which leaves out the two things an
+ * assignment needs (ADR-037): the **links** — drawn on another device, by a
+ * crewmate's mech, or by the server — and the **crawlers** of the caller's
+ * Games, which have no owner and so are never in `listMine`. Without them a
+ * pilot sheet could not show the crawler its pilot crews, and a picker could
+ * not list a Game's crawlers. `WiringSync` fills both from
+ * `entities.listWiring`, server wins, with the same prune guard; the rules are
+ * the pure plans in `lib/links/linkSync.ts`. Like every adoption here it
+ * writes through `adopt`/`forget`, so other tabs hear about it by broadcast.
  */
 
 import { useQuery } from 'convex/react'
@@ -59,8 +71,10 @@ import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { promotionState } from '../../lib/account/promotionState'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { containerOf } from '../../lib/container'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
 import { mayPrune, rowMayBePruned } from '../../lib/db/pruneRules'
+import { planCrawlerSync, planLinkSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
 import type { EncounterNpc } from '../../lib/schemas/encounterNpc'
 import type { MechPattern } from '../../lib/schemas/pattern'
@@ -202,6 +216,95 @@ function ConnectedShelfSync() {
 }
 
 /**
+ * Assignments and Game crawlers, down from `entities.listWiring` (ADR-037).
+ *
+ * Crawlers first, then links: a link's coverage is read through the
+ * containers of its cached ends, so the crawlers it points at should already
+ * be here when it is judged. Each emission is planned from scratch against the
+ * current cache and the plans are idempotent, so an emission that changed
+ * nothing this browser holds writes nothing — which is most of them, since the
+ * query also re-runs when one of the caller's own sheets is edited.
+ */
+function ConnectedWiringSync() {
+  const wiring = useQuery(api.entities.listWiring, {})
+  /** Each Game crawler's row `updatedAt` when this browser last adopted it. */
+  const adoptedAt = useRef(new Map<string, number>())
+
+  useEffect(() => {
+    if (wiring === undefined) return
+    // A newer emission supersedes this one; stop before pruning against an
+    // answer that is already out of date.
+    let superseded = false
+
+    void (async () => {
+      const store = useEntityStore.getState()
+      await Promise.all([
+        store.hydrate('pilot'),
+        store.hydrate('mech'),
+        store.hydrate('crawler'),
+        store.hydrate('softLink'),
+      ])
+      const gameIds = new Set<string>(wiring.gameIds)
+      // Read once, after the hydrations above — see `ShelfSync` for why a
+      // promotion that failed in the meantime must be seen.
+      const prune = mayPrune(legacyLocalDataState(), promotionState())
+
+      const crawlerPlan = planCrawlerSync({
+        local: useEntityStore.getState().crawlers,
+        served: wiring.crawlers,
+        gameIds,
+        adoptedAt: adoptedAt.current,
+        mayPrune: prune,
+      })
+      for (const crawler of crawlerPlan.adopt) {
+        try {
+          await store.adopt('crawler', crawler.body as never)
+          adoptedAt.current.set(crawler.id, crawler.updatedAt)
+        } catch (err) {
+          // One unreadable crawler must not stop the rest arriving — the same
+          // rule as the roster loop in `ConnectedShelfSync`.
+          captureException(err)
+        }
+      }
+      if (superseded) return
+      for (const id of crawlerPlan.prune) {
+        // `forget`, never `delete`: the row is already gone or elsewhere on the
+        // server, and a mirrored delete would destroy whatever it now is.
+        await store.forget('crawler', id)
+        adoptedAt.current.delete(id)
+      }
+
+      const cached = useEntityStore.getState()
+      const linkPlan = planLinkSync({
+        local: cached.softLinks,
+        served: wiring.softLinks,
+        gameIds,
+        containerOfEnd: (ref) => {
+          const entity = cached.get(ref.type, ref.id)
+          return entity === null ? null : containerOf(entity)
+        },
+        mayPrune: prune,
+      })
+      for (const link of linkPlan.adopt) {
+        try {
+          await store.adopt('softLink', link)
+        } catch (err) {
+          captureException(err)
+        }
+      }
+      if (superseded) return
+      for (const id of linkPlan.prune) await store.forget('softLink', id)
+    })()
+
+    return () => {
+      superseded = true
+    }
+  }, [wiring])
+
+  return null
+}
+
+/**
  * Mounted by `AccountReconciler`'s signed-in half, not at the root on its own:
  * the download direction and the upload direction share the prune guard, and
  * one owner for both is what keeps them from disagreeing.
@@ -214,5 +317,10 @@ export function ShelfSync() {
   // Only when the server of record is actually in play. `remote` rather than
   // "signed in" so a Disconnected session does not fire a query it cannot serve.
   if (selectBackend() !== 'remote') return null
-  return <ConnectedShelfSync />
+  return (
+    <>
+      <ConnectedShelfSync />
+      <ConnectedWiringSync />
+    </>
+  )
 }

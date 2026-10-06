@@ -1,10 +1,25 @@
 import { v } from 'convex/values'
 import { containerOf, SHELF, sameContainer } from '../src/lib/container'
+import {
+  conflictingLinks,
+  impliedMechCrawlerLinks,
+  LINK_ENDS,
+  sameLink,
+} from '../src/lib/links/linkRules'
 import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { internalAction } from './_generated/server'
-import { internalMutation, PARSERS } from './model/entities'
+import type { ContainedRow } from './model/entities'
+import {
+  internalMutation,
+  linkIdOf,
+  linksTouching,
+  PARSERS,
+  resolveLinkEnd,
+  sameContainerRows,
+  writeSoftLink,
+} from './model/entities'
 
 /**
  * One-off repairs that operate on the whole deployment.
@@ -51,6 +66,14 @@ import { internalMutation, PARSERS } from './model/entities'
  * filed in. It runs once, from `.github/workflows/convex-maintenance.yml`:
  *
  *     bunx convex run maintenance:repairContainers --prod
+ *
+ * ## The assignment repair
+ *
+ * `repairSoftLinks` brings existing links into the assignment model (ADR-037)
+ * and draws each docked mech its own `mech-to-crawler` link. Dry run first:
+ *
+ *     bunx convex run maintenance:repairSoftLinks --prod
+ *     bunx convex run maintenance:repairSoftLinks '{"apply": true}' --prod
  */
 
 /** Rows one page of a repair reads, unless the caller asks for another size. */
@@ -378,6 +401,311 @@ export const repairContainers = internalAction({
         if (page.isDone) break
         cursor = page.cursor
       }
+    }
+    return report
+  },
+})
+
+/* -------------------------------------------------------------------------- */
+/* The assignment repair (ADR-037)                                            */
+/* -------------------------------------------------------------------------- */
+
+/** What one page of the link pass found, and where the next page starts. */
+type LinkRepairPage = {
+  scanned: number
+  /** An end that resolves to no row. Reported, never touched. */
+  orphaned: number
+  /** A second row for the same (type, from, to) — deleted on apply. */
+  duplicates: number
+  /** Ends in two different containers — deleted on apply. */
+  crossContainer: number
+  /** Loses to a newer link under the cardinality rule — deleted on apply. */
+  overCardinality: number
+  /** Filed under a container its ends are not in — re-filed on apply. */
+  rehomed: number
+  cursor: string
+  isDone: boolean
+}
+
+/**
+ * The links a link is judged against: its neighbours on the `from` end and,
+ * for `mech-to-pilot`, the `to` end, minus itself.
+ *
+ * Scoped to the link's own container wherever an end is a template-seeded row
+ * (no `appId`): those ids repeat across every Game seeded from one template,
+ * so a same-id link in another Game is a different entity's (`writeSoftLink`
+ * scopes the same way).
+ */
+async function neighboursOf(
+  ctx: MutationCtx,
+  link: Doc<'softLinks'>,
+  fromRow: ContainedRow,
+  toRow: ContainedRow
+): Promise<Doc<'softLinks'>[]> {
+  const sameFiling = (l: Doc<'softLinks'>) => l.gameId === link.gameId
+  const fromSide = (await linksTouching(ctx, link.from.id)).filter(
+    (l) => l.from.id === link.from.id && (fromRow.appId !== undefined || sameFiling(l))
+  )
+  const toSide = LINK_ENDS[link.type].exclusiveTo
+    ? (await linksTouching(ctx, link.to.id)).filter(
+        (l) => l.to.id === link.to.id && (toRow.appId !== undefined || sameFiling(l))
+      )
+    : []
+  const seen = new Set<string>([link._id])
+  return [...fromSide, ...toSide].filter((l) => {
+    if (seen.has(l._id)) return false
+    seen.add(l._id)
+    return true
+  })
+}
+
+/**
+ * One page of `repairSoftLinks`' first pass: make every existing link satisfy
+ * the three assignment invariants the writers now keep.
+ *
+ * Each link is judged on its own, against a fresh read of its neighbours, so
+ * the verdict does not depend on which page a sibling fell on — which is what
+ * makes the pass resumable and idempotent:
+ *
+ *  - a second row for the same triple loses to the oldest copy;
+ *  - a link whose ends sit in different containers is deleted;
+ *  - a link that conflicts with a NEWER one that will itself survive (a pilot
+ *    on two crawlers, a mech flying two pilots) is deleted — the newest
+ *    assignment is the one the player made last;
+ *  - a surviving link filed under the wrong `gameId` is re-filed under its
+ *    ends' container.
+ *
+ * A link with an end that resolves to nothing is only counted: every reader
+ * already skips it, and the cascade on delete keeps new ones from appearing.
+ */
+export const repairSoftLinksPage = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    apply: v.boolean(),
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<LinkRepairPage> => {
+    const page = await ctx.db
+      .query('softLinks')
+      .paginate({ cursor: args.cursor, numItems: args.pageSize ?? DEFAULT_PAGE_SIZE })
+    const out: LinkRepairPage = {
+      scanned: page.page.length,
+      orphaned: 0,
+      duplicates: 0,
+      crossContainer: 0,
+      overCardinality: 0,
+      rehomed: 0,
+      cursor: page.continueCursor,
+      isDone: page.isDone,
+    }
+
+    for (const listed of page.page) {
+      // Re-read: an earlier link on this page may already have removed it.
+      const link = await ctx.db.get(listed._id)
+      if (link === null) continue
+
+      const [fromRow, toRow] = await Promise.all([
+        resolveLinkEnd(ctx, link.from, link.gameId),
+        resolveLinkEnd(ctx, link.to, link.gameId),
+      ])
+      if (fromRow === null || toRow === null) {
+        out.orphaned += 1
+        continue
+      }
+
+      const neighbours = await neighboursOf(ctx, link, fromRow, toRow)
+      const older = (l: Doc<'softLinks'>) => l._creationTime < link._creationTime
+
+      if (neighbours.some((l) => sameLink(l, link) && older(l))) {
+        out.duplicates += 1
+        if (args.apply) await ctx.db.delete(link._id)
+        continue
+      }
+      if (!sameContainerRows(fromRow, toRow)) {
+        out.crossContainer += 1
+        if (args.apply) await ctx.db.delete(link._id)
+        continue
+      }
+      // Only a newer link that will itself survive can displace this one: a
+      // newer link that crosses containers is about to go, and letting it win
+      // here would delete the assignment the player actually still has.
+      let displaced = false
+      for (const newer of conflictingLinks(neighbours, link).filter((l) => !older(l))) {
+        const [f, to] = await Promise.all([
+          resolveLinkEnd(ctx, newer.from, newer.gameId),
+          resolveLinkEnd(ctx, newer.to, newer.gameId),
+        ])
+        if (f !== null && to !== null && sameContainerRows(f, to)) {
+          displaced = true
+          break
+        }
+      }
+      if (displaced) {
+        out.overCardinality += 1
+        if (args.apply) await ctx.db.delete(link._id)
+        continue
+      }
+      if (link.gameId !== fromRow.gameId) {
+        out.rehomed += 1
+        if (args.apply) await ctx.db.patch(link._id, { gameId: fromRow.gameId })
+      }
+    }
+    return out
+  },
+})
+
+/** What one page of the backfill pass found, and where the next page starts. */
+type BackfillPage = {
+  scanned: number
+  /** Mechs given the crawler their pilot crews (drawn on apply). */
+  backfilled: number
+  /** The pilot's crawler is in another container, so the mech stays undocked. */
+  crossContainer: number
+  cursor: string
+  isDone: boolean
+}
+
+/**
+ * One page of `repairSoftLinks`' second pass: draw the `mech-to-crawler` link
+ * the old two-hop model implied, for every mech that has a pilot, has no
+ * crawler of its own, and whose pilot crews a crawler in the mech's container.
+ *
+ * The same rule as IndexedDB migration v17 (`impliedMechCrawlerLinks`), fed
+ * newest-first so the pilot link and crew link it follows are the ones the
+ * first pass keeps. Only links filed in the mech's own container are read,
+ * which is also what keeps a template mech from following its twin's pilot in
+ * another Game.
+ */
+export const backfillMechCrawlerLinksPage = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    apply: v.boolean(),
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<BackfillPage> => {
+    const page = await ctx.db
+      .query('mechs')
+      .paginate({ cursor: args.cursor, numItems: args.pageSize ?? DEFAULT_PAGE_SIZE })
+    const out: BackfillPage = {
+      scanned: page.page.length,
+      backfilled: 0,
+      crossContainer: 0,
+      cursor: page.continueCursor,
+      isDone: page.isDone,
+    }
+
+    for (const mech of page.page) {
+      const mechId = linkIdOf(mech)
+      if (mechId === undefined) continue
+      const filedHere = (l: Doc<'softLinks'>) => l.gameId === mech.gameId
+
+      const own = (await linksTouching(ctx, mechId)).filter(
+        (l) => l.from.id === mechId && filedHere(l)
+      )
+      const pilotLinks = own.filter((l) => l.type === 'mech-to-pilot')
+      const crewLinks = (await Promise.all(pilotLinks.map((l) => linksTouching(ctx, l.to.id))))
+        .flat()
+        .filter((l) => l.type === 'pilot-to-crawler' && filedHere(l))
+      const newestFirst = [...own, ...crewLinks].sort((a, b) => b._creationTime - a._creationTime)
+
+      const crawlers = new Map<string, ContainedRow | null>()
+      for (const l of crewLinks) {
+        if (!crawlers.has(l.to.id)) {
+          crawlers.set(l.to.id, await resolveLinkEnd(ctx, l.to, mech.gameId))
+        }
+      }
+
+      const implied = impliedMechCrawlerLinks(newestFirst, (_mechId, crawlerId) => {
+        const crawler = crawlers.get(crawlerId) ?? null
+        const ok = crawler !== null && sameContainerRows(mech, crawler)
+        if (!ok) out.crossContainer += 1
+        return ok
+      })
+      for (const link of implied) {
+        out.backfilled += 1
+        if (args.apply) {
+          await writeSoftLink(ctx, link, mech.gameId, {
+            fromScope: mech.appId === undefined ? 'container' : 'any',
+          })
+        }
+      }
+    }
+    return out
+  },
+})
+
+type SoftLinkRepairReport = {
+  applied: boolean
+  links: Omit<LinkRepairPage, 'cursor' | 'isDone'>
+  backfill: Omit<BackfillPage, 'cursor' | 'isDone'>
+}
+
+/**
+ * Bring every existing soft link into the assignment model (ADR-037), across
+ * all accounts. **Dry run by default** — with no arguments it reports and
+ * changes nothing:
+ *
+ *     bunx convex run maintenance:repairSoftLinks --prod
+ *     bunx convex run maintenance:repairSoftLinks '{"apply": true}' --prod
+ *
+ * Two passes, in this order: the link pass (`repairSoftLinksPage`) removes
+ * duplicates, cross-container links and cardinality losers and re-files the
+ * rest; the backfill (`backfillMechCrawlerLinksPage`) then gives each docked
+ * mech its own crawler link. Run it once, right after the deploy that
+ * introduces `mech-to-crawler`: until it has, a mech that reached its bay
+ * through its pilot shows undocked. Idempotent — an applied run followed by a
+ * dry run reports nothing left to do (orphans aside, which it never touches).
+ */
+export const repairSoftLinks = internalAction({
+  args: {
+    /** Write the repairs. Omitted or false = report only, change nothing. */
+    apply: v.optional(v.boolean()),
+    /** Rows per page. Only tests have a reason to set it. */
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<SoftLinkRepairReport> => {
+    const apply = args.apply === true
+    const report: SoftLinkRepairReport = {
+      applied: apply,
+      links: {
+        scanned: 0,
+        orphaned: 0,
+        duplicates: 0,
+        crossContainer: 0,
+        overCardinality: 0,
+        rehomed: 0,
+      },
+      backfill: { scanned: 0, backfilled: 0, crossContainer: 0 },
+    }
+
+    let cursor: string | null = null
+    for (;;) {
+      const page: LinkRepairPage = await ctx.runMutation(internal.maintenance.repairSoftLinksPage, {
+        cursor,
+        apply,
+        pageSize: args.pageSize,
+      })
+      report.links.scanned += page.scanned
+      report.links.orphaned += page.orphaned
+      report.links.duplicates += page.duplicates
+      report.links.crossContainer += page.crossContainer
+      report.links.overCardinality += page.overCardinality
+      report.links.rehomed += page.rehomed
+      if (page.isDone) break
+      cursor = page.cursor
+    }
+
+    cursor = null
+    for (;;) {
+      const page: BackfillPage = await ctx.runMutation(
+        internal.maintenance.backfillMechCrawlerLinksPage,
+        { cursor, apply, pageSize: args.pageSize }
+      )
+      report.backfill.scanned += page.scanned
+      report.backfill.backfilled += page.backfilled
+      report.backfill.crossContainer += page.crossContainer
+      if (page.isDone) break
+      cursor = page.cursor
     }
     return report
   },

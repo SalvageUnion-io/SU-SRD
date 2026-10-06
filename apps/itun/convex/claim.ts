@@ -5,7 +5,15 @@ import { EntityRefSchema } from '../src/lib/schemas/entity'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import { SoftLinkSchema } from '../src/lib/schemas/softLink'
 import type { MutationCtx } from './_generated/server'
-import { bodyAppId, findSoftLink, mutation, PARSERS } from './model/entities'
+import type { ContainedRow } from './model/entities'
+import {
+  bodyAppId,
+  findSoftLink,
+  mutation,
+  PARSERS,
+  resolveLinkEnd,
+  writeSoftLink,
+} from './model/entities'
 import { requireUser } from './model/permissions'
 
 /**
@@ -443,11 +451,36 @@ export const claimLocal = mutation({
         continue
       }
 
+      /*
+       * Both ends must share a container (ADR-037), and a claim lands
+       * everything on the claimer's shelf. So an end already on the server
+       * anywhere else — in a Game, or on somebody else's shelf — would leave
+       * this link straddling two containers. It is declined, like a row naming
+       * a live Game: the entity it names is safe where it is, and the wire is
+       * the one thing that cannot follow it.
+       *
+       * An end with no row at all is still written, as it always was: it is
+       * usually a row this same call could not parse, and a retry that lands
+       * the row finds its wiring already in place.
+       */
+      const [fromRow, toRow] = await Promise.all([
+        resolveLinkEnd(ctx, from, null),
+        resolveLinkEnd(ctx, to, null),
+      ])
+      const elsewhere = (row: ContainedRow | null) =>
+        row !== null && (row.gameId !== null || row.ownerId !== userId)
+      if (elsewhere(fromRow) || elsewhere(toRow)) {
+        declined += 1
+        continue
+      }
+
       // `gameId: null` — the shelf, matching the entities these link. It used to
       // be the placeholder Game's id whenever a crawler happened to be claimed in
       // the same call, which filed a shelf roster's wiring under a Game the player
-      // never made.
-      await ctx.db.insert('softLinks', { gameId: null, from, to, type: linkType })
+      // never made. Drawn through `writeSoftLink` so a pre-ADR-037 roster that
+      // wired one pilot to two crawlers arrives honouring cardinality: the
+      // later link replaces the earlier one.
+      await writeSoftLink(ctx, { from, to, type: linkType }, null)
       bump('softLinks')
     }
 

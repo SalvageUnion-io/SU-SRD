@@ -6,12 +6,17 @@
  * no global mock.module() needed). In production, omit `store` and the hook
  * subscribes to `useEntityStore` so components re-render on SoftLink changes.
  *
- * Orphan semantics: deleting a linked entity does NOT cascade. The SoftLink
- * record remains, pointing at a now-missing entity. Consumers should handle
- * the case where an endpoint entity no longer exists in the store.
+ * `assign` goes through `assignLink` (ADR-037): the link type comes from the
+ * two ends, and drawing it replaces whatever it conflicts with — a pilot's old
+ * crawler, a mech's old pilot — in the same write.
+ *
+ * Orphan semantics: an injected store may hold a link whose endpoint is gone.
+ * The real store cascades deletes, but consumers should still handle an
+ * endpoint that no longer resolves.
  */
 
 import { useSoftLinkList } from '../../hooks/entities'
+import { assignLink } from '../../lib/links/assignLink'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
@@ -66,13 +71,8 @@ export function useSoftLinks({
   const incoming = allLinks.filter((link) => link.to.type === entityType && link.to.id === entityId)
 
   async function assign(target: AssignTarget): Promise<SoftLink> {
-    const linkType = resolveLinkType(entityType, target.type)
     const s: SoftLinkStore = store ?? useEntityStore.getState()
-    return s.create('softLink', {
-      from: { type: entityType, id: entityId },
-      to: target,
-      type: linkType,
-    })
+    return assignLink({ type: entityType, id: entityId }, target, s)
   }
 
   async function unassign(linkId: string): Promise<void> {
@@ -81,20 +81,4 @@ export function useSoftLinks({
   }
 
   return { outgoing, incoming, assign, unassign }
-}
-
-/**
- * Maps two entity type ends to a SoftLink type discriminant.
- * Throws for unsupported pairings.
- */
-export function resolveLinkType(
-  fromType: EntityRef['type'],
-  toType: EntityRef['type']
-): SoftLink['type'] {
-  if (fromType === 'mech' && toType === 'pilot') return 'mech-to-pilot'
-  if (fromType === 'pilot' && toType === 'crawler') return 'pilot-to-crawler'
-  throw new Error(
-    `No SoftLink type defined for ${fromType} → ${toType}. ` +
-      `Supported: mech→pilot, pilot→crawler.`
-  )
 }

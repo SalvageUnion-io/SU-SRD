@@ -13,6 +13,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | working on the Dashboard                                   | [architecture/dashboard.md](architecture/dashboard.md), ADR-015                                                                                                        |
 | sharing a sheet (snapshots, public sheets)                 | ADR-004, ADR-032, [architecture/unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md) (plan)                                                              |
 | working on accounts, Games or the Convex backend           | ADR-030, [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (ops reference)                                                                      |
+| assigning pilots, mechs and crawlers to each other         | ADR-037, `apps/itun/src/lib/links/linkRules.ts`                                                                                                                        |
 | working on the Discord bot as a Game client                | [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)                                                                                    |
 | building the NPC Builder                                   | [architecture/npc-builder.md](architecture/npc-builder.md) (plan)                                                                                                      |
 | changing a package's public API                            | [architecture/package-contracts.md](architecture/package-contracts.md)                                                                                                 |
@@ -25,7 +26,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 
 ## ADRs
 
-35 ADRs in [`adrs/`](adrs/). Each one's own `## Status` block is authoritative.
+36 ADRs in [`adrs/`](adrs/) (ADR-036 is claimed by a parallel change). Each one's own `## Status` block is authoritative.
 
 | ADR                                                                  | Decision                                                                    |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -64,6 +65,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | [ADR-033](adrs/ADR-033-cloudflare-hosting.md)                        | Hosting on Cloudflare Workers + R2                                           |
 | [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; IndexedDB is a cache                        |
 | [ADR-035](adrs/ADR-035-no-isolated-local-only-data.md)               | No isolated local-only data; device rows migrate automatically               |
+| [ADR-037](adrs/ADR-037-assignment-model.md)                          | The assignment model: direct links, cardinality, one container               |
 
 ## Per-package guidance
 

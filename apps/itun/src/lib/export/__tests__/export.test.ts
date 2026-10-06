@@ -165,7 +165,7 @@ describe('buildExportBundle', () => {
     })
 
     await entityStore.hydrate('mech')
-    const mech = await entityStore.create('mech', baseMechInput)
+    const mech = await entityStore.create('mech', { ...baseMechInput, gameId: 'game-alpha' })
 
     await entityStore.hydrate('softLink')
     await entityStore.create('softLink', {
@@ -253,7 +253,11 @@ describe('mergeImport — round-trip', () => {
     })
 
     await sourceEntityStore.hydrate('mech')
-    const mech = await sourceEntityStore.create('mech', baseMechInput)
+    const mech = await sourceEntityStore.create('mech', {
+      ...baseMechInput,
+      // The same container as the pilot: a link may not straddle two (ADR-037).
+      gameId: 'game-alpha',
+    })
 
     await sourceEntityStore.hydrate('softLink')
     await sourceEntityStore.create('softLink', {

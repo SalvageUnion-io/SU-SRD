@@ -131,6 +131,9 @@ const EMPTY_ROSTER = {
   encounterNpcs: [],
 }
 
+/** `ShelfSync` also mounts `WiringSync`, which reads assignments and Game crawlers. */
+const EMPTY_WIRING = { gameIds: [], softLinks: [], crawlers: [] }
+
 beforeEach(async () => {
   authed = false
   claimResult = { ...NOTHING_CLAIMED }
@@ -147,7 +150,11 @@ beforeEach(async () => {
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
   })
-  setQueryAnswers({ 'entities:listMine': EMPTY_ROSTER, 'games:listMine': [] })
+  setQueryAnswers({
+    'entities:listMine': EMPTY_ROSTER,
+    'games:listMine': [],
+    'entities:listWiring': EMPTY_WIRING,
+  })
 })
 
 afterEach(() => {
@@ -229,6 +236,7 @@ describe('signing in', () => {
     setQueryAnswers({
       'entities:listMine': { ...EMPTY_ROSTER, pilots: [{ appId: 'tab-1', body: { id: 'tab-1' } }] },
       'games:listMine': [],
+      'entities:listWiring': EMPTY_WIRING,
     })
     view.rerender(<Tree />)
     server.unparseable.clear()
@@ -297,6 +305,7 @@ describe('signing in', () => {
     setQueryAnswers({
       'entities:listMine': { ...EMPTY_ROSTER, pilots: [{ appId: 'tab-1', body: { id: 'tab-1' } }] },
       'games:listMine': [],
+      'entities:listWiring': EMPTY_WIRING,
     })
     view.rerender(<Tree />)
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
@@ -453,6 +462,7 @@ describe('signing in', () => {
         pilots: [{ appId: 'owned-1', body: { id: 'owned-1' } }],
       },
       'games:listMine': [],
+      'entities:listWiring': EMPTY_WIRING,
     })
     authed = true
     render(<Tree />)
