@@ -53,7 +53,7 @@ the corpus size, not just the finding count.
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
 | `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's `test:coverage` plus the `tools/` suite, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
-| `a11y-scan.ts` | `build-srd` in `ci.yml` (every srd PR) and `e2e-nightly.yml` | WCAG 2.1 AA scan (Playwright + axe-core) of the pages keyed in the baseline. Fails on a violation not accepted per page, and on a stale entry. | `a11y-baseline.json` |
+| `a11y-scan.ts` | `build-srd` in `ci.yml` (every srd PR) | WCAG 2.1 AA scan (Playwright + axe-core) of the pages keyed in the baseline. Fails on a violation not accepted per page, and on a stale entry. | `a11y-baseline.json` |
 | `check-convex-parity.ts` | `check:convex-parity:live` (nightly) | Every Convex function this repo defines exists on the deployment. Its static half is `workflows`' `convex-guard`. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |
 | `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www redirects, CSP/HSTS reaching the browser, the rotated-chunk 404, artwork robots.txt, bot token health. Runs every check, then exits 1 if any failed. | — |

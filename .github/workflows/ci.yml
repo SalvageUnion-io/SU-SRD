@@ -161,6 +161,10 @@ jobs:
               - 'tools/**'
               # the hook scripts are exercised by tools/__tests__/claude-hooks.test.ts
               - '.claude/hooks/**'
+              # the agent workflow scripts, by tools/__tests__/claude-workflows.test.ts
+              - '.claude/workflows/**'
+              # read only by the actionlint check (zizmor's config)
+              - '.github/zizmor.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc
             # drift, observability) but not the test suite or the typecheck —
             # nothing compiles or tests these files (audit CI-11).
@@ -198,9 +202,9 @@ jobs:
       # below), from the ONE registry in tools/check.ts — the same list
       # `bun run check` and pre-push run. Add a gate THERE, never as a step
       # here. The areas decide which checks a diff needs: always-on checks
-      # (Biome, workflows, styling, actionlint/zizmor) run on every PR; repo
-      # invariants (doc drift, data, …) on code OR docs; typecheck, knip and
-      # generated-file drift on code; the audit on deps. Every check runs even
+      # (Biome, styling) run on every PR; repo invariants (doc drift, data, …)
+      # on code OR docs; typecheck, knip, generated-file drift, workflows and
+      # actionlint/zizmor on code; the audit on deps. Every check runs even
       # after one fails, and the log ends in a pass/fail table.
       - name: Run checks
         env:
@@ -266,10 +270,11 @@ jobs:
         working-directory: apps/srd
         run: bunx playwright install chromium
 
-      # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      - name: Run smoke + bundle-budget specs
+      # The PR-blocking browser tier, and srd's whole Playwright suite: there
+      # is no nightly srd run. Add a spec to this line; do NOT add a job.
+      - name: Run smoke + bundle-budget + JSON API specs
         working-directory: apps/srd
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts
 
       # WCAG 2.1 AA on the pages in tools/a11y-baseline.json, against the
       # dist built above. Blocks on any violation the baseline does not accept,

@@ -58,6 +58,8 @@ describe('selection', () => {
     expect(docs).toContain('biome')
     expect(docs).not.toContain('typecheck')
     expect(docs).not.toContain('generated')
+    expect(docs).not.toContain('workflows')
+    expect(docs).not.toContain('actionlint')
   })
 
   test('the audit runs only when a dependency manifest or the lockfile moved', () => {
@@ -67,12 +69,7 @@ describe('selection', () => {
   })
 
   test('with no area active only the always-on checks run', () => {
-    expect(ids(['--profile=ci', '--areas='])).toEqual([
-      'biome',
-      'workflows',
-      'styling',
-      'actionlint',
-    ])
+    expect(ids(['--profile=ci', '--areas='])).toEqual(['biome', 'styling'])
   })
 
   test('positional ids override the profile; --skip removes', () => {

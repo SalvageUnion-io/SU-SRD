@@ -7,16 +7,16 @@
  *   bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>
  *
  * With `--baseline` and no pages, the pages scanned are exactly the baseline's
- * keys. That is how both callers run it — the PR-blocking step in CI's
- * `build-srd` job and the nightly — so the page list lives in ONE place (the
- * baseline) rather than being restated in each workflow, and cannot drift from
- * it: a page in the baseline but not scanned would otherwise be reported stale.
+ * keys. That is how CI's `build-srd` job runs it, so the page list lives in
+ * ONE place (the baseline) rather than being restated in a workflow, and cannot
+ * drift from it: a page in the baseline but not scanned would otherwise be
+ * reported stale.
  *
  * Uses Playwright rather than puppeteer-core so the repo has ONE browser
  * automation stack. puppeteer-core ships no browser, so this script previously
- * had to borrow the Chromium that Playwright installs for the e2e suites — the
- * nightly workflow ran a dedicated step that booted Node just to print
- * `chromium.executablePath()` into the environment. Playwright resolves its own
+ * had to borrow the Chromium that Playwright installs for the e2e suites — a
+ * workflow step booted Node just to print `chromium.executablePath()` into the
+ * environment. Playwright resolves its own
  * browser, so that step is gone and there is no second stack to keep in sync.
  */
 
