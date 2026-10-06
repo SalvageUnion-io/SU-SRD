@@ -55,7 +55,8 @@ grown one full of names that no longer existed.
 - For the export surface: the barrel, [`src/index.ts`](src/index.ts).
 - For the rules governing that surface (what may be exported, what consumers may
   import): [`docs/architecture/package-contracts.md`](../../docs/architecture/package-contracts.md).
-- For a browsable, rendered catalog: `bun run ladle` — the story-coverage guard
+- For a browsable, rendered catalog: the `ladle` launch config (`bun run ladle`
+  outside Claude Code) — the story-coverage guard
   proves it covers every public visual component.
 
 ## Entity Display System
@@ -64,7 +65,7 @@ The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesS
 
 ## Stories (Ladle)
 
-Component stories live beside their components (`*.stories.tsx`) and are served by Ladle (`bun run ladle` from the repo root).
+Component stories live beside their components (`*.stories.tsx`) and are served by Ladle.
 
 **The catalog also serves the apps' own components.** Code that only one app renders lives in that app (audit PK-02 — see [package-contracts.md](../../docs/architecture/package-contracts.md)): ITUN's Dashboard instruments, sheet presentation and wizard steps under `apps/itun/src/components/`, srd's site-only components under `apps/srd/src/components/`. Their stories moved with them and `.ladle/config.mjs` globs both folders, so they keep their pages. The taxonomy, unique-title and co-location rules below apply to them too — `story-coverage.test.ts` scans all three roots — while coverage (every *public* component has a story) is about this package's barrel only. App stories are plain components (no `@ladle/react` import, which the apps do not depend on) and take `Caption` from `component-lib/stories/harness`.
 
@@ -83,7 +84,7 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
   - The same-directory-import rule is deliberate, and replaced a weaker text match. The old guard concatenated every story file and regex-searched for the component's name, so a component counted as "covered" if any story so much as mentioned it — which is how a dozen components ended up with no nav entry of their own. Requiring a **co-located importer** makes coverage mean what the catalog implies: this component has its own page.
 - **The taxonomy is enforced too**, by the same test: every story's **meta** `title:` must start with a sanctioned top-level group, use only a sanctioned sub-group, never nest deeper than `Group/Sub-group/Leaf`, and be unique across files. It reads only the default-export meta title, so `title:` strings inside story bodies are ignored. Introduce a new top-level group or sub-group only by extending both the guard's `GROUPS`/`SUBGROUPS` and the `storyOrder` list in `.ladle/config.mjs`.
 - **Co-location is enforced too**: a `*.stories.tsx` under `src/stories/` fails the guard unless it is one of the flat catalog pages listed above.
-- **The four groups have crisp definitions** (sidebar order, top-to-bottom). These are **membership tests, not rosters** — for the current members, read the catalog (`bun run ladle`), which the coverage guard proves is complete. An enumeration here would be a second source of truth that silently drifts every time a component lands; this file defines the _rule_, the catalog _is_ the list.
+- **The four groups have crisp definitions** (sidebar order, top-to-bottom). These are **membership tests, not rosters** — for the current members, read the catalog, which the coverage guard proves is complete. An enumeration here would be a second source of truth that silently drifts every time a component lands; this file defines the _rule_, the catalog _is_ the list.
   - **Foundations** — design tokens, layout scaffolding, and the QA harness. No product component. Specimens are generated **from the tokens** so they cannot drift from `theme.css`.
   - **Atoms** — primitives with a single presentational job and **no Salvage Union domain knowledge**. An atom **may** compose a lower-level atom: `Stat` composes `Text` + `Tooltip`, `CountStepper` composes `StepButton`. (An earlier version of this rule said atoms compose no other atom — that was never true and isn't a useful line: 7 of 34 atoms compose one, including `Stat`, the flagship of the unification. **Domain knowledge, not composition, is what separates an atom from a composition** — so `CountStepper` is a legitimate atom despite composing `StepButton`, while `StatusBadge` is a Composition despite looking primitive, because it owns the entity-condition vocabulary.)
   - **Containers** — content-agnostic wrappers / state shells that hold or announce arbitrary content, and would still make sense with entirely different content inside.

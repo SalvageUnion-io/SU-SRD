@@ -12,6 +12,13 @@
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev:itun"],
       "port": 5173
+    },
+    {
+      "name": "ladle",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "ladle"],
+      "port": 61000,
+      "env": { "BROWSER": "none" }
     }
   ]
 }
