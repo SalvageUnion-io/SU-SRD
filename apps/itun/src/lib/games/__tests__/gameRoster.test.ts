@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import type { GameMember } from '../gameRoster'
-import { crawlerRows, isTableRunner, ownableRows, tableCapabilities } from '../gameRoster'
+import {
+  crawlerRows,
+  isTableRunner,
+  moveDestinations,
+  ownableRows,
+  tableCapabilities,
+} from '../gameRoster'
 
 /**
  * The Game roster's rules, tested against the same cases as the server.
@@ -59,18 +65,18 @@ describe('who runs the table', () => {
 })
 
 describe('what the game will accept', () => {
-  test('a player waits for the crawler, and is told why', () => {
+  test('a player adds crew before any crawler exists — the gate is gone (ADR-037)', () => {
     const caps = tableCapabilities({ viewerId: 'u-play', members: ALL, crawlerCount: 0 })
-    expect(caps.canAddCrew).toBe(false)
-    // A refusal with no reason reads as a broken button.
-    expect(caps.addCrewBlocked).toMatch(/crawler/i)
+    expect(caps.canAddCrew).toBe(true)
+    expect(caps.addCrewBlocked).toBeNull()
     expect(caps.canRaiseCrawler).toBe(false)
   })
 
-  test('and can add crew once one exists', () => {
-    const caps = tableCapabilities({ viewerId: 'u-play', members: ALL, crawlerCount: 1 })
-    expect(caps.canAddCrew).toBe(true)
-    expect(caps.addCrewBlocked).toBeNull()
+  test('somebody not at the table adds nothing, and is told why', () => {
+    const caps = tableCapabilities({ viewerId: 'u-stranger', members: ALL, crawlerCount: 1 })
+    expect(caps.canAddCrew).toBe(false)
+    // A refusal with no reason reads as a broken button.
+    expect(caps.addCrewBlocked).toMatch(/members/i)
   })
 
   test('the table runner is exempt, or a new game could never be set up', () => {
@@ -189,6 +195,22 @@ describe('crawler rows are communal', () => {
     expect(row?.can.claim).toBe(false)
   })
 
+  test('the primary is marked, and only the table runner may make another one primary', () => {
+    const two = [...rows, { _id: 'c2', appId: 'c2', body: { name: 'Second' } }]
+    const asRunner = crawlerRows({
+      rows: two,
+      tableRunner: true,
+      localIds: new Set(),
+      primaryCrawlerId: two[0]?._id ?? null,
+    })
+    expect(asRunner.map((r) => r.primary)).toEqual([true, false])
+    // Already primary: nothing to make.
+    expect(asRunner.map((r) => r.can.makePrimary)).toEqual([false, true])
+
+    const asPlayer = crawlerRows({ rows: two, tableRunner: false, localIds: new Set() })
+    expect(asPlayer.every((r) => !r.can.makePrimary)).toBe(true)
+  })
+
   test('only the table runner may scrap one', () => {
     expect(crawlerRows({ rows, tableRunner: false, localIds: new Set() })[0]?.can.scrap).toBe(false)
     expect(crawlerRows({ rows, tableRunner: true, localIds: new Set() })[0]?.can.scrap).toBe(true)
@@ -201,5 +223,49 @@ describe('crawler rows are communal', () => {
     for (const tableRunner of [false, true]) {
       expect(crawlerRows({ rows, tableRunner, localIds: new Set() })[0]?.can.delete).toBe(false)
     }
+  })
+})
+
+describe('moveDestinations — the move control lists only what the server accepts', () => {
+  const games = [
+    { _id: 'g1', name: 'Run by me', tableRunner: true },
+    { _id: 'g2', name: 'Run by someone else', tableRunner: false },
+  ]
+  const labels = (d: ReturnType<typeof moveDestinations>) => d.map((x) => x.label)
+
+  test('a pilot or mech may go to the shelf or any Game I belong to', () => {
+    expect(labels(moveDestinations({ kind: 'pilot', current: { kind: 'shelf' }, games }))).toEqual([
+      'Shelf',
+      'Run by me',
+      'Run by someone else',
+    ])
+    expect(
+      labels(moveDestinations({ kind: 'mech', current: { kind: 'game', gameId: 'g2' }, games }))
+    ).toEqual(['Run by someone else', 'Shelf', 'Run by me'])
+  })
+
+  test('a shelf crawler may go only into a Game I run', () => {
+    expect(
+      labels(moveDestinations({ kind: 'crawler', current: { kind: 'shelf' }, games }))
+    ).toEqual(['Shelf', 'Run by me'])
+  })
+
+  test('a Game crawler may come out to my shelf only if I run that Game — never Game to Game', () => {
+    expect(
+      labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g1' }, games }))
+    ).toEqual(['Run by me', 'Shelf'])
+    expect(
+      labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g2' }, games }))
+    ).toEqual(['Run by someone else'])
+  })
+
+  test('a Game I am not in is named, not passed off as the shelf', () => {
+    const [here] = moveDestinations({
+      kind: 'pilot',
+      current: { kind: 'game', gameId: 'phantom' },
+      games,
+    })
+    expect(here?.label).toBe('Unknown game')
+    expect(here?.container).toEqual({ kind: 'game', gameId: 'phantom' })
   })
 })

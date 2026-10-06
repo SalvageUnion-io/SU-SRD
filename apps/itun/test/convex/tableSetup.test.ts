@@ -13,8 +13,9 @@ import { testConvex } from './harness'
  *  1. **The table runner raises the crawler.** Every member may then edit its
  *     fields — that is what communal means — but creating and scrapping one is
  *     the act of whoever runs the table.
- *  2. **A Game takes players' pilots and mechs once it has a crawler.** A Game
- *     with none is not set up yet, and the crew has nowhere to be anchored.
+ *  2. **A Game takes any member's pilots and mechs.** It used to wait for a
+ *     crawler; since ADR-037 the crew may gather first, and the first crawler
+ *     raised becomes primary and takes them aboard.
  *  3. **An unclaimed character is an offer, and a player takes it.** It arrives
  *     from a Game template or from a player releasing it; claiming is accepting
  *     it. Nobody can take what a crewmate already holds.
@@ -232,15 +233,21 @@ describe('the table runner raises the crawler', () => {
   })
 })
 
-describe('a game takes the crew once it has a crawler', () => {
-  test('a player cannot add a pilot before one exists', async () => {
+describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
+  test('a player may add a pilot before a crawler exists — the crew gathers first', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
 
-    await expect(mirrorPilot(t, player, gameId)).rejects.toThrow(/no union crawler yet/i)
+    // This used to be refused ("no Union Crawler yet"). The first crawler
+    // raised now picks the gathered crew up instead (see assignments).
+    await mirrorPilot(t, player, gameId)
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.gameId).toBe(gameId)
   })
 
-  test('and can as soon as one does', async () => {
+  test('and once one does', async () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
@@ -273,20 +280,23 @@ describe('a game takes the crew once it has a crawler', () => {
     expect(rows[0]?.gameId).toBeNull()
   })
 
-  test('the mirrored write path is gated too, or the rule would be cosmetic', async () => {
+  test('the mirrored write path still requires membership', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedTable(t)
+    const { gameId } = await seedTable(t)
+    const stranger = await t.run(
+      async (ctx) => await ctx.db.insert('users', { name: 'Stranger', displayName: 'Stranger' })
+    )
 
-    // The client's ordinary write path is the appId mirror. Left open, a player
-    // would build the pilot locally and have the mirror place it in the Game.
+    // The client's ordinary write path is the appId mirror, so it is where
+    // the one remaining rule — you must be at the table — has to hold.
     await expect(
-      player.as.mutation(api.entities.upsertByAppId, {
+      t.withIdentity({ subject: stranger }).mutation(api.entities.upsertByAppId, {
         table: 'pilots',
         appId: 'p1',
         gameId,
         body: pilotBody(),
       })
-    ).rejects.toThrow(/no union crawler yet/i)
+    ).rejects.toThrow(/not a member/i)
   })
 
   test('a mirrored write re-homes a build the client moved', async () => {

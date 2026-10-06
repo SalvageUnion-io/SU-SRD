@@ -24,7 +24,7 @@ import type {
   SheetResult,
   ShelfResult,
 } from './model/botWire'
-import { internalMutation } from './model/entities'
+import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { NotAuthorized } from './model/permissions'
 
 /**
@@ -233,7 +233,7 @@ export const crew = internalQuery({
     if (!actor.ok) return fail(actor.reason)
 
     const { gameId, game } = actor.value
-    const [pilots, mechs, crawlers] = await Promise.all([
+    const [pilots, mechs, crawler] = await Promise.all([
       ctx.db
         .query('pilots')
         .withIndex('by_game', (q) => q.eq('gameId', gameId))
@@ -242,10 +242,9 @@ export const crew = internalQuery({
         .query('mechs')
         .withIndex('by_game', (q) => q.eq('gameId', gameId))
         .collect(),
-      ctx.db
-        .query('crawlers')
-        .withIndex('by_game', (q) => q.eq('gameId', gameId))
-        .collect(),
+      // The PRIMARY crawler (ADR-037) — the one the table is anchored to. It
+      // was `crawlers[0]`, whichever the index met first.
+      primaryCrawlerOf(ctx, gameId),
     ])
     const names = await ownerNames(ctx, gameId)
 
@@ -268,7 +267,7 @@ export const crew = internalQuery({
       viewerId: actor.value.user._id,
       pilots: pilots.map(entry),
       mechs: mechs.map(entry),
-      crawler: crawlers[0] ? { id: crawlers[0]._id, body: crawlers[0].body } : null,
+      crawler: crawler ? { id: crawler._id, body: crawler.body } : null,
     }
   },
 })

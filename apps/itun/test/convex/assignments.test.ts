@@ -138,8 +138,8 @@ describe('cardinality — a new assignment replaces the one it conflicts with', 
 
   test("nobody bumps a crewmate's mech off a crewmate's pilot", async () => {
     const t = testConvex()
+    // No crawler: nothing is auto-assigned, so only the links drawn here exist.
     const { organizer: o, player: p, gameId } = await seedTable(t)
-    await addCrawler(o, 'c1', gameId)
     await addPilot(p, 'p-p', gameId)
     await addMech(p, 'm-p', gameId)
     await addMech(o, 'm-o', gameId)
@@ -160,7 +160,6 @@ describe('cardinality — a new assignment replaces the one it conflicts with', 
   test("a pilot's owner decides which mech flies them, even a crewmate's", async () => {
     const t = testConvex()
     const { organizer: o, player: p, gameId } = await seedTable(t)
-    await addCrawler(o, 'c1', gameId)
     await addPilot(o, 'p-o', gameId)
     await addMech(p, 'm-p', gameId)
     await addMech(o, 'm-o', gameId)
@@ -423,6 +422,11 @@ describe('maintenance.repairSoftLinks', () => {
     await addPilot(o, 'p1', gameId)
     await addMech(o, 'm1', gameId)
     await addCrawler(o, 'c-shelf', null)
+    // Wipe what the writers drew (the primary crawler assignment) so only the
+    // raw legacy rows below exist.
+    await t.run(async (ctx) => {
+      for (const l of await ctx.db.query('softLinks').collect()) await ctx.db.delete(l._id)
+    })
     await t.run(async (ctx) => {
       const put = (
         type: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler',

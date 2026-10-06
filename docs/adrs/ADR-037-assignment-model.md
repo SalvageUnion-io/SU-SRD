@@ -4,7 +4,9 @@
 
 **Accepted.** Extends [ADR-030](ADR-030-accounts-games-server-of-record.md)
 (Games, containers, ownership) with rules for the soft links that wire pilots,
-mechs and crawlers together. ADR-030's container model — one nullable `gameId`,
+mechs and crawlers together, and **amends ADR-030 §5a**: a Game no longer
+waits for a crawler before it takes a player's crew (see *Moves* and *The
+primary crawler*). ADR-030's container model — one nullable `gameId`,
 the shelf as "My stuff" — is the ground this stands on and is unchanged.
 
 The rules are code in one place, `apps/itun/src/lib/links/linkRules.ts`, imported
@@ -94,6 +96,43 @@ editor whose every save the server refuses.
 `assignLink` (`src/lib/links/assignLink.ts`) is the one client entry point:
 type from the ends, rules in the store, a refusal surfaced as `LinkRefused`.
 
+### Moves
+
+The server is the authority (`convex/entities.ts`); `moveDestinations` in
+`apps/itun/src/lib/games/gameRoster.ts` mirrors it so `MoveToContainerControl`
+lists only what would be accepted.
+
+- **Pilots and mechs** — the owner moves them from My stuff into any Game they
+  are a member of, between Games, and back. The old gate ("a Game takes a
+  player's crew once it has a crawler", ADR-030 §5a) is gone, for creating in
+  a Game as well as moving in.
+- **Crawlers** — only the table runner, and only between their own shelf and a
+  Game they run (`entities.moveCrawler`): in, it becomes communal (`ownerId:
+  null`); out, it becomes theirs. Game to Game is two moves. The mutation
+  writes the row's `gameId`, the body's `gameId` and `ownerId` together; the
+  field-level crawler patch strips any `gameId` it is sent, so the body can
+  never name a container the row is not in.
+
+### The primary crawler
+
+`games.primaryCrawlerId` (optional; absent means "the oldest crawler here").
+
+- **Explicit link on entry.** A pilot or mech created in a Game, or moved into
+  one, is assigned to the primary by a link the server writes as part of that
+  add or move — an internal write, not subject to `upsertSoftLink`'s
+  from-owner check. With no primary there is no link.
+- **The first crawler picks up the crew.** A crawler raised in or moved into a
+  Game with none becomes primary, and every pilot and mech already there with
+  no crawler of their own is assigned to it.
+- **Fallback.** A primary that is scrapped or moved out is replaced by the
+  oldest crawler left, or none.
+- **Changing it moves nobody.** The table runner may name another
+  (`games.setPrimaryCrawler`, "Make primary" on the Game roster); only later
+  arrivals go to it. Players may still reassign their own entities to any
+  crawler in the Game.
+- The Games list's crawler name, `listForGame`'s `primaryCrawlerId` and the
+  Discord bot's crew board all read the primary (`primaryCrawlerOf`).
+
 ### Existing data
 
 `maintenance.repairSoftLinks` (dry run by default) deletes duplicates,
@@ -119,3 +158,7 @@ with its mechs docked.
   when nothing changed.
 - Until `repairSoftLinks` runs after the deploy, a mech that reached its bay
   through its pilot shows undocked.
+- A Game that predates `primaryCrawlerId` has its oldest crawler as primary;
+  the first crawler event there writes that down. Nobody already in such a
+  Game is auto-assigned — the backfill runs only when a Game gets its first
+  crawler.

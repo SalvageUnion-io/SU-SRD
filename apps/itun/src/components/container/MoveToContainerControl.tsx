@@ -41,6 +41,14 @@
  * agreeing: if either ever starts copying, a player ends up with two of
  * themselves and no way to tell which one the table can see.
  *
+ * ## It lists only where this entity may go
+ *
+ * The options come from `moveDestinations` (`lib/games/gameRoster.ts`), the
+ * client mirror of the server's move rules (ADR-037): a pilot or mech may go to
+ * the Shelf or any Game you belong to; a crawler moves only at its table
+ * runner's hand, Shelf → a Game they run or back. With nowhere to go the
+ * select still shows where the entity is, disabled.
+ *
  * ## Solo renders nothing
  *
  * With no account there is only the Shelf, so there is nowhere to move to —
@@ -54,6 +62,7 @@ import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { Container, ContainerFields } from '../../lib/container'
 import { containerOf, moveTo, sameContainer } from '../../lib/container'
+import { moveDestinations } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
@@ -88,6 +97,15 @@ function ConnectedMoveToContainerControl({
   const [error, setError] = useState<string | null>(null)
 
   const current = containerOf(entity)
+  const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })
+  // While the Games load, the current Game cannot be named yet — but it is not
+  // unknown either, so it is not called that.
+  const first = destinations[0]
+  if (games === undefined && first !== undefined && first.container.kind === 'game') {
+    destinations[0] = { ...first, label: '…' }
+  }
+  const shelfOptions = destinations.filter((d) => d.container.kind === 'shelf')
+  const gameOptions = destinations.filter((d) => d.container.kind === 'game')
 
   /** A Game's name as the reader knows it, or null when it is not one of theirs. */
   function gameName(gameId: string): string | null {
@@ -140,29 +158,31 @@ function ConnectedMoveToContainerControl({
           id={`container-move-${entityId}`}
           value={serializeContainer(current)}
           onChange={handleChange}
-          disabled={pending}
+          disabled={pending || destinations.length <= 1}
           className="w-auto disabled:opacity-50 sm:min-h-9"
           aria-label="Move to Game or Shelf"
         >
-          <option value="shelf">Shelf</option>
-          {games !== undefined && games.length > 0 && (
+          {shelfOptions.map((d) => (
+            <option key="shelf" value="shelf">
+              {d.label}
+            </option>
+          ))}
+          {/* A record left in a container that is not among the user's Games —
+              a v13 phantom id, or a Game they have since left — is named
+              "Unknown game" by `moveDestinations` rather than passed off as the
+              Shelf, which would be a lie about where it lives. */}
+          {gameOptions.length > 0 && (
             <optgroup label="Games">
-              {games.map((game) => (
-                <option key={game._id} value={`game:${game._id}`}>
-                  {game.name}
+              {gameOptions.map((d) => (
+                <option
+                  key={serializeContainer(d.container)}
+                  value={serializeContainer(d.container)}
+                >
+                  {d.label}
                 </option>
               ))}
             </optgroup>
           )}
-          {/* A record left in a container that is not among the user's Games —
-              a v13 phantom id, or a Game they have since left — would otherwise
-              select nothing and read as "on the Shelf", which is a lie about
-              where it lives. Surface it as its own option instead. */}
-          {current.kind === 'game' &&
-            games !== undefined &&
-            !games.some((game) => game._id === current.gameId) && (
-              <option value={serializeContainer(current)}>Unknown game</option>
-            )}
         </Select>
       </div>
       {error && <FieldError className="mt-1">{error}</FieldError>}

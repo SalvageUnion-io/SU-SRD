@@ -17,11 +17,13 @@ import type { ComponentProps, ReactNode } from 'react'
  * whose `mutation` records the server commit a move makes.
  */
 
+import type { FunctionReference } from 'convex/server'
+import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { pilotFixture } from '../../__tests__/fixtures'
+import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
 
 let authed = true
-const serverWrites: { args: Record<string, unknown> }[] = []
+const serverWrites: { name: string; args: Record<string, unknown> }[] = []
 /** Set to make the next server commit fail, as an offline or refused write would. */
 let failWrites = false
 
@@ -31,9 +33,9 @@ const convexMocks = await installConvexMocks({
     '../../lib/connection/convexClient': () => ({
       isConvexConfigured: true,
       convexClient: {
-        mutation: async (_ref: unknown, args: Record<string, unknown>) => {
+        mutation: async (ref: unknown, args: Record<string, unknown>) => {
           if (failWrites) throw new Error('[CONVEX M(entities:upsertByAppId)] Server Error')
-          serverWrites.push({ args })
+          serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
         },
       },
     }),
@@ -170,6 +172,55 @@ describe('MoveToContainerControl', () => {
       appId: 'p1',
       gameId: 'g1',
     })
+  })
+
+  test('a crawler moves through its own mutation, which files it in every place at once', async () => {
+    setQueryAnswers({
+      'games:listMine': [
+        { _id: 'g1', name: 'Run by me', tableRunner: true },
+        { _id: 'g2', name: 'Not mine to run', tableRunner: false },
+      ],
+    })
+    const crawler = crawlerFixture({ id: 'c1', gameId: null })
+    setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
+    await useEntityStore.getState().adopt('crawler', crawler)
+    let changed = 0
+    wrap(
+      <MoveHarness
+        entityType="crawler"
+        entityId="c1"
+        entity={crawler}
+        onChanged={() => changed++}
+      />
+    )
+
+    const select = screen.getByLabelText('Move to Game or Shelf') as HTMLSelectElement
+    // Only a Game this user runs is on offer for a crawler (ADR-037).
+    expect([...select.options].map((o) => o.textContent)).toEqual(['Shelf', 'Run by me'])
+
+    fireEvent.change(select, { target: { value: 'game:g1' } })
+
+    await waitFor(() => expect(changed).toBe(1))
+    expect(serverWrites.find((w) => w.name === 'entities:moveCrawler')?.args).toEqual({
+      appId: 'c1',
+      gameId: 'g1',
+    })
+    // Never as a body patch: that is how a "moved" crawler used to stay put.
+    expect(serverWrites.some((w) => w.name === 'entities:patchCrawlerByAppId')).toBe(false)
+  })
+
+  test('a crawler in a Game somebody else runs offers nowhere to go', () => {
+    setQueryAnswers({ 'games:listMine': [{ _id: 'g2', name: 'Not mine', tableRunner: false }] })
+    wrap(
+      <MoveHarness
+        entityType="crawler"
+        entityId="c1"
+        entity={crawlerFixture({ id: 'c1', gameId: 'g2' })}
+      />
+    )
+    const select = screen.getByLabelText('Move to Game or Shelf') as HTMLSelectElement
+    expect([...select.options].map((o) => o.textContent)).toEqual(['Not mine'])
+    expect(select.disabled).toBe(true)
   })
 
   test('a container the account cannot reach is named, not passed off as the Shelf', () => {

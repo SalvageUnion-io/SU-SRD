@@ -2,12 +2,14 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation, summaryOf } from './model/entities'
+import { mutation, refreshGameSummary, summaryOf } from './model/entities'
 import {
   getMembership,
+  isTableRunner,
   NotAuthorized,
   requireMember,
   requireOrganizer,
+  requireTableRunner,
   requireUser,
 } from './model/permissions'
 
@@ -27,8 +29,15 @@ type GameSummary = {
   templateOrigin: string | undefined
   mediator: boolean
   organizer: boolean
+  /**
+   * Whether the caller runs this table — Mediator, or Organizer while there is
+   * none. The client offers crawler moves into and out of a Game by it
+   * (`moveDestinations`), so it has to be the server's answer, which depends on
+   * the other memberships too.
+   */
+  tableRunner: boolean
   memberCount: number
-  /** The communal crawler's name, or null before one exists. */
+  /** The primary crawler's name, or null before one exists. */
   crawlerName: string | null
   pilotCount: number
   mechCount: number
@@ -59,6 +68,7 @@ async function summarize(
     templateOrigin: game.templateOrigin,
     mediator: membership.mediator,
     organizer: membership.organizer,
+    tableRunner: await isTableRunner(ctx, game._id, membership),
     ...summary,
   }
 }
@@ -279,6 +289,28 @@ export const members = query({
         }
       })
     )
+  },
+})
+
+/**
+ * Name the Game's primary crawler (ADR-037). Table runner only.
+ *
+ * The primary is the crawler every pilot and mech is assigned to when it
+ * enters the Game. Changing it **moves nobody**: assignments are explicit links
+ * written on entry, so the crew already aboard another crawler stays there.
+ * The Games list shows the primary's name, so the summary is recounted here —
+ * no trigger watches the `games` row itself.
+ */
+export const setPrimaryCrawler = mutation({
+  args: { gameId: v.id('games'), crawlerId: v.id('crawlers') },
+  handler: async (ctx, args): Promise<void> => {
+    await requireTableRunner(ctx, args.gameId)
+    const crawler = await ctx.db.get(args.crawlerId)
+    if (crawler === null || crawler.gameId !== args.gameId) {
+      throw new NotAuthorized('That crawler is not in this game')
+    }
+    await ctx.db.patch(args.gameId, { primaryCrawlerId: args.crawlerId })
+    await refreshGameSummary(ctx, args.gameId)
   },
 })
 

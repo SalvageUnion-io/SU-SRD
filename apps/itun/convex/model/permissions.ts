@@ -176,7 +176,8 @@ export async function gameHasMediator(ctx: AnyCtx, gameId: Id<'games'>): Promise
  * act — *setting the table up* rather than editing what is on it:
  *
  *   - raising or scrapping a **crawler** (ADR-030 §5 amendment)
- *   - adding to a Game that has no crawler yet (`entities.upsertByAppId`)
+ *   - moving a crawler into or out of the Game (`entities.moveCrawler`)
+ *   - naming the **primary** crawler (`games.setPrimaryCrawler`, ADR-037)
  *   - publishing the crew's **crawler** (`publicSheet.setPublic`)
  *
  * None of them edits a sheet. That is the line: a table runner arranges who
@@ -201,23 +202,4 @@ export async function requireTableRunner(
   throw new NotAuthorized(
     'Only the Mediator can do that (or the Organizer, when the game has no Mediator)'
   )
-}
-
-/**
- * True once a Game has somewhere for its crew to live.
- *
- * The crawler is the crew's home, and in Salvage Union a pilot without one is
- * a character with no context — no Bay to repair in, no scrap pool, no place
- * to return to. So a Game is *set up* by raising a crawler, and only then does
- * it start taking pilots and mechs from its players.
- *
- * This is a gate on **players adding to a Game**, never on the table runner,
- * who has to be able to build the crawler first for anyone else to have one.
- */
-export async function gameHasCrawler(ctx: AnyCtx, gameId: Id<'games'>): Promise<boolean> {
-  const first = await ctx.db
-    .query('crawlers')
-    .withIndex('by_game', (q) => q.eq('gameId', gameId))
-    .first()
-  return first !== null
 }

@@ -169,10 +169,25 @@ export default defineSchema({
         memberCount: v.number(),
         pilotCount: v.number(),
         mechCount: v.number(),
-        /** The first crawler's name, or null before one exists. */
+        /** The primary crawler's name, or null before one exists. */
         crawlerName: v.union(v.string(), v.null()),
       })
     ),
+    /**
+     * The crawler every pilot and mech is assigned to on entering this Game
+     * (ADR-037 — the primary crawler).
+     *
+     * Written by the server only: the first crawler to arrive becomes primary,
+     * a primary that is scrapped or moved out falls back to the oldest crawler
+     * left (or null), and the table runner may name another
+     * (`games.setPrimaryCrawler`). Changing it moves nobody — assignment is an
+     * explicit link written when an entity enters the Game.
+     *
+     * Optional because every Game predates it: absent means "the oldest crawler
+     * here", which is what `primaryCrawlerOf` resolves it to, and what the
+     * Games list and the bot showed as *the* crawler before it existed.
+     */
+    primaryCrawlerId: v.optional(v.union(v.id('crawlers'), v.null())),
   }),
 
   /**
