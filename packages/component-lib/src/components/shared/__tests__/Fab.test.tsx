@@ -1,5 +1,5 @@
 import { describe, expect, jest, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useRef, useState } from 'react'
 import { Fab } from '../Fab'
 
@@ -64,15 +64,25 @@ describe('Fab', () => {
     expect(document.activeElement).toBe(button())
   })
 
-  test('an outside press closes it; one inside does not', async () => {
+  test('an outside press closes it; one inside does not', () => {
     render(<Harness />)
     fireEvent.click(button())
     fireEvent.pointerDown(screen.getByRole('textbox', { name: 'Query' }))
     expect(panel()).toBeTruthy()
 
-    fireEvent.pointerDown(document.body)
-    expect(panel()).toBeNull()
-    await waitFor(() => expect(document.activeElement).toBe(button()))
+    // The focus reclaim is a 0ms timer. Drive it with fake timers rather than
+    // poll for it: under coverage a real-timer `waitFor` can outlast the test.
+    jest.useFakeTimers()
+    try {
+      fireEvent.pointerDown(document.body)
+      expect(panel()).toBeNull()
+      act(() => {
+        jest.runAllTimers()
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+    expect(document.activeElement).toBe(button())
   })
 
   test('an outside press that lands on a focusable control keeps that focus', () => {

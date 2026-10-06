@@ -98,12 +98,21 @@ describe('the FAB', () => {
     expect(document.activeElement).toBe(fab())
   })
 
-  test('a press outside collapses it, and focus lands back on the button', async () => {
+  test('a press outside collapses it, and focus lands back on the button', () => {
     render(<GlobalSearch />)
     openWithFab()
-    fireEvent.pointerDown(document.body)
-    expect(panel()).toBeFalsy()
-    await waitFor(() => expect(document.activeElement).toBe(fab()))
+    // The Fab reclaims focus on a 0ms timer; run it rather than poll for it.
+    jest.useFakeTimers()
+    try {
+      fireEvent.pointerDown(document.body)
+      expect(panel()).toBeFalsy()
+      act(() => {
+        jest.runAllTimers()
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+    expect(document.activeElement).toBe(fab())
   })
 
   test('a press inside the panel does not collapse it', () => {
