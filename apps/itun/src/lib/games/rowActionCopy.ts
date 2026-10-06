@@ -12,15 +12,16 @@
  * "are you sure?" makes the reader work out the consequence themselves, which
  * is the one job the dialog exists to do for them.
  *
- * The personal shelf is called **"My Stuff"** in anything a player reads — that
- * is the player's name for it, here and everywhere else in the app.
+ * The personal shelf is called **"My Stuff"** in anything a player reads — the
+ * product owner's name for it, here and everywhere else in the app.
  *
  * The tone is part of the copy because it is part of the message: `danger` for
- * anything that takes a build away from you or from the table, `default` for
- * the two that only add — picking up and copying.
+ * anything that takes a build — or its assignments — away from you or from the
+ * table, `default` for the two that only add — picking up and copying.
  */
 
 import { copyName } from '../copyEntity'
+import type { ClearedAssignment } from '../links/clearedByMove'
 
 /** Which kind of build a confirm is about. Decides the pronoun, nothing else. */
 export type RowActionKind = 'pilot' | 'mech' | 'crawler'
@@ -64,6 +65,53 @@ function clearedAssignments(kind: RowActionKind, from: string): string {
     return `Its crawler assignment in ${from} is cleared, and so is the pilot flying it there, if any.`
   }
   return `Everyone in ${from} assigned to it is unassigned.`
+}
+
+/** "a, b and c". */
+function listOf(names: readonly string[]): string {
+  if (names.length <= 1) return names.join('')
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+}
+
+/** "One build", "3 builds". */
+function builds(n: number): string {
+  return n === 1 ? 'One build' : `${n} builds`
+}
+
+/** Where the other end of a link cleared on the way into a Game still is. */
+const STILL_IN_MY_STUFF = '(still in My Stuff)'
+
+/**
+ * What a move from My Stuff into a Game clears, one line per assignment: a
+ * pilot or mech's pairing first, then the crawler crew it leaves. A crawler's
+ * crew is one line, naming everyone who leaves it.
+ */
+function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment[]): string[] {
+  if (kind === 'crawler') {
+    const named = cleared.flatMap((c) => (c.other.name === null ? [] : [c.other.name]))
+    const unnamed = cleared.length - named.length
+    const who = [
+      ...(named.length > 0 ? [`${listOf(named)} ${STILL_IN_MY_STUFF}`] : []),
+      ...(unnamed === 0 ? [] : [named.length > 0 ? `${unnamed} more` : builds(unnamed)]),
+    ].join(' and ')
+    return [`${who} ${cleared.length === 1 ? 'leaves' : 'leave'} its crew.`]
+  }
+  const they = kind === 'pilot' ? 'They leave' : 'It leaves'
+  const their = kind === 'pilot' ? 'Their' : 'Its'
+  const pairings = cleared.filter((c) => c.type === 'mech-to-pilot')
+  const crews = cleared.filter((c) => c.type !== 'mech-to-pilot')
+  return [
+    ...pairings.map((c) =>
+      c.other.name === null
+        ? `${their} pairing with a ${c.other.kind} is cleared.`
+        : `${their} pairing with ${c.other.name} ${STILL_IN_MY_STUFF} is cleared.`
+    ),
+    ...crews.map((c) =>
+      c.other.name === null
+        ? `${they} ${their.toLowerCase()} crawler's crew.`
+        : `${they} ${c.other.name}'s crew.`
+    ),
+  ]
 }
 
 export const ROW_ACTION_COPY = {
@@ -170,10 +218,11 @@ export const ROW_ACTION_COPY = {
   /**
    * Moving a build OUT of a Game — back to My Stuff, or on to another Game.
    *
-   * Only this direction asks. Moving something from My Stuff into a Game takes
-   * nothing from anybody; moving it out takes it off a shared roster that the
-   * rest of the table was reading. It is the same record either way (a move
-   * keeps its id), so it can always be moved back.
+   * This direction always asks: moving a build out takes it off a shared
+   * roster that the rest of the table was reading. (Moving one in takes nothing
+   * from the table, so it asks only when it clears an assignment —
+   * {@link ROW_ACTION_COPY.enterGame}.) It is the same record either way (a
+   * move keeps its id), so it can always be moved back.
    *
    * It names the wiring it undoes. A move prunes every assignment that would
    * straddle two containers (ADR-037), so whatever the build was assigned to
@@ -219,6 +268,42 @@ export const ROW_ACTION_COPY = {
       pendingLabel: 'Moving…',
       tone: 'danger',
       failure,
+    }
+  },
+
+  /**
+   * Moving a build from My Stuff INTO a Game, when the move clears something.
+   *
+   * Joining a Game takes nothing from the table, so a move in with nothing to
+   * clear runs straight away and never reaches this. But a move prunes every
+   * assignment that would straddle two containers (ADR-037), so a build going
+   * in loses whatever it was paired with that stays in My Stuff. The callers
+   * ask only when `assignmentsClearedByMove` is non-empty, and this names each
+   * one: the pilot or mech it was paired with, the crawler whose crew it
+   * leaves — or, for a crawler, the crew that leaves it. `danger`, like
+   * `leaveGame`: it is the same loss, in the other direction.
+   */
+  enterGame(args: {
+    name: string
+    kind: RowActionKind
+    /** The Game it is joining, by name; `null` when the reader cannot name it. */
+    game: string | null
+    /** What the move clears — never empty, or there is nothing to ask. */
+    cleared: readonly ClearedAssignment[]
+  }): ConfirmCopy {
+    const game = args.game ?? UNNAMED_GAME
+    const assignments = args.cleared.length === 1 ? 'that assignment' : 'those assignments'
+    return {
+      title: `Move ${args.name} into ${game}?`,
+      body: [
+        `${args.name} joins ${game}'s roster.`,
+        ...clearedOnEntry(args.kind, args.cleared),
+        `You can move ${them(args.kind)} back to My Stuff later, but you'll need to make ${assignments} again.`,
+      ],
+      confirmLabel: 'Move',
+      pendingLabel: 'Moving…',
+      tone: 'danger',
+      failure: `${args.name} could not be moved. Try again.`,
     }
   },
 }

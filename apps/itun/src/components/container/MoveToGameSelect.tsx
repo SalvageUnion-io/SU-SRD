@@ -7,12 +7,20 @@
  * go into any Game the player belongs to; a crawler only into a Game they run.
  * With nowhere to go it renders nothing, rather than a select of one.
  *
- * ## No confirm, by the same rule as the sheet's control
+ * ## It asks only when the move clears something — the sheet control's rule
  *
- * Moving into a Game takes nothing from anybody — the move that asks first is
- * the one OUT of a Game, which is "Remove from game" on the Game's own rows. A
- * move is one field (`gameId`) on the same record, so the row simply leaves My
- * stuff, and a toast says where it went.
+ * Moving into a Game takes nothing from the table, so with nothing to clear it
+ * is one pick: a move is one field (`gameId`) on the same record, so the row
+ * simply leaves My Stuff, and a toast says where it went. But a move prunes
+ * every assignment that would straddle two containers (ADR-037), so when
+ * `assignmentsClearedByMove` finds one — a pilot paired with a mech that stays
+ * in My Stuff — it asks first (`ROW_ACTION_COPY.enterGame`, naming each), and
+ * moves nothing until the player says yes. The select always rests on its
+ * placeholder, so a cancelled move leaves the row as it was.
+ *
+ * The confirm is the CALLER's (`confirm`, from the Roster's `useConfirm`): a
+ * move takes the row out of My Stuff, which unmounts this select, and the
+ * dialog has to outlive it to close cleanly or show a failure.
  *
  * ## Connected only
  *
@@ -29,16 +37,24 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import type { Container, ContainerFields } from '../../lib/container'
 import { containerOf, moveTo, sameContainer } from '../../lib/container'
 import { moveDestinations } from '../../lib/games/gameRoster'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
+import type { Confirm } from '../shared/useConfirm'
 import { failureMessage } from '../shared/useConfirm'
 
 type MoveToGameSelectProps = {
   entityType: AssignableType
   entityId: string
   entity: ContainerFields & { name: string }
+  /**
+   * Opens the confirm a move that clears an assignment goes through. Owned by
+   * an ancestor that outlives the row — see the header.
+   */
+  confirm: Confirm
 }
 
 /** The placeholder's value: "no move chosen". Never a real container. */
@@ -54,7 +70,12 @@ const SELECT = {
   width: 'auto',
 } satisfies CSSProperties
 
-function ConnectedMoveToGameSelect({ entityType, entityId, entity }: MoveToGameSelectProps) {
+function ConnectedMoveToGameSelect({
+  entityType,
+  entityId,
+  entity,
+  confirm,
+}: MoveToGameSelectProps) {
   const games = useQuery(api.games.listMine)
   const [pending, setPending] = useState(false)
 
@@ -66,10 +87,14 @@ function ConnectedMoveToGameSelect({ entityType, entityId, entity }: MoveToGameS
   if (targets.length === 0) return null
 
   async function move(next: Container, label: string) {
+    await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    toast.success(`Moved ${entity.name} to ${label}.`)
+  }
+
+  async function moveNow(next: Container, label: string) {
     setPending(true)
     try {
-      await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
-      toast.success(`Moved ${entity.name} to ${label}.`)
+      await move(next, label)
     } catch (err) {
       toast.error(failureMessage(err, `${entity.name} could not be moved. Try again.`))
     } finally {
@@ -81,7 +106,26 @@ function ConnectedMoveToGameSelect({ entityType, entityId, entity }: MoveToGameS
     const value = e.target.value
     const target = targets.find((d) => serializeContainer(d.container) === value)
     if (target === undefined) return
-    void move(parseContainer(value), target.label)
+    const next = parseContainer(value)
+    const cleared = assignmentsClearedByMove(
+      useEntityStore.getState(),
+      { type: entityType, id: entityId },
+      next
+    )
+    if (cleared.length === 0) {
+      void moveNow(next, target.label)
+      return
+    }
+    // The dialog shows a failure itself, so the move it runs is bare.
+    confirm({
+      ...ROW_ACTION_COPY.enterGame({
+        name: entity.name,
+        kind: entityType,
+        game: target.label,
+        cleared,
+      }),
+      onConfirm: () => move(next, target.label),
+    })
   }
 
   return (

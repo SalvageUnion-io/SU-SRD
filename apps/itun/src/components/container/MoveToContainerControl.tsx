@@ -3,18 +3,23 @@
  * **My Stuff** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
  * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
- * two real containers. Moving INTO a Game is one tap; moving OUT of one — back
- * to My Stuff, or on to another Game — asks first. The hub's rows offer the
- * same moves (`MoveToGameSelect`, and "Remove from game" on a Game's rows).
+ * two real containers. Moving INTO a Game is one tap unless it clears an
+ * assignment; moving OUT of one — back to My Stuff, or on to another Game —
+ * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
+ * and "Remove from game" on a Game's rows).
  *
- * ## Why only the way out asks
+ * ## When a move asks
  *
- * Putting a build into a Game takes nothing from anybody. Taking it out takes
- * it off a roster the rest of the table was reading, which is the destructive
- * direction, so that move goes through a confirm (words in
- * `lib/games/rowActionCopy.ts`) and only runs once the player says yes. The
- * select is controlled by the entity's real container, so a cancelled move
- * leaves it showing where the build still is.
+ * Taking a build out of a Game takes it off a roster the rest of the table was
+ * reading, which is the destructive direction, so that move always goes
+ * through a confirm (`leaveGame`). Putting a build into a Game takes nothing
+ * from the table, but it does prune every assignment that would straddle two
+ * containers (ADR-037) — a pilot loses the mech still in My Stuff it was paired
+ * with — so a move in asks (`enterGame`, naming each one) exactly when
+ * `assignmentsClearedByMove` finds something, and is one tap when it does not.
+ * The words are in `lib/games/rowActionCopy.ts`; the move only runs once the
+ * player says yes. The select is controlled by the entity's real container, so
+ * a cancelled move leaves it showing where the build still is.
  *
  * The confirm is the CALLER's (`confirm`, from `useConfirm`), not this
  * control's. The sheet renders this inside its ⋯ menu, which unmounts its
@@ -65,6 +70,7 @@ import type { Container, ContainerFields } from '../../lib/container'
 import { containerOf, moveTo, sameContainer } from '../../lib/container'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
@@ -77,8 +83,9 @@ type MoveToContainerControlProps = {
   /** The entity's current container fields (`gameId`, legacy `workspaceId`). */
   entity: ContainerFields & { name: string }
   /**
-   * Opens the confirm a move out of a Game goes through. Owned by an
-   * always-mounted ancestor — see "Why only the way out asks" above.
+   * Opens the confirm a move out of a Game — or one in that clears an
+   * assignment — goes through. Owned by an always-mounted ancestor — see "When
+   * a move asks" above.
    */
   confirm: Confirm
   onChanged?: () => void
@@ -132,18 +139,40 @@ function ConnectedMoveToContainerControl({
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = parseContainer(e.target.value)
-    if (current.kind !== 'game' || sameContainer(current, next)) {
+    // Either confirm shows a failure on the dialog, which outlives this
+    // control, so the move it runs is bare.
+    if (current.kind === 'game' && !sameContainer(current, next)) {
+      // Out of a Game: always ask.
+      confirm({
+        ...ROW_ACTION_COPY.leaveGame({
+          name: entity.name,
+          kind: entityType,
+          from: gameName(current.gameId),
+          to: next.kind === 'shelf' ? next : { kind: 'game', name: gameName(next.gameId) },
+        }),
+        onConfirm: () => move(next),
+      })
+      return
+    }
+    // Into a Game from My Stuff: ask only when the move clears an assignment.
+    const cleared =
+      next.kind === 'game'
+        ? assignmentsClearedByMove(
+            useEntityStore.getState(),
+            { type: entityType, id: entityId },
+            next
+          )
+        : []
+    if (next.kind === 'shelf' || cleared.length === 0) {
       void moveNow(next)
       return
     }
-    // Out of a Game: ask first. A failure is shown on the dialog, which
-    // outlives this control, so the move runs bare here.
     confirm({
-      ...ROW_ACTION_COPY.leaveGame({
+      ...ROW_ACTION_COPY.enterGame({
         name: entity.name,
         kind: entityType,
-        from: gameName(current.gameId),
-        to: next.kind === 'shelf' ? next : { kind: 'game', name: gameName(next.gameId) },
+        game: gameName(next.gameId),
+        cleared,
       }),
       onConfirm: () => move(next),
     })
