@@ -3,8 +3,8 @@ name: CodeQL
 # SAST over the shipped JavaScript/TypeScript: every push to main, every PR, and
 # weekly for newly published queries. `Analyze (javascript-typescript)` passes
 # once the analysis uploads, whatever it found: blocking a merge on a finding is
-# the ruleset's `code_scanning` rule, not this file (docs/architecture/ci.md,
-# "Repository settings"). Tests and e2e specs are not analysed, and the suite is
+# the ruleset's `code_scanning` rule, not this file
+# (docs/ARCHITECTURE.md#ci-repository-settings). Tests and e2e specs are not analysed, and the suite is
 # `security-extended`: quality findings are Biome's and tsc's job.
 on:
   push:
@@ -14,8 +14,8 @@ on:
   # `Analyze (javascript-typescript)` is its OWN required status on main, so
   # that left those PRs permanently unmergeable rather than merely unscanned.
   pull_request:
-  # Kept DORMANT: the `main` ruleset has no merge queue (ci.md, "Repository
-  # settings"). It stays because the ORDER matters if a queue is ever enabled:
+  # Kept DORMANT: the `main` ruleset has no merge queue
+  # (ARCHITECTURE.md#ci-repository-settings). It stays because the ORDER matters if a queue is ever enabled:
   # the queue's temporary `gh-readonly-queue/**` branches fire NEITHER
   # `push: [main]` NOR `pull_request`, so requiring a context that never reports
   # on them leaves the queue waiting for a check that cannot arrive. This

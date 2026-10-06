@@ -1,29 +1,32 @@
 # SURef Docs
 
-An intent → doc map. Open the doc for what you are doing; `ls` is the full index.
+An intent → doc map. Most areas are a section of [ARCHITECTURE.md](ARCHITECTURE.md),
+which opens with its section index: `grep -n '^##' docs/ARCHITECTURE.md`, then
+Read with an offset and limit, never the whole file.
 
 ## By intent
 
-| I'm…                                                       | Read                                                                                                                                                                  |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| adding or changing a UI component                          | [design-system/ruleset.md](design-system/ruleset.md) (the laws), [architecture/display-system.md](architecture/display-system.md), [design-system/ladle-styleguide.md](design-system/ladle-styleguide.md) |
-| moving styling off Tailwind                                | [design-system/tailwind-removal.md](design-system/tailwind-removal.md)                                                                                                |
-| changing how data flows or persists                        | [architecture/data-flow.md](architecture/data-flow.md), ADR-030, ADR-034, ADR-035                                                                                      |
-| deciding where a rule is enforced, or touching combat      | [architecture/rules-engine-boundary.md](architecture/rules-engine-boundary.md), [architecture/combat-loop.md](architecture/combat-loop.md), ADR-021, ADR-007          |
-| working on the Dashboard                                   | [architecture/dashboard.md](architecture/dashboard.md), ADR-015, ADR-038, [architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (plan)              |
-| sharing a sheet (public sheets; retired snapshot links)    | ADR-032, ADR-036                                                                                                                                                      |
-| working on accounts, Games or the Convex backend           | ADR-030, [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (ops reference)                                                                      |
-| inviting someone by their Discord account                  | ADR-039, `apps/itun/convex/model/invites.ts`                                                                                                                           |
-| assigning pilots, mechs and crawlers to each other         | ADR-037, `apps/itun/src/lib/links/linkRules.ts`                                                                                                                        |
-| working on the Discord bot as a Game client                | [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)                                                                                    |
-| building the NPC Builder                                   | [architecture/npc-builder.md](architecture/npc-builder.md) (plan)                                                                                                      |
-| changing a package's public API                            | [architecture/package-contracts.md](architecture/package-contracts.md)                                                                                                 |
-| changing hosting, deploys or CI                            | ADR-033, [architecture/ci.md](architecture/ci.md)                                                                                                                      |
-| adding, bumping or pinning a dependency                    | [architecture/dependency-management.md](architecture/dependency-management.md)                                                                                         |
-| looking for a service id, deployment or dashboard URL      | [architecture/agent-tooling.md](architecture/agent-tooling.md)                                                                                                         |
-| shipping SEO or accessibility work                         | [architecture/seo-accessibility.md](architecture/seo-accessibility.md)                                                                                                 |
-| changing how `srd` is built                                | [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md), ADR-031                                                                                                          |
-| checking how a Salvage Union rule works                    | `bun run rules:extract` (local only), then grep `rules/extracted/*.txt`                                                                                                |
+| I'm… | Read |
+| --- | --- |
+| adding or changing a UI component | [design-system/ruleset.md](design-system/ruleset.md) (the laws), [display system](ARCHITECTURE.md#display-system), [component catalog](ARCHITECTURE.md#component-catalog-ladle) |
+| moving styling off Tailwind | [design-system/tailwind-removal.md](design-system/tailwind-removal.md) |
+| changing how data flows or persists | [data flow](ARCHITECTURE.md#data-flow), ADR-030, ADR-034, ADR-035 |
+| deciding where a rule is enforced, or touching combat | [rules and ITUN surfaces](ARCHITECTURE.md#rules-and-itun-surfaces), [combat loop](ARCHITECTURE.md#combat-loop), ADR-021, ADR-007 |
+| working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-015, ADR-038, [architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (plan) |
+| sharing a sheet (public sheets; retired snapshot links) | ADR-032, ADR-036 |
+| working on accounts, Games or the Convex backend | ADR-030, [accounts and Games operations](ARCHITECTURE.md#accounts-and-games-operations) |
+| repairing data, rotating auth secrets or Convex error reporting | the [`convex-maintenance`](../.claude/skills/convex-maintenance/SKILL.md) skill |
+| inviting someone by their Discord account | ADR-039, `apps/itun/convex/model/invites.ts` |
+| assigning pilots, mechs and crawlers to each other | ADR-037, `apps/itun/src/lib/links/linkRules.ts` |
+| working on the Discord bot as a Game client | [Discord bot](ARCHITECTURE.md#discord-bot-as-a-game-client) |
+| building the NPC Builder | [architecture/npc-builder.md](architecture/npc-builder.md) (plan) |
+| changing a package's public API | [packages and contracts](ARCHITECTURE.md#packages-and-contracts) |
+| changing hosting, deploys or CI | ADR-033, [CI and deploy](ARCHITECTURE.md#ci-and-deploy) |
+| adding, bumping or pinning a dependency | [dependencies](ARCHITECTURE.md#dependencies) |
+| looking for a service id, deployment or dashboard URL | [services and agent tooling](ARCHITECTURE.md#services-and-agent-tooling) |
+| shipping SEO or accessibility work | [SEO and accessibility](ARCHITECTURE.md#seo-and-accessibility) |
+| changing how `srd` is built | [`apps/srd/ssg/DESIGN.md`](../apps/srd/ssg/DESIGN.md), ADR-031 |
+| checking how a Salvage Union rule works | `bun run rules:extract` (local only), then grep `rules/extracted/*.txt` |
 
 ## ADRs
 

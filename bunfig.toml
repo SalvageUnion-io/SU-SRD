@@ -27,8 +27,7 @@ linker = 'isolated'
 #     (fast-uri, filelist, nanoid, sharp). `brace-expansion` cannot be
 #     floored (two majors in the tree), so it
 #     is the watched package this silent step-down can still reach. The
-#     per-entry record is docs/architecture/dependency-management.md,
-#     "The `overrides` block".
+#     per-entry record is docs/ARCHITECTURE.md#the-overrides-block.
 #
 # `bun install --frozen-lockfile` is unaffected: it installs what bun.lock
 # already resolved and does no resolution, so CI and every deploy target never

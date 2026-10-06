@@ -14,7 +14,7 @@ stylesheets in `packages/component-lib/src/styles/dashboard/`, route
 
 The decisions are [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)
 and its merged Dashboard decisions (formerly ADRs 016–020). The live-play state
-model it drives is [combat-loop.md](combat-loop.md). Section numbers below are
+model it drives is [combat loop](../ARCHITECTURE.md#combat-loop). Section numbers below are
 cited from code comments; keep them stable.
 
 ## 1. Purpose & positioning
@@ -79,7 +79,7 @@ Mount state must never reach the pilot/mech schema or a shared sheet: there is n
 ### 4.2 Persistence
 
 Live-play writes go through `entityStore.update`, exactly the sheet's path
-([data-flow.md](data-flow.md)). The Dashboard never introduces a second write
+([data flow](../ARCHITECTURE.md#data-flow)). The Dashboard never introduces a second write
 path, and adds no server surface of its own.
 
 ### 4.3 The ADR-007 boundary on every control

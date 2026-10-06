@@ -10,7 +10,7 @@ plan was deleted once every phase closed; code comments that cite a phase
 (`ADR-033 P4`) mean that plan:
 `git show c2476d1c:docs/architecture/cloudflare-cutover.md`. Current
 identifiers (Workers, buckets, zones) are in
-[architecture/agent-tooling.md](../architecture/agent-tooling.md).
+[services and agent tooling](../ARCHITECTURE.md#services-and-agent-tooling).
 
 **Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
 GitHub Environment** restricted to `main`, with no reviewers, so a workflow copy

@@ -1,5 +1,5 @@
 # The only dependency updater, and it updates GitHub Actions only. Bun
-# dependencies are updated by hand: docs/architecture/dependency-management.md.
+# dependencies are updated by hand: docs/ARCHITECTURE.md#dependencies.
 version: 2
 updates:
   - package-ecosystem: 'github-actions'

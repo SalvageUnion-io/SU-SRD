@@ -167,8 +167,8 @@ seat, never the pilot's `mech-to-pilot` link.
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
   Games without a Mediator lose it. The Solo rows in
-  [data-flow.md](../architecture/data-flow.md) and
-  [combat-loop.md](../architecture/combat-loop.md) change when that layer
+  [data flow](../ARCHITECTURE.md#data-flow) and
+  [combat loop](../ARCHITECTURE.md#combat-loop) change when that layer
   lands.
 - **There is new server surface.** A `seats` table and its functions are added.
   Seats are cleaned up when a Game, pilot or account is deleted and when a pilot

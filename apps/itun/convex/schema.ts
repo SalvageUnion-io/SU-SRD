@@ -7,8 +7,8 @@ import { v } from 'convex/values'
  * Convex schema for ITUN accounts, Games, and entity ownership.
  *
  * This is the server-of-record introduced by the accounts plan (D1/D2), which
- * supersedes ADR-001's "no backend, no auth". See docs/architecture/ for the
- * full decision record; the short version of what this file assumes:
+ * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#data-flow
+ * and ADR-030 for the full record; the short version of what this file assumes:
  *
  *   - Two containers, not one (D18). An entity lives in a shared `games` row OR
  *     on its owner's personal shelf. `gameId` is nullable and null MEANS shelf.

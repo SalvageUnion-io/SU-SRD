@@ -9,11 +9,14 @@
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
  *            `bun run check <id>` in a live doc, workflow prompt or Claude
  *            hook names a real script or check id.
- *   links    every relative markdown link in a tracked `.md` file resolves.
+ *   links    every relative markdown link in a tracked `.md` file resolves,
+ *            and its `#fragment`, into a `.md` file or the same file, names a
+ *            heading there.
  *   size     root and per-directory CLAUDE.md files and `.claude/agents/*.md`
  *            stay under 8,000 characters and `.claude/rules/*.md` under 4,000.
  *            They load into every agent session in scope, so growth costs
- *            every session.
+ *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
+ *            budget: it replaced a folder, and terse is the point.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -76,6 +79,7 @@ function liveInstructionDocs(root: string): string[] {
     'CLAUDE.md',
     'README.md',
     'CONTRIBUTING.md',
+    'docs/ARCHITECTURE.md',
     ...workspaceDirs(root).flatMap((ws) => [`${ws}/CLAUDE.md`, `${ws}/README.md`]),
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
   ].filter((doc) => existsSync(join(root, doc)))
@@ -422,12 +426,58 @@ function trackedMarkdown(root: string): string[] {
 /** Inline `[text](target)` and reference-definition `[label]: target` links. */
 const LINK_RE = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)|^\s*\[[^\]]+\]:\s*<?([^\s>]+)>?/gm
 
+/**
+ * A heading's anchor as GitHub renders it: link and code markup reduced to
+ * their text, lowercased, every character but a letter, digit, space, `-` or
+ * `_` dropped, and each space turned into `-` (so "A — B" is `a--b`).
+ */
+export function headingSlug(heading: string): string {
+  return heading
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[*~]/g, '')
+    .replace(/(^|\s)_+|_+(?=\s|$)/g, '$1')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .replace(/\s/g, '-')
+}
+
+/** Every heading anchor in a markdown source, fences skipped, repeats suffixed `-1`, `-2`. */
+function headingSlugs(source: string): Set<string> {
+  const slugs = new Set<string>()
+  const seen = new Map<string, number>()
+  let inFence = false
+  for (const line of source.split('\n')) {
+    if (/^\s{0,3}(```|~~~)/.test(line)) {
+      inFence = !inFence
+      continue
+    }
+    const heading = inFence ? null : line.match(/^\s{0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
+    if (!heading) continue
+    const base = headingSlug(heading[1] as string)
+    const repeat = seen.get(base) ?? 0
+    seen.set(base, repeat + 1)
+    slugs.add(repeat === 0 ? base : `${base}-${repeat}`)
+  }
+  return slugs
+}
+
 export function checkMarkdownLinks(
   root: string,
   docs: string[] = trackedMarkdown(root)
 ): CheckResult {
   const failures: string[] = []
   const isGitignored = gitignoredMatcher(root)
+  const slugCache = new Map<string, Set<string>>()
+  const slugsOf = (file: string): Set<string> => {
+    let slugs = slugCache.get(file)
+    if (slugs === undefined) {
+      slugs = headingSlugs(read(root, file))
+      slugCache.set(file, slugs)
+    }
+    return slugs
+  }
   let checked = 0
   for (const doc of docs) {
     for (const block of splitMarkdownBlocks(read(root, doc))) {
@@ -435,20 +485,31 @@ export function checkMarkdownLinks(
       const text = block.text.replace(/`[^`\n]*`/g, (span) => ' '.repeat(span.length))
       for (const m of text.matchAll(LINK_RE)) {
         const target = (m[1] ?? m[2]) as string
-        if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('#')) continue
+        if (/^[a-z][a-z0-9+.-]*:/i.test(target)) continue
+        const at = `${doc}:${lineOf(block, m.index ?? 0)}`
         const path = decodeURIComponent(target.replace(/[#?].*$/, ''))
-        const resolved = path.startsWith('/') ? path.slice(1) : join(dirname(doc), path)
-        if (path === '' || isGitignored(resolved)) continue
+        const resolved =
+          path === '' ? doc : path.startsWith('/') ? path.slice(1) : join(dirname(doc), path)
+        if (isGitignored(resolved)) continue
         checked++
         if (!existsSync(join(root, resolved))) {
+          failures.push(`${at} links to \`${target}\`, which does not exist.`)
+          continue
+        }
+        const fragment = target.match(/#([^?]*)$/)?.[1]
+        if (fragment === undefined || fragment === '' || !resolved.endsWith('.md')) continue
+        if (!slugsOf(resolved).has(decodeURIComponent(fragment))) {
           failures.push(
-            `${doc}:${lineOf(block, m.index ?? 0)} links to \`${target}\`, which does not exist.`
+            `${at} links to \`${target}\`, whose #${fragment} is no heading in ${resolved}.`
           )
         }
       }
     }
   }
-  return { ok: `relative markdown links resolve (${checked} in ${docs.length} files)`, failures }
+  return {
+    ok: `relative markdown links and their anchors resolve (${checked} in ${docs.length} files)`,
+    failures,
+  }
 }
 
 // ─── size ───────────────────────────────────────────────────────────────────
@@ -461,27 +522,40 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_806,
+  'apps/itun/CLAUDE.md': 13_722,
   'apps/srd/CLAUDE.md': 11_799,
-  'CLAUDE.md': 12_192,
-  'packages/component-lib/CLAUDE.md': 16_132,
+  'CLAUDE.md': 12_102,
+  'packages/component-lib/CLAUDE.md': 15_997,
   'packages/salvageunion-reference/CLAUDE.md': 9_361,
+}
+
+/**
+ * A doc that replaced a folder of docs, and the budget that keeps it terse.
+ * Raise one only on purpose, saying why in the PR.
+ */
+const COLLAPSED_DOCS: Record<string, number> = {
+  'docs/ARCHITECTURE.md': 60_000,
 }
 
 export function checkDocSizes(
   root: string,
-  overBudget: Record<string, number> = OVER_BUDGET
+  overBudget: Record<string, number> = OVER_BUDGET,
+  collapsed: Record<string, number> = COLLAPSED_DOCS
 ): CheckResult {
   const failures: string[] = []
   const claudeMds = ['CLAUDE.md', ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`)].filter(
     (doc) => existsSync(join(root, doc))
   )
   const rules = markdownIn(root, '.claude/rules')
-  const budgeted = [
-    ...claudeMds.map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
-    ...rules.map((doc) => [doc, RULE_BUDGET] as const),
-    ...markdownIn(root, '.claude/agents').map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
+  const budgeted: [string, number][] = [
+    ...claudeMds.map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
+    ...rules.map((doc): [string, number] => [doc, RULE_BUDGET]),
+    ...markdownIn(root, '.claude/agents').map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
   ]
+  for (const [doc, budget] of Object.entries(collapsed)) {
+    if (existsSync(join(root, doc))) budgeted.push([doc, budget])
+    else failures.push(`COLLAPSED_DOCS names ${doc}, which does not exist. Remove the entry.`)
+  }
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
     const size = [...read(root, doc)].length
@@ -510,9 +584,10 @@ const CHECKS = [
 ] as const
 
 if (import.meta.main) {
-  // A collapsed corpus (a renamed doc directory) would pass every check; ~65% of today's count.
+  // A collapsed corpus (a renamed doc directory) would pass every check. The floor is
+  // floor(0.65 × N) for N = 36, the count when docs/architecture/ became docs/ARCHITECTURE.md.
   const liveDocs = liveInstructionDocs(repoRoot)
-  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 26)
+  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 23)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const failures: string[] = []

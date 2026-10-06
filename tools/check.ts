@@ -179,12 +179,12 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'audit',
     guards: 'no high-severity advisory in the dependency tree',
-    fix: 'upgrade or override the vulnerable package (docs/architecture/dependency-management.md)',
+    fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#dependency-audit)',
     cmd: [
       'bun',
       'audit',
       '--audit-level=high',
-      // The one suppression (dependency-management.md, "Audit"): braces <=3.0.3
+      // The one suppression (docs/ARCHITECTURE.md#dependency-audit): braces <=3.0.3
       // has NO fixed release. It reaches the tree only through component-lib's
       // devDependency @ladle/react -> globby -> fast-glob -> micromatch, and
       // Ladle globs nothing but our own story patterns. Remove this line when

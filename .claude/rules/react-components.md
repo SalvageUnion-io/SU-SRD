@@ -17,7 +17,7 @@ React component patterns using functional components and TypeScript.
 
 Shared, app-agnostic components live in `packages/component-lib/src/components/`;
 reach for the library first. Read the barrel (`packages/component-lib/src/index.ts`)
-and `docs/architecture/package-contracts.md` for what lives where, never a
+and `docs/ARCHITECTURE.md#component-lib` for what lives where, never a
 hand-written inventory. App-only components live in that app's
 `src/components/{feature}/`.
 
@@ -57,7 +57,7 @@ hand-written inventory. App-only components live in that app's
 - Two card shells, not a layered stack: `ReferenceEntityCard` for SRD game data
   and `Card` for everything else. See
   [`display-system.md`](display-system.md) and
-  `docs/architecture/display-system.md`. There is no render-prop layer.
+  `docs/ARCHITECTURE.md#display-system`. There is no render-prop layer.
 - No backend dependency - agnostic to data source
 - Design tokens live only in `packages/component-lib/src/styles/theme.css`; an
   app declaring its own fails `bun run check styling` (`app-theme`; also

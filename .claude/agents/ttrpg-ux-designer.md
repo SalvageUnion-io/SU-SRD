@@ -40,7 +40,7 @@ You are an elite UX designer and interaction architect with 15+ years of experie
 ### The design system you are designing inside
 
 - `docs/design-system/ruleset.md` — canon; read §5's "Implemented by" column, not an atom name, for what renders each atom.
-- `docs/architecture/display-system.md` — two card shells (`ReferenceEntityCard`, `Card`), deliberately not merged; card size is `size` × `extent`.
+- `docs/ARCHITECTURE.md#display-system` — two card shells (`ReferenceEntityCard`, `Card`), deliberately not merged; card size is `size` × `extent`.
 - `packages/component-lib/src/index.ts` — what exists. Name only components you have found there.
 
 ## How You Work

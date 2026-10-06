@@ -210,5 +210,5 @@ carrier (a prose span) alongside it.
   stay pure and side-effect-free.
 - [ADR-010](ADR-010-srd-choices-ephemeral-vs-persisted.md) — the Frozen end of the
   display contract.
-- [architecture/rules-engine-boundary.md](../architecture/rules-engine-boundary.md)
+- [Rules and ITUN surfaces](../ARCHITECTURE.md#rules-and-itun-surfaces)
   — the authoritative mode × rule-class matrix.

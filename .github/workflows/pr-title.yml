@@ -1,7 +1,7 @@
 name: PR title
 
 # Squash merges make the PR title the commit subject release-please reads
-# (docs/architecture/ci.md, "PR title"). It is its own workflow, not a ci.yml
+# (docs/ARCHITECTURE.md#ci-pr-title). It is its own workflow, not a ci.yml
 # job, because ci.yml does not run on `edited`: a red title fixed in the UI
 # stayed red until someone pushed a commit, and adding `edited` to ci.yml would
 # rerun the whole suite on every title or body edit. Its job name is a required

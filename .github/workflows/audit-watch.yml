@@ -90,7 +90,7 @@ jobs:
               '`bun.lock` or a `package.json`, so **this may not be failing any PR** — which',
               'is the entire reason this job exists.',
               '',
-              'Watch list, per `docs/architecture/dependency-management.md`: `nanoid`,',
+              'Watch list, per `docs/ARCHITECTURE.md#dependency-audit`: `nanoid`,',
               '`fast-uri`, `brace-expansion`, `filelist`. Three are floored in',
               '`overrides`; `brace-expansion` cannot be, because the tree holds two copies at',
               'incompatible majors and a tree-wide override would break the v2 consumer.',

@@ -144,8 +144,8 @@ export const AGGREGATOR = 'quality-checks'
  * Required status contexts in OTHER workflows, which `needs:` cannot reach.
  * Their workflow files must exist: deleting one while its context is still
  * required leaves every PR waiting on a check that never arrives. Each must
- * also be listed in the `main` ruleset (docs/architecture/ci.md, "Repository
- * settings"); this check cannot see the ruleset.
+ * also be listed in the `main` ruleset (docs/ARCHITECTURE.md#ci-repository-settings);
+ * this check cannot see the ruleset.
  */
 const SEPARATELY_REQUIRED = [
   { context: 'Analyze (javascript-typescript)', workflow: '.github/workflows/codeql.yml' },
