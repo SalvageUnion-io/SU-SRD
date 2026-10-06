@@ -119,6 +119,8 @@ Log and Crew as secondary tabs.
 
 - **Crew** shows every crewmate's pilot. It adds their mech's numbers when
   their seat says they're boarded, and it flags anyone who needs attention.
+  The server derives those numbers and that status from the stored records,
+  so every client agrees and nothing extra is stored.
 - **Log** shows the Game's rolls and the Mediator's alerts.
 
 ### 5. Downtime follows the Game
@@ -185,5 +187,9 @@ seat, never the pilot's `mech-to-pilot` link.
 - **Players can no longer edit a Game's crawler,** on the Dashboard or the
   sheet. Until players can send requests to the Mediator in the app, they ask
   at the table.
+- **Convex gains the rules package** for crew status. That reverses a
+  convention recorded in code comments (Convex "should not grow" it), not an
+  ADR. ADR-006's rule holds: the math stays in the package, and Convex calls
+  it.
 - **Some work moves to follow-ups:** a Mediator Dashboard, the phone layout,
   and what "claiming" a crew asset means in a Game.
