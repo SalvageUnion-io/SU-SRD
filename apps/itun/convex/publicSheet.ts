@@ -2,7 +2,13 @@ import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation, parseBody } from './model/entities'
+import {
+  linksTouching,
+  mutation,
+  parseBody,
+  resolveLinkEnd,
+  sameContainerRows,
+} from './model/entities'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 
 /**
@@ -67,32 +73,94 @@ async function byAppId(
   return rows.reduce((oldest, row) => (row._creationTime < oldest._creationTime ? row : oldest))
 }
 
+/** One assignment of a published entity, as the reader's sheet draws it. */
+type PublicLink = Pick<Doc<'softLinks'>, 'type' | 'from' | 'to'>
+
+/**
+ * The entity at the far end of one of those assignments.
+ *
+ * Kind and name always — the sheet says who this pilot flies and crews with.
+ * The **body only when that entity is itself published**: a crewmate who has
+ * not opted in is named on the rail and nothing more, so a public crawler can
+ * list its crew without republishing a single one of their sheets.
+ */
+type PublicLinked = { kind: Kind; id: string; name: string; body?: unknown }
+
 /**
  * One published sheet, or null.
  *
  * **Unauthenticated by design** — see the module header. Returns the bare
- * entity body, which is exactly what `frozenSheet.ts` parses on the client, so
- * the public route reuses the renderer the Game view already uses rather than
- * adding another.
+ * entity body, its direct assignments (`links`) and who each one points at
+ * (`linked`). The client renders them through the live read-only sheet store
+ * every other read-only surface uses (`readOnlySheetStore.ts`), so a reader
+ * sees the pilot's mech and crawler the way the crew does.
  */
 export const get = query({
   args: { kind: kindValidator, appId: v.string() },
   handler: async (
     ctx,
     args
-  ): Promise<{ kind: Kind; body: unknown; pilotAbilities?: string[] } | null> => {
+  ): Promise<{
+    kind: Kind
+    body: unknown
+    pilotAbilities?: string[]
+    links: PublicLink[]
+    linked: PublicLinked[]
+  } | null> => {
     const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
     if (row === null || row.publicRead !== true) return null
 
+    const { links, linked } = await assignmentsOf(ctx, row, args.appId)
     return {
       kind: args.kind,
       body: row.body,
       ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
+      links,
+      linked,
     }
   },
 })
+
+/**
+ * A published entity's direct assignments, and who is at the other end.
+ *
+ * Only a link whose far end sits in the **same container** is served. Rows
+ * older than the one-container rule (ADR-037) can still straddle two, and a
+ * link's `to.id` was once a free string — so a cross-container link is stale or
+ * forged data, not an assignment, and serving its far end's name would let
+ * anyone who can draw a link out of their own published entity read a
+ * stranger's out.
+ */
+async function assignmentsOf(
+  ctx: QueryCtx,
+  row: Doc<PublicTable>,
+  appId: string
+): Promise<{ links: PublicLink[]; linked: PublicLinked[] }> {
+  const links: PublicLink[] = []
+  const linked = new Map<string, PublicLinked>()
+  for (const link of await linksTouching(ctx, appId)) {
+    const far = link.from.id === appId ? link.to : link.from
+    const target = await resolveLinkEnd(ctx, far, row.gameId)
+    if (target === null || !sameContainerRows(row, target)) continue
+    links.push({ type: link.type, from: link.from, to: link.to })
+    linked.set(`${far.type}:${far.id}`, {
+      kind: far.type,
+      id: far.id,
+      name: nameOf(target.body, far.type),
+      ...(target.publicRead === true ? { body: target.body } : {}),
+    })
+  }
+  return { links, linked: [...linked.values()] }
+}
+
+/** A body's display name, or its kind when it carries none. */
+function nameOf(body: unknown, kind: Kind): string {
+  const name = (body as { name?: unknown } | null)?.name
+  if (typeof name === 'string' && name.length > 0) return name
+  return kind === 'pilot' ? 'Pilot' : kind === 'mech' ? 'Mech' : 'Crawler'
+}
 
 /**
  * The abilities of the pilot flying this mech, for the renderer's maxima.
@@ -108,10 +176,11 @@ export const get = query({
  * with the whole `softLinks` graph in reach, rather than being handed whatever
  * was true when somebody last pressed publish.
  *
- * Deliberately does NOT check the pilot's own `publicRead`. This discloses no
- * pilot — not their name, not their existence, only a set of ability slugs
- * already implied by the mech's own numbers. Requiring the pilot to be public
- * too would silently give a wrong maximum, which is the bug this exists to fix.
+ * Deliberately does NOT require the pilot's own `publicRead`. Their sheet stays
+ * private — `linked` carries only their name — and this adds nothing but a set
+ * of ability slugs already implied by the mech's own numbers. Requiring the
+ * pilot to be public too would silently give a wrong maximum, which is the bug
+ * this exists to fix.
  *
  * It DOES check that the pilot actually belongs with the mech, and that check
  * is load-bearing. `upsertSoftLink` validates only the `from` anchor — wiring
@@ -157,12 +226,18 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   // Both ends are read through an `in` guard because `byAppId` returns the row
   // union — `crawlers` has no `ownerId` column at all — and narrowing it by the
   // table argument is not something Convex's index typing survives.
+  //
+  // A pilot published in its own right is the third case: its abilities are on
+  // its own public page already, so passing them on discloses nothing — and
+  // withholding them would read the mech lower than the pilot's public rail
+  // shows it, now that the reader's sheet draws both.
   const mechOwnerId = 'ownerId' in mech ? mech.ownerId : null
   const pilotOwnerId = 'ownerId' in pilot ? pilot.ownerId : null
   const sameOwner = pilotOwnerId !== null && pilotOwnerId === mechOwnerId
   const unclaimedInSameGame =
     pilotOwnerId === null && mech.gameId !== null && pilot.gameId === mech.gameId
-  if (!sameOwner && !unclaimedInSameGame) return []
+  const publishedAlongside = pilot.publicRead === true && sameContainerRows(mech, pilot)
+  if (!sameOwner && !unclaimedInSameGame && !publishedAlongside) return []
 
   const abilities = (pilot.body as { abilities?: unknown }).abilities
   return Array.isArray(abilities) ? abilities.filter((a): a is string => typeof a === 'string') : []
@@ -251,8 +326,8 @@ export const setPublic = mutation({
     // Parse before publishing, exactly as every other mutation parses before
     // persisting (ADR-030): the Zod schemas in `src/lib/schemas/` are the
     // source of truth and Convex stores bodies opaquely. A body that cannot be
-    // parsed would hand the public route something `frozenSheet.ts` will
-    // refuse to render, so this fails HERE — where the owner is standing and
+    // parsed would hand the public route something it will refuse to
+    // render, so this fails HERE — where the owner is standing and
     // can see it — rather than on a page they have already given somebody.
     //
     // Both branches throw `ConvexError`, and that is the load-bearing part.

@@ -1,12 +1,13 @@
 /**
- * Sheet view route — /sheet/:kind/:id
+ * Sheet view route — /sheet/:kind/:id — the one way to view an entity.
  *
  * kind: 'pilot' | 'mech' | 'crawler'
- * id:   entity id stored in entityStore
+ * id:   the entity's app id (what every in-app link carries)
  *
- * The loader hydrates the entity store for all kinds and SoftLinks so
- * composition mode resolution (and linked-entity rails) works synchronously
- * in Sheet.tsx.
+ * Editable when it is yours, read-only and live when it is a crewmate's: the
+ * page body (`SheetView`) decides. The loader hydrates the entity store for all
+ * kinds and SoftLinks so composition mode resolution (and linked-entity rails)
+ * works synchronously in Sheet.tsx.
  *
  * Unknown kinds throw TanStack's notFound() and render the styled
  * SheetKindNotFound component (plan 2.8) instead of an unstyled router error.
@@ -14,8 +15,8 @@
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
-import { Sheet } from '../../../components/sheet/Sheet'
 import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
+import { SheetView } from '../../../components/sheet/SheetView'
 import type { EntityRef } from '../../../lib/schemas/entity'
 import { useEntityStore } from '../../../stores/entityStore'
 
@@ -74,5 +75,5 @@ function SheetPage() {
   // The loader already 404s unknown kinds; this re-narrow keeps it cast-free.
   if (!isSheetKind(kind)) return <SheetKindNotFound />
 
-  return <Sheet kind={kind} id={id} />
+  return <SheetView kind={kind} id={id} />
 }

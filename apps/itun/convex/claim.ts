@@ -85,9 +85,9 @@ async function appIdTaken(
  *    `gameId`, naming a Game that has never existed. This is somebody's own
  *    pre-account build and it must be migrated.
  *  - a Game the caller **left**, was removed from, or that was destroyed.
- *    `GameRoster.ensureLocal` adopts crewmates' pilots and the communal crawler
- *    into IndexedDB on open, and `rowMayBePruned` never prunes a Game row, so
- *    those copies outlive the membership. Migrating one would shelve **another
+ *    `WiringSync` caches the communal crawler (and earlier builds adopted
+ *    crewmates' pilots on open), and `rowMayBePruned` never prunes a Game row,
+ *    so those copies outlive the membership. Migrating one would shelve **another
  *    player's character into the caller's account** — and for an unclaimed
  *    pre-gen, which carries no `appId` for `appIdTaken` to catch, it would
  *    actually insert it.

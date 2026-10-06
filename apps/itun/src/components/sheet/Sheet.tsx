@@ -42,7 +42,7 @@ import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
-import type { SheetPatch } from './sheetViewProps'
+import type { SheetPatch, WithheldUnit } from './sheetViewProps'
 
 // Re-exported so existing consumers (tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -119,7 +119,24 @@ type SheetProps = {
    * would surface in the Linked Units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
+  /**
+   * Entities the viewer may read but not edit — a Game's crewmates, from
+   * `listForGame` (`readOnlySheetStore.ts`). Linked units the store does not
+   * hold resolve through it, so your crawler lists its whole crew and your
+   * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
+   * what only this holds (`holds` in `sheetViewProps.ts`).
+   */
+  others?: EntityLookup
+  /** Where a linked unit's View goes; the live sheet route when omitted. */
+  hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
+  /** Linked units to name without reading — a public sheet's private assignments. */
+  withheld?: readonly WithheldUnit[]
 }
+
+/** The live sheet route: one address per entity, editable or read-only by who is looking. */
+const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/${kind}/${id}`
+
+const NONE_WITHHELD: readonly WithheldUnit[] = []
 
 export function Sheet({
   kind,
@@ -130,6 +147,9 @@ export function Sheet({
   readOnly: readOnlyProp = false,
   back = { href: '/', label: 'Roster' },
   pilotAbilities,
+  others,
+  hrefFor = liveSheetHref,
+  withheld = NONE_WITHHELD,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
@@ -153,18 +173,29 @@ export function Sheet({
   const writesBlocked = !canWrite && !settling
   const readOnly = readOnlyProp || writesBlocked
 
-  const lookup: EntityLookup = entityStore ?? {
+  const own: EntityLookup = entityStore ?? {
     get: (type, entityId) => storeState.get(type, entityId),
   }
+  const lookup: EntityLookup = others
+    ? { get: (type, entityId) => own.get(type, entityId) ?? others.get(type, entityId) }
+    : own
+  const holds = (type: EntityRef['type'], entityId: string) => own.get(type, entityId) !== null
   const links = softLinkStore ? softLinkStore.softLinks : storeState.softLinks
 
-  const composition = resolveSheetComposition({
+  const linked = resolveSheetComposition({
     kind,
     id,
     links,
     store: lookup,
   })
-  const resolved = resolveSheetEntity(lookup, kind, id)
+  // A crawler's Hold trades cargo with its first docked mech, so that has to be
+  // one this sheet can write — a crewmate's mech docked alongside is listed on
+  // the rail, never offered as a transfer target.
+  const composition =
+    kind === 'crawler' && others
+      ? { ...linked, mech: linked.crawlerMechs.find((m) => holds('mech', m.id)) ?? null }
+      : linked
+  const resolved = resolveSheetEntity(own, kind, id)
 
   if (!resolved) {
     // Styled not-found with an exit path — this is the most-visited surface
@@ -256,32 +287,18 @@ export function Sheet({
 
   // Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — wired sheets
   // only; each present counterpart gets a segment, the viewed kind is active.
+  // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   let segments: LiveSheetSegment[] | undefined
   if (wired) {
     segments = []
-    if (composition.pilot) {
-      segments.push({
-        key: 'pilot',
-        label: 'Pilot',
-        href: `/sheet/pilot/${composition.pilot.id}`,
-        active: kind === 'pilot',
-      })
-    }
-    if (composition.mech) {
-      segments.push({
-        key: 'mech',
-        label: 'Mech',
-        href: `/sheet/mech/${composition.mech.id}`,
-        active: kind === 'mech',
-      })
-    }
-    if (composition.crawler) {
-      segments.push({
-        key: 'crawler',
-        label: 'Crawler',
-        href: `/sheet/crawler/${composition.crawler.id}`,
-        active: kind === 'crawler',
-      })
+    const counterparts = [
+      { key: 'pilot', label: 'Pilot', unit: composition.pilot },
+      { key: 'mech', label: 'Mech', unit: composition.mech },
+      { key: 'crawler', label: 'Crawler', unit: composition.crawler },
+    ] as const
+    for (const { key, label, unit } of counterparts) {
+      const href = unit ? hrefFor(key, unit.id) : undefined
+      if (href !== undefined) segments.push({ key, label, href, active: kind === key })
     }
   }
 
@@ -308,6 +325,9 @@ export function Sheet({
     store,
     storeState,
     lookup,
+    holds,
+    hrefFor,
+    withheld,
     patch,
   }
 

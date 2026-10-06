@@ -22,7 +22,7 @@ import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
-import { RailCta } from './SheetRailParts'
+import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
@@ -37,6 +37,9 @@ export function SheetPilot({
   readOnly,
   store,
   storeState,
+  holds,
+  hrefFor,
+  withheld,
   patch,
 }: SheetPilotProps) {
   // Softlink ids for the rail's Unassign control (relocated from the removed
@@ -44,9 +47,13 @@ export function SheetPilot({
   // resolved entities, not the link records. Per the unified edit language,
   // link add/remove is always available on editable sheets (no edit mode), and
   // needs no confirm: an assignment is reversible bookkeeping (ADR-007).
+  // A mech link is undrawn from its mech, so only one this sheet holds offers it
+  // — a crewmate's mech flying this pilot is theirs to unassign.
   const mechLinkId = storeState.softLinks.find(
-    (l) => l.type === 'mech-to-pilot' && l.to.id === pilot.id
+    (l) => l.type === 'mech-to-pilot' && l.to.id === pilot.id && holds('mech', l.from.id)
   )?.id
+  const withheldMech = withheld.find((u) => u.kind === 'mech')
+  const withheldCrawler = withheld.find((u) => u.kind === 'crawler')
   const crawlerLinkId = storeState.softLinks.find(
     (l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id
   )?.id
@@ -81,7 +88,7 @@ export function SheetPilot({
           entityType="mech"
           className="flex-[1_1_0%]"
           name={composition.mech.name}
-          sheetHref={`/sheet/mech/${composition.mech.id}`}
+          sheetHref={hrefFor('mech', composition.mech.id)}
           linkAs={AppLink}
           meta="Assigned Mech"
           metaLine={mechStatusPill(composition.mech).label}
@@ -102,6 +109,8 @@ export function SheetPilot({
           }
           onUnassignClick={unassign(mechLinkId)}
         />
+      ) : withheldMech ? (
+        <WithheldUnitRow unit={withheldMech} label="Assigned Mech" />
       ) : (
         <EntityRow
           empty
@@ -124,7 +133,7 @@ export function SheetPilot({
           entityType="crawler"
           className="flex-[1_1_0%]"
           name={composition.crawler.name}
-          sheetHref={`/sheet/crawler/${composition.crawler.id}`}
+          sheetHref={hrefFor('crawler', composition.crawler.id)}
           linkAs={AppLink}
           meta="Home Crawler"
           stats={rowStats(crawlerRailItems(composition.crawler))}
@@ -142,6 +151,8 @@ export function SheetPilot({
           }
           onUnassignClick={unassign(crawlerLinkId)}
         />
+      ) : withheldCrawler ? (
+        <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
         <EntityRow
           empty
@@ -183,7 +194,13 @@ export function SheetPilot({
           <>
             <DashboardChooser
               initialPilotId={pilot.id}
-              initialMechId={composition.mech?.id}
+              // Only a mech you hold can be launched; a crewmate's flying this
+              // pilot is theirs to take into the Dashboard.
+              initialMechId={
+                composition.mech && holds('mech', composition.mech.id)
+                  ? composition.mech.id
+                  : undefined
+              }
               initialCrawlerId={composition.crawler?.id}
               activeContainer={container}
             />

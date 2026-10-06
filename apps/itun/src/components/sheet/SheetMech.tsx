@@ -33,7 +33,7 @@ import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
-import { RailCta } from './SheetRailParts'
+import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetMechProps = SheetViewCommonProps & {
@@ -57,7 +57,11 @@ export function SheetMech({
   store,
   storeState,
   lookup,
+  hrefFor,
+  withheld,
 }: SheetMechProps) {
+  const withheldPilot = withheld.find((u) => u.kind === 'pilot')
+  const withheldCrawler = withheld.find((u) => u.kind === 'crawler')
   const chassis = resolveChassisRef(mech.chassisRef)
   // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
   // the same piloting context the body sheet uses or the two would disagree.
@@ -124,7 +128,7 @@ export function SheetMech({
           entityType="pilot"
           className="flex-[1_1_0%]"
           name={composition.pilot.name}
-          sheetHref={`/sheet/pilot/${composition.pilot.id}`}
+          sheetHref={hrefFor('pilot', composition.pilot.id)}
           linkAs={AppLink}
           meta="Assigned Pilot"
           stats={rowStats(
@@ -147,6 +151,8 @@ export function SheetMech({
           }
           onUnassignClick={unassign(pilotLinkId)}
         />
+      ) : withheldPilot ? (
+        <WithheldUnitRow unit={withheldPilot} label="Assigned Pilot" />
       ) : (
         <EntityRow
           empty
@@ -169,7 +175,7 @@ export function SheetMech({
           entityType="crawler"
           className="flex-[1_1_0%]"
           name={composition.crawler.name}
-          sheetHref={`/sheet/crawler/${composition.crawler.id}`}
+          sheetHref={hrefFor('crawler', composition.crawler.id)}
           linkAs={AppLink}
           meta="Home Crawler"
           stats={rowStats(crawlerRailItems(composition.crawler))}
@@ -187,6 +193,8 @@ export function SheetMech({
           }
           onUnassignClick={unassign(crawlerLinkId)}
         />
+      ) : withheldCrawler ? (
+        <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
         <EntityRow
           empty

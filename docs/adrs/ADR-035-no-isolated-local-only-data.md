@@ -177,9 +177,9 @@ is not a container.
 the split is forced rather than chosen. "A Game the account is not in" is
 ambiguous two ways, and they need opposite handling: a phantom Workspace id is
 the caller's own build and must be migrated, while a Game the caller **left** is
-somebody else's — `GameRoster.ensureLocal` adopts a crewmate's pilot into
-IndexedDB the moment you open their sheet, and `rowMayBePruned` never prunes a
-Game row, so that copy outlives the membership.
+somebody else's — `GameRoster.ensureLocal` (since removed) adopted a crewmate's
+pilot into IndexedDB the moment you opened their sheet, and `rowMayBePruned`
+never prunes a Game row, so that copy outlives the membership.
 
 The client cannot tell those apart and must not guess: shelving the second moves
 another player's character into this account, and for an unclaimed pre-gen —

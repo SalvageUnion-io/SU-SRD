@@ -34,7 +34,7 @@ import { changedFields, freshEntity } from './controlPrimitives'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
-import { RailCta } from './SheetRailParts'
+import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
@@ -52,6 +52,10 @@ export function SheetCrawler({
   readOnly,
   store,
   storeState,
+  lookup,
+  holds,
+  hrefFor,
+  withheld,
   patch,
 }: SheetCrawlerProps) {
   // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges (R-4).
@@ -166,22 +170,29 @@ export function SheetCrawler({
   // Each docked mech still carries its own pilot when it has one: its Max SP
   // depends on that pilot's abilities (Beefcake, ADR-029), so dropping the
   // pilot here would make this rail read a lower cap than the mech's own sheet.
+  // Read through `lookup`, which also holds crewmates' pilots (a Game's crew).
   const dockedMechs = composition.crawlerMechs.map((mech) => {
     const link = storeState.softLinks.find(
       (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
     )
-    return { mech, pilot: link ? storeState.get('pilot', link.to.id) : null }
+    return { mech, pilot: link ? lookup.get('pilot', link.to.id) : null }
   })
+  const withheldMechs = withheld.filter((u) => u.kind === 'mech')
+  const withheldPilots = withheld.filter((u) => u.kind === 'pilot')
 
   /**
    * Take one pilot off the crew, or one mech out of the bay — the link, never
    * the entity (always available on editable sheets; no confirm, ADR-007).
+   *
+   * Only for one this sheet holds: a link is undrawn from its pilot or mech, so
+   * a crewmate's on the list is theirs to take off, not yours.
    */
   function unassignFrom(type: 'pilot-to-crawler' | 'mech-to-crawler', fromId: string) {
     const linkId = storeState.softLinks.find(
       (l) => l.type === type && l.to.id === crawler.id && l.from.id === fromId
     )?.id
-    return editable && linkId
+    const fromKind = type === 'pilot-to-crawler' ? 'pilot' : 'mech'
+    return editable && linkId && holds(fromKind, fromId)
       ? () => runWrite(() => storeState.delete('softLink', linkId))
       : undefined
   }
@@ -208,7 +219,7 @@ export function SheetCrawler({
 
   const rail = (
     <>
-      {dockedMechs.length > 0 ? (
+      {dockedMechs.length > 0 || withheldMechs.length > 0 ? (
         <>
           {dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
             <EntityRow
@@ -216,7 +227,7 @@ export function SheetCrawler({
               entityType="mech"
               className="flex-[1_1_0%]"
               name={dockedMech.name}
-              sheetHref={`/sheet/mech/${dockedMech.id}`}
+              sheetHref={hrefFor('mech', dockedMech.id)}
               linkAs={AppLink}
               meta="Docked Mech"
               metaLine={mechStatusPill(dockedMech).label}
@@ -225,6 +236,9 @@ export function SheetCrawler({
               )}
               onUnassignClick={unassignFrom('mech-to-crawler', dockedMech.id)}
             />
+          ))}
+          {withheldMechs.map((unit) => (
+            <WithheldUnitRow key={unit.id} unit={unit} label="Docked Mech" />
           ))}
           {/* The bay takes more than one, so the way to dock the next has to
               survive the first — the same trailing slot the crew list uses. */}
@@ -263,7 +277,7 @@ export function SheetCrawler({
           }
         />
       )}
-      {composition.crawlerPilots.length > 0 ? (
+      {composition.crawlerPilots.length > 0 || withheldPilots.length > 0 ? (
         <>
           {composition.crawlerPilots.map((crewPilot) => (
             <EntityRow
@@ -271,7 +285,7 @@ export function SheetCrawler({
               entityType="pilot"
               className="flex-[1_1_0%]"
               name={crewPilot.name}
-              sheetHref={`/sheet/pilot/${crewPilot.id}`}
+              sheetHref={hrefFor('pilot', crewPilot.id)}
               linkAs={AppLink}
               meta="Pilot"
               stats={rowStats(
@@ -279,6 +293,9 @@ export function SheetCrawler({
               )}
               onUnassignClick={unassignFrom('pilot-to-crawler', crewPilot.id)}
             />
+          ))}
+          {withheldPilots.map((unit) => (
+            <WithheldUnitRow key={unit.id} unit={unit} label="Pilot" />
           ))}
           {/* A crew of one is not a full crew, so the way to add the second has
               to survive the first. Rendered as the same `empty` EntityRow the

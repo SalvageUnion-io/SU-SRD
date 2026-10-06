@@ -1,15 +1,17 @@
+import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType } from '../src/lib/links/linkRules'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import type { OwnableTable } from './model/entities'
+import type { ContainedRow, OwnableTable } from './model/entities'
 import {
   assignToPrimary,
   crawlerEnteredGame,
   crawlerLeftGame,
   findSoftLink,
+  linkIdOf,
   loadOwnable,
   mutation,
   parseBody,
@@ -17,6 +19,7 @@ import {
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
   resolveLinkEnd,
+  rowsInGame,
   sameContainerRows,
   unsetCrawlerFields,
   writeSoftLink,
@@ -174,9 +177,84 @@ export const listForGame = query({
         body: m.body,
       })),
       crawlers: crawlers.map((c) => ({ _id: c._id, appId: c.appId ?? null, body: c.body })),
-      softLinks: softLinks.map((l) => ({ _id: l._id, from: l.from, to: l.to, type: l.type })),
+      // The same link shape `listWiring` serves, so the read-only sheet store
+      // turns these into local `SoftLink`s through the one adapter
+      // (`softLinkFromServer`) the sync already uses.
+      softLinks: softLinks.map((l) => ({
+        _id: l._id,
+        _creationTime: l._creationTime,
+        gameId: l.gameId,
+        from: l.from,
+        to: l.to,
+        type: l.type,
+      })),
       /** The crawler new crew is assigned to (ADR-037), or null before one exists. */
       primaryCrawlerId: primary?._id ?? null,
+    }
+  },
+})
+
+const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+
+/**
+ * Where one sheet lives and whether the caller may edit it — the question the
+ * live sheet route (`/sheet/$kind/$id`) asks of anything this browser does not
+ * hold, and of anything it does, to learn which Game to read alongside it.
+ *
+ * `id` is what the client addresses an entity by: its app id, or — for a
+ * template-seeded pre-gen, which has none — the id in its body. A Convex row
+ * id is accepted too, because that is what the retired crew-view URL
+ * (`/games/$gameId/view/$kind/$rowId`, still in the Discord bot's replies)
+ * carried; `id` in the answer is always the client's, so the route can put the
+ * canonical address back in the bar.
+ *
+ * Visibility is exactly `listForGame`'s and `listMine`'s together: your own
+ * rows wherever they are, and every row in a Game you belong to. Anything else
+ * — a stranger's shelf, a Game you left — is `null`, the same answer as no row
+ * at all. `gameId` is the Game whose listing renders it, so it is set only for
+ * a Game the caller belongs to. `mayEdit` mirrors the write rules: a pilot or
+ * mech is its owner's (`assertMayWrite`), a crawler in a Game is every
+ * member's (ADR-030 D8).
+ *
+ * Returns `null` rather than throwing when signed out, because a reactive
+ * query that throws takes the route's error boundary with it.
+ */
+export const locate = query({
+  args: { kind: entityRefType, id: v.string() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ id: string; gameId: Id<'games'> | null; mayEdit: boolean } | null> => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) return null
+
+    const rowId = ctx.db.normalizeId(LOCATE_TABLE[args.kind], args.id)
+    let row: ContainedRow | null = rowId === null ? null : await ctx.db.get(rowId)
+    row ??= await resolveLinkEnd(ctx, { type: args.kind, id: args.id }, null)
+    if (row === null) {
+      // A template pre-gen carries no app id, so it is found by its body id in
+      // one of the caller's Games. Body ids repeat across Games seeded from the
+      // same template; the first of the caller's Games to hold one answers.
+      const memberships = await ctx.db
+        .query('memberships')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .collect()
+      for (const { gameId } of memberships) {
+        const seeded = await rowsInGame(ctx, args.kind, gameId)
+        row = seeded.find((r) => r.appId === undefined && linkIdOf(r) === args.id) ?? null
+        if (row !== null) break
+      }
+    }
+    if (row === null) return null
+
+    const mine = (row.ownerId ?? null) === userId
+    const member = row.gameId !== null && (await getMembership(ctx, row.gameId, userId)) !== null
+    if (!mine && !member) return null
+    return {
+      id: linkIdOf(row) ?? args.id,
+      // Only a Game the caller may list: `listForGame` refuses anyone else.
+      gameId: member ? row.gameId : null,
+      mayEdit: mine || args.kind === 'crawler',
     }
   },
 })

@@ -30,7 +30,8 @@
  * **1. Only shelf rows.** A local row absent from `listMine` is ambiguous, and
  * the ambiguity differs by container. `listMine` returns what the caller *owns*,
  * wherever it lives — but a Game's **unclaimed** pre-gens and its communal
- * crawler have no owner at all, and `GameRoster` legitimately caches them. So
+ * crawler have no owner at all, and are legitimately cached (`WiringSync`
+ * caches the crawler; earlier builds cached pre-gens opened from a roster). So
  * anything with a `gameId` is a cached view of somebody else's container and is
  * never pruned. A shelf row is different: `gameId: null` with no owner is the
  * one combination ADR-030 calls invalid, so every shelf row must be owned, and
