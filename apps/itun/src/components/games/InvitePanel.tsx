@@ -10,6 +10,7 @@ import {
   Text,
 } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import type { FunctionReturnType } from 'convex/server'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -49,9 +50,35 @@ function humanUses(usesRemaining: number | null): string {
 const STATUS_TONE = {
   active: 'ok',
   revoked: 'bad',
+  declined: 'warn',
   expired: 'warn',
   exhausted: 'warn',
 } as const
+
+type InviteRow = NonNullable<FunctionReturnType<typeof api.invites.list>>[number]
+
+/**
+ * Who an addressed invite (ADR-038) went to, and whether it got there. A
+ * bearer code has neither, so this is empty for one.
+ */
+function addressMeta(invite: InviteRow): Array<string | null> {
+  const to =
+    invite.target === null
+      ? null
+      : invite.target.kind === 'email'
+        ? `sent to ${invite.target.masked}`
+        : `sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`
+  const via = invite.target?.kind === 'email' ? 'email' : 'DM'
+  const delivery =
+    invite.delivery === null
+      ? null
+      : invite.delivery.state === 'failed'
+        ? `${via} not delivered${invite.delivery.detail === null ? '' : ` (${invite.delivery.detail})`}`
+        : invite.delivery.state === 'queued'
+          ? `${via} sending`
+          : null
+  return [to, delivery]
+}
 
 export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
   const invites = useQuery(api.invites.list, { gameId })
@@ -181,6 +208,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
             }
             meta={[
               invite.label,
+              ...addressMeta(invite),
               invite.role === 'mediator' ? 'Mediator seat' : null,
               invite.requiresApproval ? 'needs approval' : null,
               invite.grantCount > 0 ? `${invite.grantCount} handed over` : null,

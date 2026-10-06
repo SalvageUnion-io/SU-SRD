@@ -103,6 +103,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
+    // The hub's Invitations card (ADR-038); none addressed to this viewer.
+    'invites:forMe': [],
     ...over,
   }
 }

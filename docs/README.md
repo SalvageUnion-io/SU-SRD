@@ -13,6 +13,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | working on the Dashboard                                   | [architecture/dashboard.md](architecture/dashboard.md), ADR-015, ADR-038, [architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (plan)              |
 | sharing a sheet (public sheets; retired snapshot links)    | ADR-032, ADR-036                                                                                                                                                      |
 | working on accounts, Games or the Convex backend           | ADR-030, [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (ops reference)                                                                      |
+| inviting someone by Discord account or email               | ADR-038, `apps/itun/convex/model/invites.ts`                                                                                                                           |
 | assigning pilots, mechs and crawlers to each other         | ADR-037, `apps/itun/src/lib/links/linkRules.ts`                                                                                                                        |
 | working on the Discord bot as a Game client                | [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)                                                                                    |
 | building the NPC Builder                                   | [architecture/npc-builder.md](architecture/npc-builder.md) (plan)                                                                                                      |
@@ -26,7 +27,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 
 ## ADRs
 
-38 ADRs in [`adrs/`](adrs/). Each one's own `## Status` block is authoritative.
+39 ADRs in [`adrs/`](adrs/). Each one's own `## Status` block is authoritative.
 
 | ADR                                                                  | Decision                                                                    |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -68,6 +69,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | [ADR-036](adrs/ADR-036-retire-snapshot-shares.md)                    | Snapshot shares retired; old links redirect to the public sheet if public    |
 | [ADR-037](adrs/ADR-037-assignment-model.md)                          | Assignments (direct links, cardinality, one container) + the primary crawler |
 | [ADR-038](adrs/ADR-038-dashboard-game-surface-shared-play-state.md) | The Dashboard is Game-only, with play state as a seat saved on the Game      |
+| [ADR-039](adrs/ADR-039-targeted-invites.md)                          | Addressed invites — by Discord account, verified by Discord’s signature      |
 
 ## Per-package guidance
 
