@@ -69,8 +69,11 @@ function addressMeta(invite: InviteRow): Array<string | null> {
         ? `sent to ${invite.target.masked}`
         : `sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`
   const via = invite.target?.kind === 'email' ? 'email' : 'DM'
+  // Only while the invite is live: once it is used, declined or revoked, how
+  // the DM or email fared is no longer something to act on — and a send that
+  // never ran because the invite closed first would read "sending" forever.
   const delivery =
-    invite.delivery === null
+    invite.delivery === null || invite.status !== 'active'
       ? null
       : invite.delivery.state === 'failed'
         ? `${via} not delivered${invite.delivery.detail === null ? '' : ` (${invite.delivery.detail})`}`
