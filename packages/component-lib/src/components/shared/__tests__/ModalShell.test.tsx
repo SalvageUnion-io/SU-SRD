@@ -74,4 +74,25 @@ describe('ModalShell', () => {
     const titleEl = Array.from(srOnlyEls).find((el) => el.textContent === 'Accessible Title')
     expect(titleEl).toBeTruthy()
   })
+
+  test('role="alertdialog" renders an alert dialog instead of a dialog', () => {
+    render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Delete Mira Cole?" role="alertdialog">
+        <p>This cannot be undone.</p>
+      </ModalShell>
+    )
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  test('description={null} leaves the description to the children', () => {
+    render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Delete Mira Cole?" description={null}>
+        <p>This cannot be undone.</p>
+      </ModalShell>
+    )
+    // Only the visible stamp and the sr-only Dialog.Title carry the title; the
+    // sr-only Description that would restate it is not rendered.
+    expect(screen.getAllByText('Delete Mira Cole?')).toHaveLength(2)
+  })
 })

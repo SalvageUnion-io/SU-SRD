@@ -1,5 +1,6 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { ConvexError } from 'convex/values'
 
 /**
  * `GameRoster` — the crew roster, connected.
@@ -14,20 +15,47 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
  *  - offering "create" in a Game with no crawler, which the server rejects
  *  - hiding the crawler CTA from the only person who can raise one
  *
+ * And, for every verb that changes who has a build — pick up, offer, copy,
+ * delete, scrap — that it asks first: nothing reaches the server until the
+ * confirm is pressed, Cancel leaves everything as it was, and a failure keeps
+ * the dialog open with a reason.
+ *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  * This component asks for: account.me, games.members, entities.listForGame.
+ * Mutations are recorded by name the same way.
  */
 
+import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { pilotFixture } from '../../__tests__/fixtures'
+
+/** Every mutation the surface ran, by `getFunctionName`, with its args. */
+const mutations: { name: string; args: unknown }[] = []
+/** Set to make the next mutation throw this. */
+let mutationError: unknown = null
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
-const convexMocks = await installConvexMocks()
+const convexMocks = await installConvexMocks({
+  convexReact: {
+    useMutation: (ref: unknown) => async (args: unknown) => {
+      if (mutationError !== null) throw mutationError
+      mutations.push({ name: getFunctionName(ref as never), args })
+    },
+  },
+})
 
 const { GameRoster } = await import('../GameRoster')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { useEntityStore } = await import('../../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
 beforeAll(hydrateStores)
+
+beforeEach(() => {
+  mutations.length = 0
+  mutationError = null
+})
 
 const ME = { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null }
 
@@ -59,6 +87,17 @@ const MY_MECH = {
   appId: 'a-mech',
   ownerId: 'u-me',
   body: { id: 'a-mech', name: 'Iron Mongrel', chassisRef: 'iron-mongrel', currentSP: 12 },
+}
+/**
+ * A crewmate's pilot with a COMPLETE body. A copy goes through
+ * `entityStore.create`, which Zod-parses the body, so the sketch bodies above
+ * would be refused on the way in.
+ */
+const WHOLE_PILOT = {
+  _id: 's-whole',
+  appId: 'a-whole',
+  ownerId: 'u-med',
+  body: pilotFixture({ id: 'a-whole', name: 'Vex Arlo' }),
 }
 const CRAWLER = {
   _id: 's-crawler',
@@ -234,17 +273,143 @@ describe('copy to shelf', () => {
     // first, loudly and in the right place, when somebody makes it.
     expect(screen.queryByRole('button', { name: 'Copy to shelf' })).toBeNull()
   })
+})
 
-  test('it is not a destructive verb, so it does not ask first', async () => {
+/** The names of the pilots this browser holds, to see whether a copy landed. */
+const localPilotNames = () =>
+  useEntityStore
+    .getState()
+    .list('pilot')
+    .map((p) => p.name)
+
+/** Press a row verb and return the confirm it opened. */
+function press(name: string): HTMLElement {
+  fireEvent.click(screen.getByRole('button', { name }))
+  return screen.getByRole('alertdialog')
+}
+
+/** Press the confirm button inside the open dialog, and let the work settle. */
+async function confirmWith(label: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: label }))
+  })
+}
+
+describe('every verb that changes who has a build asks first', () => {
+  test('Offer to the crew says what you give up, and releases nothing until confirmed', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    // Async act: the copy settles its busy/error state from a promise.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy to shelf' }))
-    })
+    const dialog = press('Offer to the crew')
 
-    // Delete opens a danger confirm; copying destroys nothing and its result is
-    // one more build on your shelf, so a modal would guard an undo-by-delete.
-    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(dialog.textContent).toContain('Offer Roach-Boy to the crew?')
+    expect(dialog.textContent).toContain("You'll stop owning Roach-Boy")
+    expect(mutations).toHaveLength(0)
+
+    await confirmWith('Offer to the crew')
+    expect(mutations).toEqual([
+      { name: 'ownership:release', args: { table: 'pilots', entityId: 's-mine' } },
+    ])
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+  })
+
+  test('Copy to shelf says the copy is separate, and copies nothing until confirmed', async () => {
+    // Signed out, so the copy's create stays in the in-memory backend: this
+    // file's Convex client is a stub with no `mutation`, and the backend's auth
+    // state is process-global, so another file can leave it signed in.
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
+    const dialog = press('Copy to shelf')
+
+    expect(dialog.textContent).toContain('Copy Vex Arlo to My stuff?')
+    expect(dialog.textContent).toContain("won't sync back")
+    expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
+
+    await confirmWith('Make a copy')
+    expect(localPilotNames()).toContain('COPY OF Vex Arlo')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+  })
+
+  test('Scrap says it is for everyone and permanent, and scraps nothing until confirmed', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
+    const dialog = press('Scrap')
+
+    expect(dialog.textContent).toContain('Scrap #430 Tenacity?')
+    expect(dialog.textContent).toContain("for everyone in the game and can't be undone")
+    expect(mutations).toHaveLength(0)
+
+    await confirmWith('Scrap')
+    expect(mutations).toEqual([
+      { name: 'entities:removeCrawler', args: { crawlerId: 's-crawler' } },
+    ])
+  })
+
+  test('Delete keeps its cannot-be-undone warning, and deletes nothing until confirmed', async () => {
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    const dialog = press('Delete')
+
+    expect(dialog.textContent).toContain('This cannot be undone.')
+    expect(mutations).toHaveLength(0)
+
+    await confirmWith('Delete')
+    expect(mutations).toEqual([
+      { name: 'entities:remove', args: { table: 'pilots', entityId: 's-mine' } },
+    ])
+  })
+
+  test('Pick up claims nothing until confirmed', async () => {
+    await renderAs(ME, listing({ pilots: [PRE_GEN] }))
+    fireEvent.click(screen.getByRole('button', { name: /Unclaimed/i }))
+    expect(mutations).toHaveLength(0)
+
+    await confirmWith('Pick up')
+    expect(mutations).toEqual([
+      { name: 'ownership:claim', args: { table: 'pilots', entityId: 's-free' } },
+    ])
+  })
+
+  test.each([
+    ['Offer to the crew', MY_PILOT],
+    ['Copy to shelf', MY_PILOT],
+    ['Delete', MY_PILOT],
+  ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
+    await renderAs(ME, listing({ pilots: [pilot] }))
+    const before = localPilotNames()
+    press(verb)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(mutations).toHaveLength(0)
+    expect(localPilotNames()).toEqual(before)
+  })
+
+  test('Cancel on Scrap leaves the crawler alone', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
+    press('Scrap')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(mutations).toHaveLength(0)
+  })
+
+  test('a refusal stays on the dialog, in the words the server chose', async () => {
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    press('Offer to the crew')
+    mutationError = new ConvexError('A build on your shelf is already yours')
+
+    await confirmWith('Offer to the crew')
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toBe('A build on your shelf is already yours')
+  })
+
+  test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
+    press('Scrap')
+    mutationError = new Error('[CONVEX M(entities:removeCrawler)] Server Error')
+
+    await confirmWith('Scrap')
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toBe(
+      '#430 Tenacity could not be scrapped. Try again.'
+    )
   })
 })
 

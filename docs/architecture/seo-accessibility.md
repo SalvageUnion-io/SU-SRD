@@ -241,7 +241,7 @@ Keyboard: ArrowDown/ArrowUp navigate, Enter opens, Escape closes, Cmd+K/Ctrl+K f
 </button>
 ```
 
-**Focus management**: Modals (`ModalShell`, built on Base UI's `Dialog` from `@base-ui/react/dialog`) trap focus and restore on close. Search dropdown manages `aria-activedescendant` for virtual focus.
+**Focus management**: Modals (`ModalShell`, built on Base UI's `Dialog` from `@base-ui/react/dialog`) trap focus and restore on close. Confirms go through `ConfirmDialog`, which renders `ModalShell` as Base UI's `AlertDialog` (`role="alertdialog"`, described by its visible body) and starts focus on Cancel for a destructive confirm. Search dropdown manages `aria-activedescendant` for virtual focus.
 
 ### Color Contrast
 

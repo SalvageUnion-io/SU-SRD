@@ -208,7 +208,7 @@ read `src/index.ts` for anything load-bearing:
 - **Types** — `ReferenceEntityControl`, `CardFootMeta`, `ChoiceSelections`, `EntityHrefBuilder`, …
 - **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
 - **Base typography** — `Text`
-- **UI primitives** — `Toaster` / `toast`, `ModalShell`
+- **UI primitives** — `Toaster` / `toast`, `ModalShell`, `ConfirmDialog`
 - **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `Conditions`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Textarea`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Sel`, `KvRow`, `Toggle`, and friends
 - **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `heatDangerFrom` (the running-text `StatLine` was
   absorbed into `Stat` as `orientation="horizontal" surface="plain"`)

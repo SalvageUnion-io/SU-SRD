@@ -1,3 +1,4 @@
+import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { ReactNode, RefObject } from 'react'
@@ -9,13 +10,31 @@ type ModalShellProps = {
   onOpenChange: (open: boolean) => void
   title: string
   subtitle?: string
-  /** sr-only accessibility description */
-  description?: string
+  /**
+   * sr-only accessibility description (defaults to the title).
+   *
+   * `null` means the children render a VISIBLE `Dialog.Description` of their
+   * own, so the popup is described by the text the reader actually sees rather
+   * than by a hidden restatement of it — `ConfirmDialog`'s body does this.
+   */
+  description?: string | null
+  /**
+   * `'alertdialog'` renders Base UI's AlertDialog instead of Dialog:
+   * `role="alertdialog"`, and a backdrop click does NOT dismiss it (Escape and
+   * the × still do), because a confirm has to be answered rather than clicked
+   * past. Reach for it through `ConfirmDialog`, not directly.
+   */
+  role?: 'dialog' | 'alertdialog'
   /**
    * Header tone (ruleset §6): 'action' (pilot blue, the default) for
    * constructive flows, 'danger' (adversary rust) for destructive confirms.
    */
   tone?: 'action' | 'danger'
+  /**
+   * Tailwind max-width class. Defaults to `max-w-3xl`, or `max-w-md` for an
+   * `alertdialog` — the narrow width every confirm in the apps had already
+   * chosen by hand.
+   */
   maxWidth?: string
   align?: 'center' | 'top'
   /** Element to focus when the dialog opens (defaults to base-ui's first
@@ -38,8 +57,9 @@ export function ModalShell({
   title,
   subtitle,
   description,
+  role = 'dialog',
   tone,
-  maxWidth = 'max-w-3xl',
+  maxWidth,
   align = 'center',
   initialFocus,
   bare = false,
@@ -56,17 +76,24 @@ export function ModalShell({
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the Card.
   const overflow = bare ? 'overflow-hidden' : 'overflow-y-auto'
+  const width = maxWidth ?? (role === 'alertdialog' ? 'max-w-md' : 'max-w-3xl')
+
+  // The two roots share every part below — AlertDialog re-exports Dialog's
+  // Portal/Popup/Title/Description/Close — so only the root differs.
+  const Root = role === 'alertdialog' ? AlertDialog.Root : Dialog.Root
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
         <Dialog.Popup
           initialFocus={initialFocus}
-          className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${maxWidth} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
+          className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${width} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
-          <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
+          {description !== null && (
+            <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
+          )}
 
           {bare ? (
             children
@@ -119,6 +146,6 @@ export function ModalShell({
           )}
         </Dialog.Popup>
       </Dialog.Portal>
-    </Dialog.Root>
+    </Root>
   )
 }

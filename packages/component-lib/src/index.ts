@@ -110,6 +110,9 @@ export { Card } from './components/shared/Card'
 export { CatalogTile } from './components/shared/CatalogTile'
 // Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
 export { Colophon } from './components/shared/Colophon'
+// ConfirmDialog — the one "are you sure?": an alert dialog on ModalShell with a
+// pending state, an inline failure line, and focus on Cancel for destructive confirms.
+export { ConfirmDialog } from './components/shared/ConfirmDialog'
 // ControlButtons — the control strip Card's rail renders; public because
 // ITUN's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/shared/ControlButtons'

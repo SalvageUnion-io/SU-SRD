@@ -30,6 +30,7 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
+import { useConfirm } from '../shared/useConfirm'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
@@ -131,6 +132,9 @@ export function Sheet({
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  // The container move's confirm. Owned here, not by the control, because the
+  // control lives in the ⋯ menu, which unmounts on the press that answers it.
+  const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, settling } = useConnection()
 
   // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
@@ -199,7 +203,7 @@ export function Sheet({
   // lives on the rail chip, not here — it's contextual to the link.
   const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
   const containerControl = (
-    <MoveToContainerControl entityType={kind} entityId={id} entity={entity} />
+    <MoveToContainerControl entityType={kind} entityId={id} entity={entity} confirm={confirm} />
   )
   // The per-entity Change Log (provenance) opens from the overflow menu, never
   // inline on the sheet body (ADR-022). Its open-state lives here, on the
@@ -340,6 +344,7 @@ export function Sheet({
             open={shareOpen}
             onOpenChange={setShareOpen}
           />
+          {confirmDialog}
         </>
       )}
     </>

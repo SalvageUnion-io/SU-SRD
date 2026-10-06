@@ -11,9 +11,11 @@
  *
  * Delete flow:
  *   1. User clicks "Delete" on an EntityRow.
- *   2. An inline danger-tone ModalShell confirm opens.
+ *   2. The shared danger-tone confirm opens (`useConfirm` → component-lib
+ *      `ConfirmDialog`, words from `lib/games/rowActionCopy.ts`).
  *   3. User confirms → entityStore.delete() is called, entity removed from
- *      listing immediately (Zustand in-memory update is synchronous).
+ *      listing immediately (Zustand in-memory update is synchronous). A failed
+ *      delete keeps the dialog open with the reason.
  */
 
 import type { EntityRowStat } from 'component-lib'
@@ -23,7 +25,6 @@ import {
   cn,
   EmptyState,
   EntityRow,
-  ModalShell,
   PageShell,
   RosterSkeleton,
   Stat,
@@ -43,6 +44,7 @@ import { resolveClassName } from '../../lib/classRef'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerFields } from '../../lib/container'
 import { containerOf, sameContainer } from '../../lib/container'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { readReference } from '../../lib/readReference'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
@@ -55,6 +57,7 @@ import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { AppLink } from '../shared/AppLink'
+import { useConfirm } from '../shared/useConfirm'
 
 // ---------------------------------------------------------------------------
 // Row-meta helpers
@@ -134,12 +137,6 @@ function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | un
 // Types
 // ---------------------------------------------------------------------------
 
-type DeleteTarget = {
-  type: EntityType
-  id: string
-  name: string
-}
-
 type SegmentKind = 'pilot' | 'mech' | 'crawler'
 
 /**
@@ -170,7 +167,7 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 // ---------------------------------------------------------------------------
 
 export function Roster() {
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
   /** The current container (global, persisted). Only consulted when Connected. */
   const activeContainer = useActiveContainer()
   const { mode } = useConnection()
@@ -323,17 +320,10 @@ export function Roster() {
   }
 
   function openDeleteDialog(type: EntityType, id: string, name: string) {
-    setDeleteTarget({ type, id, name })
-  }
-
-  async function handleConfirmDelete() {
-    if (!deleteTarget) return
-    await useEntityStore.getState().delete(deleteTarget.type, deleteTarget.id)
-    setDeleteTarget(null)
-  }
-
-  function handleCancelDelete() {
-    setDeleteTarget(null)
+    confirm({
+      ...ROW_ACTION_COPY.deleteBuild(name),
+      onConfirm: () => useEntityStore.getState().delete(type, id),
+    })
   }
 
   return (
@@ -551,31 +541,7 @@ export function Roster() {
         )}
       </div>
 
-      {/* Destructive delete confirm — inline danger-tone ModalShell, like the
-          other destructive confirms (WizShell). */}
-      <ModalShell
-        open={deleteTarget !== null}
-        onOpenChange={(next) => {
-          if (!next) handleCancelDelete()
-        }}
-        title={`Delete ${deleteTarget?.name ?? ''}?`}
-        tone="danger"
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
-            This action cannot be undone. {deleteTarget?.name ?? ''} will be permanently removed.
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="compact" onClick={handleCancelDelete}>
-              Cancel
-            </Button>
-            <Button variant="danger" size="compact" onClick={() => void handleConfirmDelete()}>
-              Delete
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
+      {confirmDialog}
     </PageShell>
   )
 }
