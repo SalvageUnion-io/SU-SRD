@@ -34,6 +34,14 @@
  *   - `mode="single"` has one chosen entity and a confirm pair, so it is a
  *     one-line band at every width and keeps the pool at full width.
  * DOM order follows the visual order, so focus order does too.
+ *
+ * NOTHING BELOW A FOLD. The frame is capped at the dynamic viewport and its
+ * body takes what the header leaves, scrolling in it — so on a phone the
+ * results and the selection are always reachable. That only works if the
+ * header itself is bounded, so below 80rem the sub-header is just the search
+ * field and a Filters disclosure (open by default from 40rem, folded on a
+ * phone); open, the facet rows scroll in their own capped panel. From 80rem the
+ * facet rows sit inline, as they always did.
  */
 
 import { ChevronDown } from 'lucide-react'
@@ -205,6 +213,13 @@ export function EntitySearcher({
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
   const [activeTraits, setActiveTraits] = useState<Set<string>>(() => new Set())
   const [status, setStatus] = useState<'all' | 'equipped' | 'available'>('all')
+  const wide = useWideLayout()
+  // Narrow, the facet rows fold behind a Filters disclosure — and on a phone
+  // they start folded: an ability picker's ~30 Tree chips alone outgrow it.
+  const [filtersOpen, setFiltersOpen] = useState(
+    () => typeof window === 'undefined' || window.matchMedia(ROOMY_QUERY).matches
+  )
+  const filtersId = useId()
 
   // Base pool — the whole collection, optionally narrowed, sorted by TL then name.
   const pool = useMemo(() => {
@@ -435,8 +450,8 @@ export function EntitySearcher({
     </FilterRow>
   )
 
-  // Sub-header: the facet rows, with the search field on the final row spaced
-  // OPPOSITE the "Show" facet.
+  // Wide sub-header: the facet rows, with the search field on the final row
+  // spaced OPPOSITE the "Show" facet.
   const floatingSubHeader = (
     <div className="flex w-full flex-col gap-2">
       {facetRowConfigs.map(renderFacetRow)}
@@ -444,6 +459,49 @@ export function EntitySearcher({
         {showRowConfig ? renderFacetRow(showRowConfig) : <span aria-hidden="true" />}
         <div className="w-full sm:w-[280px]">{searchInput}</div>
       </div>
+    </div>
+  )
+
+  // Narrow sub-header: the search field always in reach, the facet rows
+  // (Show included) behind a Filters disclosure whose panel scrolls on its own.
+  // Both are bounded, so the header can never again be taller than the screen.
+  const filterRows = showRowConfig ? [...facetRowConfigs, showRowConfig] : facetRowConfigs
+  const activeFilters =
+    (showTl ? activeTls.size : 0) +
+    (showCat ? activeCats.size : 0) +
+    (showTraits ? activeTraits.size : 0) +
+    (showStatus && status !== 'all' ? 1 : 0)
+  const narrowSubHeader = (
+    <div style={NARROW_SUBHEADER_STYLE}>
+      <div style={SEARCH_ROW_STYLE}>
+        <div style={SEARCH_SLOT_STYLE}>{searchInput}</div>
+        {filterRows.length > 0 && (
+          <Button
+            size="compact"
+            aria-expanded={filtersOpen}
+            aria-controls={filtersId}
+            onClick={() => setFiltersOpen((v) => !v)}
+            style={FILTERS_TOGGLE_STYLE}
+          >
+            Filters
+            {activeFilters > 0 && (
+              <>
+                {' '}
+                <Badge shape="chip" surface="solid">
+                  {activeFilters}
+                </Badge>
+                <span style={VISUALLY_HIDDEN}> active</span>
+              </>
+            )}
+            <ChevronDown aria-hidden="true" style={chevronStyle(filtersOpen)} />
+          </Button>
+        )}
+      </div>
+      {filterRows.length > 0 && (
+        <div id={filtersId} hidden={!filtersOpen} style={FILTER_PANEL_STYLE}>
+          <div style={FILTER_STACK_STYLE}>{filterRows.map(renderFacetRow)}</div>
+        </div>
+      )}
     </div>
   )
 
@@ -492,7 +550,6 @@ export function EntitySearcher({
   )
 
   const single = mode === 'single'
-  const wide = useWideRail()
   const rail = single ? (
     <ChosenBar
       chosenLabel={chosenLabel}
@@ -555,7 +612,9 @@ export function EntitySearcher({
           )}
         </div>
       }
-      subHeader={floatingSubHeader}
+      subHeader={wide ? floatingSubHeader : narrowSubHeader}
+      cardStyle={{ style: FRAME_STYLE }}
+      bodyStyle={BODY_STYLE}
     >
       <div className={cn('su-searcher', single && 'su-searcher--bar')}>
         {railFirst && rail}
@@ -577,22 +636,28 @@ export function EntitySearcher({
  * The width at which the rail stops being a band above the pool and becomes a
  * column beside it. Mirrors the `.su-searcher` media query in
  * styles/index.css — change both or neither. CSS owns the LAYOUT; this only
- * decides what the rail IS at that width (a disclosure, or a plain heading).
+ * decides what the parts ARE at that width: the rail a disclosure or a plain
+ * heading, the facets folded behind Filters or inline in the sub-header.
  */
-const WIDE_RAIL_QUERY = '(min-width: 80rem)'
+const WIDE_QUERY = '(min-width: 80rem)'
 
-function subscribeWideRail(onChange: () => void): () => void {
-  const query = window.matchMedia(WIDE_RAIL_QUERY)
+/** Narrow but roomy — a tablet, either way up: the Filters disclosure starts
+ * OPEN. A phone, in portrait (too narrow) or landscape (too short), starts it
+ * folded. Only the initial state — not a layout breakpoint. */
+const ROOMY_QUERY = '(min-width: 40rem) and (min-height: 40rem)'
+
+function subscribeWide(onChange: () => void): () => void {
+  const query = window.matchMedia(WIDE_QUERY)
   query.addEventListener('change', onChange)
   return () => query.removeEventListener('change', onChange)
 }
 
-const isWideRail = () => window.matchMedia(WIDE_RAIL_QUERY).matches
+const isWide = () => window.matchMedia(WIDE_QUERY).matches
 
 /** The server snapshot is the band — the narrow default, like MasonryColumns'
  * one-column SSR snapshot — so a server render never commits to the column. */
-function useWideRail(): boolean {
-  return useSyncExternalStore(subscribeWideRail, isWideRail, () => false)
+function useWideLayout(): boolean {
+  return useSyncExternalStore(subscribeWide, isWide, () => false)
 }
 
 /**
@@ -614,6 +679,44 @@ function useAnnouncement(message: string): string {
 
 // Static properties only — every property that changes with the breakpoint
 // lives in the `.su-searcher*` classes (the split rule; see styles/index.css).
+
+/**
+ * The frame never exceeds the DYNAMIC viewport (less the bare popup's 2rem
+ * margins and any safe-area inset), so its body — allowed to shrink by
+ * `BODY_STYLE` — always gets the room left under the header, and scrolls in
+ * it. `dvh`, not `vh`: on a phone `100vh` is the toolbar-hidden height, which
+ * would put the frame's foot under the browser chrome. The bare popup's own cap
+ * is `100vh - 4rem`, so this one is never the larger of the two.
+ */
+const FRAME_STYLE = {
+  maxHeight:
+    'calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+} satisfies CSSProperties
+const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
+
+const NARROW_SUBHEADER_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+  width: '100%',
+} satisfies CSSProperties
+const SEARCH_ROW_STYLE = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+const SEARCH_SLOT_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
+const FILTERS_TOGGLE_STYLE = { flexShrink: 0 } satisfies CSSProperties
+/** Open, the facet rows scroll inside their own panel rather than growing the
+ * header, so open filters never take more than 40% of the screen. No `display`
+ * here: the panel folds with the `hidden` attribute. */
+const FILTER_PANEL_STYLE = { maxHeight: '40dvh', overflowY: 'auto' } satisfies CSSProperties
+const FILTER_STACK_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+  paddingBottom: space[4],
+} satisfies CSSProperties
 
 /** `isolation` keeps a pool card's own stacking (a hovered card's z-10, a
  * seam stamp's z-30) inside the pool, so the sticky band always paints over it. */

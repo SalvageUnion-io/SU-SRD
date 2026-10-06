@@ -33,8 +33,10 @@ export default {
  * selection rail — which never sits over the results. Narrower than 80rem the
  * rail is a sticky band above the pool (collapsed: the count; expanded: the
  * chosen heads and their Remove buttons); from 80rem it is a scrolling column
- * to the pool's right. Resize the story across 1280px to see both. This is the
- * one layout — the Catalog modal and every sheet picker use it (in a bare
+ * to the pool's right. Resize the story across 1280px to see both. Below 1280px
+ * the sub-header is only the search field and a Filters disclosure (folded on a
+ * phone), and the frame is capped at the viewport with the body scrolling under
+ * it, so on a phone nothing is pushed below a fold. This is the one layout — the Catalog modal and every sheet picker use it (in a bare
  * ModalShell, at `PICKER_MODAL_WIDTH`, which this frame mirrors).
  */
 export const Default: Story = () => {

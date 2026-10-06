@@ -955,21 +955,30 @@ body {
  * a property with a responsive variant lives here, resting value included).
  * The component's static properties stay on its own style objects.
  *
- * Below 80rem the body is ONE scroll container and the rail is a sticky band at
- * its top: above the results, never over them, and taking nothing from the
- * results' height budget. From 80rem the rail is its own column right of the
- * pool and each column scrolls alone, so neither can cover the other. (The rail
- * used to float over the bottom-right of the pool, where on a phone it hid a
- * third of the results and the body's bottom padding never cleared it.)
+ * THE HEIGHT BUDGET. The searcher's frame is capped at the dynamic viewport
+ * (a style object on its Card), and `.su-searcher` is the body's flex child
+ * that takes whatever the header and sub-header leave — so no part of the
+ * picker can be pushed below a fold that nothing scrolls. (On a phone the
+ * header used to fill the screen and push the results and the selection under
+ * the bare modal popup's `overflow: hidden`.)
  *
- * The breakpoint is mirrored by `WIDE_RAIL_QUERY` in the component, which swaps
- * the band's disclosure for a plain heading at the same width — change both or
- * neither. `--bar` is the single-select picker (chassis, crawler type): one
- * chosen entity and its confirm actions, which stay a band at every width.
+ * Below 80rem the body is ONE scroll container filling that space, and the
+ * rail is a sticky band at its top: above the results, never over them. From
+ * 80rem it is capped at `--su-searcher-cap` as before, the rail is its own
+ * column right of the pool, and each column scrolls alone, so neither can
+ * cover the other. (The rail used to float over the bottom-right of the pool,
+ * where on a phone it hid a third of the results.)
+ *
+ * The breakpoint is mirrored by `WIDE_QUERY` in the component, which at the same
+ * width swaps the band's disclosure for a plain heading and the sub-header's
+ * Filters disclosure for the facet rows inline — change both or neither.
+ * `--bar` is the single-select picker (chassis, crawler type): one chosen
+ * entity and its confirm actions, which stay a band at every width.
  */
 .su-searcher {
   --su-searcher-cap: min(62vh, 640px);
-  max-height: var(--su-searcher-cap);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -988,11 +997,19 @@ body {
 }
 
 @media (min-width: 80rem) {
+  /* `--bar` stays one scroll container; it is only capped, as before. */
+  .su-searcher {
+    max-height: var(--su-searcher-cap);
+  }
+
+  /* `minmax(0, 1fr)`: the row is the container's height, so on a short window
+     — where the frame cap leaves less than `--su-searcher-cap` — both columns
+     shrink with it rather than overflowing it. */
   .su-searcher:not(.su-searcher--bar) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 21rem;
-    max-height: none;
-    overflow: visible;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
   }
 
   .su-searcher:not(.su-searcher--bar) > .su-searcher__pool {
@@ -1024,7 +1041,7 @@ body {
 
 /*
  * The searcher picker modal's width — a value for `ModalShell`'s `maxWidth`,
- * exported as `PICKER_MODAL_WIDTH` (`shared/SheetSection.tsx`). 64rem until the
+ * exported as `PICKER_MODAL_WIDTH` (`shared/pickerModalWidth.ts`). 64rem until the
  * rail becomes a column, then wide enough that the pool keeps two ~430px
  * masonry columns beside it instead of being squeezed to ~315px.
  */

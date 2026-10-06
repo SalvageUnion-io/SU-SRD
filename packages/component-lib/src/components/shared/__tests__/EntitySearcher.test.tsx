@@ -290,6 +290,54 @@ describe('EntitySearcher — the rail on a narrow screen', () => {
   })
 })
 
+describe('EntitySearcher — a phone (390×844)', () => {
+  const initial = { width: window.innerWidth, height: window.innerHeight }
+  // The viewport is process-global (happy-dom's window), so put it back.
+  beforeEach(() => setViewport(390, 844))
+  afterEach(() => setViewport(initial.width, initial.height))
+
+  it('keeps the header short: search in reach, the facet rows folded behind Filters', () => {
+    render(<ControlledEquipment initial={[]} />)
+    expect(screen.getByLabelText('Search')).toBeTruthy()
+    const filters = screen.getByRole('button', { name: /^filters/i })
+    expect(filters.getAttribute('aria-expanded')).toBe('false')
+    const panel = document.getElementById(filters.getAttribute('aria-controls') ?? '')
+    expect(panel?.hidden).toBe(true)
+    expect(screen.queryByRole('group', { name: /filter by tech level/i })).toBeNull()
+
+    fireEvent.click(filters)
+    expect(filters.getAttribute('aria-expanded')).toBe('true')
+    expect(panel?.hidden).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: /equipped only/i }))
+    // Folded again, the toggle still says a filter is applied.
+    fireEvent.click(filters)
+    expect(screen.getByRole('button', { name: 'Filters 1 active' })).toBeTruthy()
+  })
+
+  it('lets the body shrink and scroll under a viewport-capped frame', () => {
+    // The phone bug: the header filled the screen and the bare popup's
+    // `overflow: hidden` left the results and the selection unreachable. The
+    // fix is a chain — frame capped, body allowed to shrink, `.su-searcher` the
+    // scroll container that fills it — and this pins the two links the
+    // component owns (the stylesheet supplies the third).
+    render(<ControlledEquipment initial={[]} />)
+    const scroller = document.querySelector<HTMLElement>('.su-searcher')
+    const body = scroller?.parentElement
+    expect(body?.style.minHeight).toMatch(/^0(px)?$/)
+    expect(rail().parentElement).toBe(scroller ?? null)
+  })
+})
+
+describe('EntitySearcher — a tablet (1024×768)', () => {
+  it('opens Filters by default: there is room for the facet rows', () => {
+    render(<ControlledEquipment initial={[]} />)
+    expect(screen.getByRole('button', { name: /^filters/i }).getAttribute('aria-expanded')).toBe(
+      'true'
+    )
+    expect(screen.getByRole('group', { name: /filter by tech level/i })).toBeTruthy()
+  })
+})
+
 describe('EntitySearcher — the rail on a wide screen', () => {
   const initial = { width: window.innerWidth, height: window.innerHeight }
   // The viewport is process-global (happy-dom's window), so put it back.
@@ -308,6 +356,9 @@ describe('EntitySearcher — the rail on a wide screen', () => {
         budget={{ label: 'Inventory slots', used: 2, max: 5 }}
       />
     )
+    // The facet rows sit inline in the sub-header — no Filters disclosure.
+    expect(screen.queryByRole('button', { name: /^filters/i })).toBeNull()
+    expect(screen.getByRole('group', { name: /filter by tech level/i })).toBeTruthy()
     const region = rail()
     expect(region.querySelector('[aria-expanded]')).toBeNull()
     expect(within(region).getByRole('heading', { name: /equipped/i })).toBeTruthy()

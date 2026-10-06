@@ -224,6 +224,15 @@ describe('Card', () => {
     expect(container.querySelector('.p-0')).toBeNull()
   })
 
+  test('bodyStyle lands on the body band', () => {
+    render(
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>} bodyStyle={{ minHeight: 0 }}>
+        <p>Body</p>
+      </Card>
+    )
+    expect(screen.getByText('Body').parentElement?.style.minHeight).toMatch(/^0(px)?$/)
+  })
+
   test('cardClick control makes entire card clickable in listing mode', () => {
     let clicked = false
     const { container } = render(
