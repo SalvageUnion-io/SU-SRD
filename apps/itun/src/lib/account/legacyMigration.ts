@@ -264,9 +264,9 @@ function unionById<T>(primary: readonly T[], secondary: readonly T[]): T[] {
 /**
  * One bundle from two, `primary` winning on a shared id.
  *
- * For the signed-out banner's "Download all" when the tab holds unsaved work
- * AND the device holds a pre-account roster: the tab's copy of a row is the
- * newer one, so it is the one kept.
+ * For `ExportAllButton`'s `deviceRows`, when the tab holds unsaved work AND the
+ * device holds a pre-account roster: the tab's copy of a row is the newer one,
+ * so it is the one kept.
  */
 export function mergeExportBundles(primary: ExportBundle, secondary: ExportBundle): ExportBundle {
   return {

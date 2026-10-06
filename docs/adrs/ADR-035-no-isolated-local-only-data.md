@@ -18,6 +18,15 @@ Re-affirms [ADR-032](ADR-032-public-read-only-sheets.md) without changing it. A
 migrated build is **not** published: it lands on its owner's own shelf with
 `publicRead` untouched and off.
 
+**Amended 2026-10-06: the signed-out banner was removed at the product owner's
+request.** Signed out, `AccountReconciler` now renders nothing. Read decision 2's
+signed-out sentence ("says what is on the device and offers both doors"), the
+export "beside the sign-in prompt, on every screen", and the consequences that
+describe a count and two doors as history. The signed-in migration is unchanged.
+The Roster's "Download all" still exports this tab's work, but it reads the
+store, not IndexedDB. A signed-out visitor therefore has no way to download a
+pre-account roster still on the device. Those rows are migrated on sign-in.
+
 ## Context
 
 ADR-034 was reported delivered, and its decisions were. Its *invariant* was not.

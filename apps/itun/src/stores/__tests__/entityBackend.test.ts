@@ -160,8 +160,8 @@ describe('backendForMode — the whole rule', () => {
   test('a pre-account roster is migrated, not served', () => {
     // Stated here because this is the test somebody will read when they wonder
     // whether retiring `local` stranded existing players. It did not: the rows
-    // stay in IndexedDB, `AccountReconciler` offers sign-in-or-download while
-    // signed out, and moves them into the account on sign-in.
+    // stay in IndexedDB, and `AccountReconciler` moves them into the account on
+    // sign-in.
     // See `lib/account/__tests__/legacyMigration.test.ts`.
     expect(backendForMode('solo')).toBe('memory')
     expect(backendForMode('connected')).toBe('remote')

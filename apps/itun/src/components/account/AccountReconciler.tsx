@@ -13,18 +13,14 @@
  * not depending on which path it went through. The rule now lives once in
  * `lib/account/reconcile.ts`, and this is its only UI.
  *
- * ## Signed out: say what is at stake, and offer both doors
+ * ## Signed out: render nothing, capture this tab's work
  *
- * The account gate (ADR-034 decision 1), at the moment it means something: a
- * visitor with nothing built is told nothing; once there is work, one banner
- * names what would be lost — this tab's builds, and any rows this device still
- * holds — with one "Download all" covering both and the
- * sign-in beside it. Sign-in is Discord and nothing else, so the download is
- * what keeps this from being a hard wall for somebody without Discord.
- *
- * It is not dismissible. It states a fact about the session, and a dismissed
- * banner would leave somebody believing their build was saved because nothing
- * on screen said otherwise.
+ * Signed out this shows nothing. Its whole job there is the capture below, so
+ * a later sign-in has this tab's work to send. The signed-out banner that once
+ * named the unsaved work, with a "Download all" and a sign-in beside it, was
+ * removed at the product owner's request (2026-10-06). What a signed-out
+ * player still sees is the Roster's own durability line and its "Download
+ * all" (`components/roster/Roster.tsx`).
  *
  * ## Signed in: reconcile, once, and say so only if it did not land
  *
@@ -55,36 +51,25 @@
  *
  * Signing OUT does not empty the Zustand caches, so "anonymous" cannot mean
  * "whatever the caches hold while the backend is `memory`": that would capture
- * the account's own rows the instant it signs out, name them as unsaved, and
- * send them — perhaps to a different account — on the next sign-in, where
- * `claimLocal` answers `alreadyPresent` and the error line never clears. Every
+ * the account's own rows the instant it signs out and send them, perhaps to a
+ * different account, on the next sign-in, where `claimLocal` answers
+ * `alreadyPresent` and the error line never clears. Every
  * id the caches hold while signed in is recorded as the account's
  * (`accountIds`), as is every row a pass saves — including the rows that
  * landed in a partial pass — and the capture excludes them.
  * The one exception is a capture still being sent: a failed upload stays this
- * tab's work, and is still named after a sign-out.
+ * tab's work, and is captured again after a sign-out.
  */
 
-import { Button, Text, toast } from 'component-lib'
+import { Button, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
-import {
-  buildLegacyExportBundle,
-  countStranded,
-  selectStranded,
-} from '../../lib/account/legacyMigration'
+import { countStranded, selectStranded } from '../../lib/account/legacyMigration'
 import { setPromotionState } from '../../lib/account/promotionState'
 import type { LocalWork } from '../../lib/account/reconcile'
-import {
-  combineBundles,
-  countWork,
-  reconcile,
-  unsavedWork,
-  withoutIds,
-  workIds,
-} from '../../lib/account/reconcile'
+import { countWork, reconcile, unsavedWork, withoutIds, workIds } from '../../lib/account/reconcile'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
@@ -94,15 +79,12 @@ import {
   probeLegacyLocalData,
   readLegacyLocalData,
 } from '../../lib/db/legacyLocalData'
-import { buildExportBundle } from '../../lib/export/buildExportBundle'
-import { downloadJson } from '../../lib/export/downloadJson'
 import { captureException } from '../../lib/observability'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { backendForMode } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { ShelfSync } from './ShelfSync'
-import { SignInControl } from './SignInControl'
 
 /** "3 builds" / "1 build". Plain, because it is being read in a warning. */
 function builds(n: number): string {
@@ -139,9 +121,9 @@ function useDeviceRows(): DeviceRows | null {
 }
 
 /**
- * This tab's work, subscribed so the banner appears with the first build and
- * the capture is current at the instant of sign-in. `s.mechPatterns`, not
- * `s.list()`: a selector returning a fresh array every read re-renders forever.
+ * This tab's work, subscribed so the capture is current at the instant of
+ * sign-in. `s.mechPatterns`, not `s.list()`: a selector returning a fresh
+ * array every read re-renders forever.
  */
 function useSessionWork(): LocalWork {
   const pilots = useEntityStore((s) => s.list('pilot'))
@@ -153,75 +135,6 @@ function useSessionWork(): LocalWork {
   return useMemo(
     () => ({ pilots, mechs, crawlers, softLinks, mechPatterns, encounterNpcs }),
     [pilots, mechs, crawlers, softLinks, mechPatterns, encounterNpcs]
-  )
-}
-
-/** The sign-in / download sentence, naming only what is on screen. */
-function closingLine(session: number, onDevice: number): string {
-  const download = session + onDevice === 1 ? 'it' : 'them all'
-  if (onDevice === 0) {
-    return `Sign in to keep ${session === 1 ? 'it' : 'them'} in your account — or download ${download}.`
-  }
-  const save = session > 0 ? 'save this tab’s work and ' : ''
-  return `Sign in to ${save}bring anything missing into your account — or download ${download}.`
-}
-
-/** The signed-out banner. One statement, one download, one sign-in. */
-function AnonymousNotice({ session, device }: { session: number; device: DeviceRows | null }) {
-  const [busy, setBusy] = useState(false)
-  const onDevice = device === null ? 0 : countWork(device)
-
-  async function downloadAll() {
-    setBusy(true)
-    try {
-      const sessionBundle = session > 0 ? await buildExportBundle(useEntityStore.getState()) : null
-      const deviceBundle = device === null ? null : buildLegacyExportBundle(device)
-      const bundle = combineBundles(sessionBundle, deviceBundle)
-      if (bundle === null) return
-      const date = new Date().toISOString().slice(0, 10)
-      downloadJson(`itun-backup-${date}.json`, bundle)
-      toast.success('Backup downloaded.')
-    } catch (err) {
-      captureException(err)
-      toast.error('That could not be downloaded.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="border-b-2 border-ink bg-paper px-4 py-3" role="status">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
-        <Text>
-          {session > 0 && (
-            <>
-              <strong>{builds(session)} not saved.</strong> Everything built here lives in this tab
-              only — closing it loses the lot.{' '}
-            </>
-          )}
-          {/* Describes the DEVICE, and says no more than it can know. Signed
-              out there is no `listMine` to compare against, and the probe
-              reports `present` for any non-empty store — a returning player's
-              own account cache included — so this names neither provenance
-              ("from before accounts") nor a count missing from an account. */}
-          {onDevice > 0 && (
-            <>
-              <strong>
-                This device {session > 0 ? 'also ' : ''}holds {builds(onDevice)}.
-              </strong>{' '}
-            </>
-          )}
-          {closingLine(session, onDevice)}
-        </Text>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Both ways out, side by side. Neither is the "cancel". */}
-          <Button size="compact" disabled={busy} onClick={() => void downloadAll()}>
-            {busy ? 'Exporting…' : 'Download all'}
-          </Button>
-          <SignInControl />
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -488,23 +401,20 @@ export function AccountReconciler() {
   const epoch = useRef(0)
   const [failure, setFailure] = useState<Failure>(NO_FAILURE)
 
-  // Read in render so the banner's count and the capture agree. A ref, not
-  // state: it only grows while signed in, when this value is not rendered.
-  const anonymous = backend === 'memory' ? withoutIds(session, accountIds.current) : session
-
   useEffect(() => {
     if (backend === 'memory') {
+      const anonymous = withoutIds(session, accountIds.current)
       sessionWork.current = countWork(anonymous) > 0 ? anonymous : null
       return
     }
     // Signed in (or blocked): whatever the caches hold is the account's —
     // except a capture still being sent, which stays this tab's work until it
-    // lands (a failed upload must still be named after signing out).
+    // lands (a failed upload must still be captured after signing out).
     const pending = sessionWork.current === null ? null : workIds(sessionWork.current)
     for (const id of workIds(session)) {
       if (pending === null || !pending.has(id)) accountIds.current.add(id)
     }
-  }, [backend, session, anonymous])
+  }, [backend, session])
 
   // Signing out ends everything the last sign-in started. The error line and
   // the prune guard describe THAT account's passes; kept, they would stop the
@@ -519,14 +429,10 @@ export function AccountReconciler() {
     setPromotionState('idle')
   }, [backend])
 
-  if (backend === 'memory') {
-    const n = countWork(anonymous)
-    if (n === 0 && device === null) return null
-    return <AnonymousNotice session={n} device={device} />
-  }
-
-  // `blocked` is Disconnected or mid-handshake: no writes, so no reconciling —
-  // and a build with no Convex URL mounts no provider for the hooks below.
+  // Signed out (`memory`) there is nothing to show: the capture above is the
+  // whole job. `blocked` is Disconnected or mid-handshake: no writes, so no
+  // reconciling — and a build with no Convex URL mounts no provider for the
+  // hooks below.
   if (backend !== 'remote' || !isConvexConfigured) return null
   return (
     <SignedInReconciler
