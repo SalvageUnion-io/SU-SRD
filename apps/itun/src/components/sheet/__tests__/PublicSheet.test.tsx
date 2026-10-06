@@ -9,14 +9,13 @@
  * `/p/` page; a private one fills its slot as "Not shared", and nothing more.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { PublicSheet } from '../PublicSheet'
 
 beforeAll(hydrateStores)
-afterEach(cleanup)
 
 const PILOT = pilotFixture({ id: 'p1', name: 'Kestrel Vance' })
 
