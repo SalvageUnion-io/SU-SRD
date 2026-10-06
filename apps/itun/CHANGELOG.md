@@ -2,6 +2,14 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.20.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.19.0...itun-v1.20.0) (2026-10-06)
+
+
+### Features
+
+* **bot:** /su invite [@user](https://github.com/user), verified by Discord's own signature (ADR-039, 2/2) ([#1046](https://github.com/SalvageUnion-io/SU-SRD/issues/1046)) ([ec6d255](https://github.com/SalvageUnion-io/SU-SRD/commit/ec6d255afc552218cfbcc63512e46e521c4e02a7))
+* **itun:** invites addressed to a Discord account (ADR-039, 1/2) ([#1045](https://github.com/SalvageUnion-io/SU-SRD/issues/1045)) ([d31b0ab](https://github.com/SalvageUnion-io/SU-SRD/commit/d31b0ab2af06112c51e703cf7769b5c72c8571bc))
+
 ## [1.19.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.18.2...itun-v1.19.0) (2026-10-06)
 
 
