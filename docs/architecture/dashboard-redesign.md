@@ -82,12 +82,16 @@ seats: defineTable({
   ),
   range: v.union(/* 'Close' | 'Medium' | 'Long' | 'Far' */),
   activeEffects: v.array(v.string()), // refs that are switched on
-  resolving: v.union(v.null(), v.object({ /* action ref, step, roll */ })),
   updatedAt: v.number(),
+  // added in layer 6, as v.optional(...): every existing row still validates
+  // resolving: { action ref, step, roll }
 })
-  .index('by_game', ['gameId'])
+  // gameId alone is a prefix: the crew's seats in one read
   .index('by_game_pilot', ['gameId', 'pilotId'])
 ```
+
+Layer 1 built this (#1051). `resolving` is left to layer 6, whose display
+tabs define its shape, rather than guessed now.
 
 - **Source of truth** is a Zod schema in `apps/itun/src/lib/schemas/seat.ts`.
   `RangeBand` moves there from `dashboardRules.ts`. A parity test in the

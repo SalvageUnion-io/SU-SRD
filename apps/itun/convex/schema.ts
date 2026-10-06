@@ -97,6 +97,23 @@ const changeLogState = v.union(
   v.literal('superseded')
 )
 
+/**
+ * Mirrors `RANGE_BANDS` (src/lib/schemas/seat.ts) — ADR-038. Exported for
+ * `test/convex/seatSchemaParity.test.ts`, which keeps the two in step.
+ */
+export const seatRange = v.union(
+  v.literal('Close'),
+  v.literal('Medium'),
+  v.literal('Long'),
+  v.literal('Far')
+)
+
+/** Mirrors `SeatMountSchema` (src/lib/schemas/seat.ts). Exported: see above. */
+export const seatMount = v.union(
+  v.object({ kind: v.literal('foot') }),
+  v.object({ kind: v.literal('boarded'), mechId: v.string() })
+)
+
 export default defineSchema({
   // Auth tables from @convex-dev/auth: authAccounts, authSessions, etc.
   // `users` is extended below with the profile fields the owner chip reads.
@@ -680,6 +697,33 @@ export default defineSchema({
     /** Set once per Downtime so crawler upkeep is spent once, not per member. */
     upkeepSpent: v.boolean(),
   }).index('by_game', ['gameId']),
+
+  /**
+   * A pilot's seat at a Game: the Dashboard's play state, shared with the crew
+   * and saved on the Game (ADR-038 §2). Zod source: `src/lib/schemas/seat.ts`.
+   *
+   * One row per pilot, not per member, so a member covering for an absent
+   * player runs two. The pilot and boarded mech are app ids, like softLink
+   * ends, and mount is never a field on either record. Only someone who may
+   * write the pilot writes its seat; every member reads every seat.
+   *
+   * There is no "in Downtime" column: that is the `downtime` row above. The
+   * action being resolved joins later as an optional field, which every
+   * existing row still validates against.
+   */
+  seats: defineTable({
+    gameId: v.id('games'),
+    /** The pilot's app id. */
+    pilotId: v.string(),
+    mount: seatMount,
+    range: seatRange,
+    /** Refs of the activated contributions that are switched on (ADR-029 §4). */
+    activeEffects: v.array(v.string()),
+    updatedAt: v.number(),
+  })
+    // `gameId` alone is a prefix of this: the crew's seats in one read, and
+    // one pilot's seat by both.
+    .index('by_game_pilot', ['gameId', 'pilotId']),
 
   /** Who is at the table right now. Ephemeral — never folded into an entity. */
 })
