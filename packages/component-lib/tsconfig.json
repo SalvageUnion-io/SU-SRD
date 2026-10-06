@@ -3,13 +3,10 @@
   "compilerOptions": {
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["node", "bun-types"],
 
     /* Bundler mode */
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
     "jsx": "react-jsx"
   },
   // `vite.config.ts` and `.ladle/components.tsx` sat outside this include, so

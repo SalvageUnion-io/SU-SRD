@@ -76,9 +76,3 @@ preload = [
   # ITUN's storage layer is IndexedDB-backed and has no in-memory fallback.
   "fake-indexeddb/auto",
 ]
-
-[test.env]
-# Every workspace bunfig sets this; the root one did not, so a root-level run
-# (including `bun run test:tools`) executed under whatever NODE_ENV happened to
-# be ambient.
-NODE_ENV = "test"

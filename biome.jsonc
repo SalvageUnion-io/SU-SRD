@@ -336,22 +336,6 @@
       }
     },
     {
-      // `noExplicitAny` stays "error" for real source, but ESLint's per-line
-      // `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
-      // comments (~120, almost all in test-mock casts like `as any`) don't
-      // translate to Biome's ignore syntax automatically. Rather than hand-
-      // converting every comment, this consolidates the same intent (tests
-      // may use `any` for mocking) into one pattern-level override.
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "warn"
-          }
-        }
-      }
-    },
-    {
       "includes": ["apps/itun/**", "packages/component-lib/**"],
       "linter": {
         "rules": {
@@ -681,19 +665,10 @@
                   }
                 ]
               }
-            }
-          }
-        }
-      }
-    },
-    {
-      // Same ADR-010 contract, for direct global storage API usage rather
-      // than an import (e.g. `localStorage.setItem(...)` with no import
-      // statement to catch).
-      "includes": ["packages/component-lib/**"],
-      "linter": {
-        "rules": {
-          "style": {
+            },
+            // Same ADR-010 contract, for direct global storage API usage rather
+            // than an import (e.g. `localStorage.setItem(...)` with no import
+            // statement to catch).
             "noRestrictedGlobals": {
               "level": "error",
               "options": {
@@ -735,6 +710,11 @@
       }
     },
     {
+      // Test modules: two relaxations.
+      //
+      // `noExplicitAny` stays "error" for real source; tests may use `any` for
+      // mocking (`as any` casts), so it is "warn" here.
+      //
       // `useComponentExportOnlyModules` is a React Fast Refresh heuristic: it
       // wants a module to export only components so the dev server can hot-swap
       // it. Test modules are never Fast Refresh boundaries — they run under the
@@ -743,13 +723,16 @@
       // catch.
       //
       // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
-      // that sets the rule to "warn", because Biome applies overrides in array
-      // order and the later one wins. Placed with the other test carve-out near
-      // the top of this array, it was silently overridden back to "warn" —
-      // the same ordering trap documented in the not-linted section below.
+      // that sets that rule to "warn", because Biome applies overrides in array
+      // order and the later one wins. Placed near the top of this array, it was
+      // silently overridden back to "warn" — the same ordering trap documented
+      // in the not-linted section below.
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
       "linter": {
         "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn"
+          },
           "style": {
             "useComponentExportOnlyModules": "off"
           }

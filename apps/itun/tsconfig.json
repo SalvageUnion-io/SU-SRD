@@ -8,11 +8,6 @@
     /* Bundler mode */
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "declaration": false,
-    "composite": false,
-    "declarationMap": false,
     "jsx": "react-jsx"
   },
   // `convex/**/*` was absent until now, so the entire Convex backend — auth,
