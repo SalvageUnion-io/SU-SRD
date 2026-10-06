@@ -143,10 +143,13 @@ export const AGGREGATOR = 'quality-checks'
 /**
  * Required status contexts in OTHER workflows, which `needs:` cannot reach.
  * Their workflow files must exist: deleting one while its context is still
- * required leaves every PR waiting on a check that never arrives.
+ * required leaves every PR waiting on a check that never arrives. Each must
+ * also be listed in the `main` ruleset (docs/architecture/ci.md, "Repository
+ * settings"); this check cannot see the ruleset.
  */
 const SEPARATELY_REQUIRED = [
   { context: 'Analyze (javascript-typescript)', workflow: '.github/workflows/codeql.yml' },
+  { context: 'PR title is a conventional commit', workflow: '.github/workflows/pr-title.yml' },
 ] as const
 
 /** Jobs deliberately left out of the gate, each with a reason. Empty, and the bar is high. */

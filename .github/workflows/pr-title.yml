@@ -1,0 +1,53 @@
+name: PR title
+
+# Squash merges make the PR title the commit subject release-please reads
+# (docs/architecture/ci.md, "PR title"). It is its own workflow, not a ci.yml
+# job, because ci.yml does not run on `edited`: a red title fixed in the UI
+# stayed red until someone pushed a commit, and adding `edited` to ci.yml would
+# rerun the whole suite on every title or body edit. Its job name is a required
+# status context in the `main` ruleset, so it runs on every event that moves
+# the head or the title, and never filters itself out: a skipped run would
+# report as a pass.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: PR title is a conventional commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          # types release-please understands, optional (scope), optional ! for a
+          # breaking change, then ": " and a non-empty description.
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .+'
+          if printf '%s' "$TITLE" | grep -qE "$pattern"; then
+            echo "ok: $TITLE"
+            exit 0
+          fi
+          {
+            echo "This PR's title is not a conventional commit, and on a squash-merge repo"
+            echo "the title IS the commit subject that release-please reads."
+            echo ""
+            echo "  got:      $TITLE"
+            echo "  expected: <type>(<optional scope>): <description>"
+            echo "  types:    feat fix docs style refactor perf test build ci chore revert"
+            echo ""
+            echo "  e.g.  fix(deploy): require same-repo push provenance on the deploy gate"
+            echo ""
+            echo "A title that does not match still merges cleanly and silently produces no"
+            echo "changelog entry and no version bump. See ADR-024."
+            echo "Edit the title: this check reruns on its own."
+          } >&2
+          exit 1

@@ -15,7 +15,7 @@ pin, kept equal to `apps/itun/package.json`'s by
 - **Non-majors merge themselves.** Every Monday (00:00–04:00 UTC) Renovate opens
   one PR, "all non-major dependencies", holding every minor, patch and digest
   update. It turns on GitHub auto-merge, so the PR squash-merges once the
-  ruleset's required checks (`CI Success`, CodeQL) pass. The ruleset requires
+  ruleset's required checks (`CI Success`, CodeQL, the PR title) pass. The ruleset requires
   an up-to-date branch, so Renovate rebases the PR whenever `main` moves.
 - **Lockfile maintenance** runs on the 1st of each month: one auto-merged PR
   that re-resolves `bun.lock` within the existing ranges.

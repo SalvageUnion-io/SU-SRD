@@ -1,6 +1,7 @@
 # CI and deploy pipeline
 
-What `.github/workflows/ci.yml` and `deploy-cloudflare.yml` do, and **why** —
+What `.github/workflows/ci.yml`, `pr-title.yml` and `deploy-cloudflare.yml` do,
+the repository settings they rely on, and **why** —
 most of the non-obvious choices below exist because of a specific incident.
 This reasoning used to live inline in `ci.yml` (554 of its 929 lines were
 comments); it moved here in the 2026-09-25 audit (CI-16) so the workflow reads
@@ -18,9 +19,8 @@ it lives in [dependency-management.md](dependency-management.md).
   none). `CI Success` is a required status, so those PRs were not merely
   unchecked — they were unmergeable, with `gh pr checks` reporting "no checks
   reported". CodeQL drops the filter for the same reason.
-- **`merge_group:` is kept dormant.** There is no merge queue on `main` (the
-  ruleset is `deletion`, `non_fast_forward`, `required_linear_history`,
-  `required_status_checks`). If one is ever enabled, its `gh-readonly-queue/**`
+- **`merge_group:` is kept dormant.** The `main` ruleset has no merge queue
+  ("Repository settings" below). If one is ever enabled, its `gh-readonly-queue/**`
   branches fire neither `push` nor `pull_request`, so the trigger must be live on
   `main` *before* the ruleset changes or the queue waits forever for a status
   that cannot arrive. Same for `codeql.yml`.
@@ -189,12 +189,21 @@ advisories into the tree; 4.132.0 no longer does. Keep `compatibility_date` in
 the four `wrangler.jsonc` files at or below the workerd that wrangler
 bundles.
 
-## `pr-title`
+## PR title (`pr-title.yml`)
 
 The repo squash-merges, so the PR title is the commit subject release-please
 reads. A non-conventional title merges cleanly and silently produces no
 changelog entry and no version bump. There is deliberately no commitlint: on a
 squash repo the individual commit subjects never reach `main`.
+
+It is its own workflow, not a `ci.yml` job, because `ci.yml` does not run on
+`pull_request: edited`: as a CI job, a red title fixed in the UI stayed red
+until someone pushed a commit, and adding `edited` to `ci.yml` would rerun the
+whole suite on every title or body edit. `pr-title.yml` runs on `opened`,
+`edited`, `reopened` and `synchronize` with no `if:` and no path filter, since
+its job name, `PR title is a conventional commit`, is a required status
+context: a skipped run would report as a pass, and a missing one would leave
+the PR pending.
 
 The squash body is the PR body (repo setting `squash_merge_commit_message` is
 `PR_BODY`), so `git log` on `main` is the decision record. release-please
@@ -204,21 +213,61 @@ changes the version bump.
 
 ## The aggregate gate — `CI Success`
 
-The job key is `quality-checks`; its `name:` is `CI Success`, the one required
-check (the same name across the fleet's repos). It fails on any `failure` or
+The job key is `quality-checks`; its `name:` is `CI Success`, `ci.yml`'s one
+required check (the same name across the fleet's repos). It fails on any `failure` or
 `cancelled` result and passes on `skipped`.
 
 **Every job must be in its `needs:`** — a job missing from that list still runs
 and goes red but cannot block a merge. `tools/check-workflows.ts` (its `aggregator`
 half) diffs the two lists on every PR.
 
-`needs:` cannot reach other workflows, so CodeQL is required as its own status
-context (`Analyze (javascript-typescript)`). That is why `codeql.yml` has no
-path filter: a filtered-out workflow never reports, and a required context that
-never reports leaves the PR pending forever. If either half changes, change them
-in this order: the trigger live on `main` first, then the ruleset. Do not
-instead poll CodeQL from this job — it races the other workflow, and a poll that
-times out reports green.
+`needs:` cannot reach other workflows, so CodeQL (`Analyze
+(javascript-typescript)`) and the PR title (`PR title is a conventional
+commit`) are required as their own status contexts. That is why neither
+workflow has a path filter: a filtered-out workflow never reports, and a
+required context that never reports leaves the PR pending forever. If either
+half changes, change them in this order: the trigger live on `main` first, then
+the ruleset. Do not instead poll another workflow from this job — it races
+that workflow, and a poll that times out reports green. `workflows`'
+`aggregator` half fails if the workflow behind a separately required context
+(`SEPARATELY_REQUIRED` in `tools/check-workflows.ts`) is deleted.
+
+## Repository settings
+
+These live in GitHub, not in this tree: only the owner can apply them, and no
+gate here can read them. Each is a requirement with the command that checks
+it; a setting that fails its check is a gap, not a choice.
+
+- **The `main` ruleset.** `gh api repos/SalvageUnion-io/SU-SRD/rulesets`, then
+  `gh api repos/SalvageUnion-io/SU-SRD/rulesets/<id>`. It must be `active`,
+  target `~DEFAULT_BRANCH`, have no `bypass_actors`, and hold exactly these
+  rules:
+  - `deletion`, `non_fast_forward` and `required_linear_history`.
+  - `required_status_checks` with `strict_required_status_checks_policy: true`
+    and the three contexts `CI Success`, `Analyze (javascript-typescript)` and
+    `PR title is a conventional commit`, **each with the GitHub Actions
+    `integration_id` (15368)**. A context with no `integration_id` is satisfied
+    by a commit status or check run from any app that can write to the repo.
+  - `code_scanning`, with one `code_scanning_tools` entry: tool `CodeQL`,
+    `security_alerts_threshold: high_or_higher`, `alerts_threshold: errors`. Without it CodeQL reports and
+    never blocks: its required context passes whatever the analysis found.
+  - No `merge_queue` while `merge_group:` stays dormant ("Triggers").
+- **Actions allow-list.** `gh api
+  repos/SalvageUnion-io/SU-SRD/actions/permissions` must report
+  `allowed_actions: selected`, and `.../actions/permissions/selected-actions`
+  must allow GitHub-owned actions plus exactly the third-party actions the
+  workflows use (`dorny/paths-filter@*`, `googleapis/release-please-action@*`,
+  `oven-sh/setup-bun@*`), with `verified_allowed: false`. A PR adding a
+  third-party action says so, and the owner adds it before it merges. SHA
+  pinning stays zizmor's (`actionlint`), since its policy lets `actions/*` and
+  `github/*` ride a tag.
+- **Code scanning setup.** `gh api
+  repos/SalvageUnion-io/SU-SRD/code-scanning/default-setup` must report
+  `state: not-configured`: `codeql.yml` is the advanced setup, and GitHub
+  refuses an advanced upload while default setup is on.
+- **Private vulnerability reporting.** `gh api
+  repos/SalvageUnion-io/SU-SRD/private-vulnerability-reporting` must report
+  `enabled: true`; [`SECURITY.md`](../../SECURITY.md) sends reporters there.
 
 ## Deploy set (`deploy-cloudflare.yml`)
 
