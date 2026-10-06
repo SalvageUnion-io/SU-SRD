@@ -194,10 +194,11 @@ only ever dry-run it.
 Two reads were made cheap by storing something the rows already implied:
 
 - **`games.summary`** — member, pilot and mech counts and the crawler's name,
-  which the Games list shows. `games.listMine` used to derive them by
-  collecting every membership, pilot, mech and crawler of every Game you
-  belong to, and because it is reactive that subscribed the list to every
-  sheet at every one of your tables. The summary is kept current by triggers
+  which `games.listMine` and `games.get` carry (the hub's "End this game"
+  confirm states them). `games.listMine` used to derive them by collecting
+  every membership, pilot, mech and crawler of every Game you belong to, and
+  because it is reactive that subscribed the list to every sheet at every one
+  of your tables. The summary is kept current by triggers
   (`convex-helpers`) on those four tables, registered in
   `convex/model/entities.ts`; they fire only when something arrives, leaves,
   moves or — for the crawler — is renamed, so an HP tick costs nothing. **Every

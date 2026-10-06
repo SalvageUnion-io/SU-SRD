@@ -130,8 +130,9 @@ lists only what would be accepted.
   (`games.setPrimaryCrawler`, "Make primary" on the Game roster); only later
   arrivals go to it. Players may still reassign their own entities to any
   crawler in the Game.
-- The Games list's crawler name, `listForGame`'s `primaryCrawlerId` and the
-  Discord bot's crew board all read the primary (`primaryCrawlerOf`).
+- The Game summary's crawler name (`games.summary`), `listForGame`'s
+  `primaryCrawlerId` and the Discord bot's crew board all read the primary
+  (`primaryCrawlerOf`).
 
 ### Existing data
 
