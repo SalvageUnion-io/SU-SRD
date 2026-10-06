@@ -90,8 +90,8 @@ must track `.bun-version` exactly), **not** lowering the number.
   it; `audit-watch.yml` audits without it, so it stays reported weekly.
 - **Below the gate:** `.github/workflows/audit-watch.yml` runs `bun audit` at
   every severity weekly and keeps one tracking issue open while it reports
-  anything. The watch list is `nanoid`, `fast-uri`, `brace-expansion`,
-  `shell-quote` and `filelist`, the ReDoS class the tree keeps drawing.
+  anything. The watch list is `nanoid`, `fast-uri`, `brace-expansion` and
+  `filelist`, the ReDoS class the tree keeps drawing.
 - **When the audit fails on a transitive dep**, the fix is `bun update <pkg>`
   plus the regenerated `bun.lock`. First look for a parent whose own range
   already admits a fixed version (a dedupe); a floor in `overrides` is the last
