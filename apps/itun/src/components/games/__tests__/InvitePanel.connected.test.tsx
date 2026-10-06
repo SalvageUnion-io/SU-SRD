@@ -216,13 +216,13 @@ describe('answering knocks', () => {
 })
 
 describe('an addressed invite (ADR-038)', () => {
-  test('says who it went to — the handle, or the address masked', () => {
+  test('says which Discord account it went to', () => {
     renderPanel([
       invite({ _id: 'i1', target: { kind: 'discord', name: 'sam' }, usesRemaining: 1 }),
-      invite({ _id: 'i2', code: 'Z9Y8X7W6', target: { kind: 'email', masked: 's••@example.com' } }),
+      invite({ _id: 'i2', code: 'Z9Y8X7W6', target: { kind: 'discord', name: null } }),
     ])
     expect(screen.getByText(/sent to @sam/)).toBeTruthy()
-    expect(screen.getByText(/sent to s••@example\.com/)).toBeTruthy()
+    expect(screen.getByText(/sent to a Discord account/)).toBeTruthy()
   })
 
   test('a failed delivery says so, so the Organizer knows to pass the code on', () => {

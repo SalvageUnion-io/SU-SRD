@@ -6,10 +6,9 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
  * Minting and reading invites, shared by every door that creates one
  * (ADR-030's invite amendment, ADR-038).
  *
- * Three callers mint: `invites.create` (a code from the web), `invites.sendEmail`
- * (a code addressed to an email) and the bot's `/su invite` (a code addressed to
- * a Discord account). They differ in who is asking and how that was proven, and
- * in nothing else — so the rules about what an invite *is* live here once, in
+ * Two callers mint: `invites.create` (a code from the web) and the bot's
+ * `/su invite` (a code addressed to a Discord account). They differ in who is
+ * asking and how that was proven, and in nothing else — so the rules about what an invite *is* live here once, in
  * the same way `model/bot.ts` keeps "who may bind a channel" in one place.
  */
 
@@ -21,9 +20,8 @@ const DAY_MS = 1000 * 60 * 60 * 24
 export const DEFAULT_EXPIRY_MS = DAY_MS * 14
 
 /**
- * An addressed invite lasts a week. It is for one person, who has been told
- * about it directly, so a fortnight would only lengthen the time a forwarded
- * email link stays good.
+ * An addressed invite lasts a week: it is for one person, who has been told
+ * about it directly, so it needs no fortnight of slack.
  */
 export const TARGETED_EXPIRY_MS = DAY_MS * 7
 
@@ -97,12 +95,11 @@ export async function mintInvite(
     target !== undefined ? 1 : (args.usesRemaining ?? (defaultsToSingleUse ? 1 : undefined))
 
   /*
-   * A Discord-addressed invite never needs approval: Discord has already
-   * proven who will redeem it, and the Organizer chose that person. Asking them
-   * to approve the knock would be asking them to confirm their own decision.
-   * An email link can be forwarded, so it keeps the Organizer's choice.
+   * An addressed invite never needs approval: Discord has already proven who
+   * will redeem it, and the Organizer chose that person. Asking them to
+   * approve the knock would be asking them to confirm their own decision.
    */
-  const requiresApproval = target?.kind === 'discord' ? false : (args.requiresApproval ?? false)
+  const requiresApproval = target !== undefined ? false : (args.requiresApproval ?? false)
 
   const now = Date.now()
   const defaultExpiry = target !== undefined ? TARGETED_EXPIRY_MS : DEFAULT_EXPIRY_MS
@@ -161,19 +158,15 @@ export async function discordIdOfUser(ctx: AnyCtx, userId: Id<'users'>): Promise
 }
 
 /**
- * Whether this user may spend this invite, as far as its address is concerned.
- *
- *   - No target: a bearer code. Anyone holding it may.
- *   - Discord: only the account signed in with that snowflake.
- *   - Email: whoever holds the link (ADR-038 chose possession over an address
- *     match, because a player's Discord email is often not the one their
- *     friends know).
+ * Whether this user may spend this invite, as far as its address is concerned:
+ * anyone may spend a bearer code, and only the account signed in with the
+ * addressed snowflake may spend an addressed one.
  */
 export async function mayRedeem(
   ctx: AnyCtx,
   invite: Doc<'invites'>,
   userId: Id<'users'>
 ): Promise<boolean> {
-  if (invite.target?.kind !== 'discord') return true
+  if (invite.target === undefined) return true
   return (await discordIdOfUser(ctx, userId)) === invite.target.discordId
 }

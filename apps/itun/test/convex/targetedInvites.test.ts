@@ -13,10 +13,10 @@ import { testConvex } from './harness'
  * addressed invite is one seat for one person whatever the caller asked for,
  * and nobody can decline on somebody else's behalf.
  *
- * Minting goes through `mintInvite` directly. Its two callers that take a
- * target — the bot's `/su invite` and the email door — prove the Organizer
- * differently, and both are tested in their own suites; this one is about
- * what an addressed invite *is* once it exists.
+ * Minting goes through `mintInvite` directly. Its caller that takes a target —
+ * the bot's `/su invite` — proves the Organizer with Discord's signature and
+ * is tested in `botInvite.test.ts`; this one is about what an addressed invite
+ * *is* once it exists.
  */
 
 type Ctx = ReturnType<typeof testConvex>
@@ -42,7 +42,7 @@ async function seedGame(t: Ctx) {
   return { organizer, gameId }
 }
 
-/** Mint as the Game's Organizer, the way `/su invite` and `sendEmail` do. */
+/** Mint as the Game's Organizer, the way `/su invite` does. */
 async function mint(
   t: Ctx,
   gameId: Id<'games'>,
@@ -60,11 +60,6 @@ async function mint(
 }
 
 const SAM: InviteTarget = { kind: 'discord', discordId: 'snowflake-sam', name: 'sam' }
-const EMAIL: InviteTarget = {
-  kind: 'email',
-  address: 'sam@example.com',
-  masked: 's••@example.com',
-}
 
 describe('a Discord-addressed invite', () => {
   test('seats its addressee', async () => {
@@ -137,47 +132,6 @@ describe('a Discord-addressed invite', () => {
   })
 })
 
-describe('an email-addressed invite', () => {
-  test('is redeemed by whoever holds the link', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    // Their Discord account has nothing to do with the address it was sent to.
-    const holder = await makeUser(t, 'Sam', 'snowflake-unrelated')
-    const invite = await mint(t, gameId, organizer.userId, { target: EMAIL })
-
-    expect((await holder.as.mutation(api.invites.redeem, { code: invite.code })).kind).toBe(
-      'joined'
-    )
-  })
-
-  test('keeps the approval the Organizer chose, because a link can be forwarded', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const holder = await makeUser(t, 'Sam')
-    const invite = await mint(t, gameId, organizer.userId, {
-      target: EMAIL,
-      requiresApproval: true,
-    })
-
-    expect((await holder.as.mutation(api.invites.redeem, { code: invite.code })).kind).toBe(
-      'pending'
-    )
-  })
-
-  test('is still one seat', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const first = await makeUser(t, 'First')
-    const second = await makeUser(t, 'Second')
-    const invite = await mint(t, gameId, organizer.userId, { target: EMAIL })
-
-    await first.as.mutation(api.invites.redeem, { code: invite.code })
-    await expect(second.as.mutation(api.invites.redeem, { code: invite.code })).rejects.toThrow(
-      /used up/
-    )
-  })
-})
-
 describe('preview of an addressed invite', () => {
   test('says how it is addressed, never to whom', async () => {
     const t = testConvex()
@@ -203,16 +157,6 @@ describe('preview of an addressed invite', () => {
     expect((await stranger.as.query(api.invites.preview, { code: invite.code }))?.forYou).toBe(
       false
     )
-  })
-
-  test('an email invite never reveals its address', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const invite = await mint(t, gameId, organizer.userId, { target: EMAIL })
-
-    const preview = await t.query(api.invites.preview, { code: invite.code })
-    expect(preview?.addressed).toBe('email')
-    expect(JSON.stringify(preview)).not.toContain('example.com')
   })
 })
 

@@ -162,7 +162,7 @@ describe('an invite addressed to you (ADR-038)', () => {
   })
 
   test('declining says so and goes nowhere', async () => {
-    renderJoin(preview({ addressed: 'email' }))
+    renderJoin(preview({ addressed: 'discord', forYou: true }))
     fireEvent.click(screen.getByText('Decline'))
     await waitFor(() => expect(screen.getByText(/You declined the invite/)).toBeTruthy())
 

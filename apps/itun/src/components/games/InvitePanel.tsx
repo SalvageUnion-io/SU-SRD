@@ -58,27 +58,24 @@ const STATUS_TONE = {
 type InviteRow = NonNullable<FunctionReturnType<typeof api.invites.list>>[number]
 
 /**
- * Who an addressed invite (ADR-038) went to, and whether it got there. A
+ * Who an addressed invite (ADR-038) went to, and whether its DM got there. A
  * bearer code has neither, so this is empty for one.
  */
 function addressMeta(invite: InviteRow): Array<string | null> {
   const to =
     invite.target === null
       ? null
-      : invite.target.kind === 'email'
-        ? `sent to ${invite.target.masked}`
-        : `sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`
-  const via = invite.target?.kind === 'email' ? 'email' : 'DM'
+      : `sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`
   // Only while the invite is live: once it is used, declined or revoked, how
-  // the DM or email fared is no longer something to act on — and a send that
-  // never ran because the invite closed first would read "sending" forever.
+  // the DM fared is no longer something to act on — and a DM that never went
+  // out because the invite closed first would read "sending" forever.
   const delivery =
     invite.delivery === null || invite.status !== 'active'
       ? null
       : invite.delivery.state === 'failed'
-        ? `${via} not delivered${invite.delivery.detail === null ? '' : ` (${invite.delivery.detail})`}`
+        ? `DM not delivered${invite.delivery.detail === null ? '' : ` (${invite.delivery.detail})`}`
         : invite.delivery.state === 'queued'
-          ? `${via} sending`
+          ? 'DM sending'
           : null
   return [to, delivery]
 }

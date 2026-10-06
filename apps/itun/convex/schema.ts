@@ -265,34 +265,23 @@ export default defineSchema({
 
     /**
      * Who the invite is addressed to (ADR-038). Absent is a bearer code, as
-     * every invite was before. A targeted invite is always single use.
-     *
-     *   - `discord` — redeemable only by the account signed in with this
-     *     snowflake. `name` is the invitee's Discord handle as the bot saw it,
-     *     shown to the Organizer and nobody else.
-     *   - `email` — whoever holds the link may redeem it (possession, not an
-     *     address match). `address` is kept only while the invite is live and
-     *     is cleared to `masked` once it is spent, declined, revoked or expired.
+     * every invite was before. An addressed invite is always single use and is
+     * redeemable only by the account signed in with this Discord snowflake.
+     * `name` is the invitee's Discord handle as the bot saw it, shown to the
+     * Organizer and nobody else.
      */
     target: v.optional(
-      v.union(
-        v.object({
-          kind: v.literal('discord'),
-          discordId: v.string(),
-          name: v.optional(v.string()),
-        }),
-        v.object({
-          kind: v.literal('email'),
-          address: v.optional(v.string()),
-          masked: v.string(),
-        })
-      )
+      v.object({
+        kind: v.literal('discord'),
+        discordId: v.string(),
+        name: v.optional(v.string()),
+      })
     ),
 
     /** The addressee said no. Terminal, like a revoke, and only for a targeted invite. */
     declinedAt: v.optional(v.number()),
 
-    /** Whether the DM or email carrying a targeted invite reached its provider. */
+    /** Whether the `/su invite` DM carrying an addressed invite was delivered. */
     delivery: v.optional(
       v.object({
         state: v.union(v.literal('queued'), v.literal('sent'), v.literal('failed')),
@@ -311,8 +300,7 @@ export default defineSchema({
     .index('by_code', ['code'])
     .index('by_game', ['gameId'])
     .index('by_target_discord', ['target.discordId'])
-    .index('by_source_interaction', ['sourceInteractionId'])
-    .index('by_creator', ['createdBy', 'createdAt']),
+    .index('by_source_interaction', ['sourceInteractionId']),
 
   /** Who actually used which invite — the audit trail revocation alone can't give. */
   inviteRedemptions: defineTable({

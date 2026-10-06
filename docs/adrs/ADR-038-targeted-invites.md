@@ -1,16 +1,17 @@
-# ADR-038: Addressed Invites — by Discord Account and by Email
+# ADR-038: Addressed Invites — by Discord Account
 
 ## Status
 
 **Accepted.** Extends the invite amendment of
 [ADR-030](ADR-030-accounts-games-server-of-record.md) — an invite already
 carries a seat, a hand-out and an optional approval door; it may now also carry
-an **address**. Bearer codes are unchanged and remain the default.
+an **address**: one Discord account. Bearer codes are unchanged and remain the
+default.
 
-Built in three layers, each its own PR: the model and the invitee's side
+Built in two layers, each its own PR: the model and the invitee's side
 (`convex/model/invites.ts`, `invites.redeem` / `decline` / `forMe`, the hub's
-Invitations card); Discord (`/su invite @user`, verified by Discord's own
-signature); email (Resend, from a Convex action).
+Invitations card), then `/su invite @user`, verified by Discord's own
+signature.
 
 ## Context
 
@@ -22,46 +23,41 @@ leave the app to deliver it, nothing records who it was for, a leaked code
 seats whoever finds it, and Sam has no way to say no.
 
 The product wants a formal invite: pick a person, the app delivers it, the
-person accepts or declines.
+person accepts or declines. The audience already lives in Discord, and Discord
+is the only way to sign in, so a person is picked by their Discord account.
 
 ## Decision
 
 ### 1. An address is a column on an invite, not a second invite system
 
-`invites.target` is either `{ kind: 'discord', discordId, name? }` or
-`{ kind: 'email', address?, masked }`. Absent is a bearer code. Everything else
-— the preview, `redeem`, `seat()`, grants, approval, revoke, the redemption
-log — is the same code path whichever door was used, for the reason ADR-030's
-amendment gave for `seat()`: one implementation rather than two that drift.
+`invites.target` is `{ kind: 'discord', discordId, name? }`; absent is a bearer
+code. Everything else — the preview, `redeem`, `seat()`, grants, revoke, the
+redemption log — is the same code path whichever door was used, for the reason
+ADR-030's amendment gave for `seat()`: one implementation rather than two that
+drift.
 
-Every door that mints goes through `model/invites.ts#mintInvite`. The doors
-differ only in how they prove the Organizer (a Convex token; a Discord-signed
-interaction), never in what an invite is.
+Both doors mint through `model/invites.ts#mintInvite`. They differ only in how
+they prove the Organizer (a Convex token; a Discord-signed interaction), never
+in what an invite is.
 
 An addressed invite is:
 
 - **Single use, always.** It is for one person; a second use would be somebody
   else. The Organizer cannot override this.
-- **Good for a week** by default (a bearer code: a fortnight). It has been
-  delivered to the person directly, and a shorter life narrows the window a
-  forwarded email stays good.
+- **Good for a week** by default (a bearer code: a fortnight). It was delivered
+  to the person directly and needs no fortnight of slack.
 - **Declinable** — by its addressee, and only for an addressed invite: a bearer
   code may be meant for a whole table, and one person's no must not close it
   for the rest. Declining is terminal; revoked outranks declined.
 
 ### 2. Who may redeem
 
-- **Discord** — only the account signed in with that snowflake, read from
-  `authAccounts` exactly as `model/bot.ts#userByDiscordId` reads it the other
-  way. The refusal names nobody. **Approval is never required**: Discord has
-  proven who will redeem it, and the Organizer chose that person.
-- **Email** — **whoever holds the link** (possession), not an address match. A
-  player's Discord email is often not the address their friends know, or is
-  not verified at all, and an address match would fail exactly the people the
-  feature is for. Because a link can be forwarded, the Organizer keeps the
-  approval toggle (off by default), and single use plus a week bounds the rest.
+Only the account signed in with that snowflake, read from `authAccounts`
+exactly as `model/bot.ts#userByDiscordId` reads it the other way. The refusal
+names nobody. **Approval is never required**: Discord has proven who will
+redeem it, and the Organizer chose that person.
 
-### 3. Discord: `/su invite @user`, attested by Discord, not asserted by the bot
+### 3. `/su invite @user`, attested by Discord, not asserted by the bot
 
 The bot's bearer credential (`ITUN_BOT_SECRET`) **asserts** a Discord id; the
 [bot-client doc](../architecture/discord-bot-game-client.md) §3 is explicit that
@@ -90,57 +86,36 @@ channel on anyone's behalf.
 an account, the hub shows it to the addressee in an **Invitations** card
 (`invites.forMe`) the next time they open the app. A failed DM costs nothing.
 
-### 4. Email: Resend, from a Convex action
-
-The mutation that creates an email invite schedules an internal action that
-calls Resend's REST API with plain `fetch` — no new dependency — and an
-`Idempotency-Key` of the invite id, then writes the outcome back to
-`delivery`. The invite row and the send are committed together: there is no
-state where an email went out for an invite that does not exist.
-
-Rejected:
-
-- **Cloudflare Email Service** on the ITUN Worker. It needs no API key, but in
-  October 2026 it is still beta, needs Workers Paid, and Convex would have to
-  call the Worker over a new authenticated endpoint — a new shared secret
-  anyway, and a send no longer scheduled atomically with the invite.
-- **Postmark.** Same shape as Resend; nothing here needed its stricter
-  transactional positioning.
-- **The `@convex-dev/resend` component.** Queueing and batching solve a volume
-  this feature will not have, at the cost of a dependency and component tables.
-
-### 5. Privacy
+### 4. Privacy
 
 - **What the invitee sees before accepting** is what a link holder always saw:
   the Game's name, who invited them, the seat, how many characters are waiting,
   the expiry. Never the crew, the members, or entity names — ADR-030 §5
   visibility begins at membership.
-- **No address-book harvesting.** An Organizer types one email address at a
-  time; a Discord invitee is picked with Discord's own `@user` option. No
-  contact import, no guild member listing, no autocomplete across accounts.
-- **An address is kept only while the invite is live.** It is cleared to its
-  masked form (`s•••@example.com`) on redeem, decline, revoke and expiry, and
-  is never shown unmasked, not even to the Organizer who typed it.
-- **No tracking** — Resend's open and click tracking stay off.
-- **A rate limit** on email invites per Organizer per day, so the app cannot be
-  used as a relay to mail strangers.
+- **No address-book harvesting.** An invitee is picked with Discord's own
+  `@user` option. No contact import, no guild member listing, no autocomplete
+  across accounts. Their handle is shown to the Organizer who picked them and
+  to nobody else; the preview says only *that* an invite is addressed.
 
-### 6. Secrets
+### 5. Secrets
 
-The Resend key lives **only** on the Convex deployment, as `RESEND_API_KEY`. It
-is set through `op run` with a committed env file that holds an `op://`
-reference and nothing else, piped to `convex env set` on stdin so it never
-appears in `argv`, a transcript or shell history. The runbook is in
-[accounts-and-games.md](../architecture/accounts-and-games.md). Discord needs no
-new secret: the bot already holds `DISCORD_TOKEN`, and the application's public
-key is public.
+None new. The bot already holds `DISCORD_TOKEN`, which sends the DM, and
+`DISCORD_PUBLIC_KEY` — set on the Convex deployment for the signature check —
+is the application's public key.
+
+## Not adopted: email invites
+
+Inviting by email address (Resend, from a Convex action; the link redeemed by
+whoever holds it) was designed, built and dropped by the product owner in
+favour of Discord only. It would have made the app the holder of addresses
+belonging to people who never signed up, and given Convex its first outbound
+email dependency, for an audience that is already on Discord. The design is in
+the closed PR #1047; if it returns, `target` is where a second kind goes.
 
 ## Consequences
 
-- **The app now holds third-party PII**: the address of somebody who has not
-  signed up. Minimal retention (§5) is the answer, not a footnote.
-- **Convex grows its first outbound call** (the email action) and its first
-  Ed25519 verification. Both run in the default runtime; neither needs Node.
+- **Convex gains its first Ed25519 verification**, in the default runtime; it
+  needs no Node.
 - **The bot's write surface grows by one operation**, and that operation is the
   one the bearer credential cannot reach on its own.
 - An invitee who declines must ask for a new invite to change their mind. That

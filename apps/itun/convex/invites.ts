@@ -32,9 +32,9 @@ import { logOwnershipChange } from './ownership'
  *     grants nothing until the Organizer approves it, which is what a code
  *     posted somewhere public needs, since membership confers read access to
  *     every crewmate's sheet (ADR-030 §5).
- *   - **An address** (`target`, ADR-038). A Discord-addressed invite is
- *     redeemable only by that Discord account; an email-addressed one by
- *     whoever holds its link. Either is single use, and either may be declined.
+ *   - **An address** (`target`, ADR-038). An invite addressed to a Discord
+ *     account is redeemable only by that account, is single use, and may be
+ *     declined by its addressee.
  */
 
 /** Mint an invite for a Game. Administrative, so Organizer only. */
@@ -63,20 +63,13 @@ export const create = mutation({
 })
 
 /**
- * Who an invite is addressed to, as the Organizer's list shows it.
- *
- * Never the snowflake and never the raw address: the handle is what the
- * Organizer picked from Discord's own user picker, and an address is shown
- * masked even while it is still stored, so nothing on this screen is worth
- * more to a shoulder-surfer than it is to the Organizer.
+ * Who an invite is addressed to, as the Organizer's list shows it: the handle
+ * the Organizer picked from Discord's own user picker, never the snowflake.
  */
-function addressOf(
-  invite: Doc<'invites'>
-): { kind: 'discord'; name: string | null } | { kind: 'email'; masked: string } | null {
+function addressOf(invite: Doc<'invites'>): { kind: 'discord'; name: string | null } | null {
   const target = invite.target
   if (target === undefined) return null
-  if (target.kind === 'discord') return { kind: 'discord', name: target.name ?? null }
-  return { kind: 'email', masked: target.masked }
+  return { kind: 'discord', name: target.name ?? null }
 }
 
 /** Every invite for a Game, with its derived status and who has used it. */
@@ -378,9 +371,8 @@ export const redeem = mutation({
  *
  * Only an addressed invite can be declined: a bearer code may be meant for a
  * whole table, and one person saying no must not close it for the rest. The
- * same address rule as `redeem` applies — a Discord invite can be declined
- * only by its addressee, an email one by whoever holds the link — so nobody
- * can decline on somebody else's behalf.
+ * same address rule as `redeem` applies — only the addressee can decline — so
+ * nobody can decline on somebody else's behalf.
  *
  * Declining is terminal; asking again means asking the Organizer for a new
  * invite. Declining twice, or after it lapsed, is a no-op rather than an error.
@@ -411,9 +403,7 @@ export const decline = mutation({
  * Invitations card (ADR-038).
  *
  * This is why a failed DM is not a lost invite: whatever happened in Discord,
- * the addressee finds it here the next time they open the app. Email invites
- * are not listed, because they are redeemed by possession and the app does not
- * know which address is yours.
+ * the addressee finds it here the next time they open the app.
  *
  * Returns the same facts `preview` gives a link holder, plus the code to act
  * on — nothing about the crew, as membership has not begun.
