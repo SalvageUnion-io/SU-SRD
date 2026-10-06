@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { EntityRow } from '../EntityRow'
 
 // Not automatic under bun:test — without it, rows accumulate in the document and
@@ -75,5 +75,42 @@ describe('EntityRow — the game ontology', () => {
   test('the View link points at the game', () => {
     render(<EntityRow entityType="game" name="Union Crawler #430" sheetHref="/games/430" />)
     expect(screen.getByText('View').getAttribute('href')).toBe('/games/430')
+  })
+})
+
+/**
+ * Unassign and Delete are different verbs — one ends an assignment, the other
+ * destroys the entity — so they must not share a control or a name.
+ */
+describe('EntityRow — unassign is not delete', () => {
+  test('Unassign is a labelled button named for the row, and fires its own handler', () => {
+    const onUnassign = mock(() => {})
+    const onDelete = mock(() => {})
+    render(
+      <EntityRow
+        entityType="mech"
+        name="Iron Fist"
+        onUnassignClick={onUnassign}
+        onDeleteClick={onDelete}
+      />
+    )
+    const unassign = screen.getByRole('button', { name: 'Unassign Iron Fist' })
+    expect(unassign.textContent).toContain('Unassign')
+
+    fireEvent.click(unassign)
+    expect(onUnassign).toHaveBeenCalledTimes(1)
+    expect(onDelete).not.toHaveBeenCalled()
+  })
+
+  test('a row with only Unassign shows no Delete, and one with neither shows no Unassign', () => {
+    const { unmount } = render(
+      <EntityRow entityType="pilot" name="Yara Voss" onUnassignClick={() => {}} />
+    )
+    expect(screen.queryByRole('button', { name: /^Delete/ })).toBeNull()
+    unmount()
+
+    render(<EntityRow entityType="pilot" name="Yara Voss" onDeleteClick={() => {}} />)
+    expect(screen.queryByRole('button', { name: /^Unassign/ })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Delete Yara Voss' })).toBeDefined()
   })
 })

@@ -9,7 +9,7 @@
  *
  * SoftLink writes go through the Zustand entityStore (write-through to
  * IndexedDB), reusing the same `softLink` create/delete the wiring components
- * (`useSoftLinks` / AssignPilotToMech) use. Creating/repairing links is
+ * (`useSoftLinks` / `AssignPicker`) use. Creating/repairing links is
  * reversible bookkeeping and auto-applies (ADR-007); nothing destructive to a
  * pilot/mech/crawler record happens here.
  *

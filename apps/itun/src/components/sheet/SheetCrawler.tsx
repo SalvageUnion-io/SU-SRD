@@ -16,6 +16,7 @@
 import { EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
 import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
+import { containerOf } from '../../lib/container'
 import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
@@ -23,7 +24,7 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AppLink } from '../shared/AppLink'
-import { AssignPilotToCrawler } from '../wiring/AssignPilotToCrawler'
+import { AssignPicker } from '../wiring/AssignPicker'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
@@ -172,34 +173,77 @@ export function SheetCrawler({
     return { mech, pilot: link ? storeState.get('pilot', link.to.id) : null }
   })
 
-  /** Unlink one pilot from this crawler (always available on editable sheets). */
-  function unlinkPilot(pilotId: string) {
+  /**
+   * Take one pilot off the crew, or one mech out of the bay — the link, never
+   * the entity (always available on editable sheets; no confirm, ADR-007).
+   */
+  function unassignFrom(type: 'pilot-to-crawler' | 'mech-to-crawler', fromId: string) {
     const linkId = storeState.softLinks.find(
-      (l) => l.type === 'pilot-to-crawler' && l.to.id === crawler.id && l.from.id === pilotId
+      (l) => l.type === type && l.to.id === crawler.id && l.from.id === fromId
     )?.id
     return editable && linkId
       ? () => runWrite(() => storeState.delete('softLink', linkId))
       : undefined
   }
+  // The pickers offer only what lives where this crawler does — its Game, or
+  // My stuff — and never what is already aboard.
+  const self = { type: 'crawler', id: crawler.id } as const
+  const container = containerOf(crawler)
+  const crewPicker = (
+    <AssignPicker
+      subject={self}
+      container={container}
+      pick="pilot"
+      exclude={composition.crawlerPilots.map((p) => p.id)}
+    />
+  )
+  const dockPicker = (
+    <AssignPicker
+      subject={self}
+      container={container}
+      pick="mech"
+      exclude={composition.crawlerMechs.map((m) => m.id)}
+    />
+  )
 
   const rail = (
     <>
       {dockedMechs.length > 0 ? (
-        dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
-          <EntityRow
-            key={dockedMech.id}
-            entityType="mech"
-            className="flex-[1_1_0%]"
-            name={dockedMech.name}
-            sheetHref={`/sheet/mech/${dockedMech.id}`}
-            linkAs={AppLink}
-            meta="Docked Mech"
-            metaLine={mechStatusPill(dockedMech).label}
-            stats={rowStats(
-              mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
-            )}
-          />
-        ))
+        <>
+          {dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
+            <EntityRow
+              key={dockedMech.id}
+              entityType="mech"
+              className="flex-[1_1_0%]"
+              name={dockedMech.name}
+              sheetHref={`/sheet/mech/${dockedMech.id}`}
+              linkAs={AppLink}
+              meta="Docked Mech"
+              metaLine={mechStatusPill(dockedMech).label}
+              stats={rowStats(
+                mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
+              )}
+              onUnassignClick={unassignFrom('mech-to-crawler', dockedMech.id)}
+            />
+          ))}
+          {/* The bay takes more than one, so the way to dock the next has to
+              survive the first — the same trailing slot the crew list uses. */}
+          {editable && (
+            <EntityRow
+              empty
+              entityType="mech"
+              className="flex-[1_1_0%]"
+              roleLabel="Bay"
+              message="Dock another mech."
+              actions={
+                <>
+                  {dockPicker}
+                  <RailCta href="/mechs/new" label="+ Create" />
+                </>
+              }
+            />
+          )}
+        </>
       ) : (
         <EntityRow
           empty
@@ -207,9 +251,16 @@ export function SheetCrawler({
           className="flex-[1_1_0%]"
           roleLabel="Docked Mechs"
           /* Says how a mech actually gets here: by its own assignment to this
-             crawler (ADR-037), made from the mech, not by its pilot joining. */
-          message="No mechs in the bay. Assign a mech to this crawler and it docks here."
-          actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
+             crawler (ADR-037), not by its pilot joining the crew. */
+          message="No mechs in the bay. Dock a mech here — it is assigned on its own, separately from its pilot."
+          actions={
+            editable ? (
+              <>
+                {dockPicker}
+                <RailCta href="/mechs/new" label="+ Create" primary />
+              </>
+            ) : undefined
+          }
         />
       )}
       {composition.crawlerPilots.length > 0 ? (
@@ -226,7 +277,7 @@ export function SheetCrawler({
               stats={rowStats(
                 pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
               )}
-              onDeleteClick={unlinkPilot(crewPilot.id)}
+              onUnassignClick={unassignFrom('pilot-to-crawler', crewPilot.id)}
             />
           ))}
           {/* A crew of one is not a full crew, so the way to add the second has
@@ -243,7 +294,7 @@ export function SheetCrawler({
               message="Bring another pilot aboard."
               actions={
                 <>
-                  <AssignPilotToCrawler crawlerId={crawler.id} />
+                  {crewPicker}
                   <RailCta href="/pilots/new" label="+ Create" />
                 </>
               }
@@ -263,7 +314,7 @@ export function SheetCrawler({
           actions={
             editable ? (
               <>
-                <AssignPilotToCrawler crawlerId={crawler.id} />
+                {crewPicker}
                 <RailCta href="/pilots/new" label="+ Create" primary />
               </>
             ) : undefined
