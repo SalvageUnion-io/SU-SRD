@@ -298,15 +298,16 @@ for rendering) + React 19 islands — see
 - `salvageunion-reference` (workspace:\*) — game data
 - `component-lib` (workspace:\*) — shared components + theme
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
-- `@tanstack/react-router` — routing (and the snapshot route's loader)
+- `@tanstack/react-router` — routing (and the `/s/$id` lookup's loader)
 - `zustand` — write-through entity/container stores (`src/stores/`)
 - `@base-ui/react` — headless UI primitives
 
 Server surfaces: Convex (`apps/itun/convex/`,
 [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)) for signed-in
-users, and the stateless snapshot API the itun Worker serves from R2 (see
-[ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md), amended by ADR-033).
-IndexedDB is the on-device layer.
+users and the public sheet, and the one read left of the retired snapshot API,
+which the itun Worker serves from R2 so old `/s/:id` links can resolve (see
+[ADR-036](../adrs/ADR-036-retire-snapshot-shares.md)). IndexedDB is the
+on-device layer.
 
 ### Tailwind Source Path
 

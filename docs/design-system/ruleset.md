@@ -151,8 +151,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
    Sanctioned patterns today: the `Slab` dashed leader, the **srd catalog tile
    ramps** (`CatalogTile`/`catalogColors` — tech-level and ability-tier bands
-   as a wayfinding cue) and its story, and the snapshot QR placeholder
-   checkerboard. Each is still listed in `tools/rules/designTokens.ts`'s
+   as a wayfinding cue) and its story. Each is still listed in `tools/rules/designTokens.ts`'s
    `EXEMPTIONS` table with a written reason, because the checker matches the
    CSS function and cannot itself tell a hard stop from a blend.
 

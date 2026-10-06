@@ -117,12 +117,12 @@ and contradicted the "no build step" paragraph two sections above.)
 
 - **srd**, **itun**, **su-assets** and **discord-bot** → Cloudflare Workers
   (config in each app's `wrangler.jsonc`), deployed from
-  `.github/workflows/deploy-cloudflare.yml`. ITUN also serves the
-  snapshot-sharing backend as part of its Worker
-  the same Worker — see [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md),
-  whose contract ADR-033 keeps while changing the platform underneath it.
-- Storage is **R2**: `su-itun-snapshots` for shared sheets, `su-lp-assets` for
-  licensed artwork. See [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
+  `.github/workflows/deploy-cloudflare.yml`. ITUN's Worker also keeps the one
+  read left of the retired snapshot shares, so old `/s/:id` links can redirect
+  to a public sheet — see [ADR-036](docs/adrs/ADR-036-retire-snapshot-shares.md).
+- Storage is **R2**: `su-itun-snapshots` for the retired snapshot shares
+  (read-only), `su-lp-assets` for licensed artwork. See
+  [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
 
 ## Monorepo Conventions
 

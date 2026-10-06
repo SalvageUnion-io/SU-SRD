@@ -69,9 +69,6 @@ the corpus size, not just the finding count.
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
 
-ITUN's `woff-to-ttf.ts` (unwraps `@fontsource` WOFF into TTF for the og:image
-renderer) lives with its only consumer, in `apps/itun/scripts/`.
-
 `lib/` holds the shared pieces: `ruleEngine.ts` (the styling engine: walk,
 exemptions, zero/ratchet verdicts), `scanFloor.ts`, `workspaceCoverage.ts`,
 `tailwindClasses.ts` (the Tailwind-file ratchet's detector) and `r2.ts` (a

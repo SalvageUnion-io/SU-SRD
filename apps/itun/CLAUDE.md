@@ -35,20 +35,21 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
   runs them for real. See `e2e/fixtures.ts`.
 
-**Two account-free ways to share, and they are not interchangeable
-([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)):**
+**One account-free way to share: the public sheet
+([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)).** A **live**
+read-only page at `/p/:kind/:appId`, opt-in per entity via the `publicRead`
+Convex column, served by one deliberately unauthenticated query
+(`convex/publicSheet.ts`). Off by default; turning it off revokes everywhere at
+once, because the URL is derived rather than minted.
 
-- **Snapshot** ([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md))
-  — a **frozen** copy, minted per share, stored as an opaque R2 object. Its
-  id is the whole capability, including for revocation. Unchanged.
-- **Public sheet** — a **live** read-only page at `/p/:kind/:appId`, opt-in per
-  entity via the `publicRead` Convex column, addressed by app id, and served by
-  one deliberately unauthenticated query (`convex/publicSheet.ts`). Off by
-  default; turning it off revokes everywhere at once, because the URL is derived
-  rather than minted.
+**Snapshots are retired**
+([ADR-036](../../docs/adrs/ADR-036-retire-snapshot-shares.md)): nothing mints or
+revokes them, and an old `/s/:id` redirects to the public sheet if its entity is
+public, else shows a "retired" page. The R2 bucket is read-only — never delete
+from it.
 
-Both render through `frozenSheet.ts`, which the Game crew view also uses — three
-consumers, one renderer. Don't add a fourth read-only sheet renderer.
+The public sheet renders through `frozenSheet.ts`, as does the Game crew view.
+Don't add another read-only sheet renderer.
 
 ## Stack
 
@@ -221,5 +222,5 @@ bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck
 ```
 
-Deploys to Cloudflare Workers (SPA + the snapshot API in one Worker); config in
+Deploys to Cloudflare Workers (SPA + the `/s/:id` lookup in one Worker); config in
 `wrangler.jsonc`, deployed from `.github/workflows/deploy-cloudflare.yml`.

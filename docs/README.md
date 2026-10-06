@@ -11,7 +11,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | changing how data flows or persists                        | [architecture/data-flow.md](architecture/data-flow.md), ADR-030, ADR-034, ADR-035                                                                                      |
 | deciding where a rule is enforced, or touching combat      | [architecture/rules-engine-boundary.md](architecture/rules-engine-boundary.md), [architecture/combat-loop.md](architecture/combat-loop.md), ADR-021, ADR-007          |
 | working on the Dashboard                                   | [architecture/dashboard.md](architecture/dashboard.md), ADR-015                                                                                                        |
-| sharing a sheet (snapshots, public sheets)                 | ADR-004, ADR-032, [architecture/unified-sheet-surfaces.md](architecture/unified-sheet-surfaces.md) (plan)                                                              |
+| sharing a sheet (public sheets; retired snapshot links)    | ADR-032, ADR-036                                                                                                                                                      |
 | working on accounts, Games or the Convex backend           | ADR-030, [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (ops reference)                                                                      |
 | assigning pilots, mechs and crawlers to each other         | ADR-037, `apps/itun/src/lib/links/linkRules.ts`                                                                                                                        |
 | working on the Discord bot as a Game client                | [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)                                                                                    |
@@ -26,14 +26,14 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 
 ## ADRs
 
-36 ADRs in [`adrs/`](adrs/) (ADR-036 is claimed by a parallel change). Each one's own `## Status` block is authoritative.
+37 ADRs in [`adrs/`](adrs/). Each one's own `## Status` block is authoritative.
 
 | ADR                                                                  | Decision                                                                    |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [ADR-001](adrs/ADR-001-local-first-no-backend.md)                    | Local-first, no backend — superseded by ADR-030                              |
 | [ADR-002](adrs/ADR-002-indexeddb-idb-zod.md)                         | IndexedDB via `idb`, Zod as schema source (a cache since ADR-034)            |
 | [ADR-003](adrs/ADR-003-zustand-hydration.md)                         | Zustand: lazy hydration, write-through, cross-tab invalidation               |
-| [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)                | Snapshot sharing, unauthenticated; amended by ADR-033 (Worker + R2)          |
+| [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)                | Snapshot sharing, unauthenticated — superseded by ADR-036                    |
 | [ADR-005](adrs/ADR-005-reference-data-orm.md)                        | Game-data ORM with lazy loading                                              |
 | [ADR-006](adrs/ADR-006-pure-rules-logic.md)                          | Rules logic as pure functions                                                |
 | [ADR-007](adrs/ADR-007-automation-boundary.md)                       | **Governing** — the automation boundary                                      |
@@ -61,10 +61,11 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | [ADR-029](adrs/ADR-029-contribution-model-and-stat-provenance.md)    | One contribution model for caps, traits and damage + stat provenance         |
 | [ADR-030](adrs/ADR-030-accounts-games-server-of-record.md)           | **Governing** — accounts, Games, ownership, Convex as server of record       |
 | [ADR-031](adrs/ADR-031-srd-vite-ssg.md)                              | `srd` on an in-house Vite SSG                                                |
-| [ADR-032](adrs/ADR-032-public-read-only-sheets.md)                   | Public read-only sheets                                                      |
+| [ADR-032](adrs/ADR-032-public-read-only-sheets.md)                   | Public read-only sheets — the one account-free way to share since ADR-036    |
 | [ADR-033](adrs/ADR-033-cloudflare-hosting.md)                        | Hosting on Cloudflare Workers + R2                                           |
 | [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; IndexedDB is a cache                        |
 | [ADR-035](adrs/ADR-035-no-isolated-local-only-data.md)               | No isolated local-only data; device rows migrate automatically               |
+| [ADR-036](adrs/ADR-036-retire-snapshot-shares.md)                    | Snapshot shares retired; old links redirect to the public sheet if public    |
 | [ADR-037](adrs/ADR-037-assignment-model.md)                          | Assignments (direct links, cardinality, one container) + the primary crawler |
 
 ## Per-package guidance
