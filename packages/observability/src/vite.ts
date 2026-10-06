@@ -25,7 +25,6 @@ import { sentryVitePlugin } from '@sentry/vite-plugin'
  * without one; this covers the blip, not the gap.
  */
 export function warnUploadFailed(error: unknown): void {
-  // biome-ignore lint/suspicious/noConsole: build-time warning — the build log is the interface
   console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
 }
 
