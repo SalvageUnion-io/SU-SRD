@@ -89,8 +89,8 @@ data should be asked for, not defaulted into.
 
 `.mcp.json` runs `bunx convex@1.45.0`, the version `apps/itun/package.json`
 pins (bare `bunx convex` resolves the registry's latest instead), so it works in
-a checkout without `node_modules`. Renovate's regex manager bumps both pins
-together and `tools/__tests__/mcp-config.test.ts` fails if they differ.
+a checkout without `node_modules`. Bump both pins together, by hand;
+`tools/__tests__/mcp-config.test.ts` fails if they differ.
 `--disable-tools envSet,envRemove,run` removes the three write tools from the
 roster; the server enforces that, whatever the session's permission settings.
 

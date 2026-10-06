@@ -1,67 +1,48 @@
 # Dependency management
 
 How dependencies are updated, gated and pinned. Read this before editing
-`package.json`, `bunfig.toml`, `renovate.json` or `overrides`.
+`package.json`, `bunfig.toml`, `.github/dependabot.yml` or `overrides`.
 
-# Updates: Renovate
+# Updates
 
-The hosted Renovate app is the only updater. [`renovate.json`](../../renovate.json)
-enables four managers: `bun` (every `package.json` and `bun.lock`),
-`github-actions` (the workflows and `.github/actions/setup-bun`),
-`bun-version` (`.bun-version`) and `custom.regex` (`.mcp.json`'s `convex@`
-pin, kept equal to `apps/itun/package.json`'s by
-`tools/__tests__/mcp-config.test.ts`).
+**No bot updates the Bun dependencies.** Dependabot is the only updater, and
+[`.github/dependabot.yml`](../../.github/dependabot.yml) gives it one ecosystem:
+GitHub Actions.
 
-- **Non-majors merge themselves.** Every Monday (00:00–04:00 UTC) Renovate opens
-  one PR, "all non-major dependencies", holding every minor, patch and digest
-  update. It turns on GitHub auto-merge, so the PR squash-merges once the
-  ruleset's required checks (`CI Success`, CodeQL, the PR title) pass. The ruleset requires
-  an up-to-date branch, so Renovate rebases the PR whenever `main` moves.
-- **Lockfile maintenance** runs on the 1st of each month: one auto-merged PR
-  that re-resolves `bun.lock` within the existing ranges.
-- **Security fixes** come from OSV (`osvVulnerabilityAlerts`) as their own PRs,
-  outside the weekly schedule but still after the 3-day age limit.
-- **Caret ranges are bumped, not left alone** (`rangeStrategy: bump`). Renovate's
-  `bun` manager only runs `bun install` on the edited manifest, so a range that
-  still admits the new version would change nothing.
-- **Never updated automatically:** the `overrides` block (hand-curated floors,
-  below).
+- **GitHub Actions:** every Monday Dependabot opens one grouped PR ("ci: bump …
+  in the github-actions group") for `.github/workflows/` and
+  `.github/actions/setup-bun`, holding back any release younger than 7 days. It
+  does not merge itself: read the diff, then `gh pr merge <n> --squash`.
+- **Bun dependencies are updated by hand.** `bun outdated --filter='*'` lists
+  what is behind in every workspace. Most deps are exact pins, which
+  `bun update <pkg>` leaves alone; `bun update --latest <pkg>` (or
+  `bun add <pkg>@<version>` in the workspace) moves one. The same version
+  written into several manifests is bumped in each. There is no Bun catalog.
+- **The Bun toolchain** (`.bun-version`, the root `packageManager` `bun@…` and
+  the `bun-types` devDependency) moves as one change. The `workflows` check
+  (`bun-version`) fails unless all three are equal, and CI installs the Bun
+  that `.bun-version` names.
+- **`.mcp.json`'s `convex@` pin** moves with `apps/itun/package.json`'s;
+  `tools/__tests__/mcp-config.test.ts` fails if they differ.
+- **Never updated automatically or casually:** the `overrides` block
+  (hand-curated floors, below).
 
-Writing the same version into several manifests is fine: Renovate updates every
-occurrence in the same grouped PR. There is no Bun catalog, because Renovate's
-`bun` manager does not read one.
+Nothing opens a PR for a vulnerable Bun dependency. The signals are the
+merge-gate audit and `audit-watch.yml`'s weekly issue (below); the fix is a
+hand `bun update`.
 
 `bun audit --audit-level=high` gates every PR that changes `bun.lock` or a
 `package.json` (the `deps` area of the `static-checks` job); a PR that changes
 neither cannot change the verdict, and `audit-watch.yml` audits the unchanged
 tree weekly.
 
-## What waits for approval
-
-Two kinds of update wait on the **Dependency Dashboard** issue instead of
-opening a PR:
-
-- **Every major.**
-- **The Bun toolchain:** `.bun-version`, the root `packageManager` (`bun@…`) and
-  the `bun-types` devDependency move as one group. The `workflows` check
-  (`bun-version`) fails unless all three are equal, and CI installs the Bun
-  that `.bun-version` names.
-
-To approve one, open the issue (`gh issue list --author app/renovate`), tick
-its box under "Pending Approval", and Renovate opens the PR on its next run
-(roughly hourly). These PRs do not auto-merge: fix what breaks on the branch,
-then `gh pr merge <n> --squash`.
-
-The dashboard also lists anything Renovate could not do (a failed lockfile
-update, a config error), so it is the first place to look when updates stop.
-
 # Install cooldown (`minimumReleaseAge`)
 
 `bunfig.toml` refuses dependency versions **published less than 3 days ago**,
-and `renovate.json` sets the same `minimumReleaseAge` with
-`internalChecksFilter: strict`, so Renovate never proposes a version `bun install`
-would refuse. Three days is roughly how long a hijacked npm release lasts before
-it is noticed and unpublished, and nobody reads the tarballs in an auto-merged PR.
+and `.github/dependabot.yml` holds Actions updates back for 7 (its `cooldown`;
+zizmor's `dependabot-cooldown` audit wants at least 7). Three days is roughly
+how long a hijacked npm release lasts before it is noticed and unpublished, and
+nobody reads the tarballs of an upgrade.
 
 Two behaviours, measured on the pinned Bun (`.bun-version`):
 

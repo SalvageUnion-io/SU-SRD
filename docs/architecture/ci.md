@@ -196,7 +196,7 @@ those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
 
 wrangler is a devDependency of all four Worker apps (audit CI-09), so
 every bundle and deploy runs the version `bun.lock` resolved — audited, behind
-the 3-day release-age gate and updated by Renovate. It used to be
+the 3-day release-age gate and updated by hand. It used to be
 `bunx wrangler@4.108.0`, written out nine times outside the lockfile, because
 the wrangler of that era dragged `sharp` and `undici` versions with HIGH
 advisories into the tree; 4.132.0 no longer does. Keep `compatibility_date` in

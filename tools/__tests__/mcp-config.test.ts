@@ -3,8 +3,8 @@ import { join } from 'node:path'
 
 /**
  * `.mcp.json` starts the Convex MCP server with `bunx convex@<pin>`, so it runs
- * the CLI version ITUN pins whether or not `node_modules` is installed. Renovate's
- * regex manager bumps that pin with the workspace one; this test fails if they
+ * the CLI version ITUN pins whether or not `node_modules` is installed. Nothing
+ * bumps that pin automatically; this test fails if it and the workspace one
  * ever differ, or if a write tool or a production flag creeps back in.
  */
 
