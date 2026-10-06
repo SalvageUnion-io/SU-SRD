@@ -42,6 +42,7 @@ import {
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons.js'
 import { commands } from '../commands/index.js'
+import type { SignedInteraction } from '../commands/interactions.js'
 import { normaliseWebUrl, setItunSettings } from '../itunSettings.js'
 import { setReporter } from '../report.js'
 import {
@@ -117,7 +118,8 @@ function json(body: unknown, status = 200): Response {
 async function dispatch(
   raw: APIInteraction,
   env: Env,
-  ctx: ExecutionCtx
+  ctx: ExecutionCtx,
+  signed: SignedInteraction | null = null
 ): Promise<{ type: number; data?: unknown }> {
   const sink = new ResponseSink()
   const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
@@ -126,6 +128,7 @@ async function dispatch(
     applicationId: env.DISCORD_APPLICATION_ID,
     rest,
     sink,
+    signed,
   }
 
   let work: Promise<void>
@@ -371,7 +374,16 @@ export default withObservability('discord-bot', {
       return json({ type: InteractionResponseType.Pong })
     }
 
-    return json(await dispatch(interaction, env, ctx))
+    // The verified request travels with the interaction, untouched, for the
+    // one command Convex checks against Discord's signature itself
+    // (`/su invite`, ADR-038). Both headers are present: verification above
+    // would have refused the request otherwise.
+    const signed = {
+      body: rawBody,
+      signature: request.headers.get(SIGNATURE_HEADER) ?? '',
+      timestamp: request.headers.get(TIMESTAMP_HEADER) ?? '',
+    }
+    return json(await dispatch(interaction, env, ctx, signed))
   },
 
   /**

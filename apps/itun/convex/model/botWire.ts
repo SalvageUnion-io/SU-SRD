@@ -168,3 +168,29 @@ export type SheetResult = {
 export type BindResult = { name: string }
 
 export type RecordRollResult = { game: string }
+
+/**
+ * `/su invite @user` (ADR-038). Either an invite to deliver, or the news that
+ * the person is already seated — not a refusal, so not a `BotFailure`.
+ */
+export type InviteResult =
+  | {
+      outcome: 'invited'
+      /** The code the DM links to (`/join/<code>`). */
+      code: string
+      gameName: string
+      /** The Organizer's display name, for the DM's "<who> invited you". */
+      invitedBy: string
+      /** Whom to DM: from Discord's signed interaction, not from the bot. */
+      inviteeDiscordId: string
+      inviteeName: string
+      role: 'player' | 'mediator'
+      grantCount: number
+      expiresAt: number | null
+      /** True when a live invite to this person was re-sent rather than minted. */
+      reused: boolean
+    }
+  | { outcome: 'already-member'; gameName: string; inviteeName: string }
+
+/** Whether a `/su invite` DM reached the invitee, as the bot reports it. */
+export type InviteDeliveryState = 'sent' | 'failed'

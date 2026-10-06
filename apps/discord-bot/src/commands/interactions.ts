@@ -50,6 +50,10 @@ export type CommandChoice = { name: string; value: string }
  * every Game subcommand defers first.
  *
  * `getSubcommandGroup` arrived with `/su game …`, the first subcommand group.
+ *
+ * `signed` and `directMessage` arrived with `/su invite` (ADR-038): the one
+ * command Convex verifies against Discord's own signature, and the one that
+ * writes to somebody other than the person who ran it.
  */
 export type CommandExecuteInteraction = {
   options: {
@@ -65,7 +69,21 @@ export type CommandExecuteInteraction = {
   deferReply(options?: { flags?: MessageFlags.Ephemeral }): Promise<unknown>
   editReply(payload: EditReplyPayload): Promise<unknown>
   followUp(payload: ReplyPayload): Promise<unknown>
+  /**
+   * The interaction exactly as Discord sent it — raw body and signature
+   * headers — for Convex to verify itself. Null only where there is no signed
+   * request behind the interaction (never in the Worker).
+   */
+  signed: SignedInteraction | null
+  /** DM a user. Best effort: Discord refuses when DMs are closed or no server is shared. */
+  directMessage(userId: string, payload: ReplyPayload): Promise<DirectMessageOutcome>
 }
+
+/** Discord's signed request, untouched. Re-serialising it would break the signature. */
+export type SignedInteraction = { body: string; signature: string; timestamp: string }
+
+/** Whether a DM was delivered, and Discord's error code when it was not. */
+export type DirectMessageOutcome = { ok: true } | { ok: false; code: number | null }
 
 /**
  * What the button router reads off a message-component interaction.
