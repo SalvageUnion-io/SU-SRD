@@ -21,7 +21,11 @@ const ASSETS: BuildAssets = {
 }
 
 describe('route registry', () => {
-  const resolved = routes.map((r) => ({ pattern: r.pattern, pages: r.resolve() }))
+  const resolved = routes.map((r) => ({
+    pattern: r.pattern,
+    sitemap: r.sitemap,
+    pages: r.resolve(),
+  }))
 
   it('emits at least one page for every registered route', () => {
     expect(resolved.filter((r) => r.pages.length === 0).map((r) => r.pattern)).toEqual([])
@@ -36,5 +40,13 @@ describe('route registry', () => {
   it.each(routes.map((r) => r.pattern))('renders the first %s page to a document', (pattern) => {
     const first = resolved.find((r) => r.pattern === pattern)?.pages[0]
     expect(first?.render(ASSETS)).toStartWith('<!doctype html>')
+  })
+
+  it('keeps every noindexed page out of the sitemap', () => {
+    const noindexedInSitemap = resolved
+      .filter((r) => r.sitemap)
+      .filter((r) => r.pages[0]?.render(ASSETS).includes('<meta name="robots" content="noindex'))
+      .map((r) => r.pattern)
+    expect(noindexedInSitemap).toEqual([])
   })
 })

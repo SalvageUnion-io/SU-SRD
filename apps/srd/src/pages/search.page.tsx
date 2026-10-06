@@ -8,7 +8,7 @@
  */
 
 import type { PageModule, PageResult } from '../../ssg/types'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { Island } from '../runtime/Island'
 
 const CANONICAL_URL = `${SITE_URL}/search/`
@@ -16,7 +16,7 @@ const CANONICAL_URL = `${SITE_URL}/search/`
 function page(): PageResult {
   return {
     meta: {
-      title: 'Search - Salvage Union System Reference Document',
+      title: `Search${TITLE_SUFFIX}`,
       description:
         'Search the full Salvage Union SRD — chassis, systems, modules, abilities, equipment, and more.',
       canonical: CANONICAL_URL,

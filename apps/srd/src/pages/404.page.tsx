@@ -8,6 +8,7 @@
 
 import { CatalogTile, getCatalogBg, getCatalogLabel } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
+import { TITLE_SUFFIX } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
 import { getEntitySchemas } from '../lib/gameData'
 
@@ -16,7 +17,7 @@ function page(): PageResult {
 
   return {
     meta: {
-      title: '404 - Page Not Found - Salvage Union System Reference Document',
+      title: `404 - Page Not Found${TITLE_SUFFIX}`,
       description: 'The page you are looking for could not be found.',
       noindex: true,
     },

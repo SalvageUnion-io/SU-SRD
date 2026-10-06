@@ -6,13 +6,14 @@
 
 import { PageHeading, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../../ssg/types'
+import { TITLE_SUFFIX } from '../../lib/constants'
 
 const LAST_UPDATED = '6 July 2026'
 
 function page(): PageResult {
   return {
     meta: {
-      title: 'Discord Bot Privacy Policy - Salvage Union SRD',
+      title: `Discord Bot Privacy Policy${TITLE_SUFFIX}`,
       description:
         'Privacy Policy for the Salvage Union Discord bot. The Bot is stateless and stores no personal data.',
     },

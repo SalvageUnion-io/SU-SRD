@@ -5,11 +5,11 @@
   },
   "pages": {
     "/": ["color-contrast"],
-    "/about/": ["color-contrast"],
+    "/about/": [],
     "/api/": [],
     "/discord/": [],
     "/search/": [],
-    "/schema/chassis/": ["color-contrast"],
+    "/schema/chassis/": [],
     "/schema/chassis/item/aegis/": ["color-contrast"],
     "/schema/roll-tables/item/ai-personality/": [],
     "/schema/guides/item/activating-and-shutting-down-a-mech/": ["color-contrast"]

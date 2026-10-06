@@ -16,9 +16,9 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { Changelog, mergeChangelogs, PageHeading, parseChangelog } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 
-const TITLE = 'Changelog - Salvage Union System Reference Document'
+const TITLE = `Changelog${TITLE_SUFFIX}`
 const DESCRIPTION = 'Major changes to salvageunion.io and its companion tools over time.'
 
 /** `apps/srd/CHANGELOG.md` — changes to this site and its companion tools. */
