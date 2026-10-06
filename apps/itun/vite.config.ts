@@ -206,18 +206,19 @@ export default defineConfig({
     watch: {
       ignored: ['**/routeTree.gen.ts'],
     },
-    // Snapshot API dev proxy. `vite dev` serves the SPA only — the snapshot
-    // API lives in `src/worker/index.ts`, which Vite never runs — so without
-    // this, PublishButton 404s and the UI's feature-detection quietly decides
-    // publishing is unavailable.
+    // Snapshot API dev proxy. `vite dev` serves the SPA only — the one read
+    // left of the retired snapshot API (`GET /api/snapshots/:id`, which `/s/:id`
+    // uses to find the entity an old link names, ADR-036) lives in
+    // `src/worker/index.ts`, which Vite never runs. Without this, every `/s/:id`
+    // under `vite dev` shows the retired page.
     //
     // The target is `wrangler dev`, which runs that Worker with local R2:
     //
     //   bunx wrangler dev            # from apps/itun, port 8787
     //   bun run dev:itun             # alongside it
     //
-    // NO REWRITE. The Worker owns `/api/snapshots` and `/api/snapshots/:id`
-    // directly, so the path passes through untouched.
+    // NO REWRITE. The Worker owns `/api/snapshots/:id` directly, so the path
+    // passes through untouched.
     proxy: {
       '/api/snapshots': {
         target: 'http://localhost:8787',

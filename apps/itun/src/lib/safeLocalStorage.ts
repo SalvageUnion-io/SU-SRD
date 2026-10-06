@@ -75,11 +75,11 @@ export function writeLocal(key: string, value: string): boolean {
 }
 
 /**
- * Deliberately no `removeLocal` / `isLocalStorageAvailable` yet. The
- * remaining hand-rolled caller (`publishedSnapshots.ts`) needs them and is
- * owned elsewhere, and the dead-code gate treats an export with no consumer as
- * dead. Add them here — same `backing()` + `try` shape as above — in the change
- * that converts that module, not before.
+ * Deliberately no `removeLocal` / `isLocalStorageAvailable`: nothing needs
+ * them. The caller that would have (the snapshot revoke ledger) went with
+ * snapshot publishing (ADR-036), and the dead-code gate treats an export with
+ * no consumer as dead. Add them here — same `backing()` + `try` shape as above —
+ * in the change that first needs them, not before.
  */
 
 /**

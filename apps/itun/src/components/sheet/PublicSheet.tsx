@@ -2,17 +2,17 @@
  * PublicSheet — one published sheet, read-only, for a reader with no account
  * ([ADR-032](../../../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
  *
- * The third consumer of `frozenSheet.ts`, after the snapshot page and the Game
- * crew view. All three need the same thing — render an entity the viewer does
- * not own, without adopting it into local state — so none of them owns a
- * renderer, and this file adds no rendering code at all.
+ * A consumer of `frozenSheet.ts`, beside the Game crew view. Both need the same
+ * thing — render an entity the viewer does not own, without adopting it into
+ * local state — so neither owns a renderer, and this file adds no rendering
+ * code at all.
  *
- * The difference from a snapshot is what it is fed. A snapshot is a frozen blob
- * fetched from R2; this is a live Convex read, so it reflects the
- * sheet as it stands right now and needs nobody to have pressed publish for
- * this particular copy. The banner says so, because "read-only" and "frozen"
- * are different promises and a reader should not have to guess which one they
- * are looking at.
+ * It is the only account-free way to share a sheet: frozen snapshots were
+ * retired (ADR-036), and an old `/s/:id` link redirects here when its entity
+ * is public. This is a live Convex read, so it reflects the sheet as it stands
+ * right now. The banner says so, because "read-only" and "frozen" are
+ * different promises and a reader should not have to guess which one they are
+ * looking at.
  */
 
 import { useMemo } from 'react'
@@ -29,8 +29,7 @@ type PublicSheetProps = {
    * Load-bearing, not decorative: a mech's Max SP and Cargo depend on its pilot
    * (ADR-029), and the frozen store deliberately carries no pilot and no soft
    * links. Without this a published mech reads LOWER than the same mech on its
-   * owner's sheet — the exact defect a snapshot works around by shipping
-   * `context.pilotAbilities` in its payload.
+   * owner's sheet.
    */
   pilotAbilities?: string[]
 }

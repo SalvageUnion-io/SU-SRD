@@ -17,9 +17,9 @@ import { defineConfig, devices } from '@playwright/test'
  * engine regressions (covers REQ-NF-15: evergreen browsers only).
  */
 // When E2E_BASE_URL is set (a deployed Worker, e.g. a workers.dev preview), run
-// the suite against that live URL — which serves the real snapshot API, so the
-// publish→retrieve round-trip is exercised for real. In that mode Playwright
-// must NOT boot a local server. Unset → local static preview.
+// the suite against that live URL, with the real Worker in front of the app. In
+// that mode Playwright must NOT boot a local server. Unset → local static
+// preview.
 const externalBaseURL = process.env.E2E_BASE_URL
 
 export default defineConfig({
@@ -35,7 +35,7 @@ export default defineConfig({
   // 90 s gives enough headroom without masking real hangs.
   //
   // Against an external deploy (E2E_BASE_URL) every test pays cold-load costs
-  // (real network and snapshot API round-trips), so
+  // (real network round-trips), so
   // widen the per-test and per-assertion budgets ONLY in that mode. The local
   // static-preview path keeps the tighter budgets so it stays fast and still
   // surfaces real hangs.

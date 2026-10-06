@@ -14,7 +14,7 @@
  *   5.  Empty-rail case: mech with no link → pilot RailEmpty visible
  *   6.  Stat-edit round-trip via the Sheet hero trackers (StatBlock steppers)
  *   7.  Top-bar Share entry: the Share button opens ShareStatusDialog in place
- *   8.  SnapshotPageInner 404 path: notFound=true → "Snapshot not found" heading
+ *   8.  (SnapshotPageInner 404 — retired with snapshots, ADR-036)
  *   9.  Read-only mode: Sheet readOnly=true → Share control NOT rendered
  *
  * Conventions:
@@ -41,7 +41,6 @@ import { must } from '../../__tests__/must'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
-import { SnapshotPageInner } from '../SnapshotPage'
 
 // ---------------------------------------------------------------------------
 // Preload salvageunion-reference once — MechSheet resolves chassis refs
@@ -356,8 +355,9 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
 //
 // Share is a BUTTON that opens ShareStatusDialog over this sheet, not a link to
 // a share screen. That screen was deleted: its left half previewed the very
-// sheet you were standing on, and previewed it wrong. The publish flow itself
-// is covered in ShareStatusDialog.test.tsx; this asserts only the entry point.
+// sheet you were standing on, and previewed it wrong. What the dialog offers is
+// covered in ShareStatusDialog(.connected).test.tsx; this asserts only the
+// entry point.
 // ---------------------------------------------------------------------------
 
 describe('Smoke — the top-bar Share control opens the share dialog', () => {
@@ -378,23 +378,8 @@ describe('Smoke — the top-bar Share control opens the share dialog', () => {
     await act(async () => {
       fireEvent.click(share)
     })
-    expect(await screen.findByText(/not shared/i)).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 8 — SnapshotPageInner 404 path
-// ---------------------------------------------------------------------------
-
-describe('Smoke — SnapshotPageInner 404', () => {
-  test('notFound=true renders "Snapshot not found" heading', () => {
-    render(<SnapshotPageInner snapshot={null} notFound={true} error={null} />)
-    expect(screen.getByRole('heading', { name: /snapshot not found/i })).toBeTruthy()
-  })
-
-  test('notFound=true renders a back-to-dashboard link', () => {
-    render(<SnapshotPageInner snapshot={null} notFound={true} error={null} />)
-    expect(screen.getByRole('link', { name: /back to roster/i })).toBeTruthy()
+    // Solo here (no provider), so the dialog says what sharing needs.
+    expect(await screen.findByText(/sharing needs an account/i)).toBeTruthy()
   })
 })
 

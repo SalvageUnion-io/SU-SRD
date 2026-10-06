@@ -117,7 +117,7 @@ function GameEntityBody({ gameId, kind, entityId }: GameEntitySheetProps) {
 
   return (
     <div>
-      {/* The read-only banner, in the same shape the snapshot surface uses.
+      {/* The read-only banner, in the same shape the public sheet uses.
           Saying WHY it is read-only matters more than saying that it is: a
           player who cannot edit a crewmate's pilot should understand that as
           the rule of the table, not as something broken. */}

@@ -9,34 +9,29 @@
     <title>In The Union Now</title>
 
     <!--
-      Sitewide metadata defaults.
+      Sitewide metadata — the only metadata. Every route, a shared sheet
+      included, unfurls with these.
 
       This head previously held charset, viewport, theme-color, two icons and a
       title — and nothing else. No description, no Open Graph, no Twitter card.
       Every link to this app, anywhere, unfurled as the bare string "In The
       Union Now" with no summary and no image.
 
-      That undercut a feature salvageunion.io actively promotes: "sheets can be
-      shared into Discord as snapshot links". Confirmed with a `Discordbot/2.0`
-      user agent against the live site — the root and both share-route shapes
-      returned this same shell with no `og:*` at all.
-
-      These are DEFAULTS. The app is client-rendered and a crawler runs no
-      JavaScript, so anything a route sets at runtime is invisible to an
-      unfurl; per-sheet values have to be injected server-side, which is the
-      Worker's job. Until then every share reads as the app itself, which is
-      still far better than a bare string.
+      The app is client-rendered and a crawler runs no JavaScript, so anything a
+      route sets at runtime is invisible to an unfurl. Per-sheet values would
+      have to be injected server-side by the Worker. It did that for snapshot
+      links until snapshots were retired (ADR-036); the public sheet
+      (`/p/:kind/:appId`) has no server-rendered meta, deliberately — ADR-032
+      makes a private sheet and a missing one indistinguishable, and an unfurl
+      must not leak which is which. So every share reads as the app itself.
 
       No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
       claims every client route is the homepage, which is worse than none —
-      it asks search engines to collapse the whole site into one URL. A
-      per-route canonical belongs with the per-route metadata, injected by the
-      Worker that knows which route was requested.
+      it asks search engines to collapse the whole site into one URL.
     -->
-    <!-- itun:meta:start -->
     <meta
       name="description"
-      content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable snapshot links for the post-apocalyptic mech TTRPG."
+      content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG."
     />
 
     <meta property="og:type" content="website" />
@@ -44,7 +39,7 @@
     <meta property="og:title" content="In The Union Now" />
     <meta
       property="og:description"
-      content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable snapshot links."
+      content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets."
     />
     <meta property="og:url" content="https://intheunionnow.com/" />
     <meta property="og:image" content="https://intheunionnow.com/icon-512.png" />
@@ -54,10 +49,9 @@
     <meta name="twitter:title" content="In The Union Now" />
     <meta
       name="twitter:description"
-      content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable snapshot links."
+      content="Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets."
     />
     <meta name="twitter:image" content="https://intheunionnow.com/icon-512.png" />
-    <!-- itun:meta:end -->
 
     <!-- Barlow superfamily is self-hosted via @fontsource (imported in src/routes/__root.tsx) -->
   </head>

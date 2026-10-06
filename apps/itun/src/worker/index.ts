@@ -1,6 +1,6 @@
 /**
- * intheunionnow.com — the ITUN SPA plus its snapshot API, on Workers
- * (ADR-033).
+ * intheunionnow.com — the ITUN SPA, on Workers (ADR-033), plus the one read
+ * left of the retired snapshot API (ADR-036).
  *
  * ## The routing table, and why order is load-bearing
  *
@@ -8,14 +8,16 @@
  * method-conditioned routing declaratively, so it is code, and
  * `__tests__/routing.test.ts` asserts each rule and each ordering constraint:
  *
- *   1. a retired URL           → 301 to the page that replaced it (the Share
- *      Snapshot screen, removed in #793, and the per-entity detail pages
- *      collapsed into the live sheet). The table is `./retiredRoutes.ts`.
+ *   1. a retired URL           → 301 to what replaced it (the Share Snapshot
+ *      screen, removed in #793; the per-entity detail pages collapsed into the
+ *      live sheet; the snapshot unfurl image). The table is `./retiredRoutes.ts`.
  *      An installed PWA reaches this too: the service worker sends every
  *      navigation to the network first (`src/lib/sw/workbox.ts`).
- *   2. `/api/snapshots`        → POST publishes; every other method 405.
- *   3. `/api/snapshots/:id`    → DELETE revokes, GET retrieves. DELETE must be
- *      matched BEFORE GET, or an unconditioned retrieve swallows it into a 405.
+ *   2. `/api/snapshots`        → **404**, every method. Publishing is retired
+ *      (ADR-036); the endpoint is gone, not merely refusing a method.
+ *   3. `/api/snapshots/:id`    → GET answers which entity the snapshot was taken
+ *      of, so `/s/:id` can redirect to its live public sheet. Every other method
+ *      is 405 — DELETE used to revoke, and nothing writes to the store any more.
  *   4. `/assets/*`             → a miss is **404**, never the SPA shell.
  *   5. a real file             → served as itself.
  *   6. a missing FILE          → **404**. Any path whose last segment contains
@@ -40,273 +42,41 @@
  * itself. An honest 404 makes the failed import surface as `vite:preloadError`,
  * which `src/lib/chunkRecovery.ts` recovers from with a single reload.
  *
- * ## Rate limiting
+ * ## What went with snapshot publishing
  *
- * Enforced at the edge by Cloudflare's Rate Limiting binding, declared as
- * `ratelimits` in `wrangler.jsonc` and applied to POST below.
- *
- * `RATE_LIMITER` is a real control because it is enforced at the edge rather
- * than per isolate (an in-process counter would be decorative). It is optional
- * here so the Worker still runs without it — but its absence is NOT harmless:
- * the 256 KB cap bounds bytes per request, not requests, so without the binding
- * the endpoint takes unlimited unauthenticated POSTs into billable R2.
- * `__tests__/rateLimitBinding.test.ts` fails if `wrangler.jsonc` stops
- * declaring it.
+ * The edge rate limiter (it covered `POST /api/snapshots` and nothing else),
+ * the per-snapshot shell metadata on `/s/:id`, and the rendered og:image behind
+ * it. A retired link now unfurls with the sitewide defaults: advertising the
+ * frozen build in its preview is exactly what was retired. The R2 objects are
+ * kept untouched; this Worker only ever reads them.
  */
 
 import type { ObservabilityEnv } from 'observability/cloudflare'
 import { reportError, withObservability } from 'observability/cloudflare'
-import {
-  BASE_SECURITY_HEADERS,
-  edgeCache,
-  IMMUTABLE_CACHE_CONTROL,
-} from 'observability/worker-http'
-import {
-  makeDeleteHandler,
-  makePublishHandler,
-  makeRetrieveHandler,
-} from '../lib/snapshot/handlers'
-import { isValidSnapshotId } from '../lib/snapshot/id'
+import { BASE_SECURITY_HEADERS } from 'observability/worker-http'
+import { makeIdentityHandler } from '../lib/snapshot/handlers'
 import { setSnapshotReporter } from '../lib/snapshot/report'
 import type { R2BucketLike } from '../lib/snapshot/storage'
 import { createR2Storage } from '../lib/snapshot/storage'
 import { retiredRedirect } from './retiredRoutes'
-import type { ShellMeta } from './shellMeta'
-import { applyMeta, metaForSnapshot } from './shellMeta'
-
-/** The slice of workerd's ExecutionContext this Worker uses. */
-type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
-
-/** Cloudflare's Rate Limiting binding, as much of it as this Worker uses. */
-type RateLimiterBinding = {
-  limit(options: { key: string }): Promise<{ success: boolean }>
-}
 
 export type Env = ObservabilityEnv & {
   /** Static assets (the built SPA). `not_found_handling` is "none" — see above. */
   ASSETS: { fetch(request: Request): Promise<Response> }
+  /** The retired snapshot store — read, never written (ADR-036). */
   SNAPSHOTS: R2BucketLike
-  /** Optional. Absent means no rate limiting, not a crash. */
-  RATE_LIMITER?: RateLimiterBinding
-  /**
-   * Optional. Absent means no measurement, not a crash — same discipline as
-   * RATE_LIMITER, so a local `wrangler dev` and the routing tests need no
-   * binding. See the OG open question below for what this exists to answer.
-   */
-  OG_METRICS?: AnalyticsEngineDataset
 }
 
-/** The write half of a Workers Analytics Engine dataset — the only half a Worker has. */
-type AnalyticsEngineDataset = {
-  writeDataPoint(event: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void
-}
-
-/**
- * The caller's IP, as Cloudflare presents it.
- *
- * `CF-Connecting-IP` is set by the edge and cannot be spoofed by the client,
- * unlike `x-forwarded-for`, which anyone may send.
- */
-function clientIp(request: Request): string {
-  return request.headers.get('cf-connecting-ip') ?? 'unknown'
-}
-
-const SNAPSHOT_ROUTE = /^\/s\/([^/]+)\/?$/
-
-/** `/og/s/<id>.png` — the rendered preview for a shared snapshot. */
-const OG_ROUTE = /^\/og\/s\/([^/]+)\.png$/
-
-/**
- * Per-route metadata for the shell, or null to keep the sitewide defaults.
- *
- * Only `/s/:id` today. That is the route salvageunion.io actually promotes
- * ("sheets can be shared into Discord as snapshot links") and the one whose
- * data this Worker already holds — the R2 bucket is bound for the snapshot API.
- *
- * `/p/:kind/:appId` is NOT covered, deliberately. Its data lives in Convex
- * behind a `publicRead` column, and ADR-032 makes a private sheet and a
- * nonexistent one **indistinguishable on purpose** — "this exists but is
- * private" is itself a disclosure. Injecting metadata there means reproducing
- * that invariant exactly in a second place; doing it carelessly would leak the
- * existence of every private sheet through its unfurl. It needs its own change,
- * with that as the assertion.
- *
- * Never throws: a failed lookup falls back to the defaults. An unfurl is not
- * worth a 500 on a page that would otherwise render — but the failure is still
- * reported, because an R2 read that fails here fails for the snapshot API too.
- */
-async function metaForRoute(request: Request, env: Env): Promise<ShellMeta | null> {
-  const url = new URL(request.url)
-  const snapshot = SNAPSHOT_ROUTE.exec(url.pathname)
-  if (!snapshot) return null
-
-  const id = snapshot[1]
-  if (!id || !isValidSnapshotId(id)) return null
-
-  try {
-    const stored = await createR2Storage(env.SNAPSHOTS).get(id)
-    if (!stored) return null
-    return metaForSnapshot(stored, url.toString(), {
-      image: `${url.origin}/og/s/${id}.png`,
-    })
-  } catch (error) {
-    reportError(error, { source: 'metaForRoute', id })
-    return null
-  }
-}
-
-/**
- * ## OPEN QUESTION: does this fit the Free plan's CPU budget?
- *
- * Benchmarked locally on Apple silicon, `renderOgImage` took **47.6 ms cold**
- * and then ~15 ms warm. The documented budget is **10 ms CPU per invocation**
- * on Workers Free (ADR-033 §6), and edge CPUs are
- * slower than that laptop.
- *
- * If it does exceed the limit the failure is bad in a specific way: **a CPU-limit
- * kill is not a catchable exception**, so the `fallback()` below — carefully
- * built so an unfurl degrades to the site icon rather than a broken image —
- * never runs. The unfurl gets a Cloudflare error page instead.
- *
- * This is UNVERIFIED. It was never sized against the ceiling, and a local
- * benchmark is not evidence about workerd. It is deliberately not "fixed" on
- * that basis — rewriting the publish path to pre-render into R2 is a real
- * architectural change, and doing it speculatively would trade a possible
- * problem for a definite one.
- *
- * ## How to settle it
- *
- *     cd apps/itun && bunx wrangler tail su-itun --format=pretty | grep 'og:image'
- *
- * then request `https://intheunionnow.com/og/s/<a real snapshot id>.png` with a
- * cache-busting query string. Read `cpuTime` from the tail entry — NOT the
- * `wallMs` the log line prints, which measures I/O waits and is only there to
- * make the entry greppable.
- *
- * Take a cold reading and a warm one: the wasm instantiation is the expensive
- * half, and the cache means most real requests never reach this code at all.
- *
- * If `cpuTime` is near or over 10 ms: render the PNG once at publish time into
- * R2 under `waitUntil`, and stream it from here. That is correct regardless of
- * the measurement; it is just not worth the change without one.
- */
-/**
- * Serve the rendered preview for a shared snapshot.
- *
- * Every failure path ends at the static icon rather than an error. An unfurl
- * that is slightly generic is fine; one that 404s or hangs makes the link look
- * broken in the channel it was pasted into, which is worse than no image.
- *
- * Cached in the Cache API keyed on the request URL. A snapshot is FROZEN once
- * published (that is what distinguishes it from a public sheet), so the render
- * can never go stale and there is nothing to invalidate on.
- */
-async function ogImage(
-  request: Request,
-  env: Env,
-  id: string,
-  ctx: ExecutionCtx | undefined
-): Promise<Response> {
-  const url = new URL(request.url)
-  const fallback = () => Response.redirect(`${url.origin}/icon-512.png`, 302)
-
-  if (!isValidSnapshotId(id)) return fallback()
-
-  const cache = edgeCache()
-  const hit = await cache?.match(request)
-  if (hit) return hit
-
-  try {
-    const stored = await createR2Storage(env.SNAPSHOTS).get(id)
-    if (!stored) return fallback()
-
-    const meta = metaForSnapshot(stored, url.toString(), { image: '' })
-    if (!meta) return fallback()
-
-    // `renderOgImage` is imported lazily so the ~2.4 MB resvg wasm and the two
-    // embedded TTFs stay out of the startup path of every OTHER route. They are
-    // in the same bundle either way; this keeps them off the critical path of a
-    // page load.
-    const { renderOgImage } = await import('./ogImage')
-    const startedAt = Date.now()
-    const [name, kind] = meta.title.split(' — ')
-    // The description opens with "<Kind>: <Name>." — which the card already
-    // shows, in larger type, directly above this line. Drop the lead so the
-    // detail row carries something the reader has not just read.
-    const detail = meta.description.replace(/^[^:]+:\s*[^.]+\.\s*/, '')
-    const png = await renderOgImage(name ?? 'Sheet', kind ?? 'Sheet', detail || null)
-
-    // MEASUREMENT, not instrumentation to keep. See the block above `ogImage`.
-    //
-    // `Date.now()` in a Worker advances only on I/O, so between two points of
-    // pure CPU it returns the SAME value — which is exactly what makes it
-    // useful here rather than misleading: a non-zero duration means the render
-    // yielded, and the number to trust is the `cpuTime` that `wrangler tail`
-    // reports for the whole invocation. This line exists to make the
-    // corresponding tail entry findable by grep.
-    // Written to Workers Analytics Engine, not just logged.
-    //
-    // This was a `console.log` whose own comment said to remove it "once that
-    // [open question] is answered" — but a log line in `wrangler tail` is only
-    // visible to someone already tailing during a render, so it could never
-    // answer it. A datapoint aggregates: `wallMs` percentiles across real
-    // traffic, split by whether the render was a cold start, is exactly the
-    // evidence the question needs.
-    //
-    // Wall time still is not CPU time (see above), so this narrows the question
-    // rather than closing it: a p99 wallMs comfortably under 10 ms is strong
-    // evidence, and anything above it is a reason to look at the invocation's
-    // reported cpuTime.
-    //
-    // Optional binding, so an absent dataset degrades to no measurement.
-    const wallMs = Date.now() - startedAt
-    env.OG_METRICS?.writeDataPoint({
-      indexes: [id.slice(0, 1)],
-      doubles: [wallMs, png.byteLength],
-      blobs: ['og-render'],
-    })
-
-    const response = new Response(png as BodyInit, {
-      headers: {
-        'content-type': 'image/png',
-        // Immutable: a snapshot never changes, and its id is content-addressed.
-        'cache-control': IMMUTABLE_CACHE_CONTROL,
-      },
-    })
-    // `waitUntil`, not `await`: awaiting serializes the cache write into every
-    // MISS's response time for no benefit to that caller. With no ctx the
-    // response is simply returned uncached rather than the write being dropped
-    // silently. The clone is required — a Response body is a single-use stream,
-    // so handing the same one to the cache and the client starves whichever
-    // reads second.
-    if (cache && ctx) ctx.waitUntil(cache.put(request, response.clone()))
-    return response
-  } catch (error) {
-    console.error('[itun] og:image render failed', error)
-    return fallback()
-  }
-}
-
-/** Serve the SPA shell for a client-side route, with this route's metadata. */
+/** Serve the SPA shell for a client-side route. */
 async function spaShell(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url)
   url.pathname = '/index.html'
   const shell = await env.ASSETS.fetch(new Request(url.toString(), { method: 'GET' }))
-
-  const meta = await metaForRoute(request, env)
-  if (!meta) {
-    // Re-wrap so the status is 200 for a client-side route rather than whatever
-    // the asset lookup returned, and so this response is not confused with a hit
-    // on a real file. (Its Cache-Control is forced on the way out — see
-    // `SHELL_CACHE_CONTROL`.)
-    return new Response(shell.body, { status: 200, headers: shell.headers })
-  }
-
-  const headers = new Headers(shell.headers)
-  // The body length changes with the injected metadata, and a stale
-  // Content-Length truncates the document.
-  headers.delete('content-length')
-  return new Response(applyMeta(await shell.text(), meta), { status: 200, headers })
+  // Re-wrap so the status is 200 for a client-side route rather than whatever
+  // the asset lookup returned, and so this response is not confused with a hit
+  // on a real file. (Its Cache-Control is forced on the way out — see
+  // `SHELL_CACHE_CONTROL`.)
+  return new Response(shell.body, { status: 200, headers: shell.headers })
 }
 
 /**
@@ -316,9 +86,9 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
  * `_headers` is **not applied to responses generated by Worker code**, and they
  * name `assets.run_worker_first` — which `wrangler.jsonc` sets — as a
  * configuration that triggers it. Every response this Worker builds itself is a
- * bare `new Response`: the OG image, the `/sheet` redirect, the 429, the 400,
- * the snapshot handlers, the SPA shell. All of them shipped with no CSP, no
- * HSTS, no `X-Frame-Options` and no `nosniff`.
+ * bare `new Response`: the retired-URL redirects, the 400/404/405s, the
+ * snapshot handler, the SPA shell. All of them shipped with no CSP, no HSTS,
+ * no `X-Frame-Options` and no `nosniff`.
  *
  * `apps/su-assets/src/worker.ts` has always done this (`COMMON_HEADERS` on
  * every response). itun had no equivalent, and its own `_headers` header
@@ -385,19 +155,16 @@ function withSecurityHeaders(response: Response): Response {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default withObservability('itun', {
-  // `ctx` is optional in the SIGNATURE only. workerd always supplies it; the
-  // parameter is optional so the routing tests can call this entrypoint with
-  // two arguments, and because every use of it is already null-guarded — a
-  // missing ctx costs the edge-cache write, not correctness.
-  async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
-    // Wrapped once, here, rather than at each `return`. There are nine exit
-    // paths below and a tenth would otherwise ship bare — which is exactly how
-    // the ones that existed came to.
-    return withSecurityHeaders(await route(request, env, ctx))
+  // No `ctx`: nothing here defers work past the response any more (the
+  // og:image cache write was the one thing that did).
+  async fetch(request: Request, env: Env): Promise<Response> {
+    // Wrapped once, here, rather than at each `return`. A per-return fix is how
+    // the exit paths that existed came to ship bare.
+    return withSecurityHeaders(await route(request, env))
   },
 })
 
-async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
+async function route(request: Request, env: Env): Promise<Response> {
   setSnapshotReporter((error, context) => {
     // Both, deliberately: Workers Logs is what `wrangler tail` shows during an
     // incident, Sentry is what alerts.
@@ -408,7 +175,7 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
   const url = new URL(request.url)
   const path = url.pathname
 
-  // 1. Retired URL. 301 rather than 302: none of these screens is coming back.
+  // 1. Retired URL. 301 rather than 302: none of these is coming back.
   //
   // This reaches installed PWAs too, because the service worker sends every
   // navigation to the network before its precache (`src/lib/sw/workbox.ts`).
@@ -416,40 +183,19 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
   const retired = retiredRedirect(path)
   if (retired) return Response.redirect(`${url.origin}${retired}`, 301)
 
-  // 2 & 3. The snapshot API. Method-conditioned routing, which Cloudflare
-  // cannot express declaratively, so it has to be tested rather than read.
-  if (path === '/api/snapshots' || path.startsWith('/api/snapshots/')) {
-    const storage = createR2Storage(env.SNAPSHOTS)
-
-    if (path === '/api/snapshots') {
-      if (request.method === 'POST' && env.RATE_LIMITER) {
-        const { success } = await env.RATE_LIMITER.limit({ key: clientIp(request) })
-        if (!success) return new Response('Too many requests', { status: 429 })
-      }
-      // The factory answers 405 for everything that is not POST.
-      return makePublishHandler(storage)(request)
-    }
-
-    const id = path.slice('/api/snapshots/'.length)
-    // Reject malformed ids before the handler so a DELETE for a nonsense id
-    // cannot be mistaken for a retrieve.
-    if (!isValidSnapshotId(id)) {
-      return new Response('Invalid snapshot ID', { status: 400 })
-    }
-
-    // DELETE FIRST: the retrieve handler has no method condition, so checking
-    // it first would swallow DELETE and answer 405.
-    if (request.method === 'DELETE') {
-      return makeDeleteHandler(storage)(request)
-    }
-    return makeRetrieveHandler(storage)(request)
+  // 2. The publish endpoint is gone (ADR-036). A 404 rather than a 405 is also
+  //    what makes a still-open tab on an older build degrade honestly: its
+  //    feature-detect read 405 as "available", and anything else as "publishing
+  //    unavailable", so it stops offering a button that cannot work.
+  if (path === '/api/snapshots' || path === '/api/snapshots/') {
+    return new Response('Snapshot publishing has been retired', { status: 404 })
   }
 
-  // 3b. The rendered og:image. Ahead of the asset lookup because `/og/s/*`
-  //     is not on disk, and ahead of rule 6 because it ends in `.png` and
-  //     would otherwise 404 as a missing file.
-  const og = OG_ROUTE.exec(path)
-  if (og?.[1]) return ogImage(request, env, og[1], ctx)
+  // 3. Which entity a snapshot was taken of. The handler answers 405 for
+  //    everything that is not GET, and 400 for a malformed id before it reads.
+  if (path.startsWith('/api/snapshots/')) {
+    return makeIdentityHandler(createR2Storage(env.SNAPSHOTS))(request)
+  }
 
   const assetResponse = await env.ASSETS.fetch(request)
 

@@ -75,7 +75,7 @@
 # Cloudflare's asset serving would be free to cache the shell.
 #
 # This rule alone does not reach the browser for most of the shell's URLs: a
-# client route (`/sheet/...`, `/s/:id`) is answered by a response the Worker
+# client route (`/sheet/...`, `/p/...`) is answered by a response the Worker
 # builds, and `_headers` is not applied to those. So the Worker sets the same
 # value on every HTML document it sends — `SHELL_CACHE_CONTROL` in
 # `src/worker/index.ts` — and `src/worker/__tests__/routing.test.ts` fails if

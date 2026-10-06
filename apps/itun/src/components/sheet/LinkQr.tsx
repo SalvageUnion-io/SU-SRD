@@ -1,6 +1,7 @@
 /**
- * SnapshotQr — renders the published snapshot URL as a scannable QR code
- * (issues #227/#259, audit item 14; replaces the §3.4 checker placeholder).
+ * LinkQr — renders a share URL as a scannable QR code (issues #227/#259, audit
+ * item 14). Today that URL is a public sheet's `/p/:kind/:appId`; it was a
+ * snapshot's `/s/:id` until snapshots were retired (ADR-036).
  *
  * SVG output (not canvas): deterministic under happy-dom tests and crisp at
  * any DPI. The tile is forced white with an encoder quiet zone — QR readers
@@ -8,18 +9,18 @@
  *
  * Lives in ITUN, not component-lib: ITUN is its only renderer, and keeping it
  * in the library meant the library's manifest declared `qrcode` for one app's
- * sake (audit PK-07). Covered by `__tests__/ShareStatusDialog.test.tsx`.
+ * sake (audit PK-07). Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
  */
 
 import QRCode from 'qrcode'
 import { useEffect, useState } from 'react'
 
-type SnapshotQrProps = {
-  /** Absolute share URL (e.g. https://…/s/<id>). */
+type LinkQrProps = {
+  /** Absolute URL to encode. */
   url: string
 }
 
-export function SnapshotQr({ url }: SnapshotQrProps) {
+export function LinkQr({ url }: LinkQrProps) {
   const [svg, setSvg] = useState<string | null>(null)
 
   useEffect(() => {
@@ -49,8 +50,8 @@ export function SnapshotQr({ url }: SnapshotQrProps) {
   return (
     <div
       role="img"
-      aria-label="QR code linking to this snapshot"
-      data-testid="snapshot-qr"
+      aria-label="QR code linking to this sheet"
+      data-testid="share-qr"
       className="h-[84px] w-[84px] shrink-0 rounded-card border-chrome border-ink bg-paper p-1 [&>svg]:h-full [&>svg]:w-full"
       // Trusted markup: generated locally by the qrcode encoder from module
       // geometry — the URL is encoded as QR modules, never interpolated as HTML.

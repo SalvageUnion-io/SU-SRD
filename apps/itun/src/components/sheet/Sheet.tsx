@@ -44,7 +44,7 @@ import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
 import type { SheetPatch } from './sheetViewProps'
 
-// Re-exported so existing consumers (PublishButton, tests) keep their import.
+// Re-exported so existing consumers (tests) keep their import.
 export type { EntityLookup } from './composition'
 
 /**
@@ -87,7 +87,8 @@ type SheetProps = {
   /** Injectable store hook (writes); the real Zustand store when omitted. */
   store?: typeof useEntityStore
   /**
-   * Hides publish + disables all stat editing (snapshot contexts).
+   * Hides Share + disables all stat editing (frozen read-only contexts: the
+   * public sheet and a crewmate's sheet in a Game).
    *
    * This is the *caller's* declaration that the sheet is a read-only rendering.
    * Connectivity read-only is resolved separately, from `useConnection()`, and
@@ -106,15 +107,16 @@ type SheetProps = {
   /**
    * Pilot ability refs to use instead of the composition's.
    *
-   * A published snapshot shares a LIVE INSTANCE but carries a private read-only
-   * store with no pilot record and no soft-links, so the composition resolves
-   * `pilot: null` — and pilot-sourced contributions (Beefcake's +3+X Max SP and
-   * +6 Cargo, ADR-029) would silently vanish, making a shared mech read lower
-   * than the same mech on its owner's sheet.
+   * A frozen read-only sheet (the public sheet, `PublicSheet.tsx`) shows a LIVE
+   * INSTANCE but carries a private read-only store with no pilot record and no
+   * soft-links, so the composition resolves `pilot: null` — and pilot-sourced
+   * contributions (Beefcake's +3+X Max SP and +6 Cargo, ADR-029) would silently
+   * vanish, making a shared mech read lower than the same mech on its owner's
+   * sheet.
    *
-   * The snapshot payload carries the refs, and this passes them in explicitly
-   * rather than fabricating a pilot record — a synthetic pilot would surface in
-   * the Linked Units rail as a unit that was never shared.
+   * The public-sheet query resolves the refs server-side, and this passes them
+   * in explicitly rather than fabricating a pilot record — a synthetic pilot
+   * would surface in the Linked Units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
 }
@@ -179,7 +181,7 @@ export function Sheet({
   const { entity } = resolved
   const wired = composition.mode === 'wired'
   // Top-bar trailing actions (app-bar right group, design source
-  // clean-pilot.html `.bar-actions`): Share (publish) stays inline; Print,
+  // clean-pilot.html `.bar-actions`): Share stays inline; Print,
   // Export and the container control tuck into the "⋯" overflow at every width — the app
   // bar's priority row is just Share + overflow.
   // NO sheet has a global Edit toggle any more — editing is section-based
@@ -220,9 +222,9 @@ export function Sheet({
   )
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
-  // export, not less. Only Share goes — publishing a snapshot posts to a server
-  // this session cannot reach — and the lozenge takes its place so the gap says
-  // what happened.
+  // export, not less. Only Share goes — switching the public sheet on or off is
+  // a write to a server this session cannot reach — and the lozenge takes its
+  // place so the gap says what happened.
   //
   // Share opens a dialog OVER this sheet rather than navigating to a share
   // screen. That screen's whole left half was a preview of the sheet you were
@@ -332,15 +334,14 @@ export function Sheet({
           />
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog
-            must outlive the control that opens it. Its network probe is gated on
-            `open` rather than on mount — see its header — so an always-mounted
-            dialog costs nothing on a sheet nobody shares.
+            must outlive the control that opens it. Its contents (and the
+            public-sheet query inside them) render only while it is open, so an
+            always-mounted dialog costs nothing on a sheet nobody shares.
           */}
           <ShareStatusDialog
             kind={kind}
             id={id}
             entity={entity}
-            pilotAbilities={kind === 'mech' ? composition.pilot?.abilities : undefined}
             open={shareOpen}
             onOpenChange={setShareOpen}
           />

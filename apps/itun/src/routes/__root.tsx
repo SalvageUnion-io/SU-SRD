@@ -52,7 +52,7 @@ function RootComponent() {
     <AppConvexProvider>
       <EntityHrefProvider value={itunEntityHref}>
         {/* The shared brand header renders on EVERY route — including the live
-          sheet (/sheet/*) and snapshot (/s/*) play surfaces, which sit below
+          sheet (/sheet/*) and public sheet (/p/*) surfaces, which sit below
           it and keep their own sticky control bar. It renders ONE level above
           the game-data gate (a sibling of GameDataReady, not a child) — see
           GameDataReady.tsx's doc comment: brand chrome touches no reference

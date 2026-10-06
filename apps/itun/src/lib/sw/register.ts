@@ -38,7 +38,7 @@
  * already looking at, and ran `cleanupOutdatedCaches()` — destroying the
  * precache that page was still resolving its code-split chunks against. Every
  * subsequent lazy import asked for a hash the server no longer served. Share
- * links (`/s/:id`, `/p/:kind/:appId`) took it worst, because they are opened
+ * links (then `/s/:id`, now `/p/:kind/:appId`) took it worst, because they are opened
  * cold from a link on a device whose worker is whatever build it last saw.
  *
  * `vite.config.ts` is now `registerType: 'prompt'`, which emits a worker that
