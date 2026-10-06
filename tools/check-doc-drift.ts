@@ -10,9 +10,10 @@
  *            `bun run check <id>` in a live doc, workflow prompt or Claude
  *            hook names a real script or check id.
  *   links    every relative markdown link in a tracked `.md` file resolves.
- *   size     root and per-directory CLAUDE.md files stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000. They load into
- *            every agent session in scope, so growth costs every session.
+ *   size     root and per-directory CLAUDE.md files and `.claude/agents/*.md`
+ *            stay under 8,000 characters and `.claude/rules/*.md` under 4,000.
+ *            They load into every agent session in scope, so growth costs
+ *            every session.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -486,6 +487,7 @@ export function checkDocSizes(
   const budgeted = [
     ...claudeMds.map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
     ...rules.map((doc) => [doc, RULE_BUDGET] as const),
+    ...markdownIn(root, '.claude/agents').map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
   ]
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
