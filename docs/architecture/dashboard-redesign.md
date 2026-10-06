@@ -58,6 +58,8 @@ store and rules. Four things change:
 | D8 | **Downtime is Game state.** The Mediator starts, advances and ends it (`downtime.begin`, `advance`, `end`). When it runs, every player's Crawler moves to Major. When it ends, each player returns to whatever their seat says. |
 | D9 | **Game-only, with a Mediator.** The Dashboard opens only for a pilot in a Game that has a Mediator. A solo player can make themselves the Mediator of their own Game. Without a Mediator, Downtime and play are handled by editing the live sheet. |
 | D10 | **The Dashboard is for pilots.** A Mediator who plays a pilot uses it like any player. A separate Mediator Dashboard is a second plan (§9). |
+| D11 | **A Game's crawler is the Mediator's.** Only the Mediator changes a crawler in a Game: Salvage, Craft, Trade, Upkeep, Upgrade, damage and Scrap a mech. Players see the Crawler Major and Minor read-only and ask at the table. The server enforces it, so the crawler sheet is read-only for players in a Game too. |
+| D12 | **Boarding never assigns.** Boarding any mech, a claimed spare included, changes only the seat. The pilot's assigned mech (`mech-to-pilot`) stays as it was. |
 
 What does not change: ADR-007's automation boundary (Eject and every
 destruction stay the player's explicit act), ADR-006's pure rules math, the
@@ -195,7 +197,7 @@ to show.
 | 5 (#1055) | Board control | `BoardControl` and its menu: own, unclaimed spare ("Claim and board", with a confirm), other player's, destroyed, boarded elsewhere, no assigned mech, no crawler. | One test per disabled reason; claim-and-board writes the claim before the seat |
 | 6 (#1056) | Display tabs and Log | `DisplayTabs`, deck and resolve split, rolls written to the Game log and read by `LogTab`, resolve progress on the seat, shown live to the crew ("Rook is resolving Crush", then the roll) | Rolls round-trip test; reload mid-resolve keeps the roll; a second client sees the resolve live |
 | 7 (#1057) | Crew tab | `CrewTab` from seats and `crew.vitals`, extended to return maxima computed on the server with the same `salvageunion-reference` rules the client uses (§8 A3). Attention rules from D6. | Visibility test: no Mediator-only data in the payload; server maxima match the client's derived maxima for the same record |
-| 8 (#1058) | Downtime | `DowntimeWizard` on `downtime.state`, the step track, Crawler Major during Downtime, Mediator controls on the Dashboard. `playStateStore` deleted. | Two-client test: the Mediator advances and both clients follow |
+| 8 (#1058) | Downtime | `DowntimeWizard` on `downtime.state`, the step track, Crawler Major during Downtime, Mediator controls on the Dashboard. The crawler becomes Mediator-only on the server (D11): `assertMayEditCrawler` in a Game and `downtime.spendUpkeep` require the Mediator, and the crawler sheet goes read-only for players in a Game. `playStateStore` deleted. | Two-client test: the Mediator advances and both clients follow; a player's crawler write is refused and the Mediator's succeeds |
 | 9 (#1059) | Docs | Rewrite `dashboard.md` (keep section numbers, since code comments cite them) and the statements listed in §7. Delete this plan, or mark it done. | `doc-drift` |
 
 Issue numbers are on SalvageUnion-io/SU-SRD. Layers 4–8 touch disjoint components after layer 3, but they share
@@ -285,6 +287,13 @@ the seat, and the crew sees it step by step (layer 6).
 A7. **Phone layout.** A follow-up after layer 9. Until then, phones keep
 today's rotate-to-landscape notice (§9).
 
+A8. **The shared crawler.** Only the Mediator changes a Game's crawler (D11).
+Players see it read-only. Today any member may edit it, so this is a server
+rule change, in layer 8.
+
+A9. **Boarding a spare.** It doesn't assign the mech. Boarding only changes the
+seat (D12).
+
 ## 9. Follow-ups outside this plan
 
 - **Mediator Dashboard.** Its own wireframes and plan, built on the seats and
@@ -295,3 +304,6 @@ today's rotate-to-landscape notice (§9).
   assets in a Game. This would be an ADR-030 amendment, not part of this plan.
 - **`games.cockpitPrefs`.** Drop the unused column. That's a one-way schema
   step of its own.
+- **Player requests to the Mediator.** Proposals only go from the Mediator to a
+  player today. With the crawler Mediator-only (D11), players have no in-app way
+  to ask for a crawler change. They ask at the table.
