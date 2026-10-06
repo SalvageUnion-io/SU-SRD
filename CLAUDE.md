@@ -7,7 +7,7 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **35 of them** (ADR-001 through ADR-035). **Read an ADR's `## Status` header first**: several are superseded or merged and that is recorded only there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035). The three that govern:
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **36 of them** (ADR-001 through ADR-037). **Read an ADR's `## Status` header first**: several are superseded or merged and that is recorded only there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035). The three that govern:
   - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops reference: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.

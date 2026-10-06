@@ -63,7 +63,11 @@ function lookup(entities: Array<Pilot | Mech | Crawler>): EntityLookup {
 
 function link(id: string, type: SoftLink['type'], fromId: string, toId: string): SoftLink {
   const [fromType, toType] =
-    type === 'mech-to-pilot' ? (['mech', 'pilot'] as const) : (['pilot', 'crawler'] as const)
+    type === 'mech-to-pilot'
+      ? (['mech', 'pilot'] as const)
+      : type === 'mech-to-crawler'
+        ? (['mech', 'crawler'] as const)
+        : (['pilot', 'crawler'] as const)
   return {
     id,
     type,
@@ -153,8 +157,21 @@ describe('resolveSheetComposition — wired one-hop', () => {
   })
 })
 
-describe('resolveSheetComposition — two-hop resolution', () => {
-  test('mech sheet reaches the home crawler through its pilot', () => {
+describe('resolveSheetComposition — every relationship is one hop (ADR-037)', () => {
+  test("a mech's crawler is its own mech-to-crawler link", () => {
+    const c = resolveSheetComposition({
+      kind: 'mech',
+      id: 'm1',
+      links: [link('l1', 'mech-to-crawler', 'm1', 'c1')],
+      store: lookup([mech, crawler]),
+    })
+    // Wired with no pilot at all: a mech is assigned independently.
+    expect(c.mode).toBe('wired')
+    expect(c.crawler?.id).toBe('c1')
+    expect(c.pilot).toBeNull()
+  })
+
+  test("a mech does NOT inherit its pilot's crawler", () => {
     const c = resolveSheetComposition({
       kind: 'mech',
       id: 'm1',
@@ -162,18 +179,54 @@ describe('resolveSheetComposition — two-hop resolution', () => {
       store: lookup([mech, pilot, crawler]),
     })
     expect(c.mode).toBe('wired')
-    expect(c.crawler?.id).toBe('c1')
+    expect(c.pilot?.id).toBe('p1')
+    expect(c.crawler).toBeNull()
   })
 
-  test('crawler sheet reaches the docked mech through its lead pilot', () => {
+  test("a mech docked elsewhere reads its own crawler, not its pilot's", () => {
+    const other: Crawler = { ...crawler, id: 'c2', name: 'Other' }
+    const c = resolveSheetComposition({
+      kind: 'mech',
+      id: 'm1',
+      links: [
+        link('l1', 'mech-to-pilot', 'm1', 'p1'),
+        link('l2', 'pilot-to-crawler', 'p1', 'c1'),
+        link('l3', 'mech-to-crawler', 'm1', 'c2'),
+      ],
+      store: lookup([mech, pilot, crawler, other]),
+    })
+    expect(c.crawler?.id).toBe('c2')
+  })
+
+  test("a crawler lists the mechs docked by their own links, not its crew's mechs", () => {
+    const mech2: Mech = { ...mech, id: 'm2', name: 'Bobcat' }
     const c = resolveSheetComposition({
       kind: 'crawler',
       id: 'c1',
-      links: [link('l1', 'pilot-to-crawler', 'p1', 'c1'), link('l2', 'mech-to-pilot', 'm1', 'p1')],
-      store: lookup([crawler, pilot, mech]),
+      links: [
+        link('l1', 'pilot-to-crawler', 'p1', 'c1'),
+        // p1 flies m1, but m1 is not docked here…
+        link('l2', 'mech-to-pilot', 'm1', 'p1'),
+        // …while m2, with no pilot, is.
+        link('l3', 'mech-to-crawler', 'm2', 'c1'),
+      ],
+      store: lookup([crawler, pilot, mech, mech2]),
     })
     expect(c.mode).toBe('wired')
-    expect(c.mech?.id).toBe('m1')
+    expect(c.crawlerPilots.map((p) => p.id)).toEqual(['p1'])
+    expect(c.crawlerMechs.map((m) => m.id)).toEqual(['m2'])
+    expect(c.mech?.id).toBe('m2')
+  })
+
+  test('a crawler with only docked mechs is wired', () => {
+    const c = resolveSheetComposition({
+      kind: 'crawler',
+      id: 'c1',
+      links: [link('l1', 'mech-to-crawler', 'm1', 'c1')],
+      store: lookup([crawler, mech]),
+    })
+    expect(c.mode).toBe('wired')
+    expect(c.pilot).toBeNull()
   })
 })
 

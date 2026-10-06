@@ -55,9 +55,8 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 - React 19 + Vite, TypeScript.
 - **TanStack Router** — file-based routes in `src/routes/`; the route tree is
   generated to `src/routeTree.gen.ts` (do not hand-edit).
-- **No TanStack Query.** It was mounted and never called, so it was removed;
-  the typed entity read hooks live in `src/hooks/entities/` (selectors over
-  the Zustand stores). See `.claude/rules/itun-data-access.md`.
+- **No TanStack Query** — entity read hooks are store selectors in
+  `src/hooks/entities/`; see `.claude/rules/itun-data-access.md`.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **Base UI** primitives from `component-lib` (`ui/`, `chrome/`, `base/`) —
   there is no app-local `src/components/ui/`. Styling is the `component-lib`
@@ -76,9 +75,8 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 ## Persistence (read before touching data)
 
 - Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
-  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces` (a
-  retired container — see below; the object store survives only so migrations
-  v10/v13 still run on old databases),
+  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
+  (retired; kept so migrations v10/v13 run),
   `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
   `changeLog` provenance store ([ADR-022](../../docs/adrs/ADR-022-provenance-log-and-overrides.md)) —
   the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
@@ -103,6 +101,9 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   `workspaceId` (deprecated, kept only as a pre-ADR-030 fallback). Filter with
   `containerOf` + `sameContainer`, and only when `mode === 'connected'`: an
   anonymous user has no Games, so their surfaces render the whole pile unfiltered.
+- **Assignments** ([ADR-037](../../docs/adrs/ADR-037-assignment-model.md)):
+  draw soft links only via `assignLink`; the rules are
+  `src/lib/links/linkRules.ts`, shared with `convex/`.
 - **Lazy auto-hydration:** first `list(type)` loads from the current backend
   (the IndexedDB cache signed in, the in-memory store anonymous); later reads
   are synchronous.
@@ -135,9 +136,7 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   `src/components/sheet/MechSheet.tsx`)
   ([ADR-007](../../docs/adrs/ADR-007-automation-boundary.md),
   [ADR-009](../../docs/adrs/ADR-009-condition-model-destroyed-color.md)).
-- The sheet-side play-control panels were removed in the poster redesign; play
-  actions stay on the Dashboard. The one sheet-local control is
-  `CrawlerEconomyControl.tsx`.
+- The one sheet-local play control is `CrawlerEconomyControl.tsx`.
 - Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).
 
 ## Conventions

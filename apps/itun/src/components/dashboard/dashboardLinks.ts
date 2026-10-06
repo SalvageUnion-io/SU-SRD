@@ -5,6 +5,9 @@
  * component (Biome's useComponentExportOnlyModules / Fast Refresh rule).
  */
 
+import { assignLink } from '../../lib/links/assignLink'
+import { resolveLinkType, sameLink } from '../../lib/links/linkRules'
+import type { EntityRef } from '../../lib/schemas/entity'
 import type { SoftLink } from '../../lib/schemas/softLink'
 
 /** Minimal SoftLink write surface — injectable for tests. */
@@ -14,12 +17,17 @@ export type LinkWriteStore = {
 }
 
 /**
- * Ensure the SoftLinks the mech-kind composition reads exist, repairing any
- * conflicting outgoing link on the same source first (mech-to-pilot from the
- * chosen mech; pilot-to-crawler from the chosen pilot when a crawler is given).
+ * Ensure the assignments the Dashboard reads exist for the chosen crew: the
+ * mech flies the pilot, and — when a crawler is chosen — both the pilot and the
+ * mech are aboard it. The mech's crawler is its OWN link since ADR-037, so the
+ * pilot's crew link alone would leave the Dashboard's mech with no crawler.
  *
- * Reversible bookkeeping — safe to auto-apply (ADR-007). Writes go through the
- * same `softLink` create/delete the wiring components (useSoftLinks) use.
+ * Each one goes through `assignLink`, which replaces whatever the assignment
+ * displaces (the mech's old pilot, the pilot's old crawler, …) in the same
+ * write, so this no longer repairs conflicts by hand. A link already in place
+ * is left alone.
+ *
+ * Reversible bookkeeping — safe to auto-apply (ADR-007).
  */
 export async function ensureDashboardLinks(args: {
   store: LinkWriteStore
@@ -29,34 +37,18 @@ export async function ensureDashboardLinks(args: {
   crawlerId?: string
 }): Promise<void> {
   const { store, links, pilotId, mechId, crawlerId } = args
+  const mech: EntityRef = { type: 'mech', id: mechId }
+  const pilot: EntityRef = { type: 'pilot', id: pilotId }
 
-  // mech-to-pilot: exactly one outgoing link from the chosen mech → pilot.
-  const mechLinks = links.filter((l) => l.type === 'mech-to-pilot' && l.from.id === mechId)
-  const keptMech = mechLinks.find((l) => l.to.id === pilotId)
-  for (const l of mechLinks) {
-    if (l.id !== keptMech?.id) await store.delete('softLink', l.id)
-  }
-  if (!keptMech) {
-    await store.create('softLink', {
-      from: { type: 'mech', id: mechId },
-      to: { type: 'pilot', id: pilotId },
-      type: 'mech-to-pilot',
-    })
+  const wanted: Array<[EntityRef, EntityRef]> = [[mech, pilot]]
+  if (crawlerId) {
+    const crawler: EntityRef = { type: 'crawler', id: crawlerId }
+    wanted.push([pilot, crawler], [mech, crawler])
   }
 
-  if (!crawlerId) return
-
-  // pilot-to-crawler: exactly one outgoing link from the chosen pilot → crawler.
-  const crawlerLinks = links.filter((l) => l.type === 'pilot-to-crawler' && l.from.id === pilotId)
-  const keptCrawler = crawlerLinks.find((l) => l.to.id === crawlerId)
-  for (const l of crawlerLinks) {
-    if (l.id !== keptCrawler?.id) await store.delete('softLink', l.id)
-  }
-  if (!keptCrawler) {
-    await store.create('softLink', {
-      from: { type: 'pilot', id: pilotId },
-      to: { type: 'crawler', id: crawlerId },
-      type: 'pilot-to-crawler',
-    })
+  for (const [from, to] of wanted) {
+    const type = resolveLinkType(from.type, to.type)
+    if (links.some((l) => sameLink(l, { from, to, type }))) continue
+    await assignLink(from, to, store)
   }
 }

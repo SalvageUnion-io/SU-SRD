@@ -157,24 +157,20 @@ export function SheetCrawler({
 
   // A crawler has no single "lead pilot" and no single docked mech: it is a
   // home for a CREW. Both slots are lists — every pilot wired to this crawler,
-  // and every mech those pilots have — rather than the one-of-each the
-  // composition resolver picks out for the two-hop mech lookup.
+  // and every mech docked in it by its OWN `mech-to-crawler` link (ADR-037).
+  // A mech is assigned independently of its pilot, so a crew pilot's mech that
+  // is docked somewhere else is not in this bay, and a docked mech with no
+  // pilot still is.
   //
-  // Each docked mech keeps the pilot it was reached through: its Max SP depends
-  // on that pilot's abilities (Beefcake, ADR-029), so dropping the pilot here
-  // would make this rail read a lower cap than the mech's own sheet.
-  const dockedMechs = composition.crawlerPilots
-    .map((crewPilot) => {
-      const link = storeState.softLinks.find(
-        (l) => l.type === 'mech-to-pilot' && l.to.id === crewPilot.id
-      )
-      const mech = link ? storeState.get('mech', link.from.id) : null
-      return mech ? { mech, pilot: crewPilot } : null
-    })
-    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
-    // Deduped: two pilots may be wired to the same mech, which would otherwise
-    // render that mech twice (and collide on its React key).
-    .filter((entry, i, all) => all.findIndex((other) => other.mech.id === entry.mech.id) === i)
+  // Each docked mech still carries its own pilot when it has one: its Max SP
+  // depends on that pilot's abilities (Beefcake, ADR-029), so dropping the
+  // pilot here would make this rail read a lower cap than the mech's own sheet.
+  const dockedMechs = composition.crawlerMechs.map((mech) => {
+    const link = storeState.softLinks.find(
+      (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
+    )
+    return { mech, pilot: link ? storeState.get('pilot', link.to.id) : null }
+  })
 
   /** Unlink one pilot from this crawler (always available on editable sheets). */
   function unlinkPilot(pilotId: string) {
@@ -200,7 +196,7 @@ export function SheetCrawler({
             meta="Docked Mech"
             metaLine={mechStatusPill(dockedMech).label}
             stats={rowStats(
-              mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot.abilities))
+              mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
             )}
           />
         ))
@@ -210,13 +206,9 @@ export function SheetCrawler({
           entityType="mech"
           className="flex-[1_1_0%]"
           roleLabel="Docked Mechs"
-          /* Says how a mech actually gets here. The old copy — "dock one to
-             repair, re-arm and track it from here" — named a verb this surface
-             does not have: there is no mech→crawler link, so a mech arrives by
-             its pilot joining the crew. Promising "dock one" beside a button
-             that only creates a new mech is what "you couldn't assign them to a
-             crawler" felt like from the outside. */
-          message="No mechs in the bay. A mech arrives with its pilot — add that pilot to the crew and their mech docks here."
+          /* Says how a mech actually gets here: by its own assignment to this
+             crawler (ADR-037), made from the mech, not by its pilot joining. */
+          message="No mechs in the bay. Assign a mech to this crawler and it docks here."
           actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
         />
       )}

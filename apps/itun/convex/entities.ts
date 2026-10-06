@@ -1,4 +1,5 @@
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL, endsMatchType } from '../src/lib/links/linkRules'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
@@ -9,7 +10,12 @@ import {
   loadOwnable,
   mutation,
   parseBody,
+  pruneLinksAcrossContainers,
+  pruneLinksOfRow,
+  resolveLinkEnd,
+  sameContainerRows,
   unsetCrawlerFields,
+  writeSoftLink,
 } from './model/entities'
 import {
   gameHasCrawler,
@@ -252,6 +258,111 @@ export const listMine = query({
 })
 
 /**
+ * Every assignment the caller can see, plus every crawler in their Games — the
+ * download half of the assignment model (ADR-037).
+ *
+ * ## Why links needed a way down
+ *
+ * Links mirrored up and never came back. `listMine` returned none, and
+ * `listForGame` returned a Game's but nothing on the client read them, so a
+ * pilot assigned to a crawler from one device — or by the server, or through
+ * somebody else's mech — showed as unassigned everywhere else. The same gap hid
+ * the crawler itself: a Game's crawler has no owner, so it is never in
+ * `listMine`, and a pilot sheet had nothing to resolve its Home Crawler to
+ * unless somebody happened to have pressed "Edit" on the crawler's row.
+ *
+ * ## What "can see" means here
+ *
+ *  - every link drawn **out of** an entity the caller owns, wherever it lives —
+ *    which is every shelf link they have, since both ends of a shelf link are
+ *    the same owner's (the container invariant);
+ *  - every link **in** a Game the caller is a member of, whoever drew it;
+ *  - every crawler in those Games.
+ *
+ * `gameIds` says which Games the answer covers, so the client knows which of
+ * its cached links the server has spoken for. A cached link outside them is
+ * not this query's to prune.
+ *
+ * Other members' pilots and mechs are deliberately not here: they are read
+ * live, read-only, from `listForGame`, and caching somebody else's sheet in
+ * this browser is how an editor appears whose every save is refused.
+ */
+export const listWiring = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await requireUser(ctx)
+
+    const [pilots, mechs, memberships] = await Promise.all([
+      ctx.db
+        .query('pilots')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('mechs')
+        .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('memberships')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .collect(),
+    ])
+
+    const ownedIds = [...pilots, ...mechs]
+      .map((row) => row.appId)
+      .filter((id): id is string => id !== undefined)
+    const gameIds = memberships.map((m) => m.gameId)
+
+    const [outgoing, inGames, crawlers] = await Promise.all([
+      Promise.all(
+        ownedIds.map((id) =>
+          ctx.db
+            .query('softLinks')
+            .withIndex('by_from', (q) => q.eq('from.id', id))
+            .collect()
+        )
+      ),
+      Promise.all(
+        gameIds.map((gameId) =>
+          ctx.db
+            .query('softLinks')
+            .withIndex('by_game', (q) => q.eq('gameId', gameId))
+            .collect()
+        )
+      ),
+      Promise.all(
+        gameIds.map((gameId) =>
+          ctx.db
+            .query('crawlers')
+            .withIndex('by_game', (q) => q.eq('gameId', gameId))
+            .collect()
+        )
+      ),
+    ])
+
+    const links = new Map<string, Doc<'softLinks'>>()
+    for (const link of [...outgoing.flat(), ...inGames.flat()]) links.set(link._id, link)
+
+    return {
+      gameIds,
+      softLinks: [...links.values()].map((l) => ({
+        _id: l._id,
+        _creationTime: l._creationTime,
+        gameId: l.gameId,
+        from: l.from,
+        to: l.to,
+        type: l.type,
+      })),
+      crawlers: crawlers.flat().map((c) => ({
+        appId: c.appId ?? null,
+        gameId: c.gameId,
+        updatedAt: c.updatedAt,
+        body: c.body,
+      })),
+    }
+  },
+})
+
+/**
  * Delete an entity, addressed by its **server** id. Owner only.
  *
  * The twin of `removeByAppId`, which the mirror uses, and necessary because the
@@ -269,7 +380,7 @@ export const remove = mutation({
 
     assertMayWrite(doc, userId)
     await ctx.db.delete(doc._id)
-    if (doc.appId !== undefined) await pruneSoftLinksFor(ctx, doc.appId)
+    await pruneLinksOfRow(ctx, doc)
   },
 })
 
@@ -336,6 +447,9 @@ export const removeCrawler = mutation({
     if (doc === null) return
     await assertMayScrapCrawler(ctx, doc)
     await ctx.db.delete(args.crawlerId)
+    // The crew's links go with it, as a pilot's or mech's do in `remove`;
+    // without this a scrapped crawler kept its crew wired to nothing.
+    await pruneLinksOfRow(ctx, doc)
   },
 })
 
@@ -490,12 +604,22 @@ export const upsertByAppId = mutation({
      * container as far as the rules are concerned, so it answers to the same
      * gate; leaving the source is unconditional.
      */
-    if (existing.gameId !== args.gameId) {
+    const previousGameId = existing.gameId
+    const moved = previousGameId !== args.gameId
+    if (moved) {
       await assertMayAddToContainer(ctx, args.gameId, userId)
       await ctx.db.patch(existing._id, { gameId: args.gameId })
     }
 
     await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
+
+    // A link may not straddle two containers (ADR-037), so a move takes with
+    // it only the links whose other end is already where it is going, and
+    // drops the rest in the same mutation.
+    if (moved) {
+      const row = await ctx.db.get(existing._id)
+      if (row !== null) await pruneLinksAcrossContainers(ctx, row, previousGameId)
+    }
   },
 })
 
@@ -556,6 +680,7 @@ export const removeCrawlerByAppId = mutation({
 
     await assertMayScrapCrawler(ctx, existing)
     await ctx.db.delete(existing._id)
+    await pruneSoftLinksFor(ctx, args.appId)
   },
 })
 
@@ -587,18 +712,19 @@ async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'cra
 /**
  * Which ownable table a link's `from` endpoint lives in.
  *
- * The `from` end is always ownable — a mech in `mech-to-pilot`, a pilot in
- * `pilot-to-crawler` — which is what lets one lookup answer both questions the
- * mirror has to ask: may this user draw the link, and which container does it
- * belong to.
+ * The `from` end is always ownable — a mech in `mech-to-pilot` and
+ * `mech-to-crawler`, a pilot in `pilot-to-crawler` — which is what lets one
+ * lookup answer both questions the mirror has to ask: may this user draw the
+ * link, and which container does it belong to.
  */
 const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
   'mech-to-pilot': 'mechs',
   'pilot-to-crawler': 'pilots',
+  'mech-to-crawler': 'mechs',
 }
 
 /**
- * Mirror a soft link to the server of record.
+ * Mirror a soft link to the server of record — an **assignment** (ADR-037).
  *
  * ## Why this exists
  *
@@ -606,20 +732,36 @@ const SOFT_LINK_FROM_TABLE: Record<SoftLink['type'], OwnableTable> = {
  * `mirrorEntityWrite` returned early for them — they were called "derived", and
  * for a shelf they effectively are — while `listForGame` *read* them back. So a
  * Game showed whatever links existed when the account was claimed, and every
- * wiring change made afterwards was invisible to the rest of the table: you
- * assigned a pilot to the crawler, your own sheet updated, and nobody else ever
- * saw it. A link is not derived once a Game shares it; it is the assignment.
+ * wiring change made afterwards was invisible to the rest of the table. A link
+ * is not derived once a Game shares it; it is the assignment.
  *
- * ## Permission and container both come from the `from` end
+ * ## Permission comes from the `from` end; the container from both
  *
- * You may draw a link out of an entity you may write, and the link lands in
- * that entity's container. Both fall out of one lookup, and both are the
- * answers you want: wiring your own mech to a crewmate's pilot is your business
- * because the mech is yours, and the link belongs wherever the mech does.
+ * You may draw a link out of an entity you may write, and it is filed in that
+ * entity's container. Wiring your own mech to a crewmate's pilot is your
+ * business because the mech is yours.
  *
- * A `from` entity with no server row means a purely local build — Solo, or
- * shelved before a claim — so there is nothing to anchor a link to and this
- * no-ops rather than inventing one.
+ * The `to` end used to be a free-form string nobody looked up. It is resolved
+ * now, because the assignment model has three invariants and two of them are
+ * about it:
+ *
+ *  - **one container** — both ends in the same Game, or on the same owner's
+ *    shelf. Anything else is refused with a player-facing `ConvexError`; the
+ *    client store refuses the same pair first when it holds both ends.
+ *  - **cardinality** — drawing the link REPLACES the links it conflicts with,
+ *    in this same mutation (`writeSoftLink`). Replacing a link drawn out of
+ *    somebody else's mech — the other mech flying this pilot — is allowed only
+ *    to the owner of that mech or of the pilot: the pilot's owner decides who
+ *    flies them, the mech's owner what it carries, and nobody else either.
+ *
+ * ## When an end has no server row
+ *
+ * A `from` end with no row is a purely local build — Solo, or a pre-account
+ * roster the migration has not sent yet — so there is nothing to anchor to and
+ * this no-ops. A `to` end with no row is treated the same way and for the same
+ * reason: the claim that uploads that build uploads its wiring with it. A link
+ * whose ends are both on the server is the only kind this writes, which is what
+ * lets every row it writes satisfy all three invariants.
  */
 export const upsertSoftLink = mutation({
   args: {
@@ -629,26 +771,32 @@ export const upsertSoftLink = mutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
+    if (!endsMatchType(args)) {
+      // A client defect, not a refusal: the store resolves the type from the
+      // ends and could never send this.
+      throw new Error(`A ${args.type} link cannot join ${args.from.type} → ${args.to.type}`)
+    }
 
     const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
     if (anchor === null) return
     assertMayWrite(anchor, userId)
 
-    const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
-    if (existing !== null) {
-      // The link is already here; only its container can have moved, and it
-      // moves with the entity it was drawn out of.
-      if (existing.gameId !== anchor.gameId) {
-        await ctx.db.patch(existing._id, { gameId: anchor.gameId })
-      }
-      return
-    }
+    const target = await resolveLinkEnd(ctx, args.to, anchor.gameId)
+    if (target === null) return
+    if (!sameContainerRows(anchor, target)) throw new ConvexError(CROSS_CONTAINER_REFUSAL)
 
-    await ctx.db.insert('softLinks', {
-      gameId: anchor.gameId,
-      from: args.from,
-      to: args.to,
-      type: args.type,
+    await writeSoftLink(ctx, args, anchor.gameId, {
+      mayReplace: async (conflict) => {
+        // Conflicts on the `from` end are this anchor's own links — the caller
+        // may write it, so they may replace them.
+        if (conflict.from.id === args.from.id) return
+        if (target.ownerId === userId) return
+        const otherMech = await resolveLinkEnd(ctx, conflict.from, anchor.gameId)
+        if (otherMech === null || otherMech.ownerId === userId) return
+        throw new NotAuthorized(
+          'That pilot already flies another mech — whoever holds that mech or that pilot has to unassign it first'
+        )
+      },
     })
   },
 })

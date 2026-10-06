@@ -3,18 +3,23 @@
  * from the pre-Header-C Sheet.tsx (plan 4.0: "ported, not discarded") as a
  * pure function so the LiveSheet shell, the rail, and tests all share it.
  *
- * Composition mode algorithm (one- and two-hop over the SoftLink graph):
+ * Every relationship is ONE hop over the SoftLink graph (ADR-037):
  *
- *   kind=mech    + mech-to-pilot outgoing            → wired (pilot; + crawler
- *                                                      via the pilot's
- *                                                      pilot-to-crawler link)
- *   kind=pilot   + mech-to-pilot incoming and/or
- *                  pilot-to-crawler outgoing         → wired (mech/crawler)
- *   kind=crawler + pilot-to-crawler incoming         → wired (crawlerPilots;
- *                                                      pilot = lead pilot,
- *                                                      mech = the lead
- *                                                      pilot's docked mech)
- *   no links                                         → '<kind>-only'
+ *   kind=mech    + mech-to-pilot outgoing             → pilot
+ *                + mech-to-crawler outgoing           → crawler
+ *   kind=pilot   + mech-to-pilot incoming             → mech
+ *                + pilot-to-crawler outgoing          → crawler
+ *   kind=crawler + pilot-to-crawler incoming          → crawlerPilots (pilot =
+ *                                                       the first of them)
+ *                + mech-to-crawler incoming           → crawlerMechs (mech =
+ *                                                       the first of them)
+ *   any of the above                                  → 'wired'
+ *   no links                                          → '<kind>-only'
+ *
+ * A mech's crawler used to be its PILOT's crawler (two hops). It is its own
+ * link now, and a mech with none has no crawler — there is deliberately no
+ * fallback through the pilot, or a mech assigned elsewhere would still read as
+ * docked wherever its pilot crews.
  *
  * All reads are dep-injectable: pass a snapshot `EntityLookup` + the full
  * SoftLink list (orphaned links resolve to null entities and are skipped).
@@ -42,10 +47,13 @@ export type SheetComposition = {
   mode: CompositionMode
   /** The linked pilot (for crawlers: the lead pilot — first wired). */
   pilot: Pilot | null
+  /** The linked mech (for crawlers: the first docked mech). */
   mech: Mech | null
   crawler: Crawler | null
   /** Every pilot wired to the crawler (kind=crawler only). */
   crawlerPilots: Pilot[]
+  /** Every mech docked in the crawler by its own link (kind=crawler only). */
+  crawlerMechs: Mech[]
 }
 
 type ResolveArgs = {
@@ -62,38 +70,30 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     mech: null,
     crawler: null,
     crawlerPilots: [],
+    crawlerMechs: [],
   }
 
-  const pilotCrawler = (pilotId: string): Crawler | null => {
-    const link = links.find((l) => l.type === 'pilot-to-crawler' && l.from.id === pilotId)
-    return link ? store.get('crawler', link.to.id) : null
-  }
-
-  const pilotMech = (pilotId: string): Mech | null => {
-    const link = links.find((l) => l.type === 'mech-to-pilot' && l.to.id === pilotId)
-    return link ? store.get('mech', link.from.id) : null
+  /** The one entity at the far end of an outgoing link of this type. */
+  const outgoing = <T extends EntityRef['type']>(type: SoftLink['type'], to: T) => {
+    const link = links.find((l) => l.type === type && l.from.id === id)
+    return link ? store.get(to, link.to.id) : null
   }
 
   if (kind === 'mech') {
     const mech = store.get('mech', id)
-    const pilotLink = links.find((l) => l.type === 'mech-to-pilot' && l.from.id === id)
-    const pilot = pilotLink ? store.get('pilot', pilotLink.to.id) : null
-    if (!pilot) return { ...empty, mech }
-    return {
-      mode: 'wired',
-      pilot,
-      mech,
-      crawler: pilotCrawler(pilot.id),
-      crawlerPilots: [],
-    }
+    const pilot = outgoing('mech-to-pilot', 'pilot')
+    const crawler = outgoing('mech-to-crawler', 'crawler')
+    if (!pilot && !crawler) return { ...empty, mech }
+    return { ...empty, mode: 'wired', pilot, mech, crawler }
   }
 
   if (kind === 'pilot') {
     const pilot = store.get('pilot', id)
-    const mech = pilotMech(id)
-    const crawler = pilotCrawler(id)
+    const mechLink = links.find((l) => l.type === 'mech-to-pilot' && l.to.id === id)
+    const mech = mechLink ? store.get('mech', mechLink.from.id) : null
+    const crawler = outgoing('pilot-to-crawler', 'crawler')
     if (!mech && !crawler) return { ...empty, pilot }
-    return { mode: 'wired', pilot, mech, crawler, crawlerPilots: [] }
+    return { ...empty, mode: 'wired', pilot, mech, crawler }
   }
 
   // kind === 'crawler'
@@ -102,13 +102,17 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     .filter((l) => l.type === 'pilot-to-crawler' && l.to.id === id)
     .map((l) => store.get('pilot', l.from.id))
     .filter((p): p is Pilot => p !== null)
-  const lead = crawlerPilots[0]
-  if (!lead) return { ...empty, crawler }
+  const crawlerMechs = links
+    .filter((l) => l.type === 'mech-to-crawler' && l.to.id === id)
+    .map((l) => store.get('mech', l.from.id))
+    .filter((m): m is Mech => m !== null)
+  if (crawlerPilots.length === 0 && crawlerMechs.length === 0) return { ...empty, crawler }
   return {
     mode: 'wired',
-    pilot: lead,
-    mech: pilotMech(lead.id),
+    pilot: crawlerPilots[0] ?? null,
+    mech: crawlerMechs[0] ?? null,
     crawler,
     crawlerPilots,
+    crawlerMechs,
   }
 }

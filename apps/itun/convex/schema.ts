@@ -52,8 +52,18 @@ import { v } from 'convex/values'
  */
 export const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
 
-/** Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above. */
-export const softLinkType = v.union(v.literal('mech-to-pilot'), v.literal('pilot-to-crawler'))
+/**
+ * Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above.
+ *
+ * `mech-to-crawler` is the newest literal (ADR-037): a mech's crawler is its
+ * own link, no longer reached through its pilot. Adding a literal is the
+ * backward-compatible direction — every existing row still validates.
+ */
+export const softLinkType = v.union(
+  v.literal('mech-to-pilot'),
+  v.literal('pilot-to-crawler'),
+  v.literal('mech-to-crawler')
+)
 
 /**
  * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus
@@ -432,7 +442,21 @@ export default defineSchema({
     .index('by_owner_game', ['ownerId', 'gameId'])
     .index('by_app_id', ['appId']),
 
-  /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */
+  /**
+   * An assignment: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler'.
+   * EntityRef is NOT widened (ADR-027).
+   *
+   * Identity is the (from, to, type) triple — endpoints are app ids, so a link
+   * needs no `appId` of its own. Three invariants hold for every row, and the
+   * writers in `entities.ts` / `model/entities.ts` keep them (ADR-037):
+   *
+   *   - **cardinality** — a pilot crews ≤1 crawler and flies ≤1 mech; a mech
+   *     flies ≤1 pilot and docks in ≤1 crawler. Drawing a link replaces the
+   *     ones it conflicts with (`conflictingLinks` in `src/lib/links/linkRules.ts`).
+   *   - **one container** — both ends share a Game, or the same owner's shelf.
+   *   - **`gameId` is that container** — it moves with its ends, and a move that
+   *     would leave a link straddling two containers deletes it instead.
+   */
   softLinks: defineTable({
     gameId: v.union(v.id('games'), v.null()),
     from: v.object({ type: entityRefType, id: v.string() }),

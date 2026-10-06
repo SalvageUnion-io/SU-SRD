@@ -10,17 +10,13 @@
  * else. So the ordinary thing a player wants to do at a table, put an existing
  * character aboard the crew's crawler, had no path from the crawler at all.
  *
- * That gap is also why "you couldn't assign them to a crawler" is true of
- * **mechs**, which is how it was reported. A mech reaches a bay through its
- * pilot (`mech-to-pilot` + `pilot-to-crawler` — the two-hop `SheetCrawler`
- * resolves); `resolveLinkType` has no mech→crawler pairing and throws if asked
- * for one. With no way to add crew from here, there was no way to get a mech
- * into the bay from here either, and the empty rail said "dock one" while
- * offering nothing that could.
+ * Mechs used to reach a bay only through their pilot, so this was also the
+ * only way to dock one. Since ADR-037 a mech docks by its own `mech-to-crawler`
+ * link and adding a pilot to the crew brings nobody else aboard.
  *
  * The direction is fixed by the schema, not by which button you pressed: the
- * pilot is always the `from` end. So this hangs `useSoftLinks` off the selected
- * pilot rather than off the crawler it is rendered on.
+ * pilot is always the `from` end. The write goes through `assignLink`, which
+ * moves the pilot off any crawler they crewed before — a pilot crews one.
  *
  * Props:
  *   crawlerId   — id of the crawler being crewed
@@ -32,10 +28,10 @@
 import { Button, cn, FieldError, ModalShell, Radio } from 'component-lib'
 import { useState } from 'react'
 import { usePilots } from '../../hooks/entities'
+import { assignLink } from '../../lib/links/assignLink'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from './useSoftLinks'
-import { resolveLinkType } from './useSoftLinks'
 
 /**
  * Extended injectable store that also exposes pilot listing.
@@ -107,15 +103,14 @@ export function AssignPilotToCrawler({
     setPending(true)
     setError(null)
     try {
-      // Written against the store directly rather than through `useSoftLinks`:
-      // that hook binds its `from` end at render time, and the `from` end here
-      // is the pilot the player just picked, which is not known until now.
+      // Not through `useSoftLinks`: that hook binds its `from` end at render
+      // time, and the `from` end here is the pilot the player just picked.
       const s: SoftLinkStore = store ?? useEntityStore.getState()
-      await s.create('softLink', {
-        from: { type: 'pilot', id: selectedPilotId },
-        to: { type: 'crawler', id: crawlerId },
-        type: resolveLinkType('pilot', 'crawler'),
-      })
+      await assignLink(
+        { type: 'pilot', id: selectedPilotId },
+        { type: 'crawler', id: crawlerId },
+        s
+      )
       setOpen(false)
       onAssigned?.()
     } catch (err) {
@@ -167,11 +162,10 @@ export function AssignPilotToCrawler({
             </div>
           )}
 
-          {/* The two-hop, said once, where the question actually arises: a
-              player looking for their mech in the bay is looking at this list
-              and wondering why it asks about pilots. */}
+          {/* Said where the question arises: a pilot crews one crawler, so
+              picking one already aboard another moves them here. */}
           <p className="font-body text-xs text-wk-muted">
-            A pilot brings their mech with them — anything they are wired to appears in the bay.
+            A pilot crews one crawler — adding one already aboard another moves them here.
           </p>
 
           {error && <FieldError>{error}</FieldError>}

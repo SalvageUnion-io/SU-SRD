@@ -88,7 +88,8 @@ export function SheetMech({
 
   // Unassign for the mech's own direct link (mech-to-pilot) — always
   // available on editable sheets per the unified edit language (no edit
-  // mode). The crawler chip is transitive (the pilot's crawler), nav-only.
+  // mode). The crawler chip is the mech's own `mech-to-crawler` link since
+  // ADR-037 (no longer its pilot's crawler); it stays nav-only here.
   const pilotLinkId = storeState.softLinks.find(
     (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
   )?.id
@@ -151,7 +152,7 @@ export function SheetMech({
           entityType="crawler"
           className="flex-[1_1_0%]"
           roleLabel="Home Crawler"
-          message="No crawler linked — the assigned pilot's home crawler appears here."
+          message="No crawler assigned — a mech docks in a crawler by its own assignment."
           actions={editable ? <RailCta href="/crawlers/new" label="+ Create" primary /> : undefined}
         />
       )}

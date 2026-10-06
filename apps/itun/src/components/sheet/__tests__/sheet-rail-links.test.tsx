@@ -121,6 +121,14 @@ const pilotToCrawler = makeLink(
   'crawler-1',
   'pilot-to-crawler'
 )
+const mechToCrawler = makeLink(
+  'link-3',
+  'mech',
+  'mech-1',
+  'crawler',
+  'crawler-1',
+  'mech-to-crawler'
+)
 
 // ---------------------------------------------------------------------------
 // 1. Cross-links on the rail
@@ -165,17 +173,29 @@ describe('Sheet — rail cross-links', () => {
     expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
   })
 
+  test('wired mech sheet links to the crawler it is docked in by its own link', () => {
+    render(
+      <Sheet
+        kind="mech"
+        id="mech-1"
+        entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
+        softLinkStore={makeSoftLinkStore([mechToCrawler])}
+      />
+    )
+    expect(linkTo('/sheet/crawler/crawler-1')).toBeTruthy()
+  })
+
   test('wired crawler sheet links to its pilots and docked mechs', () => {
     render(
       <Sheet
         kind="crawler"
         id="crawler-1"
         entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([mechToPilot, pilotToCrawler])}
+        softLinkStore={makeSoftLinkStore([mechToPilot, pilotToCrawler, mechToCrawler])}
       />
     )
-    // Lead pilot = first pilot wired to the crawler; docked mech = that lead
-    // pilot's assigned mech (two-hop resolution in composition.ts).
+    // Crew = every pilot wired to the crawler; the bay = every mech docked by
+    // its own mech-to-crawler link (ADR-037), not reached through a pilot.
     expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
     expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
   })

@@ -141,9 +141,9 @@ that string is the redacted one.
 ## Repairing duplicated app ids
 
 `convex/maintenance.ts` holds operator-only repairs, reachable through
-`bunx convex run` and not from any client: `dedupeAppIds` (below) and the
+`bunx convex run` and not from any client: `dedupeAppIds` (below), the
 one-off `repairContainers` (see "Denormalised columns" below for how a repair is
-run in production). `dedupeAppIds` undoes the damage described under "Claiming
+run in production), and `repairSoftLinks` (see "Repairing soft links" below). `dedupeAppIds` undoes the damage described under "Claiming
 twice" in `convex/claim.ts`: rows sharing an
 `appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
 write for that entity, permanently and silently.
@@ -166,6 +166,28 @@ recently written) and reports how many `changeLog` rows — audit history and
 pending Mediator proposals alike — still point at a copy it would delete. Those
 address entities by Convex id rather than `appId`, so they do not follow the
 survivor.
+
+## Repairing soft links
+
+[ADR-037](../adrs/ADR-037-assignment-model.md) gave mechs their own
+`mech-to-crawler` link and made the writers keep three invariants (cardinality,
+one container, `gameId` = that container). Rows written before it may break all
+three, and a mech that reached its bay through its pilot has no direct link.
+`repairSoftLinks` fixes both, across every account, **dry run by default**:
+
+```bash
+# report only — changes nothing
+bunx convex run maintenance:repairSoftLinks --prod
+# then, having read the report
+bunx convex run maintenance:repairSoftLinks '{"apply": true}' --prod
+```
+
+Run it once, right after the deploy that ships `mech-to-crawler`; until it has,
+those mechs show undocked. It pages, and is idempotent: a re-run resumes, and an
+applied run followed by a dry run reports nothing left (orphaned links — an end
+with no row — are only counted, never touched). It is not on the
+`convex-maintenance.yml` allowlist, which runs each task with `{}` and so could
+only ever dry-run it.
 
 ## Denormalised columns
 
