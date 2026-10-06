@@ -1,8 +1,8 @@
 /**
- * MoveToGameSelect — "Move to game…" on a My stuff row (ADR-030 §2, ADR-037).
+ * MoveToGameSelect — "Move to game…" on a My Stuff row (ADR-030 §2, ADR-037).
  *
  * The row-sized twin of the live sheet's `MoveToContainerControl`, for the one
- * direction a My stuff row needs: into a Game. It lists only what the server
+ * direction a My Stuff row needs: into a Game. It lists only what the server
  * would accept, from the same mirror (`moveDestinations`): a pilot or mech may
  * go into any Game the player belongs to; a crawler only into a Game they run.
  * With nowhere to go it renders nothing, rather than a select of one.

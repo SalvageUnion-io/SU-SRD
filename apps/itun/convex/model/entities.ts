@@ -232,7 +232,7 @@ function ownerOfRow(row: ContainedRow): Id<'users'> | null {
  *
  * The same Game, or the same owner's shelf. The second clause is the one
  * `lib/container.ts`'s `sameContainer` cannot express: every player's shelf has
- * the same `null` game id, and "My stuff" is a solo Game per person, not one
+ * the same `null` game id, and "My Stuff" is a solo Game per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
  */

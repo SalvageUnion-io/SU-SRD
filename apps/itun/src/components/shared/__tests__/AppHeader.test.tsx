@@ -131,15 +131,15 @@ describe('AppHeader', () => {
       <AppHeader
         drawerExtra={(close) => (
           <button type="button" onClick={close}>
-            My stuff
+            My Stuff
           </button>
         )}
       />
     )
-    expect(screen.queryByRole('button', { name: 'My stuff' })).toBeFalsy()
+    expect(screen.queryByRole('button', { name: 'My Stuff' })).toBeFalsy()
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const drawer = screen.getByRole('dialog')
-    fireEvent.click(within(drawer).getByRole('button', { name: 'My stuff' }))
+    fireEvent.click(within(drawer).getByRole('button', { name: 'My Stuff' }))
     expect(screen.queryByRole('dialog')).toBeFalsy()
   })
 })

@@ -334,7 +334,7 @@ describe('yours first, then everyone else', () => {
   })
 })
 
-describe('copy to My stuff', () => {
+describe('copy to My Stuff', () => {
   test('every character offers it, including ones you do not own', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
 
@@ -342,7 +342,7 @@ describe('copy to My stuff', () => {
     // view of every row, so copying what is on screen escalates nothing. It is
     // also the only way to keep a character when you walk away from the table:
     // releasing one leaves it behind, unclaimed.
-    expect(screen.getAllByRole('button', { name: 'Copy to My stuff' })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: 'Copy to My Stuff' })).toHaveLength(3)
   })
 
   test('the crawler does not — a deliberate hold, no longer an impossibility', async () => {
@@ -354,7 +354,7 @@ describe('copy to My stuff', () => {
     // somebody keeps, so offering "copy the table's crawler to your shelf" is a
     // product decision that has not been made — and this test is what will fail
     // first, loudly and in the right place, when somebody makes it.
-    expect(screen.queryByRole('button', { name: 'Copy to My stuff' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Copy to My Stuff' })).toBeNull()
   })
 })
 
@@ -406,15 +406,15 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Copy to My stuff says the copy is separate, and copies nothing until confirmed', async () => {
+  test('Copy to My Stuff says the copy is separate, and copies nothing until confirmed', async () => {
     // Signed out, so the copy's create stays in the in-memory backend: this
     // file's Convex client is a stub with no `mutation`, and the backend's auth
     // state is process-global, so another file can leave it signed in.
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
-    const dialog = press('Copy to My stuff')
+    const dialog = press('Copy to My Stuff')
 
-    expect(dialog.textContent).toContain('Copy Vex Arlo to My stuff?')
+    expect(dialog.textContent).toContain('Copy Vex Arlo to My Stuff?')
     expect(dialog.textContent).toContain("won't sync back")
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
@@ -463,7 +463,7 @@ describe('every verb that changes who has a build asks first', () => {
 
   test.each([
     ['Offer to the crew', MY_PILOT],
-    ['Copy to My stuff', MY_PILOT],
+    ['Copy to My Stuff', MY_PILOT],
     ['Delete', MY_PILOT],
   ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
     await renderAs(ME, listing({ pilots: [pilot] }))
@@ -488,11 +488,11 @@ describe('every verb that changes who has a build asks first', () => {
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     press('Offer to the crew')
-    mutationError = new ConvexError('A build in your My stuff is already yours')
+    mutationError = new ConvexError('A build in your My Stuff is already yours')
 
     await confirmWith('Offer to the crew')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getByRole('alert').textContent).toBe('A build in your My stuff is already yours')
+    expect(screen.getByRole('alert').textContent).toBe('A build in your My Stuff is already yours')
   })
 
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
@@ -535,7 +535,7 @@ describe('remove from game', () => {
     const dialog = press('Remove from game')
 
     expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
-    expect(dialog.textContent).toContain('goes back to My stuff')
+    expect(dialog.textContent).toContain('goes back to My Stuff')
     expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
     expect(gameIdOf('a-mine')).toBe('g1')
 
@@ -543,12 +543,12 @@ describe('remove from game', () => {
     expect(gameIdOf('a-mine')).toBe('g1')
   })
 
-  test('confirming moves the same record to My stuff', async () => {
+  test('confirming moves the same record to My Stuff', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     press('Remove from game')
 
-    await confirmWith('Move to My stuff')
+    await confirmWith('Move to My Stuff')
     // The move writes through IndexedDB, which outlasts one act() scope.
     await settle(() => screen.queryByRole('alertdialog') === null)
     expect(screen.queryByRole('alertdialog')).toBeNull()

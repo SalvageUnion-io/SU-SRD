@@ -7,7 +7,7 @@
 mechs and crawlers together, and **amends ADR-030 §5a**: a Game no longer
 waits for a crawler before it takes a player's crew (see *Moves* and *The
 primary crawler*). ADR-030's container model — one nullable `gameId`,
-the shelf as "My stuff" — is the ground this stands on and is unchanged.
+the shelf as "My Stuff" — is the ground this stands on and is unchanged.
 
 The rules are code in one place, `apps/itun/src/lib/links/linkRules.ts`, imported
 by the client store and by `apps/itun/convex/` alike.
@@ -63,7 +63,7 @@ carries.
 
 ### Both ends share one container
 
-The same Game, or the same owner's shelf. "My stuff" is a solo Game for every
+The same Game, or the same owner's shelf. "My Stuff" is a solo Game for every
 purpose here: two players' shelves share the `null` game id, so the server also
 compares owners. Drawing a link across containers is refused — by the client
 store when it holds both ends, and always by the server, with a player-facing
@@ -102,7 +102,7 @@ The server is the authority (`convex/entities.ts`); `moveDestinations` in
 `apps/itun/src/lib/games/gameRoster.ts` mirrors it so `MoveToContainerControl`
 lists only what would be accepted.
 
-- **Pilots and mechs** — the owner moves them from My stuff into any Game they
+- **Pilots and mechs** — the owner moves them from My Stuff into any Game they
   are a member of, between Games, and back. The old gate ("a Game takes a
   player's crew once it has a crawler", ADR-030 §5a) is gone, for creating in
   a Game as well as moving in.

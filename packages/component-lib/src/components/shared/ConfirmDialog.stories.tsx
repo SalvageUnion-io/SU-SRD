@@ -126,8 +126,8 @@ export const Default: Story = () => {
         />
         <Demo
           trigger={`Copy ${mech}`}
-          title={`Copy ${mech} to My stuff?`}
-          body={`Makes “COPY OF ${mech}” in My stuff. It is a separate build: changes to it won't sync back.`}
+          title={`Copy ${mech} to My Stuff?`}
+          body={`Makes “COPY OF ${mech}” in My Stuff. It is a separate build: changes to it won't sync back.`}
           confirmLabel="Make a copy"
           pendingLabel="Copying…"
           tone="default"

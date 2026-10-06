@@ -411,7 +411,7 @@ export function buildGamesEmbed(games: GameSummary[], webUrl: string): EmbedData
   }
 }
 
-/** `/su shelf` — what you own that is not in play. */
+/** `/su my-stuff` — what you own that is in no game (ITUN's My Stuff). */
 export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
   const name = (body: EntityBody, keys: string[]): string => {
     for (const key of keys) {
@@ -450,13 +450,13 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
   }
 
   return {
-    title: 'On your shelf',
+    title: 'My Stuff',
     url: `${webUrl.replace(/\/+$/, '')}/`,
     color: NEUTRAL,
     description:
       fields.length === 0
-        ? 'Nothing on your shelf — everything you own is in a game.'
-        : 'Entities you own that are in no game.',
+        ? 'Nothing in My Stuff — everything you own is in a game.'
+        : 'Pilots and mechs you own that are in no game.',
     fields,
     footer: FOOTER,
   }

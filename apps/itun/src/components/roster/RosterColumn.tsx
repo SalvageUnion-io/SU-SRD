@@ -2,15 +2,15 @@
  * The hub's three columns — Pilots, Mechs, Crawlers — and the phone switch
  * between them (design-spec §3.7).
  *
- * `/` shows one container at a time: My stuff (`Roster`) or a Game
+ * `/` shows one container at a time: My Stuff (`Roster`) or a Game
  * (`GameRoster`). Both answer "what have I got, and what can I do with it" of a
  * different container, so they share these columns rather than drawing two
  * vocabularies for one question. What goes INSIDE a column is the caller's: a
- * flat list on My stuff, yours-then-everyone-else's in a Game.
+ * flat list on My Stuff, yours-then-everyone-else's in a Game.
  *
  * At the mobile endpoint (≤ md) the three columns collapse to one, behind a
  * segmented switch the page owns — so the segment a player picked survives
- * switching between My stuff and a Game.
+ * switching between My Stuff and a Game.
  */
 
 import { Button, buttonVariants, cn, EmptyState } from 'component-lib'

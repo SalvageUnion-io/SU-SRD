@@ -4,7 +4,7 @@
  * One container on screen at a time, picked in the header's "Showing" select
  * (`ContainerSwitcher`, persisted in `activeContainerStore`):
  *
- *  - **My stuff** — your builds that are in no Game, in three columns of
+ *  - **My Stuff** — your builds that are in no Game, in three columns of
  *    `EntityRow`s. Each row: View, "Move to game…" (`MoveToGameSelect`), and
  *    Delete behind the shared confirm.
  *  - **A Game** — that table's roster, yours first, with every player and
@@ -19,7 +19,7 @@
  * On mount: hydrates all three entity types + softLinks. At the mobile
  * endpoint (≤ md) the columns collapse to one behind a segmented
  * Pilot/Mech/Crawler switch (`RosterColumn.tsx`), whose choice is kept here so
- * it survives switching between My stuff and a Game.
+ * it survives switching between My Stuff and a Game.
  *
  * Delete flow:
  *   1. User clicks "Delete" on an EntityRow.
@@ -340,7 +340,7 @@ export function Roster() {
             {/* The built-in Starter Set, opt-in. It used to be an entry in the
                 Workspace switcher; with no Workspaces to switch between it
                 needs its own affordance, and it disappears once loaded so it
-                never becomes permanent chrome. It copies into My stuff, so it
+                never becomes permanent chrome. It copies into My Stuff, so it
                 is not offered while a Game is showing: `create` stamps the
                 active container, and the set would land in the Game instead. */}
             {!starterSeeded && shownGameId === null && (
@@ -364,7 +364,7 @@ export function Roster() {
             )}
           </div>
           {/* What the hub shows, and how to get another table to show: the
-              select lists My stuff and every Game, and "+ New game" adds one.
+              select lists My Stuff and every Game, and "+ New game" adds one.
               Both render nothing outside Connected. */}
           <div className="flex flex-wrap items-end gap-2.5">
             <ContainerSwitcher activeContainer={activeContainer} onSelect={setActiveContainer} />

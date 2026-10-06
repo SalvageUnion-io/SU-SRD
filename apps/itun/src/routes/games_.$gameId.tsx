@@ -12,7 +12,7 @@ import { setActiveContainer } from '../stores/activeContainerStore'
  * cannot say which Game to show.
  *
  * Membership is not checked here — the hub's `games.get` answers a Game you
- * are not in with an explanation and a way back to My stuff.
+ * are not in with an explanation and a way back to My Stuff.
  *
  * Picked only on a real navigation, never a preload, so hovering a link
  * cannot change what the hub shows.

@@ -36,10 +36,10 @@ export type RowActions = {
   pickUp: (row: RosterRow) => void
   /** Hand a character you hold back to the crew. */
   offer: (row: RosterRow) => void
-  /** Copy a pilot or mech into My stuff. */
+  /** Copy a pilot or mech into My Stuff. */
   copy: (row: RosterRow) => void
   /**
-   * Take a build out of the Game it is in, to My stuff — same record, same id
+   * Take a build out of the Game it is in, to My Stuff — same record, same id
    * (a move, never a copy). `gameName` names the Game in the confirm.
    */
   removeFromGame: (row: RosterRow, gameName: string | null) => void
@@ -104,7 +104,7 @@ export function useRowActions(confirm: Confirm): RowActions {
               row.kind === 'pilot' ? 'pilot' : 'mech',
               copyForShelf(row.body, row.name) as never
             )
-          toast.success(`Copied ${created.name} to My stuff.`)
+          toast.success(`Copied ${created.name} to My Stuff.`)
         },
       }),
 

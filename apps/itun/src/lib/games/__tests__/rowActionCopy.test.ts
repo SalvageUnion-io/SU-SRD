@@ -6,7 +6,7 @@ import { ROW_ACTION_COPY } from '../rowActionCopy'
 const said = (copy: ConfirmCopy) => [copy.title, ...copy.body, copy.confirmLabel].join(' ')
 
 describe('rowActionCopy', () => {
-  test('the personal shelf is "My stuff" in the confirms that mention it', () => {
+  test('the personal shelf is "My Stuff" in the confirms that mention it', () => {
     const mentions = [
       ROW_ACTION_COPY.copy('Vex Arlo'),
       ROW_ACTION_COPY.leaveGame({
@@ -17,7 +17,7 @@ describe('rowActionCopy', () => {
       }),
     ]
     for (const copy of mentions) {
-      expect(said(copy)).toContain('My stuff')
+      expect(said(copy)).toContain('My Stuff')
       expect(said(copy).toLowerCase()).not.toContain('shelf')
     }
   })

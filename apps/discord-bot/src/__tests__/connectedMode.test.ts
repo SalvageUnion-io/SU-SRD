@@ -123,7 +123,7 @@ describe('an ephemeral command', () => {
 
   test.each([
     ['games', gamesCommand],
-    ['shelf', shelfCommand],
+    ['my-stuff', shelfCommand],
   ])('/su %s renders too', async (name, command) => {
     connect({
       kind: 'ok',

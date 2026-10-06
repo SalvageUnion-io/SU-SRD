@@ -5,7 +5,7 @@
  * (`/games/:id`, its crew and panels) and a Mediator page (`/mediator/:id`, the
  * same crew plus the Mediator's instruments). Three pages for one table, and a
  * player had to know which one held the thing they wanted. They are one place
- * now: the hub at `/`, which already listed My stuff, lists a Game the same way
+ * now: the hub at `/`, which already listed My Stuff, lists a Game the same way
  * and puts everything you can do about the table below the lists —
  *
  *  1. **The roster** (`GameRoster`): the three columns, yours first.
@@ -76,7 +76,7 @@ function NotInGame() {
           </Text>
           <div>
             <Button variant="default" size="compact" onClick={() => setActiveContainer(SHELF)}>
-              Show My stuff
+              Show My Stuff
             </Button>
           </div>
         </div>
@@ -119,7 +119,7 @@ function GameActions({ game }: { game: Game }) {
           <GamePanel title="End this game">
             <Text>
               Deleting {game.name} disbands the crew for everyone in it. Every pilot and mech goes
-              back to its owner&rsquo;s My stuff, and the crawler comes to yours — but the table,
+              back to its owner&rsquo;s My Stuff, and the crawler comes to yours — but the table,
               its invites and its wiring are gone for good.
             </Text>
             <div>
@@ -134,7 +134,7 @@ function GameActions({ game }: { game: Game }) {
       <DeleteGameDialog
         game={confirmingDelete ? game : null}
         onClose={() => setConfirmingDelete(false)}
-        // Back to My stuff BEFORE `games.get` resolves to `null`, which would
+        // Back to My Stuff BEFORE `games.get` resolves to `null`, which would
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
         onDeleted={() => setActiveContainer(SHELF)}

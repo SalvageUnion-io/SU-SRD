@@ -49,7 +49,7 @@ export const Default: Story = () => {
         <HeaderMenu
           trigger="Games"
           sections={[
-            [{ id: 'shelf', label: 'My stuff', onSelect: () => {} }],
+            [{ id: 'shelf', label: 'My Stuff', onSelect: () => {} }],
             crawlers.map((name, i) => ({
               id: name,
               label: name,

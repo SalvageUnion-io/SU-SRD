@@ -41,7 +41,7 @@ describe('with no ITUN deployment configured', () => {
   test.each([
     ['me', meCommand],
     ['games', gamesCommand],
-    ['shelf', shelfCommand],
+    ['my-stuff', shelfCommand],
     ['crew', crewCommand],
   ])('/su %s explains itself instead of failing', async (name, command) => {
     const { interaction, edits, deferred } = fakeExecute({ subcommand: name })

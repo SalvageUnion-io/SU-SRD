@@ -4,7 +4,7 @@
  * What it must get right, and what each block below pins:
  *
  *  - **Where candidates come from.** Only the subject's container — the same
- *    Game, or My stuff — and only when signed in; signed out there is one pile
+ *    Game, or My Stuff — and only when signed in; signed out there is one pile
  *    and nothing is filtered. A pilot in one Game used to be offered every
  *    crawler in every Game, and the server refused the pick.
  *  - **Which way the link points.** The schema decides, not the sheet: the
@@ -146,7 +146,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     expect(offered()).toEqual(['c-game'])
   })
 
-  test('signed in, a pilot in My stuff is offered only My stuff’s crawlers', () => {
+  test('signed in, a pilot in My Stuff is offered only My Stuff’s crawlers', () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -234,8 +234,8 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign crawler to mech/i)
-    // "My stuff", never "Shelf", in anything a player reads.
-    expect(screen.getByText('No crawlers in My stuff.')).toBeTruthy()
+    // "My Stuff", never "Shelf", in anything a player reads.
+    expect(screen.getByText('No crawlers in My Stuff.')).toBeTruthy()
   })
 
   test('the slot’s occupant is not offered back, and the trigger says Change', () => {
