@@ -26,16 +26,12 @@
   # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
   # which fails CI if this drifts. Wildcarded subdomain because the host encodes
   # the Sentry org id.
-  # script-src carries NO 'unsafe-inline'. With it, an injected <script>
-  # executes and CSP's primary XSS control is gone.
-  #
-  # __SRD_INLINE_SCRIPT_HASHES__ is a PLACEHOLDER, substituted at build time by
-  # ssg/csp.ts from the inline scripts this build actually emitted (3 of them
-  # today: the js-class snippet on every page, plus one each on /about and
-  # /greembeem). Generated rather than written down because a hardcoded hash
-  # drifts the moment its script changes by a character, and a stale hash fails
-  # silently — the CSP still reads as strict and the script is simply blocked.
-  # The build throws if this token is missing or if it finds nothing to hash.
+  # script-src carries NO 'unsafe-inline' and NO hashes. With 'unsafe-inline',
+  # an injected <script> executes and CSP's primary XSS control is gone. srd
+  # emits no executable inline script at all — the no-JS fallback is hidden by
+  # an `@media (scripting: enabled)` rule, and the /about and /greembeem scripts
+  # load by URL from public/ — so this list is literal and cannot drift. An
+  # inline <script> added later is BLOCKED by this policy: load it by URL.
   #
   # 'inline-speculation-rules' covers <script type="speculationrules">, which is
   # gated by script-src but cannot be hashed. Browsers that don't know the
@@ -47,7 +43,7 @@
   #
   # 'unsafe-inline' stays in style-src deliberately: Tailwind needs it, and
   # style injection is not script execution.
-  Content-Security-Policy: default-src 'self'; script-src __SRD_INLINE_SCRIPT_HASHES__ 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
+  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.ingest.de.sentry.io;
 
 # Content-hashed bundle output. `/assets/*`, not the old `/_astro/*`: the
 # in-house SSG emits through Vite's default assetsDir. If ssg/vite.config.ts

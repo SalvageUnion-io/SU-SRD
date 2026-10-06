@@ -259,14 +259,6 @@ async function main(): Promise<void> {
   const { assertNoUuidLinks } = await import('./linkAudit')
   await assertNoUuidLinks(distDir)
 
-  // AFTER every page is on disk: the hashes are computed from what was actually
-  // emitted, not from what the source is expected to emit. See ssg/csp.ts for
-  // why srd's script-src is generated rather than written down.
-  const { writeCspHeaders } = await import('./csp')
-  const hashCount = await writeCspHeaders(distDir)
-  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
-  console.log(`[ssg] CSP: ${hashCount} inline-script hash(es) written to _headers`)
-
   // `manifest: true` is required — it is how this script learns the hashed
   // entry filenames — but the manifest itself is a BUILD input, not site
   // content, and leaving it would ship a 33 KB

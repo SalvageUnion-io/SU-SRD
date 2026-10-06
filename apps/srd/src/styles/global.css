@@ -57,14 +57,20 @@
 
 /*
  * SEO / no-JS entity fallback (data-static-fallback): hidden pre-paint for
- * JS-capable browsers. BaseLayout adds `.js` to <html> synchronously in
- * <head>, and this render-blocking stylesheet applies before first paint, so
- * the static text block never flashes before the hydrated card appears. No-JS
- * users and crawlers (no `.js`) keep the fallback content. See
- * `src/layouts/BaseLayout.tsx` and `ReferenceEntityIsland.tsx`.
+ * JS-capable browsers. `scripting: enabled` is decided by the browser before
+ * first paint, and this stylesheet is render-blocking, so the static text block
+ * never flashes before the hydrated card appears. No-JS users and crawlers keep
+ * the fallback content. See `ReferenceEntityIsland.tsx`.
+ *
+ * A media query rather than a `.js` class set by an inline script: srd emits no
+ * executable inline script, which is what keeps its CSP `script-src` a literal
+ * (`public/_headers`). A browser too old to know `scripting` shows the fallback
+ * until the island hides it — a flash, never a lost page.
  */
-.js [data-static-fallback] {
-  display: none;
+@media (scripting: enabled) {
+  [data-static-fallback] {
+    display: none;
+  }
 }
 
 /* (The `.btn` / `.btn-active` / `.btn-inactive` system was retired — the action

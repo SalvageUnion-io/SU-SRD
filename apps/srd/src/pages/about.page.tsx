@@ -8,9 +8,10 @@
  *    same render path), so a `node:fs` read here costs the browser nothing.
  *    The path is resolved from `import.meta.url` rather than `process.cwd()`
  *    so it does not depend on where the build was invoked from.
- * 2. The lightbox is a plain inline script. Every navigation is a real
- *    document load, so it runs on every page load (same reasoning as
- *    `BaseLayout`'s `js`-class script).
+ * 2. The lightbox is a plain script, `public/about-lightbox.js`, loaded by
+ *    URL: srd emits no executable inline script, so its CSP `script-src`
+ *    stays a literal (`public/_headers`). Every navigation is a real document
+ *    load, so it runs on every visit.
  * 3. The Eldridge Coast map is a build-emitted, content-hashed asset rather
  *    than an unhashed file in `public/`. The emit and the address are split — `src/runtime/assets.entry.ts` makes
  *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of the
@@ -44,31 +45,6 @@ const DESCRIPTION =
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
 const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
-
-/**
- * Opens/closes the Eldridge Coast lightbox: the map link opens the native `<dialog>`, the close button and a
- * backdrop click close it and return focus to the link.
- */
-const MAP_MODAL_SCRIPT = `
-    const mapLink = document.getElementById('map-link')
-    const modal = document.getElementById('image-modal')
-    const closeBtn = document.getElementById('close-modal')
-
-    mapLink?.addEventListener('click', (e) => {
-      e.preventDefault()
-      modal?.showModal()
-    })
-    closeBtn?.addEventListener('click', () => {
-      modal?.close()
-      mapLink?.focus()
-    })
-    modal?.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.close()
-        mapLink?.focus()
-      }
-    })
-  `
 
 function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): PageResult {
   const eldridgeCoastMapUrl = builtAssetUrl(builtAssets, ELDRIDGE_COAST_MAP)
@@ -386,8 +362,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           </div>
         </dialog>
 
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a fixed inline script literal, no interpolation */}
-        <script dangerouslySetInnerHTML={{ __html: MAP_MODAL_SCRIPT }} />
+        <script src="/about-lightbox.js" />
       </>
     ),
   }
