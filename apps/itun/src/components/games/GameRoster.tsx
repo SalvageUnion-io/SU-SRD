@@ -47,7 +47,7 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { Button, buttonVariants, cn, EmptyState, EntityRow, PageHeading, Text } from 'component-lib'
-import { useQuery } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -130,6 +130,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
 
+  const setPrimaryCrawler = useMutation(api.games.setPrimaryCrawler)
+
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
   useHydrateEntities(['pilot', 'mech', 'crawler'])
@@ -164,6 +166,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       rows: listing?.crawlers ?? [],
       tableRunner: caps.tableRunner,
       localIds: new Set(localCrawlers.map((c) => c.id)),
+      primaryCrawlerId: listing?.primaryCrawlerId ?? null,
     }),
   }
 
@@ -244,8 +247,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           {COLUMNS.map((column) => {
             const Icon = ICON[column.kind]
             const columnRows = rows[column.kind]
-            // The crawler column answers to the table runner; the other two to
-            // the crawler gate. Both mirror `assertMayAddToContainer`.
+            // The crawler column answers to the table runner (`createCrawler`);
+            // the other two to membership (`assertMayAddToContainer`).
             const mayCreate =
               column.kind === 'crawler'
                 ? caps.canRaiseCrawler
@@ -311,6 +314,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                              trip and behaves like the Roster's View. Editing
                              is the separate, owner-only verb beside it. */
                           sheetHref={`/games/${gameId}/view/${row.kind}/${row.serverId}`}
+                          /* The primary crawler is where new crew is assigned
+                             (ADR-037), so the roster says which one it is. */
+                          meta={row.primary ? '★ Primary' : undefined}
                           seal={
                             row.owner === null ? undefined : (
                               <OwnerSeal
@@ -387,6 +393,23 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   onClick={() => rowActions.remove(row)}
                                 >
                                   Delete
+                                </Button>
+                              )}
+                              {row.can.makePrimary && (
+                                <Button
+                                  variant="ghost"
+                                  size="mini"
+                                  disabled={busy !== null}
+                                  onClick={() =>
+                                    void run(`primary-${row.serverId}`, async () => {
+                                      await setPrimaryCrawler({
+                                        gameId: gameId as Id<'games'>,
+                                        crawlerId: row.serverId as Id<'crawlers'>,
+                                      })
+                                    })
+                                  }
+                                >
+                                  Make primary
                                 </Button>
                               )}
                               {row.can.scrap && (

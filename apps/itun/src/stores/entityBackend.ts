@@ -238,13 +238,25 @@ export async function commitEntityWrite(
       return
     }
     if (op.kind === 'patch') {
+      // A container change is its own mutation: it writes the row's `gameId`,
+      // the body's and `ownerId` together, and only the table runner may make
+      // it (ADR-037). The field patch below never carries one — the server
+      // strips it — which is how a "moved" crawler used to stay put.
+      const { gameId, ...fields } = (op.patch ?? {}) as Record<string, unknown>
+      if (op.patch !== null && typeof op.patch === 'object' && 'gameId' in op.patch) {
+        await convexClient.mutation(api.entities.moveCrawler, {
+          appId: op.appId,
+          gameId: (gameId ?? null) as Id<'games'> | null,
+        })
+      }
+      if (Object.keys(fields).length === 0) return
       // Still a field-level patch rather than a whole-body replace: the crawler
       // is communal and contended during Downtime, so two members editing scrap
       // and cargo in the same minute must both land (ADR-030 §5). That rule
       // survives the demotion untouched.
       await convexClient.mutation(
         api.entities.patchCrawlerByAppId,
-        crawlerPatchArgs(op.appId, op.patch)
+        crawlerPatchArgs(op.appId, fields)
       )
       return
     }

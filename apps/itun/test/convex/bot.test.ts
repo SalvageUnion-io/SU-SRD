@@ -501,6 +501,30 @@ describe('the read surfaces', () => {
     expect(result.pilots[0]).toMatchObject({ ownerId: null, ownerName: null })
   })
 
+  test("crew reports the Game's PRIMARY crawler, not whichever came first", async () => {
+    const t = testConvex()
+    const { gameId } = await seedBoundGame(t)
+    const [, second] = await t.run(async (ctx) => {
+      const row = (name: string) => ({
+        gameId,
+        ownerId: null,
+        body: { id: name, name },
+        updatedAt: Date.now(),
+      })
+      const first = await ctx.db.insert('crawlers', row('Older'))
+      const next = await ctx.db.insert('crawlers', row('Primary'))
+      await ctx.db.patch(gameId, { primaryCrawlerId: next })
+      return [first, next]
+    })
+
+    const result = await t.query(internal.botClient.crew, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+    })
+    if (!result.ok) throw new Error(`crew denied: ${result.reason}`)
+    expect(result.crawler?.id).toBe(second)
+  })
+
   test('the shelf is personal and needs no binding', async () => {
     const t = testConvex()
     const { player, gameId } = await seedBoundGame(t)

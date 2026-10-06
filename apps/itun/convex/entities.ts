@@ -6,10 +6,14 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import type { OwnableTable } from './model/entities'
 import {
+  assignToPrimary,
+  crawlerEnteredGame,
+  crawlerLeftGame,
   findSoftLink,
   loadOwnable,
   mutation,
   parseBody,
+  primaryCrawlerOf,
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
   resolveLinkEnd,
@@ -18,9 +22,7 @@ import {
   writeSoftLink,
 } from './model/entities'
 import {
-  gameHasCrawler,
   getMembership,
-  isTableRunner,
   NotAuthorized,
   requireMember,
   requireTableRunner,
@@ -64,11 +66,17 @@ import { entityRefType, softLinkType } from './schema'
  * table rather than a shared folder: the Mediator sets out what the crew sails
  * in, and the crew then keeps its scrap, cargo and bays between them.
  *
- * The mirror image is the gate on players: a Game with no crawler is not yet
- * set up, so a player's pilots and mechs wait until there is one. The table
- * runner is exempt for the obvious reason — somebody has to be able to raise
- * the first crawler, and a rule that stopped them would make every new Game a
- * dead end.
+ * Pilots and mechs are the other way round: **any member may bring their own
+ * into any Game they belong to**, crawler or no crawler. There used to be a
+ * gate — a player's builds waited until the table runner had raised one — and
+ * it is gone (ADR-037): the crew can gather first, and the first crawler to
+ * arrive becomes the **primary** and picks up everybody without one. Whoever
+ * enters a Game that already has a primary is assigned to it on the way in, by
+ * an explicit link the server writes as part of the add or the move.
+ *
+ * Moving a crawler is the table runner's act in both directions
+ * (`moveCrawler`): from their own shelf into the Game, or out of it onto their
+ * own shelf, where it becomes theirs.
  *
  * ## What lives elsewhere
  *
@@ -102,12 +110,12 @@ function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>):
 }
 
 /**
- * Whether this user may add a new entity to this container.
+ * Whether this user may add a pilot or mech to this container — by creating it
+ * there or moving their own in.
  *
- * The shelf is unconditional: it is your own, so there is nobody to be set up
- * for and nothing to gate on. Inside a Game the answer depends on the crawler,
- * for the reason in the module header — with one exception, the table runner,
- * who is who *raises* the crawler.
+ * The shelf is unconditional: it is your own. A Game takes a member's builds
+ * whether or not it has a crawler yet (ADR-037 dropped that gate); being a
+ * member is the whole rule.
  */
 async function assertMayAddToContainer(
   ctx: QueryCtx | MutationCtx,
@@ -115,17 +123,8 @@ async function assertMayAddToContainer(
   userId: Id<'users'>
 ): Promise<void> {
   if (gameId === null) return
-
   const membership = await getMembership(ctx, gameId, userId)
   if (membership === null) throw new NotAuthorized('Not a member of this game')
-
-  if (await isTableRunner(ctx, gameId, membership)) return
-
-  if (!(await gameHasCrawler(ctx, gameId))) {
-    throw new NotAuthorized(
-      'This game has no Union Crawler yet — the Mediator raises one before the crew joins it'
-    )
-  }
 }
 
 /** Everything in a Game the caller can see: all pilots and mechs, plus the crawler. */
@@ -134,7 +133,7 @@ export const listForGame = query({
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
 
-    const [pilots, mechs, crawlers, softLinks] = await Promise.all([
+    const [pilots, mechs, crawlers, softLinks, primary] = await Promise.all([
       ctx.db
         .query('pilots')
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
@@ -151,6 +150,7 @@ export const listForGame = query({
         .query('softLinks')
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
         .collect(),
+      primaryCrawlerOf(ctx, args.gameId),
     ])
 
     /**
@@ -175,6 +175,8 @@ export const listForGame = query({
       })),
       crawlers: crawlers.map((c) => ({ _id: c._id, appId: c.appId ?? null, body: c.body })),
       softLinks: softLinks.map((l) => ({ _id: l._id, from: l.from, to: l.to, type: l.type })),
+      /** The crawler new crew is assigned to (ADR-037), or null before one exists. */
+      primaryCrawlerId: primary?._id ?? null,
     }
   },
 })
@@ -420,7 +422,7 @@ export const createCrawler = mutation({
 
     const body = parseBody('crawlers', args.body)
 
-    return await ctx.db.insert('crawlers', {
+    const crawlerId = await ctx.db.insert('crawlers', {
       gameId: args.gameId,
       // Communal in a Game, owned on a shelf. Both-null is the invalid row, so
       // a shelf crawler MUST take an owner and the caller is the only candidate.
@@ -429,6 +431,11 @@ export const createCrawler = mutation({
       body,
       updatedAt: Date.now(),
     })
+    // The first crawler raised in a Game becomes its primary and takes aboard
+    // everyone already there (ADR-037).
+    const raised = await ctx.db.get(crawlerId)
+    if (raised !== null) await crawlerEnteredGame(ctx, raised)
+    return crawlerId
   },
 })
 
@@ -450,6 +457,7 @@ export const removeCrawler = mutation({
     // The crew's links go with it, as a pilot's or mech's do in `remove`;
     // without this a scrapped crawler kept its crew wired to nothing.
     await pruneLinksOfRow(ctx, doc)
+    if (doc.gameId !== null) await crawlerLeftGame(ctx, doc.gameId, doc._id)
   },
 })
 
@@ -579,16 +587,20 @@ export const upsertByAppId = mutation({
     const userId = await requireUser(ctx)
     const body = parseBody(args.table, args.body)
 
+    const kind = args.table === 'pilots' ? 'pilot' : 'mech'
     const existing = await byAppId(ctx, args.table, args.appId)
     if (existing === null) {
       await assertMayAddToContainer(ctx, args.gameId, userId)
-      await ctx.db.insert(args.table, {
+      const id = await ctx.db.insert(args.table, {
         gameId: args.gameId,
         ownerId: userId,
         appId: args.appId,
         body,
         updatedAt: Date.now(),
       })
+      // Created in a Game: aboard its primary crawler from the start (ADR-037).
+      const created = await ctx.db.get(id)
+      if (created !== null) await assignToPrimary(ctx, kind, created)
       return
     }
 
@@ -618,7 +630,11 @@ export const upsertByAppId = mutation({
     // drops the rest in the same mutation.
     if (moved) {
       const row = await ctx.db.get(existing._id)
-      if (row !== null) await pruneLinksAcrossContainers(ctx, row, previousGameId)
+      if (row !== null) {
+        await pruneLinksAcrossContainers(ctx, row, previousGameId)
+        // Moved into a Game: aboard its primary crawler (ADR-037).
+        await assignToPrimary(ctx, kind, row)
+      }
     }
   },
 })
@@ -661,9 +677,15 @@ export const patchCrawlerByAppId = mutation({
 
     await assertMayEditCrawler(ctx, existing)
 
+    // A field patch never moves a crawler. Its container is the row's column
+    // and the body's `gameId` together, and only `moveCrawler` writes them —
+    // a body-only `gameId` here is how a "moved" crawler used to stay put on
+    // the server while every client read it somewhere else. The same goes for
+    // `unset`: clearing `gameId` would split the body from the column.
+    const { gameId: _container, ...fields } = (args.patch ?? {}) as Record<string, unknown>
     const merged = unsetCrawlerFields(
-      { ...(existing.body as Record<string, unknown>), ...(args.patch as object) },
-      args.unset ?? []
+      { ...(existing.body as Record<string, unknown>), ...fields },
+      (args.unset ?? []).filter((key) => key !== 'gameId')
     )
     const body = parseBody('crawlers', merged)
 
@@ -681,6 +703,71 @@ export const removeCrawlerByAppId = mutation({
     await assertMayScrapCrawler(ctx, existing)
     await ctx.db.delete(existing._id)
     await pruneSoftLinksFor(ctx, args.appId)
+    if (existing.gameId !== null) await crawlerLeftGame(ctx, existing.gameId, existing._id)
+  },
+})
+
+/**
+ * Move a crawler between a Game and its table runner's shelf (ADR-037).
+ *
+ * A crawler's container is three fields, and this is the one writer of all
+ * three together — the row's `gameId` column, the body's `gameId`, and
+ * `ownerId` (null in a Game, where it is communal; the mover on a shelf, where
+ * an owner is required). The field-level mirror (`patchCrawlerByAppId`) used
+ * to carry the move as a body patch and nothing else, so the column never
+ * changed and nobody checked who was moving it.
+ *
+ * Only the table runner moves a crawler, in both directions:
+ *
+ *  - **in** — from their own shelf into a Game they run. It becomes the
+ *    Game's, communal, and primary if the Game had none.
+ *  - **out** — from a Game they run onto their own shelf, where it becomes
+ *    theirs. If it was primary, the oldest crawler left takes over.
+ *
+ * Game to Game is refused: it is two acts (out, then in) for two tables.
+ * Either way the links a move would leave straddling two containers go
+ * (`pruneLinksAcrossContainers`). Players cannot move crawlers at all.
+ */
+export const moveCrawler = mutation({
+  args: { appId: v.string(), gameId: v.union(v.id('games'), v.null()) },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const existing = await crawlerByAppId(ctx, args.appId)
+    if (existing === null) return
+    const from = existing.gameId
+    const to = args.gameId
+    if (from === to) return
+
+    if (from !== null && to !== null) {
+      throw new NotAuthorized(
+        'Move the crawler to My stuff first, then into the other game — a crawler changes tables one step at a time'
+      )
+    }
+    if (from === null) {
+      if (existing.ownerId !== userId) {
+        throw new NotAuthorized("You cannot move another player's crawler")
+      }
+      await requireTableRunner(ctx, to as Id<'games'>)
+    } else {
+      await requireTableRunner(ctx, from)
+    }
+
+    const body = parseBody('crawlers', {
+      ...(existing.body as Record<string, unknown>),
+      gameId: to,
+    })
+    await ctx.db.patch(existing._id, {
+      gameId: to,
+      ownerId: to === null ? userId : null,
+      body,
+      updatedAt: Date.now(),
+    })
+
+    const row = await ctx.db.get(existing._id)
+    if (row === null) return
+    await pruneLinksAcrossContainers(ctx, row, from)
+    if (from !== null) await crawlerLeftGame(ctx, from, row._id)
+    if (to !== null) await crawlerEnteredGame(ctx, row)
   },
 })
 

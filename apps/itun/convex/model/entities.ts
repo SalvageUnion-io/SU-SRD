@@ -515,10 +515,9 @@ export async function computeGameSummary(
       .query('mechs')
       .withIndex('by_game', (q) => q.eq('gameId', gameId))
       .collect(),
-    ctx.db
-      .query('crawlers')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .first(),
+    // The PRIMARY crawler's name: it is the one the table is anchored to, and
+    // with several crawlers "the first" was whichever the index met first.
+    primaryCrawlerOf(ctx, gameId),
   ])
   return {
     memberCount: members.length,
@@ -526,6 +525,162 @@ export async function computeGameSummary(
     mechCount: mechs.length,
     crawlerName: crawler === null ? null : crawlerNameOf(crawler.body),
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* The primary crawler (ADR-037)                                              */
+/* -------------------------------------------------------------------------- */
+
+/** Every crawler in a Game, oldest first. */
+async function crawlersIn(ctx: QueryCtx | MutationCtx, gameId: Id<'games'>) {
+  const rows = await ctx.db
+    .query('crawlers')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .collect()
+  return rows.sort((a, b) => a._creationTime - b._creationTime)
+}
+
+/**
+ * Which of a Game's crawlers is primary: the stored one while it is still in
+ * the Game, else the oldest crawler there, else none.
+ *
+ * Pure, so the fallback is one rule wherever it is read. "Else the oldest" is
+ * what a Game that predates the column gets, and also what a stale pointer
+ * gets — a crawler deleted or moved without the bookkeeping below (a dashboard
+ * edit) still leaves the Game a sensible primary.
+ */
+export function effectivePrimary(
+  stored: Id<'crawlers'> | null | undefined,
+  oldestFirst: readonly Doc<'crawlers'>[]
+): Doc<'crawlers'> | null {
+  return oldestFirst.find((c) => c._id === stored) ?? oldestFirst[0] ?? null
+}
+
+/** A Game's primary crawler, or null when it has none (or no longer exists). */
+export async function primaryCrawlerOf(
+  ctx: QueryCtx | MutationCtx,
+  gameId: Id<'games'>
+): Promise<Doc<'crawlers'> | null> {
+  const [game, crawlers] = await Promise.all([ctx.db.get(gameId), crawlersIn(ctx, gameId)])
+  if (game === null) return null
+  return effectivePrimary(game.primaryCrawlerId, crawlers)
+}
+
+/**
+ * Assign a pilot or mech that just entered a Game to the Game's primary
+ * crawler — the explicit link written on entry (ADR-037).
+ *
+ * A server write, not the caller's: it is part of creating the entity in the
+ * Game or moving it there, so it answers to the rules of that act and not to
+ * `upsertSoftLink`'s from-owner check. It replaces any crawler link the entity
+ * still had (there is none after a move's prune, but the write keeps the
+ * invariant whatever happens). No primary, no link — the first crawler to
+ * arrive picks the crew up (`crawlerEnteredGame`).
+ */
+export async function assignToPrimary(
+  ctx: MutationCtx,
+  kind: 'pilot' | 'mech',
+  row: Doc<'pilots'> | Doc<'mechs'>
+): Promise<void> {
+  if (row.gameId === null) return
+  const primary = await primaryCrawlerOf(ctx, row.gameId)
+  if (primary === null) return
+  await linkToCrawler(ctx, kind, row, primary)
+}
+
+async function linkToCrawler(
+  ctx: MutationCtx,
+  kind: 'pilot' | 'mech',
+  row: Doc<'pilots'> | Doc<'mechs'>,
+  crawler: Doc<'crawlers'>
+): Promise<void> {
+  const from = linkIdOf(row)
+  const to = linkIdOf(crawler)
+  if (from === undefined || to === undefined) return
+  await writeSoftLink(
+    ctx,
+    {
+      from: { type: kind, id: from },
+      to: { type: 'crawler', id: to },
+      type: kind === 'pilot' ? 'pilot-to-crawler' : 'mech-to-crawler',
+    },
+    row.gameId,
+    { fromScope: row.appId === undefined ? 'container' : 'any' }
+  )
+}
+
+/**
+ * A crawler just arrived in a Game — raised there or moved in.
+ *
+ * If the Game had no crawler, this one becomes primary, and every pilot and
+ * mech already there with no crawler of their own is assigned to it: the crew
+ * that gathered before the crawler was raised gets aboard the moment it is.
+ * Otherwise nothing changes for anyone; a Game whose primary was only implied
+ * (it predates the column) has it written down, so a later arrival can never
+ * reshuffle it.
+ */
+export async function crawlerEnteredGame(
+  ctx: MutationCtx,
+  crawler: Doc<'crawlers'>
+): Promise<void> {
+  const gameId = crawler.gameId
+  if (gameId === null) return
+  const game = await ctx.db.get(gameId)
+  if (game === null) return
+
+  const others = (await crawlersIn(ctx, gameId)).filter((c) => c._id !== crawler._id)
+  const current = effectivePrimary(game.primaryCrawlerId, others)
+  if (current !== null) {
+    if (game.primaryCrawlerId !== current._id) {
+      await ctx.db.patch(gameId, { primaryCrawlerId: current._id })
+    }
+    return
+  }
+
+  await ctx.db.patch(gameId, { primaryCrawlerId: crawler._id })
+  await refreshGameSummary(ctx, gameId)
+
+  for (const [kind, table] of [
+    ['pilot', 'pilots'],
+    ['mech', 'mechs'],
+  ] as const) {
+    const rows = await ctx.db
+      .query(table)
+      .withIndex('by_game', (q) => q.eq('gameId', gameId))
+      .collect()
+    const type = kind === 'pilot' ? 'pilot-to-crawler' : 'mech-to-crawler'
+    for (const row of rows) {
+      const id = linkIdOf(row)
+      if (id === undefined) continue
+      const own = await ctx.db
+        .query('softLinks')
+        .withIndex('by_from', (q) => q.eq('from.id', id))
+        .collect()
+      const housed = own.some(
+        (l) => l.type === type && (row.appId !== undefined || l.gameId === gameId)
+      )
+      if (!housed) await linkToCrawler(ctx, kind, row, crawler)
+    }
+  }
+}
+
+/**
+ * A crawler just left a Game — scrapped or moved out.
+ *
+ * If it was primary, the oldest crawler left takes over, or none. Nobody is
+ * reassigned: the crew links to the crawler that left went with it, and
+ * changing the primary moves nobody (ADR-037).
+ */
+export async function crawlerLeftGame(
+  ctx: MutationCtx,
+  gameId: Id<'games'>,
+  crawlerId: Id<'crawlers'>
+): Promise<void> {
+  const game = await ctx.db.get(gameId)
+  if (game === null || game.primaryCrawlerId !== crawlerId) return
+  const next = (await crawlersIn(ctx, gameId)).find((c) => c._id !== crawlerId) ?? null
+  await ctx.db.patch(gameId, { primaryCrawlerId: next?._id ?? null })
+  await refreshGameSummary(ctx, gameId)
 }
 
 /**

@@ -219,11 +219,13 @@ come apart:
   `mediator: false` on its only membership, so a Mediator-strict rule would make
   every new Game an unreachable state). Filling the crawler's fields stays
   everyone's, exactly as §5 says.
-- **A Game takes a player's pilots and mechs once it has a crawler.** In Salvage
-  Union the crew is anchored to its crawler — it is where they repair, where the
-  scrap pool lives, where they return to — so a Game without one is not yet set
-  up. The table runner is exempt, because somebody has to be able to raise the
-  first one.
+- ~~**A Game takes a player's pilots and mechs once it has a crawler.**~~
+  **Amended by [ADR-037](ADR-037-assignment-model.md):** any member may bring
+  their pilots and mechs into any Game they belong to, crawler or not. The
+  anchoring this bullet wanted is now explicit instead of a gate: the first
+  crawler to arrive becomes the Game's **primary** and takes aboard everyone
+  already there, and whoever enters later is assigned to the primary on the way
+  in. Moving a crawler into or out of a Game is the table runner's act.
 - **A Game may hold several crawlers.** This was always true of the schema and is
   now true of the surfaces. A campaign that loses a crawler and rebuilds, or
   meets and eventually joins a second, is ordinary play rather than a state to
@@ -233,8 +235,8 @@ The line all three sit on: a table runner arranges **what the crew sails in and
 who holds what**, and still cannot change a number on somebody else's sheet. For
 that there is a proposal (§4).
 
-Enforced in `convex/model/permissions.ts` (`requireTableRunner`, `gameHasCrawler`)
-and `convex/entities.ts`, and mirrored — never re-decided — for the UI in
+Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
+`convex/entities.ts`, and mirrored — never re-decided — for the UI in
 `apps/itun/src/lib/games/gameRoster.ts`.
 
 ### 6. Surfaces

@@ -11,8 +11,16 @@ function row(kind: RosterKind, name: string, body: Record<string, unknown>): Ros
     ownerId: null,
     owner: null,
     localId: null,
+    primary: false,
     body,
-    can: { openSheet: false, claim: false, release: false, scrap: false, delete: false },
+    can: {
+      openSheet: false,
+      claim: false,
+      release: false,
+      scrap: false,
+      makePrimary: false,
+      delete: false,
+    },
   }
 }
 

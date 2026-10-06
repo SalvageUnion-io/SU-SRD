@@ -65,7 +65,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | [ADR-033](adrs/ADR-033-cloudflare-hosting.md)                        | Hosting on Cloudflare Workers + R2                                           |
 | [ADR-034](adrs/ADR-034-account-required-persistence.md)              | Persistence requires an account; IndexedDB is a cache                        |
 | [ADR-035](adrs/ADR-035-no-isolated-local-only-data.md)               | No isolated local-only data; device rows migrate automatically               |
-| [ADR-037](adrs/ADR-037-assignment-model.md)                          | The assignment model: direct links, cardinality, one container               |
+| [ADR-037](adrs/ADR-037-assignment-model.md)                          | Assignments (direct links, cardinality, one container) + the primary crawler |
 
 ## Per-package guidance
 

@@ -201,14 +201,13 @@ describe('picking up what nobody holds', () => {
 })
 
 describe('what the game will accept', () => {
-  test('a player with no crawler is told why they cannot add crew', async () => {
+  test('a player may add crew before any crawler exists (ADR-037)', async () => {
     await renderAs(ME, listing())
 
-    // Said twice on purpose: once as the reason creation is unavailable, once
-    // as the Crawlers column's own empty state.
+    // The crew gathers first; the first crawler raised picks them up. The
+    // Crawlers column still says who raises one.
+    expect(screen.getByText('Create Pilot')).toBeTruthy()
     expect(screen.getAllByText(/no Union Crawler yet/i).length).toBeGreaterThan(0)
-    // Refusing without explaining reads as a broken screen.
-    expect(screen.queryByText('Create Pilot')).toBeNull()
   })
 
   test('and can create once the crawler exists', async () => {
@@ -228,6 +227,24 @@ describe('what the game will accept', () => {
     expect(screen.getByText('Raise a Crawler')).toBeTruthy()
     // Exempt from the crawler gate, or a new game could never be set up.
     expect(screen.getByText('Create Pilot')).toBeTruthy()
+  })
+
+  test('the primary crawler is marked, and only the table runner can make another one primary', async () => {
+    const SECOND = {
+      _id: 's-crawler-2',
+      appId: 'a-crawler-2',
+      body: { id: 'a-crawler-2', name: 'Second Wind', techLevel: '1' },
+    }
+    const rows = listing({ crawlers: [CRAWLER, SECOND], primaryCrawlerId: CRAWLER._id })
+
+    await renderAs(ME, rows)
+    expect(screen.getByText('★ Primary')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Make primary' })).toBeNull()
+
+    cleanup()
+    await renderAs({ ...ME, _id: 'u-med' }, rows)
+    // One button: the primary is already primary.
+    expect(screen.getAllByRole('button', { name: 'Make primary' })).toHaveLength(1)
   })
 
   test('only the table runner may scrap a crawler', async () => {
