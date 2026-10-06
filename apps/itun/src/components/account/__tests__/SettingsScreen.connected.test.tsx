@@ -2,7 +2,7 @@ import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 /**
- * `AccountScreen` for somebody who has an account.
+ * `SettingsScreen` for somebody who has an account.
  *
  * Holding a person's Discord identity creates obligations — show it, let them
  * correct it, let them take their data, let them erase it — and this is where
@@ -30,20 +30,21 @@ const convexMocks = await installConvexMocks({
   convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
 })
 
-const { AccountScreen } = await import('../AccountScreen')
+const { SettingsScreen } = await import('../SettingsScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
 function withQueries(answers: QueryAnswers): void {
   setQueryAnswers(answers)
 }
 
-/** The three the profile asks for; `exported` is what most cases vary. */
-function profileQueries(
-  me: unknown,
-  games: unknown = GAMES,
-  exported: unknown = { pilots: [] }
-): QueryAnswers {
-  return { 'account:me': me, 'games:listMine': games, 'account:exportMine': exported }
+/**
+ * The two the profile asks for; `exported` is what most cases vary. Not
+ * `games:listMine`: the Games list left this page for the masthead, and the
+ * mock throws on an unregistered query — so a page that started asking for it
+ * again would fail here rather than quietly re-growing the list.
+ */
+function profileQueries(me: unknown, exported: unknown = { pilots: [] }): QueryAnswers {
+  return { 'account:me': me, 'account:exportMine': exported }
 }
 
 /** Force the browser's online flag, which is what picks Connected vs Disconnected. */
@@ -59,17 +60,13 @@ afterEach(() => {
 const wrap = () =>
   render(
     <ConnectionProvider>
-      <AccountScreen />
+      <SettingsScreen />
     </ConnectionProvider>
   )
 
 const ME = { displayName: 'Beefcake', avatarUrl: null, discordId: 'd1' }
-const GAMES = [
-  { _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true, memberCount: 4 },
-  { _id: 'g2', name: 'The Long Haul', mediator: false, organizer: false, memberCount: 1 },
-]
 
-describe('what the account page is when there is no account', () => {
+describe('what the settings page is when there is no account', () => {
   test('signed out says nothing is kept yet and offers the way in', () => {
     authed = false
     withQueries({})
@@ -123,21 +120,18 @@ describe('the profile', () => {
   })
 })
 
-describe('your games, seen from the account page', () => {
-  test('each game names your role in it', () => {
+describe('the settings page', () => {
+  test('is headed Settings', () => {
     withQueries(profileQueries(ME))
     wrap()
-
-    expect(screen.getByText('Union Crawler #430')).toBeTruthy()
-    // Organizer is orthogonal to Mediator, so both can be true at once.
-    expect(screen.getByText(/Organizer · Mediator · 4 members/)).toBeTruthy()
-    expect(screen.getByText(/^Player · 1 member$/)).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeTruthy()
   })
 
-  test('no games says so rather than rendering an empty card', () => {
-    withQueries(profileQueries(ME, []))
+  test('no longer lists your games — that moved to the masthead Games menu', () => {
+    withQueries(profileQueries(ME))
     wrap()
-    expect(screen.getByText(/not in any games yet/i)).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: /your games/i })).toBeNull()
+    expect(screen.queryByText(/not in any games yet/i)).toBeNull()
   })
 })
 

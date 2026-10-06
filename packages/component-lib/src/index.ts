@@ -9,6 +9,8 @@ export { Changelog } from './changelog/Changelog'
 export { mergeChangelogs, parseChangelog } from './changelog/parseChangelog'
 // Base typography
 export { Text } from './components/base/Text'
+// Avatar — a person's picture in a circle, falling back to their initial
+export { Avatar } from './components/chrome/Avatar'
 export type { BadgeTone } from './components/chrome/Badge'
 // Chrome primitives (ITUN design handoff — design-spec §2)
 // Badge — the unified stamp-chip family. No named presets: the quiet keyword
@@ -123,6 +125,10 @@ export type { EntityRowStat } from './components/shared/EntityRow'
 export { EntityRow } from './components/shared/EntityRow'
 export { EntitySearcher } from './components/shared/EntitySearcher'
 export { FilterRow } from './components/shared/FilterRow'
+// HeaderMenu — the masthead's dropdown menu (Base UI Menu); rows are data, so
+// the app supplies what each one does
+export type { HeaderMenuItem } from './components/shared/HeaderMenu'
+export { HeaderMenu } from './components/shared/HeaderMenu'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'

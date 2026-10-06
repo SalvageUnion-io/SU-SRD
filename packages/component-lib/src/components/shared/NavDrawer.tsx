@@ -1,7 +1,8 @@
 import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
-import type { ElementType, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
+import { borderWidth, color, space } from '../../design/tokens'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
@@ -17,10 +18,15 @@ import { FOCUS_RING } from '../chrome/interaction'
  *
  * Content is fully driven by props: a `brand` lockup, primary `navItems`
  * (rendered as the shared `buttonVariants` buttons — `active` = primary/rust, else
- * ghost), and optional `categories` (catalog tiles) + `search` slot for the
- * SRD's richer drawer. Router-agnostic: internal items render through the
- * injected `LinkComponent` (defaults to a plain anchor), external ones as
- * `<a target=_blank>`. Every item closes the drawer on tap.
+ * ghost), optional `categories` (catalog tiles) + `search` slot for the
+ * SRD's richer drawer, and an optional `extra` slot for app-owned controls
+ * (ITUN's Games list and sign-in). Router-agnostic: internal items render
+ * through the injected `LinkComponent` (defaults to a plain anchor), external
+ * ones as `<a target=_blank>`. Every item closes the drawer on tap.
+ *
+ * `extra` is a render function, not a node, so its controls can close the
+ * drawer too: the drawer owns its open state, and a control that navigates or
+ * changes what the page shows should not leave the panel covering the result.
  */
 
 export type NavDrawerItem = {
@@ -56,6 +62,12 @@ type NavDrawerProps = {
   categories?: NavDrawerCategory[]
   /** Optional search slot (SRD combobox), rendered under the brand row. */
   search?: ReactNode
+  /**
+   * Optional app-owned controls above the nav links (ITUN's Games list and
+   * sign-in), ruled off from them. Handed `close` so a control can dismiss the
+   * drawer when it is used.
+   */
+  extra?: (close: () => void) => ReactNode
   /** Link component for internal items. Defaults to a plain anchor; ITUN passes AppLink. */
   LinkComponent?: ElementType
   /** Extra classes on the hamburger trigger (e.g. tint for a dark header). */
@@ -72,11 +84,25 @@ const TILE = cn(CATALOG_TILE_CHROME, CATALOG_TILE_FILL, 'block w-full text-cente
 
 const TILE_LABEL = CATALOG_TILE_LABEL
 
+// The rule between the app's `extra` controls and the nav links — the same
+// faint hairline that divides the SRD's catalog from its links. Hidden by
+// `.su-nav-drawer-extra:empty` when the app's controls render nothing (a
+// signed-in player who is offline has neither Games nor a sign-in to offer), so
+// the drawer never shows a rule under an empty box.
+const EXTRA = {
+  borderBottomColor: color.wkFaint,
+  borderBottomStyle: 'solid',
+  borderBottomWidth: borderWidth.hairline,
+  marginBottom: space[8],
+  paddingBottom: space[16],
+} satisfies CSSProperties
+
 export function NavDrawer({
   brand,
   navItems,
   categories,
   search,
+  extra,
   LinkComponent = 'a',
   triggerClassName,
   panelClassName = 'w-full',
@@ -139,6 +165,12 @@ export function NavDrawer({
           {search && <div className="mb-3 [&_input]:w-full [&_input]:focus:w-full">{search}</div>}
 
           <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+            {extra && (
+              <div className="su-nav-drawer-extra" style={EXTRA}>
+                {extra(close)}
+              </div>
+            )}
+
             {/* Catalog categories (SRD) */}
             {categories?.map((cat) => (
               <div key={cat.label} className="mb-2 flex flex-col gap-2">

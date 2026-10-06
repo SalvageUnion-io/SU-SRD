@@ -26,14 +26,14 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
  * border/text colours.
  *
  * Both states use it, including sign-in. `variant="primary"` is right on the
- * paper account screen, but in the masthead it would put a second rust button
- * directly under "Buy the game" — two identical CTAs, neither reading as the
- * primary one. The utility row stays quiet; the bar keeps one loud action.
+ * paper settings screen and in the mobile drawer, but in the masthead it would
+ * put a second rust button directly beside "Buy the game" — two identical
+ * CTAs, neither reading as the primary one. The bar keeps one loud action.
  */
 const DARK_BUTTON = 'border-paper/40 bg-transparent text-paper hover:border-paper hover:bg-paper/10'
 
 type SignInControlProps = {
-  /** Render for a dark surface (the masthead utility row) instead of paper. */
+  /** Render for a dark surface (the masthead nav) instead of paper. */
   onDark?: boolean
 }
 

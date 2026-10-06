@@ -2,7 +2,11 @@ import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { AppHeader, CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
 import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
-import { AccountStrip } from '../components/account/AccountStrip'
+import {
+  HeaderActions,
+  HeaderDrawerAccount,
+  HeaderMobileActions,
+} from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
@@ -61,7 +65,9 @@ function RootComponent() {
         <AppHeader
           onSearchClick={() => setSearchOpen(true)}
           LinkComponent={AppLink}
-          utilityRow={<AccountStrip />}
+          actions={<HeaderActions />}
+          mobileActions={<HeaderMobileActions />}
+          drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
         />
         <CopyFeedbackProvider value={toastCopied}>
           <GameDataReady>

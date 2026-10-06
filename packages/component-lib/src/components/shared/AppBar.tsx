@@ -7,14 +7,18 @@ import { FOCUS_RING } from '../chrome/interaction'
  * AppBar — the shared masthead both SU surfaces are built from (the internal
  * implementation behind the SRD `SiteHeader` and the ITUN `AppHeader` presets).
  * Renders the SU brand lockup + a config-driven right-side cluster: desktop nav
- * links + a search slot + an optional "Buy the game" button, a mobile slot that
- * collapses the nav into a drawer below `lg`, and an optional breadcrumb bar
- * with JSON-LD.
+ * links + a search slot + an optional "Buy the game" button + an optional
+ * `actions` slot after it, a mobile slot that collapses the nav into a drawer
+ * below `lg`, and an optional breadcrumb bar with JSON-LD.
  *
- * Presentational: nav links are data (`navItems`), the search + mobile drawer
- * are slots, and internal links route through the injected `LinkComponent`
- * (external ones open in a new tab), so the shared library stays free of a
- * router/search dependency.
+ * Presentational: nav links are data (`navItems`), the search, actions and
+ * mobile drawer are slots, and internal links route through the injected
+ * `LinkComponent` (external ones open in a new tab), so the shared library
+ * stays free of a router/search/account dependency.
+ *
+ * The masthead is ONE row. It used to carry an optional second row
+ * (`utilityRow`) for ITUN's account links; those became the `actions` menus,
+ * and the sub-header went with them.
  */
 
 export type AppBarNavItem = {
@@ -50,16 +54,16 @@ type AppBarProps = {
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
   buyLabel?: ReactNode
+  /**
+   * Desktop controls rendered after the Buy button, at the right end of the
+   * nav — app-owned (ITUN's Games and account menus). A slot rather than
+   * `navItems` because these are controls, not links, and the shared bar stays
+   * ignorant of what they do. Desktop only: the `mobile` slot carries whatever
+   * the app wants below `lg`.
+   */
+  actions?: ReactNode
   /** Mobile cluster (search trigger + hamburger drawer), shown below `lg`. */
   mobile?: ReactNode
-  /**
-   * Optional second row under the nav, right-aligned inside the masthead — the
-   * app's own utility controls (ITUN puts its account cluster here). Renders at
-   * every breakpoint, so it sits under the hamburger on mobile. Passed through
-   * as a slot rather than as `navItems`, because these are controls, not links,
-   * and the shared bar stays ignorant of what they do.
-   */
-  utilityRow?: ReactNode
   // Breadcrumbs (optional — the SRD schema/item routes)
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbDescription?: string
@@ -86,8 +90,8 @@ export function AppBar({
   search,
   buyHref,
   buyLabel = 'BUY THE GAME',
+  actions,
   mobile,
-  utilityRow,
   breadcrumbs,
   breadcrumbDescription,
 }: AppBarProps) {
@@ -97,7 +101,7 @@ export function AppBar({
         className="z-50 flex flex-col gap-2 border-b-entity border-rust bg-ink-deep px-5 py-3 sm:px-[34px] sm:py-[14px]"
         style={viewTransitionName ? { viewTransitionName } : undefined}
       >
-        {/* Row 1 — brand + nav (or the mobile hamburger). */}
+        {/* Brand + nav (or the mobile hamburger). */}
         <div className="flex items-center gap-[14px]">
           {/* Brand lockup: SU cargo mark + wordmark (+ optional accent/badge) +
             tracked eyebrow. `brandShrink` lets a long wordmark/eyebrow wrap
@@ -137,7 +141,7 @@ export function AppBar({
             </span>
           </LinkComponent>
 
-          {/* Desktop nav cluster — links + search + buy, pushed right. */}
+          {/* Desktop nav cluster — links + search + buy + actions, pushed right. */}
           <nav
             aria-label="Main navigation"
             className="ml-auto hidden items-center gap-[26px] lg:flex"
@@ -168,17 +172,13 @@ export function AppBar({
                 {buyLabel}
               </a>
             )}
+
+            {actions}
           </nav>
 
           {/* Mobile: search trigger + hamburger, below `lg`. */}
           {mobile && <div className="ml-auto flex items-center gap-1 lg:hidden">{mobile}</div>}
         </div>
-
-        {/* Row 2 — the app's own utility controls, right-aligned under the nav.
-            Its own row of the masthead rather than a child of the nav cluster,
-            so a wide cluster can never squeeze the brand on narrow screens.
-            Renders nothing (and costs no row) when the app passes no slot. */}
-        {utilityRow}
       </header>
 
       {breadcrumbs && breadcrumbs.length > 0 && (
