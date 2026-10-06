@@ -31,5 +31,5 @@ or {
     JsSetterObjectMember(),
     JsConstructorClassMember()
   } ,
-  register_diagnostic(span=$call, message="This SalvageUnionReference call runs at import time, before preload(), and throws \"Schema not loaded\". Move it inside a function, hook or effect (package-contracts.md, \"Module-Scope ORM Call Risk\").", severity="error")
+  register_diagnostic(span=$call, message="This SalvageUnionReference call runs at import time, before preload(), and throws 'Schema not loaded'. Move it inside a function, hook or effect (package-contracts.md, 'Module-Scope ORM Call Risk').", severity="error")
 }
