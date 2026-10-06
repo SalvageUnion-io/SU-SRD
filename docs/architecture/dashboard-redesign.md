@@ -296,13 +296,13 @@ seat (D12).
 
 ## 9. Follow-ups outside this plan
 
-- **Mediator Dashboard.** Its own wireframes and plan, built on the seats and
+- **Mediator Dashboard** (#1062). Its own wireframes and plan, built on the seats and
   Game log this plan adds.
-- **Phone layout.** Two Minors stacked above the Major, as in the round 2
+- **Phone layout** (#1063). Two Minors stacked above the Major, as in the round 2
   wireframes.
-- **Claiming as association.** Revisit what `ownership.claim` means for crew
+- **Claiming as association** (#1064). Revisit what `ownership.claim` means for crew
   assets in a Game. This would be an ADR-030 amendment, not part of this plan.
-- **`games.cockpitPrefs`.** Drop the unused column. That's a one-way schema
+- **`games.cockpitPrefs`** (#1065). Drop the unused column. That's a one-way schema
   step of its own.
 - **Player requests to the Mediator.** Proposals only go from the Mediator to a
   player today. With the crawler Mediator-only (D11), players have no in-app way
