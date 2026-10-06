@@ -58,16 +58,6 @@ const members = useQuery(api.games.members, { gameId })
   `isConvexConfigured` (`src/lib/connection/convexClient.ts`) as
   `HeaderAccount.tsx` does; never call a Convex hook unconditionally.
 
-## There is no TanStack Query
-
-It was mounted in `src/routes/__root.tsx` and never called, so it was removed
-(audit AP-10). Components read entities through the typed hooks in
-`src/hooks/entities/` (`usePilots()`, `useMech()`, …), which are selectors over
-the Zustand stores — the folder used to be called `hooks/queries`, which is
-why that name still turns up in old notes. `/s/$id`'s lookup runs in a router
-loader; Connected reads use `convex/react`. Don't re-add a query cache
-speculatively, and never route player entities through one.
-
 ## Do not
 
 - **Persist anything only on a device.**
@@ -84,6 +74,9 @@ speculatively, and never route player entities through one.
   invites, proposals, crew vitals) — check `apps/itun/convex/` first.
 - Reintroduce `fetchEntity` / `updateEntity`, `Tables<...>` or `isLocalId` —
   those are from the removed Postgres era.
+- Add a query cache. TanStack Query was removed (audit AP-10); entity reads are
+  the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
+  use `convex/react`.
 
 Full picture: [data-flow.md](../../docs/architecture/data-flow.md),
 [accounts-and-games.md](../../docs/architecture/accounts-and-games.md).

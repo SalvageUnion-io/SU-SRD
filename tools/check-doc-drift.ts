@@ -461,9 +461,6 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  '.claude/rules/display-system.md': 4_752,
-  '.claude/rules/itun-data-access.md': 4_188,
-  '.claude/rules/react-components.md': 4_465,
   '.claude/rules/testing-patterns.md': 7_812,
   'apps/discord-bot/CLAUDE.md': 8_337,
   'apps/itun/CLAUDE.md': 13_806,
