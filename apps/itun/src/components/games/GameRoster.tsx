@@ -1,9 +1,9 @@
 /**
  * GameRoster — a Game's crew, in the hub's three columns.
  *
- * ## Why this looks like My stuff
+ * ## Why this looks like My Stuff
  *
- * `/` shows one container at a time (`Roster`): My stuff, or a Game picked in
+ * `/` shows one container at a time (`Roster`): My Stuff, or a Game picked in
  * its "Showing" select. Both ask "what have we got and what can I do with it",
  * so both answer in the same three ontology-toned columns of `EntityRow`s
  * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
@@ -36,7 +36,7 @@
  *
  * ## Every verb that changes who has a build asks first
  *
- * Pick up, Offer to the crew, Copy to My stuff, Remove from game, Delete and
+ * Pick up, Offer to the crew, Copy to My Stuff, Remove from game, Delete and
  * Scrap each open one shared confirm (`useConfirm`) that says what will happen
  * and whether it can be undone, and do nothing until the player confirms. The
  * verbs and their words live outside this file — `useRowActions` and
@@ -290,7 +290,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   disabled={busy !== null}
                   onClick={() => rowActions.copy(row)}
                 >
-                  Copy to My stuff
+                  Copy to My Stuff
                 </Button>
               )}
               {/* The move out (ADR-037): your own pilot or mech, or — for the

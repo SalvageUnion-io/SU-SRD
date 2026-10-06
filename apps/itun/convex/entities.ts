@@ -818,7 +818,7 @@ export const moveCrawler = mutation({
 
     if (from !== null && to !== null) {
       throw new NotAuthorized(
-        'Move the crawler to My stuff first, then into the other game — a crawler changes tables one step at a time'
+        'Move the crawler to My Stuff first, then into the other game — a crawler changes tables one step at a time'
       )
     }
     if (from === null) {

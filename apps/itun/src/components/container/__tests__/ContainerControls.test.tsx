@@ -3,8 +3,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import type { ComponentProps, ReactNode } from 'react'
 
 /**
- * The Game / My stuff controls (ADR-030 §2): the hub's "Showing" select, the
- * live-sheet move, and a My stuff row's "Move to game…".
+ * The Game / My Stuff controls (ADR-030 §2): the hub's "Showing" select, the
+ * live-sheet move, and a My Stuff row's "Move to game…".
  *
  * What these pin: all three render nothing for somebody who is not signed in
  * (there is no second container to offer), all list the account's Games once
@@ -12,7 +12,7 @@ import type { ComponentProps, ReactNode } from 'react'
  * a move OUT of a Game asks first (and does nothing until confirmed), a row
  * offers only the Games the server would accept for its kind, and a record in
  * a container the account cannot reach says so instead of reading as "in My
- * stuff". The personal shelf is "My stuff" wherever a player reads it.
+ * stuff". The personal shelf is "My Stuff" wherever a player reads it.
  *
  * Signed in here means a real `ConnectionProvider` over a mocked Convex client,
  * whose `mutation` records the server commit a move makes.
@@ -93,7 +93,7 @@ describe('ContainerSwitcher', () => {
     expect(container.textContent).toBe('')
   })
 
-  test('"Showing" offers My stuff and every Game, and reports the pick as a container', () => {
+  test('"Showing" offers My Stuff and every Game, and reports the pick as a container', () => {
     const picks: unknown[] = []
     wrap(<ContainerSwitcher activeContainer={{ kind: 'shelf' }} onSelect={(c) => picks.push(c)} />)
 
@@ -101,7 +101,7 @@ describe('ContainerSwitcher', () => {
     // the page shows.
     const select = screen.getByLabelText('Showing') as HTMLSelectElement
     expect([...select.options].map((o) => o.textContent)).toEqual([
-      'My stuff',
+      'My Stuff',
       'Union Crawler #430',
       'The Long Haul',
     ])
@@ -160,7 +160,7 @@ describe('MoveToContainerControl', () => {
       <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
     )
 
-    fireEvent.change(screen.getByLabelText('Move to a game or My stuff'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or My Stuff'), {
       target: { value: 'game:g1' },
     })
 
@@ -198,9 +198,9 @@ describe('MoveToContainerControl', () => {
       />
     )
 
-    const select = screen.getByLabelText('Move to a game or My stuff') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a game or My Stuff') as HTMLSelectElement
     // Only a Game this user runs is on offer for a crawler (ADR-037).
-    expect([...select.options].map((o) => o.textContent)).toEqual(['My stuff', 'Run by me'])
+    expect([...select.options].map((o) => o.textContent)).toEqual(['My Stuff', 'Run by me'])
 
     fireEvent.change(select, { target: { value: 'game:g1' } })
 
@@ -222,12 +222,12 @@ describe('MoveToContainerControl', () => {
         entity={crawlerFixture({ id: 'c1', gameId: 'g2' })}
       />
     )
-    const select = screen.getByLabelText('Move to a game or My stuff') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a game or My Stuff') as HTMLSelectElement
     expect([...select.options].map((o) => o.textContent)).toEqual(['Not mine'])
     expect(select.disabled).toBe(true)
   })
 
-  test('a container the account cannot reach is named, not passed off as My stuff', () => {
+  test('a container the account cannot reach is named, not passed off as My Stuff', () => {
     wrap(
       <MoveHarness
         entityType="pilot"
@@ -235,7 +235,7 @@ describe('MoveToContainerControl', () => {
         entity={{ name: 'Mira Cole', gameId: 'phantom' }}
       />
     )
-    const select = screen.getByLabelText('Move to a game or My stuff') as HTMLSelectElement
+    const select = screen.getByLabelText('Move to a game or My Stuff') as HTMLSelectElement
     expect(select.value).toBe('game:phantom')
     expect(select.selectedOptions[0]?.textContent).toBe('Unknown game')
   })
@@ -246,13 +246,13 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or My stuff'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or My Stuff'), {
       target: { value: 'shelf' },
     })
 
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('Take Mira Cole out of Union Crawler #430?')
-    expect(dialog.textContent).toContain('goes back to My stuff')
+    expect(dialog.textContent).toContain('goes back to My Stuff')
     // A move prunes what it would leave straddling two containers (ADR-037).
     expect(dialog.textContent).toContain(
       'Their crawler assignment in Union Crawler #430 is cleared'
@@ -265,7 +265,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or My stuff'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or My Stuff'), {
       target: { value: 'shelf' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -274,20 +274,20 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     expect(gameIdOf()).toBe('g1')
     expect(serverWrites).toHaveLength(0)
     // The select still says where the build actually is.
-    expect((screen.getByLabelText('Move to a game or My stuff') as HTMLSelectElement).value).toBe(
+    expect((screen.getByLabelText('Move to a game or My Stuff') as HTMLSelectElement).value).toBe(
       'game:g1'
     )
   })
 
-  test('confirming moves it to My stuff', async () => {
+  test('confirming moves it to My Stuff', async () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or My stuff'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or My Stuff'), {
       target: { value: 'shelf' },
     })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move to My stuff' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Move to My Stuff' }))
     })
 
     await waitFor(() => expect(gameIdOf()).toBeNull())
@@ -302,7 +302,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or My stuff'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or My Stuff'), {
       target: { value: 'game:g2' },
     })
 
@@ -316,12 +316,12 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     const pilot = await cachedPilot('g1')
     wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
-    fireEvent.change(screen.getByLabelText('Move to a game or My stuff'), {
+    fireEvent.change(screen.getByLabelText('Move to a game or My Stuff'), {
       target: { value: 'shelf' },
     })
     failWrites = true
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move to My stuff' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Move to My Stuff' }))
     })
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
@@ -332,7 +332,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 })
 
-describe('MoveToGameSelect — "Move to game…" on a My stuff row', () => {
+describe('MoveToGameSelect — "Move to game…" on a My Stuff row', () => {
   const RUN_AND_NOT = [
     { _id: 'g1', name: 'Run by me', tableRunner: true },
     { _id: 'g2', name: 'Not mine to run', tableRunner: false },

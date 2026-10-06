@@ -3,10 +3,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 
 /**
- * "+ New game" — every way into a Game, from the top of the hub.
+ * "+ New game" and "Join game" — every way into a Game, from the top of the hub.
  *
- * What these pin: there is no game UI for somebody who is not signed in; a
- * game started by name or from a template, or joined with a code, becomes what
+ * What these pin: there is no game UI for somebody who is not signed in; the
+ * two buttons open their own doors; a game started by name or from a template,
+ * or joined with a code, becomes what
  * the hub shows (the active container) and the dialog gets out of the way; a
  * gated code says it is waiting and selects nothing; and a refusal is shown in
  * the words the server chose.
@@ -69,7 +70,7 @@ afterAll(() => {
   convexMocks.restore()
 })
 
-async function renderOpen(): Promise<void> {
+async function renderOpen(door: '+ New game' | 'Join game' = '+ New game'): Promise<void> {
   await act(async () => {
     render(
       <ConnectionProvider>
@@ -77,7 +78,7 @@ async function renderOpen(): Promise<void> {
       </ConnectionProvider>
     )
   })
-  fireEvent.click(screen.getByRole('button', { name: '+ New game' }))
+  fireEvent.click(screen.getByRole('button', { name: door }))
 }
 
 async function press(name: string): Promise<void> {
@@ -100,12 +101,19 @@ describe('who gets it', () => {
     expect(container?.textContent).toBe('')
   })
 
-  test('the dialog holds all three doors: by name, from a template, with a code', async () => {
+  test('"+ New game" opens the two ways to start one, and no code field', async () => {
     await renderOpen()
     expect(screen.getByRole('heading', { name: 'Start a game' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'From a template' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Join with a code' })).toBeTruthy()
     expect(screen.getByText('Reclamation of the Wastes')).toBeTruthy()
+    expect(screen.queryByLabelText('Invite code')).toBeNull()
+  })
+
+  test('"Join game" is its own button, and opens only the code field', async () => {
+    await renderOpen('Join game')
+    expect(screen.getByRole('region', { name: 'Join game' })).toBeTruthy()
+    expect(screen.getByLabelText('Invite code')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Start a game' })).toBeNull()
   })
 })
 
@@ -138,7 +146,7 @@ describe('starting a game', () => {
 
 describe('joining with a code', () => {
   test('Join waits for a code, then shows the game it joined', async () => {
-    await renderOpen()
+    await renderOpen('Join game')
     expect(screen.getByRole('button', { name: 'Join' }).hasAttribute('disabled')).toBe(true)
 
     fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
@@ -150,7 +158,7 @@ describe('joining with a code', () => {
 
   test('already in it: shows that game', async () => {
     results['invites:redeem'] = { kind: 'already', gameId: 'g-old' }
-    await renderOpen()
+    await renderOpen('Join game')
     fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
     await press('Join')
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g-old' })
@@ -158,7 +166,7 @@ describe('joining with a code', () => {
 
   test('a gated code says it is waiting, and shows nothing it cannot see yet', async () => {
     results['invites:redeem'] = { kind: 'pending', gameId: 'g-gated' }
-    await renderOpen()
+    await renderOpen('Join game')
     fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
     await press('Join')
 
@@ -167,7 +175,7 @@ describe('joining with a code', () => {
   })
 
   test('a refusal is shown in the server’s own words', async () => {
-    await renderOpen()
+    await renderOpen('Join game')
     fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
     mutationError = new ConvexError('That invite code has expired')
     await press('Join')

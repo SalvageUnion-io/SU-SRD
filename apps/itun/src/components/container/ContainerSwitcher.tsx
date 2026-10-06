@@ -1,7 +1,7 @@
 /**
  * ContainerSwitcher — the hub's "Showing" select (ADR-030 §2).
  *
- * `/` shows one container at a time, and this picks it: **My stuff** (the
+ * `/` shows one container at a time, and this picks it: **My Stuff** (the
  * owner's personal shelf — that is the player's name for it), then every Game
  * the player is in. Picking a Game is how you get to it; there is no Games
  * page. The masthead's Games menu (`GamesMenu`) makes the same choice from
@@ -65,7 +65,7 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
         onChange={handleChange}
         className="w-[200px] sm:min-h-9"
       >
-        <option value={SHELF_VALUE}>My stuff</option>
+        <option value={SHELF_VALUE}>My Stuff</option>
         {/* `games` is undefined while the subscription is in flight. The
             current selection must still have a matching option or the select
             would render blank, so the group is simply absent until it loads —

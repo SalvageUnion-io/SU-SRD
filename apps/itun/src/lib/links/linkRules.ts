@@ -30,7 +30,7 @@
  *
  * ## Both ends share a container
  *
- * Same Game, or the same owner's shelf ("My stuff", a solo Game for every
+ * Same Game, or the same owner's shelf ("My Stuff", a solo Game for every
  * purpose here). A link across containers is refused, and a move prunes the
  * links it would leave straddling two. `sameContainer` from `lib/container.ts`
  * answers it on the client; the server additionally compares owners on a
@@ -136,7 +136,7 @@ export function conflictingLinks<L extends LinkShape>(
  * reads the same whichever side caught it.
  */
 export const CROSS_CONTAINER_REFUSAL =
-  'Those two are in different places — assign within one game, or within My stuff. Move one of them first.'
+  'Those two are in different places — assign within one game, or within My Stuff. Move one of them first.'
 
 /** The client's container lookup for one link end, or null when it is not cached. */
 export type EndContainer = (ref: { type: EndType; id: string }) => Container | null

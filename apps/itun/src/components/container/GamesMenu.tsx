@@ -1,7 +1,7 @@
 /**
  * The masthead's Games menu — pick what the Roster shows (ADR-030 §2).
  *
- * "My stuff" (the personal Shelf) heads the list, then every Game the player is
+ * "My Stuff" (the personal Shelf) heads the list, then every Game the player is
  * in, each with their role in it. Picking one sets the active container and
  * goes to `/`, the Roster, which shows that container. It is the same decision
  * the Roster's own "Showing" select (`ContainerSwitcher`) makes, offered from
@@ -41,7 +41,7 @@ import { setActiveContainer } from '../../stores/activeContainerStore'
 type Entry = { id: string; label: string; hint?: string; container: Container }
 
 /** What the player calls the Shelf. */
-const SHELF_ENTRY: Entry = { id: 'shelf', label: 'My stuff', container: SHELF }
+const SHELF_ENTRY: Entry = { id: 'shelf', label: 'My Stuff', container: SHELF }
 
 /**
  * The Games, as rows — `undefined` while the subscription is in flight.

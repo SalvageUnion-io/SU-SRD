@@ -203,7 +203,7 @@ describe('one container — both ends share a Game or the same shelf', () => {
     ).rejects.toThrow(CROSS_CONTAINER_REFUSAL)
   })
 
-  test("My stuff is per person: nobody docks in somebody else's shelf crawler", async () => {
+  test("My Stuff is per person: nobody docks in somebody else's shelf crawler", async () => {
     const t = testConvex()
     const a = await makeUser(t, 'A')
     const b = await makeUser(t, 'B')

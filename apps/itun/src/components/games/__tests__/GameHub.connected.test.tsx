@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
  *  - only the Mediator gets the Mediator section, and gets all of it; the
  *    propose form offers only entities somebody can answer for
  *  - `games.get` answering `null` reads as an explanation with a way back to
- *    My stuff, and still loading is not the same as not a member
+ *    My Stuff, and still loading is not the same as not a member
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
@@ -157,14 +157,14 @@ describe('the Game section', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'End this game' })).toBeTruthy()
   })
 
-  test('ending the game asks first, says where everything lands, and then shows My stuff', async () => {
+  test('ending the game asks first, says where everything lands, and then shows My Stuff', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
-    expect(dialog.textContent).toContain('Hamlet and anything unclaimed come to you, in My stuff')
+    expect(dialog.textContent).toContain('Hamlet and anything unclaimed come to you, in My Stuff')
     expect(mutations).toHaveLength(0)
 
     await act(async () => {
@@ -178,7 +178,7 @@ describe('the Game section', () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     fireEvent.click(screen.getByRole('button', { name: 'Delete this game' }))
 
-    expect(screen.getByText(/^Anything unclaimed comes to you, in My stuff\.$/)).toBeTruthy()
+    expect(screen.getByText(/^Anything unclaimed comes to you, in My Stuff\.$/)).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
   })
@@ -255,12 +255,12 @@ describe('the Mediator section', () => {
 })
 
 describe('a game the viewer is not in', () => {
-  test('explains itself, and offers My stuff, instead of rendering the table', async () => {
+  test('explains itself, and offers My Stuff, instead of rendering the table', async () => {
     await renderHub({ 'games:get': null })
 
     expect(screen.getByText(/not in this game/i)).toBeTruthy()
     expect(section('Game')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Show My stuff' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Show My Stuff' }))
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 

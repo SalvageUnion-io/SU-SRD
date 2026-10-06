@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 /**
  * The masthead's Games menu (desktop) and its drawer list (mobile).
  *
- * What these pin: "My stuff" heads the list, every Game follows with the
+ * What these pin: "My Stuff" heads the list, every Game follows with the
  * player's role in it, and picking a row does the two things the menu exists
  * for — it makes that container active AND takes the player to the Roster at
  * `/`, which shows it. Nothing here links to `/games`. Outside Connected there
@@ -59,14 +59,14 @@ afterEach(() => {
 afterAll(convexMocks.restore)
 
 describe('GamesMenu', () => {
-  test('is a menu button listing My stuff, then each Game with its role', async () => {
+  test('is a menu button listing My Stuff, then each Game with its role', async () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
 
     expect(screen.getByRole('button', { name: 'Games' }).getAttribute('aria-haspopup')).toBe('menu')
     const items = within(await openGames()).getAllByRole('menuitem')
     expect(items.map((item) => item.textContent)).toEqual([
-      'My stuff',
+      'My Stuff',
       'Union Crawler #430, Mediator',
       'The Long Haul, Player',
     ])
@@ -87,14 +87,14 @@ describe('GamesMenu', () => {
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
-  test('picking My stuff makes the Shelf the active container', async () => {
+  test('picking My Stuff makes the Shelf the active container', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
 
     const menu = await openGames()
     await act(async () => {
-      fireEvent.click(within(menu).getByRole('menuitem', { name: 'My stuff' }))
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'My Stuff' }))
     })
     expect(getActiveContainer()).toEqual(SHELF)
     expect(convexMocks.navigations).toEqual([{ to: '/' }])
@@ -139,11 +139,11 @@ describe('GamesDrawerList', () => {
     expect(closed).toBe(1)
   })
 
-  test('with no Games it still offers My stuff, and says there are none', () => {
+  test('with no Games it still offers My Stuff, and says there are none', () => {
     setQueryAnswers({ 'games:listMine': [] })
     wrap(<GamesDrawerList onPick={() => {}} />)
 
-    expect(screen.getByRole('button', { name: 'My stuff' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'My Stuff' })).toBeTruthy()
     expect(screen.getByText('No games yet')).toBeTruthy()
   })
 })

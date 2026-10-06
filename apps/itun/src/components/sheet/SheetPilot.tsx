@@ -59,7 +59,7 @@ export function SheetPilot({
   )?.id
   const unassign = (linkId: string | undefined) =>
     editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
-  // Both slots pick from where the pilot lives — its Game, or My stuff.
+  // Both slots pick from where the pilot lives — its Game, or My Stuff.
   const self = { type: 'pilot', id: pilot.id } as const
   const container = containerOf(pilot)
   // Stat Training follows the pilot's crawler tier (linked crawler, else the

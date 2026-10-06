@@ -104,7 +104,7 @@ export function SheetMech({
   )?.id
   const unassign = (linkId: string | undefined) =>
     editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
-  // Both slots pick from where the mech lives — its Game, or My stuff.
+  // Both slots pick from where the mech lives — its Game, or My Stuff.
   const self = { type: 'mech', id: mech.id } as const
   const container = containerOf(mech)
 

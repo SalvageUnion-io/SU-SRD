@@ -197,7 +197,7 @@ export function SheetCrawler({
       : undefined
   }
   // The pickers offer only what lives where this crawler does — its Game, or
-  // My stuff — and never what is already aboard.
+  // My Stuff — and never what is already aboard.
   const self = { type: 'crawler', id: crawler.id } as const
   const container = containerOf(crawler)
   const crewPicker = (

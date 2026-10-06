@@ -12,7 +12,7 @@
  * "are you sure?" makes the reader work out the consequence themselves, which
  * is the one job the dialog exists to do for them.
  *
- * The personal shelf is called **"My stuff"** in anything a player reads — that
+ * The personal shelf is called **"My Stuff"** in anything a player reads — that
  * is the player's name for it, here and everywhere else in the app.
  *
  * The tone is part of the copy because it is part of the message: `danger` for
@@ -105,16 +105,16 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * A copy into My stuff. Destroys nothing, but it does make something, and a
+   * A copy into My Stuff. Destroys nothing, but it does make something, and a
    * player who expected a move would otherwise find two of them — so it names
    * the copy it will make and says the two will not stay in step.
    */
   copy(name: string): ConfirmCopy {
     return {
-      title: `Copy ${name} to My stuff?`,
+      title: `Copy ${name} to My Stuff?`,
       body: [
-        `This makes “${copyName(name)}” in My stuff. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
-        "Don't want it later? Delete the copy from My stuff.",
+        `This makes “${copyName(name)}” in My Stuff. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        "Don't want it later? Delete the copy from My Stuff.",
       ],
       confirmLabel: 'Make a copy',
       pendingLabel: 'Copying…',
@@ -168,9 +168,9 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * Moving a build OUT of a Game — back to My stuff, or on to another Game.
+   * Moving a build OUT of a Game — back to My Stuff, or on to another Game.
    *
-   * Only this direction asks. Moving something from My stuff into a Game takes
+   * Only this direction asks. Moving something from My Stuff into a Game takes
    * nothing from anybody; moving it out takes it off a shared roster that the
    * rest of the table was reading. It is the same record either way (a move
    * keeps its id), so it can always be moved back.
@@ -196,11 +196,11 @@ export const ROW_ACTION_COPY = {
       return {
         title: `Take ${args.name} out of ${from}?`,
         body: [
-          `${args.name} leaves the game's roster and goes back to My stuff, so the rest of the table won't see ${it} any more.`,
+          `${args.name} leaves the game's roster and goes back to My Stuff, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),
           `You can move ${it} back into the game later.`,
         ],
-        confirmLabel: 'Move to My stuff',
+        confirmLabel: 'Move to My Stuff',
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,

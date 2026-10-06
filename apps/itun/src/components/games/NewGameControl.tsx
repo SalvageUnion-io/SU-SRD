@@ -1,12 +1,13 @@
 /**
- * "+ New game" — the top of the hub, and every way into a Game (ADR-030).
+ * "+ New game" and "Join game" — the top of the hub, and every way into a Game
+ * (ADR-030).
  *
- * One button, one dialog holding the three doors: start a game by name, start
- * one from a template, or join one with a code. They are one control rather
- * than three in the header band because they answer one question ("how do I
- * get a table?") and the band already carries the export, import and Dashboard
- * controls; a player who was handed a code looks for it here, beside starting
- * their own.
+ * Two buttons over one dialog. "+ New game" opens its two ways to start a
+ * table: by name, or from a template. "Join game" opens the third door, an
+ * invite code, on its own: a player who was handed a code is not starting a
+ * game, and looking for "join" inside "new" was the wrong place to send them.
+ * One dialog rather than two because the doors share their busy, error and
+ * notice state, and only one is ever open.
  *
  * Whatever the door, a Game you are now in becomes what the hub shows: create
  * and join both set the active container to it and close the dialog, so the
@@ -74,8 +75,12 @@ const CODE = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+/** Which door the dialog is showing; `null` while it is closed. */
+type Door = 'new' | 'join'
+
 function ConnectedNewGameControl() {
-  const [open, setOpen] = useState(false)
+  const [door, setDoor] = useState<Door | null>(null)
+  const open = door !== null
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
   const templates = useQuery(api.templates.list, open ? {} : 'skip')
@@ -89,9 +94,9 @@ function ConnectedNewGameControl() {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  function openDialog(next: boolean) {
-    setOpen(next)
-    if (next) {
+  function openDoor(next: Door | null) {
+    setDoor(next)
+    if (next !== null) {
       setError(null)
       setNotice(null)
     }
@@ -102,7 +107,7 @@ function ConnectedNewGameControl() {
     setActiveContainer({ kind: 'game', gameId })
     setName('')
     setCode('')
-    setOpen(false)
+    setDoor(null)
   }
 
   async function attempt(work: () => Promise<void>, failure: string) {
@@ -143,98 +148,108 @@ function ConnectedNewGameControl() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => openDialog(true)}>
+      <Button variant="default" size="compact" onClick={() => openDoor('new')}>
         + New game
       </Button>
-      <ModalShell open={open} onOpenChange={openDialog} title="New game">
+      <Button variant="default" size="compact" onClick={() => openDoor('join')}>
+        Join game
+      </Button>
+      <ModalShell
+        open={open}
+        onOpenChange={(next) => openDoor(next ? (door ?? 'new') : null)}
+        title={door === 'join' ? 'Join game' : 'New game'}
+      >
         <div style={BODY}>
-          <section aria-labelledby="new-game-start" style={SECTION}>
-            <PageHeading variant="section" as="h3" id="new-game-start">
-              Start a game
-            </PageHeading>
-            <div style={ROW}>
-              <div style={GROW}>
-                <Field label="Name">
-                  <Input
-                    aria-label="New game name"
-                    placeholder="Union Crawler #430"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </Field>
-              </div>
-              <Button
-                variant="primary"
-                size="compact"
-                disabled={busy || name.trim().length === 0}
-                onClick={() => void startNamed()}
-              >
-                Create
-              </Button>
-            </div>
-          </section>
-
-          <section aria-labelledby="new-game-template" style={RULED}>
-            <PageHeading variant="section" as="h3" id="new-game-template">
-              From a template
-            </PageHeading>
-            {templates === undefined && (
-              <Text variant="hint" style={HINT}>
-                Loading templates…
-              </Text>
-            )}
-            {templates?.map((t) => (
-              <div key={t.id} style={SECTION}>
-                <PageHeading variant="subheading" as="h4">
-                  {t.name}
+          {door === 'new' && (
+            <>
+              <section aria-labelledby="new-game-start" style={SECTION}>
+                <PageHeading variant="section" as="h3" id="new-game-start">
+                  Start a game
                 </PageHeading>
-                <Text variant="hint" style={HINT}>
-                  {t.description}
-                </Text>
-                <div>
+                <div style={ROW}>
+                  <div style={GROW}>
+                    <Field label="Name">
+                      <Input
+                        aria-label="New game name"
+                        placeholder="Union Crawler #430"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </Field>
+                  </div>
                   <Button
-                    variant="default"
+                    variant="primary"
                     size="compact"
-                    disabled={busy}
-                    // `t.id`, not a hardcoded template id — see `templates.list`.
-                    onClick={() => void startFromTemplate(t.id)}
+                    disabled={busy || name.trim().length === 0}
+                    onClick={() => void startNamed()}
                   >
-                    Start this game
+                    Create
                   </Button>
                 </div>
-              </div>
-            ))}
-          </section>
+              </section>
 
-          <section aria-labelledby="new-game-join" style={RULED}>
-            <PageHeading variant="section" as="h3" id="new-game-join">
-              Join with a code
-            </PageHeading>
-            <Text variant="hint" style={HINT}>
-              Whoever runs the table can give you one.
-            </Text>
-            <div style={ROW}>
-              <div style={GROW}>
-                <Field label="Code">
-                  <Input
-                    aria-label="Invite code"
-                    placeholder="A1B2C3D4"
-                    style={CODE}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                  />
-                </Field>
+              <section aria-labelledby="new-game-template" style={RULED}>
+                <PageHeading variant="section" as="h3" id="new-game-template">
+                  From a template
+                </PageHeading>
+                {templates === undefined && (
+                  <Text variant="hint" style={HINT}>
+                    Loading templates…
+                  </Text>
+                )}
+                {templates?.map((t) => (
+                  <div key={t.id} style={SECTION}>
+                    <PageHeading variant="subheading" as="h4">
+                      {t.name}
+                    </PageHeading>
+                    <Text variant="hint" style={HINT}>
+                      {t.description}
+                    </Text>
+                    <div>
+                      <Button
+                        variant="default"
+                        size="compact"
+                        disabled={busy}
+                        // `t.id`, not a hardcoded template id — see `templates.list`.
+                        onClick={() => void startFromTemplate(t.id)}
+                      >
+                        Start this game
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </section>
+            </>
+          )}
+
+          {door === 'join' && (
+            <section aria-label="Join game" style={SECTION}>
+              <Text variant="hint" style={HINT}>
+                Enter the invite code whoever runs the table gave you.
+              </Text>
+              <div style={ROW}>
+                <div style={GROW}>
+                  <Field label="Code">
+                    <Input
+                      aria-label="Invite code"
+                      placeholder="A1B2C3D4"
+                      style={CODE}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                    />
+                  </Field>
+                </div>
+                <Button
+                  variant="primary"
+                  size="compact"
+                  disabled={busy || code.trim().length === 0}
+                  onClick={() => void join()}
+                >
+                  Join
+                </Button>
               </div>
-              <Button
-                variant="primary"
-                size="compact"
-                disabled={busy || code.trim().length === 0}
-                onClick={() => void join()}
-              >
-                Join
-              </Button>
-            </div>
-          </section>
+            </section>
+          )}
 
           {error !== null && (
             <Text variant="hint" role="alert" style={ERROR}>
