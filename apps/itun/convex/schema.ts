@@ -312,7 +312,9 @@ export default defineSchema({
     .index('by_game', ['gameId'])
     .index('by_target_discord', ['target.discordId'])
     .index('by_source_interaction', ['sourceInteractionId'])
-    .index('by_creator', ['createdBy', 'createdAt']),
+    .index('by_creator', ['createdBy', 'createdAt'])
+    // The daily sweep that forgets the addresses of expired email invites.
+    .index('by_target_kind_expiry', ['target.kind', 'expiresAt']),
 
   /** Who actually used which invite — the audit trail revocation alone can't give. */
   inviteRedemptions: defineTable({

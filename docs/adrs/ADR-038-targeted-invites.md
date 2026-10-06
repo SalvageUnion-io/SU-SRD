@@ -128,8 +128,8 @@ Rejected:
 ### 6. Secrets
 
 The Resend key lives **only** on the Convex deployment, as `RESEND_API_KEY`. It
-is set through `op run` with a committed env file that holds an `op://`
-reference and nothing else, piped to `convex env set` on stdin so it never
+is set through `op run` with a committed env file (`apps/itun/.env.op`) that
+holds an `op://` reference and nothing else, piped to `convex env set` on stdin so it never
 appears in `argv`, a transcript or shell history. The runbook is in
 [accounts-and-games.md](../architecture/accounts-and-games.md). Discord needs no
 new secret: the bot already holds `DISCORD_TOKEN`, and the application's public

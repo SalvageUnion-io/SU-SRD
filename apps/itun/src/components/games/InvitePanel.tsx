@@ -15,6 +15,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { ConvexPending } from '../shared/ConvexPending'
+import { failureMessage } from '../shared/useConfirm'
 
 /**
  * Invite management — mint, read back, and revoke.
@@ -87,24 +88,41 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
   const invites = useQuery(api.invites.list, { gameId })
   const requests = useQuery(api.invites.pendingRequests, { gameId })
   const createInvite = useMutation(api.invites.create)
+  const sendEmail = useMutation(api.invites.sendEmail)
   const revoke = useMutation(api.invites.revoke)
   const decide = useMutation(api.invites.decideRequest)
 
   const [label, setLabel] = useState('')
+  const [email, setEmail] = useState('')
   const [role, setRole] = useState<'player' | 'mediator'>('player')
   const [requiresApproval, setRequiresApproval] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // An address turns the same form into an emailed invite (ADR-038): one
+  // person, one use, a week. Without one it mints a code as it always has.
+  const emailing = email.trim() !== ''
 
   const mint = () => {
-    void createInvite({
+    setError(null)
+    const common = {
       gameId,
       label: label.trim() === '' ? undefined : label.trim(),
       role,
       requiresApproval,
-    }).then(() => {
-      setLabel('')
-      setRole('player')
-      setRequiresApproval(false)
-    })
+    }
+    const work = emailing ? sendEmail({ ...common, email: email.trim() }) : createInvite(common)
+    void work
+      .then(() => {
+        setLabel('')
+        setEmail('')
+        setRole('player')
+        setRequiresApproval(false)
+      })
+      .catch((err: unknown) => {
+        // A refusal (the daily limit, an address already waiting) is worded by
+        // the server; anything else gets a plain line and a report.
+        setError(failureMessage(err, 'That invite could not be created. Try again.'))
+      })
   }
 
   return (
@@ -117,6 +135,16 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
               placeholder="for Sam"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
+            />
+          </Field>
+          <Field label="Email (optional)" className="min-w-48 flex-1">
+            <Input
+              aria-label="Invite email"
+              type="email"
+              autoComplete="off"
+              placeholder="sam@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </Field>
           <Field label="Seat" className="min-w-32">
@@ -136,14 +164,24 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
             onChange={(e) => setRequiresApproval(e.target.checked)}
           />
           <Button variant="primary" size="compact" onClick={mint}>
-            Create invite code
+            {emailing ? 'Email invite' : 'Create invite code'}
           </Button>
         </div>
         <Text variant="hint" className="text-left">
-          {requiresApproval
-            ? 'Anyone with this code asks to join, and waits for you. Use this for a code you post somewhere public.'
-            : 'Anyone with this code joins immediately. Members can read every crewmate’s sheet, so share it like a key.'}
+          {emailing
+            ? 'Emails a link that works once and lasts a week. Whoever opens it can join, so require approval if it might be forwarded. The address is kept only until the invite is used, declined, revoked or expires.'
+            : requiresApproval
+              ? 'Anyone with this code asks to join, and waits for you. Use this for a code you post somewhere public.'
+              : 'Anyone with this code joins immediately. Members can read every crewmate’s sheet, so share it like a key.'}
         </Text>
+        <Text variant="hint" className="text-left">
+          To invite someone by their Discord account, run /su invite in Discord.
+        </Text>
+        {error !== null && (
+          <Text variant="hint" role="alert" className="text-left text-[var(--color-roll-cascade)]">
+            {error}
+          </Text>
+        )}
       </div>
 
       {requests !== undefined && requests.length > 0 && (

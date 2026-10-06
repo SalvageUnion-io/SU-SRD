@@ -52,6 +52,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './games.ts': () => import('../../convex/games'),
   './mediator.ts': () => import('../../convex/mediator'),
   './invites.ts': () => import('../../convex/invites'),
+  './inviteEmail.ts': () => import('../../convex/inviteEmail'),
   './maintenance.ts': () => import('../../convex/maintenance'),
   './ownership.ts': () => import('../../convex/ownership'),
   './proposals.ts': () => import('../../convex/proposals'),
@@ -61,6 +62,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './model/bot.ts': () => import('../../convex/model/bot'),
   './model/discordInteraction.ts': () => import('../../convex/model/discordInteraction'),
   './model/entities.ts': () => import('../../convex/model/entities'),
+  './model/inviteLetter.ts': () => import('../../convex/model/inviteLetter'),
   './model/invites.ts': () => import('../../convex/model/invites'),
   './model/permissions.ts': () => import('../../convex/model/permissions'),
 }

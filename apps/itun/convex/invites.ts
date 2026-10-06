@@ -1,10 +1,18 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { v } from 'convex/values'
+import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
-import { discordIdOfUser, mayRedeem, mintInvite, statusOf } from './model/invites'
+import {
+  discordIdOfUser,
+  forgetAddress,
+  maskEmail,
+  mayRedeem,
+  mintInvite,
+  statusOf,
+} from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
 import { logOwnershipChange } from './ownership'
 
@@ -59,6 +67,92 @@ export const create = mutation({
     const membership = await requireOrganizer(ctx, args.gameId)
     const invite = await mintInvite(ctx, membership, args)
     return invite.code
+  },
+})
+
+/** How many email invites one Organizer may send in a day (ADR-038 §5). */
+export const EMAIL_INVITES_PER_DAY = 20
+
+const DAY_MS = 1000 * 60 * 60 * 24
+
+/** Deliberately loose: the provider is the authority on deliverability. */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/**
+ * Email an invite to one address (ADR-038 §4). Organizer only.
+ *
+ * Mints an invite addressed to the email — single use, a week, redeemable by
+ * whoever holds the link — and schedules the send in the same transaction, so
+ * no email can go out for an invite that does not exist. Delivery is reported
+ * onto the invite (`delivery`), which is where the Organizer's list reads it.
+ *
+ * Two guards keep this from being a way to mail strangers:
+ *
+ *   - **A daily limit** per Organizer, across all their Games.
+ *   - **One live invite per address per Game.** Sending again while one is
+ *     waiting is refused rather than re-sent; re-sending would be a way round
+ *     the limit, one address at a time.
+ *
+ * The address is one at a time, typed by the Organizer. Nothing here reads a
+ * contact list, and nothing suggests an address.
+ */
+export const sendEmail = mutation({
+  args: {
+    gameId: v.id('games'),
+    email: v.string(),
+    label: v.optional(v.string()),
+    role: v.optional(v.union(v.literal('player'), v.literal('mediator'))),
+    requiresApproval: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args): Promise<{ code: string }> => {
+    const membership = await requireOrganizer(ctx, args.gameId)
+
+    const address = args.email.trim().toLowerCase()
+    if (address.length > 254 || !EMAIL_PATTERN.test(address)) {
+      throw new NotAuthorized('That does not look like an email address')
+    }
+
+    const now = Date.now()
+    const sentToday = await ctx.db
+      .query('invites')
+      .withIndex('by_creator', (q) =>
+        q.eq('createdBy', membership.userId).gte('createdAt', now - DAY_MS)
+      )
+      .collect()
+    if (sentToday.filter((row) => row.target?.kind === 'email').length >= EMAIL_INVITES_PER_DAY) {
+      throw new NotAuthorized(
+        `You can email ${EMAIL_INVITES_PER_DAY} invites a day. Share a code instead, or try again tomorrow.`
+      )
+    }
+
+    const inGame = await ctx.db
+      .query('invites')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    const waiting = inGame.some(
+      (row) =>
+        row.target?.kind === 'email' &&
+        row.target.address === address &&
+        statusOf(row, now) === 'active'
+    )
+    if (waiting) {
+      throw new NotAuthorized(
+        'An invite to that address is already waiting. Revoke it first to send a new one.'
+      )
+    }
+
+    const invite = await mintInvite(ctx, membership, {
+      label: args.label,
+      role: args.role,
+      requiresApproval: args.requiresApproval,
+      target: { kind: 'email', address, masked: maskEmail(address) },
+    })
+    await ctx.db.patch(invite._id, { delivery: { state: 'queued', at: now } })
+    await ctx.scheduler.runAfter(0, internal.inviteEmail.send, {
+      inviteId: invite._id,
+      attempt: String(now),
+    })
+    return { code: invite.code }
   },
 })
 
@@ -145,6 +239,7 @@ export const revoke = mutation({
     await requireOrganizer(ctx, invite.gameId)
     if (invite.revokedAt !== undefined) return
     await ctx.db.patch(invite._id, { revokedAt: Date.now() })
+    await forgetAddress(ctx, invite)
   },
 })
 
@@ -274,6 +369,8 @@ async function seat(
   if (invite.usesRemaining !== undefined) {
     await ctx.db.patch(invite._id, { usesRemaining: invite.usesRemaining - 1 })
   }
+  // An email invite is single use, so once spent its address has done its job.
+  await forgetAddress(ctx, invite)
 
   return granted
 }
@@ -403,6 +500,7 @@ export const decline = mutation({
     if (statusOf(invite, Date.now()) !== 'active') return
 
     await ctx.db.patch(invite._id, { declinedAt: Date.now() })
+    await forgetAddress(ctx, invite)
   },
 })
 

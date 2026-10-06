@@ -177,3 +177,28 @@ export async function mayRedeem(
   if (invite.target?.kind !== 'discord') return true
   return (await discordIdOfUser(ctx, userId)) === invite.target.discordId
 }
+
+/**
+ * How an email address is shown once stored: the first character of the local
+ * part and the whole domain (`s•••@example.com`). Enough for an Organizer to
+ * tell two invites apart; not enough to be worth reading over a shoulder.
+ */
+export function maskEmail(address: string): string {
+  const at = address.lastIndexOf('@')
+  if (at <= 0) return '•••'
+  return `${address.slice(0, 1)}•••@${address.slice(at + 1)}`
+}
+
+/**
+ * Forget an email invite's address, keeping only its mask (ADR-038 §5).
+ *
+ * Called the moment an invite stops being live through a person's act —
+ * redeemed, declined, revoked — and by the daily cron for the ones that simply
+ * expire. The address of somebody who never signed up is the one piece of
+ * third-party data this feature holds, so it is held no longer than the
+ * invite can be used.
+ */
+export async function forgetAddress(ctx: MutationCtx, invite: Doc<'invites'>): Promise<void> {
+  if (invite.target?.kind !== 'email' || invite.target.address === undefined) return
+  await ctx.db.patch(invite._id, { target: { kind: 'email', masked: invite.target.masked } })
+}

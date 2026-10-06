@@ -42,7 +42,8 @@ surface:
 - **`@sentry/node` does not run there either.** The default Convex runtime is
   not Node; this deployment has no `'use node'` actions, so adding the Node SDK
   would mean converting modules to the Node runtime purely to instrument them.
-- **What is left is HTTP actions** (`http.ts`, `botHttp.ts`), where a
+- **What is left is HTTP actions** (`http.ts`, `botHttp.ts`) and the one
+  outbound action (`inviteEmail.send`), where a
   hand-rolled `fetch` to Sentry's ingest endpoint would duplicate a built-in
   that already tags events with function name, function type, runtime, request
   id, deployment name, environment tier, and the caller's `tokenIdentifier` —
@@ -341,6 +342,47 @@ accounts on:
 saving for every player: all writes would go to the tab's memory, and the
 account data would be unreachable until the variable came back. If Convex has
 to be taken out of the path, that is an outage to announce, not a toggle.
+
+## Email invites (Resend)
+
+[ADR-038](../adrs/ADR-038-targeted-invites.md) §4: `invites.sendEmail`
+schedules `inviteEmail.send`, which posts to Resend's REST API. Unset, every
+email invite records "email is not set up on this server" and still works as a
+code — so this is opt-in per deployment, like the bot.
+
+1. **Resend:** add the domain `intheunionnow.com` and its DNS records in
+   Cloudflare. In the domain's settings keep **open and click tracking off** —
+   the letter promises no tracking, and click tracking would rewrite the join
+   link through Resend.
+2. **Key:** create one with **sending access only**, restricted to that domain,
+   and store it in 1Password at the reference in
+   [`apps/itun/.env.op`](../../apps/itun/.env.op). That file holds `op://`
+   paths and nothing else; change the path there if your item lives elsewhere.
+3. **Set it on the deployment** — from `apps/itun`, through `op run`, on stdin,
+   so the value never reaches `argv`, shell history or a transcript:
+
+   ```bash
+   op run --env-file=.env.op -- sh -c 'printf %s "$RESEND_API_KEY" | bunx convex env set RESEND_API_KEY --prod'
+   ```
+
+   Drop `--prod` for the dev deployment; each is set separately.
+4. **Check presence by length**, never by printing (`convex env list` prints
+   every value — see Secrets below):
+
+   ```bash
+   bunx convex env get RESEND_API_KEY --prod | tr -d '[:space:]' | wc -c
+   ```
+
+5. **Prove it:** email an invite to yourself from a Game's invite panel. The
+   row reads "sent to y•••@…" with no "email not delivered" note, and the mail
+   arrives.
+
+`INVITE_EMAIL_FROM` overrides the sender (default
+`In The Union Now <invites@intheunionnow.com>`); it is not secret. The join
+link is built from `SITE_URL`, which sign-in already requires.
+
+**Rotating:** create the new key in Resend, update the 1Password item, rerun
+step 3, send yourself an invite, then delete the old key in Resend.
 
 ## Secrets
 

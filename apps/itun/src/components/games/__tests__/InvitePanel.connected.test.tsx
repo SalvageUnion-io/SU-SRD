@@ -16,9 +16,14 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
  * swapping those two lines was invisible to this file.
  */
 
+import type { FunctionReference } from 'convex/server'
+import { getFunctionName } from 'convex/server'
+import { ConvexError } from 'convex/values'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 const calls: { name: string; args: unknown }[] = []
+// Set per test to make the next mutation refuse, the way the server words it.
+let refusal: string | null = null
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
@@ -26,8 +31,9 @@ const convexMocks = await installConvexMocks({
   convexReact: {
     // Every mutation records its call so the tests can assert what the panel
     // asked the server to do, which is the half a render assertion cannot cover.
-    useMutation: () => async (args: unknown) => {
-      calls.push({ name: 'mutation', args })
+    useMutation: (ref: unknown) => async (args: unknown) => {
+      calls.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
+      if (refusal !== null) throw new ConvexError(refusal)
       return undefined
     },
   },
@@ -58,6 +64,7 @@ function invite(over: Record<string, unknown> = {}) {
 function renderPanel(invites: unknown[], requests: unknown[] = []) {
   setQueryAnswers({ 'invites:list': invites, 'invites:pendingRequests': requests })
   calls.length = 0
+  refusal = null
   return render(<InvitePanel gameId={'g1' as never} />)
 }
 
@@ -145,6 +152,53 @@ describe('minting', () => {
     const args = calls[0]?.args as { label?: string } | undefined
     expect(args).toBeDefined()
     expect(args?.label).toBeUndefined()
+  })
+
+  test('an address turns the form into an emailed invite, with the same seat and door', async () => {
+    renderPanel([])
+
+    fireEvent.change(screen.getByLabelText('Invite email'), {
+      target: { value: ' sam@example.com ' },
+    })
+    fireEvent.click(screen.getByLabelText('Require approval'))
+    expect(screen.getByText(/kept only until the invite is used/i)).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(screen.getByText('Email invite'))
+    })
+
+    expect(calls).toEqual([
+      {
+        name: 'invites:sendEmail',
+        args: {
+          gameId: 'g1',
+          email: 'sam@example.com',
+          label: undefined,
+          role: 'player',
+          requiresApproval: true,
+        },
+      },
+    ])
+    // Sent, so the form clears back to minting a code.
+    expect(screen.getByText('Create invite code')).toBeTruthy()
+  })
+
+  test('a refused email says why, in the server’s words', async () => {
+    renderPanel([])
+    refusal = 'You can email 20 invites a day. Share a code instead, or try again tomorrow.'
+
+    fireEvent.change(screen.getByLabelText('Invite email'), {
+      target: { value: 'sam@example.com' },
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Email invite'))
+    })
+
+    expect(screen.getByRole('alert').textContent).toMatch(/20 invites a day/)
+  })
+
+  test('points to /su invite for inviting by Discord account', () => {
+    renderPanel([])
+    expect(screen.getByText(/run \/su invite in Discord/)).toBeTruthy()
   })
 
   test('the warning changes with the door being opened', () => {
