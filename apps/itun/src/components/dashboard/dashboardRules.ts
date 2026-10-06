@@ -49,6 +49,7 @@ import { heatCheckPatch } from '../../lib/rules/heatCheck'
 import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import type { RangeBand } from '../../lib/schemas/seat'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
 import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
 import { resolveEquipment } from '../sheet/pilotInventory'
@@ -249,10 +250,6 @@ export type PlayAction = {
 
 /** A named bucket of actions (grouped by source owner). */
 export type PlayActionGroup = { label: string; items: PlayAction[] }
-
-/** Self-declared engagement range band (playStateStore, ephemeral). */
-export type RangeBand = 'Close' | 'Medium' | 'Long' | 'Far'
-export const RANGE_BANDS: readonly RangeBand[] = ['Close', 'Medium', 'Long', 'Far'] as const
 
 /** The timing-filter tabs (one per actionType; 'React' maps to 'Reaction'). */
 export type TimingTab = 'All' | 'Turn' | 'Short' | 'Long' | 'Free' | 'React'

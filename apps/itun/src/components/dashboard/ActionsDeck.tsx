@@ -48,6 +48,7 @@ import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'
 import type { MountState } from '../../stores/playStateStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
@@ -67,7 +68,6 @@ import {
   isDestructiveOutcome,
   pilotActivationPatch,
   pushPatch,
-  RANGE_BANDS,
   reachSummary,
   TIMING_TABS,
   tabMatchesAction,

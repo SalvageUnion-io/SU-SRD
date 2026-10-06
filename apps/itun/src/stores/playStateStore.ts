@@ -19,7 +19,7 @@
  */
 
 import { create } from 'zustand'
-import type { RangeBand } from '../components/dashboard/dashboardRules'
+import type { RangeBand } from '../lib/schemas/seat'
 
 /** Which entity currently "owns" the cockpit — the active-row entity. */
 export type MountState = 'mech' | 'pilot' | 'downtime'
