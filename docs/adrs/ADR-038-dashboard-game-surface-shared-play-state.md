@@ -128,6 +128,15 @@ and `end` already allow. Every player's Dashboard follows: the Crawler takes
 Major and the step guide replaces the action deck. Each player marks their own
 step done. The Dashboard no longer keeps a Downtime step of its own.
 
+**A Game's crawler is the Mediator's.** Only the Mediator changes it, in
+Downtime and out. That covers Salvage, Craft, Trade, Upkeep, Upgrade, damage
+and Scrap a mech. Players see the crawler read-only and ask at the table. The
+server enforces it. Today `assertMayEditCrawler` (`convex/entities.ts`) lets
+any member edit a Game's communal crawler; it tightens to the Mediator.
+
+**Boarding never assigns.** Boarding a mech, a spare included, changes only the
+seat, never the pilot's `mech-to-pilot` link.
+
 ### 6. What stands
 
 - [ADR-007](ADR-007-automation-boundary.md)'s automation boundary, on every
@@ -173,5 +182,8 @@ step done. The Dashboard no longer keeps a Downtime step of its own.
   `.su-*` classes and style objects, which completes
   [tailwind-removal.md](../design-system/tailwind-removal.md) P5 for the
   Dashboard.
+- **Players can no longer edit a Game's crawler,** on the Dashboard or the
+  sheet. Until players can send requests to the Mediator in the app, they ask
+  at the table.
 - **Some work moves to follow-ups:** a Mediator Dashboard, the phone layout,
   and what "claiming" a crew asset means in a Game.
