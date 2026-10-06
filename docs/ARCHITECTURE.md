@@ -551,7 +551,12 @@ nesting sections take a `NestedCard` prop. `Card`
 (`packages/component-lib/src/components/shared/Card.tsx`) is the generic
 four-band container (`ModalShell`, `SheetSectionCard`, `Callout`, `Skeleton`,
 app panels). The entity card does not render through `Card`; never add entity
-features to `Card`. They share `displayMode`, the controls contract,
+features to `Card`. A full composition assessment found the merge impossible
+without visual deltas: the frame sits on different elements (shifting every
+absolute overlay 3px), ghosted sub-header tones cannot be derived inside `Card`,
+the shells resolve the `cardClick` fallback in opposite directions (first-wins
+vs last-wins), and the entity header tells a stat cluster from flavour prose
+where `Card`'s header slot is opaque. They share `displayMode`, the controls contract,
 `CardFootMeta` and `foldStatusControl`. Grids use `EntityGrid` /
 `EntityGridRow`. Never hand-assemble a `label | value` readout: that is `Stat`
 (ruleset §3.7).
@@ -772,7 +777,9 @@ the key.
 workflows) affects every app; component-lib affects srd and itun. `CI Success`
 passes a skipped job, so: `tools/check-workflows.ts` (`path-filters`) asserts
 each app's `workspace:*` deps are in its group; root prose (`ABOUT_JRVS.md`,
-`LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) is `shared`; the axe script and
+`LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) is `shared`, because #731 changed
+only `SPECIAL_THANKS.md`, skipped `build-srd`, and turned the next three PRs
+red; the axe script and
 baselines are in their app's group. `code` is source, tools, `.github/` and
 the Claude hooks and workflows; `docs` is `docs/**`, root `CLAUDE.md` /
 `README.md` / `CONTRIBUTING.md`, `.claude/**`, `.mcp.json` (docs-only PRs skip
