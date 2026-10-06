@@ -80,8 +80,13 @@ must track `.bun-version` exactly), **not** lowering the number.
 # Audit
 
 - **Merge gate:** `bun audit --audit-level=high` (the `audit` check, in CI's
-  `static-checks` job, on any PR that changes `bun.lock` or a `package.json`). There are no suppressed advisories. If you add an
-  `--ignore`, write down what would remove it, next to it.
+  `static-checks` job, on any PR that changes `bun.lock` or a `package.json`).
+  If you add an `--ignore`, write down what would remove it, next to it. **One
+  is suppressed:** `braces` GHSA-vfj7-8cjw-p6xm (2026-10-06), which has no fixed
+  release; it reaches the tree only through component-lib's devDependency
+  `@ladle/react` → `globby` → `fast-glob` → `micromatch`, and Ladle globs only
+  our own story patterns. The `--ignore` in `tools/check.ts` says what removes
+  it; `audit-watch.yml` audits without it, so it stays reported weekly.
 - **Below the gate:** `.github/workflows/audit-watch.yml` runs `bun audit` at
   every severity weekly and keeps one tracking issue open while it reports
   anything. The watch list is `nanoid`, `fast-uri`, `brace-expansion`,
@@ -96,7 +101,7 @@ package got into the tree can be checked in one command instead of read.
 
 # The `overrides` block
 
-`package.json` cannot carry comments, so this is the record. **Four entries,
+`package.json` cannot carry comments, so this is the record. **Five entries,
 all security floors.**
 
 | Entry | Why |
@@ -104,7 +109,8 @@ all security floors.**
 | `fast-uri: >=3.1.6 <4` | ReDoS class; `ajv` asks `^3.0.1`, so a caret step-down could land an in-advisory 3.x. |
 | `filelist: >=1.0.6` | `jake` asks `^1.0.4`, which a caret step-down could satisfy with a release below the floor. |
 | `nanoid: >=3.3.18` | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17`, a caret that only happens to resolve high enough. |
-| `shell-quote: >=1.9.0` | `concurrently` pins exactly 1.9.0 today; the floor keeps a future resolve from stepping below it. |
+| `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w` (librsvg); `miniflare` (via `wrangler`) pins exactly 0.35.4. Delete once `bun why sharp` shows `miniflare` asking ≥0.35.5. |
+| `shell-quote: >=1.11.0` | `GHSA-pqg4-j6r4-53mv` (critical); `concurrently` pins exactly 1.9.0, so only the floor lifts it. |
 
 - **Floors, never exact versions.** Resolving below a floor errors, where a
   caret steps down silently. An exact override also pins the package *down*,

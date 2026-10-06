@@ -46,7 +46,7 @@ the corpus size, not just the finding count.
 | `convex-callers` | `check-convex-callers.ts` | — |
 | `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
 | `styling` | `check-styling.ts` (`--report` lists every finding) | `styling-baseline.json` |
-| `audit` | `bun audit --audit-level=high` (CI: only when a manifest or `bun.lock` changed) | — |
+| `audit` | `bun audit --audit-level=high` (CI: only when a manifest or `bun.lock` changed) | one `--ignore`, in `check.ts` |
 | `actionlint` | `lint-workflows.sh` (pinned, sha256-verified actionlint + zizmor) | — |
 
 ## CI-only, nightly and deploy scripts
