@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Badge, Button, Card, PageHeading, PageShell, Text } from 'component-lib'
+import { Badge, Button, Card, PageHeading, PageShell, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -25,9 +26,12 @@ import { AppLink } from '../shared/AppLink'
  * goes there — and joining picks the Game you joined, so the hub shows it.
  */
 
+const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
 /** What the invite is worth, phrased for the person holding it. */
 const DEAD_CODE_COPY = {
   revoked: 'That invite has been revoked.',
+  declined: 'That invite was declined.',
   expired: 'That invite has expired.',
   exhausted: 'That invite has already been used.',
 } as const
@@ -35,10 +39,12 @@ const DEAD_CODE_COPY = {
 function ConnectedJoin({ code }: { code: string }) {
   const preview = useQuery(api.invites.preview, { code })
   const redeem = useMutation(api.invites.redeem)
+  const decline = useMutation(api.invites.decline)
   const navigate = useNavigate()
 
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const [declined, setDeclined] = useState(false)
 
   if (preview === undefined) return <Text>Checking that invite…</Text>
 
@@ -65,6 +71,41 @@ function ConnectedJoin({ code }: { code: string }) {
           <Text>{DEAD_CODE_COPY[preview.status]}</Text>
           <Text variant="hint" className="text-left">
             Ask {preview.invitedBy} for a fresh code.
+          </Text>
+          <div>
+            <AppLink href="/">Go to your games</AppLink>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  // A Discord-addressed invite opened while signed in as somebody else. Saying
+  // so before the button is pressed beats a refusal after it; the server names
+  // nobody, and neither does this.
+  if (preview.addressed === 'discord' && preview.forYou === false) {
+    return (
+      <Card>
+        <div className="flex flex-col gap-3 p-4">
+          <Text>This invite to {preview.gameName} was sent to a different Discord account.</Text>
+          <Text variant="hint" className="text-left">
+            Sign in with the account it was sent to, or ask {preview.invitedBy} to invite this one.
+          </Text>
+          <div>
+            <AppLink href="/">Go to your games</AppLink>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  if (declined) {
+    return (
+      <Card>
+        <div className="flex flex-col gap-3 p-4">
+          <Text>You declined the invite to {preview.gameName}.</Text>
+          <Text variant="hint" className="text-left">
+            If you change your mind, ask {preview.invitedBy} for a new one.
           </Text>
           <div>
             <AppLink href="/">Go to your games</AppLink>
@@ -106,6 +147,13 @@ function ConnectedJoin({ code }: { code: string }) {
       .catch((err: Error) => setError(err.message))
   }
 
+  const refuse = () => {
+    setError(null)
+    void decline({ code })
+      .then(() => setDeclined(true))
+      .catch((err: Error) => setError(err.message))
+  }
+
   return (
     <Card>
       <div className="flex flex-col gap-3 p-4">
@@ -128,10 +176,17 @@ function ConnectedJoin({ code }: { code: string }) {
             ? 'Joining asks the organizer to let you in.'
             : 'Everyone at a table can read each other’s sheets.'}
         </Text>
-        <div>
+        <div style={ACTIONS}>
           <Button variant="primary" size="compact" onClick={accept}>
             {preview.requiresApproval ? 'Ask to join' : 'Join this game'}
           </Button>
+          {/* Only an invite addressed to you can be declined: a bearer code
+              may be meant for the whole table (ADR-038). */}
+          {preview.addressed !== null && (
+            <Button variant="ghost" size="compact" onClick={refuse}>
+              Decline
+            </Button>
+          )}
         </div>
         {error !== null && (
           <Text variant="hint" className="text-left text-[var(--color-roll-cascade)]">
@@ -169,8 +224,9 @@ function SignedOutJoin({ code }: { code: string }) {
               {preview.role === 'mediator' ? ' as its Mediator' : ''}.
             </Text>
             <Text variant="hint" className="text-left">
-              Sign in to accept. Playing alone never needs an account — signing in is what lets you
-              share a table.
+              {preview.addressed === 'discord'
+                ? 'This invite was sent to one Discord account. Sign in with that account to accept.'
+                : 'Sign in to accept. Playing alone never needs an account — signing in is what lets you share a table.'}
             </Text>
             <div>
               <SignInControl />

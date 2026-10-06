@@ -49,6 +49,8 @@ function invite(over: Record<string, unknown> = {}) {
     usesRemaining: null,
     status: 'active',
     redeemers: [],
+    target: null,
+    delivery: null,
     ...over,
   }
 }
@@ -210,6 +212,33 @@ describe('answering knocks', () => {
   test('no knocks means no section at all', () => {
     renderPanel([invite()], [])
     expect(screen.queryByText(/Asking to join/i)).toBeNull()
+  })
+})
+
+describe('an addressed invite (ADR-038)', () => {
+  test('says who it went to — the handle, or the address masked', () => {
+    renderPanel([
+      invite({ _id: 'i1', target: { kind: 'discord', name: 'sam' }, usesRemaining: 1 }),
+      invite({ _id: 'i2', code: 'Z9Y8X7W6', target: { kind: 'email', masked: 's••@example.com' } }),
+    ])
+    expect(screen.getByText(/sent to @sam/)).toBeTruthy()
+    expect(screen.getByText(/sent to s••@example\.com/)).toBeTruthy()
+  })
+
+  test('a failed delivery says so, so the Organizer knows to pass the code on', () => {
+    renderPanel([
+      invite({
+        target: { kind: 'discord', name: 'sam' },
+        delivery: { state: 'failed', detail: 'their DMs are closed' },
+      }),
+    ])
+    expect(screen.getByText(/DM not delivered \(their DMs are closed\)/)).toBeTruthy()
+  })
+
+  test('a declined invite reads as declined and offers no revoke', () => {
+    renderPanel([invite({ target: { kind: 'discord', name: 'sam' }, status: 'declined' })])
+    expect(screen.getByText('declined')).toBeTruthy()
+    expect(screen.queryByText('Revoke')).toBeNull()
   })
 })
 

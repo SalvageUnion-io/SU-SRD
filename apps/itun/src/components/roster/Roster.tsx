@@ -69,6 +69,7 @@ import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { GameHub } from '../games/GameHub'
+import { InvitationsForYou } from '../games/InvitationsForYou'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
@@ -384,6 +385,11 @@ export function Roster() {
               : 'Saved to your account. A downloaded backup is still yours to keep.'}
         </p>
       </div>
+
+      {/* Invites addressed to your Discord account (ADR-038), whichever
+          container is showing — answering one is how you get a new one to
+          show. Renders nothing when there are none. */}
+      <InvitationsForYou />
 
       {/* Reserve a stable footprint so the grid replacing "Loading…" doesn't
           shift the rest of the page on hydration. */}
