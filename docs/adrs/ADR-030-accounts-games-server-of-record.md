@@ -31,6 +31,10 @@ one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
 
+**§6 is amended by [ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md)** (accepted, not yet built): crew status
+reaches the player Dashboard as a Crew tab, not a dial item, and the Dashboard
+is Game-only.
+
 ## Context
 
 [ADR-001](ADR-001-local-first-no-backend.md) made ITUN local-first with no
@@ -254,8 +258,9 @@ Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 The **Mediator gets its own surface**, the layer ADR-021 deferred; the Encounter
 tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
 1280×800 canvas ([ADR-020](ADR-020-dashboard-fixed-canvas-scale-to-fit.md)) is
-**not** reopened: crew vitals arrive there as a **"Crew" dial item**, using the
-dial track's existing configurable show/hide and order.
+**not** reopened: ~~crew vitals arrive there as a **"Crew" dial item**, using the
+dial track's existing configurable show/hide and order.~~ **Amended by
+ADR-038:** they arrive as a Crew tab in the display.
 
 **A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
 member) and `/mediator/:id` (the Mediator, who gets the private instruments

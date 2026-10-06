@@ -7,12 +7,12 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **37 of them** (ADR-001–ADR-037). **Read an ADR's `## Status` header first**: several are superseded or merged, recorded only there (ADR-001 → ADR-030; ADR-004 → ADR-036; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035). The three that govern:
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **38 of them** (ADR-001–ADR-038). **Read an ADR's `## Status` header first**: several are superseded or merged, recorded only there (ADR-001 → ADR-030; ADR-004 → ADR-036; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035; ADR-015 §1, §4 → ADR-038). The three that govern:
   - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops reference: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
 - **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
-- [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y, dependency management, CI).
+- [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules

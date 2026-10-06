@@ -145,7 +145,9 @@ a rule is enforced on which surface_:
   [ADR-001](ADR-001-local-first-no-backend.md), and none alter this taxonomy):
   - **Shared, live Dashboard** — several players on one Dashboard at once,
     synchronized with a Mediator live. The single-player Dashboard is the first step
-    toward it.
+    toward it. **Partly delivered by [ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md):** each pilot's play
+    state is saved on the Game and visible to the crew live, though each player
+    still has their own screen.
   - **Workspaces → "Game spaces"** — shared spaces with entities owned by you vs.
     by others; ownership scopes _who_ may edit, not _what_ each mode enforces.
   - **A dedicated Mediator layer** — the Adjudicate mode moves off Encounter into

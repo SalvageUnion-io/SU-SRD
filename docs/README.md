@@ -10,7 +10,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | moving styling off Tailwind                                | [design-system/tailwind-removal.md](design-system/tailwind-removal.md)                                                                                                |
 | changing how data flows or persists                        | [architecture/data-flow.md](architecture/data-flow.md), ADR-030, ADR-034, ADR-035                                                                                      |
 | deciding where a rule is enforced, or touching combat      | [architecture/rules-engine-boundary.md](architecture/rules-engine-boundary.md), [architecture/combat-loop.md](architecture/combat-loop.md), ADR-021, ADR-007          |
-| working on the Dashboard                                   | [architecture/dashboard.md](architecture/dashboard.md), ADR-015                                                                                                        |
+| working on the Dashboard                                   | [architecture/dashboard.md](architecture/dashboard.md), ADR-015, ADR-038, [architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (plan)              |
 | sharing a sheet (public sheets; retired snapshot links)    | ADR-032, ADR-036                                                                                                                                                      |
 | working on accounts, Games or the Convex backend           | ADR-030, [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (ops reference)                                                                      |
 | assigning pilots, mechs and crawlers to each other         | ADR-037, `apps/itun/src/lib/links/linkRules.ts`                                                                                                                        |
@@ -26,7 +26,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 
 ## ADRs
 
-37 ADRs in [`adrs/`](adrs/). Each one's own `## Status` block is authoritative.
+38 ADRs in [`adrs/`](adrs/). Each one's own `## Status` block is authoritative.
 
 | ADR                                                                  | Decision                                                                    |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -44,11 +44,11 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | [ADR-012](adrs/ADR-012-srd-astro-static.md)                          | `srd` on Astro — superseded by ADR-031                                       |
 | [ADR-013](adrs/ADR-013-csp-zod-jitless.md)                           | CSP-safe jitless Zod                                                         |
 | [ADR-014](adrs/ADR-014-json-api-public-interface-npm-retired.md)     | The JSON API is the dataset's public interface; partially superseded by ADR-025 |
-| [ADR-015](adrs/ADR-015-dashboard-distinct-play-surface.md)           | The Dashboard is a distinct play surface, with its merged sub-decisions      |
-| [ADR-016](adrs/ADR-016-dashboard-rotary-dial-instrument-split.md)    | Merged into ADR-015 (rotary dial)                                            |
+| [ADR-015](adrs/ADR-015-dashboard-distinct-play-surface.md)           | The Dashboard is a distinct play surface, with its merged sub-decisions; amended by ADR-038 |
+| [ADR-016](adrs/ADR-016-dashboard-rotary-dial-instrument-split.md)    | Merged into ADR-015 (rotary dial); replaced by ADR-038                       |
 | [ADR-017](adrs/ADR-017-dashboard-reuse-faithful-srd-display.md)      | Merged into ADR-015 (reuse the SRD display)                                  |
 | [ADR-018](adrs/ADR-018-dashboard-instrument-viewfinder-aesthetic.md) | Merged into ADR-015 (flat and inset)                                         |
-| [ADR-019](adrs/ADR-019-dashboard-play-state-ephemeral.md)            | Merged into ADR-015 (ephemeral play-state)                                   |
+| [ADR-019](adrs/ADR-019-dashboard-play-state-ephemeral.md)            | Merged into ADR-015 (ephemeral play-state); reversed by ADR-038              |
 | [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Merged into ADR-015 (fixed scale-to-fit canvas)                              |
 | [ADR-021](adrs/ADR-021-itun-surface-taxonomy.md)                     | **Governing** — surface/mode taxonomy: where a rule is enforced              |
 | [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Change Log provenance + stat overrides                                       |
@@ -67,6 +67,7 @@ An intent → doc map. Open the doc for what you are doing; `ls` is the full ind
 | [ADR-035](adrs/ADR-035-no-isolated-local-only-data.md)               | No isolated local-only data; device rows migrate automatically               |
 | [ADR-036](adrs/ADR-036-retire-snapshot-shares.md)                    | Snapshot shares retired; old links redirect to the public sheet if public    |
 | [ADR-037](adrs/ADR-037-assignment-model.md)                          | Assignments (direct links, cardinality, one container) + the primary crawler |
+| [ADR-038](adrs/ADR-038-dashboard-game-surface-shared-play-state.md) | The Dashboard is Game-only, with play state as a seat saved on the Game      |
 
 ## Per-package guidance
 
