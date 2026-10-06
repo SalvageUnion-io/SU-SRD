@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { VitalGauge } from '../VitalGauge'
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
@@ -144,7 +144,7 @@ describe('VitalGauge — cap override (ADR-022)', () => {
         max={16}
         onChange={() => {}}
         onMaxChange={() => {}}
-        overriddenFrom={13}
+        breakdown={{ overridden: true, derived: 13 }}
         onRevertOverride={() => {}}
       />
     )
@@ -175,7 +175,7 @@ describe('VitalGauge — cap override (ADR-022)', () => {
         max={16}
         onChange={() => {}}
         onMaxChange={() => {}}
-        overriddenFrom={13}
+        breakdown={{ overridden: true, derived: 13 }}
         onRevertOverride={onRevertOverride}
       />
     )
@@ -184,7 +184,10 @@ describe('VitalGauge — cap override (ADR-022)', () => {
     expect(onRevertOverride).toHaveBeenCalledTimes(1)
   })
 
-  test('a cap equal to its derived baseline is not flagged as overridden', () => {
+  test('the override marks follow the breakdown flag, never a comparison of numbers', () => {
+    // A breakdown that says "not overridden" shows no mark at all, whatever
+    // the numbers — the gauge used to decide this itself, and disagreed with
+    // the ledger on a pin equal to its derivation (ADR-022 amendment).
     render(
       <VitalGauge
         label="SP"
@@ -192,12 +195,44 @@ describe('VitalGauge — cap override (ADR-022)', () => {
         max={13}
         onChange={() => {}}
         onMaxChange={() => {}}
-        overriddenFrom={13}
+        breakdown={{ overridden: false, derived: 13 }}
         onRevertOverride={() => {}}
       />
     )
     expect(screen.queryByText(/overridden from/i)).toBeNull()
     expect(screen.queryByRole('button', { name: /revert sp max/i })).toBeNull()
+    const maxButton = screen.getByRole('button', { name: /override sp max/i })
+    expect(maxButton.className).not.toContain('text-[var(--tone-deep)]')
+    cleanup()
+
+    render(
+      <VitalGauge
+        label="SP"
+        value={9}
+        max={16}
+        onChange={() => {}}
+        onMaxChange={() => {}}
+        breakdown={{ overridden: true, derived: 13 }}
+        onRevertOverride={() => {}}
+      />
+    )
+    expect(screen.getByRole('button', { name: /override sp max/i }).className).toContain(
+      'text-[var(--tone-deep)]'
+    )
+    expect(screen.getByText('*')).toBeTruthy()
+  })
+
+  test('re-committing the shown max still reports it — the caller normalises', () => {
+    // A pin upgrades caught up with reads as the derived value. Typing that
+    // value back in is how a player deletes it, so the gauge must not swallow
+    // an unchanged commit.
+    const onMaxChange = mock(() => {})
+    render(
+      <VitalGauge label="HP" value={9} max={14} onChange={() => {}} onMaxChange={onMaxChange} />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /override hp max/i }))
+    fireEvent.keyDown(mustInput(screen.getByLabelText('Set HP max')), { key: 'Enter' })
+    expect(onMaxChange).toHaveBeenCalledWith(14)
   })
 })
 

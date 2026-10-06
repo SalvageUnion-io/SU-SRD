@@ -11,7 +11,7 @@
  * gauge the live sheet uses. No app/data coupling.
  */
 
-import type { CSSVarStyle, ProvenanceLine } from 'component-lib'
+import type { CSSVarStyle, ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
 import { VitalGauge } from 'component-lib'
 
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
@@ -36,11 +36,11 @@ export type DashboardGaugeProps = {
    */
   provenance?: ProvenanceLine[]
   /**
-   * The value this max would derive to without a Free-Edit pin. Supplying it
-   * flags the max as overridden. Must be the DERIVED value, not `max` — the
-   * gauge treats `overriddenFrom === max` as "not overridden".
+   * The stat's breakdown — its `overridden` flag decides the override marker,
+   * exactly as on the Live Sheet (VitalGauge reads the flag; it never compares
+   * numbers).
    */
-  derivedMax?: number
+  breakdown?: VitalGaugeBreakdown
 }
 
 export function DashboardGauge({
@@ -50,7 +50,7 @@ export function DashboardGauge({
   tone = 'mech',
   danger,
   provenance,
-  derivedMax,
+  breakdown,
 }: DashboardGaugeProps) {
   const [t, td] = TONES[tone]
   const toneStyle: CSSVarStyle = { '--tone': t, '--tone-deep': td }
@@ -64,7 +64,7 @@ export function DashboardGauge({
       max={max}
       danger={danger}
       provenance={provenance}
-      overriddenFrom={derivedMax}
+      breakdown={breakdown}
       style={toneStyle}
     />
   )

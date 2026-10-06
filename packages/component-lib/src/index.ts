@@ -167,6 +167,7 @@ export { heatDangerFrom } from './components/stat/heatLevel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/stat/provenanceLines'
 export type { ProvenanceLine } from './components/stat/StatProvenance'
 // Stat trackers (ITUN design handoff — design-spec §2.7)
+export type { VitalGaugeBreakdown } from './components/stat/VitalGauge'
 export { VitalGauge } from './components/stat/VitalGauge'
 // UI primitives
 export { Toaster, toast } from './components/ui/toaster'
