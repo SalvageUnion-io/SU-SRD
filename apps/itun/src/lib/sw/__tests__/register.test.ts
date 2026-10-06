@@ -6,10 +6,20 @@
  * undefined, so both guards fire before the register call. The part that
  * actually carries risk — deciding *when* an update is ready and how it is
  * activated — is `watchForUpdate`, which takes only the slice of the SW API it
- * uses so a plain object can stand in.
+ * uses so a plain object can stand in. The same goes for the two pieces
+ * network-first navigations added: `keepCheckingForUpdates` (when a long-lived
+ * tab asks for a new worker) and `shellIsStale` / `onlyWhenStale` (whether the
+ * toast is true for this tab).
  */
 import { describe, expect, it } from 'bun:test'
-import { registerServiceWorker, watchForUpdate } from '../register'
+import {
+  keepCheckingForUpdates,
+  onlyWhenStale,
+  registerServiceWorker,
+  shellIsStale,
+  UPDATE_CHECK_INTERVAL_MS,
+  watchForUpdate,
+} from '../register'
 
 type Listener = (event?: unknown) => void
 
@@ -222,5 +232,193 @@ describe('watchForUpdate', () => {
     accepts[0]?.()
 
     expect(reloads).toBe(1)
+  })
+})
+
+/** A document stand-in whose visibility the test controls. */
+function fakeDocument(initial: DocumentVisibilityState = 'visible') {
+  const listeners = new Map<string, Listener[]>()
+  return {
+    visibilityState: initial,
+    addEventListener: (type: string, fn: Listener) => {
+      listeners.set(type, [...(listeners.get(type) ?? []), fn])
+    },
+    removeEventListener: (type: string, fn: Listener) => {
+      listeners.set(
+        type,
+        (listeners.get(type) ?? []).filter((f) => f !== fn)
+      )
+    },
+    show(state: DocumentVisibilityState) {
+      this.visibilityState = state
+      for (const fn of listeners.get('visibilitychange') ?? []) fn()
+    },
+  }
+}
+
+/** A registration whose `update()` calls are counted. */
+function countingRegistration(outcome: () => Promise<void> = () => Promise.resolve()) {
+  let updates = 0
+  return {
+    get updates() {
+      return updates
+    },
+    update: () => {
+      updates += 1
+      return outcome()
+    },
+  }
+}
+
+describe('keepCheckingForUpdates', () => {
+  /** Drives the clock and the interval by hand — no real timers, no sleeps. */
+  function harness(doc = fakeDocument()) {
+    const registration = countingRegistration()
+    let clock = 1_000_000
+    const ticks: Array<{ tick: () => void; ms: number }> = []
+    let stopped = false
+    const teardown = keepCheckingForUpdates(asAny(registration), asAny(doc), {
+      now: () => clock,
+      every: (tick, ms) => {
+        ticks.push({ tick, ms })
+        return () => {
+          stopped = true
+        }
+      },
+    })
+    return {
+      registration,
+      doc,
+      teardown,
+      ticks,
+      get stopped() {
+        return stopped
+      },
+      advance(ms: number) {
+        clock += ms
+      },
+    }
+  }
+
+  it('checks once as soon as the worker is registered', () => {
+    const { registration } = harness()
+    expect(registration.updates).toBe(1)
+  })
+
+  it('checks again when the tab comes back into view', () => {
+    // The returning-to-an-open-tab case: a SPA makes no navigation, so the
+    // browser's own per-navigation check never runs.
+    const h = harness()
+    h.advance(10 * 60 * 1000)
+    h.doc.show('hidden')
+    expect(h.registration.updates).toBe(1)
+    h.doc.show('visible')
+    expect(h.registration.updates).toBe(2)
+  })
+
+  it('checks hourly, but only while the tab is visible', () => {
+    const h = harness()
+    expect(h.ticks).toHaveLength(1)
+    expect(h.ticks[0]?.ms).toBe(UPDATE_CHECK_INTERVAL_MS)
+
+    h.advance(UPDATE_CHECK_INTERVAL_MS)
+    h.ticks[0]?.tick()
+    expect(h.registration.updates).toBe(2)
+
+    h.doc.visibilityState = 'hidden'
+    h.advance(UPDATE_CHECK_INTERVAL_MS)
+    h.ticks[0]?.tick()
+    expect(h.registration.updates).toBe(2)
+  })
+
+  it('does not check again inside a minute of the last check', () => {
+    // Each check is a request the Worker answers; alt-tabbing must not be a
+    // stream of them.
+    const h = harness()
+    h.advance(5_000)
+    h.doc.show('hidden')
+    h.doc.show('visible')
+    expect(h.registration.updates).toBe(1)
+  })
+
+  it('swallows an offline update failure instead of rejecting unhandled', async () => {
+    let rejected = 0
+    const registration = countingRegistration(() => {
+      rejected += 1
+      return Promise.reject(new TypeError('Failed to update a ServiceWorker'))
+    })
+    keepCheckingForUpdates(asAny(registration), asAny(fakeDocument()), {
+      every: () => () => {},
+    })
+    // Let the rejection settle; an unhandled one would fail the run.
+    await Promise.resolve()
+    expect(rejected).toBe(1)
+  })
+
+  it('stops checking on teardown', () => {
+    const h = harness()
+    h.teardown()
+    expect(h.stopped).toBe(true)
+    h.advance(10 * 60 * 1000)
+    h.doc.show('visible')
+    expect(h.registration.updates).toBe(1)
+  })
+})
+
+describe('shellIsStale', () => {
+  const ENTRY = '/assets/index-NEWHASH.js'
+  const shell = (src: string) => async () =>
+    new Response(`<!doctype html><script type="module" crossorigin src="${src}"></script>`)
+
+  it('is current when the server shell boots this page’s entry chunk', async () => {
+    expect(await shellIsStale(ENTRY, shell(ENTRY))).toBe(false)
+  })
+
+  it('is stale when the server shell boots a different build', async () => {
+    expect(await shellIsStale(ENTRY, shell('/assets/index-NEWERHASH.js'))).toBe(true)
+  })
+
+  it('answers stale when it cannot tell — the toast is the safe default', async () => {
+    const offline = async (): Promise<Response> => {
+      throw new TypeError('Failed to fetch')
+    }
+    expect(await shellIsStale(ENTRY, offline)).toBe(true)
+    expect(await shellIsStale(ENTRY, async () => new Response('', { status: 503 }))).toBe(true)
+  })
+})
+
+describe('onlyWhenStale', () => {
+  it('passes the update through for a page older than the server', async () => {
+    const accepts: Array<() => void> = []
+    const notify = onlyWhenStale(
+      (accept) => accepts.push(accept),
+      async () => true
+    )
+    const accept = () => {}
+
+    notify(accept)
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(accepts).toEqual([accept])
+  })
+
+  it('stays quiet for a page that already runs the deployed build', async () => {
+    // Network-first navigations mean a page loaded after a deploy IS the new
+    // version; "a new version is ready" would be false, and would greet every
+    // returning visitor after every deploy.
+    let prompts = 0
+    const notify = onlyWhenStale(
+      () => {
+        prompts += 1
+      },
+      async () => false
+    )
+
+    notify(() => {})
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(prompts).toBe(0)
   })
 })

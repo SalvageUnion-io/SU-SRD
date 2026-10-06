@@ -1,16 +1,15 @@
 /**
- * The retired-URL table (`../retiredRoutes.ts`) — the one list both the
- * Worker's 301 and the service worker's navigation denylist are built from.
+ * The retired-URL table (`../retiredRoutes.ts`) — the list the Worker's 301
+ * is built from.
  *
  * Each retired URL used to need a client-side route that only `throw redirect()`
- * (audit AP-18), because an installed PWA answers navigations from its precache
- * and never reaches the Worker. The denylist is what retired those routes, so
- * the last test here pins that `vite.config.ts` still wires it in.
+ * (audit AP-18), because an installed PWA answered navigations from its
+ * precache and never reached the Worker. Navigations are network-first now, so
+ * the 301 reaches it; `src/lib/sw/__tests__/workbox.test.ts` holds that half.
  */
 
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { RETIRED_NAVIGATIONS, retiredRedirect } from '../retiredRoutes'
+import { retiredRedirect } from '../retiredRoutes'
 
 describe('retiredRedirect', () => {
   test.each([
@@ -40,29 +39,5 @@ describe('retiredRedirect', () => {
     '/',
   ])('leaves live path %s alone', (path) => {
     expect(retiredRedirect(path)).toBeNull()
-  })
-})
-
-describe('the service worker denylist', () => {
-  // Workbox matches pathname + search, so a query string must not let a
-  // retired URL slip through to the precached shell.
-  test.each(['/pilots/abc', '/pilots/abc?from=bookmark', '/sheet/mech/xyz/share?utm=1'])(
-    'denies %s',
-    (url) => {
-      expect(RETIRED_NAVIGATIONS.some((re) => re.test(url))).toBe(true)
-    }
-  )
-
-  test.each(['/pilots/new', '/pilots/new?mode=guided', '/mechs/patterns', '/sheet/pilot/abc'])(
-    'still serves %s from the shell',
-    (url) => {
-      expect(RETIRED_NAVIGATIONS.some((re) => re.test(url))).toBe(false)
-    }
-  )
-
-  test('vite.config.ts hands the table to workbox', () => {
-    const config = readFileSync(new URL('../../../vite.config.ts', import.meta.url), 'utf8')
-    expect(config).toContain("from './src/worker/retiredRoutes'")
-    expect(config).toContain('navigateFallbackDenylist: [...RETIRED_NAVIGATIONS]')
   })
 })

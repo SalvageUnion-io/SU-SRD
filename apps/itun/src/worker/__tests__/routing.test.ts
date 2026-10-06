@@ -215,6 +215,97 @@ describe('a missing FILE is 404, not the shell', () => {
 })
 
 /**
+ * The shell's Cache-Control is set by the Worker, not inherited.
+ *
+ * It used to be whatever `ASSETS.fetch` returned, which is right only while
+ * Workers Static Assets' default happens to be. `_headers` cannot be relied on
+ * for it: Cloudflare does not apply that file to a response Worker code builds,
+ * and rule 7 builds every shell it serves. So the binding below deliberately
+ * hands back a YEAR of `immutable` for the shell — the worst thing the asset
+ * layer could say — and every HTML document must still leave revalidating.
+ */
+describe('every HTML document revalidates', () => {
+  const REVALIDATE = 'public, max-age=0, must-revalidate'
+  const SHELL = [
+    '<!doctype html><html><head>',
+    '<!-- itun:meta:start -->',
+    '<meta property="og:title" content="In The Union Now" />',
+    '<!-- itun:meta:end -->',
+    '</head><body></body></html>',
+  ].join('\n')
+
+  /** A binding that serves each file with its own content type and cache header. */
+  function typedAssets(files: Record<string, { body: string; type: string; cache: string }>) {
+    return {
+      async fetch(request: Request): Promise<Response> {
+        const file = files[new URL(request.url).pathname]
+        if (!file) return new Response('not found', { status: 404 })
+        return new Response(file.body, {
+          status: 200,
+          headers: { 'content-type': file.type, 'cache-control': file.cache },
+        })
+      },
+    }
+  }
+
+  const IMMUTABLE = 'public, max-age=31536000, immutable'
+  const shellFile = { body: SHELL, type: 'text/html; charset=utf-8', cache: IMMUTABLE }
+
+  function env(objects: Record<string, unknown> = {}) {
+    return {
+      ASSETS: typedAssets({
+        '/': shellFile,
+        '/index.html': shellFile,
+        '/assets/index-C9pQFcVN.js': { body: '1', type: 'text/javascript', cache: IMMUTABLE },
+      }),
+      SNAPSHOTS: bucketWith(objects),
+    } as never
+  }
+
+  it.each([
+    ['a client route (rule 7)', '/sheet/pilot/abc123'],
+    ['the root, served as a real file (rule 5)', '/'],
+  ])('%s', async (_label, path) => {
+    const res = await worker.fetch(req(path), env())
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('cache-control')).toBe(REVALIDATE)
+  })
+
+  it('a snapshot shell with injected metadata', async () => {
+    // The other rule-7 branch: the body is rewritten, so the headers are copied.
+    const res = await worker.fetch(
+      req('/s/AAAAAAAA'),
+      env({ AAAAAAAA: { kind: 'pilot', entity: { name: 'Rusty' } } })
+    )
+
+    expect(await res.text()).toContain('Rusty — Pilot')
+    expect(res.headers.get('cache-control')).toBe(REVALIDATE)
+  })
+
+  it('leaves a hashed chunk immutable — only documents are forced', async () => {
+    const res = await worker.fetch(req('/assets/index-C9pQFcVN.js'), env())
+
+    expect(res.headers.get('cache-control')).toBe(IMMUTABLE)
+  })
+
+  it('agrees with the /*.html block of public/_headers', async () => {
+    // Two sources for one value, as with the CSP below: asserted, not trusted.
+    const headersFile = await Bun.file(new URL('../../../public/_headers', import.meta.url)).text()
+    const lines = headersFile.split('\n')
+    const block = lines.indexOf('/*.html')
+    expect(block).toBeGreaterThan(-1)
+    const declared = lines
+      .slice(block + 1)
+      .find((line) => line.trim().startsWith('Cache-Control:'))
+      ?.replace('Cache-Control:', '')
+      .trim()
+
+    expect(declared).toBe(REVALIDATE)
+  })
+})
+
+/**
  * The wiring, not just the helper. `shellMeta.test.ts` covers the rendering;
  * this covers that a real `/s/:id` request reaches it and that failure degrades
  * to the defaults rather than to a 500.

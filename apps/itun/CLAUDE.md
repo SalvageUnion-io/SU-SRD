@@ -67,11 +67,11 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
   `skipWaiting` + `clientsClaim` (an assignment in the plugin, not a default, so
   the `workbox` block cannot override it), which activated a new worker under a
-  live page and ran `cleanupOutdatedCaches()` — deleting the precache that page
-  was still resolving code-split chunks against. See the header comments in
-  `vite.config.ts`, `src/lib/sw/register.ts` and `src/lib/chunkRecovery.ts`,
-  plus the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`) that stops a
-  rotated-away chunk coming back as `200 text/html`.
+  live page and dropped the precache entries it was still resolving chunks
+  against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
+  boots the deployed shell, offline the precached one. See the headers of
+  `vite.config.ts`, `src/lib/sw/`, `src/lib/chunkRecovery.ts` and the Worker's
+  `/assets/*` → 404 rule (`src/worker/index.ts`).
 
 ## Persistence (read before touching data)
 
