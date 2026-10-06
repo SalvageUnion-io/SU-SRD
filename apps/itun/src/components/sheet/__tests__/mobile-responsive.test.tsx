@@ -25,15 +25,14 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { InlineEditField } from 'component-lib'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import {
+  crawlerFixture,
+  mechFixture,
+  pilotFixture,
+  softLinkFixture,
+} from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -42,26 +41,19 @@ beforeAll(hydrateStores)
 // Shared fixtures (mirrors Sheet.test.tsx)
 // ---------------------------------------------------------------------------
 
-const fakePilot: Pilot = {
+const fakePilot = pilotFixture({
   id: 'pilot-1',
-  schemaVersion: 1,
   name: 'Yara Voss',
   callsign: 'Ghost',
-  classRef: 'scavenger',
   abilities: ['scavenge'],
   equipment: ['pistol'],
   motto: 'Waste not.',
   keepsake: 'A bent coin.',
   appearance: 'Tall, weathered.',
-  background: '',
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeMech: Mech = {
+const fakeMech = mechFixture({
   id: 'mech-1',
-  schemaVersion: 1,
   name: 'Iron Fist',
   chassisRef: 'iron-mongrel',
   systems: ['heavy-blaster'],
@@ -76,41 +68,15 @@ const fakeMech: Mech = {
       code: 'MED',
     },
   ],
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeCrawler: Crawler = {
+const fakeCrawler = crawlerFixture({
   id: 'crawler-1',
-  schemaVersion: 1,
   name: 'Iron Tortoise',
   techLevel: 'tech-2',
   crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
   systems: ['hull-repair'],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
-
-type AnyEntity = Pilot | Mech | Crawler
-
-function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return makeEntityLookupMock(entities)
-}
-
-function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  return makeSoftLinkStoreMock(links)
-}
-
-function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
-  return {
-    id: `link-${mechId}-${pilotId}`,
-    from: { type: 'mech', id: mechId },
-    to: { type: 'pilot', id: pilotId },
-    type: 'mech-to-pilot',
-    createdAt: FIXTURE_NOW,
-  }
-}
+})
 
 // ---------------------------------------------------------------------------
 // AC-1: No horizontal overflow at 320px
@@ -133,8 +99,8 @@ describe('Mobile responsive — renders without error at 320px container', () =>
       <Sheet
         kind="pilot"
         id="pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />,
       { container: wrapper }
     )
@@ -154,8 +120,8 @@ describe('Mobile responsive — renders without error at 320px container', () =>
       <Sheet
         kind="mech"
         id="mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />,
       { container: wrapper }
     )
@@ -174,8 +140,8 @@ describe('Mobile responsive — renders without error at 320px container', () =>
       <Sheet
         kind="crawler"
         id="crawler-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />,
       { container: wrapper }
     )
@@ -220,8 +186,8 @@ describe('Mobile responsive — touch targets min-h-11', () => {
       <Sheet
         kind="pilot"
         id="pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     // A button since the share screen was deleted — same target, same rule.
@@ -237,26 +203,26 @@ describe('Mobile responsive — touch targets min-h-11', () => {
 
 describe('LiveSheet rail replaces the segment switcher', () => {
   test('no tablist renders on any sheet', () => {
-    const link = makeMechToPilotLink('mech-1', 'pilot-1')
+    const link = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
     render(
       <Sheet
         kind="mech"
         id="mech-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
     expect(screen.queryByRole('tablist')).toBeNull()
   })
 
   test('wired (mech+pilot) Sheet shows the pilot as a navigating linked row', () => {
-    const link = makeMechToPilotLink('mech-1', 'pilot-1')
+    const link = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
     render(
       <Sheet
         kind="mech"
         id="mech-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
     // Linked units render the roster's `EntityRow`, whose View link is labelled

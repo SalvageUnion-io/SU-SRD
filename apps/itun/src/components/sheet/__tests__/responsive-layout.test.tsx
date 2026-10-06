@@ -24,17 +24,16 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import {
+  crawlerFixture,
+  mechFixture,
+  pilotFixture,
+  softLinkFixture,
+} from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Roster } from '../../roster/Roster'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import { CrawlerSheet } from '../CrawlerSheet'
-import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -43,65 +42,23 @@ beforeAll(hydrateStores)
 // Shared fixtures
 // ---------------------------------------------------------------------------
 
-const fakePilot: Pilot = {
+const fakePilot = pilotFixture({
   id: 'pilot-resp-1',
-  schemaVersion: 1,
   name: 'Test Pilot',
   callsign: 'TP',
-  classRef: 'scavenger',
-  abilities: [],
-  equipment: [],
-  motto: '',
-  keepsake: '',
-  appearance: '',
-  background: '',
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeMech: Mech = {
+const fakeMech = mechFixture({
   id: 'mech-resp-1',
-  schemaVersion: 1,
   name: 'Test Mech',
   chassisRef: 'iron-mongrel',
-  systems: [],
-  modules: [],
-  cargoLots: [],
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeCrawler: Crawler = {
+const fakeCrawler = crawlerFixture({
   id: 'crawler-resp-1',
-  schemaVersion: 1,
   name: 'Test Crawler',
   techLevel: 'tech-2',
-  systems: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
-
-type AnyEntity = Pilot | Mech | Crawler
-
-function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return makeEntityLookupMock(entities)
-}
-
-function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  return makeSoftLinkStoreMock(links)
-}
-
-function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
-  return {
-    id: `link-${mechId}-${pilotId}`,
-    from: { type: 'mech', id: mechId },
-    to: { type: 'pilot', id: pilotId },
-    type: 'mech-to-pilot',
-    createdAt: FIXTURE_NOW,
-  }
-}
+})
 
 // ---------------------------------------------------------------------------
 // 1. Sheet — wired composition uses max-w-7xl container
@@ -109,13 +66,13 @@ function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
 
 describe('Sheet responsive layout — wired composition (LiveSheet shell)', () => {
   test('Sheet wired (mech+pilot) renders the variant-toned shell root', () => {
-    const link = makeMechToPilotLink('mech-resp-1', 'pilot-resp-1')
+    const link = softLinkFixture('mech-to-pilot', 'mech-resp-1', 'pilot-resp-1')
     const { container } = render(
       <Sheet
         kind="mech"
         id="mech-resp-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
     expect(container.querySelector('.sheet--mech')).toBeTruthy()
@@ -132,8 +89,8 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
       <Sheet
         kind="crawler"
         id="crawler-resp-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     // The old right-column macro grid is removed.
@@ -160,8 +117,8 @@ describe('Sheet responsive layout — single entity', () => {
       <Sheet
         kind="mech"
         id="mech-resp-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(container.querySelector('.sheet--mech')).toBeTruthy()
@@ -175,8 +132,8 @@ describe('Sheet responsive layout — single entity', () => {
       <Sheet
         kind="pilot"
         id="pilot-resp-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(container.querySelector('.sheet--pilot')).toBeTruthy()

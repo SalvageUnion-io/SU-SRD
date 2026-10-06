@@ -10,6 +10,7 @@
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import type { SoftLink } from '../../lib/schemas/softLink'
 
 /**
  * The one frozen instant every test fixture is stamped with.
@@ -69,5 +70,28 @@ export function crawlerFixture(overrides: Partial<Crawler> & { id: string }): Cr
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
+  }
+}
+
+const LINK_ENDS = {
+  'mech-to-pilot': ['mech', 'pilot'],
+  'pilot-to-crawler': ['pilot', 'crawler'],
+  'mech-to-crawler': ['mech', 'crawler'],
+} as const
+
+/** A soft link of `type` from `fromId` to `toId`; the link type fixes both end types. */
+export function softLinkFixture(
+  type: SoftLink['type'],
+  fromId: string,
+  toId: string,
+  id = `link-${fromId}-${toId}`
+): SoftLink {
+  const [fromType, toType] = LINK_ENDS[type]
+  return {
+    id,
+    from: { type: fromType, id: fromId },
+    to: { type: toType, id: toId },
+    type,
+    createdAt: NOW,
   }
 }

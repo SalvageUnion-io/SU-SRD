@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -10,13 +12,6 @@ import { testConvex } from './harness'
  * says visibility begins at membership; the exception is narrow, opt-in, and
  * has to stay that way.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(async (ctx) => ctx.db.insert('users', { name, displayName: name }))
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 /** A pilot on its owner's shelf, addressed by app id, private by default. */
 async function seedPilot(t: Ctx, ownerId: string, appId = 'app-1') {
