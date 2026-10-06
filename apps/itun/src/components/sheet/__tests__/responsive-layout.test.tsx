@@ -22,8 +22,8 @@
  *  - afterEach cleanup()
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { act, cleanup, render } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { act, render } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -38,14 +38,6 @@ import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-// ---------------------------------------------------------------------------
-// Preload reference data
-// ---------------------------------------------------------------------------
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Shared fixtures

@@ -6,8 +6,8 @@
  * fake-indexeddb (preloaded via bunfig.toml).
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, test } from 'bun:test'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton, changeLog } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
@@ -40,10 +40,6 @@ beforeEach(async () => {
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 describe('Live Sheet — cap override (P2.2)', () => {

@@ -113,7 +113,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'biome',
-    guards: 'lint, format and import order (`biome ci .`)',
+    guards: 'lint, format, import order and the GritQL rules in tools/biome/ (`biome ci .`)',
     fix: '`bun run format`, then fix what remains',
     cmd: ['bunx', 'biome', 'ci', '.'],
     profiles: ALL,
@@ -132,14 +132,6 @@ export const CHECKS: readonly CheckSpec[] = [
     guards: 'cited paths, bun scripts and markdown links exist; agent-doc size budgets',
     fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); cut a doc over its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
-    id: 'architecture',
-    guards: 'no module-scope ORM calls, no inlined pool defaults, component-lib size cap',
-    fix: 'move the ORM call inside a function, use `resolvePool`, or extract a seam under the size cap',
-    cmd: ['bun', 'tools/check-architecture.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
   },

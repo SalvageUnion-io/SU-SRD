@@ -12,8 +12,8 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { makeScrapLot, makeUnitLot } from '../../../lib/schemas/cargoLot'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -21,10 +21,6 @@ import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { MechSheet } from '../MechSheet'
-
-afterEach(() => {
-  cleanup()
-})
 
 function makeMech(overrides: Partial<Mech>): Mech {
   return mechFixture({

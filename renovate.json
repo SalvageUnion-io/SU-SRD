@@ -56,11 +56,6 @@
       "enabled": false
     },
     {
-      "description": "tools/check-architecture.ts needs the TypeScript 6 compiler API, which TypeScript 7 does not ship.",
-      "matchDepNames": ["typescript-classic"],
-      "allowedVersions": "<7"
-    },
-    {
       "description": ".bun-version, packageManager and bun-types must be equal (the workflows check), so they move together and by hand.",
       "matchPackageNames": ["bun", "bun-types"],
       "groupName": "Bun toolchain",

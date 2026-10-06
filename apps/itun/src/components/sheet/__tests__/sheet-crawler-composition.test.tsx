@@ -14,8 +14,8 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), no mock.module().
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -28,10 +28,6 @@ import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Shared fake entities

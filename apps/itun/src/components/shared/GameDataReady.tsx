@@ -48,9 +48,9 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * Hoisting it here starts the load during module evaluation instead, so it
  * overlaps with React bootstrap and the rest of the entry chunk. This is the
  * pattern `apps/srd/src/lib/gameData.ts` already uses, and module-scope
- * `preload()` is explicitly sanctioned — `tools/check-architecture.ts` exempts
- * `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule,
- * calling them "the documented, correct way to eagerly bootstrap data loading".
+ * `preload()` is explicitly sanctioned — `tools/biome/noModuleScopeReferenceCall.grit`
+ * exempts `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule
+ * as the lifecycle calls the preload contract exists to make eagerly.
  *
  * NOTE what this deliberately does NOT change: it still preloads `'all'` behind
  * a SINGLE gate. Narrowing that to a per-route schema list is the footgun this

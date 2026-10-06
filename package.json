@@ -33,8 +33,7 @@
     "lefthook": "2.1.10",
     "playwright": "1.62.1",
     "tailwindcss": "4.3.3",
-    "typescript": "7.0.2",
-    "typescript-classic": "npm:typescript@6.0.3"
+    "typescript": "7.0.2"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",

@@ -13,8 +13,8 @@
  *   4. readOnly: chips render but no add/remove affordance, store.update unused.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -30,10 +30,6 @@ import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Helpers
