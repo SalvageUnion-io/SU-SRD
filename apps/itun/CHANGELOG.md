@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.21.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.20.0...itun-v1.21.0) (2026-10-06)
+
+
+### Features
+
+* **itun:** add the seats table for shared Dashboard play state ([#1067](https://github.com/SalvageUnion-io/SU-SRD/issues/1067)) ([37293aa](https://github.com/SalvageUnion-io/SU-SRD/commit/37293aae15342c74d51ca1f08c47037e37ae5278))
+
 ## [1.20.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.19.0...itun-v1.20.0) (2026-10-06)
 
 
