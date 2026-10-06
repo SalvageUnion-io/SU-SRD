@@ -157,7 +157,7 @@ one).
 | Worker            | Serves                                        | Bindings                          |
 | ----------------- | --------------------------------------------- | --------------------------------- |
 | `su-srd`          | `salvageunion.io`, `www.` (redirect)          | none — Static Assets, no script    |
-| `su-itun`         | `intheunionnow.com`, `www.`, `/api/snapshots/:id` (read-only) | `ASSETS`, R2 `SNAPSHOTS` |
+| `su-itun`         | `intheunionnow.com`, `www.`, `/api/snapshots/:id` (read-only), old-link unfurls | `ASSETS`, R2 `SNAPSHOTS`, `OG_METRICS` |
 | `su-assets`       | `assets.salvageunion.io`                      | R2 `LP_ASSETS`, `IMAGES`           |
 | `su-discord-bot`  | Discord HTTP interactions + a 5-minute cron   | none; secrets only                 |
 

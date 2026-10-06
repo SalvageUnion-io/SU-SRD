@@ -74,11 +74,21 @@ the links that already exist: **"Redirect if public."**
    yet applied (2026-09-01) is **withdrawn**: the store no longer grows, and
    expiring objects would turn redirectable links into retired ones.
 
-5. **A retired link unfurls with the sitewide defaults.** The Worker no longer
-   injects a snapshot's name into the shell at `/s/:id` or renders its og:image —
-   advertising the frozen build in a preview is exactly what is being retired. The
-   old image route, `/og/s/:id.png`, 301s to the app icon the renderer always fell
-   back to.
+5. **Links already posted keep their unfurl, for now.** Snapshot links sit in
+   Discord channels, and Discord re-fetches an unfurl, so the Worker still
+   injects the shell metadata at `/s/:id` and still renders `/og/s/:id.png` — a
+   neutral title naming the entity and its kind, read from the stored blob. The
+   card is the only thing the stored build still feeds; opening the link always
+   goes through the redirect-or-retired resolver, never the frozen sheet. The
+   pipeline (`shellMeta.ts`, `ogImage.ts`, `ogCard.ts`, the worker fonts,
+   `scripts/woff-to-ttf.ts`, the `.ttf` Data rule and the `OG_METRICS` dataset)
+   is **removed together with `@resvg/resvg-wasm`** once the dependency audit
+   gate can pass a PR that changes `bun.lock` — today `bun audit
+   --audit-level=high` fails any such PR on advisories with no published fix
+   (`braces` GHSA-vfj7-8cjw-p6xm, and `miniflare`'s pinned `undici`), so removing
+   the package now would block every PR stacked on it. When it goes, `/og/s/*`
+   should 301 to the app icon the renderer already falls back to, and `/s/:id`
+   should get the sitewide defaults.
 
 How this answers the plan's four open decisions: (a) snapshots gain no owner and
 no index — the entity they name is read off the blob per request, and only ever
@@ -118,10 +128,17 @@ governing rule asked of a link that can no longer serve what it served before.
   therefore reads either shape (`snapshotIdentity`), so a browser that opened a
   link before this change still resolves it. Those cached bodies contain the old
   frozen build; nothing renders them.
-- **The Worker shrinks.** It no longer bundles the snapshot payload's Zod schemas,
-  the resvg wasm, two fonts or `@resvg/resvg-wasm`, and it binds no rate limiter
-  and no Analytics Engine dataset. ADR-033's open question — whether the og:image
-  render fits the Free plan's CPU budget — is closed by removing the render.
+- **The Worker shrinks a little now, and a lot later.** It no longer bundles the
+  snapshot payload's Zod schemas and binds no rate limiter. The resvg wasm, two
+  fonts and the Analytics Engine dataset stay until the og pipeline goes (decision
+  5); ADR-033's open question — whether the og:image render fits the Free plan's
+  CPU budget — stays open until then, and is closed by removing the render, not
+  by pre-rendering it, since there is no publish step left to pre-render at.
+- **An old link's preview names the build as it was.** The unfurl reads the
+  stored blob, so it shows the entity's name and kind when the snapshot was taken,
+  even while the entity is private and the link itself opens the retired page.
+  Nothing more of the build is shown, and it is what that link already displayed
+  wherever it was posted. It ends when the og pipeline is removed.
 - **A still-open tab on an older build degrades honestly.** Its feature-detect
   read a 405 on `HEAD /api/snapshots` as "available"; it now gets a 404 and shows
   "publishing unavailable" instead of a button that cannot work. It also reports

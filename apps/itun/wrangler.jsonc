@@ -1,6 +1,6 @@
 {
-  // intheunionnow.com — the ITUN SPA plus the one read left of the retired
-  // snapshot API (ADR-033, ADR-036).
+  // intheunionnow.com — the ITUN SPA plus what is left of the retired snapshot
+  // shares: one read, and the unfurl of links already posted (ADR-033, ADR-036).
   //
   // Unlike srd, this one HAS a Worker: `/assets/*` needs a decision that no
   // static-asset mode makes correctly (see below), and the retired-URL 301s and
@@ -56,12 +56,24 @@
     "not_found_handling": "none"
   },
 
-  // READ-ONLY. Snapshots are retired (ADR-036): nothing mints or revokes them,
-  // and the Worker only reads an object to learn which entity an old `/s/:id`
-  // link was taken of, so it can redirect to that entity's live public sheet.
-  // The objects already here are kept untouched, by decision — do not delete
-  // them, and do not add a lifecycle rule that would. The store no longer
-  // grows, so the retention question it once raised is closed.
+  // `Data` turns a matched import into an ArrayBuffer at build time, which is
+  // how the og:image renderer gets its fonts. TTF specifically: resvg reads TTF
+  // and OTF but NOT WOFF, and fails silently on one — see `ogImage.ts`. The
+  // `.wasm` import needs no rule; wrangler treats WebAssembly as a module type
+  // natively.
+  //
+  // The renderer stays only so snapshot links already posted keep unfurling
+  // (ADR-036). This rule goes with it, and with `@resvg/resvg-wasm`, once the
+  // dependency audit gate can pass a PR that changes `bun.lock`.
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"] }],
+
+  // READ-ONLY. Snapshots are retired (ADR-036): nothing mints or revokes them.
+  // The Worker reads an object to learn which entity an old `/s/:id` link was
+  // taken of (so the client can redirect to that entity's live public sheet),
+  // and to unfurl that link. The objects already here are kept untouched, by
+  // decision — do not delete them, and do not add a lifecycle rule that would.
+  // The store no longer grows, so the retention question it once raised is
+  // closed.
   "r2_buckets": [
     {
       "binding": "SNAPSHOTS",
@@ -73,12 +85,27 @@
   // VITE_COMMIT_REF) is supplied by the GitHub Actions workflow, not here —
   // ADR-033 §4 keeps builds in Actions because srd's build provisions Chromium.
   //
-  // No rate limiter and no Analytics Engine dataset any more. The limiter
-  // (`RATE_LIMITER`) covered `POST /api/snapshots` and nothing else, and the
-  // dataset (`OG_METRICS`) measured the snapshot og:image renderer; both went
-  // with snapshot publishing (ADR-036). Convex is still reached by the browser
-  // directly, so — as before — no Convex query or mutation is rate-limited
-  // here, `invites.preview` and `invites.redeem` included.
+  // No rate limiter any more. `RATE_LIMITER` covered `POST /api/snapshots` and
+  // nothing else, and went with snapshot publishing (ADR-036). Convex is still
+  // reached by the browser directly, so — as before — no Convex query or
+  // mutation is rate-limited here, `invites.preview` and `invites.redeem`
+  // included.
+
+  // Answers the OG open question in `src/worker/index.ts`, which asks whether
+  // `renderOgImage` fits the 10 ms CPU budget and has been UNVERIFIED since the
+  // cutover. It was instrumented with a `console.log`, which is only visible to
+  // someone already tailing during a render — so it could never aggregate into
+  // an answer. This dataset can: wallMs percentiles across real traffic.
+  //
+  // The binding is optional in `Env`, so `wrangler dev` and the routing tests
+  // need no dataset and an absent one degrades to no measurement. It goes with
+  // the og:image renderer (see the `rules` note above).
+  "analytics_engine_datasets": [
+    {
+      "binding": "OG_METRICS",
+      "dataset": "itun_og_render"
+    }
+  ],
 
   "observability": {
     "enabled": true

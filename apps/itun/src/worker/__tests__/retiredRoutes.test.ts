@@ -21,8 +21,6 @@ describe('retiredRedirect', () => {
     ['/pilots/pilot-1', '/sheet/pilot/pilot-1'],
     ['/mechs/mech-1/', '/sheet/mech/mech-1'],
     ['/crawlers/crawler-9', '/sheet/crawler/crawler-9'],
-    // The snapshot unfurl image, retired with snapshots (ADR-036).
-    ['/og/s/ABCD1234.png', '/icon-512.png'],
   ])('%s → %s', (from, to) => {
     expect(retiredRedirect(from)).toBe(to)
   })

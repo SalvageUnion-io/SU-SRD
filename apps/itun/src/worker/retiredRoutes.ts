@@ -52,14 +52,6 @@ export const RETIRED_ROUTES: readonly RetiredRoute[] = [
     pattern: /^\/(pilot|mech|crawler)s\/(?!(?:new|patterns)\/?(?:\?|$))([^/?]+)\/?$/,
     to: (m) => `/sheet/${m[1]}/${m[2]}`,
   },
-  // The rendered og:image for a shared snapshot, retired with snapshots
-  // (ADR-036). Links already posted name it in their unfurl; the app icon is
-  // what that renderer always fell back to, so a re-fetching unfurl gets the
-  // same picture a failed render did rather than a 404.
-  {
-    pattern: /^\/og\/s\/[^/]+\.png$/,
-    to: () => '/icon-512.png',
-  },
 ]
 
 /** The destination path for a retired URL, or null when the path is live. */

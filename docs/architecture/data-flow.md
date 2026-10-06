@@ -307,6 +307,9 @@ bucket, read-only, so old links can still resolve:
 - **Worker:** `GET /api/snapshots/:id` (`src/lib/snapshot/handlers.ts`) answers
   only `{ kind, appId }`, read from the stored blob — never the frozen build.
   `/api/snapshots` itself is a 404; every other method on an id is a 405.
+- **Unfurl:** links already posted keep unfurling — the Worker still injects
+  `/s/:id`'s shell metadata and renders `/og/s/:id.png` from the blob's name and
+  kind — until the og pipeline is removed with `@resvg/resvg-wasm` (ADR-036 §5).
 - **Client:** the `/s/$id` loader calls `retrieveSnapshotIdentity` in
   `src/lib/snapshot/client.ts`; `SnapshotLinkView` asks `publicSheet.get` about
   that entity and replaces the URL with `/p/:kind/:appId` if it is public, or
