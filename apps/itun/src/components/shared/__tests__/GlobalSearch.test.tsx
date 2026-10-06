@@ -69,6 +69,19 @@ describe('the FAB', () => {
     expect(document.activeElement).toBe(input())
   })
 
+  test('reopening keeps the last query, selected so typing replaces it', async () => {
+    render(<GlobalSearch />)
+    openWithFab()
+    await typeQuery('iron wyrm')
+    fireEvent.click(closeButton())
+
+    openWithFab()
+    const field = input() as HTMLInputElement
+    expect(field.value).toBe('iron wyrm')
+    expect(field.selectionStart).toBe(0)
+    expect(field.selectionEnd).toBe('iron wyrm'.length)
+  })
+
   test('pressing it again collapses the panel, focus staying on the button', () => {
     render(<GlobalSearch />)
     openWithFab()

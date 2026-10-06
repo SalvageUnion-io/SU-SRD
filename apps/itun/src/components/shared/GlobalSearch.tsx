@@ -132,6 +132,13 @@ export function GlobalSearch({ fabHidden = false }: GlobalSearchProps) {
     return () => document.removeEventListener('keydown', handleGlobalKeyDown)
   }, [])
 
+  // Reopening keeps the last query, a quick way back to it, but selected, so
+  // typing replaces it instead of appending ("bionic" + "mech"). Runs after the
+  // Fab's own effect has focused the input.
+  useEffect(() => {
+    if (open) inputRef.current?.select()
+  }, [open])
+
   // The arrow keys follow the screen, and the screen is upside down relative to
   // the result order: the hook's "next result" is one row further UP.
   const onInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
