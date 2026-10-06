@@ -461,7 +461,6 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/discord-bot/CLAUDE.md': 8_337,
   'apps/itun/CLAUDE.md': 13_806,
   'apps/srd/CLAUDE.md': 11_799,
   'CLAUDE.md': 12_192,
