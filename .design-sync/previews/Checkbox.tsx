@@ -5,7 +5,7 @@
  */
 import { Checkbox } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 /**
  * Multi-select. One framed-row skin shared with `Radio` — the difference is

@@ -1,5 +1,11 @@
 /* Ported from packages/component-lib/src/components/shared/SheetSectionSlab.stories.tsx. */
-import { Button, EntityGridRow, MasonryColumns, ReferenceEntityCard, SheetSectionSlab } from 'component-lib'
+import {
+  Button,
+  EntityGridRow,
+  MasonryColumns,
+  ReferenceEntityCard,
+  SheetSectionSlab,
+} from 'component-lib'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../preview-lib/harness'

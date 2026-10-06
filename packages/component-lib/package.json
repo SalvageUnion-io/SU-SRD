@@ -18,7 +18,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "ladle": "ladle serve",
     "ladle:build": "ladle build"
   },

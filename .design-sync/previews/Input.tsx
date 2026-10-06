@@ -6,7 +6,7 @@
  */
 import { Field, Input } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 /** The text box on its own: empty, filled, and disabled. */
 export function States() {

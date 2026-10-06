@@ -39,6 +39,7 @@ in `apps/discord-bot` (the Discord bot's Worker).
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset
 │   ├── component-lib/          # Shared React component library
 │   └── observability/          # Sentry wiring shared by the Node surfaces
+├── tools/                      # Repo gates and scripts (a workspace)
 ├── docs/                       # Architecture docs + ADRs (see docs/README.md)
 ├── package.json                # Root workspace configuration
 ├── biome.jsonc                 # Shared Biome (lint + format) config

@@ -26,7 +26,7 @@ linker = 'isolated'
 #
 #     The loud alternative is an `overrides` floor: resolving below one
 #     errors. All four `overrides` entries in package.json are such floors
-#     (fast-uri, filelist, nanoid, shell-quote). `brace-expansion` cannot be
+#     (fast-uri, filelist, nanoid, sharp). `brace-expansion` cannot be
 #     floored (two majors in the tree), so it
 #     is the watched package this silent step-down can still reach. The
 #     per-entry record is docs/architecture/dependency-management.md,

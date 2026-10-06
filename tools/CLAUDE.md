@@ -1,6 +1,9 @@
 # tools/ — the repo's gates and one-off scripts
 
-Every file here is run directly by Bun (`bun tools/<name>.ts`). Most are
+Every file here is run directly by Bun (`bun tools/<name>.ts`). `tools/` is a
+Bun workspace, so `bun run test` and `bun run typecheck` reach it like any
+other; its `typecheck` also checks the root `test/` preloads and the
+`.design-sync/` previews (`.design-sync/tsconfig.json`). Most are
 **gates**, and every gate is registered in ONE place: the `CHECKS` list in
 [`check.ts`](check.ts). `bun run check`, `bun run check:fast`, lefthook's
 pre-push and CI's `static-checks` job all run that registry with a different
@@ -24,7 +27,7 @@ a command to `lefthook.yml`, since both read the registry. A gate with no
 failure in 90 days of `gh run` history is reviewed for deletion.
 
 **Before editing a checker:** its tests live in `tools/__tests__/` (run with
-`bun run test:tools`). A gate that scans a tree must prove it scanned one —
+`bun --filter tools test`). A gate that scans a tree must prove it scanned one —
 use `tools/lib/scanFloor.ts` (collapsed corpus) and
 `tools/lib/workspaceCoverage.ts` (a workspace missing from the list), and print
 the corpus size, not just the finding count.
@@ -52,7 +55,7 @@ the corpus size, not just the finding count.
 
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
-| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's `test:coverage` plus the `tools/` suite, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
+| `run-coverage.ts` | `test:coverage`: CI's `coverage` job, and pre-push when shared code or manifests change | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
 | `a11y-scan.ts` | `build-srd` in `ci.yml` (every srd PR) | WCAG 2.1 AA scan (Playwright + axe-core) of the pages keyed in the baseline. Fails on a violation not accepted per page, and on a stale entry. | `a11y-baseline.json` |
 | `check-convex-parity.ts` | `check:convex-parity:live` (nightly) | Every Convex function this repo defines exists on the deployment. Its static half is `workflows`' `convex-guard`. | — |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Cloudflare surfaces ship. Fails safe: when unsure it deploys everything. | — |

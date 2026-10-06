@@ -73,6 +73,12 @@
       "apps/**",
       "packages/**",
       "tools/**",
+      // The claude.ai/design previews and their provider: React that ships in
+      // the design-system bundle, held to the same rules as component-lib.
+      // `.cache/` and `learnings/` are the sync's own gitignored output.
+      ".design-sync/**",
+      "!.design-sync/.cache",
+      "!.design-sync/learnings",
       // Agent worktrees are full checkouts, each carrying its own copy of THIS
       // file with `"root": true`. Biome 2.5+ hard-errors on a nested root
       // config, and that discovery walk is independent of the includes above —
@@ -380,13 +386,15 @@
     },
     {
       // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
-      // point in a test or a story, so `noEmptyBlockStatements` — which exists
-      // to catch swallowed errors in shipped code — is off here.
+      // point in a test or a story (and a design-sync preview, which is a ported
+      // story), so `noEmptyBlockStatements` — which exists to catch swallowed
+      // errors in shipped code — is off here.
       "includes": [
         "**/*.test.ts",
         "**/*.test.tsx",
         "**/__tests__/**",
         "**/*.stories.tsx",
+        ".design-sync/previews/**",
         "**/test/**",
         "**/e2e/**"
       ],

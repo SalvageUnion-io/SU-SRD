@@ -20,9 +20,18 @@
   // go de-duplicate files that no longer existed.
   "tags": ["-public", "-knipignore"],
   "workspaces": {
+    // The root holds no code of its own now that `tools/` is a workspace, and
+    // `.design-sync/` previews and `.claude/workflows/` are entry points for
+    // tools outside the repo, which knip cannot see calling them.
     ".": {
-      "entry": ["tools/**/*.ts"],
-      "project": ["tools/**/*.ts"]
+      "project": []
+    },
+    "tools": {
+      // Every top-level script is run directly (`bun tools/<name>.ts`), by a
+      // root script, the check registry or a workflow. `rules/*.ts` is listed
+      // because knip reads `.gitignore`'s `rules/*` (the local rules extract)
+      // as matching `tools/rules/` too, and would not otherwise follow it.
+      "entry": ["*.ts", "rules/*.ts"]
     },
     "packages/salvageunion-reference": {
       "entry": ["tools/**/*.ts"],

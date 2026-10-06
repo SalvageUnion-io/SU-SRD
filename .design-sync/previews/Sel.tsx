@@ -10,7 +10,7 @@
  */
 import { ReferenceEntityCard, Sel } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 /**
  * The selection-ring wrapper for wizard entity cards — a 3px rust box-shadow
