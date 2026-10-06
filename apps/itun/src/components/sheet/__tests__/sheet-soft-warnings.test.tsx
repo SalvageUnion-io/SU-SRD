@@ -200,7 +200,13 @@ describe('MechSheet — soft warnings on system removal', () => {
     const mech = makeMech()
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeMechStore(mech, captured)} />)
 
-    await removeViaPicker(/^Manage systems$/i, /^Remove Smoke Machine$/i)
+    await click(/^Manage systems$/i)
+    // Below 80rem the picker's selection rail starts folded (EntitySearcher),
+    // so its Remove buttons sit behind the "Installed" disclosure.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^Installed/i, expanded: false }))
+    })
+    await click(/^Remove Smoke Machine$/i)
 
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)

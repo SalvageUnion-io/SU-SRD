@@ -138,6 +138,9 @@ export { ModalShell } from './components/shared/ModalShell'
 export type { NavDrawerItem } from './components/shared/NavDrawer'
 export { NavDrawer } from './components/shared/NavDrawer'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'
+// The searcher picker's modal width — for a bare ModalShell wrapping a
+// multi-select EntitySearcher (SheetPickerModal applies it itself).
+export { PICKER_MODAL_WIDTH } from './components/shared/pickerModalWidth'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
 // action) behind srd's island error boundary and itun's root error component.
 export { RecoveryPanel } from './components/shared/RecoveryPanel'

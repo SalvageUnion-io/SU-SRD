@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from 'react'
+import type { ElementType, ReactNode, Ref } from 'react'
 import { cn } from '../../utils/cn'
 
 type PageHeadingProps = {
@@ -24,6 +24,15 @@ type PageHeadingProps = {
    */
   as?: ElementType
   className?: string
+  /** For a region that names itself by its heading (`aria-labelledby`). */
+  id?: string
+  /**
+   * `-1` makes the heading a programmatic focus target — where focus lands
+   * when the thing it was on disappears (EntitySearcher's selection rail, after
+   * its last entry is removed). Never `0`: a heading is not a tab stop.
+   */
+  tabIndex?: -1
+  ref?: Ref<HTMLHeadingElement>
 }
 
 /**
@@ -44,7 +53,19 @@ const HEADING_VARIANTS = {
   section: 'font-cond text-sm font-bold uppercase tracking-caps',
 } as const
 
-export function PageHeading({ children, variant = 'heading', as, className }: PageHeadingProps) {
+export function PageHeading({
+  children,
+  variant = 'heading',
+  as,
+  className,
+  id,
+  tabIndex,
+  ref,
+}: PageHeadingProps) {
   const Tag = as ?? (variant === 'heading' ? 'h1' : 'h2')
-  return <Tag className={cn(HEADING_VARIANTS[variant], className)}>{children}</Tag>
+  return (
+    <Tag ref={ref} id={id} tabIndex={tabIndex} className={cn(HEADING_VARIANTS[variant], className)}>
+      {children}
+    </Tag>
+  )
 }

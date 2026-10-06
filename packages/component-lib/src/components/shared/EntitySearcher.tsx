@@ -22,10 +22,39 @@
  * a chassis card is wider than a 220px track, so every option rendered clipped —
  * so those pickers now run here too, with `hide` dropping the sections a picker
  * cannot act on and `railActions` carrying their confirm affordance.
+ *
+ * WHERE THE RAIL SITS. Never over the results. It used to float over the
+ * bottom-right of the pool, where on a phone it covered a third of what you
+ * were choosing from. Now (layout in the `.su-searcher*` classes in
+ * styles/index.css):
+ *   - below 80rem it is a sticky band ABOVE the pool — a disclosure that,
+ *     collapsed (the default: the results are the task), still shows the count
+ *     and the budget, and expands to the chosen heads with their Remove buttons;
+ *   - from 80rem it is its own scrolling column RIGHT of the pool, always open;
+ *   - `mode="single"` has one chosen entity and a confirm pair, so it is a
+ *     one-line band at every width and keeps the pool at full width.
+ * DOM order follows the visual order, so focus order does too.
+ *
+ * NOTHING BELOW A FOLD. The frame is capped at the dynamic viewport and its
+ * body takes what the header leaves, scrolling in it — so on a phone the
+ * results and the selection are always reachable. That only works if the
+ * header itself is bounded, so below 80rem the sub-header is just the search
+ * field and a Filters disclosure (open by default from 40rem, folded on a
+ * phone); open, the facet rows scroll in their own capped panel. From 80rem the
+ * facet rows sit inline, as they always did.
  */
 
-import type { ReactNode } from 'react'
-import { useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import type {
   EntitySchemaName,
   SchemaToEntityMap,
@@ -34,19 +63,21 @@ import type {
 import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
 import type { TechLevel } from 'salvageunion-reference/rules'
 import { matchesRef } from 'salvageunion-reference/rules'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { BandTitle } from '../chrome/BandTitle'
 import { Button } from '../chrome/Button'
-import { FOCUS_WITHIN } from '../chrome/interaction'
+import { capsLabel } from '../chrome/capsLabel'
+import { FOCUS_RING, FOCUS_WITHIN } from '../chrome/interaction'
 import { PageHeading } from '../chrome/PageHeading'
-import { Panel } from '../chrome/Panel'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { statBlockRowStarts } from '../stat/pipRows'
 import { Card } from './Card'
 import { FilterRow } from './FilterRow'
 import { MasonryColumns } from './MasonryColumns'
+import { Stat } from './Stat'
 
 /** A tech level as the reference data carries it — schema-typed `number`, not
  * the rules module's 1–6 literal union, so ORM entities assign structurally. */
@@ -135,9 +166,10 @@ type EntitySearcherProps = {
    */
   hide?: ReferenceEntityCardHideConfig
   /**
-   * Actions pinned to the bottom of the selection rail — e.g. the Apply/Cancel
-   * pair a destructive picker needs. The rail floats over the card frame, so
-   * this is the one place a confirm affordance can sit without a second band
+   * Actions pinned beneath the selection — e.g. the Apply/Cancel pair a
+   * destructive picker needs. Always visible: at the foot of the rail column,
+   * or in the band (collapsed or not) on a narrow screen and in single mode.
+   * It is the one place a confirm affordance can sit without a second band
    * competing with it.
    */
   railActions?: ReactNode
@@ -181,6 +213,13 @@ export function EntitySearcher({
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
   const [activeTraits, setActiveTraits] = useState<Set<string>>(() => new Set())
   const [status, setStatus] = useState<'all' | 'equipped' | 'available'>('all')
+  const wide = useWideLayout()
+  // Narrow, the facet rows fold behind a Filters disclosure — and on a phone
+  // they start folded: an ability picker's ~30 Tree chips alone outgrow it.
+  const [filtersOpen, setFiltersOpen] = useState(
+    () => typeof window === 'undefined' || window.matchMedia(ROOMY_QUERY).matches
+  )
+  const filtersId = useId()
 
   // Base pool — the whole collection, optionally narrowed, sorted by TL then name.
   const pool = useMemo(() => {
@@ -284,7 +323,6 @@ export function EntitySearcher({
     selected,
   ])
 
-  const selectedCount = selected.length
   const totalOnSheet = useMemo(
     () => pool.reduce((n, item) => n + selected.filter((ref) => matchesRef(item, ref)).length, 0),
     [pool, selected]
@@ -412,8 +450,8 @@ export function EntitySearcher({
     </FilterRow>
   )
 
-  // Sub-header: the facet rows, with the search field on the final row spaced
-  // OPPOSITE the "Show" facet.
+  // Wide sub-header: the facet rows, with the search field on the final row
+  // spaced OPPOSITE the "Show" facet.
   const floatingSubHeader = (
     <div className="flex w-full flex-col gap-2">
       {facetRowConfigs.map(renderFacetRow)}
@@ -421,6 +459,49 @@ export function EntitySearcher({
         {showRowConfig ? renderFacetRow(showRowConfig) : <span aria-hidden="true" />}
         <div className="w-full sm:w-[280px]">{searchInput}</div>
       </div>
+    </div>
+  )
+
+  // Narrow sub-header: the search field always in reach, the facet rows
+  // (Show included) behind a Filters disclosure whose panel scrolls on its own.
+  // Both are bounded, so the header can never again be taller than the screen.
+  const filterRows = showRowConfig ? [...facetRowConfigs, showRowConfig] : facetRowConfigs
+  const activeFilters =
+    (showTl ? activeTls.size : 0) +
+    (showCat ? activeCats.size : 0) +
+    (showTraits ? activeTraits.size : 0) +
+    (showStatus && status !== 'all' ? 1 : 0)
+  const narrowSubHeader = (
+    <div style={NARROW_SUBHEADER_STYLE}>
+      <div style={SEARCH_ROW_STYLE}>
+        <div style={SEARCH_SLOT_STYLE}>{searchInput}</div>
+        {filterRows.length > 0 && (
+          <Button
+            size="compact"
+            aria-expanded={filtersOpen}
+            aria-controls={filtersId}
+            onClick={() => setFiltersOpen((v) => !v)}
+            style={FILTERS_TOGGLE_STYLE}
+          >
+            Filters
+            {activeFilters > 0 && (
+              <>
+                {' '}
+                <Badge shape="chip" surface="solid">
+                  {activeFilters}
+                </Badge>
+                <span style={VISUALLY_HIDDEN}> active</span>
+              </>
+            )}
+            <ChevronDown aria-hidden="true" style={chevronStyle(filtersOpen)} />
+          </Button>
+        )}
+      </div>
+      {filterRows.length > 0 && (
+        <div id={filtersId} hidden={!filtersOpen} style={FILTER_PANEL_STYLE}>
+          <div style={FILTER_STACK_STYLE}>{filterRows.map(renderFacetRow)}</div>
+        </div>
+      )}
     </div>
   )
 
@@ -468,76 +549,335 @@ export function EntitySearcher({
     </div>
   )
 
-  // A self-contained Card: title + close badge in the header, search +
-  // all filters in the sub-header band, the pool filling a padded internally-
-  // scrolling body, and the "Results" box pinned floating bottom-right.
+  const single = mode === 'single'
+  const rail = single ? (
+    <ChosenBar
+      chosenLabel={chosenLabel}
+      schema={schema}
+      selected={selected}
+      budget={budget}
+      actions={railActions}
+    />
+  ) : (
+    <SelectionRail
+      wide={wide}
+      name={railName}
+      chosenLabel={chosenLabel}
+      schema={schema}
+      selected={selected}
+      budget={budget}
+      mode={mode === 'count' ? 'count' : 'toggle'}
+      onToggle={onToggle}
+      onRemove={onRemove}
+      hide={cardHide}
+      actions={railActions}
+    />
+  )
+  // DOM order = visual order, so focus order follows the eye: a band ABOVE the
+  // pool comes before it, a column to its RIGHT comes after it.
+  const railFirst = single || !wide
+
+  // A self-contained Card: title + close badge in the header, search + all
+  // filters in the sub-header band, then the body — the pool and the selection
+  // rail, laid out by the `.su-searcher` classes (see the header comment).
   return (
-    <div className="relative">
-      <Card
-        headerBg="bg-pilot"
-        bodyPadding="p-0"
-        headerContent={
-          <div className="flex w-full items-center gap-3">
-            {/* Column, so `fill` is off on both — `flex-1` inside a flex-col
-                would grow the title vertically, not claim the band's width.
-                The wrapper takes the track instead and the titles truncate. */}
-            <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-              <BandTitle fill={false} className="max-w-full">
-                {title}
+    <Card
+      headerBg="bg-pilot"
+      bodyPadding="p-0"
+      headerContent={
+        <div className="flex w-full items-center gap-3">
+          {/* Column, so `fill` is off on both — `flex-1` inside a flex-col
+              would grow the title vertically, not claim the band's width.
+              The wrapper takes the track instead and the titles truncate. */}
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+            <BandTitle fill={false} className="max-w-full">
+              {title}
+            </BandTitle>
+            {subtitle && (
+              <BandTitle variant="mute" fill={false} className="max-w-full">
+                {subtitle}
               </BandTitle>
-              {subtitle && (
-                <BandTitle variant="mute" fill={false} className="max-w-full">
-                  {subtitle}
-                </BandTitle>
-              )}
-            </div>
-            {onClose && (
-              <Button
-                variant="default"
-                size="iconOnly"
-                onClick={onClose}
-                aria-label="Close"
-                className="rounded-badge font-cond font-bold"
-              >
-                ✕
-              </Button>
             )}
           </div>
-        }
-        subHeader={floatingSubHeader}
-      >
-        {/* Internally-scrolling body; extra bottom padding clears the pinned
-            Results box so the last rows are never hidden beneath it. */}
-        <div className="max-h-[min(62vh,640px)] overflow-y-auto p-4 pb-28">
-          <div className="mb-3">{summaryNode}</div>
+          {onClose && (
+            <Button
+              variant="default"
+              size="iconOnly"
+              onClick={onClose}
+              aria-label="Close"
+              className="rounded-badge font-cond font-bold"
+            >
+              ✕
+            </Button>
+          )}
+        </div>
+      }
+      subHeader={wide ? floatingSubHeader : narrowSubHeader}
+      cardStyle={{ style: FRAME_STYLE }}
+      bodyStyle={BODY_STYLE}
+    >
+      <div className={cn('su-searcher', single && 'su-searcher--bar')}>
+        {railFirst && rail}
+        <div className="su-searcher__pool" style={POOL_STYLE}>
+          <div style={SUMMARY_ROW_STYLE}>{summaryNode}</div>
           {poolNode}
         </div>
-      </Card>
-
-      {/* Pinned floating "Results" box — absolute to the card frame (NOT the
-          scrolling body), so it stays put in the bottom-right above content.
-          The wrapper is click-through; only the box captures pointer events. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-4">
-        <div className="pointer-events-auto w-[360px] max-w-[calc(100%-2rem)]">
-          <SelectionRail
-            name={railName}
-            chosenLabel={chosenLabel}
-            count={selectedCount}
-            schema={schema}
-            selected={selected}
-            budget={budget}
-            mode={mode}
-            onToggle={onToggle}
-            onRemove={onRemove}
-            hide={cardHide}
-            actions={railActions}
-            className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_var(--color-ink-30)]"
-          />
-        </div>
+        {!railFirst && rail}
       </div>
-    </div>
+    </Card>
   )
 }
+
+// ---------------------------------------------------------------------------
+// Layout state + static styles
+// ---------------------------------------------------------------------------
+
+/**
+ * The width at which the rail stops being a band above the pool and becomes a
+ * column beside it. Mirrors the `.su-searcher` media query in
+ * styles/index.css — change both or neither. CSS owns the LAYOUT; this only
+ * decides what the parts ARE at that width: the rail a disclosure or a plain
+ * heading, the facets folded behind Filters or inline in the sub-header.
+ */
+const WIDE_QUERY = '(min-width: 80rem)'
+
+/** Narrow but roomy — a tablet, either way up: the Filters disclosure starts
+ * OPEN. A phone, in portrait (too narrow) or landscape (too short), starts it
+ * folded. Only the initial state — not a layout breakpoint. */
+const ROOMY_QUERY = '(min-width: 40rem) and (min-height: 40rem)'
+
+function subscribeWide(onChange: () => void): () => void {
+  const query = window.matchMedia(WIDE_QUERY)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+const isWide = () => window.matchMedia(WIDE_QUERY).matches
+
+/** The server snapshot is the band — the narrow default, like MasonryColumns'
+ * one-column SSR snapshot — so a server render never commits to the column. */
+function useWideLayout(): boolean {
+  return useSyncExternalStore(subscribeWide, isWide, () => false)
+}
+
+/**
+ * A polite live-region message that speaks only when `message` CHANGES — the
+ * count the user just altered, never the one the picker opened with (a live
+ * region's initial content is not news). The ref, not a mount flag, is what
+ * keeps StrictMode's double-run effect from announcing on open.
+ */
+function useAnnouncement(message: string): string {
+  const [spoken, setSpoken] = useState('')
+  const last = useRef(message)
+  useEffect(() => {
+    if (last.current === message) return
+    last.current = message
+    setSpoken(message)
+  }, [message])
+  return spoken
+}
+
+// Static properties only — every property that changes with the breakpoint
+// lives in the `.su-searcher*` classes (the split rule; see styles/index.css).
+
+/**
+ * The frame never exceeds the DYNAMIC viewport (less the bare popup's 2rem
+ * margins and any safe-area inset), so its body — allowed to shrink by
+ * `BODY_STYLE` — always gets the room left under the header, and scrolls in
+ * it. `dvh`, not `vh`: on a phone `100vh` is the toolbar-hidden height, which
+ * would put the frame's foot under the browser chrome. The bare popup's own cap
+ * is `100vh - 4rem`, so this one is never the larger of the two.
+ */
+const FRAME_STYLE = {
+  maxHeight:
+    'calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
+} satisfies CSSProperties
+const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
+
+const NARROW_SUBHEADER_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+  width: '100%',
+} satisfies CSSProperties
+const SEARCH_ROW_STYLE = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+const SEARCH_SLOT_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
+const FILTERS_TOGGLE_STYLE = { flexShrink: 0 } satisfies CSSProperties
+/** Open, the facet rows scroll inside their own panel rather than growing the
+ * header, so open filters never take more than 40% of the screen. No `display`
+ * here: the panel folds with the `hidden` attribute. */
+const FILTER_PANEL_STYLE = { maxHeight: '40dvh', overflowY: 'auto' } satisfies CSSProperties
+const FILTER_STACK_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+  paddingBottom: space[4],
+} satisfies CSSProperties
+
+/** `isolation` keeps a pool card's own stacking (a hovered card's z-10, a
+ * seam stamp's z-30) inside the pool, so the sticky band always paints over it. */
+const POOL_STYLE = { padding: space[16], isolation: 'isolate' } satisfies CSSProperties
+const SUMMARY_ROW_STYLE = { marginBottom: space[12] } satisfies CSSProperties
+
+const VISUALLY_HIDDEN = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  margin: '-1px',
+  padding: space[0],
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  borderWidth: space[0],
+} satisfies CSSProperties
+
+const RAIL_STYLE = { backgroundColor: color.paper, color: color.ink } satisfies CSSProperties
+
+/** Narrow: one wrapping row — the disclosure, then the at-a-glance budget. */
+const RAIL_HEAD_BAND_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  columnGap: space[16],
+  rowGap: space[6],
+  padding: `${space[10]} ${space[16]}`,
+} satisfies CSSProperties
+
+/** Wide: the heading over the full budget tracks, pinned above the list. */
+const RAIL_HEAD_COLUMN_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+  padding: `${space[16]} ${space[16]} ${space[12]}`,
+} satisfies CSSProperties
+
+/** The heading claims the band's free width, so the whole row is the target. */
+const RAIL_HEADING_SLOT_STYLE = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
+
+const RAIL_TITLE_STYLE = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+  minWidth: 0,
+} satisfies CSSProperties
+
+/** A bare button wearing its heading's type — `inherit` across the board,
+ * because a button's UA style resets font, tracking and case. */
+const RAIL_TOGGLE_STYLE = {
+  ...RAIL_TITLE_STYLE,
+  width: '100%',
+  margin: space[0],
+  padding: space[0],
+  borderWidth: space[0],
+  borderRadius: radius.card,
+  background: 'none',
+  color: 'inherit',
+  font: 'inherit',
+  letterSpacing: 'inherit',
+  textTransform: 'inherit',
+  textAlign: 'left',
+  cursor: 'pointer',
+} satisfies CSSProperties
+
+const RAIL_NAME_STYLE = {
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  color: color.ink75,
+} satisfies CSSProperties
+
+function chevronStyle(open: boolean): CSSProperties {
+  return {
+    width: space[16],
+    height: space[16],
+    flexShrink: 0,
+    marginLeft: 'auto',
+    transition: 'transform 150ms',
+    transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+  }
+}
+
+/** No `display` here: the list is folded with the `hidden` attribute. */
+const RAIL_LIST_STYLE = {
+  paddingLeft: space[16],
+  paddingRight: space[16],
+  paddingBottom: space[12],
+} satisfies CSSProperties
+
+const STACK_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[8],
+} satisfies CSSProperties
+const BUDGET_STACK_STYLE = { ...STACK_STYLE, gap: space[12] } satisfies CSSProperties
+
+const RAIL_ENTRY_STYLE = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: space[8],
+} satisfies CSSProperties
+const RAIL_ENTRY_BODY_STYLE = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+const COPY_STYLE = {
+  display: 'block',
+  marginTop: space[2],
+  paddingLeft: space[4],
+  paddingRight: space[4],
+  color: color.wkMuted,
+} satisfies CSSProperties
+const REMOVE_STYLE = { marginTop: space[2], flexShrink: 0 } satisfies CSSProperties
+
+const EMPTY_STYLE = {
+  margin: space[0],
+  fontFamily: font.body,
+  fontSize: fontSize.xs,
+  color: color.wkMuted,
+} satisfies CSSProperties
+
+const RAIL_ACTIONS_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  gap: space[8],
+  padding: `${space[10]} ${space[16]}`,
+  borderTop: `${borderWidth.hairline} solid ${color.ink20}`,
+} satisfies CSSProperties
+
+const BUDGET_SUMMARY_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  columnGap: space[12],
+  rowGap: space[2],
+  margin: space[0],
+} satisfies CSSProperties
+
+/** Single mode: label, the chosen name, any budget, the confirm pair — one row. */
+const BAR_STYLE = {
+  ...RAIL_STYLE,
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  columnGap: space[12],
+  rowGap: space[8],
+  padding: `${space[10]} ${space[16]}`,
+} satisfies CSSProperties
+const BAR_CHOSEN_STYLE = {
+  minWidth: 0,
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  fontWeight: weight.bold,
+  overflowWrap: 'anywhere',
+} satisfies CSSProperties
+const BAR_ACTIONS_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+  marginLeft: 'auto',
+} satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // Count-mode card (duplicates legal — Add / Add another; remove in the rail)
@@ -573,38 +913,27 @@ function CountCard({
 }
 
 // ---------------------------------------------------------------------------
-// Selection rail — always-visible list of what's on the sheet + soft budget
+// Selection rail — what's on the sheet + soft budget, never over the results
 // ---------------------------------------------------------------------------
 
-function SelectionRail({
-  name,
-  chosenLabel,
-  count,
-  schema,
-  selected,
-  budget,
-  mode,
-  onToggle,
-  onRemove,
-  hide,
-  actions,
-  className,
-}: {
-  name?: string
-  chosenLabel: string
-  count: number
-  schema: EntitySchemaName
-  selected: string[]
-  budget?: BudgetConfig | BudgetConfig[]
-  mode: 'toggle' | 'count' | 'single'
-  onToggle?: (ref: string) => void
-  onRemove?: (index: number) => void
-  hide: ReferenceEntityCardHideConfig
-  actions?: ReactNode
-  className?: string
-}) {
-  const budgets = budget ? (Array.isArray(budget) ? budget : [budget]) : []
-  const entries = useMemo(() => {
+type RailEntry = {
+  entity: PoolEntity
+  /** The stored ref, as the caller holds it (toggle mode removes by ref). */
+  ref: string
+  /** Position in `selected` (count mode removes by index). */
+  index: number
+  copy: number
+  total: number
+}
+
+function budgetList(budget?: BudgetConfig | BudgetConfig[]): BudgetConfig[] {
+  return budget ? (Array.isArray(budget) ? budget : [budget]) : []
+}
+
+/** `selected`, resolved against the whole collection (not the filtered pool),
+ * with each duplicate numbered — "Copy 2 of 3". Unresolvable refs drop out. */
+function useRailEntries(schema: EntitySchemaName, selected: string[]): RailEntry[] {
+  return useMemo(() => {
     const all: PoolEntity[] = SalvageUnionReference.findAllIn(schema, () => true)
     const totals = new Map<string, number>()
     for (const ref of selected) totals.set(ref, (totals.get(ref) ?? 0) + 1)
@@ -617,59 +946,259 @@ function SelectionRail({
       return [{ entity: found, ref, index, copy, total: totals.get(ref) ?? 1 }]
     })
   }, [schema, selected])
+}
+
+/**
+ * The multi-select rail (toggle / count). A named region either way:
+ *
+ *   - narrow (`wide` false) — a sticky band whose heading IS a disclosure
+ *     button. Collapsed it shows the count and a one-line budget readout;
+ *     expanded, the full budget tracks and every chosen head with its Remove.
+ *     It starts collapsed: on a small screen the results are the task, and each
+ *     chosen card in the pool already wears its own seal.
+ *   - wide — a column, always open: heading and budget tracks pinned, the list
+ *     scrolling beneath, any actions pinned at the foot.
+ *
+ * Count changes are spoken by a polite live region — the count alone, and only
+ * when it moves. Removing an entry hands focus to the entry now in its place,
+ * or to the heading once the list is empty, so a keyboard user never lands on
+ * <body> and can clear a list by pressing Remove repeatedly.
+ */
+function SelectionRail({
+  wide,
+  name,
+  chosenLabel,
+  schema,
+  selected,
+  budget,
+  mode,
+  onToggle,
+  onRemove,
+  hide,
+  actions,
+}: {
+  wide: boolean
+  name?: string
+  chosenLabel: string
+  schema: EntitySchemaName
+  selected: string[]
+  budget?: BudgetConfig | BudgetConfig[]
+  mode: 'toggle' | 'count'
+  onToggle?: (ref: string) => void
+  onRemove?: (index: number) => void
+  hide: ReferenceEntityCardHideConfig
+  actions?: ReactNode
+}) {
+  const budgets = budgetList(budget)
+  const entries = useRailEntries(schema, selected)
+  const [open, setOpen] = useState(false)
+  const expanded = wide || open
+  const headingId = useId()
+  const listId = useId()
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const removeRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const pendingFocus = useRef<{ position: number; length: number } | null>(null)
+  const chosen = chosenLabel.toLowerCase()
+  const announcement = useAnnouncement(`${entries.length} ${chosen}`)
+
+  // The Remove button that had focus has just unmounted. Move focus once the
+  // caller's `selected` has actually SHRUNK — so a caller that applies the
+  // change asynchronously is still covered, and one that refuses it (or adds
+  // something in the meantime) never has focus yanked later. A layout effect,
+  // so focus moves before paint rather than resting on <body> for a frame.
+  useLayoutEffect(() => {
+    const pending = pendingFocus.current
+    if (!pending || entries.length === pending.length) return
+    pendingFocus.current = null
+    if (entries.length > pending.length) return
+    const next = removeRefs.current[Math.min(pending.position, entries.length - 1)]
+    ;(next ?? toggleRef.current ?? headingRef.current)?.focus()
+  }, [entries])
+
+  function remove(entry: RailEntry, position: number) {
+    pendingFocus.current = { position, length: entries.length }
+    if (mode === 'count') onRemove?.(entry.index)
+    else onToggle?.(entry.ref)
+  }
+
+  // Explicit spaces between the parts: an accessible name is built from text,
+  // and without them it would read "Learned3".
+  const title = (
+    <>
+      <span>{chosenLabel}</span>{' '}
+      <Badge shape="chip" surface="solid">
+        {entries.length}
+      </Badge>
+      {name && (
+        <>
+          {' '}
+          <span style={RAIL_NAME_STYLE}>
+            <span aria-hidden="true">· </span>
+            {name}
+          </span>
+        </>
+      )}
+    </>
+  )
+
+  const budgetTracks = budgets.length > 0 && (
+    <div style={BUDGET_STACK_STYLE}>
+      {budgets.map((b) => (
+        <BudgetTrack key={b.label} label={b.label} value={b.used} max={b.max} tone={b.tone} />
+      ))}
+    </div>
+  )
 
   return (
-    <Panel className={cn('self-start px-4 py-4', className)}>
-      <PageHeading variant="section" as="h2" className="text-ink">
-        {name ? (
-          <>
-            {chosenLabel} · <span className="text-ink-75">{name}</span>
-          </>
-        ) : (
-          <>
-            {chosenLabel} <span className="text-ink-75">{count}</span>
-          </>
-        )}
-      </PageHeading>
-
-      {budgets.length > 0 && (
-        <div className="mt-3 space-y-3">
-          {budgets.map((b) => (
-            <BudgetTrack key={b.label} label={b.label} value={b.used} max={b.max} tone={b.tone} />
-          ))}
-        </div>
-      )}
-
-      <div className="mt-4 space-y-2">
-        {entries.map(({ entity, ref, index, copy, total }) => (
-          <div key={index} data-testid="rail-entry" className="flex items-start gap-2">
-            <div className="min-w-0 flex-1">
-              <ReferenceEntityCard data={entity} size="medium" extent="head" hide={hide} />
-              {total > 1 && (
-                <span className="mt-0.5 block px-1 font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
-                  Copy {copy} of {total}
-                </span>
-              )}
-            </div>
-            <Button
-              size="mini"
-              onClick={() => (mode === 'count' ? onRemove?.(index) : onToggle?.(ref))}
-              aria-label={`Remove ${entity.name}`}
-              className="mt-0.5 shrink-0"
+    <section aria-labelledby={headingId} className="su-searcher__rail" style={RAIL_STYLE}>
+      <div style={wide ? RAIL_HEAD_COLUMN_STYLE : RAIL_HEAD_BAND_STYLE}>
+        <div style={wide ? undefined : RAIL_HEADING_SLOT_STYLE}>
+          {wide ? (
+            <PageHeading
+              variant="section"
+              as="h2"
+              id={headingId}
+              ref={headingRef}
+              tabIndex={-1}
+              className={FOCUS_RING}
             >
-              ✕ Remove
-            </Button>
-          </div>
-        ))}
-        {entries.length === 0 && (
-          <p className="font-body text-xs text-wk-muted">
-            Nothing {chosenLabel.toLowerCase()} yet.
-          </p>
-        )}
+              <span style={RAIL_TITLE_STYLE}>{title}</span>
+            </PageHeading>
+          ) : (
+            <PageHeading variant="section" as="h2" id={headingId}>
+              <button
+                ref={toggleRef}
+                type="button"
+                aria-expanded={open}
+                aria-controls={listId}
+                onClick={() => setOpen((v) => !v)}
+                className={FOCUS_RING}
+                style={RAIL_TOGGLE_STYLE}
+              >
+                {title}
+                <ChevronDown aria-hidden="true" style={chevronStyle(open)} />
+              </button>
+            </PageHeading>
+          )}
+        </div>
+        {wide ? budgetTracks : !open && budgets.length > 0 && <BudgetSummary budgets={budgets} />}
       </div>
 
-      {actions && <div className="mt-4 flex flex-wrap justify-end gap-2">{actions}</div>}
-    </Panel>
+      <div
+        id={listId}
+        hidden={!expanded}
+        className="su-searcher__rail-list"
+        style={RAIL_LIST_STYLE}
+      >
+        <div style={STACK_STYLE}>
+          {!wide && budgetTracks}
+          {entries.map((entry, position) => (
+            <div
+              key={`${entry.ref}#${entry.copy}`}
+              data-testid="rail-entry"
+              style={RAIL_ENTRY_STYLE}
+            >
+              <div style={RAIL_ENTRY_BODY_STYLE}>
+                <ReferenceEntityCard data={entry.entity} size="medium" extent="head" hide={hide} />
+                {entry.total > 1 && (
+                  <span
+                    className={capsLabel({ size: 'label', tracking: 'caps' })}
+                    style={COPY_STYLE}
+                  >
+                    Copy {entry.copy} of {entry.total}
+                  </span>
+                )}
+              </div>
+              <Button
+                ref={(el) => {
+                  removeRefs.current[position] = el
+                }}
+                size="mini"
+                onClick={() => remove(entry, position)}
+                // Duplicates are legal in count mode, so each copy's button
+                // names its copy — three identical "Remove Ion Cannon" buttons
+                // are indistinguishable to a screen-reader user.
+                aria-label={
+                  entry.total > 1
+                    ? `Remove ${entry.entity.name}, copy ${entry.copy} of ${entry.total}`
+                    : `Remove ${entry.entity.name}`
+                }
+                style={REMOVE_STYLE}
+              >
+                ✕ Remove
+              </Button>
+            </div>
+          ))}
+          {entries.length === 0 && <p style={EMPTY_STYLE}>Nothing {chosen} yet.</p>}
+        </div>
+      </div>
+
+      {actions && <div style={RAIL_ACTIONS_STYLE}>{actions}</div>}
+      <span role="status" aria-live="polite" style={VISUALLY_HIDDEN}>
+        {announcement}
+      </span>
+    </section>
+  )
+}
+
+/**
+ * The single-select rail: one line — the label, the chosen entity's NAME (its
+ * card is right there in the pool, ringed), any budget and the confirm pair. No
+ * disclosure, because there is nothing to fold, and no live region: the pool
+ * is a radiogroup, and a radio already announces being checked.
+ */
+function ChosenBar({
+  chosenLabel,
+  schema,
+  selected,
+  budget,
+  actions,
+}: {
+  chosenLabel: string
+  schema: EntitySchemaName
+  selected: string[]
+  budget?: BudgetConfig | BudgetConfig[]
+  actions?: ReactNode
+}) {
+  const budgets = budgetList(budget)
+  const chosen = useRailEntries(schema, selected)[0]
+  const headingId = useId()
+  return (
+    <section aria-labelledby={headingId} className="su-searcher__rail" style={BAR_STYLE}>
+      <PageHeading variant="section" as="h2" id={headingId}>
+        {chosenLabel}
+      </PageHeading>
+      {chosen ? (
+        <span data-testid="rail-entry" style={BAR_CHOSEN_STYLE}>
+          {chosen.entity.name}
+        </span>
+      ) : (
+        <span style={EMPTY_STYLE}>Nothing {chosenLabel.toLowerCase()} yet.</span>
+      )}
+      {budgets.length > 0 && <BudgetSummary budgets={budgets} />}
+      {actions && <div style={BAR_ACTIONS_STYLE}>{actions}</div>}
+    </section>
+  )
+}
+
+/** The collapsed band's budget: one running-text `Stat` per track, red when over. */
+function BudgetSummary({ budgets }: { budgets: BudgetConfig[] }) {
+  return (
+    <p style={BUDGET_SUMMARY_STYLE}>
+      {budgets.map((b) => (
+        <span key={b.label} style={{ color: b.used > b.max ? color.statusBad : color.ink }}>
+          <Stat
+            orientation="horizontal"
+            surface="plain"
+            label={b.label}
+            value={b.used}
+            max={b.max}
+            className={capsLabel({ size: 'badge', tracking: 'caps' })}
+          />
+        </span>
+      ))}
+    </p>
   )
 }
 
