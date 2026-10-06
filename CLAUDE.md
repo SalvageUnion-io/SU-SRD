@@ -7,7 +7,7 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **39 of them** (ADR-001–ADR-039). **Read an ADR's `## Status` header first**: several are superseded or merged, recorded only there (ADR-001 → ADR-030; ADR-004 → ADR-036; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035; ADR-015 §1, §4 → ADR-038). The three that govern:
+- [`docs/adrs/`](docs/adrs/) — architecture decision records. **Read an ADR's `## Status` header first**: a superseded or merged ADR says so only there, and [`docs/README.md`](docs/README.md) tabulates them. The three that govern:
   - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops reference: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
@@ -23,7 +23,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321) and `itun` (5173) in the browser preview. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `ladle` (61000) in the browser preview. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 

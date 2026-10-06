@@ -468,7 +468,7 @@ const OVER_BUDGET: Record<string, number> = {
   'apps/discord-bot/CLAUDE.md': 8_337,
   'apps/itun/CLAUDE.md': 13_806,
   'apps/srd/CLAUDE.md': 11_799,
-  'CLAUDE.md': 12_391,
+  'CLAUDE.md': 12_192,
   'packages/component-lib/CLAUDE.md': 16_132,
   'packages/salvageunion-reference/CLAUDE.md': 9_361,
 }
