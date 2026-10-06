@@ -23,10 +23,10 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { humanExpiry } from '../../lib/games/inviteExpiry'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { failureMessage } from '../shared/useConfirm'
 import { GamePanel } from './GamePanel'
-import { humanExpiry } from './InvitePanel'
 
 const PLACE = { marginTop: tokens.space[20] } satisfies CSSProperties
 

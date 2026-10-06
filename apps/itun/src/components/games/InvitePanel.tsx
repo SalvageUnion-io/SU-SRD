@@ -14,6 +14,7 @@ import type { FunctionReturnType } from 'convex/server'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { humanExpiry } from '../../lib/games/inviteExpiry'
 import { ConvexPending } from '../shared/ConvexPending'
 
 /**
@@ -33,13 +34,6 @@ import { ConvexPending } from '../shared/ConvexPending'
  *     more people can read it than you intend, because joining hands over
  *     read access to every crewmate's sheet (ADR-030 §5).
  */
-
-export function humanExpiry(expiresAt: number | null): string {
-  if (expiresAt === null) return 'no expiry'
-  const days = Math.ceil((expiresAt - Date.now()) / (1000 * 60 * 60 * 24))
-  if (days <= 0) return 'expired'
-  return `${days} ${days === 1 ? 'day' : 'days'} left`
-}
 
 function humanUses(usesRemaining: number | null): string {
   if (usesRemaining === null) return 'unlimited uses'
