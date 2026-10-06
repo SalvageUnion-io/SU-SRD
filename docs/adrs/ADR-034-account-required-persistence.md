@@ -207,8 +207,9 @@ config.
 Device preferences are exempt from decision 2, and the exemption is narrow. A
 preference qualifies only when losing it costs the user nothing but a moment's
 re-adjustment: which container is active, dashboard display preferences, the
-"you have unexported changes" nudge, the one-time claim marker, ephemeral mount
-state. These may stay in `localStorage`.
+"you have unexported changes" nudge, the one-time claim marker, ~~ephemeral mount
+state~~. These may stay in `localStorage`. **Amended by
+[ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md):** mount state becomes Game data, saved on the pilot's seat.
 
 **A preference that is expensive to lose is data.** If the list ever grows to
 include something a user would be annoyed to re-create, that is the signal it

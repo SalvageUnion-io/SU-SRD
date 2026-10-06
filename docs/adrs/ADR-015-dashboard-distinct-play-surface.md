@@ -10,6 +10,14 @@ This is the play-surface instance of the governing surface taxonomy in
 ADRs 016–020 recorded this surface's sub-decisions; they are merged below as
 **Dashboard decisions**, and those five files are stubs pointing here.
 
+**Amended by [ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md)** (accepted, not yet built). Decision 1, the rotary
+Dial, is replaced by Major and Minor slots and a tabbed display. Decision 4's
+ephemeral play state is reversed: play state becomes a per-pilot seat saved on
+the Game, and the Dashboard becomes Game-only, needing a Mediator. Decision 4's
+other half (mount never on a pilot or mech record) and decisions 2, 3 and 5
+stand. Decisions 1 and 4 still describe the code until the plan in
+[dashboard-redesign.md](../architecture/dashboard-redesign.md) lands.
+
 ## Context
 
 ITUN's live sheet fuses two moments with opposite interaction grammars: editing a

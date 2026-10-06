@@ -1,7 +1,11 @@
 # Dashboard redesign: the Flight Deck
 
 > **Status:** Plan, dated 2026-10-06. Nothing here is built. The product
-> decisions in §2 and the answers in §8 were made by the product owner.
+> decisions in §2 and the answers in §8 were made by the product owner. The
+> decision is recorded in
+> [ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md). The
+> work is tracked in the [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7), with one issue
+> per layer in §5.
 >
 > Wireframes (round 2, the chosen layout):
 > <https://claude.ai/artifact/A2UW8etgN4fzRexbsjacJt>. Round 1 compared three
@@ -183,23 +187,24 @@ to show.
 
 | # | Layer | Contents | Gate |
 | --- | --- | --- | --- |
-| 0 | Decision | ADR-038 (§6). Status notes on ADR-015, ADR-019, ADR-029, ADR-030, ADR-034. This plan registered in `docs/README.md`. Docs only. | `doc-drift` passes; root `CLAUDE.md` stays within its size budget (§6) |
-| 1 | Seat table | The `seats` table and indexes, `src/lib/schemas/seat.ts`, the union parity test. No functions. This is the one-way step, so it lands alone. | `convex-codegen` check; parity test |
-| 2 | Game-only entry | Route re-keyed to the pilot, the refusal shells, the redirect from mech URLs, Play on the Game roster (only with a Mediator), chooser and `dashboardLaunch.ts` retired. Still on `playStateStore`. | Route tests for each refusal (anonymous, shelf pilot, non-member, no Mediator, Mediator removed while open); `GameRoster` test |
-| 3 | Seats live | `convex/seats.ts` (query, then board, dismount, eject, setRange, toggleEffect, setResolving), with cleanup in every path in §3. `useSeat` hook with optimistic updates. Mount, range and effects read from the seat. Module added to `test/convex/harness.ts`. | Convex tests: non-owner, non-member and other-player's-mech refused; cleanup on delete and move; two seats per member. `convex-callers` passes because the hook calls every function. |
-| 4 | Slot row | `SlotRow`, Major and Minor forms of all three entities, ⤢ overlay. Dial and its config, prefs store and stories deleted. Ladle stories for each slot in each state. | Existing band rules tests ported; a test that slots follow mount and Downtime |
-| 5 | Board control | `BoardControl` and its menu: own, unclaimed spare ("Claim and board", with a confirm), other player's, destroyed, boarded elsewhere, no assigned mech, no crawler. | One test per disabled reason; claim-and-board writes the claim before the seat |
-| 6 | Display tabs and Log | `DisplayTabs`, deck and resolve split, rolls written to the Game log and read by `LogTab`, resolve progress on the seat, shown live to the crew ("Rook is resolving Crush", then the roll) | Rolls round-trip test; reload mid-resolve keeps the roll; a second client sees the resolve live |
-| 7 | Crew tab | `CrewTab` from seats and `crew.vitals`, extended to return maxima computed on the server with the same `salvageunion-reference` rules the client uses (§8 A3). Attention rules from D6. | Visibility test: no Mediator-only data in the payload; server maxima match the client's derived maxima for the same record |
-| 8 | Downtime | `DowntimeWizard` on `downtime.state`, the step track, Crawler Major during Downtime, Mediator controls on the Dashboard. `playStateStore` deleted. | Two-client test: the Mediator advances and both clients follow |
-| 9 | Docs | Rewrite `dashboard.md` (keep section numbers, since code comments cite them) and the statements listed in §7. Delete this plan, or mark it done. | `doc-drift` |
+| 0 (#1050, done) | Decision | ADR-038 (§6). Status notes on ADR-015, ADR-019, ADR-029, ADR-030, ADR-034. This plan registered in `docs/README.md`. Docs only. | `doc-drift` passes; root `CLAUDE.md` stays within its size budget (§6) |
+| 1 (#1051) | Seat table | The `seats` table and indexes, `src/lib/schemas/seat.ts`, the union parity test. No functions. This is the one-way step, so it lands alone. | `convex-codegen` check; parity test |
+| 2 (#1052) | Game-only entry | Route re-keyed to the pilot, the refusal shells, the redirect from mech URLs, Play on the Game roster (only with a Mediator), chooser and `dashboardLaunch.ts` retired. Still on `playStateStore`. | Route tests for each refusal (anonymous, shelf pilot, non-member, no Mediator, Mediator removed while open); `GameRoster` test |
+| 3 (#1053) | Seats live | `convex/seats.ts` (query, then board, dismount, eject, setRange, toggleEffect, setResolving), with cleanup in every path in §3. `useSeat` hook with optimistic updates. Mount, range and effects read from the seat. Module added to `test/convex/harness.ts`. | Convex tests: non-owner, non-member and other-player's-mech refused; cleanup on delete and move; two seats per member. `convex-callers` passes because the hook calls every function. |
+| 4 (#1054) | Slot row | `SlotRow`, Major and Minor forms of all three entities, ⤢ overlay. Dial and its config, prefs store and stories deleted. Ladle stories for each slot in each state. | Existing band rules tests ported; a test that slots follow mount and Downtime |
+| 5 (#1055) | Board control | `BoardControl` and its menu: own, unclaimed spare ("Claim and board", with a confirm), other player's, destroyed, boarded elsewhere, no assigned mech, no crawler. | One test per disabled reason; claim-and-board writes the claim before the seat |
+| 6 (#1056) | Display tabs and Log | `DisplayTabs`, deck and resolve split, rolls written to the Game log and read by `LogTab`, resolve progress on the seat, shown live to the crew ("Rook is resolving Crush", then the roll) | Rolls round-trip test; reload mid-resolve keeps the roll; a second client sees the resolve live |
+| 7 (#1057) | Crew tab | `CrewTab` from seats and `crew.vitals`, extended to return maxima computed on the server with the same `salvageunion-reference` rules the client uses (§8 A3). Attention rules from D6. | Visibility test: no Mediator-only data in the payload; server maxima match the client's derived maxima for the same record |
+| 8 (#1058) | Downtime | `DowntimeWizard` on `downtime.state`, the step track, Crawler Major during Downtime, Mediator controls on the Dashboard. `playStateStore` deleted. | Two-client test: the Mediator advances and both clients follow |
+| 9 (#1059) | Docs | Rewrite `dashboard.md` (keep section numbers, since code comments cite them) and the statements listed in §7. Delete this plan, or mark it done. | `doc-drift` |
 
-Layers 4–8 touch disjoint components after layer 3, but they share
+Issue numbers are on SalvageUnion-io/SU-SRD. Layers 4–8 touch disjoint components after layer 3, but they share
 `Dashboard.tsx`. Keep them in order rather than in parallel.
 
 ## 6. The ADR (layer 0)
 
-ADR-038, "The Dashboard is a Game surface with shared play state". It:
+[ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md), "The
+Dashboard Is a Game Surface with Shared Play State", written in layer 0. It:
 
 - **Records the gate** (D9): the Dashboard needs a pilot in a Game that has a
   Mediator. Solo, shelf and anonymous play have no Dashboard and use the live
