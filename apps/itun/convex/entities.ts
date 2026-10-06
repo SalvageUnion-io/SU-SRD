@@ -4,7 +4,13 @@ import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import type { OwnableTable } from './model/entities'
-import { findSoftLink, loadOwnable, mutation, parseBody } from './model/entities'
+import {
+  findSoftLink,
+  loadOwnable,
+  mutation,
+  parseBody,
+  unsetCrawlerFields,
+} from './model/entities'
 import {
   gameHasCrawler,
   getMembership,
@@ -514,16 +520,27 @@ export const upsertByAppId = mutation({
  * the table runner. Creating one here would route around the rule that raising
  * a crawler is the table runner's act, which is precisely the hole the ownable
  * upsert had to be closed against.
+ *
+ * **Clearing a field needs `unset`.** A patch cannot carry `undefined`: the
+ * Convex client drops undefined object fields when it serialises the args, so
+ * `{ maxSpOverride: undefined }` (the ↺ revert of a pinned Max SP) arrived as
+ * `{}`, the merge kept the old value, and the pin came back on the next pull.
+ * The client names each cleared key in `unset` instead; each must be a field of
+ * the crawler schema, and the merged body still has to parse — so a required
+ * field cannot be unset either.
  */
 export const patchCrawlerByAppId = mutation({
-  args: { appId: v.string(), patch: v.any() },
+  args: { appId: v.string(), patch: v.any(), unset: v.optional(v.array(v.string())) },
   handler: async (ctx, args): Promise<void> => {
     const existing = await crawlerByAppId(ctx, args.appId)
     if (existing === null) return
 
     await assertMayEditCrawler(ctx, existing)
 
-    const merged = { ...(existing.body as Record<string, unknown>), ...(args.patch as object) }
+    const merged = unsetCrawlerFields(
+      { ...(existing.body as Record<string, unknown>), ...(args.patch as object) },
+      args.unset ?? []
+    )
     const body = parseBody('crawlers', merged)
 
     await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })

@@ -344,6 +344,69 @@ describe('the crawler is communal and merges per field', () => {
     expect(body.id).toBe('c1')
   })
 
+  test('a cleared field reaches the server: ↺ on a pinned Max SP drops the pin', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+    const crawlerId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', {
+          gameId,
+          ownerId: null,
+          appId: 'c1',
+          body: crawlerBody(),
+          updatedAt: 1,
+        })
+    )
+    const crawlerBodyOnServer = async () =>
+      (await t.run(async (ctx) => await ctx.db.get(crawlerId)))?.body as
+        | Record<string, unknown>
+        | undefined
+
+    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
+      patch: { maxSpOverride: 30 },
+    })
+    expect((await crawlerBodyOnServer())?.maxSpOverride).toBe(30)
+
+    // The revert as the client used to send it. The Convex client drops an
+    // undefined field when it serialises the args, so this is `{}` on the wire
+    // — and the pin survives. That is the bug `unset` exists for.
+    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
+      patch: { maxSpOverride: undefined },
+    })
+    expect((await crawlerBodyOnServer())?.maxSpOverride).toBe(30)
+
+    // The revert as the client sends it now.
+    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
+      patch: { maxSpOverride: undefined },
+      unset: ['maxSpOverride'],
+    })
+    const body = await crawlerBodyOnServer()
+    expect(body && 'maxSpOverride' in body).toBe(false)
+    // Only the named field went; the rest of the body is untouched.
+    expect(body?.name).toBe('#430')
+
+    // An unknown name is refused rather than silently stripping a key…
+    await expect(
+      organizer.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c1',
+        patch: {},
+        unset: ['notAField'],
+      })
+    ).rejects.toThrow(/cannot unset unknown field "notAField"/)
+    // …and a required field cannot be unset: the merged body must still parse.
+    await expect(
+      organizer.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c1',
+        patch: {},
+        unset: ['name'],
+      })
+    ).rejects.toThrow(/Invalid crawlers payload/)
+    expect((await crawlerBodyOnServer())?.name).toBe('#430')
+  })
+
   test('a non-member cannot touch the crawler', async () => {
     const t = testConvex()
     const { gameId } = await seedGame(t)

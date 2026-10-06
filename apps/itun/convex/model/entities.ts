@@ -90,6 +90,30 @@ export function parseBody(table: ParsedTable, body: unknown): unknown {
 }
 
 /**
+ * Remove the named fields from a crawler body, refusing any name the crawler
+ * schema does not define.
+ *
+ * The other half of `patchCrawlerByAppId`'s `unset`: a field patch cannot clear
+ * a field by sending `undefined`, because the Convex client drops undefined
+ * object fields on the wire. Only names the schema knows are accepted, so this
+ * cannot be used to strip arbitrary keys; whether a removal leaves a valid body
+ * (it cannot drop a required field) is still `parseBody`'s call.
+ */
+export function unsetCrawlerFields(
+  body: Record<string, unknown>,
+  keys: readonly string[]
+): Record<string, unknown> {
+  const next = { ...body }
+  for (const key of keys) {
+    if (!Object.hasOwn(CrawlerSchema.shape, key)) {
+      throw new Error(`Invalid crawlers patch: cannot unset unknown field "${key}"`)
+    }
+    delete next[key]
+  }
+  return next
+}
+
+/**
  * Load an ownable entity from a client-supplied id string, or throw.
  *
  * See the module header for why `normalizeId` is not optional here. `table`

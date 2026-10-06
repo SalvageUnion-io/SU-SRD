@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { CONNECTION_MODES } from '../../lib/connection/connectionMode'
 import {
   backendForMode,
+  crawlerPatchArgs,
   requireWritableBackend,
   selectBackend,
   setEntityBackendAuthState,
@@ -165,5 +166,22 @@ describe('backendForMode — the whole rule', () => {
     // See `lib/account/__tests__/legacyMigration.test.ts`.
     expect(backendForMode('solo')).toBe('memory')
     expect(backendForMode('connected')).toBe('remote')
+  })
+})
+
+describe('a crawler field patch names the fields it clears', () => {
+  // The Convex client drops undefined object fields on the wire, so a cleared
+  // field (the ↺ revert of a pinned Max SP) has to travel as `unset` — see the
+  // server side in `test/convex/entities.test.ts`.
+  test('an undefined value becomes an unset key', () => {
+    expect(crawlerPatchArgs('c1', { maxSpOverride: undefined, scrap: 4 })).toEqual({
+      appId: 'c1',
+      patch: { maxSpOverride: undefined, scrap: 4 },
+      unset: ['maxSpOverride'],
+    })
+  })
+
+  test('a patch that clears nothing sends no unset', () => {
+    expect(crawlerPatchArgs('c1', { scrap: 4 })).toEqual({ appId: 'c1', patch: { scrap: 4 } })
   })
 })

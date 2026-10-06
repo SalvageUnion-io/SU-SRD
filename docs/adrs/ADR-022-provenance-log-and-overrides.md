@@ -16,6 +16,10 @@ in the same field the rules derivation reads. See
 hard prerequisite for
 [ADR-029](ADR-029-contribution-model-and-stat-provenance.md).
 
+**Amended 2026-10** — a pin equal to its derivation is not an override, and the
+breakdown's `overridden` flag is the only thing any surface reads. See
+[Zero-delta pins](#amendment-2026-10-a-zero-delta-pin-is-not-an-override).
+
 ## Context
 
 [ADR-021](ADR-021-itun-surface-taxonomy.md) makes the **Live Sheet** a Free-Edit
@@ -218,3 +222,61 @@ inspection and none of them behavioural changes to the log's design:
 - `entityStore.transfer()` performs cross-entity writes and **never calls
   `emitChangeLog`**, so cargo stow/load and scrap hand-offs leave no trace. This is
   the one true hole in the chokepoint guarantee.
+
+## Amendment (2026-10): a zero-delta pin is not an override
+
+### What was wrong
+
+Item 2 of the 2026-07 amendment — `overridden` is an explicit flag, and
+`VitalGauge` must not decide it by comparing two numbers — was never applied to
+the gauge. Two definitions of "overridden" shipped side by side: the breakdown
+said "a pin is stored" (`typeof override === 'number'`), while `VitalGauge`
+said "the caller's baseline differs from `max`". They disagree exactly when a
+stored pin equals its derivation, which is what happens when upgrades catch up
+with a pin (Stat Training from a higher-tier crawler, Bionic Arms, …):
+
+- the ledger showed `Derived 14 / Override 14 — pinned by hand`, while the gauge
+  showed a plain numeral with no `*` and no ↺;
+- the pin could not be removed — no ↺, and the gauge swallowed a commit of the
+  number already shown — so typing the derived value back in did nothing;
+- the stored pin stopped tracking derivation, and the next change (another
+  upgrade, a lower-tier crawler) brought it back as a rust override the player
+  believed they had deleted.
+
+### The amendment
+
+1. **A pin that adds +0 is not a modification** — the player's rule: "If a
+   bonus would provide +0, nullify it for the purposes of modification." The
+   breakdown's `overridden` is true only when a stored pin differs from what the
+   rules derive right now (both floored at 0, as displayed). When it is false,
+   `total` is the derived value and the ledger has no Derived/Override lines.
+2. **One flag, read everywhere.** `VitalGauge` takes the breakdown and reads
+   `overridden` — the `--tone-deep` numeral, the `*`, the ↺, the "overridden
+   from N" caption and the ledger all follow it, on the Live Sheets and the
+   Dashboard dials alike, so they cannot disagree. ↺ is offered whenever the
+   value renders as overridden.
+3. **Never written.** The write path normalises with the same predicate
+   (`pinFor` in `lib/rules/derivedStats.ts`): typing the derived value stores no
+   pin, and clears one that is stored. The gauge reports every committed max so
+   this works even when the pin already reads as derived; the sheet skips a
+   write that would change nothing.
+4. **A pin the upgrades caught up with stays stored, and dormant.** It is still
+   the player's absolute pin — nothing writes it away behind their back, from a
+   render or from another surface — but while it adds +0 it reads exactly like
+   the derived value. If the derivation later moves past it, it is a modification
+   again: flagged, explained, and one ↺ away from tracking the rules. Removing a
+   pin is always an explicit act (↺, or typing the derived value), and whether a
+   number reads as modified is a pure function of the stored pin and the current
+   derivation, identical on every surface.
+
+### Also fixed alongside
+
+The crawler's ↺ never reached the server. A crawler write is a field patch
+merged on the server (ADR-030 §5), and the Convex client drops `undefined`
+object fields when it serialises the args, so `{ maxSpOverride: undefined }`
+arrived as `{}` and the pin survived — to return the next time the row was
+pulled. `patchCrawlerByAppId` now takes `unset: string[]`, the names of cleared
+fields, each checked against the crawler schema; the client derives it from the
+patch's undefined keys. Pilots and mechs were unaffected: they send the whole
+body, so a cleared key is simply absent from it.
+
