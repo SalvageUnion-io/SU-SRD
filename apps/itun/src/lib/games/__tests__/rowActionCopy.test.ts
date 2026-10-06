@@ -43,6 +43,79 @@ describe('rowActionCopy', () => {
     ).toContain('Their crawler assignment in Tenacity is cleared')
   })
 
+  test('a move into a game names each assignment it clears, and that it will not come back', () => {
+    const copy = ROW_ACTION_COPY.enterGame({
+      name: 'Mira Cole',
+      kind: 'pilot',
+      game: 'Union Crawler #430',
+      cleared: [
+        { type: 'pilot-to-crawler', other: { kind: 'crawler', name: 'Big Sal' } },
+        { type: 'mech-to-pilot', other: { kind: 'mech', name: 'Thresher' } },
+      ],
+    })
+    expect(copy.title).toBe('Move Mira Cole into Union Crawler #430?')
+    // The pairing first, then the crew, whatever order the links came in.
+    expect(copy.body).toEqual([
+      "Mira Cole joins Union Crawler #430's roster.",
+      'Their pairing with Thresher (still in My Stuff) is cleared.',
+      "They leave Big Sal's crew.",
+      "You can move them back to My Stuff later, but you'll need to make those assignments again.",
+    ])
+    expect(copy.confirmLabel).toBe('Move')
+
+    const mech = ROW_ACTION_COPY.enterGame({
+      name: 'Thresher',
+      kind: 'mech',
+      game: 'Union Crawler #430',
+      cleared: [{ type: 'mech-to-crawler', other: { kind: 'crawler', name: 'Big Sal' } }],
+    })
+    expect(mech.body).toContain("It leaves Big Sal's crew.")
+    expect(said(mech)).toContain('make that assignment again')
+  })
+
+  test('a crawler moving into a game names the crew it leaves behind', () => {
+    const enter = (cleared: Parameters<typeof ROW_ACTION_COPY.enterGame>[0]['cleared']) =>
+      ROW_ACTION_COPY.enterGame({ name: 'Big Sal', kind: 'crawler', game: 'Tenacity', cleared })
+    expect(
+      enter([
+        { type: 'pilot-to-crawler', other: { kind: 'pilot', name: 'Mira Cole' } },
+        { type: 'pilot-to-crawler', other: { kind: 'pilot', name: 'Vex Arlo' } },
+        { type: 'mech-to-crawler', other: { kind: 'mech', name: 'Thresher' } },
+      ]).body[1]
+    ).toBe('Mira Cole, Vex Arlo and Thresher (still in My Stuff) leave its crew.')
+    expect(
+      enter([{ type: 'mech-to-crawler', other: { kind: 'mech', name: 'Thresher' } }]).body[1]
+    ).toBe('Thresher (still in My Stuff) leaves its crew.')
+  })
+
+  test('a move into a game still reads as sentences when it cannot name an end or the game', () => {
+    const copy = ROW_ACTION_COPY.enterGame({
+      name: 'Mira Cole',
+      kind: 'pilot',
+      game: null,
+      cleared: [
+        { type: 'mech-to-pilot', other: { kind: 'mech', name: null } },
+        { type: 'pilot-to-crawler', other: { kind: 'crawler', name: null } },
+      ],
+    })
+    expect(copy.title).toBe('Move Mira Cole into this game?')
+    expect(copy.body.slice(1, 3)).toEqual([
+      'Their pairing with a mech is cleared.',
+      "They leave their crawler's crew.",
+    ])
+    expect(
+      ROW_ACTION_COPY.enterGame({
+        name: 'Big Sal',
+        kind: 'crawler',
+        game: 'Tenacity',
+        cleared: [
+          { type: 'pilot-to-crawler', other: { kind: 'pilot', name: 'Mira Cole' } },
+          { type: 'mech-to-crawler', other: { kind: 'mech', name: null } },
+        ],
+      }).body[1]
+    ).toBe('Mira Cole (still in My Stuff) and 1 more leave its crew.')
+  })
+
   test('a copy names the build it will make', () => {
     expect(said(ROW_ACTION_COPY.copy('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
   })
@@ -71,6 +144,13 @@ describe('rowActionCopy', () => {
       ROW_ACTION_COPY.deleteFromGame('Vex Arlo'),
       ROW_ACTION_COPY.deleteBuild('Vex Arlo'),
       ROW_ACTION_COPY.scrap('#430 Tenacity'),
+      // It clears assignments: the same loss `leaveGame` names.
+      ROW_ACTION_COPY.enterGame({
+        name: 'Vex Arlo',
+        kind: 'pilot',
+        game: 'Tenacity',
+        cleared: [{ type: 'mech-to-pilot', other: { kind: 'mech', name: 'Thresher' } }],
+      }),
     ]) {
       expect(copy.tone).toBe('danger')
     }

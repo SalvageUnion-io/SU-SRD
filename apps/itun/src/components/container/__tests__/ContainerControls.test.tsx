@@ -9,10 +9,11 @@ import type { ComponentProps, ReactNode } from 'react'
  * What these pin: all three render nothing for somebody who is not signed in
  * (there is no second container to offer), all list the account's Games once
  * loaded, a move re-stamps `gameId` on the SAME entity rather than copying it,
- * a move OUT of a Game asks first (and does nothing until confirmed), a row
- * offers only the Games the server would accept for its kind, and a record in
- * a container the account cannot reach says so instead of reading as "in My
- * stuff". The personal shelf is "My Stuff" wherever a player reads it.
+ * a move OUT of a Game asks first (and does nothing until confirmed), a move
+ * INTO one asks only when it clears an assignment (ADR-037) and otherwise runs
+ * at once, a row offers only the Games the server would accept for its kind,
+ * and a record in a container the account cannot reach says so instead of
+ * reading as "in My Stuff".
  *
  * Signed in here means a real `ConnectionProvider` over a mocked Convex client,
  * whose `mutation` records the server commit a move makes.
@@ -21,7 +22,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
+import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
 let authed = true
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
@@ -144,6 +145,36 @@ async function cachedPilot(gameId: string | null) {
 
 const gameIdOf = () => useEntityStore.getState().list('pilot')[0]?.gameId
 
+/** Thresher, a mech on the shelf, flying Mira Cole (who must be cached first). */
+async function pairedWithShelfMech() {
+  await useEntityStore
+    .getState()
+    .adopt('mech', mechFixture({ id: 'm1', name: 'Thresher', gameId: null }))
+  await useEntityStore.getState().adopt('softLink', {
+    id: 'link-pairing',
+    type: 'mech-to-pilot',
+    from: { type: 'mech', id: 'm1' },
+    to: { type: 'pilot', id: 'p1' },
+    createdAt: FIXTURE_NOW,
+  })
+}
+
+/** Big Sal, a crawler on the shelf, crewed by Mira Cole (who must be cached first). */
+async function crewingShelfCrawler() {
+  await useEntityStore
+    .getState()
+    .adopt('crawler', crawlerFixture({ id: 'c1', name: 'Big Sal', gameId: null }))
+  await useEntityStore.getState().adopt('softLink', {
+    id: 'link-crew',
+    type: 'pilot-to-crawler',
+    from: { type: 'pilot', id: 'p1' },
+    to: { type: 'crawler', id: 'c1' },
+    createdAt: FIXTURE_NOW,
+  })
+}
+
+const linkIds = () => useEntityStore.getState().softLinks.map((l) => l.id)
+
 describe('MoveToContainerControl', () => {
   test('renders nothing for somebody who is not signed in', () => {
     authed = false
@@ -165,7 +196,7 @@ describe('MoveToContainerControl', () => {
     })
 
     await waitFor(() => expect(changed).toBe(1))
-    // Into a Game from the Shelf takes nothing from anybody: no confirm.
+    // Into a Game from the Shelf, with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
     const pilots = useEntityStore.getState().list('pilot')
     // One entity, moved — never a copy. A copy would leave two of the same
@@ -238,6 +269,64 @@ describe('MoveToContainerControl', () => {
     const select = screen.getByLabelText('Move to a game or My Stuff') as HTMLSelectElement
     expect(select.value).toBe('game:phantom')
     expect(select.selectedOptions[0]?.textContent).toBe('Unknown game')
+  })
+})
+
+describe('MoveToContainerControl — moving into a Game clears an assignment', () => {
+  const select = () => screen.getByLabelText('Move to a game or My Stuff') as HTMLSelectElement
+
+  test('asks first, naming what is cleared, and writes nothing until confirmed', async () => {
+    const pilot = await cachedPilot(null)
+    await pairedWithShelfMech()
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(select(), { target: { value: 'game:g1' } })
+
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Move Mira Cole into Union Crawler #430?')
+    expect(dialog.textContent).toContain(
+      'Their pairing with Thresher (still in My Stuff) is cleared.'
+    )
+    expect(gameIdOf()).toBeNull()
+    expect(linkIds()).toEqual(['link-pairing'])
+    expect(serverWrites).toHaveLength(0)
+  })
+
+  test('Cancel leaves the build, its pairing and the select where they were', async () => {
+    const pilot = await cachedPilot(null)
+    await pairedWithShelfMech()
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(select(), { target: { value: 'game:g1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(gameIdOf()).toBeNull()
+    expect(linkIds()).toEqual(['link-pairing'])
+    expect(serverWrites).toHaveLength(0)
+    expect(select().value).toBe('shelf')
+  })
+
+  test('confirming moves it, and clears exactly what the dialog named', async () => {
+    const pilot = await cachedPilot(null)
+    await pairedWithShelfMech()
+    let changed = 0
+    wrap(
+      <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
+    )
+
+    fireEvent.change(select(), { target: { value: 'game:g1' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+    })
+
+    await waitFor(() => expect(changed).toBe(1))
+    expect(gameIdOf()).toBe('g1')
+    expect(linkIds()).toEqual([])
+    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+      appId: 'p1',
+      gameId: 'g1',
+    })
   })
 })
 
@@ -332,6 +421,19 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
   })
 })
 
+type RowProps = Omit<ComponentProps<typeof MoveToGameSelect>, 'confirm'>
+
+/** The select as the Roster mounts it: the confirm owned by the page. */
+function RowHarness(props: RowProps) {
+  const { confirm, dialog } = useConfirm()
+  return (
+    <>
+      <MoveToGameSelect {...props} confirm={confirm} />
+      {dialog}
+    </>
+  )
+}
+
 describe('MoveToGameSelect — "Move to game…" on a My Stuff row', () => {
   const RUN_AND_NOT = [
     { _id: 'g1', name: 'Run by me', tableRunner: true },
@@ -345,11 +447,7 @@ describe('MoveToGameSelect — "Move to game…" on a My Stuff row', () => {
   test('renders nothing for somebody who is not signed in', () => {
     authed = false
     const { container } = wrap(
-      <MoveToGameSelect
-        entityType="pilot"
-        entityId="p1"
-        entity={{ name: 'Mira Cole', gameId: null }}
-      />
+      <RowHarness entityType="pilot" entityId="p1" entity={{ name: 'Mira Cole', gameId: null }} />
     )
     expect(container.textContent).toBe('')
   })
@@ -358,12 +456,8 @@ describe('MoveToGameSelect — "Move to game…" on a My Stuff row', () => {
     setQueryAnswers({ 'games:listMine': RUN_AND_NOT })
     wrap(
       <>
-        <MoveToGameSelect
-          entityType="pilot"
-          entityId="p1"
-          entity={{ name: 'Mira', gameId: null }}
-        />
-        <MoveToGameSelect entityType="mech" entityId="m1" entity={{ name: 'Jaw', gameId: null }} />
+        <RowHarness entityType="pilot" entityId="p1" entity={{ name: 'Mira', gameId: null }} />
+        <RowHarness entityType="mech" entityId="m1" entity={{ name: 'Jaw', gameId: null }} />
       </>
     )
     expect(optionsOf('Mira')).toEqual(['Move to game…', 'Run by me', 'Not mine to run'])
@@ -372,37 +466,27 @@ describe('MoveToGameSelect — "Move to game…" on a My Stuff row', () => {
 
   test('a crawler only into a Game I run — and with none, there is no control at all', () => {
     setQueryAnswers({ 'games:listMine': RUN_AND_NOT })
-    wrap(
-      <MoveToGameSelect
-        entityType="crawler"
-        entityId="c1"
-        entity={{ name: 'Hulk', gameId: null }}
-      />
-    )
+    wrap(<RowHarness entityType="crawler" entityId="c1" entity={{ name: 'Hulk', gameId: null }} />)
     expect(optionsOf('Hulk')).toEqual(['Move to game…', 'Run by me'])
 
     cleanup()
     setQueryAnswers({ 'games:listMine': [RUN_AND_NOT[1]] })
     const { container } = wrap(
-      <MoveToGameSelect
-        entityType="crawler"
-        entityId="c1"
-        entity={{ name: 'Hulk', gameId: null }}
-      />
+      <RowHarness entityType="crawler" entityId="c1" entity={{ name: 'Hulk', gameId: null }} />
     )
     expect(container.textContent).toBe('')
   })
 
   test('moving in asks nothing and re-homes the same entity on the server', async () => {
     const pilot = await cachedPilot(null)
-    wrap(<MoveToGameSelect entityType="pilot" entityId="p1" entity={pilot} />)
+    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
 
     fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
       target: { value: 'game:g2' },
     })
 
     await waitFor(() => expect(gameIdOf()).toBe('g2'))
-    // Into a Game takes nothing from anybody: no confirm.
+    // Into a Game with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(
       useEntityStore
@@ -410,6 +494,61 @@ describe('MoveToGameSelect — "Move to game…" on a My Stuff row', () => {
         .list('pilot')
         .map((p) => p.id)
     ).toEqual(['p1'])
+    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+      appId: 'p1',
+      gameId: 'g2',
+    })
+  })
+
+  test('a move that clears an assignment asks first and writes nothing until confirmed', async () => {
+    const pilot = await cachedPilot(null)
+    await crewingShelfCrawler()
+    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
+      target: { value: 'game:g2' },
+    })
+
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Move Mira Cole into The Long Haul?')
+    expect(dialog.textContent).toContain("They leave Big Sal's crew.")
+    expect(gameIdOf()).toBeNull()
+    expect(linkIds()).toEqual(['link-crew'])
+    expect(serverWrites).toHaveLength(0)
+  })
+
+  test('Cancel leaves the row as it was', async () => {
+    const pilot = await cachedPilot(null)
+    await crewingShelfCrawler()
+    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    const select = screen.getByLabelText('Move Mira Cole to a game') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'game:g2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(gameIdOf()).toBeNull()
+    expect(linkIds()).toEqual(['link-crew'])
+    expect(serverWrites).toHaveLength(0)
+    // Back on the placeholder: no move is chosen.
+    expect(select.value).toBe('')
+  })
+
+  test('confirming moves it and clears the crew link', async () => {
+    const pilot = await cachedPilot(null)
+    await crewingShelfCrawler()
+    wrap(<RowHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move Mira Cole to a game'), {
+      target: { value: 'game:g2' },
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move' }))
+    })
+
+    await waitFor(() => expect(gameIdOf()).toBe('g2'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(linkIds()).toEqual([])
     expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
       appId: 'p1',
       gameId: 'g2',

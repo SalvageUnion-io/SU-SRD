@@ -431,7 +431,12 @@ export function Roster() {
                           linkAs={AppLink}
                           onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
                           actions={
-                            <MoveToGameSelect entityType="pilot" entityId={p.id} entity={p} />
+                            <MoveToGameSelect
+                              entityType="pilot"
+                              entityId={p.id}
+                              entity={p}
+                              confirm={confirm}
+                            />
                           }
                           stats={pilotStats(p.classRef, p.callsign)}
                           metaLine={metaParts([
@@ -488,7 +493,12 @@ export function Roster() {
                           linkAs={AppLink}
                           onDeleteClick={() => openDeleteDialog('mech', m.id, m.name)}
                           actions={
-                            <MoveToGameSelect entityType="mech" entityId={m.id} entity={m} />
+                            <MoveToGameSelect
+                              entityType="mech"
+                              entityId={m.id}
+                              entity={m}
+                              confirm={confirm}
+                            />
                           }
                           // The chassis is a STAT (`CHASSIS | Iron Mongrel`), not
                           // a caption chip: it is a named property of the mech,
@@ -533,7 +543,12 @@ export function Roster() {
                           onDeleteClick={() => openDeleteDialog('crawler', c.id, c.name)}
                           // Only into a Game you run (ADR-037); with none, no control.
                           actions={
-                            <MoveToGameSelect entityType="crawler" entityId={c.id} entity={c} />
+                            <MoveToGameSelect
+                              entityType="crawler"
+                              entityId={c.id}
+                              entity={c}
+                              confirm={confirm}
+                            />
                           }
                           stats={crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)}
                           metaLine={metaParts([

@@ -39,12 +39,12 @@ import * as db from '../lib/db/index'
 import { makeMemoryStore } from '../lib/db/memoryStore'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
+import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
 import {
   CROSS_CONTAINER_REFUSAL,
   conflictingLinks,
   endsMatchType,
-  linksBrokenByMove,
   sameLink,
 } from '../lib/links/linkRules'
 import type { Crawler } from '../lib/schemas/crawler'
@@ -473,11 +473,9 @@ async function pruneLinksAfterMove(
   set: (fn: (state: EntityState) => Partial<EntityState>) => void,
   moved: { type: Exclude<EntityType, 'softLink'>; id: string; gameId?: string | null }
 ): Promise<void> {
-  const state = get()
-  const broken = linksBrokenByMove(state.softLinks, moved, containerOf(moved), (ref) => {
-    const entity = state.get(ref.type, ref.id)
-    return entity === null ? null : containerOf(entity)
-  })
+  // The same read a move's confirm makes (`assignmentsClearedByMove`), so what
+  // the dialog named is what goes.
+  const broken = linksClearedByMove(get(), moved, containerOf(moved))
   if (broken.length === 0) return
   const brokenIds = new Set(broken.map((l) => l.id))
   await writeLinksLocally(null, [...brokenIds])
