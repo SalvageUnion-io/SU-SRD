@@ -121,6 +121,22 @@ export const inviteCommand = {
       return
     }
 
+    const seat = invite.role === 'mediator' ? ' as its Mediator' : ''
+    const link = joinUrl(webUrl, invite.code)
+
+    // The server says no fresh DM: this person was DMed this invite recently.
+    // Re-offer the link to the Organizer and leave the invitee alone.
+    if (!invite.deliver) {
+      await interaction.editReply({
+        content: [
+          `**${invite.inviteeName}** already has an invite to **${invite.gameName}**${seat}, and I DMed it to them recently, so I haven’t sent it again.`,
+          'It waits on their In The Union Now home page, or send them this link — only their Discord account can use it:',
+          link,
+        ].join('\n'),
+      })
+      return
+    }
+
     const dm = await interaction.directMessage(invite.inviteeDiscordId, {
       components: [toContainer(buildInviteDm(invite, webUrl))],
       flags: MessageFlags.IsComponentsV2,
@@ -136,14 +152,13 @@ export const inviteCommand = {
     // reply already tells the Organizer what happened.
     await client.inviteDelivery(interaction.user.id, invite.code, dm.ok ? 'sent' : 'failed', detail)
 
-    const seat = invite.role === 'mediator' ? ' as its Mediator' : ''
     const again = invite.reused ? 'They already had an invite, so I sent it again. ' : ''
     const content = dm.ok
       ? `${again}Invited **${invite.inviteeName}** to **${invite.gameName}**${seat}. I sent them a DM with the link, and it waits on their In The Union Now home page too.`
       : [
           `${again}Invited **${invite.inviteeName}** to **${invite.gameName}**${seat}, but I couldn’t DM them (${detail}).`,
           'Send them this link — only their Discord account can use it:',
-          joinUrl(webUrl, invite.code),
+          link,
           'It also waits on their In The Union Now home page once they sign in.',
         ].join('\n')
     await interaction.editReply({ content })

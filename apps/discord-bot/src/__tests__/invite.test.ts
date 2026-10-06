@@ -37,6 +37,7 @@ const INVITED: InvitedResult = {
   grantCount: 0,
   expiresAt: null,
   reused: false,
+  deliver: true,
 }
 
 type Calls = {
@@ -158,6 +159,18 @@ describe('/su invite', () => {
     expect(fake.edits.at(-1)?.content).toMatch(/already had an invite, so I sent it again/)
   })
 
+  test('someone DMed this invite recently is not DMed again; the Organizer gets the link', async () => {
+    const calls = connect({ kind: 'ok', value: { ...INVITED, reused: true, deliver: false } })
+    const fake = run()
+    await inviteCommand.execute(fake.interaction)
+
+    expect(fake.directMessages).toHaveLength(0)
+    expect(calls.delivery).toHaveLength(0)
+    const reply = fake.edits.at(-1)?.content ?? ''
+    expect(reply).toContain('haven’t sent it again')
+    expect(reply).toContain('https://intheunionnow.com/join/A1B2C3D4')
+  })
+
   test('someone already seated is reported, and nobody is DMed', async () => {
     connect({
       kind: 'ok',
@@ -219,6 +232,11 @@ describe('the DM', () => {
     expect(text).toContain('2 characters are waiting for you.')
     expect(text).toContain('It expires in 7 days.')
     expect(text).toContain('yours alone')
+  })
+
+  test('under a day left reads as "within a day", never "today"', () => {
+    const dm = buildInviteDm({ ...INVITED, expiresAt: NOW + 23 * 60 * 60 * 1000 }, 'https://x', NOW)
+    expect(JSON.stringify(dm)).toContain('It expires within a day.')
   })
 
   test('a Game name cannot restyle the message', () => {

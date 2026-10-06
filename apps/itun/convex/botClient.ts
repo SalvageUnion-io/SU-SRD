@@ -420,6 +420,12 @@ export const recordRoll = internalMutation({
   },
 })
 
+/** How long after a delivered `/su invite` DM the same invite is not DMed again. */
+const DM_COOLDOWN_MS = 1000 * 60 * 60 * 24
+
+/** How long a DM marked as sending is assumed to be on its way. */
+const DM_IN_FLIGHT_MS = 1000 * 60
+
 /**
  * `/su invite @user` — mint an invite addressed to a Discord account (ADR-038).
  *
@@ -511,7 +517,20 @@ export const invite = internalMutation({
         },
         sourceInteractionId: parsed.interactionId,
       }))
-    await ctx.db.patch(row._id, { delivery: { state: 'queued', at: Date.now() } })
+
+    // One DM per invite per day. Re-running `/su invite` on somebody who
+    // already holds this invite re-offers the link to the Organizer, but must
+    // not become a way to make the bot DM a person on repeat; a DM still in
+    // flight counts as sent. Only a DM that will actually go out resets the
+    // delivery note — otherwise it keeps the outcome it already has.
+    const now = Date.now()
+    const recent = row.delivery
+    const deliver = !(
+      recent !== undefined &&
+      ((recent.state === 'sent' && recent.at > now - DM_COOLDOWN_MS) ||
+        (recent.state === 'queued' && recent.at > now - DM_IN_FLIGHT_MS))
+    )
+    if (deliver) await ctx.db.patch(row._id, { delivery: { state: 'queued', at: now } })
 
     return {
       ok: true,
@@ -525,6 +544,7 @@ export const invite = internalMutation({
       grantCount: row.grants?.length ?? 0,
       expiresAt: row.expiresAt ?? null,
       reused: live !== null,
+      deliver,
     }
   },
 })

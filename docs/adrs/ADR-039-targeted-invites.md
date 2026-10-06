@@ -82,6 +82,11 @@ their DMs — so failure is recorded on the invite (`delivery`), the Organizer i
 told privately and given the link to pass on, and nothing is posted in the
 channel on anyone's behalf.
 
+**At most one DM per invite per day.** Re-running `/su invite` on somebody who
+already holds a live invite re-offers its link to the Organizer, but the bot
+does not DM them again until a day after the last one was delivered — so the
+command cannot be used to make the bot message a person on repeat.
+
 **The DM is not the only way the invite arrives.** Because it is addressed to
 an account, the hub shows it to the addressee in an **Invitations** card
 (`invites.forMe`) the next time they open the app. A failed DM costs nothing.

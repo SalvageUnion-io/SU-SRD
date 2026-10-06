@@ -189,6 +189,12 @@ export type InviteResult =
       expiresAt: number | null
       /** True when a live invite to this person was re-sent rather than minted. */
       reused: boolean
+      /**
+       * Whether the bot should DM the invitee. False when this invite was DMed
+       * within the last day (or a DM is still on its way): re-running the
+       * command must not make the bot DM somebody on repeat.
+       */
+      deliver: boolean
     }
   | { outcome: 'already-member'; gameName: string; inviteeName: string }
 

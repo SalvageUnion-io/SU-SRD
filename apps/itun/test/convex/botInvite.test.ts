@@ -352,6 +352,74 @@ describe('botClient.invite', () => {
   })
 })
 
+describe('the DM cooldown', () => {
+  async function invited(t: Ctx, id: string) {
+    const result = await invite(t, { id })
+    if (!result.ok || result.outcome !== 'invited') throw new Error('expected an invite')
+    return result
+  }
+
+  test('a new invite is to be DMed', async () => {
+    const t = testConvex()
+    await seedBoundGame(t)
+    expect((await invited(t, 'interaction-1')).deliver).toBe(true)
+  })
+
+  test('once DMed, re-running the command does not DM again, and keeps the outcome', async () => {
+    const t = testConvex()
+    const { vex, gameId } = await seedBoundGame(t)
+    const first = await invited(t, 'interaction-1')
+    await t.mutation(internal.botClient.inviteDelivery, {
+      discordId: 'snowflake-vex',
+      code: first.code,
+      state: 'sent',
+    })
+
+    const again = await invited(t, 'interaction-2')
+    expect(again).toMatchObject({ code: first.code, reused: true, deliver: false })
+    const [row] = await vex.as.query(api.invites.list, { gameId })
+    expect(row?.delivery?.state).toBe('sent')
+  })
+
+  test('a DM still on its way counts as sent', async () => {
+    const t = testConvex()
+    await seedBoundGame(t)
+    await invited(t, 'interaction-1')
+    expect((await invited(t, 'interaction-2')).deliver).toBe(false)
+  })
+
+  test('a DM that failed may be tried again', async () => {
+    const t = testConvex()
+    await seedBoundGame(t)
+    const first = await invited(t, 'interaction-1')
+    await t.mutation(internal.botClient.inviteDelivery, {
+      discordId: 'snowflake-vex',
+      code: first.code,
+      state: 'failed',
+      detail: 'their DMs are closed',
+    })
+    expect((await invited(t, 'interaction-2')).deliver).toBe(true)
+  })
+
+  test('a day after the DM, it may be sent again', async () => {
+    const t = testConvex()
+    await seedBoundGame(t)
+    const first = await invited(t, 'interaction-1')
+    await t.run(async (ctx) => {
+      const row = await ctx.db
+        .query('invites')
+        .withIndex('by_code', (q) => q.eq('code', first.code))
+        .unique()
+      if (row !== null) {
+        await ctx.db.patch(row._id, {
+          delivery: { state: 'sent', at: Date.now() - 1000 * 60 * 60 * 25 },
+        })
+      }
+    })
+    expect((await invited(t, 'interaction-2')).deliver).toBe(true)
+  })
+})
+
 describe('botClient.inviteDelivery', () => {
   test('records whether the DM arrived, for the Organizer’s list', async () => {
     const t = testConvex()

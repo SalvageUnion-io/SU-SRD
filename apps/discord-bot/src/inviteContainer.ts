@@ -30,7 +30,7 @@ function plain(text: string): string {
 function expiryLine(expiresAt: number | null, now: number): string | null {
   if (expiresAt === null) return null
   const days = Math.ceil((expiresAt - now) / DAY_MS)
-  if (days <= 1) return 'It expires today.'
+  if (days <= 1) return 'It expires within a day.'
   return `It expires in ${days} days.`
 }
 
