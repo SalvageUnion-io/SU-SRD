@@ -264,7 +264,7 @@ export default defineSchema({
     revokedAt: v.optional(v.number()),
 
     /**
-     * Who the invite is addressed to (ADR-038). Absent is a bearer code, as
+     * Who the invite is addressed to (ADR-039). Absent is a bearer code, as
      * every invite was before. An addressed invite is always single use and is
      * redeemable only by the account signed in with this Discord snowflake.
      * `name` is the invitee's Discord handle as the bot saw it, shown to the

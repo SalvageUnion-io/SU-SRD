@@ -6,7 +6,7 @@ import { liveDiscordInvite, mintInvite, TARGETED_EXPIRY_MS } from '../../convex/
 import { testConvex } from './harness'
 
 /**
- * Addressed invites (ADR-038).
+ * Addressed invites (ADR-039).
  *
  * The properties worth defending are the ones a UI cannot enforce: a
  * Discord-addressed invite is worth nothing to anybody but its addressee, an

@@ -1,4 +1,4 @@
-# ADR-038: Addressed Invites — by Discord Account
+# ADR-039: Addressed Invites — by Discord Account
 
 ## Status
 

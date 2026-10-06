@@ -4,7 +4,7 @@ import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 
 /**
- * The hub's Invitations card (ADR-038) — invites addressed to your Discord
+ * The hub's Invitations card (ADR-039) — invites addressed to your Discord
  * account, found here whatever happened to the DM.
  *
  * Worth defending: it is invisible until there is something to answer, it

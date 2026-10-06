@@ -1,6 +1,6 @@
 /**
  * Invitations — invites addressed to your Discord account, on the hub
- * (ADR-038).
+ * (ADR-039).
  *
  * An Organizer invites somebody from Discord with `/su invite @user`, and the
  * bot DMs them a link. A DM is best effort: Discord refuses it when the two do

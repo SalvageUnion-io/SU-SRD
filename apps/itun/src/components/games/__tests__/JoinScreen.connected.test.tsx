@@ -158,7 +158,7 @@ describe('a gated invite', () => {
   })
 })
 
-describe('an invite addressed to you (ADR-038)', () => {
+describe('an invite addressed to you (ADR-039)', () => {
   test('can be declined, and a bearer code cannot', () => {
     renderJoin(preview({ addressed: 'discord', forYou: true }))
     expect(screen.getByText('Decline')).toBeTruthy()

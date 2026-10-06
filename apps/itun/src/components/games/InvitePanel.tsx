@@ -52,7 +52,7 @@ const STATUS_TONE = {
 type InviteRow = NonNullable<FunctionReturnType<typeof api.invites.list>>[number]
 
 /**
- * Who an addressed invite (ADR-038) went to, and whether its DM got there. A
+ * Who an addressed invite (ADR-039) went to, and whether its DM got there. A
  * bearer code has neither, so this is empty for one.
  */
 function addressMeta(invite: InviteRow): Array<string | null> {

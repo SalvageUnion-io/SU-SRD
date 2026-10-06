@@ -4,7 +4,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 
 /**
  * Minting and reading invites, shared by every door that creates one
- * (ADR-030's invite amendment, ADR-038).
+ * (ADR-030's invite amendment, ADR-039).
  *
  * Two callers mint: `invites.create` (a code from the web) and the bot's
  * `/su invite` (a code addressed to a Discord account). They differ in who is

@@ -386,7 +386,7 @@ export function Roster() {
         </p>
       </div>
 
-      {/* Invites addressed to your Discord account (ADR-038), whichever
+      {/* Invites addressed to your Discord account (ADR-039), whichever
           container is showing — answering one is how you get a new one to
           show. Renders nothing when there are none. */}
       <InvitationsForYou />

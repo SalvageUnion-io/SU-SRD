@@ -32,7 +32,7 @@ import { logOwnershipChange } from './ownership'
  *     grants nothing until the Organizer approves it, which is what a code
  *     posted somewhere public needs, since membership confers read access to
  *     every crewmate's sheet (ADR-030 §5).
- *   - **An address** (`target`, ADR-038). An invite addressed to a Discord
+ *   - **An address** (`target`, ADR-039). An invite addressed to a Discord
  *     account is redeemable only by that account, is single use, and may be
  *     declined by its addressee.
  */
@@ -153,7 +153,7 @@ export const revoke = mutation({
  * in yet, and refusing to say what the link is for until they do is how you get
  * a person signing in to find out they were sent a dead code.
  *
- * An addressed invite (ADR-038) says only *how* it is addressed, never to whom.
+ * An addressed invite (ADR-039) says only *how* it is addressed, never to whom.
  * For a Discord one, a signed-in viewer also learns whether it is theirs — the
  * same fact `redeem` would tell them, offered before they press the button.
  */
@@ -367,7 +367,7 @@ export const redeem = mutation({
 })
 
 /**
- * Turn down an addressed invite (ADR-038).
+ * Turn down an addressed invite (ADR-039).
  *
  * Only an addressed invite can be declined: a bearer code may be meant for a
  * whole table, and one person saying no must not close it for the rest. The
@@ -400,7 +400,7 @@ export const decline = mutation({
 
 /**
  * Live invites addressed to the signed-in player's Discord account — the hub's
- * Invitations card (ADR-038).
+ * Invitations card (ADR-039).
  *
  * This is why a failed DM is not a lost invite: whatever happened in Discord,
  * the addressee finds it here the next time they open the app.

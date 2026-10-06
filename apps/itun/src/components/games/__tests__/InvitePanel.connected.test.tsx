@@ -215,7 +215,7 @@ describe('answering knocks', () => {
   })
 })
 
-describe('an addressed invite (ADR-038)', () => {
+describe('an addressed invite (ADR-039)', () => {
   test('says which Discord account it went to', () => {
     renderPanel([
       invite({ _id: 'i1', target: { kind: 'discord', name: 'sam' }, usesRemaining: 1 }),

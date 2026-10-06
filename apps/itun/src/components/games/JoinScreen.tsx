@@ -187,7 +187,7 @@ function ConnectedJoin({ code }: { code: string }) {
             {preview.requiresApproval ? 'Ask to join' : 'Join this game'}
           </Button>
           {/* Only an invite addressed to you can be declined: a bearer code
-              may be meant for the whole table (ADR-038). */}
+              may be meant for the whole table (ADR-039). */}
           {preview.addressed !== null && (
             <Button variant="ghost" size="compact" onClick={refuse}>
               Decline
