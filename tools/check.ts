@@ -185,7 +185,18 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'audit',
     guards: 'no high-severity advisory in the dependency tree',
     fix: 'upgrade or override the vulnerable package (docs/architecture/dependency-management.md)',
-    cmd: ['bun', 'audit', '--audit-level=high'],
+    cmd: [
+      'bun',
+      'audit',
+      '--audit-level=high',
+      // The one suppression (dependency-management.md, "Audit"): braces <=3.0.3
+      // has NO fixed release. It reaches the tree only through component-lib's
+      // devDependency @ladle/react -> globby -> fast-glob -> micromatch, and
+      // Ladle globs nothing but our own story patterns. Remove this line when
+      // `bun audit fix` can take a fixed braces, or Ladle drops globby;
+      // audit-watch.yml audits without it, so the advisory stays reported.
+      '--ignore=GHSA-vfj7-8cjw-p6xm',
+    ],
     // A PR that moves neither bun.lock nor a manifest cannot change the tree;
     // audit-watch.yml scans the unchanged tree for new advisories weekly.
     areas: ['deps'],
