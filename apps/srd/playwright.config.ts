@@ -63,6 +63,15 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // The smoke spec again on a phone. Phone layouts (the nav drawer, stacked
+    // cards) are what most players see, and no browser had ever driven one.
+    // Smoke only: it proves the app boots and its core surfaces work there,
+    // without doubling the run time of every other spec.
+    {
+      name: 'mobile-chromium',
+      use: { ...devices['Pixel 7'] },
+      testMatch: /smoke\.e2e\.ts$/,
+    },
     // Enable on demand:
     // { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     // { name: 'webkit',  use: { ...devices['Desktop Safari']  } },

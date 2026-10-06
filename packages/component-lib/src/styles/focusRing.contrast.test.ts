@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { contrastRatio as contrast } from '../design/contrast'
 import { color } from '../design/tokens'
 
 /**
@@ -28,20 +29,6 @@ import { color } from '../design/tokens'
 
 const CSS_PATH = join(import.meta.dir, 'index.css')
 const css = readFileSync(CSS_PATH, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
-
-/** WCAG 2.1 relative luminance for an `rgb(r, g, b)` triple. */
-function luminance([r, g, b]: [number, number, number]): number {
-  const channel = (v: number) => {
-    const c = v / 255
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  }
-  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-}
-
-function contrast(a: [number, number, number], b: [number, number, number]): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return ((hi ?? 0) + 0.05) / ((lo ?? 0) + 0.05)
-}
 
 /** `rgb(168, 82, 34)` / `rgb(168 82 34 / 0.25)` → a triple. Alpha is rejected, not ignored. */
 function parseRgb(value: string): [number, number, number] {

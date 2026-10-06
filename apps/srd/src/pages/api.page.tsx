@@ -21,6 +21,24 @@ const DESCRIPTION =
 const baseUrl = SITE_URL
 
 /**
+ * A code sample. Focusable because it scrolls: at phone width the longer
+ * samples overflow sideways, and a scroll region the keyboard cannot reach
+ * cannot be read without a pointer (WCAG 2.1.1 — axe's
+ * `scrollable-region-focusable`, found by the first phone scan).
+ */
+function CodeSample({ children, roomy = false }: { children: string; roomy?: boolean }) {
+  return (
+    <pre
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: a region that scrolls must be reachable by keyboard (WCAG 2.1.1)
+      tabIndex={0}
+      className={`overflow-x-auto rounded-card bg-wk-bg text-xs leading-relaxed ${roomy ? 'p-4' : 'p-3'}`}
+    >
+      <code>{children}</code>
+    </pre>
+  )
+}
+
+/**
  * Every sample on this page is DERIVED from a real record at build time.
  *
  * It used to be hand-written, and it was wrong in three independent ways at
@@ -199,9 +217,7 @@ function page(): PageResult {
                     {baseUrl}/schema/chassis.json
                   </a>
                 </p>
-                <pre className="overflow-x-auto rounded-card bg-wk-bg p-3 text-xs leading-relaxed">
-                  <code>{samples.schemaArray}</code>
-                </pre>
+                <CodeSample>{samples.schemaArray}</CodeSample>
               </div>
             </Panel>
 
@@ -232,9 +248,7 @@ function page(): PageResult {
                     {baseUrl}/schema/chassis.schema.json
                   </a>
                 </p>
-                <pre className="overflow-x-auto rounded-card bg-wk-bg p-3 text-xs leading-relaxed">
-                  <code>{JSON_SCHEMA_SAMPLE}</code>
-                </pre>
+                <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
               </div>
             </Panel>
 
@@ -268,9 +282,7 @@ function page(): PageResult {
                     {baseUrl}/schema/chassis/item/{samples.slug}.json
                   </a>
                 </p>
-                <pre className="overflow-x-auto rounded-card bg-wk-bg p-3 text-xs leading-relaxed">
-                  <code>{samples.entity}</code>
-                </pre>
+                <CodeSample>{samples.entity}</CodeSample>
               </div>
             </Panel>
           </section>
@@ -279,9 +291,7 @@ function page(): PageResult {
           <section className="flex flex-col gap-3">
             <Slab as="h2" variant="solid" label="Usage Example" />
             <p className="text-sm leading-relaxed">Fetch all chassis data in browser JavaScript:</p>
-            <pre className="overflow-x-auto rounded-card bg-wk-bg p-4 text-xs leading-relaxed">
-              <code>{samples.fetch}</code>
-            </pre>
+            <CodeSample roomy>{samples.fetch}</CodeSample>
           </section>
 
           {/* Available schemas */}
@@ -342,9 +352,7 @@ function page(): PageResult {
               All <code className="rounded-card bg-wk-bg px-1 py-0.5">/schema/</code> endpoints
               include the following response headers:
             </p>
-            <pre className="overflow-x-auto rounded-card bg-wk-bg p-4 text-xs leading-relaxed">
-              <code>{CORS_HEADERS_SAMPLE}</code>
-            </pre>
+            <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
             <p className="text-sm leading-relaxed">
               No preflight requests are required for standard GET requests.
             </p>

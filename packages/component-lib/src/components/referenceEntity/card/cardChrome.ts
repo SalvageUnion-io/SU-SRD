@@ -11,7 +11,8 @@ import { isAbility, parseContentBlockString } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
-import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
+import type { OnToneText } from '../referenceEntityHelpers'
+import { accentDeepColor, borderColorFromHeaderBg, onToneText } from '../referenceEntityHelpers'
 import type { DomainTone } from './entityCardTone'
 import { ghostActionTone } from './entityCardTone'
 import { firstParagraphText } from './firstParagraphText'
@@ -22,12 +23,15 @@ const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper)
 
 /** Every colour a card's bands and frame take. */
 export type CardColors = {
-  /** The ONE foreground for the header band — see `resolveCardColors`. */
-  onBandText: 'text-ink' | 'text-paper'
+  /** The foreground for the header band — see `resolveCardColors`. */
+  onBandText: OnToneText
   headerBg: string | undefined
   headerBgColor: string | undefined
   /** Sub-header + footer band. */
   darkTone: string
+  /** The foreground for `darkTone` — its own decision, not the header's: a
+   * light tone's header reads ink while its deep shade still reads paper. */
+  onDarkText: OnToneText
   frameColor: string
   /** This entity's own tone base — threaded to its nested action cards as their host. */
   ownToneBase: string
@@ -42,11 +46,12 @@ export type CardColors = {
  * DAMAGED/DESTROYED (write layer): grey the whole tone. The header goes flat
  * grey; sub-header + footer + frame use the darker grey shade.
  *
- * The header FOREGROUND: a solid-tone card — a real ENTITY or a PATTERN —
- * always reads WHITE (paper). Everything else goes by CONTRAST against its
- * actual band: the light-faded ghosted actions/NPCs and the damaged-grey state
- * all carry light bands, so contrast resolves to ink. Every on-band text
- * element (the title, the flavor hint, the shortform name) uses it.
+ * FOREGROUNDS go by WCAG contrast against the band actually painted
+ * (`onToneText`), for every card: a solid tone, a ghosted host tone, the
+ * damaged grey. "Solid tones read paper" was the rule until it measured 1.79:1
+ * on TL1, 2.41:1 on pilot and 3.03:1 on mech. The header's foreground serves
+ * every on-header element (title, flavor hint, shortform name); the deep
+ * band's serves the sub-header and the footer.
  */
 export function resolveCardColors({
   tone,
@@ -61,18 +66,25 @@ export function resolveCardColors({
 }): CardColors {
   const greyDeep = accentDeepColor(undefined, GREY_HEADER) ?? 'var(--color-ink)'
   const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-ink)') : undefined
+  // ACTIONS wear the GHOSTED host tone on their HEADER band; their body stays
+  // paper/ink like an entity, only the bands are off-colour. Entities use their
+  // own medium tone on the header.
+  const headerBg = isDown || isGhosted ? undefined : tone.bg
+  const headerBgColor = isDown ? GREY_HEADER : ghost ? ghost.header : tone.bgColor
+  const darkTone = isDown
+    ? greyDeep
+    : ghost
+      ? ghost.sub
+      : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-ink)')
+  // Only for a band the arithmetic cannot resolve (a caller's raw colour): the
+  // ghosted and grey bands are light, a solid tone is not.
+  const unresolved = isDown || isGhosted ? 'text-ink' : 'text-paper'
   return {
-    onBandText: isDown || isGhosted ? 'text-ink' : 'text-paper',
-    // ACTIONS wear the GHOSTED host tone on their HEADER band; their body stays
-    // paper/ink like an entity, only the bands are off-colour. Entities use their
-    // own medium tone on the header.
-    headerBg: isDown || isGhosted ? undefined : tone.bg,
-    headerBgColor: isDown ? GREY_HEADER : ghost ? ghost.header : tone.bgColor,
-    darkTone: isDown
-      ? greyDeep
-      : ghost
-        ? ghost.sub
-        : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-ink)'),
+    onBandText: onToneText(borderColorFromHeaderBg(headerBg, headerBgColor), unresolved),
+    headerBg,
+    headerBgColor,
+    darkTone,
+    onDarkText: onToneText(darkTone, unresolved),
     frameColor: isDown
       ? greyDeep
       : ghost

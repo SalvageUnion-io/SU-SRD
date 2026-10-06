@@ -10,8 +10,8 @@
     "/discord/": [],
     "/search/": [],
     "/schema/chassis/": [],
-    "/schema/chassis/item/aegis/": ["color-contrast"],
+    "/schema/chassis/item/aegis/": [],
     "/schema/roll-tables/item/ai-personality/": [],
-    "/schema/guides/item/activating-and-shutting-down-a-mech/": ["color-contrast"]
+    "/schema/guides/item/activating-and-shutting-down-a-mech/": []
   }
 }

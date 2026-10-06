@@ -7,13 +7,18 @@ import { expect, test } from '@playwright/test'
  */
 
 // (a) Landing page loads and search returns results.
-test('landing page loads and search returns results', async ({ page }) => {
+test('landing page loads and search returns results', async ({ page, isMobile }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Salvage Union/i)
 
+  // On a phone the nav bar holds a magnifier instead of the field; it opens a
+  // sheet hosting the same combobox.
+  if (isMobile) await page.getByRole('button', { name: /search the srd/i }).click()
+  const nav = isMobile ? page.getByRole('dialog') : page
+
   // The combobox lives in the top nav; it lazily loads game data on first
   // intent (focus/type), then renders result options.
-  const search = page.getByRole('combobox', { name: /search the srd/i }).first()
+  const search = nav.getByRole('combobox', { name: /search the srd/i }).first()
   await search.click()
   await search.fill('Mule')
 

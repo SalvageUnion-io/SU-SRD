@@ -87,6 +87,10 @@ only thing between a diff and an unbuilt merge — so:
   component-lib test. #731 added one name to `SPECIAL_THANKS.md`, CI skipped
   `build-srd`, and the next three PRs to trigger that job were red on a
   difference none of them made.
+- **The axe scan is in its app's group.** `build-srd` and `build-itun` each
+  run `tools/a11y-scan.ts` against their own baseline, so the script and each
+  baseline are listed in `web` / `itun`: a baseline edit that skipped the scan
+  would merge unchecked.
 - **`code` vs `docs`** (audit CI-11). `code` is source, tools, `.github/` and
   the Claude hook and workflow scripts (`tools/__tests__/` exercises
   `.claude/hooks/**` and `.claude/workflows/**`, so a change to one runs the
@@ -169,14 +173,19 @@ those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
   The PR-blocking browser tier is folded in rather than a separate job, because
   a separate job cost a second full build. Its run line is srd's whole
   Playwright suite (smoke, bundle budget, JSON API); there is no nightly srd
-  job. Add a spec to the run line, not a job. Then the axe-core accessibility
-  scan runs against the same `dist`, over the pages in `tools/a11y-baseline.json`; it blocks on a
-  violation the baseline does not accept and on a stale entry. (It used to run
+  job. Add a spec to the run line, not a job. Both apps' Playwright configs
+  carry a `mobile-chromium` project (Pixel 7) that runs the smoke spec only,
+  so the run line drives the phone layout too. Then the axe-core accessibility
+  scan runs against the same `dist`, over the pages in `tools/a11y-baseline.json`,
+  at desktop and as a phone (`--device 'Pixel 7'`); it blocks on a
+  violation the baseline does not accept and on a stale entry, which
+  `--update-baseline` deletes. (It used to run
   only nightly, so a regression merged green.) ITUN's full browser suite runs
   nightly (`e2e-nightly.yml`).
 - **`build-itun`** builds, bundles the Worker with `bun --filter itun
   worker:bundle` (the build emits assets only; `wrangler.jsonc`'s `main` was
-  otherwise never bundled before deploy), and runs the same browser tier.
+  otherwise never bundled before deploy), and runs the same browser tier and
+  the same scan, over `tools/a11y-baseline-itun.json`.
   `routeTree.gen.ts` staleness is the `generated` check in `static-checks`,
   which regenerates it without a build.
 - **`build-discord-bot`** and **`build-su-assets`** bundle the Worker that
