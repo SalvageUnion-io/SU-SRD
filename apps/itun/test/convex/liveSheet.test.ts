@@ -18,9 +18,9 @@ import { testConvex } from './harness'
  *  - `entities.locate` tells the live sheet route where an entity lives and
  *    whether the caller may edit it — with exactly the visibility the Game and
  *    shelf queries already grant, and nothing more.
- *  - `publicSheet.get` serves a published entity's assignments: every linked
- *    entity by kind and name, and its body ONLY when that entity is published
- *    itself.
+ *  - `publicSheet.get` serves a published entity's assignments: a linked entity
+ *    that is published itself in full (name and body), any other by its kind
+ *    alone — never its name or id.
  */
 
 /** A Game with a crawler, a player's pilot crewing it, and the organizer's mech flying that pilot. */
@@ -121,9 +121,15 @@ describe('entities.locate', () => {
   })
 })
 
-describe('publicSheet.get serves assignments, never a private body', () => {
-  test('a published pilot names its mech and crawler', async () => {
-    const { t, player } = await seedCrew()
+describe('publicSheet.get serves assignments, never a private one’s name', () => {
+  test('a private mech and crawler come back as their kind, and nothing else', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedTable(t)
+    // Distinctive ids, so "appears nowhere in the answer" is a real check.
+    await addCrawler(organizer, 'crawler-private-x', gameId)
+    await addPilot(player, 'p1', gameId)
+    await addMech(organizer, 'mech-private-x', gameId)
+    await link(organizer, ref.mech('mech-private-x'), ref.pilot('p1'), 'mech-to-pilot')
     await player.as.mutation(api.publicSheet.setPublic, {
       kind: 'pilot',
       appId: 'p1',
@@ -131,23 +137,18 @@ describe('publicSheet.get serves assignments, never a private body', () => {
     })
 
     const result = await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'p1' })
-    expect(result?.links).toEqual(
-      expect.arrayContaining([
-        { type: 'mech-to-pilot', from: ref.mech('m1'), to: ref.pilot('p1') },
-        { type: 'pilot-to-crawler', from: ref.pilot('p1'), to: ref.crawler('c1') },
-      ])
+    expect(result?.withheld).toEqual(
+      expect.arrayContaining([{ kind: 'mech' }, { kind: 'crawler' }])
     )
-    // Named — and nothing else, because neither is published.
-    expect(result?.linked).toEqual(
-      expect.arrayContaining([
-        { kind: 'mech', id: 'm1', name: 'Mech m1' },
-        { kind: 'crawler', id: 'c1', name: 'Crawler c1' },
-      ])
-    )
-    expect(result?.linked.some((unit) => 'body' in unit)).toBe(false)
+    expect(result?.withheld).toHaveLength(2)
+    expect(result?.linked).toEqual([])
+    expect(result?.links).toEqual([])
+    // Neither name nor id, anywhere — not in a link end, not in a summary.
+    const wire = JSON.stringify(result)
+    expect(wire).not.toContain('private-x')
   })
 
-  test('a linked entity that is published itself comes with its body', async () => {
+  test('a linked entity that is published itself comes with its name and body', async () => {
     const { t, organizer, player } = await seedCrew()
     await player.as.mutation(api.publicSheet.setPublic, {
       kind: 'pilot',
@@ -163,9 +164,15 @@ describe('publicSheet.get serves assignments, never a private body', () => {
 
     const result = await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'p1' })
     const crawler = result?.linked.find((unit) => unit.id === 'c1')
-    const mech = result?.linked.find((unit) => unit.id === 'm1')
+    expect(crawler?.name).toBe('Crawler c1')
     expect((crawler?.body as { name?: string } | undefined)?.name).toBe('Crawler c1')
-    expect(mech !== undefined && 'body' in mech).toBe(false)
+    expect(result?.links).toEqual([
+      { type: 'pilot-to-crawler', from: ref.pilot('p1'), to: ref.crawler('c1') },
+    ])
+    // The private mech beside it is still only a kind.
+    expect(result?.linked.map((unit) => unit.id)).toEqual(['c1'])
+    expect(result?.withheld).toEqual([{ kind: 'mech' }])
+    expect(JSON.stringify(result)).not.toContain('Mech m1')
   })
 
   test('a link reaching outside the container is not an assignment to disclose', async () => {
@@ -189,8 +196,9 @@ describe('publicSheet.get serves assignments, never a private body', () => {
     })
 
     const result = await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'p1' })
-    expect(result?.linked.map((unit) => unit.id)).not.toContain('mx')
-    expect(result?.links.map((l) => l.from.id)).not.toContain('mx')
+    // Not even counted: the pilot's one mech is still its own crewmate's.
+    expect(result?.withheld.filter((unit) => unit.kind === 'mech')).toHaveLength(1)
+    expect(JSON.stringify(result)).not.toContain('"mx"')
   })
 
   test("a published pilot's abilities reach a published mech it flies", async () => {

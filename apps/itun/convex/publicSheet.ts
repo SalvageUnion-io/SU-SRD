@@ -77,23 +77,27 @@ async function byAppId(
 type PublicLink = Pick<Doc<'softLinks'>, 'type' | 'from' | 'to'>
 
 /**
- * The entity at the far end of one of those assignments.
- *
- * Kind and name always — the sheet says who this pilot flies and crews with.
- * The **body only when that entity is itself published**: a crewmate who has
- * not opted in is named on the rail and nothing more, so a public crawler can
- * list its crew without republishing a single one of their sheets.
+ * A linked entity that is published itself: what its own `/p/` page shows, so
+ * the reader's rail can carry its vitals and a way in.
  */
-type PublicLinked = { kind: Kind; id: string; name: string; body?: unknown }
+type PublicLinked = { kind: Kind; id: string; name: string; body: unknown }
+
+/**
+ * A linked entity that is NOT published: its kind, and nothing else — no name,
+ * no id, no link. Publishing is each owner's own opt-in (decision 2), so a
+ * crewmate's private pilot is not named on somebody else's public crawler; the
+ * reader's sheet says the slot is filled ("Not shared") without saying by whom.
+ */
+type PublicWithheld = { kind: Kind }
 
 /**
  * One published sheet, or null.
  *
  * **Unauthenticated by design** — see the module header. Returns the bare
- * entity body, its direct assignments (`links`) and who each one points at
- * (`linked`). The client renders them through the live read-only sheet store
- * every other read-only surface uses (`readOnlySheetStore.ts`), so a reader
- * sees the pilot's mech and crawler the way the crew does.
+ * entity body and its direct assignments: the published ones in full (`linked`,
+ * with the `links` that reach them), the rest by kind alone (`withheld`). The
+ * client renders them through the live read-only sheet store every other
+ * read-only surface uses (`readOnlySheetStore.ts`).
  */
 export const get = query({
   args: { kind: kindValidator, appId: v.string() },
@@ -106,53 +110,60 @@ export const get = query({
     pilotAbilities?: string[]
     links: PublicLink[]
     linked: PublicLinked[]
+    withheld: PublicWithheld[]
   } | null> => {
     const row = await byAppId(ctx, KIND_TO_TABLE[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
     if (row === null || row.publicRead !== true) return null
 
-    const { links, linked } = await assignmentsOf(ctx, row, args.appId)
     return {
       kind: args.kind,
       body: row.body,
       ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
-      links,
-      linked,
+      ...(await assignmentsOf(ctx, row, args.appId)),
     }
   },
 })
 
 /**
- * A published entity's direct assignments, and who is at the other end.
+ * A published entity's direct assignments, split by whether the far end is
+ * published itself.
  *
- * Only a link whose far end sits in the **same container** is served. Rows
+ * Only a link whose far end sits in the **same container** counts at all. Rows
  * older than the one-container rule (ADR-037) can still straddle two, and a
  * link's `to.id` was once a free string — so a cross-container link is stale or
- * forged data, not an assignment, and serving its far end's name would let
- * anyone who can draw a link out of their own published entity read a
- * stranger's out.
+ * forged data, not an assignment, and serving it would let anyone who can draw
+ * a link out of their own published entity attach a stranger's to it.
  */
 async function assignmentsOf(
   ctx: QueryCtx,
   row: Doc<PublicTable>,
   appId: string
-): Promise<{ links: PublicLink[]; linked: PublicLinked[] }> {
+): Promise<{ links: PublicLink[]; linked: PublicLinked[]; withheld: PublicWithheld[] }> {
   const links: PublicLink[] = []
   const linked = new Map<string, PublicLinked>()
+  const withheld = new Map<string, PublicWithheld>()
   for (const link of await linksTouching(ctx, appId)) {
     const far = link.from.id === appId ? link.to : link.from
     const target = await resolveLinkEnd(ctx, far, row.gameId)
     if (target === null || !sameContainerRows(row, target)) continue
-    links.push({ type: link.type, from: link.from, to: link.to })
-    linked.set(`${far.type}:${far.id}`, {
-      kind: far.type,
-      id: far.id,
-      name: nameOf(target.body, far.type),
-      ...(target.publicRead === true ? { body: target.body } : {}),
-    })
+    // Keyed by the far end so each entity counts once. The key never leaves
+    // this function for a withheld one.
+    const key = `${far.type}:${far.id}`
+    if (target.publicRead === true) {
+      links.push({ type: link.type, from: link.from, to: link.to })
+      linked.set(key, {
+        kind: far.type,
+        id: far.id,
+        name: nameOf(target.body, far.type),
+        body: target.body,
+      })
+    } else {
+      withheld.set(key, { kind: far.type })
+    }
   }
-  return { links, linked: [...linked.values()] }
+  return { links, linked: [...linked.values()], withheld: [...withheld.values()] }
 }
 
 /** A body's display name, or its kind when it carries none. */
@@ -177,8 +188,8 @@ function nameOf(body: unknown, kind: Kind): string {
  * was true when somebody last pressed publish.
  *
  * Deliberately does NOT require the pilot's own `publicRead`. Their sheet stays
- * private — `linked` carries only their name — and this adds nothing but a set
- * of ability slugs already implied by the mech's own numbers. Requiring the
+ * private — `withheld` carries only their kind — and this adds nothing but a
+ * set of ability slugs already implied by the mech's own numbers. Requiring the
  * pilot to be public too would silently give a wrong maximum, which is the bug
  * this exists to fix.
  *

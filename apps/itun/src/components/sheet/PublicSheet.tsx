@@ -13,10 +13,11 @@
  * is public. The banner says the page is live, because "read-only" and
  * "frozen" are different promises and a reader should not have to guess.
  *
- * An assignment is shown by name either way. When the entity at the other end
- * is published too, its row carries its vitals and a View into its own public
- * page; when it is not, the row names it and stops there (`WithheldUnitRow`) —
- * publishing your pilot never republishes your crewmate's.
+ * When the entity at the other end of an assignment is published too, its row
+ * carries its name, its vitals and a View into its own public page. When it is
+ * not, the server sends its kind and nothing else, and its slot says "Not
+ * shared" (`WithheldUnitRow`) — publishing your pilot never names, let alone
+ * republishes, your crewmate's.
  */
 
 import { useMemo } from 'react'

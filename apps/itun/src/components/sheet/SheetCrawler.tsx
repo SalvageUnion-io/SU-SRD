@@ -238,7 +238,7 @@ export function SheetCrawler({
             />
           ))}
           {withheldMechs.map((unit) => (
-            <WithheldUnitRow key={unit.id} unit={unit} label="Docked Mech" />
+            <WithheldUnitRow key={unit.key} unit={unit} label="Docked Mech" />
           ))}
           {/* The bay takes more than one, so the way to dock the next has to
               survive the first — the same trailing slot the crew list uses. */}
@@ -295,7 +295,7 @@ export function SheetCrawler({
             />
           ))}
           {withheldPilots.map((unit) => (
-            <WithheldUnitRow key={unit.id} unit={unit} label="Pilot" />
+            <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />
           ))}
           {/* A crew of one is not a full crew, so the way to add the second has
               to survive the first. Rendered as the same `empty` EntityRow the

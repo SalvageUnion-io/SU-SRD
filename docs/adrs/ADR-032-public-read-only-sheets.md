@@ -14,8 +14,9 @@ superseded") is withdrawn; an old `/s/:id` link redirects here when its entity i
 public.
 
 **Decisions 4–5 amended (2026-10-06):** `publicSheet.get` also returns the
-entity's direct assignments — each linked entity's kind and name, and its body
-only when that entity is published itself — and the page renders the live
+entity's direct assignments — a linked entity that is published itself with its
+name and body, any other by its kind alone ("Not shared" on the page; publishing
+is each owner's own opt-in, decision 2) — and the page renders the live
 `<Sheet readOnly>` over `readOnlySheetStore.ts`, the store every read-only sheet
 uses. Every other decision stands.
 

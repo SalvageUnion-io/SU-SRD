@@ -18,11 +18,13 @@ import type { LiveSheetSegment } from './LiveSheet'
 export type SheetStoreState = EntityState
 
 /**
- * A linked unit the viewer may name but not read — on a public sheet, an
- * assignment whose far end is not published itself (`publicSheet.get`). The
- * rail shows it by name in its slot, with no vitals and no way in.
+ * A linked unit the viewer may not read — on a public sheet, an assignment
+ * whose far end is not published itself (`publicSheet.get` serves its kind and
+ * nothing else). The rail shows "Not shared" in its slot: no name, no vitals,
+ * no way in. `name` is set only for a published unit whose body this app
+ * cannot render. `key` is a render key, not an id.
  */
-export type WithheldUnit = { kind: EntityRef['type']; id: string; name: string }
+export type WithheldUnit = { key: string; kind: EntityRef['type']; name?: string }
 
 export type SheetViewCommonProps = {
   composition: SheetComposition

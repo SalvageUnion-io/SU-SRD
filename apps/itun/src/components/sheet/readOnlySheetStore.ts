@@ -17,8 +17,8 @@
  *    lists crewmates' pilots it does not cache.
  *  - **A public sheet** (`publicSheet.get`, via `sheetDataFromPublic`): the
  *    published entity, its direct links, and the bodies of linked entities that
- *    are published themselves. The rest are named, never read
- *    (`WithheldUnit`).
+ *    are published themselves. The rest arrive as a kind alone and fill their
+ *    slot as "Not shared" (`WithheldUnit`) — never named, never read.
  *
  * ## Why a store rather than a prop on Sheet
  *
@@ -71,7 +71,8 @@ export type PublicSheetAnswer = {
   kind: string
   body: unknown
   links: ReadonlyArray<Pick<SoftLink, 'type' | 'from' | 'to'>>
-  linked: ReadonlyArray<{ kind: EntityRef['type']; id: string; name: string; body?: unknown }>
+  linked: ReadonlyArray<{ kind: EntityRef['type']; id: string; name: string; body: unknown }>
+  withheld: ReadonlyArray<{ kind: EntityRef['type'] }>
 }
 
 /** A body parsed and filed under the id links address it by. */
@@ -125,12 +126,12 @@ export function sheetDataFromListing(listing: GameListing): ReadOnlySheetData {
 }
 
 /**
- * A public sheet's store data, and who it may only name.
+ * A public sheet's store data, and the slots it may only mark as filled.
  *
- * The published entity itself is filed under `appId`. Each linked entity that
- * came with a body is filed too, so the rail shows it with its vitals; the rest
- * — and any body that does not parse — become `withheld`: named on the rail,
- * never read. Links have no id on this wire (a link is its type and its two
+ * The published entity itself is filed under `appId`, and each published linked
+ * entity beside it, so the rail shows it with its vitals. The unpublished ones
+ * arrive as a kind and nothing more, and become `withheld` — "Not shared" in
+ * their slot. Links have no id on this wire (a link is its type and its two
  * ends), so each gets one spelled from exactly that.
  */
 export function sheetDataFromPublic(
@@ -141,12 +142,17 @@ export function sheetDataFromPublic(
   if (answer.kind === 'pilot' || answer.kind === 'mech' || answer.kind === 'crawler') {
     file(data, parseAs(answer.kind, answer.body, appId))
   }
-  const withheld: WithheldUnit[] = []
+  const withheld: WithheldUnit[] = answer.withheld.map((unit, i) => ({
+    key: `withheld-${unit.kind}-${i}`,
+    kind: unit.kind,
+  }))
   const published = new Set<string>([appId])
   for (const unit of answer.linked) {
-    const parsed = unit.body === undefined ? null : parseAs(unit.kind, unit.body, unit.id)
+    const parsed = parseAs(unit.kind, unit.body, unit.id)
     if (parsed === null) {
-      withheld.push({ kind: unit.kind, id: unit.id, name: unit.name })
+      // Published, so it may be named — but not drawn from a body this app
+      // cannot read.
+      withheld.push({ key: `${unit.kind}:${unit.id}`, kind: unit.kind, name: unit.name })
     } else {
       file(data, parsed)
       published.add(unit.id)

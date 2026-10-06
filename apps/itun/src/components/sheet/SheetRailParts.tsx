@@ -13,19 +13,20 @@ import { AppLink } from '../shared/AppLink'
 import type { WithheldUnit } from './sheetViewProps'
 
 /**
- * A linked unit named but not shown — a public sheet's assignment to something
- * that is not published itself. It fills the slot its kind would (so the rail
- * never says "no mech assigned" of a pilot who has one), with no vitals and no
- * View, and says why.
+ * A linked unit the reader may not see — a public sheet's assignment to
+ * something that is not published itself. It fills the slot its kind would (so
+ * the rail never says "no mech assigned" of a pilot who has one) and says only
+ * "Not shared": no name, no vitals, no View. A published unit this app cannot
+ * render keeps its name, and says that instead.
  */
 export function WithheldUnitRow({ unit, label }: { unit: WithheldUnit; label: string }) {
   return (
     <EntityRow
       entityType={unit.kind}
       className="flex-[1_1_0%]"
-      name={unit.name}
+      name={unit.name ?? 'Not shared'}
       meta={label}
-      metaLine="Not shared"
+      metaLine={unit.name === undefined ? undefined : 'Can’t be shown'}
     />
   )
 }
