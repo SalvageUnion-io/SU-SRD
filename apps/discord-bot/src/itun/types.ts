@@ -27,6 +27,8 @@ export type {
   EntityBody,
   GameSummary,
   GamesResult,
+  InviteDeliveryState,
+  InviteResult,
   MeResult,
   OwnedEntity,
   SheetResult,

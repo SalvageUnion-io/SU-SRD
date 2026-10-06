@@ -3,7 +3,8 @@
 The bot is an authenticated client of ITUN Games
 ([ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)): `/su me`,
 `/su games`, `/su shelf`, `/su crew`, `/su sheet`, `/su game bind|unbind|info`,
-and roll attribution on `/su roll` are built. It runs as HTTP interactions on the
+`/su invite` ([ADR-039](../adrs/ADR-039-targeted-invites.md)) and roll
+attribution on `/su roll` are built. It runs as HTTP interactions on the
 `su-discord-bot` Cloudflare Worker
 ([ADR-033](../adrs/ADR-033-cloudflare-hosting.md)). What remains open is §6. The
 bot's own conventions are in
@@ -49,7 +50,11 @@ already look). Everything else is a non-goal:
 - No `/su damage @player 3`. A Mediator writing another player's sheet is
   forbidden by ADR-030 §4 on every surface; it is a proposal or nothing.
 - No new mutations for the bot's convenience. If an existing Convex function
-  cannot say it, stop rather than add one.
+  cannot say it, stop rather than add one. **The one exception is `/su invite`**
+  (ADR-039): inviting by Discord account is a product feature, not a
+  convenience, and it lives where Discord accounts are — so `botClient.invite`
+  exists, mints through the same `model/invites.ts#mintInvite` as the web, and
+  is reachable only through the signed path in §3.
 - No service-role key that can act as anybody.
 - No `apps/srd` involvement.
 
@@ -76,6 +81,18 @@ Ed25519 signature against the application public key. The user id is then
 **attested by Discord** rather than asserted by us, and no bearer secret exists
 to leak. The bot already needs no gateway connection, so this is a transport
 change: the Convex functions are shaped not to care who called them.
+
+**Option B, taken for one operation: `/su invite`.** An invite creates a
+membership, which the bearer credential must never be able to do — so for that
+operation alone the bot forwards Discord's signed interaction verbatim (raw
+body plus `X-Signature-Ed25519` / `X-Signature-Timestamp`) to `POST
+/bot/invite`, and `botHttp.ts` verifies it against `DISCORD_PUBLIC_KEY` on the
+Convex deployment, rejects a timestamp older than five minutes, and hands the
+raw body to `botClient.invite`, which reads the inviter, the invitee, the Game
+and the seat out of it. `invite` is deliberately absent from the args-forwarding
+map. With `DISCORD_PUBLIC_KEY` unset the command answers that invites from
+Discord are not switched on; every other op is unaffected. Moving the rest of
+`/bot/*` the same way is still the endgame above.
 
 **Option C — per-user OAuth tokens. Rejected.** The bot would store N refresh
 tokens (a worse thing to leak than one secret) plus a token store and refresh
