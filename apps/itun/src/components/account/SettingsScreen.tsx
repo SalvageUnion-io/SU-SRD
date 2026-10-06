@@ -8,12 +8,18 @@ import { ConvexPending } from '../shared/ConvexPending'
 import { SignInControl } from './SignInControl'
 
 /**
- * The account screen (D33): profile, your Games, export, delete.
+ * The settings screen (D33), at `/settings`: profile, export, delete.
  *
- * All four live on one page deliberately. Holding somebody's Discord identity
- * creates obligations — let me see it, let me correct it, let me take it away,
- * let me erase it — and splitting those across surfaces is how one of them
- * quietly never ships.
+ * It was the "account" page at `/account`, which now redirects here
+ * (`routes/account.tsx`), so old links and the Discord bot's still land. It
+ * also used to list your Games; that list moved to the masthead's Games menu
+ * (`components/container/GamesMenu.tsx`), which is where a player picks what
+ * the Roster shows.
+ *
+ * What remains lives on one page deliberately. Holding somebody's Discord
+ * identity creates obligations — let me see it, let me correct it, let me take
+ * it away, let me erase it — and splitting those across surfaces is how one of
+ * them quietly never ships.
  *
  * As everywhere in this app, the Convex hooks are isolated behind a
  * build-time branch so a Solo build (no `VITE_CONVEX_URL`) renders without a
@@ -32,7 +38,6 @@ function download(filename: string, data: unknown): void {
 
 function SignedInAccount() {
   const me = useQuery(api.account.me, {})
-  const games = useQuery(api.games.listMine, {})
   const exported = useQuery(api.account.exportMine, {})
   const updateProfile = useMutation(api.account.updateProfile)
   const deleteAccount = useMutation(api.account.deleteAccount)
@@ -73,30 +78,6 @@ function SignedInAccount() {
               Save
             </Button>
           </div>
-        </div>
-      </Card>
-
-      <Card>
-        <div className="flex flex-col gap-2 p-4">
-          <PageHeading variant="section" as="h2">
-            Your games
-          </PageHeading>
-          {games === undefined && <ConvexPending className="text-left" />}
-          {games?.length === 0 && (
-            <Text variant="hint" className="text-left">
-              You are not in any games yet.
-            </Text>
-          )}
-          {games?.map((g) => (
-            <div key={g._id} className="flex items-baseline justify-between gap-3">
-              <Text>{g.name}</Text>
-              <Text variant="hint" className="text-left">
-                {g.organizer ? 'Organizer · ' : ''}
-                {g.mediator ? 'Mediator' : 'Player'} · {g.memberCount} member
-                {g.memberCount === 1 ? '' : 's'}
-              </Text>
-            </div>
-          ))}
         </div>
       </Card>
 
@@ -154,7 +135,7 @@ function SignedInAccount() {
   )
 }
 
-function AccountBody() {
+function SettingsBody() {
   const { mode } = useConnection()
 
   if (mode === 'connected') return <SignedInAccount />
@@ -164,8 +145,8 @@ function AccountBody() {
       <Card>
         <div className="p-4">
           <Text>
-            Your account is unreachable right now. Reconnect to change your profile or manage your
-            games.
+            Your account is unreachable right now. Reconnect to change your profile or download your
+            data.
           </Text>
         </div>
       </Card>
@@ -191,12 +172,12 @@ function AccountBody() {
   )
 }
 
-export function AccountScreen() {
+export function SettingsScreen() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-      <PageHeading className="w-fit">Account</PageHeading>
+      <PageHeading className="w-fit">Settings</PageHeading>
       {isConvexConfigured ? (
-        <AccountBody />
+        <SettingsBody />
       ) : (
         <Card>
           <div className="p-4">

@@ -2,13 +2,13 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { ConnectionProvider } from '../../../lib/connection/ConnectionProvider'
 import { isConvexConfigured } from '../../../lib/connection/convexClient'
-import { AccountScreen } from '../AccountScreen'
+import { SettingsScreen } from '../SettingsScreen'
 import { SignInControl } from '../SignInControl'
 
 /**
  * The failure this guards against is structural rather than cosmetic.
  *
- * `AccountScreen` and `SignInControl` both reach for Convex hooks
+ * `SettingsScreen` and `SignInControl` both reach for Convex hooks
  * (`useQuery`, `useMutation`, `useAuthActions`), and every one of those throws
  * without a provider above it. A Solo build deliberately has no provider, so if
  * the build-time branch is ever removed or inverted, this page crashes for the
@@ -19,7 +19,7 @@ import { SignInControl } from '../SignInControl'
  * throw is the assertion.
  */
 
-describe('AccountScreen in a Solo build', () => {
+describe('SettingsScreen in a Solo build', () => {
   test('the test build really is Solo', () => {
     // Asserted, not assumed: if this flips, the tests below would start
     // passing for an entirely different reason.
@@ -29,16 +29,16 @@ describe('AccountScreen in a Solo build', () => {
   test('renders without a Convex provider present', () => {
     render(
       <ConnectionProvider>
-        <AccountScreen />
+        <SettingsScreen />
       </ConnectionProvider>
     )
-    expect(screen.getByText('Account')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy()
   })
 
   test('says nothing built here is kept, rather than offering an account', () => {
     render(
       <ConnectionProvider>
-        <AccountScreen />
+        <SettingsScreen />
       </ConnectionProvider>
     )
     expect(screen.getByText(/nothing you build here is kept/i)).toBeTruthy()
