@@ -37,17 +37,12 @@ import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { freshEntity } from './controlPrimitives'
+import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import type { UsedToggleKey } from './PilotIdentity'
 import { resolveAbility } from './pilotAbilities'
 import { resolveEquipment } from './pilotInventory'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
-
-/** A pin equal to the derived value is not an override — clear it instead. */
-export function pinOrUndef(next: number, derived: number): number | undefined {
-  return next === derived ? undefined : next
-}
 
 type PilotSheetActionsOptions = {
   pilot: Pilot
@@ -150,11 +145,14 @@ export function usePilotSheetActions({
     write(fields)
   }
 
-  // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
-  // max*Modifier delta; the gauge shows "overridden from N" + a revert. Tagged
-  // `override` for the Change Log.
+  // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima as an absolute
+  // `max*Override`; the gauge shows "overridden from N" + a revert. Tagged
+  // `override` for the Change Log. Callers normalise the pin with `pinFor`
+  // (a pin equal to the derivation is written as none); a commit that changes
+  // nothing — the number already shown, re-entered — is not written at all.
   const overridePilotMax = (fields: Partial<Pilot>) => {
-    write(fields, LIVE_SHEET_OVERRIDE)
+    const changed = changedFields(freshPilot(), fields)
+    if (changed) write(changed, LIVE_SHEET_OVERRIDE)
   }
 
   /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */

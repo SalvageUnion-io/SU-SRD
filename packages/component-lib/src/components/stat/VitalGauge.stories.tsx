@@ -81,7 +81,7 @@ export const Default: Story = () => (
         max={sp + 2}
         onChange={noop}
         onMaxChange={noop}
-        overriddenFrom={sp}
+        breakdown={{ overridden: true, derived: sp }}
         onRevertOverride={noop}
       />
     </Row>

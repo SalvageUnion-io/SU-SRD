@@ -77,6 +77,7 @@ export {
   pilotMaxHP,
   pilotMaxHPParts,
   pilotMaxInventorySlots,
+  pinFor,
   resolveGauge,
   resolvePool,
   resolvePoolStart,

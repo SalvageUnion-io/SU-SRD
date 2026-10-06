@@ -1,5 +1,6 @@
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import type { StatBreakdown } from 'salvageunion-reference/rules'
 import type { SizeRung } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
@@ -7,6 +8,12 @@ import { POSTER_STAMP } from '../chrome/posterStamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
+
+/**
+ * The two fields of a `StatBreakdown` the gauge reads: the override flag and
+ * the derived value it reverts to. Pass the breakdown itself.
+ */
+export type VitalGaugeBreakdown = Pick<StatBreakdown, 'overridden' | 'derived'>
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */
@@ -23,15 +30,29 @@ export type VitalGaugeProps = {
    * Cap override (ADR-022, Free Edit): when supplied (and not readOnly) the Max
    * numeral becomes click-to-edit — pinning a new maximum. Omit to keep the max
    * a plain read-out (the Frozen snapshot never passes it).
+   *
+   * Called with EVERY committed number, including the one already shown. The
+   * gauge cannot tell a pin that upgrades caught up with (stored, +0, reading
+   * as derived) from no pin at all, so it must not swallow "type the derived
+   * value back in" — that is how a player deletes such a pin. The caller
+   * normalises (`pinFor`) and skips a write that changes nothing.
    */
   onMaxChange?: (nextMax: number) => void
   /**
-   * The derived baseline this cap would compute to without a hand override.
-   * When supplied, the max is flagged as overridden (a marker + "from N") and,
-   * with `onRevertOverride`, a one-click revert-to-derived is offered.
+   * The stat's `StatBreakdown` (ADR-029). Its `overridden` flag is the ONE
+   * switch for every override mark — the `--tone-deep` numeral, the `*`, the
+   * ↺ revert and the "overridden from N" caption — and `derived` is the value
+   * named in them. The gauge never decides this by comparing numbers (ADR-022
+   * amendment): it used to treat "baseline ≠ max" as overridden, which
+   * disagreed with the breakdown's own ledger on a pin equal to its
+   * derivation. Omit (or pass on a read-only surface) to show no override.
    */
-  overriddenFrom?: number
-  /** Revert the cap override back to its derived baseline. */
+  breakdown?: VitalGaugeBreakdown
+  /**
+   * Revert the cap override back to its derived baseline. Offered whenever the
+   * breakdown is overridden — pass it alongside `onMaxChange` so a value that
+   * reads as overridden can always be reverted.
+   */
   onRevertOverride?: () => void
   /**
    * Ledger explaining how `max` was derived (ADR-029). When supplied, a small
@@ -92,7 +113,7 @@ export function VitalGauge({
   max,
   onChange,
   onMaxChange,
-  overriddenFrom,
+  breakdown,
   onRevertOverride,
   provenance,
   caption,
@@ -106,7 +127,9 @@ export function VitalGauge({
   const onDark = surface === 'instrument'
   const editable = !readOnly && onChange !== undefined
   const editableMax = !readOnly && onMaxChange !== undefined
-  const isOverridden = overriddenFrom !== undefined && overriddenFrom !== max
+  // Read, never inferred — see `breakdown`.
+  const isOverridden = breakdown?.overridden === true
+  const overriddenFrom = breakdown?.derived
   const [editingMax, setEditingMax] = useState(false)
   const [maxDraft, setMaxDraft] = useState('')
   const maxInputRef = useRef<HTMLInputElement>(null)
@@ -129,7 +152,8 @@ export function VitalGauge({
     committedRef.current = true
     setEditingMax(false)
     const next = Number.parseInt(maxDraft, 10)
-    if (Number.isFinite(next) && next >= 0 && next !== max) onMaxChange?.(next)
+    // No `next !== max` guard: see `onMaxChange`.
+    if (Number.isFinite(next) && next >= 0) onMaxChange?.(next)
   }
   const onMaxKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {

@@ -18,7 +18,7 @@
  * (Actions / Tables / SRD) show a centered title — no stats.
  */
 
-import type { ProvenanceLine } from 'component-lib'
+import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
 import { Button } from 'component-lib'
 import type { PointerEvent, ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -35,8 +35,8 @@ export type DialGauge = {
   danger?: number
   /** Ledger explaining how `max` was derived (ADR-029). */
   provenance?: ProvenanceLine[]
-  /** The value `max` would derive to without a Free-Edit pin. */
-  derivedMax?: number
+  /** The stat's breakdown, whose `overridden` flag drives the override marker. */
+  breakdown?: VitalGaugeBreakdown
 }
 
 /** A presentational dial entry. Statless entries are a centered title (Actions /
@@ -116,7 +116,7 @@ function DialCell({
             tone={g.tone}
             danger={g.danger}
             provenance={g.provenance}
-            derivedMax={g.derivedMax}
+            breakdown={g.breakdown}
           />
         ))}
       </div>

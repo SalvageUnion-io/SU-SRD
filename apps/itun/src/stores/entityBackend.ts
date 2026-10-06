@@ -172,6 +172,24 @@ export class WritesBlockedOffline extends Error {
 }
 
 /**
+ * The `patchCrawlerByAppId` args for a crawler field patch.
+ *
+ * A key patched to `undefined` is a CLEAR — the ↺ revert of a pinned Max SP is
+ * `{ maxSpOverride: undefined }` — but the Convex client drops undefined object
+ * fields when it serialises the args, so on the wire that patch was `{}` and
+ * the server kept the pin. Each cleared key is named in `unset` instead.
+ */
+export function crawlerPatchArgs(
+  appId: string,
+  patch: unknown
+): { appId: string; patch: unknown; unset?: string[] } {
+  const unset = Object.entries((patch ?? {}) as Record<string, unknown>)
+    .filter(([, value]) => value === undefined)
+    .map(([key]) => key)
+  return { appId, patch, ...(unset.length > 0 ? { unset } : {}) }
+}
+
+/**
  * Write one entity to the server of record, and **fail if it does not land**.
  *
  * ## This replaced a mirror, and the difference is the whole of ADR-034
@@ -224,10 +242,10 @@ export async function commitEntityWrite(
       // is communal and contended during Downtime, so two members editing scrap
       // and cargo in the same minute must both land (ADR-030 §5). That rule
       // survives the demotion untouched.
-      await convexClient.mutation(api.entities.patchCrawlerByAppId, {
-        appId: op.appId,
-        patch: op.patch,
-      })
+      await convexClient.mutation(
+        api.entities.patchCrawlerByAppId,
+        crawlerPatchArgs(op.appId, op.patch)
+      )
       return
     }
     await convexClient.mutation(api.entities.createCrawler, {

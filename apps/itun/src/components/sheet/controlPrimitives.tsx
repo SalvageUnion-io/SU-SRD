@@ -1,5 +1,6 @@
 /**
- * controlPrimitives — the freshest-record read for a sheet control.
+ * controlPrimitives — the freshest-record read for a sheet control, and the
+ * no-op filter its writes use.
  *
  * This also held AdvisoryBox/AdvisoryText, the local warn-advisory boxes. Those
  * are gone: the single-message advisory is now the shared `FieldError` atom, and
@@ -26,4 +27,23 @@ export function freshEntity<T extends EntityType>(
   fallback: EntityForType<T>
 ): EntityForType<T> {
   return storeState.get(type, fallback.id) ?? fallback
+}
+
+/**
+ * The subset of `fields` that would change `current`, or null when none would.
+ *
+ * For the cap-override writes, where an unchanged commit is routine: the gauge
+ * reports every committed max (so a player can type the derived value back in
+ * to delete a pin), and re-committing the number already shown must not write,
+ * or every glance at the editor would land a Change Log entry.
+ */
+export function changedFields<T extends object>(current: T, fields: Partial<T>): Partial<T> | null {
+  const changed: Partial<T> = {}
+  let any = false
+  for (const key of Object.keys(fields) as (keyof T)[]) {
+    if (Object.is(current[key], fields[key])) continue
+    changed[key] = fields[key]
+    any = true
+  }
+  return any ? changed : null
 }

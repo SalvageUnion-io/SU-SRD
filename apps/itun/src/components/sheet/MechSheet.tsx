@@ -67,6 +67,7 @@ import {
 } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { pinFor } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -77,7 +78,7 @@ import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import { resolveModule, resolveSystem } from './mechItemRules'
 import type { ItemKind } from './mechSheetActions'
-import { pinOrUndef, useMechSheetActions } from './mechSheetActions'
+import { useMechSheetActions } from './mechSheetActions'
 import type { ChassisLike } from './mechSheetModel'
 import { useMechSheetModel } from './mechSheetModel'
 import { PartnerCard } from './PartnerCard'
@@ -321,10 +322,9 @@ export function MechSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) =>
-                      actions.overrideMechMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
+                  : (next) => actions.overrideMechMax({ maxSpOverride: pinFor(next, spParts) })
               }
-              overriddenFrom={readOnly || !spParts.overridden ? undefined : spParts.derived}
+              breakdown={readOnly ? undefined : spParts}
               provenance={model.spLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overrideMechMax({ maxSpOverride: undefined })
@@ -340,10 +340,9 @@ export function MechSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) =>
-                      actions.overrideMechMax({ maxEpOverride: pinOrUndef(next, epParts.derived) })
+                  : (next) => actions.overrideMechMax({ maxEpOverride: pinFor(next, epParts) })
               }
-              overriddenFrom={readOnly || !epParts.overridden ? undefined : epParts.derived}
+              breakdown={readOnly ? undefined : epParts}
               provenance={model.epLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overrideMechMax({ maxEpOverride: undefined })
@@ -359,12 +358,9 @@ export function MechSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) =>
-                      actions.overrideMechMax({
-                        maxHeatOverride: pinOrUndef(next, heatParts.derived),
-                      })
+                  : (next) => actions.overrideMechMax({ maxHeatOverride: pinFor(next, heatParts) })
               }
-              overriddenFrom={readOnly || !heatParts.overridden ? undefined : heatParts.derived}
+              breakdown={readOnly ? undefined : heatParts}
               provenance={model.heatLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overrideMechMax({ maxHeatOverride: undefined })

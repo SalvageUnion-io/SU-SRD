@@ -27,17 +27,12 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { freshEntity } from './controlPrimitives'
+import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 export type ItemKind = 'system' | 'module'
-
-/** A pin equal to the derived value is not an override — clear it instead. */
-export function pinOrUndef(next: number, derived: number): number | undefined {
-  return next === derived ? undefined : next
-}
 
 type MechSheetActionsOptions = {
   mech: Mech
@@ -119,8 +114,12 @@ export function useMechSheetActions({
   // rules modifier, so an automatic contribution would have rendered as an
   // override. max*Modifier now means only "manual adjustment" and contributes to
   // the derivation. See ADR-029.
+  //
+  // Callers normalise the pin with `pinFor` (a pin equal to the derivation is
+  // written as none); a commit that changes nothing is not written at all.
   const overrideMechMax = (fields: Partial<Mech>) => {
-    write(fields, LIVE_SHEET_OVERRIDE)
+    const changed = changedFields(freshMech(), fields)
+    if (changed) write(changed, LIVE_SHEET_OVERRIDE)
   }
 
   // Collection add/remove (unified edit language archetype B) — always

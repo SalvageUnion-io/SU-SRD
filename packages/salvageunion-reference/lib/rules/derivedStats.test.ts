@@ -32,6 +32,7 @@ import {
   pilotMaxHPParts,
   pilotMaxInventorySlots,
   pilotMaxInventorySlotsParts,
+  pinFor,
   unifiedMechConditions,
 } from './derivedStats.js'
 
@@ -273,6 +274,46 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
         ],
       })
     ).toBe(true)
+  })
+
+  it('a pin equal to the derivation adds +0, so it is not an override', () => {
+    // Upgrades caught up with a pin: Tech 3 Stat Training derives 14, pinned 14.
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 3, maxHpOverride: 14 })
+    expect(hp.overridden).toBe(false)
+    expect(hp.override).toBeUndefined()
+    expect(hp.total).toBe(14)
+    expect(hp.derived).toBe(14)
+
+    const sp = mechMaxSPParts({ ...bare, maxSpOverride: 10 }, chassis)
+    expect(sp.overridden).toBe(false)
+    expect(sp.total).toBe(10)
+  })
+
+  it('the same pin flags again once the derivation moves past it', () => {
+    // Still stored, still the player's absolute pin: at Tech 4 it is −2.
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 4, maxHpOverride: 14 })
+    expect(hp.overridden).toBe(true)
+    expect(hp.total).toBe(14)
+    expect(hp.derived).toBe(16)
+  })
+
+  it('compares as displayed: a 0 pin on a dead pilot adds nothing', () => {
+    const injuries = Array.from({ length: 6 }, () => ({ severity: 'major' as const, note: '' }))
+    const hp = pilotMaxHPParts({ injuries, maxHpOverride: 0 })
+    expect(hp.overridden).toBe(false)
+    expect(isPilotDead({ injuries, maxHpOverride: 0 })).toBe(true)
+  })
+
+  it('pinFor never writes a pin equal to the derivation', () => {
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 3 })
+    expect(pinFor(14, hp)).toBeUndefined()
+    expect(pinFor(15, hp)).toBe(15)
+    expect(pinFor(0, hp)).toBe(0)
+    // A dead pilot derives below 0 and displays 0: pinning 0 is no change.
+    const dead = pilotMaxHPParts({
+      injuries: Array.from({ length: 6 }, () => ({ severity: 'major' as const, note: '' })),
+    })
+    expect(pinFor(0, dead)).toBeUndefined()
   })
 
   it('a pilot HP pin overrides the injury penalty', () => {

@@ -15,7 +15,7 @@
 
 import { EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
-import { crawlerMaxSPParts, resolvePool } from 'salvageunion-reference/rules'
+import { crawlerMaxSPParts, pinFor, resolvePool } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
@@ -29,6 +29,7 @@ import { CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
+import { changedFields, freshEntity } from './controlPrimitives'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
@@ -63,14 +64,15 @@ export function SheetCrawler({
     installed: 'Crawler type bonus',
   })
   const sp = resolvePool(crawler.currentSP, maxSP)
-  // Cap override (ADR-022, Free Edit): pin Max SP via a signed maxSpModifier
-  // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
+  // Cap override (ADR-022, Free Edit): pin Max SP as an absolute
+  // `maxSpOverride`; the gauge shows "overridden from N" + a revert. Tagged
+  // `override`. The pin is normalised with `pinFor` (equal to the derivation
+  // means none), and a commit that changes nothing is not written.
   const overrideCrawlerMax = (fields: Partial<Crawler>) => {
-    runWrite(() => storeState.update('crawler', crawler.id, fields, LIVE_SHEET_OVERRIDE))
+    const changed = changedFields(freshEntity(storeState, 'crawler', crawler), fields)
+    if (!changed) return
+    runWrite(() => storeState.update('crawler', crawler.id, changed, LIVE_SHEET_OVERRIDE))
   }
-  /** A pin equal to the derived value is not an override — clear it instead. */
-  const pinOrUndef = (next: number, derived: number): number | undefined =>
-    next === derived ? undefined : next
   const states = bayStates(crawler)
   const intactBays = states.filter((s) => s === 'intact').length
   const tl = parseCrawlerTechLevel(crawler.techLevel)
@@ -294,10 +296,10 @@ export function SheetCrawler({
           onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
           onMaxChange={
             editable
-              ? (next) => overrideCrawlerMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
+              ? (next) => overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) })
               : undefined
           }
-          overriddenFrom={editable && spParts.overridden ? spParts.derived : undefined}
+          breakdown={editable ? spParts : undefined}
           provenance={spLines}
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
