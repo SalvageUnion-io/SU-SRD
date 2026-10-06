@@ -101,7 +101,7 @@ than a hypothetical. See ADR-030 (`docs/adrs/ADR-030-accounts-games-server-of-re
 - Heat escalates on the track: `heatDangerFrom(max)` (component-lib
   `stat/heatLevel.ts`) is the first pip index that reads `status-bad` red, at
   ~70% of cap. The colour escalation shipped; the `--animate-heat-pulse`
-  keyframe in `theme.css` is defined but applied by nothing.
+  keyframe was deleted (`theme.css` records why).
 - Expansion-source theming ideas (claw-scratch, beveled border, rain-streak,
   CRT scanlines) remain unbuilt concepts, not shipped styling.
 
