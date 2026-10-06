@@ -10,7 +10,7 @@ import {
 import { testConvex } from './harness'
 
 /**
- * `/su invite @user` on the Convex side (ADR-038 §3).
+ * `/su invite @user` on the Convex side (ADR-039 §3).
  *
  * The property everything here defends: **the bot's bearer credential cannot
  * mint a membership.** That rests on three things, each tested on its own —

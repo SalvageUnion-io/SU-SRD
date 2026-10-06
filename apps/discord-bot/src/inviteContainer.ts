@@ -3,7 +3,7 @@ import { NEUTRAL_EMBED_COLOR } from './format.js'
 import type { InviteResult } from './itun/types.js'
 
 /**
- * The DM `/su invite @user` sends (ADR-038) — pure `data → ContainerData`.
+ * The DM `/su invite @user` sends (ADR-039) — pure `data → ContainerData`.
  *
  * It says what the invite's landing page says before anyone signs in, and no
  * more: who invited you, to which Game, in which seat, what is waiting, how

@@ -76,7 +76,7 @@ export type ItunClient = {
     result: unknown
   ): Promise<ItunResult<{ game: string }>>
   /**
-   * `/su invite` (ADR-038). Sends Discord's signed interaction **verbatim** —
+   * `/su invite` (ADR-039). Sends Discord's signed interaction **verbatim** —
    * body and signature headers — because Convex verifies it itself rather than
    * taking this bot's word for who is inviting whom.
    */

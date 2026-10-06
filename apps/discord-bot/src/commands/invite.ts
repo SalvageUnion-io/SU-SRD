@@ -9,7 +9,7 @@ import { itun, SOLO_NOTICE } from './itunReply.js'
 
 /**
  * `/su invite @user` — invite somebody to a Game by their Discord account
- * (ADR-038 §3).
+ * (ADR-039 §3).
  *
  * **This command does not ask Convex to trust the bot.** Every other Game
  * command sends a Discord id the bot asserts; this one forwards Discord's

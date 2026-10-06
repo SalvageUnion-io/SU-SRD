@@ -427,7 +427,7 @@ const DM_COOLDOWN_MS = 1000 * 60 * 60 * 24
 const DM_IN_FLIGHT_MS = 1000 * 60
 
 /**
- * `/su invite @user` — mint an invite addressed to a Discord account (ADR-038).
+ * `/su invite @user` — mint an invite addressed to a Discord account (ADR-039).
  *
  * **The only bot operation that does not trust the bot.** Its sole caller is
  * `botHttp.ts`, which verifies Discord's Ed25519 signature over `body` and its

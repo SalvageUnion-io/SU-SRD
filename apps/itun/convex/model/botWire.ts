@@ -170,7 +170,7 @@ export type BindResult = { name: string }
 export type RecordRollResult = { game: string }
 
 /**
- * `/su invite @user` (ADR-038). Either an invite to deliver, or the news that
+ * `/su invite @user` (ADR-039). Either an invite to deliver, or the news that
  * the person is already seated — not a refusal, so not a `BotFailure`.
  */
 export type InviteResult =

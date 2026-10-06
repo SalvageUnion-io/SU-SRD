@@ -10,7 +10,7 @@ import type { InviteResult, ItunResult } from '../itun/types.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 
 /**
- * `/su invite @user` (ADR-038 §3).
+ * `/su invite @user` (ADR-039 §3).
  *
  * The server half — signature, Organizer check, who may redeem — is
  * `apps/itun/test/convex/botInvite.test.ts`. What this file defends is the

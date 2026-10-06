@@ -1,5 +1,5 @@
 /**
- * A Discord interaction, verified and read by Convex itself (ADR-038 §3).
+ * A Discord interaction, verified and read by Convex itself (ADR-039 §3).
  *
  * Everywhere else the bot's bearer credential **asserts** who is asking, and
  * `botHttp.ts` is candid about what that costs. `/su invite` is the one

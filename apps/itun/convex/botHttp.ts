@@ -50,7 +50,7 @@ const MUTATIONS = {
 } as const
 
 /**
- * Operations that do NOT trust the bot's word for who is asking (ADR-038 §3).
+ * Operations that do NOT trust the bot's word for who is asking (ADR-039 §3).
  *
  * The body is Discord's own signed interaction, forwarded byte for byte with
  * its `X-Signature-*` headers, and is verified here against the application's

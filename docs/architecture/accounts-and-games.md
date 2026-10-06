@@ -278,7 +278,7 @@ ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
 ITUN_BOT_SECRET=<the same value>
 ```
 
-**For `/su invite`** ([ADR-038](../adrs/ADR-038-targeted-invites.md)), one
+**For `/su invite`** ([ADR-039](../adrs/ADR-039-targeted-invites.md)), one
 more on the Convex deployment. It is the Discord application's **public** key —
 the same value committed in `apps/discord-bot/wrangler.jsonc` — so it is not a
 secret and may be passed as an argument:

@@ -3,7 +3,7 @@
 The bot is an authenticated client of ITUN Games
 ([ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)): `/su me`,
 `/su games`, `/su shelf`, `/su crew`, `/su sheet`, `/su game bind|unbind|info`,
-`/su invite` ([ADR-038](../adrs/ADR-038-targeted-invites.md)) and roll
+`/su invite` ([ADR-039](../adrs/ADR-039-targeted-invites.md)) and roll
 attribution on `/su roll` are built. It runs as HTTP interactions on the
 `su-discord-bot` Cloudflare Worker
 ([ADR-033](../adrs/ADR-033-cloudflare-hosting.md)). What remains open is §6. The
@@ -51,7 +51,7 @@ already look). Everything else is a non-goal:
   forbidden by ADR-030 §4 on every surface; it is a proposal or nothing.
 - No new mutations for the bot's convenience. If an existing Convex function
   cannot say it, stop rather than add one. **The one exception is `/su invite`**
-  (ADR-038): inviting by Discord account is a product feature, not a
+  (ADR-039): inviting by Discord account is a product feature, not a
   convenience, and it lives where Discord accounts are — so `botClient.invite`
   exists, mints through the same `model/invites.ts#mintInvite` as the web, and
   is reachable only through the signed path in §3.

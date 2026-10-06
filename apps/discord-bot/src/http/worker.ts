@@ -376,7 +376,7 @@ export default withObservability('discord-bot', {
 
     // The verified request travels with the interaction, untouched, for the
     // one command Convex checks against Discord's signature itself
-    // (`/su invite`, ADR-038). Both headers are present: verification above
+    // (`/su invite`, ADR-039). Both headers are present: verification above
     // would have refused the request otherwise.
     const signed = {
       body: rawBody,

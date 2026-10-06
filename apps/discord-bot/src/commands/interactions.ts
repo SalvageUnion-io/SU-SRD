@@ -51,7 +51,7 @@ export type CommandChoice = { name: string; value: string }
  *
  * `getSubcommandGroup` arrived with `/su game …`, the first subcommand group.
  *
- * `signed` and `directMessage` arrived with `/su invite` (ADR-038): the one
+ * `signed` and `directMessage` arrived with `/su invite` (ADR-039): the one
  * command Convex verifies against Discord's own signature, and the one that
  * writes to somebody other than the person who ran it.
  */
