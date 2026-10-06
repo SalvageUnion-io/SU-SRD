@@ -65,12 +65,10 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
       store.hydrate('crawler'),
       store.hydrate('softLink'),
     ])
-    // For the tab title. Read once at load: a rename on the open sheet reaches
-    // the tab on the next navigation, and an entity not in the local store
-    // (a crewmate's) falls back to "Sheet".
-    return { name: store.get(params.kind, params.id)?.name ?? null }
   },
-  head: ({ loaderData }) => ({ meta: [{ title: pageTitle(loaderData?.name ?? 'Sheet') }] }),
+  // The generic title. The entity's own name comes from the store in
+  // `SheetView`, so the tab follows a rename: a loader reads no player entity.
+  head: () => ({ meta: [{ title: pageTitle('Sheet') }] }),
   component: SheetPage,
   pendingComponent: SheetSkeleton,
   notFoundComponent: SheetKindNotFound,
