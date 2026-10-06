@@ -4,18 +4,21 @@
  * Focus: the legibility contract that motivated the component — equipped items
  * are unmistakable (rail + Equipped tag), the Status facet splits equipped vs.
  * available, the budget track renders honestly, and toggle/count emit the
- * caller's identity. Renders against real SalvageUnionReference data (the
- * searcher reads the ORM directly).
+ * caller's identity. Then the rail's own contract: it is a named region that
+ * never sits over the results — a collapsed disclosure band on a narrow screen,
+ * an always-open column on a wide one, a one-line bar in single mode — and a
+ * Remove hands focus on instead of dropping it. Renders against real
+ * SalvageUnionReference data (the searcher reads the ORM directly).
+ *
+ * happy-dom's viewport is 1024px wide, below the rail's 80rem breakpoint, so
+ * every test renders the NARROW rail unless it widens the window itself.
  */
 
-import { afterEach, describe, expect, it } from 'bun:test'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../EntitySearcher'
-
-afterEach(() => {
-  cleanup()
-})
 
 type Equip = { id: string; name: string; techLevel: number | 'B' | 'N' }
 
@@ -27,6 +30,51 @@ function nth(list: Equip[], i: number): Equip {
   const item = list[i]
   if (!item) throw new Error(`No equipment at index ${i} in reference data`)
   return item
+}
+
+/** Three equipment items with distinct names, so their Remove buttons differ. */
+function threeEquipment(): [Equip, Equip, Equip] {
+  const byName = new Map(allEquipment().map((e) => [e.name, e]))
+  const [a, b, c] = [...byName.values()]
+  if (!a || !b || !c) throw new Error('Need three distinctly-named equipment items')
+  return [a, b, c]
+}
+
+/** The caller owns `selected` (ADR-010) — a stateful harness, like a sheet. */
+function ControlledEquipment({ initial }: { initial: string[] }) {
+  const [selected, setSelected] = useState(initial)
+  return (
+    <EntitySearcher
+      schema="equipment"
+      selected={selected}
+      onToggle={(ref) =>
+        setSelected((s) => (s.includes(ref) ? s.filter((r) => r !== ref) : [...s, ref]))
+      }
+      idOf={(i) => i.id}
+      chosenLabel="Equipped"
+    />
+  )
+}
+
+function rail(name: RegExp | string = /equipped/i): HTMLElement {
+  return screen.getByRole('region', { name })
+}
+
+/** Open the narrow band's disclosure and return it. */
+function expand(region: HTMLElement): HTMLElement {
+  const toggle = within(region).getByRole('button', { expanded: false })
+  fireEvent.click(toggle)
+  return toggle
+}
+
+type HappyWindow = { happyDOM: { setViewport: (size: { width: number; height: number }) => void } }
+
+/** Inside `act()`: a resize fires matchMedia `change`, and the searcher — still
+ * mounted when an `afterEach` runs — re-renders through `useWideRail`. */
+function setViewport(width: number, height: number) {
+  act(() => {
+    ;(window as unknown as HappyWindow).happyDOM.setViewport({ width, height })
+  })
 }
 
 describe('EntitySearcher — equipment (toggle mode)', () => {
@@ -49,8 +97,8 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
         chosenLabel="Equipped"
       />
     )
-    const rail = screen.getByTestId('rail-entry')
-    expect(within(rail).getByText(eq.name)).toBeTruthy()
+    const entry = screen.getByTestId('rail-entry')
+    expect(within(entry).getByText(eq.name)).toBeTruthy()
     expect(screen.getByText(/Equipped ✓/)).toBeTruthy()
   })
 
@@ -82,7 +130,9 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
         idOf={(i) => i.id}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(`Remove ${eq.name}`, 'i') }))
+    const region = rail(/selected/i)
+    expand(region)
+    fireEvent.click(within(region).getByRole('button', { name: `Remove ${eq.name}` }))
     expect(toggled).toEqual([eq.id])
   })
 
@@ -110,7 +160,9 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
         budget={{ label: 'Inventory slots', used: 2, max: 5 }}
       />
     )
+    expand(rail(/selected/i))
     expect(screen.getByText('2 / 5')).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Inventory slots 2 of 5' })).toBeTruthy()
   })
 })
 
@@ -136,5 +188,175 @@ describe('EntitySearcher — systems (count mode)', () => {
     if (!addBtn) throw new Error('no Add button rendered')
     fireEvent.click(addBtn)
     expect(added).toEqual([first.name])
+  })
+
+  it('names each duplicate copy’s Remove, and removes that copy by index', () => {
+    const first = SalvageUnionReference.Systems.all()[0]
+    if (!first) throw new Error('No systems in reference data')
+    const removed: number[] = []
+    render(
+      <EntitySearcher
+        schema="systems"
+        mode="count"
+        selected={[first.name, first.name]}
+        onRemove={(index) => removed.push(index)}
+        chosenLabel="Installed"
+      />
+    )
+    const region = rail(/installed/i)
+    expand(region)
+    expect(
+      within(region).getByRole('button', { name: `Remove ${first.name}, copy 1 of 2` })
+    ).toBeTruthy()
+    fireEvent.click(
+      within(region).getByRole('button', { name: `Remove ${first.name}, copy 2 of 2` })
+    )
+    expect(removed).toEqual([1])
+  })
+})
+
+describe('EntitySearcher — the rail on a narrow screen', () => {
+  it('is a named region ABOVE the pool, in DOM (and so focus) order', () => {
+    const eq = nth(allEquipment(), 0)
+    render(<ControlledEquipment initial={[eq.id]} />)
+    const summary = screen.getByText(/showing \d+ of \d+/i)
+    expect(rail().compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('starts collapsed: count and budget at a glance, the entries folded away', () => {
+    const eq = nth(allEquipment(), 0)
+    render(
+      <EntitySearcher
+        schema="equipment"
+        selected={[eq.id]}
+        onToggle={() => {}}
+        idOf={(i) => i.id}
+        chosenLabel="Equipped"
+        budget={{ label: 'Inventory slots', used: 2, max: 5 }}
+      />
+    )
+    const region = rail()
+    const toggle = within(region).getByRole('button', { expanded: false })
+    expect(toggle.textContent).toContain('1')
+    const list = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
+    expect(list?.hidden).toBe(true)
+    expect(within(region).getByText('2/5')).toBeTruthy()
+    expect(within(region).queryByRole('button', { name: /^Remove/ })).toBeNull()
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(list?.hidden).toBe(false)
+    expect(within(region).getByRole('button', { name: `Remove ${eq.name}` })).toBeTruthy()
+    // Expanded, the one-line readout gives way to the full pip track.
+    expect(within(region).getByRole('img', { name: 'Inventory slots 2 of 5' })).toBeTruthy()
+    expect(within(region).queryByText('2/5')).toBeNull()
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(list?.hidden).toBe(true)
+  })
+
+  it('hands focus to the entry now in the removed one’s place, then to the toggle', () => {
+    const [a, b, c] = threeEquipment()
+    render(<ControlledEquipment initial={[a.id, b.id, c.id]} />)
+    const region = rail()
+    const toggle = expand(region)
+    const removeButton = (eq: Equip) =>
+      within(region).getByRole('button', { name: `Remove ${eq.name}` })
+
+    // A middle entry → the one that slid up into its place.
+    fireEvent.click(removeButton(b))
+    expect(document.activeElement).toBe(removeButton(c))
+    // The last entry → the one before it.
+    fireEvent.click(removeButton(c))
+    expect(document.activeElement).toBe(removeButton(a))
+    // The only entry → the rail's own heading control, never <body>.
+    fireEvent.click(removeButton(a))
+    expect(document.activeElement).toBe(toggle)
+    expect(within(region).getByText('Nothing equipped yet.')).toBeTruthy()
+  })
+
+  it('announces the count politely, and only once it changes', () => {
+    const eq = nth(allEquipment(), 0)
+    render(<ControlledEquipment initial={[]} />)
+    const status = within(rail()).getByRole('status')
+    expect(status.getAttribute('aria-live')).toBe('polite')
+    expect(status.textContent).toBe('')
+
+    const card = screen.getAllByRole('button', { name: eq.name })[0]
+    if (!card) throw new Error('no pool card rendered')
+    fireEvent.click(card)
+    expect(status.textContent).toBe('1 equipped')
+  })
+})
+
+describe('EntitySearcher — the rail on a wide screen', () => {
+  const initial = { width: window.innerWidth, height: window.innerHeight }
+  // The viewport is process-global (happy-dom's window), so put it back.
+  beforeEach(() => setViewport(1440, 900))
+  afterEach(() => setViewport(initial.width, initial.height))
+
+  it('is an always-open column with a plain heading, AFTER the pool', () => {
+    const eq = nth(allEquipment(), 0)
+    render(
+      <EntitySearcher
+        schema="equipment"
+        selected={[eq.id]}
+        onToggle={() => {}}
+        idOf={(i) => i.id}
+        chosenLabel="Equipped"
+        budget={{ label: 'Inventory slots', used: 2, max: 5 }}
+      />
+    )
+    const region = rail()
+    expect(region.querySelector('[aria-expanded]')).toBeNull()
+    expect(within(region).getByRole('heading', { name: /equipped/i })).toBeTruthy()
+    expect(within(region).getByRole('button', { name: `Remove ${eq.name}` })).toBeTruthy()
+    expect(within(region).getByRole('img', { name: 'Inventory slots 2 of 5' })).toBeTruthy()
+    const summary = screen.getByText(/showing \d+ of \d+/i)
+    expect(region.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
+  })
+
+  it('becomes the column when the viewport widens past the breakpoint', () => {
+    // Mounted narrow, then widened. (Only this direction is testable: happy-dom's
+    // MediaQueryList seeds its last-seen state as `false`, not the real one, so
+    // it never reports a query that STARTS true going false.)
+    setViewport(1024, 900)
+    const eq = nth(allEquipment(), 0)
+    render(<ControlledEquipment initial={[eq.id]} />)
+    expect(within(rail()).getByRole('button', { expanded: false })).toBeTruthy()
+    setViewport(1440, 900)
+    expect(rail().querySelector('[aria-expanded]')).toBeNull()
+    expect(within(rail()).getByRole('button', { name: `Remove ${eq.name}` })).toBeTruthy()
+  })
+
+  it('focuses the heading once the last entry is removed', () => {
+    const eq = nth(allEquipment(), 0)
+    render(<ControlledEquipment initial={[eq.id]} />)
+    const region = rail()
+    fireEvent.click(within(region).getByRole('button', { name: `Remove ${eq.name}` }))
+    expect(document.activeElement).toBe(within(region).getByRole('heading', { name: /equipped/i }))
+  })
+})
+
+describe('EntitySearcher — single mode', () => {
+  it('is a one-line bar: the chosen name and the confirm actions, nothing to fold', () => {
+    const chassis = SalvageUnionReference.Chassis.all()[0]
+    if (!chassis) throw new Error('No chassis in reference data')
+    render(
+      <EntitySearcher
+        schema="chassis"
+        mode="single"
+        selected={[chassis.id]}
+        onToggle={() => {}}
+        idOf={(i) => i.id}
+        chosenLabel="Chosen"
+        railActions={<button type="button">Apply chassis</button>}
+      />
+    )
+    const bar = rail('Chosen')
+    expect(within(bar).getByTestId('rail-entry').textContent).toBe(chassis.name)
+    expect(bar.querySelector('[aria-expanded]')).toBeNull()
+    expect(within(bar).getByRole('button', { name: 'Apply chassis' })).toBeTruthy()
   })
 })
