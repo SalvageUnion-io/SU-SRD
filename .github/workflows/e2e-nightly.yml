@@ -442,10 +442,11 @@ jobs:
     # observability-probe is: an alarm that rings nightly for a credential that
     # has not been provisioned is a broken window, and the failure mode is that
     # you stop reading it. Provision `CONVEX_DEPLOY_KEY` (repo → Settings →
-    # Secrets and variables → Actions → Secrets — a Convex *production* deploy
-    # key from the Convex dashboard), then set CONVEX_PARITY_PROBE = on.
+    # Environments → production → Environment secrets — a Convex *production*
+    # deploy key from the Convex dashboard), then set CONVEX_PARITY_PROBE = on.
     if: vars.CONVEX_PARITY_PROBE == 'on'
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 5
     steps:
       - name: Checkout
