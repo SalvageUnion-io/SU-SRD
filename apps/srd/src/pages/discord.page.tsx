@@ -236,7 +236,7 @@ function page(): PageResult {
                 that.
               */}
               , the no-account character builder &amp; game manager — sheets can be shared into
-              Discord as snapshot links.
+              Discord as live public links.
             </p>
           </section>
 

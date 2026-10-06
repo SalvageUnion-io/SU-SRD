@@ -11,7 +11,7 @@
  *     the crawler body's 2-col macro grid (content ∥ Storage rail) splits at
  *     its container breakpoint
  *  2. Sheet — missing entity still renders without crash (guard path)
- *  3. SnapshotSheet — uses max-w-7xl container
+ *  3. (SnapshotSheet — retired with snapshots, ADR-036)
  *  4. Roster — sections wrapper uses flex flex-col (mobile) and the
  *     section container element is rendered (grid classes are on the same el)
  *  5. CrawlerSheet — stats dl uses grid-cols-1 (not grid-cols-2 with empty cell)
@@ -36,7 +36,6 @@ import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import { CrawlerSheet } from '../CrawlerSheet'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
-import { SnapshotSheet } from '../SnapshotSheet'
 
 beforeAll(hydrateStores)
 
@@ -192,19 +191,6 @@ describe('Sheet responsive layout — single entity', () => {
     const header = container.querySelector('header')
     expect(header).toBeTruthy()
     expect((header as HTMLElement).className).toContain('sticky')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 3. SnapshotSheet — renders the LiveSheet shell (plan 4.8 port)
-// ---------------------------------------------------------------------------
-
-describe('SnapshotSheet responsive layout', () => {
-  test('SnapshotSheet pilot snapshot renders the variant shell + banner', () => {
-    const snapshot = { kind: 'pilot', entity: { ...fakePilot } }
-    const { container } = render(<SnapshotSheet snapshot={snapshot as Record<string, unknown>} />)
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
-    expect(container.querySelector('[aria-label="Read-only snapshot"]')).toBeTruthy()
   })
 })
 

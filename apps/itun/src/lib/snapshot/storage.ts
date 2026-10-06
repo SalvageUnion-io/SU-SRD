@@ -1,99 +1,41 @@
 /**
- * SnapshotStorage — thin abstraction over the blob store.
+ * SnapshotStorage — read-only access to the retired snapshot store.
+ *
+ * Snapshots are no longer minted or revoked (ADR-036), so the store is only ever
+ * read: the Worker looks a snapshot up to say which entity it was taken of.
+ * **Nothing here writes or deletes**, and nothing should — the objects in R2
+ * are kept untouched, by decision, and an old link's id is all it needs.
  *
  * One implementation, createR2Storage, held to its contract by
  * `__tests__/storageConformance.test.ts`. ADR-033 §3 covers why snapshots
  * live in R2.
  */
 
-export type PutOptions = {
-  /** When true, the write only succeeds if the key does not already exist. */
-  onlyIfNew?: boolean
-}
-
-export type PutResult = {
-  /** False if the key already existed and onlyIfNew was true. */
-  modified: boolean
-}
-
 export type SnapshotStorage = {
+  /** The stored snapshot, or null when no object has this id. */
   get(id: string): Promise<unknown | null>
-  put(id: string, payload: unknown, options?: PutOptions): Promise<PutResult>
-  /** Removes a snapshot by id. Idempotent — deleting a missing id is a no-op. */
-  delete(id: string): Promise<void>
 }
-
-// ---------------------------------------------------------------------------
-// Cloudflare R2 implementation (ADR-033)
-// ---------------------------------------------------------------------------
 
 /**
  * The slice of an R2 bucket binding this module uses.
  *
  * Declared structurally rather than importing `@cloudflare/workers-types`,
  * which would put a second definition of `fetch`/`Request`/`Response` into an
- * app that is otherwise typechecked for the browser. Same reason, and the same
- * three-method shape, as the `AssetBucket` seam in `apps/su-assets`.
+ * app that is otherwise typechecked for the browser. Same reason as the
+ * `AssetBucket` seam in `apps/su-assets`. Read-only on purpose: a binding that
+ * cannot be asked to write cannot be made to by a later edit to this file.
  */
 export type R2BucketLike = {
   get(key: string): Promise<{ json<T>(): Promise<T> } | null>
-  put(key: string, value: string): Promise<unknown>
-  delete(key: string): Promise<void>
 }
 
-/**
- * Returns a SnapshotStorage backed by an R2 bucket binding.
- *
- * ## Why R2 and not KV (ADR-033 §3)
- *
- * KV looks like the right shape — payloads cap at 256 KB against a 25 MB value
- * limit, and access is by short id. The disqualifying property is consistency,
- * not shape. Cloudflare documents that KV writes take **up to 60 seconds** to
- * propagate globally and that **negative lookups are cached**; the publish flow
- * reads a key twice before creating it (once in `generateUniqueId`, once in the
- * `onlyIfNew` check below), so it would prime a negative-cache entry for exactly
- * the key it is about to write — and the client then immediately requests that
- * key, because publish-then-share *is* the feature.
- *
- * `client.ts` makes the consequence concrete: its retry set is `{502, 504}` and
- * it excludes 404 deliberately, on the grounds that a store "has already said
- * no". True for R2; false for KV. Choosing KV would silently
- * invalidate that written invariant.
- *
- * Measured against a real bucket before this landed: **20/20 publish →
- * immediate-read round trips returned the written bytes with no delay.**
- *
- * ## `onlyIfNew` is a check-then-set
- *
- * The race it leaves open is already guarded upstream: `generateUniqueId` only
- * proposes ids that do not exist, over a 40-bit space.
- *
- * R2 does support a genuinely atomic conditional put, which would close that
- * race outright. It is not used here because changing the contract and porting
- * the platform in one step would mean a difference in behaviour with two
- * possible causes. Worth doing as its own change.
- */
+/** Returns a SnapshotStorage backed by an R2 bucket binding. */
 export function createR2Storage(bucket: R2BucketLike): SnapshotStorage {
   return {
     async get(id: string): Promise<unknown | null> {
       const object = await bucket.get(id)
       if (!object) return null
       return (await object.json<unknown>()) ?? null
-    },
-
-    async put(id: string, payload: unknown, options?: PutOptions): Promise<PutResult> {
-      if (options?.onlyIfNew) {
-        const existing = await bucket.get(id)
-        if (existing !== null) {
-          return { modified: false }
-        }
-      }
-      await bucket.put(id, JSON.stringify(payload))
-      return { modified: true }
-    },
-
-    async delete(id: string): Promise<void> {
-      await bucket.delete(id)
     },
   }
 }

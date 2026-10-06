@@ -64,7 +64,7 @@ It was mounted in `src/routes/__root.tsx` and never called, so it was removed
 (audit AP-10). Components read entities through the typed hooks in
 `src/hooks/entities/` (`usePilots()`, `useMech()`, …), which are selectors over
 the Zustand stores — the folder used to be called `hooks/queries`, which is
-why that name still turns up in old notes. Snapshot retrieval runs in a router
+why that name still turns up in old notes. `/s/$id`'s lookup runs in a router
 loader; Connected reads use `convex/react`. Don't re-add a query cache
 speculatively, and never route player entities through one.
 

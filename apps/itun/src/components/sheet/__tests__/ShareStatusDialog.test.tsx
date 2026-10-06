@@ -1,332 +1,81 @@
 /**
- * Tests for ShareStatusDialog — the share affordance that replaced the
+ * ShareStatusDialog outside Connected — the share affordance that replaced the
  * `/sheet/:kind/:id/share` screen.
  *
- * Ported from ShareSnapshotScreen.test.tsx. What carried over is everything
- * about the SNAPSHOT contract — publish payload, share URL, copy, QR, revoke
- * ledger, feature-detect. What did not: the preview-panel, back-link and
- * nothing-to-share assertions, all of which described surfaces the dialog
- * deliberately does not have (the live sheet behind it is the preview, and
- * `Sheet` already owns the not-found state). The QR kept its behaviour and
- * lost its panel.
+ * Snapshots are retired (ADR-036): the dialog no longer publishes, lists or
+ * revokes them, and must not offer to. The live public sheet is the only way to
+ * share, and it needs an account and a connection, so outside Connected the
+ * dialog explains what sharing needs instead. The Connected half — the toggle,
+ * the link, the QR — is `ShareStatusDialog.connected.test.tsx`.
  *
- * One assertion is NEW and is the reason the probe moved behind `open`: a
- * closed dialog must not touch the network, because unlike the old screen this
- * one is mounted by every live sheet.
- *
- * Dep-injection throughout (no mock.module()): publishFn, deleteFn, probeFn and
- * clipboardWriter are all props.
+ * No Convex provider and no mock here: that is the point. The panel that calls
+ * Convex hooks must not mount, or this file would throw.
  */
 
-import type { Mock } from 'bun:test'
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { act, render, screen } from '@testing-library/react'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
-import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { pilotFixture } from '../../__tests__/fixtures'
 import { ShareStatusDialog } from '../ShareStatusDialog'
 
-afterEach(() => {
-  // The publish flow records the shared link in localStorage — clear it so the
-  // revoke ledger never leaks between tests.
-  localStorage.clear()
-  cleanup()
-})
+const fakePilot: Pilot = pilotFixture({ id: 'pilot-1', name: 'Mara Vex' })
 
-const fakePilot: Pilot = {
-  id: 'pilot-1',
-  schemaVersion: 1,
-  name: 'Mara Vex',
-  callsign: 'Wrench',
-  classRef: 'engineer',
-  abilities: [],
-  equipment: [],
-  motto: 'Hold the line.',
-  keepsake: 'A bent coin.',
-  appearance: 'Tall, weathered.',
-  background: '',
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
-
-const probeUp = () => Promise.resolve(true)
-const probeDown = () => Promise.resolve(false)
-
-function makePublishFn(
-  result: PublishResult
-): Mock<(payload: SnapshotPayload) => Promise<PublishResult>> {
-  return mock(async (_payload: SnapshotPayload) => result)
-}
-
-/** The dialog under test, open, with the injectables defaulted. */
-function renderDialog(
-  props: Partial<React.ComponentProps<typeof ShareStatusDialog>> = {}
-): ReturnType<typeof render> {
+function renderDialog(state?: ConnectionState): ReturnType<typeof render> {
+  const dialog = (
+    <ShareStatusDialog kind="pilot" id="pilot-1" entity={fakePilot} open onOpenChange={() => {}} />
+  )
   return render(
-    <ShareStatusDialog
-      kind="pilot"
-      id="pilot-1"
-      entity={fakePilot}
-      open
-      onOpenChange={() => {}}
-      probeFn={probeUp}
-      publishFn={makePublishFn({ id: 'a', url: '/api/snapshots/a' })}
-      {...props}
-    />
+    state ? <ConnectionContext.Provider value={state}>{dialog}</ConnectionContext.Provider> : dialog
   )
 }
 
-const publishButton = () => screen.getByRole<HTMLButtonElement>('button', { name: /publish/i })
-
-async function waitForProbe(): Promise<void> {
-  await waitFor(() => {
-    expect(publishButton().disabled).toBe(false)
-  })
-}
-
-// ---------------------------------------------------------------------------
-// Status — the thing the dialog is named for
-// ---------------------------------------------------------------------------
-
-describe('ShareStatusDialog — status', () => {
-  test('reads "Not shared" with no published links', async () => {
+describe('ShareStatusDialog — snapshots are gone', () => {
+  test('offers no way to mint, copy or revoke a snapshot', async () => {
     await act(async () => {
       renderDialog()
     })
-    expect(screen.getByText(/not shared/i)).toBeTruthy()
+
+    expect(screen.queryByRole('button', { name: /publish snapshot/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /publish a new link/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /remove shared link/i })).toBeNull()
+    expect(screen.queryByRole('heading', { name: /frozen snapshot/i })).toBeNull()
+    expect(screen.queryByLabelText('Share URL')).toBeNull()
+    expect(screen.queryByTestId('share-qr')).toBeNull()
   })
 
-  /**
-   * The naming axis, locked.
-   *
-   * Read-only is the CONSTANT — both shared surfaces render through
-   * `frozenSheet.ts` + `<Sheet readOnly />` — so heading these "Public sheet"
-   * and "Snapshot link" named public-versus-private, an axis on which they do
-   * not differ, and invited the guess that the public page was writable by
-   * whoever held the link. Live-versus-frozen is the real choice.
-   *
-   * Only the frozen half is assertable here: the live half calls Convex hooks
-   * and cannot mount without a provider (which is the Solo case, and this).
-   */
-  test('names the section for what it is — frozen, not "a snapshot link"', async () => {
+  test('still promises read-only, whichever branch renders', async () => {
     await act(async () => {
       renderDialog()
     })
-    expect(screen.getByRole('heading', { name: /frozen snapshot/i })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: /snapshot link/i })).toBeNull()
-    // And the line that frames the pair: read-only is a given, not a choice.
     expect(screen.getByText(/read-only view of Mara Vex/i)).toBeTruthy()
   })
+})
 
-  test('counts existing links for this entity, and offers to revoke each', async () => {
-    recordPublishedSnapshot({
-      id: 'PRIOR001',
-      kind: 'pilot',
-      entityId: 'pilot-1',
-      name: 'Mara Vex',
-      publishedAt: FIXTURE_NOW,
-    })
+describe('ShareStatusDialog — Solo', () => {
+  test('says sharing needs an account, rather than offering a control that cannot work', async () => {
+    // No provider at all is Solo (`SOLO_STATE`), the anonymous visitor.
     await act(async () => {
       renderDialog()
     })
-    // "active", not "live" — the section above is the LIVE public sheet, and
-    // one word meaning both "not revoked" and "keeps current" is the confusion
-    // this naming pass exists to remove.
-    expect(screen.getByText(/shared — 1 active link/i)).toBeTruthy()
-    expect(screen.getByRole('button', { name: /remove shared link PRIOR001/i })).toBeTruthy()
+    expect(screen.getByText(/sharing needs an account/i)).toBeTruthy()
+    // The live panel is Convex-backed and must not mount here.
+    expect(screen.queryByRole('heading', { name: /live public sheet/i })).toBeNull()
   })
 })
 
-// ---------------------------------------------------------------------------
-// Publish flow
-// ---------------------------------------------------------------------------
-
-describe('ShareStatusDialog — publish flow', () => {
-  test('publishes a bare-entity payload and reveals the share URL', async () => {
-    const publishFn = makePublishFn({ id: 'abc123', url: '/api/snapshots/abc123' })
-    renderDialog({ publishFn })
-
-    await waitForProbe()
+describe('ShareStatusDialog — signed in but not connected', () => {
+  test('says sharing needs a live connection', async () => {
     await act(async () => {
-      fireEvent.click(publishButton())
+      renderDialog({
+        mode: 'disconnected',
+        canWrite: false,
+        showDisconnectedWarning: true,
+        settling: false,
+      })
     })
-
-    expect(publishFn).toHaveBeenCalledTimes(1)
-    const firstCall = publishFn.mock.calls[0]
-    if (!firstCall) throw new Error('publishFn was not called')
-    const [payload] = firstCall
-    expect(payload.kind).toBe('pilot')
-    expect((payload.entity as Pilot).id).toBe('pilot-1')
-    // No pilot abilities were passed, so no context rides along.
-    expect(payload.context).toBeUndefined()
-
-    await waitFor(() => {
-      const input = screen.getByLabelText<HTMLInputElement>('Share URL')
-      expect(input.value).toContain('/s/abc123')
-    })
-  })
-
-  /**
-   * The regression the old preview panel hid rather than caused: a mech's
-   * numbers depend on its pilot's abilities (ADR-029), so they must travel with
-   * the snapshot or the shared mech reads lower than the owner's.
-   */
-  test('carries pilot ability refs as snapshot context when given them', async () => {
-    const publishFn = makePublishFn({ id: 'ctx1', url: '/api/snapshots/ctx1' })
-    renderDialog({ publishFn, pilotAbilities: ['beefcake'] })
-
-    await waitForProbe()
-    await act(async () => {
-      fireEvent.click(publishButton())
-    })
-
-    expect(publishFn.mock.calls[0]?.[0].context).toEqual({ pilotAbilities: ['beefcake'] })
-  })
-
-  test('copies the URL once published', async () => {
-    const writes: string[] = []
-    renderDialog({
-      publishFn: makePublishFn({ id: 'xyz99', url: '/api/snapshots/xyz99' }),
-      clipboardWriter: async (text: string) => {
-        writes.push(text)
-      },
-    })
-
-    // Nothing to copy before publishing, so the control is not there to press.
-    expect(screen.queryByRole('button', { name: /copy share url/i })).toBeNull()
-
-    await waitForProbe()
-    await act(async () => {
-      fireEvent.click(publishButton())
-    })
-
-    const copyBtn = await screen.findByRole('button', { name: /copy share url/i })
-    await act(async () => {
-      fireEvent.click(copyBtn)
-    })
-    expect(writes.length).toBe(1)
-    expect(writes[0]).toContain('/s/xyz99')
-  })
-
-  /**
-   * The QR outlived the share screen because passing a phone across a table is
-   * the actual use. It lost the panel, the heading and the placeholder — it is
-   * simply absent until there is a link to encode.
-   */
-  test('renders a QR of the link, and only once there is one', async () => {
-    renderDialog({ publishFn: makePublishFn({ id: 'snapqr1', url: '/api/snapshots/snapqr1' }) })
-
-    await waitForProbe()
-    expect(screen.queryByTestId('snapshot-qr')).toBeNull()
-
-    await act(async () => {
-      fireEvent.click(publishButton())
-    })
-
-    const qr = await screen.findByTestId('snapshot-qr')
-    expect(qr.getAttribute('role')).toBe('img')
-    expect(qr.getAttribute('aria-label')).toBe('QR code linking to this snapshot')
-    await waitFor(() => {
-      expect(qr.querySelector('svg')).not.toBeNull()
-    })
-  })
-
-  test('shows a styled error when publish fails', async () => {
-    renderDialog({
-      publishFn: mock(async () => {
-        throw new Error('network timeout')
-      }),
-    })
-
-    await waitForProbe()
-    await act(async () => {
-      fireEvent.click(publishButton())
-    })
-
-    await waitFor(() => {
-      expect(screen.getByRole('alert').textContent).toContain('network timeout')
-    })
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Revoke / un-publish
-// ---------------------------------------------------------------------------
-
-describe('ShareStatusDialog — revoke', () => {
-  test('publishing records the link and reveals a Remove affordance', async () => {
-    renderDialog({ publishFn: makePublishFn({ id: 'REV00001', url: '/api/snapshots/REV00001' }) })
-
-    await waitForProbe()
-    await act(async () => {
-      fireEvent.click(publishButton())
-    })
-
-    expect(await screen.findByRole('button', { name: /remove shared link REV00001/i })).toBeTruthy()
-  })
-
-  test('Remove calls the delete fn and drops the link', async () => {
-    const deleteFn = mock(async (_id: string) => {})
-    renderDialog({
-      publishFn: makePublishFn({ id: 'REV00002', url: '/api/snapshots/REV00002' }),
-      deleteFn,
-    })
-
-    await waitForProbe()
-    await act(async () => {
-      fireEvent.click(publishButton())
-    })
-
-    const removeBtn = await screen.findByRole('button', {
-      name: /remove shared link REV00002/i,
-    })
-    await act(async () => {
-      fireEvent.click(removeBtn)
-    })
-
-    expect(deleteFn).toHaveBeenCalledTimes(1)
-    expect(deleteFn.mock.calls[0]?.[0]).toBe('REV00002')
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /remove shared link REV00002/i })).toBeNull()
-    })
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Backend feature-detect
-// ---------------------------------------------------------------------------
-
-describe('ShareStatusDialog — backend feature-detect', () => {
-  /**
-   * NEW, and the reason the probe is gated on `open`. This dialog is mounted by
-   * every live sheet; probing on mount would put a request on the app's
-   * most-visited surface for a feature most visits never touch.
-   */
-  test('does not probe while closed', async () => {
-    const probeFn = mock(async () => true)
-    await act(async () => {
-      renderDialog({ open: false, probeFn })
-    })
-    expect(probeFn).toHaveBeenCalledTimes(0)
-  })
-
-  test('Publish is disabled while the probe is in flight', () => {
-    // A probe that never resolves holds the dialog in the checking state.
-    renderDialog({ probeFn: () => new Promise<boolean>(() => {}) })
-    expect(publishButton().disabled).toBe(true)
-  })
-
-  test('hides Publish and shows the unavailable note when the service is down', async () => {
-    renderDialog({ probeFn: probeDown })
-
-    // Wait for the note to appear, not for the button to go: a failing
-    // `expect(element).toBeNull()` poll serialises the whole DOM graph into its
-    // message, which cost seconds per failed poll.
-    const note = await screen.findByRole('note')
-    expect(screen.queryByRole('button', { name: /publish/i })).toBeNull()
-    expect(note.textContent).toContain('Publishing unavailable')
-    expect(note.getAttribute('title')).toContain('/api/snapshots')
+    expect(screen.getByText(/need a live connection/i)).toBeTruthy()
+    expect(screen.queryByText(/sharing needs an account/i)).toBeNull()
   })
 })

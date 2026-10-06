@@ -4,18 +4,13 @@
  * ## Why this is its own module
  *
  * It began inside `components/sheet/frozenSheet.ts`, alongside the read-only
- * Zustand store that renders the result. That was fine while rendering was the
- * only caller. The snapshot **publish** handler now needs the same parse — so
- * that a snapshot which cannot be rendered cannot be minted in the first place
- * — and `frozenSheet.ts` imports `zustand` and the entity store.
- *
- * esbuild follows the module, not the call, so importing the parse out of that
- * file would drag the store into the Cloudflare Worker bundle. This is the same
- * lesson `lib/snapshot/handlers.ts` records about `@sentry/node`: the shared
- * thing has to live somewhere neither platform owns.
- *
- * So the parse lives here, importing nothing but the schemas, and every caller
- * is an adapter around it.
+ * Zustand store that renders the result. It moved here when the snapshot
+ * publish handler in the Cloudflare Worker needed the same parse, because
+ * `frozenSheet.ts` imports `zustand` and the entity store and esbuild follows
+ * the module, not the call. Publishing is retired (ADR-036), so today every
+ * caller is a renderer again — but a parse that imports nothing but the
+ * schemas is still the right shape for a module both platforms could reach,
+ * so it stays, and every caller is an adapter around it.
  */
 
 import { isRecord } from '../isRecord'
@@ -37,12 +32,11 @@ export type FrozenParse =
 /**
  * Validate an untrusted entity body against the schema for its kind.
  *
- * Untrusted in all three callers, and for the same reason: a snapshot payload
- * was published by some other version of this app, a server row was written by
- * some other player's browser, and a publish request is simply whatever arrived
- * on an unauthenticated POST. None is a record this session created, so all go
- * through Zod rather than a cast — a mismatch renders an explanation or is
- * refused at the door, never a crash mid-sheet.
+ * Untrusted in every caller, for the same reason: a server row — a crewmate's
+ * in a Game, or a public sheet — was written by some other player's browser,
+ * running some other version of this app. None is a record this session
+ * created, so all go through Zod rather than a cast — a mismatch renders an
+ * explanation, never a crash mid-sheet.
  */
 export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
   if (!isRecord(entity) || Array.isArray(entity)) {

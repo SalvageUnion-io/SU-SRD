@@ -157,12 +157,12 @@ one).
 | Worker            | Serves                                        | Bindings                          |
 | ----------------- | --------------------------------------------- | --------------------------------- |
 | `su-srd`          | `salvageunion.io`, `www.` (redirect)          | none — Static Assets, no script    |
-| `su-itun`         | `intheunionnow.com`, `www.`, the snapshot API | `ASSETS`, R2 `SNAPSHOTS`, `RATE_LIMITER` |
+| `su-itun`         | `intheunionnow.com`, `www.`, `/api/snapshots/:id` (read-only), old-link unfurls | `ASSETS`, R2 `SNAPSHOTS`, `OG_METRICS` |
 | `su-assets`       | `assets.salvageunion.io`                      | R2 `LP_ASSETS`, `IMAGES`           |
 | `su-discord-bot`  | Discord HTTP interactions + a 5-minute cron   | none; secrets only                 |
 
-**R2 buckets:** `su-itun-snapshots` (shared sheets), `su-lp-assets` (licensed
-artwork). **Zones:** `salvageunion.io` and `intheunionnow.com`, both on
+**R2 buckets:** `su-itun-snapshots` (retired snapshot shares — read-only, kept
+by decision, ADR-036; never delete from it), `su-lp-assets` (licensed artwork). **Zones:** `salvageunion.io` and `intheunionnow.com`, both on
 Cloudflare nameservers since 2026-08-31.
 
 **Preview URLs** live under `alxjrvs.workers.dev` — one subdomain per account,

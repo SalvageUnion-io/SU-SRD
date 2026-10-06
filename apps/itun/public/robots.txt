@@ -11,8 +11,8 @@
 User-agent: *
 Allow: /
 
-# The snapshot API is machine-to-machine. Crawling it costs R2 reads and
-# indexes nothing a person would search for.
+# The API is machine-to-machine (today, only the retired snapshot API's one
+# read). Crawling it costs R2 reads and indexes nothing a person would search for.
 Disallow: /api/
 
 # Shared sheets are deliberately reachable without an account (ADR-032), so

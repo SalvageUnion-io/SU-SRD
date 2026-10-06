@@ -3,12 +3,8 @@ import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { Env } from '../index'
 import worker from '../index'
 
-/**
- * A body publish will actually accept. These tests posted `{ kind: 'pilot',
- * name: 'Mule' }` before publish validated its payload — a shape `/s/$id` could
- * never have rendered. See `lib/snapshot/payload.ts`.
- */
-const PUBLISHABLE = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker' }) }
+/** A snapshot as every published one was stored: `{ kind, entity }`. */
+const STORED = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker', name: 'Rusty' }) }
 
 /**
  * The itun Worker's routing table (ADR-033 P4).
@@ -18,13 +14,14 @@ const PUBLISHABLE = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker' }) }
  * compensation: every rule, and every ordering constraint whose comment cites
  * an incident, is asserted here.
  *
- * The two that have already broken production:
+ * The one that has already broken production: `/assets/*` on a miss must be
+ * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`
+ * header pin that HTML into the HTTP cache for a year under a rotated chunk's
+ * URL (#759).
  *
- *   - `/assets/*` on a miss must be **404**, never the SPA shell. Answering 200
- *     with HTML let the `immutable` header pin that HTML into the HTTP cache for
- *     a year under a rotated chunk's URL (#759).
- *   - DELETE `/api/snapshots/:id` must be matched BEFORE the unconditioned
- *     retrieve, or revocation answers 405.
+ * The snapshot API is down to one read (ADR-036), and the retired halves are
+ * asserted as retired: no publish, no revoke, no frozen build served. The
+ * unfurl of links already posted (`/s/:id` metadata, `/og/s/:id.png`) stays.
  */
 
 /** A fake static-asset binding: `not_found_handling: "none"` semantics. */
@@ -42,7 +39,11 @@ function assetsWith(files: Record<string, string>) {
   }
 }
 
-/** A fake R2 bucket, matching the `R2BucketLike` seam. */
+/**
+ * A fake R2 bucket. It has `put` and `delete` although the read-only
+ * `R2BucketLike` seam does not, so that a regression which started writing
+ * again would show up in `_store` rather than be impossible to observe.
+ */
 function bucketWith(objects: Record<string, unknown>) {
   const store = new Map(Object.entries(objects).map(([k, v]) => [k, JSON.stringify(v)]))
   return {
@@ -274,10 +275,7 @@ describe('every HTML document revalidates', () => {
 
   it('a snapshot shell with injected metadata', async () => {
     // The other rule-7 branch: the body is rewritten, so the headers are copied.
-    const res = await worker.fetch(
-      req('/s/AAAAAAAA'),
-      env({ AAAAAAAA: { kind: 'pilot', entity: { name: 'Rusty' } } })
-    )
+    const res = await worker.fetch(req('/s/AAAAAAAA'), env({ AAAAAAAA: STORED }))
 
     expect(await res.text()).toContain('Rusty — Pilot')
     expect(res.headers.get('cache-control')).toBe(REVALIDATE)
@@ -309,8 +307,11 @@ describe('every HTML document revalidates', () => {
  * The wiring, not just the helper. `shellMeta.test.ts` covers the rendering;
  * this covers that a real `/s/:id` request reaches it and that failure degrades
  * to the defaults rather than to a 500.
+ *
+ * Kept for links already posted (ADR-036): Discord re-fetches an unfurl, and
+ * the click itself goes through the client's redirect-or-retired resolver.
  */
-describe('shared snapshots unfurl with their own metadata', () => {
+describe('old snapshot links keep their unfurl metadata', () => {
   const SHELL = [
     '<!doctype html><html><head><title>In The Union Now</title>',
     '<!-- itun:meta:start -->',
@@ -359,85 +360,61 @@ describe('shared snapshots unfurl with their own metadata', () => {
   })
 })
 
-describe('/api/snapshots — method-conditioned routing', () => {
-  it('POST publishes and returns an id', async () => {
-    const env = envWith()
-    const res = await worker.fetch(
-      req('/api/snapshots', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(PUBLISHABLE),
-      }),
-      env
-    )
-
-    expect(res.status).toBe(201)
-    const body = (await res.json()) as { id: string; url: string }
-    expect(body.id).toMatch(/^[0-9A-HJKMNP-TV-Z]{8}$/)
-    expect(body.url).toBe(`/api/snapshots/${body.id}`)
-  })
-
-  it('POST {} → 400 and stores nothing — the Worker runs the STRICT check', async () => {
-    // The gap this whole change exists to close, asserted on the host that
-    // actually serves publishes. Before validation this answered 201 with a
-    // real share URL for a snapshot `/s/$id` could never render — verified
-    // against production before the fix.
-    const env = envWith()
-    const res = await worker.fetch(
-      req('/api/snapshots', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({}),
-      }),
-      env
-    )
-
-    expect(res.status).toBe(400)
-    expect(await res.text()).toContain('Entity data is missing')
-    expect(env.SNAPSHOTS._store.size).toBe(0)
-  })
-
-  it('POST a known kind with an unrenderable entity → 400', async () => {
-    const env = envWith()
-    const res = await worker.fetch(
-      req('/api/snapshots', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: 'pilot', entity: { nonsense: true } }),
-      }),
-      env
-    )
-
-    expect(res.status).toBe(400)
-    expect(env.SNAPSHOTS._store.size).toBe(0)
-  })
-
-  for (const method of ['GET', 'PUT', 'PATCH', 'DELETE']) {
-    it(`${method} /api/snapshots is 405`, async () => {
+describe('/api/snapshots — publishing is retired', () => {
+  for (const method of ['POST', 'GET', 'HEAD', 'PUT', 'DELETE']) {
+    it(`${method} /api/snapshots is 404 and stores nothing`, async () => {
       const env = envWith()
-      const res = await worker.fetch(req('/api/snapshots', { method }), env)
+      const init: RequestInit =
+        method === 'POST'
+          ? {
+              method,
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify(STORED),
+            }
+          : { method }
+      const res = await worker.fetch(req('/api/snapshots', init), env)
 
-      expect(res.status).toBe(405)
+      expect(res.status).toBe(404)
+      expect(env.SNAPSHOTS._store.size).toBe(0)
     })
   }
 
-  it('GET /api/snapshots/:id retrieves the payload', async () => {
-    const env = envWith({ '/index.html': 'SPA' }, { ABCD1234: { kind: 'pilot' } })
+  it('is a 404, not the SPA shell', async () => {
+    // An `/api` path answering 200 text/html would read as success to a script.
+    const env = envWith({ '/index.html': '<!doctype html>SPA' })
+    const res = await worker.fetch(req('/api/snapshots', { method: 'POST' }), env)
+    expect(await res.text()).not.toContain('SPA')
+  })
+})
+
+describe('/api/snapshots/:id — which entity, and nothing else', () => {
+  it('GET answers { kind, appId } — never the frozen build', async () => {
+    const env = envWith({ '/index.html': 'SPA' }, { ABCD1234: STORED })
     const res = await worker.fetch(req('/api/snapshots/ABCD1234'), env)
 
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ kind: 'pilot' })
+    expect(await res.json()).toEqual({ kind: 'pilot', appId: 'p-worker' })
   })
 
-  it('DELETE /api/snapshots/:id revokes — it is NOT swallowed into a 405', async () => {
-    // The ordering constraint: the retrieve rule has no method condition, so a DELETE matched against it answers 405
-    // and revocation silently stops working.
-    const env = envWith({ '/index.html': 'SPA' }, { ABCD1234: { kind: 'pilot' } })
+  it('DELETE is 405, and the stored object is untouched', async () => {
+    // Revocation is retired along with publishing. The R2 objects are kept as
+    // they are, by decision — nothing in this Worker writes to the bucket.
+    const env = envWith({ '/index.html': 'SPA' }, { ABCD1234: STORED })
     const res = await worker.fetch(req('/api/snapshots/ABCD1234', { method: 'DELETE' }), env)
 
-    expect(res.status).not.toBe(405)
-    expect(res.status).toBeLessThan(300)
-    expect(await env.SNAPSHOTS.get('ABCD1234')).toBeNull()
+    expect(res.status).toBe(405)
+    expect(env.SNAPSHOTS._store.has('ABCD1234')).toBe(true)
+  })
+
+  it('PUT is 405 too, and writes nothing', async () => {
+    const env = envWith({ '/index.html': 'SPA' }, {})
+    const res = await worker.fetch(
+      req('/api/snapshots/ABCD1234', { method: 'PUT', body: JSON.stringify(STORED) }),
+      env
+    )
+
+    expect(res.status).toBe(405)
+    expect(env.SNAPSHOTS._store.size).toBe(0)
   })
 
   it('404s an unknown id', async () => {
@@ -455,61 +432,9 @@ describe('/api/snapshots — method-conditioned routing', () => {
   })
 })
 
-describe('rate limiting', () => {
-  it('429s a POST the binding rejects', async () => {
-    const env = {
-      ...envWith(),
-      RATE_LIMITER: {
-        async limit() {
-          return { success: false }
-        },
-      },
-    }
-    const res = await worker.fetch(
-      req('/api/snapshots', { method: 'POST', body: '{}' }),
-      env as never
-    )
-
-    expect(res.status).toBe(429)
-  })
-
-  it('is optional — an absent binding means no limiting, not a crash', async () => {
-    // Deliberate tolerance, and NOT evidence that an absent binding is fine:
-    // the 256 KB cap bounds bytes per request, not requests, so it does not
-    // bound storage amplification at all. This asserts the Worker still SERVES
-    // without the binding; that the binding is actually declared is asserted by
-    // `rateLimitBinding.test.ts`, which reads wrangler.jsonc.
-    const env = envWith()
-    expect(env.RATE_LIMITER).toBeUndefined()
-    const res = await worker.fetch(
-      req('/api/snapshots', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(PUBLISHABLE),
-      }),
-      env
-    )
-
-    expect(res.status).toBe(201)
-  })
-
-  it('does not rate-limit reads', async () => {
-    const env = {
-      ...envWith({ '/index.html': 'SPA' }, { ABCD1234: { kind: 'pilot' } }),
-      RATE_LIMITER: {
-        async limit() {
-          return { success: false }
-        },
-      },
-    }
-    const res = await worker.fetch(req('/api/snapshots/ABCD1234'), env as never)
-
-    expect(res.status).toBe(200)
-  })
-})
-
 /**
- * `/og/s/:id.png` — the rendered unfurl image.
+ * `/og/s/:id.png` — the rendered unfurl image, kept for links already posted
+ * (ADR-036) until it can go with `@resvg/resvg-wasm`.
  *
  * **What can be asserted here is the routing, not the render.** The handler
  * reaches `renderOgImage` through a lazy `await import('./ogImage')`, and that
@@ -550,8 +475,8 @@ describe('/og/s/:id.png', () => {
   })
 
   it('falls back to the static icon when the snapshot is gone', async () => {
-    // A revoked snapshot is the common case, not an exotic one: the id is the
-    // whole capability, and revoking it is how sharing is undone.
+    // Snapshots can no longer be revoked (ADR-036), but an id that was revoked
+    // before, or was never minted, is still the common miss.
     const env = envWith({ '/index.html': 'SPA' }, {})
     const res = await worker.fetch(req('/og/s/AAAAAAAA.png'), env)
 
@@ -579,10 +504,12 @@ describe('/og/s/:id.png', () => {
   // ---------------------------------------------------------------------
 
   it.each([
-    ['a redirect', '/share/pilot/AAAAAAAA'],
+    ['a redirect', '/pilots/whatever'],
     ['a 400 on a malformed snapshot id', '/api/snapshots/!!!'],
+    ['a 404 for an unknown snapshot id', '/api/snapshots/ABCD1234'],
+    ['the retired publish endpoint', '/api/snapshots'],
     ['an og:image fallback', '/og/s/!!.png'],
-    ['the SPA shell', '/pilots/whatever'],
+    ['the SPA shell', '/s/AAAAAAAA'],
     ['a 404 for a missing file', '/nope.txt'],
   ])('sets the security headers on %s', async (_label, path) => {
     const env = envWith({ '/index.html': 'SPA' }, {})

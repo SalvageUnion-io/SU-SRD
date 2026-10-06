@@ -4,7 +4,7 @@
  * Namespacing fixes the collision problem for good: every dice bot on a
  * server registers /roll, so ours competed in the command picker on avatar
  * alone. Typing /su filters the picker to this bot, and every future
- * subcommand (encounter cards, snapshot lookups, …) lands collision-proof
+ * subcommand (encounter cards, …) lands collision-proof
  * with zero naming deliberation.
  *
  * The subcommand option shapes live with their handlers (roll.ts,

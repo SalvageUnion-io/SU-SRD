@@ -274,12 +274,6 @@ const EXEMPTIONS: Exemption[] = [
       'Ruleset §3.5 hard-stop pattern: the story restates the real tech-level ramp (six coincident-stop bands, no blending) because component-lib cannot import catalogColors from an app. Exempt for the same reason the component it demonstrates is.',
   },
   {
-    file: 'apps/itun/src/components/sheet/ShareSnapshotScreen.tsx',
-    rules: ['gradient'],
-    reason:
-      'Ruleset §3.5 hard-stop pattern: the QR placeholder is a repeating-conic checkerboard on ink/paper tokens. A checkerboard is a pattern, not shading.',
-  },
-  {
     file: 'apps/srd/src/styles/global.css',
     rules: ['gradient', 'raw-color'],
     reason:

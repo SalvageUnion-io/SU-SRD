@@ -179,15 +179,14 @@ describe('observability', () => {
     })
   })
 
-  test('captureMessage forwards too — snapshot-backend outages are not exceptions', () => {
-    // `probeSnapshotService` feature-detects an outage and handles it; without
-    // this verb that detection stays silent and nobody learns the backend is
-    // down (see ShareSnapshotScreen).
-    captureMessage('snapshot backend unavailable', { status: 503 })
+  test('captureMessage forwards too — a handled condition is not an exception', () => {
+    // `upgradeTelemetry.ts` reports a database upgrade it handled; without this
+    // verb that report stays silent and nobody learns how often it happens.
+    captureMessage('itun-db: upgraded a pre-v13 database', { fromVersion: 12 })
 
     const captured = sentryCalls.find((c) => c.fn === 'captureMessage')
-    expect(captured?.args[0]).toBe('snapshot backend unavailable')
-    expect(captured?.args[1]).toEqual({ extra: { status: 503 } })
+    expect(captured?.args[0]).toBe('itun-db: upgraded a pre-v13 database')
+    expect(captured?.args[1]).toEqual({ extra: { fromVersion: 12 } })
   })
 
   test('captureMessage with no context sends undefined too', () => {

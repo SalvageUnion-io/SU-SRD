@@ -15,12 +15,12 @@ paths:
   exported; a page body "exported for testing" keeps its whole component graph
   in the entry chunk every route downloads. `/s/$id` and `/p/$kind/$appId`
   did exactly that and pinned the live-sheet tree onto every route. Put a
-  testable body in `src/components/` (`SnapshotPage.tsx`, `PublicSheetView.tsx`)
+  testable body in `src/components/` (`SnapshotLinkView.tsx`, `PublicSheetView.tsx`)
   and import it from both. `routes/__tests__/routeExports.test.ts` enforces it.
 - `validateSearch` parses search params into a typed shape, read with
   `Route.useSearch()` — not `useSearch({ strict: false })` plus a cast.
 - `beforeLoad` for guards and redirects (`throw redirect({ … })`), `loader`
-  for load-time preparation such as store hydration or snapshot retrieval. Not
+  for load-time preparation such as store hydration or a snapshot-link lookup. Not
   for `SalvageUnionReference.preload([...])`: every route renders inside
   `GameDataReady`, whose `preload('all')` is already the gate, so a per-route
   list is pure repetition (the three `*/new` loaders were deleted for it). Neither reads player entities: those come from the

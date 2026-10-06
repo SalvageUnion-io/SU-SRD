@@ -72,8 +72,8 @@ async function byAppId(
  *
  * **Unauthenticated by design** — see the module header. Returns the bare
  * entity body, which is exactly what `frozenSheet.ts` parses on the client, so
- * the public route reuses the renderer the snapshot page and the Game view
- * already share rather than adding a third.
+ * the public route reuses the renderer the Game view already uses rather than
+ * adding another.
  */
 export const get = query({
   args: { kind: kindValidator, appId: v.string() },
@@ -99,9 +99,9 @@ export const get = query({
  *
  * A mech's Max SP and Cargo depend on its PILOT: Beefcake raises both on the
  * mech being piloted (ADR-029). A frozen sheet cannot see that — which is
- * exactly why a published snapshot has to carry `context.pilotAbilities`
- * alongside the entity — so without this a public mech would read *lower* than
- * the same mech on its owner's sheet.
+ * exactly why a published snapshot used to carry `context.pilotAbilities`
+ * alongside the entity (snapshots are retired, ADR-036) — so without this a
+ * public mech would read *lower* than the same mech on its owner's sheet.
  *
  * Resolving it here is the concrete form of ADR-032's claim that serving live
  * fixes what the frozen path cannot: the query runs on the server of record
@@ -234,8 +234,9 @@ async function assertMayPublish(
  * Publish or unpublish one sheet.
  *
  * Unpublishing takes effect everywhere at once, because there is exactly one
- * URL per entity and it is derived rather than minted — so unlike an ADR-004
- * snapshot there is no set of outstanding links to chase down.
+ * URL per entity and it is derived rather than minted — so unlike the retired
+ * ADR-004 snapshots there is no set of outstanding links to chase down. (An old
+ * `/s/:id` link resolves through `get`, so it stops reaching the sheet too.)
  */
 export const setPublic = mutation({
   args: { kind: kindValidator, appId: v.string(), isPublic: v.boolean() },

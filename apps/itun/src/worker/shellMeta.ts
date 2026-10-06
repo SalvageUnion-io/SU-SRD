@@ -112,7 +112,7 @@ export function applyMeta(shell: string, meta: ShellMeta): string {
   )
 }
 
-/** The `{ kind, entity }` shape `ShareStatusDialog` publishes. */
+/** The `{ kind, entity }` shape every snapshot was stored in (none are minted since ADR-036). */
 type SnapshotLike = {
   kind?: unknown
   entity?: { name?: unknown; callsign?: unknown; chassis?: unknown } | null

@@ -67,7 +67,7 @@ rather than a description. Do not fork the display for the Dashboard.
 | dial show/hide and order                                  | `cockpitPrefsStore` — `localStorage`, per container     |
 | overlays, filters, resolve progress                       | component state                                         |
 
-Mount state must never reach the pilot/mech schema or a snapshot: there is no
+Mount state must never reach the pilot/mech schema or a shared sheet: there is no
 "pilot in mech" field, only a `mech-to-pilot` soft link.
 
 ### 4.2 Persistence
