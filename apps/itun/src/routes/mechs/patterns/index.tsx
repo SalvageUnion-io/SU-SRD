@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { PageHeading } from 'component-lib'
 import { PatternList } from '../../../components/mech/Pattern/PatternList'
+import { pageTitle } from '../../../lib/pageTitle'
 
 export const Route = createFileRoute('/mechs/patterns/')({
+  head: () => ({ meta: [{ title: pageTitle('Mech Patterns') }] }),
   component: MechPatternsPage,
 })
 

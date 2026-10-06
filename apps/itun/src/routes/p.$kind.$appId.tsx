@@ -1,5 +1,6 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { PublicSheetView } from '../components/sheet/PublicSheetView'
+import { pageTitle } from '../lib/pageTitle'
 
 /**
  * `/p/$kind/$appId` — one published sheet, readable with no account
@@ -18,6 +19,7 @@ import { PublicSheetView } from '../components/sheet/PublicSheetView'
  * tree out of the entry chunk (see `routes/__tests__/routeExports.test.ts`).
  */
 export const Route = createFileRoute('/p/$kind/$appId')({
+  head: () => ({ meta: [{ title: pageTitle('Shared sheet') }] }),
   component: PublicSheetRoute,
 })
 

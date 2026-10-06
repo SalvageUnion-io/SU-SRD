@@ -2,8 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Changelog, mergeChangelogs, PageHeading, parseChangelog } from 'component-lib'
 import refMd from '../../../../packages/salvageunion-reference/CHANGELOG.md?raw'
 import itunMd from '../../CHANGELOG.md?raw'
+import { pageTitle } from '../lib/pageTitle'
 
 export const Route = createFileRoute('/changelog')({
+  head: () => ({ meta: [{ title: pageTitle('Changelog') }] }),
   component: ChangelogPage,
 })
 

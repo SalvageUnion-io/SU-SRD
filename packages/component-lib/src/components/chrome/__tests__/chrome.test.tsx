@@ -38,6 +38,19 @@ describe('Field / Input', () => {
     expect(screen.getByLabelText('callsign').className).toContain(INPUT_FOCUS)
   })
 
+  test('numeric opens the digit keypad', () => {
+    render(<Input aria-label="qty" type="number" numeric />)
+    const el = screen.getByLabelText('qty')
+    expect(el.getAttribute('inputmode')).toBe('numeric')
+    expect(el.getAttribute('pattern')).toBe('[0-9]*')
+    expect(el.getAttribute('enterkeyhint')).toBe('done')
+  })
+
+  test('a plain Input sets no keypad hint', () => {
+    render(<Input aria-label="plain" />)
+    expect(screen.getByLabelText('plain').hasAttribute('inputmode')).toBe(false)
+  })
+
   test('Textarea and Select share the Input skin (paper/ink border, rust ring)', () => {
     render(<Textarea aria-label="motto" />)
     render(<Select aria-label="class" />)

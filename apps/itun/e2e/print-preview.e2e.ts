@@ -20,6 +20,8 @@ test.describe('sheet print preview', () => {
     test.slow()
     await buildPilot(page, 'Print Test', 'PT')
     await openSheetFor(page, 'Print Test')
+    // The sheet route titles the tab with the entity's name (its `head`).
+    await expect(page).toHaveTitle(/^Print Test · In The Union Now$/)
   })
 
   test('renders critical content under print @ A4', async ({ page }) => {

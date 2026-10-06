@@ -15,8 +15,8 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * only what their wizard needed (classes/abilities/equipment for /pilots/new)
  * which left ReferenceEntityCard throwing "Schema 'traits' not loaded"
  * when it rendered a chosen entity. A single preload of the full dataset
- * removes the matrix of per-route preload lists and matches the local-first
- * MVP model (the dataset is ~1-2 MB JSON; loading it up front is fine) — see
+ * removes the matrix of per-route preload lists and is cheap (the dataset is
+ * ~1-2 MB of static JSON, loaded up front) — see
  * docs/architecture/data-flow.md for the fuller rationale.
  *
  * Off the critical rendering path (the "deprioritized after first paint"

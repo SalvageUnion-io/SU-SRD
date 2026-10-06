@@ -17,6 +17,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
 import { SheetView } from '../../../components/sheet/SheetView'
+import { pageTitle } from '../../../lib/pageTitle'
 import type { EntityRef } from '../../../lib/schemas/entity'
 import { useEntityStore } from '../../../stores/entityStore'
 
@@ -64,7 +65,12 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
       store.hydrate('crawler'),
       store.hydrate('softLink'),
     ])
+    // For the tab title. Read once at load: a rename on the open sheet reaches
+    // the tab on the next navigation, and an entity not in the local store
+    // (a crewmate's) falls back to "Sheet".
+    return { name: store.get(params.kind, params.id)?.name ?? null }
   },
+  head: ({ loaderData }) => ({ meta: [{ title: pageTitle(loaderData?.name ?? 'Sheet') }] }),
   component: SheetPage,
   pendingComponent: SheetSkeleton,
   notFoundComponent: SheetKindNotFound,
