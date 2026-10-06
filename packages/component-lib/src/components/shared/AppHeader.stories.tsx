@@ -6,10 +6,10 @@ export default {
   title: 'Compositions/App Header',
 }
 
-/** The app chrome header — brand, nav drawer, and the search affordance. */
+/** The ITUN app chrome header — brand, nav, Buy the game and the mobile drawer. */
 export const Default: Story = () => (
   <div className="bg-paper p-4">
     <Caption>AppHeader</Caption>
-    <AppHeader onSearchClick={() => {}} />
+    <AppHeader />
   </div>
 )

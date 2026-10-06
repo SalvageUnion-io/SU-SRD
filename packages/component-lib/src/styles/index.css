@@ -902,6 +902,43 @@ body {
   color: var(--su-color-paper-70);
 }
 
+/* ══ Floating action button ═════════════════════════════════════════════════
+ *
+ * The stateful half of `Fab` (components/shared/Fab.tsx); its geometry is
+ * style objects there.
+ */
+
+/* Ink, like the toasts it sits beneath; lifts a rung on hover and while its
+   panel is open. Colour keeps its resting value here beside the overrides. */
+.su-fab {
+  background-color: var(--su-color-ink);
+  color: var(--su-color-paper);
+  transition: background-color 120ms;
+}
+.su-fab:hover,
+.su-fab[aria-expanded='true'] {
+  background-color: var(--su-color-ink-2);
+}
+
+/* The panel grows out of the button: a short rise and fade from its
+   bottom-right corner. Off entirely under reduced motion — not merely sped up
+   by the backstop below — because the panel is usable from its first frame and
+   nothing waits on the animation ending. */
+.su-fab-panel {
+  animation: su-fab-expand 140ms ease-out;
+}
+@keyframes su-fab-expand {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .su-fab-panel {
+    animation: none;
+  }
+}
+
 /* ══ Nav drawer ═════════════════════════════════════════════════════════════ */
 
 /* The app's `extra` block (components/shared/NavDrawer.tsx) collapses when the

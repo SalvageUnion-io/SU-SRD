@@ -124,6 +124,9 @@ export { EntityGridRow } from './components/shared/EntityGrid'
 export type { EntityRowStat } from './components/shared/EntityRow'
 export { EntityRow } from './components/shared/EntityRow'
 export { EntitySearcher } from './components/shared/EntitySearcher'
+// Fab — the bottom-right floating button that expands into an anchored panel
+// (ITUN's reference search); content-agnostic, the caller owns `open`
+export { Fab } from './components/shared/Fab'
 export { FilterRow } from './components/shared/FilterRow'
 // HeaderMenu — the masthead's dropdown menu (Base UI Menu); rows are data, so
 // the app supplies what each one does
