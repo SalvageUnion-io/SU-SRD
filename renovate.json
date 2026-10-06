@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": "The only dependency updater. See docs/architecture/dependency-management.md.",
   "extends": ["config:recommended", ":semanticCommits", ":semanticCommitTypeAll(chore)"],
-  "enabledManagers": ["bun", "github-actions", "bun-version"],
+  "enabledManagers": ["bun", "github-actions", "bun-version", "custom.regex"],
   "schedule": ["* 0-3 * * 1"],
   "labels": ["dependencies"],
   "minimumReleaseAge": "3 days",
@@ -17,6 +17,16 @@
     "rangeStrategy": "bump",
     "labels": ["dependencies", "security"]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": ".mcp.json pins the Convex CLI that apps/itun/package.json pins; tools/__tests__/mcp-config.test.ts fails if they differ.",
+      "managerFilePatterns": ["/^\\.mcp\\.json$/"],
+      "matchStrings": ["\"convex@(?<currentValue>\\d+\\.\\d+\\.\\d+)\""],
+      "depNameTemplate": "convex",
+      "datasourceTemplate": "npm"
+    }
+  ],
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,

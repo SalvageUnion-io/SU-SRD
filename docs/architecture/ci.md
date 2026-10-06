@@ -196,6 +196,12 @@ reads. A non-conventional title merges cleanly and silently produces no
 changelog entry and no version bump. There is deliberately no commitlint: on a
 squash repo the individual commit subjects never reach `main`.
 
+The squash body is the PR body (repo setting `squash_merge_commit_message` is
+`PR_BODY`), so `git log` on `main` is the decision record. release-please
+parses that body too: write it as prose. A body line that starts with a
+conventional-commit type (`feat:`, `fix(x)!:`) or contains `BREAKING CHANGE`
+changes the version bump.
+
 ## The aggregate gate — `CI Success`
 
 The job key is `quality-checks`; its `name:` is `CI Success`, the one required

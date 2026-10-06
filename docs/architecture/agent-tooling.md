@@ -40,7 +40,7 @@ something outside the file.
 | `cloudflare-bindings` | http — `https://bindings.mcp.cloudflare.com/mcp` | OAuth on first connect | Workers, R2, KV, D1, Hyperdrive on the account that hosts everything |
 | `cloudflare-observability` | http — `https://observability.mcp.cloudflare.com/mcp` | OAuth on first connect | Worker logs, analytics and errors for the four production Workers |
 | `sentry`  | http — `https://mcp.sentry.dev/mcp`              | OAuth on first connect                                              | The `susrd` org's six projects, issues     |
-| `convex`  | stdio — `bunx convex mcp start --project-dir apps/itun` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
+| `convex`  | stdio — `bunx convex@1.45.0 mcp start --project-dir apps/itun --disable-tools envSet,envRemove,run` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
 | `context7` | http — `https://mcp.context7.com/mcp`           | None — keyless on the free tier                                     | Version-pinned docs for this repo's dependencies |
 
 **That is the whole set — five servers.** `.mcp.json` is the definition.
@@ -76,16 +76,30 @@ token by hand.
   }
   ```
 
+  Owner option, not yet done: re-authenticate the agent host's `gh` with a
+  fine-grained PAT granting Contents, Pull requests, Issues, Actions, Workflows
+  and Checks (read/write) and Metadata (read), and no Administration, Secrets,
+  Variables or Environments. Ruleset and secret writes then return 403 on every
+  host, not only where autoMode's `hard_deny` loads. Today `gh auth status`
+  shows an OAuth token with `repo` scope, which includes administration.
+
 - **In a cloud session**, `gh` is not installed and the session supplies its
   own `mcp__github__*` tools instead. See [Cloud sessions](#cloud-sessions).
 
-### `convex` is read-only against dev by default, and that is deliberate
+### `convex` refuses production and has its write tools disabled
 
 `convex mcp start` refuses production deployments unless explicitly flagged
 (`--dangerously-enable-production-deployments`) and refuses PII-bearing reads on
 production unless flagged (`--cautiously-allow-production-pii`). **Neither flag
 is in `.mcp.json` and neither should be added.** An agent that needs production
 data should be asked for, not defaulted into.
+
+`.mcp.json` runs `bunx convex@1.45.0`, the version `apps/itun/package.json`
+pins (bare `bunx convex` resolves the registry's latest instead), so it works in
+a checkout without `node_modules`. Renovate's regex manager bumps both pins
+together and `tools/__tests__/mcp-config.test.ts` fails if they differ.
+`--disable-tools envSet,envRemove,run` removes the three write tools from the
+roster; the server enforces that, whatever the session's permission settings.
 
 It resolves the deployment from `CONVEX_DEPLOYMENT` in `apps/itun/.env.local`,
 which `bunx convex dev` writes and which is gitignored. **Before that file
@@ -97,6 +111,11 @@ exists, the server starts fine and every tool call fails** with:
 
 So a green `claude mcp list` is not proof the Convex tools work — run
 `bunx convex dev` once to link a dev deployment first.
+
+The root `.worktreeinclude` copies `apps/itun/.env.local` from the main
+checkout when Claude Code creates a worktree, subagent worktrees included. A
+later change to the main checkout's file does not reach existing worktrees, and
+a worktree made with plain `git worktree add` needs the copy by hand.
 
 ### `context7` is advisory, and that is the whole point
 

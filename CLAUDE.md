@@ -111,7 +111,6 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
 - **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
-- `bun run reap` when repo-wide grep starts returning duplicates from old worktrees.
 
 ## External Integrations & MCP Servers
 
@@ -123,4 +122,4 @@ The registry — ids, deployments, dashboards, how each server authenticates —
 
 ## Merging
 
-`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`); a merged PR reports `MERGED` immediately. Squash-merge plus `delete_branch_on_merge` is why stacked PRs need `/stacked-pr`.
+`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record. Squash-merge plus `delete_branch_on_merge` is why stacked PRs need `/stacked-pr`.

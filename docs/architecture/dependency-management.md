@@ -6,9 +6,11 @@ How dependencies are updated, gated and pinned. Read this before editing
 # Updates: Renovate
 
 The hosted Renovate app is the only updater. [`renovate.json`](../../renovate.json)
-enables three managers: `bun` (every `package.json` and `bun.lock`),
-`github-actions` (the workflows and `.github/actions/setup-bun`) and
-`bun-version` (`.bun-version`).
+enables four managers: `bun` (every `package.json` and `bun.lock`),
+`github-actions` (the workflows and `.github/actions/setup-bun`),
+`bun-version` (`.bun-version`) and `custom.regex` (`.mcp.json`'s `convex@`
+pin, kept equal to `apps/itun/package.json`'s by
+`tools/__tests__/mcp-config.test.ts`).
 
 - **Non-majors merge themselves.** Every Monday (00:00–04:00 UTC) Renovate opens
   one PR, "all non-major dependencies", holding every minor, patch and digest
