@@ -278,6 +278,20 @@ ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
 ITUN_BOT_SECRET=<the same value>
 ```
 
+**For `/su invite`** ([ADR-038](../adrs/ADR-038-targeted-invites.md)), one
+more on the Convex deployment. It is the Discord application's **public** key —
+the same value committed in `apps/discord-bot/wrangler.jsonc` — so it is not a
+secret and may be passed as an argument:
+
+```bash
+bunx convex env set DISCORD_PUBLIC_KEY <the application's public key, hex>
+```
+
+Unset, `/su invite` answers "invites from Discord are not switched on" and
+nothing else changes. Set to the wrong application's key, every `/su invite`
+fails as unverified while every other command keeps working — check this
+value first when only invites break.
+
 `ITUN_CONVEX_SITE_URL` is the **HTTP-actions** origin (`.convex.site`), not the
 client URL (`.convex.cloud`) and not the web origin. Getting it wrong presents
 as every Game command reporting the deployment unreachable — which is honest but

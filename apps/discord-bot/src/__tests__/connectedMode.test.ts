@@ -42,6 +42,8 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
     bind: answer,
     unbind: answer,
     recordRoll: answer,
+    invite: answer,
+    inviteDelivery: answer,
   }
 }
 

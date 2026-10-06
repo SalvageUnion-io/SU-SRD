@@ -1,9 +1,12 @@
+import type { SignedInteraction } from '../commands/interactions.js'
 import type {
   BindResult,
   ChannelResult,
   CrewResult,
   DenialReason,
   GamesResult,
+  InviteDeliveryState,
+  InviteResult,
   ItunResult,
   MeResult,
   SheetResult,
@@ -72,6 +75,19 @@ export type ItunClient = {
     description: string,
     result: unknown
   ): Promise<ItunResult<{ game: string }>>
+  /**
+   * `/su invite` (ADR-038). Sends Discord's signed interaction **verbatim** —
+   * body and signature headers — because Convex verifies it itself rather than
+   * taking this bot's word for who is inviting whom.
+   */
+  invite(signed: SignedInteraction): Promise<ItunResult<InviteResult>>
+  /** Report whether the invite's DM arrived. */
+  inviteDelivery(
+    discordId: string,
+    code: string,
+    state: InviteDeliveryState,
+    detail?: string
+  ): Promise<ItunResult<Record<string, never>>>
 }
 
 export type ItunClientConfig = {
@@ -169,6 +185,31 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     }
   }
 
+  /**
+   * A signed op: the body is Discord's, not ours, so it is posted as the exact
+   * string received — parsing and re-serialising it would invalidate the
+   * signature Convex is about to check.
+   */
+  async function callSigned<T>(op: string, signed: SignedInteraction): Promise<ItunResult<T>> {
+    try {
+      const response = await fetch(`${origin}/bot/${op}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${botSecret}`,
+          'Content-Type': 'application/json',
+          'X-Signature-Ed25519': signed.signature,
+          'X-Signature-Timestamp': signed.timestamp,
+        },
+        body: signed.body,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
+      const body: unknown = await response.json().catch(() => null)
+      return interpret<T>(response.status, body)
+    } catch {
+      return { kind: 'unavailable', message: 'In The Union Now could not be reached.' }
+    }
+  }
+
   return {
     me: (discordId) => call('me', { discordId }),
     games: (discordId) => call('games', { discordId }),
@@ -183,5 +224,8 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     unbind: (discordId, channelId) => call('unbind', { discordId, channelId }),
     recordRoll: (discordId, channelId, description, result) =>
       call('recordRoll', { discordId, channelId, description, result }),
+    invite: (signed) => callSigned<InviteResult>('invite', signed),
+    inviteDelivery: (discordId, code, state, detail) =>
+      call('inviteDelivery', { discordId, code, state, detail }),
   }
 }
