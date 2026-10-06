@@ -29,7 +29,7 @@ test('chassis schema index renders entities', async ({ page }) => {
 
   // Entities render (after the island hydrates + game data loads) as links to
   // their individual item pages.
-  await expect(page.locator('a[href*="/schema/chassis/item/"]').first()).toBeVisible({
+  await expect(page.locator('a[aria-label][href*="/schema/chassis/item/"]').first()).toBeVisible({
     timeout: 30_000,
   })
 })

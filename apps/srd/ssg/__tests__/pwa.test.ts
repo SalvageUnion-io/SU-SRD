@@ -14,7 +14,7 @@ import { NAVIGATION_TIMEOUT_SECONDS, PAGES_CACHE, RUNTIME_CACHING } from '../pwa
 /** The slice of a fetch event's request the route matchers read. */
 const requestOf = (mode: RequestMode) => ({ request: { mode } as Request })
 
-const [pages] = RUNTIME_CACHING
+const [pages, , searchIndex] = RUNTIME_CACHING
 
 describe('navigations', () => {
   test('go to the network first, not to the cached copy', () => {
@@ -51,5 +51,14 @@ describe('navigations', () => {
       request: Request
     }) => boolean
     expect(rebuilt(requestOf('navigate'))).toBe(true)
+  })
+})
+
+describe('the search index', () => {
+  test('is cached, so search works offline and a revisit does not refetch it first', () => {
+    expect(searchIndex?.handler).toBe('StaleWhileRevalidate')
+    const pattern = searchIndex?.urlPattern as RegExp
+    expect(pattern.test('https://salvageunion.io/search-index.json')).toBe(true)
+    expect(pattern.test('https://salvageunion.io/schema/chassis.json')).toBe(false)
   })
 })
