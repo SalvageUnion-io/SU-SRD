@@ -174,6 +174,23 @@ describe('Roster — section headings', () => {
   })
 })
 
+describe('Roster — signed out, there is no game UI at all', () => {
+  // This file renders with no Convex provider (the test build is Solo), which
+  // is exactly the build a signed-out player gets: every game control mounts
+  // its Convex hooks only once Connected, so none of them may render here.
+  test('no "+ New game", no "Showing" select, and no "Move to game…" on a row', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
+    await renderRoster()
+
+    expect(screen.getByText('Seed Pilot')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
+    expect(screen.queryByLabelText('Showing')).toBeNull()
+    expect(screen.queryByLabelText(/to a game$/)).toBeNull()
+    // No Game section, no Mediator section.
+    expect(screen.queryByRole('region', { name: 'Game' })).toBeNull()
+  })
+})
+
 describe('Roster — empty states', () => {
   // Per-column empty states are only reachable once at least one entity exists
   // (a wholly empty store shows the first-run welcome panel instead), so each

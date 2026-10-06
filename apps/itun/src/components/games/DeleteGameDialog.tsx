@@ -4,18 +4,17 @@
  *
  * ## Why it is shared rather than written at each surface
  *
- * Deleting is offered in two places — the trash on a row in the Games list, and
- * the danger zone on the Game's own screen — and the two are the same act with
- * the same consequences. The consequences are the *whole content* of this
- * dialog, so a second copy of it would be a second statement of where a crew's
- * builds go, free to drift from what `games.destroy` actually does.
+ * Deleting is offered from the hub's "End this game" panel. The consequences
+ * are the *whole content* of this dialog, so it is kept as its own component
+ * rather than inlined there: it is the one statement of where a crew's builds
+ * go, and must not drift from what `games.destroy` actually does.
  *
  * ## It says where everything lands, not just that this cannot be undone
  *
  * A generic "this is permanent" would be both frightening and wrong. Deleting a
  * Game destroys the *table* and nothing anybody built: pilots and mechs fall
- * back to their owners' shelves, and the crawler plus anything unclaimed lands
- * on the shelf of whoever is doing the deleting. The dialog names those
+ * back to their owners' My stuff, and the crawler plus anything unclaimed comes
+ * to the My stuff of whoever is doing the deleting. The dialog names those
  * outcomes with the actual counts in front of the reader, because "4 pilots"
  * and "2 mechs" is what makes the sentence checkable against the row they just
  * clicked.
@@ -52,11 +51,9 @@ type Props = {
   /**
    * Called after the server confirms the deletion, never optimistically.
    *
-   * The two surfaces want different things here — the list re-renders itself
-   * from the `listMine` subscription and needs nothing, while the Game's own
-   * route has to navigate away before its `games.get` resolves to `null` and
-   * renders "you are not in this game". Passing the intent in keeps this
-   * component ignorant of routing.
+   * The hub uses it to show My stuff before its `games.get` resolves to `null`
+   * and renders "you are not in this game". Passing the intent in keeps this
+   * component ignorant of what the caller shows next.
    */
   onDeleted?: () => void
 }
@@ -117,15 +114,15 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               {surviving.length > 0 && (
                 <li>
                   <Text variant="hint" className="text-left">
-                    {surviving.join(' and ')} go back to the shelves of whoever owns them.
+                    {surviving.join(' and ')} go back to whoever owns them, in their My stuff.
                   </Text>
                 </li>
               )}
               <li>
                 <Text variant="hint" className="text-left">
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? 'Anything unclaimed lands on your shelf.'
-                    : `${game.crawlerName} and anything unclaimed land on your shelf.`}
+                    ? 'Anything unclaimed comes to you, in My stuff.'
+                    : `${game.crawlerName} and anything unclaimed come to you, in My stuff.`}
                 </Text>
               </li>
             </ul>

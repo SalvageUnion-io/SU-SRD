@@ -22,6 +22,27 @@ describe('rowActionCopy', () => {
     }
   })
 
+  test('a move out of a game says which assignments it clears there (ADR-037)', () => {
+    const leave = (kind: 'pilot' | 'mech' | 'crawler') =>
+      said(ROW_ACTION_COPY.leaveGame({ name: 'X', kind, from: 'Tenacity', to: { kind: 'shelf' } }))
+    expect(leave('pilot')).toContain('Their crawler assignment in Tenacity is cleared')
+    expect(leave('pilot')).toContain('the mech they fly there')
+    expect(leave('mech')).toContain('Its crawler assignment in Tenacity is cleared')
+    expect(leave('mech')).toContain('the pilot flying it there')
+    expect(leave('crawler')).toContain('Everyone in Tenacity assigned to it is unassigned')
+    // Game to Game clears what it leaves behind, too.
+    expect(
+      said(
+        ROW_ACTION_COPY.leaveGame({
+          name: 'X',
+          kind: 'pilot',
+          from: 'Tenacity',
+          to: { kind: 'game', name: 'The Long Haul' },
+        })
+      )
+    ).toContain('Their crawler assignment in Tenacity is cleared')
+  })
+
   test('a copy names the build it will make', () => {
     expect(said(ROW_ACTION_COPY.copy('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
   })

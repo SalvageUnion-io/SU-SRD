@@ -228,7 +228,9 @@ export function ownerLabel(entity: OwnedEntity): string {
  *
  * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
  * A link that 404s is worse than no link: it reads as the app having lost the
- * thing, rather than as the bot having guessed.
+ * thing, rather than as the bot having guessed. (`/games/$gameId` is no longer
+ * a page of its own: it picks that Game on the ITUN hub at `/` and lands
+ * there, which a bare `/` link could not do.)
  */
 export function gameUrl(webUrl: string, gameId: string): string {
   return `${webUrl.replace(/\/+$/, '')}/games/${encodeURIComponent(gameId)}`

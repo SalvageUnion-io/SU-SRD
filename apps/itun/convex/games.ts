@@ -44,17 +44,19 @@ type GameSummary = {
 }
 
 /**
- * Collapse a Game + the caller's membership into the row the Games list draws.
+ * Collapse a Game + the caller's membership into the summary every Game
+ * surface reads: its name and the caller's role (the hub's "Showing" select,
+ * the masthead's Games menu), and what the table holds.
  *
- * The crawler name and the two counts exist because a Game lists as an
- * `EntityRow` whose badges are "crawler · n pilots · n mechs" — the row has to
- * say what the table *is*, not just what it is called.
+ * The crawler name and the two counts are what the hub's "End this game"
+ * confirm states — where every pilot, mech and the crawler will land — so the
+ * reader can check the consequence against the table before ending it.
  *
  * They come from `games.summary`, which the triggers in `model/entities.ts`
  * keep current, rather than from counting here. Counting here meant collecting
  * every membership, pilot, mech and crawler of every Game the caller belongs
  * to on each run — and because this is a reactive query, reading those rows
- * subscribed the Games list to every sheet in every one of those Games.
+ * subscribed every Game list to every sheet in every one of those Games.
  */
 async function summarize(
   ctx: QueryCtx,
@@ -98,8 +100,8 @@ export const listMine = query({
  * One Game, for its own route.
  *
  * Returns `null` rather than throwing when the caller is not a member, because
- * a bookmarked `/games/<id>` for a Game you left is an ordinary thing to visit,
- * not an error to surface. `null` also covers "no such Game", deliberately: a
+ * a remembered hub selection (or a bookmarked `/games/<id>`) for a Game you
+ * left is an ordinary thing to visit, not an error to surface. `null` also covers "no such Game", deliberately: a
  * non-member must not be able to tell an existing Game from a deleted one.
  */
 export const get = query({
@@ -298,7 +300,7 @@ export const members = query({
  * The primary is the crawler every pilot and mech is assigned to when it
  * enters the Game. Changing it **moves nobody**: assignments are explicit links
  * written on entry, so the crew already aboard another crawler stays there.
- * The Games list shows the primary's name, so the summary is recounted here —
+ * The Game summary carries the primary's name, so it is recounted here —
  * no trigger watches the `games` row itself.
  */
 export const setPrimaryCrawler = mutation({

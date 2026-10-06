@@ -19,6 +19,7 @@ function row(kind: RosterKind, name: string, body: Record<string, unknown>): Ros
       release: false,
       scrap: false,
       makePrimary: false,
+      removeFromGame: false,
       delete: false,
     },
   }

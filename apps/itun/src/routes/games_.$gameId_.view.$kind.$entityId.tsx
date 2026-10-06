@@ -15,8 +15,9 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
  * the canonical app id back in the bar. The Game id is not needed: a row id
  * names one row, wherever it lives.
  *
- * The trailing `_` on BOTH `games_` and `$gameId_` keeps this route out of the
- * lobby's and the crew roster's layouts, neither of which renders an Outlet.
+ * The trailing `_` on BOTH `games_` and `$gameId_` keeps this route out of
+ * `/games` and `/games/$gameId`, whose own redirects (to the hub) would
+ * otherwise run first and drop the sheet's address.
  */
 export const Route = createFileRoute('/games_/$gameId_/view/$kind/$entityId')({
   beforeLoad: ({ params }) => {

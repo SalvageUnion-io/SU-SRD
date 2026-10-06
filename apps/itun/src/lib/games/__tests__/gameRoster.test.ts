@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { GameMember } from '../gameRoster'
 import {
   crawlerRows,
+  groupColumn,
   isTableRunner,
   moveDestinations,
   ownableRows,
@@ -181,6 +182,15 @@ describe('deleting from a game', () => {
     expect(mine?.can.release).toBe(true)
     expect(mine?.can.delete).toBe(true)
   })
+
+  test('only the owner may take a pilot or mech out of the game, to My stuff', () => {
+    // Mirrors the server's move rule (ADR-037): leaving a Game needs ownership
+    // and nothing else, so an unclaimed pre-gen and a crewmate's stay put.
+    const [mine, pregen, theirs] = built('u-play')
+    expect(mine?.can.removeFromGame).toBe(true)
+    expect(pregen?.can.removeFromGame).toBe(false)
+    expect(theirs?.can.removeFromGame).toBe(false)
+  })
 })
 
 describe('crawler rows are communal', () => {
@@ -211,6 +221,15 @@ describe('crawler rows are communal', () => {
     expect(asPlayer.every((r) => !r.can.makePrimary)).toBe(true)
   })
 
+  test('only the table runner may take one out of the game (`entities.moveCrawler`)', () => {
+    expect(
+      crawlerRows({ rows, tableRunner: false, localIds: new Set() })[0]?.can.removeFromGame
+    ).toBe(false)
+    expect(
+      crawlerRows({ rows, tableRunner: true, localIds: new Set() })[0]?.can.removeFromGame
+    ).toBe(true)
+  })
+
   test('only the table runner may scrap one', () => {
     expect(crawlerRows({ rows, tableRunner: false, localIds: new Set() })[0]?.can.scrap).toBe(false)
     expect(crawlerRows({ rows, tableRunner: true, localIds: new Set() })[0]?.can.scrap).toBe(true)
@@ -233,33 +252,33 @@ describe('moveDestinations — the move control lists only what the server accep
   ]
   const labels = (d: ReturnType<typeof moveDestinations>) => d.map((x) => x.label)
 
-  test('a pilot or mech may go to the shelf or any Game I belong to', () => {
+  test('a pilot or mech may go to My stuff or any Game I belong to', () => {
     expect(labels(moveDestinations({ kind: 'pilot', current: { kind: 'shelf' }, games }))).toEqual([
-      'Shelf',
+      'My stuff',
       'Run by me',
       'Run by someone else',
     ])
     expect(
       labels(moveDestinations({ kind: 'mech', current: { kind: 'game', gameId: 'g2' }, games }))
-    ).toEqual(['Run by someone else', 'Shelf', 'Run by me'])
+    ).toEqual(['Run by someone else', 'My stuff', 'Run by me'])
   })
 
   test('a shelf crawler may go only into a Game I run', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'shelf' }, games }))
-    ).toEqual(['Shelf', 'Run by me'])
+    ).toEqual(['My stuff', 'Run by me'])
   })
 
   test('a Game crawler may come out to my shelf only if I run that Game — never Game to Game', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g1' }, games }))
-    ).toEqual(['Run by me', 'Shelf'])
+    ).toEqual(['Run by me', 'My stuff'])
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g2' }, games }))
     ).toEqual(['Run by someone else'])
   })
 
-  test('a Game I am not in is named, not passed off as the shelf', () => {
+  test('a Game I am not in is named, not passed off as My stuff', () => {
     const [here] = moveDestinations({
       kind: 'pilot',
       current: { kind: 'game', gameId: 'phantom' },
@@ -267,5 +286,52 @@ describe('moveDestinations — the move control lists only what the server accep
     })
     expect(here?.label).toBe('Unknown game')
     expect(here?.container).toEqual({ kind: 'game', gameId: 'phantom' })
+  })
+})
+
+describe('groupColumn — yours first, then everyone else', () => {
+  const ownable = ownableRows({
+    kind: 'pilot',
+    rows: [
+      { _id: 's1', appId: 'a1', ownerId: 'u-med', body: { name: 'Theirs' } },
+      { _id: 's2', appId: 'a2', ownerId: 'u-play', body: { name: 'Mine A' } },
+      { _id: 's3', appId: null, ownerId: null, body: { name: 'Pre-gen' } },
+      { _id: 's4', appId: 'a4', ownerId: 'u-play', body: { name: 'Mine B' } },
+    ],
+    viewerId: 'u-play',
+    members: ALL,
+    localIds: new Set(),
+  })
+
+  test("the viewer's own rows lead, in listing order; the rest follow, unclaimed included", () => {
+    const { yours, others } = groupColumn(ownable)
+    expect(yours.map((r) => r.name)).toEqual(['Mine A', 'Mine B'])
+    expect(others.map((r) => r.name)).toEqual(['Theirs', 'Pre-gen'])
+  })
+
+  test('signed out of the Game (no viewer), nothing is yours', () => {
+    const rows = ownableRows({
+      kind: 'pilot',
+      rows: [{ _id: 's2', appId: 'a2', ownerId: 'u-play', body: { name: 'Mine A' } }],
+      viewerId: null,
+      members: ALL,
+      localIds: new Set(),
+    })
+    expect(groupColumn(rows).yours).toEqual([])
+  })
+
+  test('a crawler belongs to nobody, so the column is all others, primary first', () => {
+    const crawlers = crawlerRows({
+      rows: [
+        { _id: 'c1', appId: 'c1', body: { name: 'Old Hulk' } },
+        { _id: 'c2', appId: 'c2', body: { name: 'Tenacity' } },
+      ],
+      tableRunner: false,
+      localIds: new Set(),
+      primaryCrawlerId: 'c2',
+    })
+    const { yours, others } = groupColumn(crawlers)
+    expect(yours).toEqual([])
+    expect(others.map((r) => r.name)).toEqual(['Tenacity', 'Old Hulk'])
   })
 })

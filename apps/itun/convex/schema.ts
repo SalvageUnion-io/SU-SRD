@@ -150,7 +150,7 @@ export default defineSchema({
     /** Dashboard dial show/hide + order. Carried over from Workspace unchanged. */
     cockpitPrefs: v.optional(v.any()),
     /**
-     * What the Games list says about this table — kept current by the triggers
+     * What a Game's summary says about this table — kept current by the triggers
      * in `model/entities.ts`, never written by a mutation directly.
      *
      * Denormalised because `games.listMine` is subscribed from several screens
@@ -185,7 +185,7 @@ export default defineSchema({
      *
      * Optional because every Game predates it: absent means "the oldest crawler
      * here", which is what `primaryCrawlerOf` resolves it to, and what the
-     * Games list and the bot showed as *the* crawler before it existed.
+     * Game summary and the bot showed as *the* crawler before it existed.
      */
     primaryCrawlerId: v.optional(v.union(v.id('crawlers'), v.null())),
   }),

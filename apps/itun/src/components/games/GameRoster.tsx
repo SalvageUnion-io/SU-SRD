@@ -1,52 +1,52 @@
 /**
- * GameRoster — a Game's crew, rendered as the Roster renders a shelf.
+ * GameRoster — a Game's crew, in the hub's three columns.
  *
- * ## Why this looks like the home page
+ * ## Why this looks like My stuff
  *
- * The Roster (`components/roster/Roster.tsx`) is the app's answer to "what have
- * I got and what can I do with it": three ontology-toned columns of
- * `EntityRow`s, a create CTA at the head of each, a Dashboard launch in the
- * header. A Game asks the same question of a different container, and the first
- * cut of the Game surfaces answered it in a different vocabulary entirely — a
- * vertical stack of bordered cards listing names and numbers, with no way in to
- * a sheet and no way to make anything. Two shapes for one question is how an
- * app stops feeling like one app.
+ * `/` shows one container at a time (`Roster`): My stuff, or a Game picked in
+ * its "Showing" select. Both ask "what have we got and what can I do with it",
+ * so both answer in the same three ontology-toned columns of `EntityRow`s
+ * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
+ * seal on every row, a way to pick up what nobody holds, and creation gated by
+ * the rules in `lib/games/gameRoster.ts`.
  *
- * So this is the same shape, with the parts a shared table adds: an owner chip
- * on every row, a way to pick up what nobody holds, and creation gated by the
- * rules in `lib/games/gameRoster.ts`.
+ * ## Yours first
  *
- * ## Creation goes through the wizards, not through a form here
+ * Each column lists **your** pilots or mechs first, in a framed YOURS group,
+ * and everybody else's below — the crewmates' (their name on the seal) and the
+ * unclaimed ones (an UNCLAIMED seal you press to pick it up). What you came to
+ * act on is at the top; the rest of the table is the context it sits in. A
+ * crawler is the crew's, owned by nobody, so its column has no YOURS group and
+ * the ★ Primary leads (`groupColumn`).
  *
- * A create CTA points this browser's **current container** at the Game and then
- * opens the ordinary wizard. Nothing about building a pilot changes because the
- * pilot is destined for a crew, and a second, thinner creation path would drift
- * from the real one immediately. The entity is stamped with the Game on write
- * (`entityStore.create`) and mirrored up from there.
+ * ## Creation goes through the wizards
+ *
+ * This renders only for the hub's ACTIVE container, so a create CTA is just a
+ * link to the ordinary wizard: `entityStore.create` stamps whatever container
+ * is current, which is this Game. Nothing about building a pilot changes
+ * because the pilot is destined for a crew, and a second, thinner creation
+ * path would drift from the real one immediately.
  *
  * ## What a row opens
  *
  * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * communal crawler — and read-only and live when it is a crewmate's; the rule
- * is in `lib/games/gameRoster.ts` and the rendering in `SheetView`. Nothing is
- * fetched on the way in: what you may edit is already in this browser
- * (`ShelfSync` and `WiringSync` cache it), and what you may not is read from
- * the Game's listing and never cached.
+ * is in `lib/games/gameRoster.ts` and the rendering in `SheetView`.
  *
  * ## Every verb that changes who has a build asks first
  *
- * Pick up, Offer to the crew, Copy to shelf, Delete and Scrap each open one
- * shared confirm (`useConfirm`) that says what will happen and whether it can be
- * undone, and do nothing until the player confirms. The verbs and their words
- * live outside this file — `useRowActions` and `lib/games/rowActionCopy.ts` —
- * so any other surface listing these rows offers the same consequences.
+ * Pick up, Offer to the crew, Copy to My stuff, Remove from game, Delete and
+ * Scrap each open one shared confirm (`useConfirm`) that says what will happen
+ * and whether it can be undone, and do nothing until the player confirms. The
+ * verbs and their words live outside this file — `useRowActions` and
+ * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { Button, buttonVariants, cn, EmptyState, EntityRow, PageHeading, Text } from 'component-lib'
+import { Badge, Button, buttonVariants, EntityRow, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-import { Bot, UserRound, Warehouse } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -54,6 +54,7 @@ import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hook
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import {
   crawlerRows,
+  groupColumn,
   ownableRows,
   rosterSheetHref,
   tableCapabilities,
@@ -62,7 +63,8 @@ import { rosterRowStats } from '../../lib/games/rosterRowStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { setActiveContainer } from '../../stores/activeContainerStore'
+import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
+import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
 import { useConfirm } from '../shared/useConfirm'
@@ -71,54 +73,88 @@ import { useRowActions } from './useRowActions'
 
 type GameRosterProps = {
   gameId: string
-  /** Shown above the columns; the Game's name, when the caller knows it. */
-  gameName?: string
+  /** The Game's name, for the confirms that name it; null while unknown. */
+  gameName: string | null
+  /** The phone's one visible column — the hub's, so it survives a switch. */
+  activeSegment: SegmentKind
+  onSegmentChange: (kind: SegmentKind) => void
 }
 
 /** The three columns, in the build order the app teaches everywhere else. */
 const COLUMNS: ReadonlyArray<{
   kind: RosterKind
   title: string
-  createHref: string
-  createLabel: string
+  create: ColumnCreate
   empty: string
 }> = [
   {
     kind: 'pilot',
     title: 'Pilots',
-    createHref: '/pilots/new',
-    createLabel: 'Create Pilot',
+    create: { href: '/pilots/new', label: 'Create Pilot' },
     empty: 'No pilots in this game yet.',
   },
   {
     kind: 'mech',
     title: 'Mechs',
-    createHref: '/mechs/new',
-    createLabel: 'Create Mech',
+    create: { href: '/mechs/new', label: 'Create Mech' },
     empty: 'No mechs in this game yet.',
   },
   {
     kind: 'crawler',
     title: 'Crawlers',
-    createHref: '/crawlers/new',
-    createLabel: 'Raise a Crawler',
+    create: { href: '/crawlers/new', label: 'Raise a Crawler' },
     empty: 'No Union Crawler yet.',
   },
 ]
 
-const ICON: Record<RosterKind, typeof UserRound> = {
-  pilot: UserRound,
-  mech: Bot,
-  crawler: Warehouse,
-}
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
-const TONE_TEXT: Record<RosterKind, string> = {
-  pilot: 'text-sheet-pilot-deep',
-  mech: 'text-sheet-mech-deep',
-  crawler: 'text-sheet-crawler-deep',
-}
+const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
-export function GameRoster({ gameId, gameName }: GameRosterProps) {
+const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
+
+const FOOTNOTE = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  marginTop: tokens.space[24],
+} satisfies CSSProperties
+
+/**
+ * The YOURS group: framed in ink on the warm band ground, so your own rows read
+ * as a set at a glance. Not rust — rust is the action colour, and this marks a
+ * fact, not a thing to press.
+ */
+const YOURS = {
+  backgroundColor: tokens.color.bandCream,
+  borderColor: tokens.color.ink,
+  borderRadius: tokens.radius.panel,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.pill,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[10],
+  padding: tokens.space[10],
+} satisfies CSSProperties
+
+const GROUP = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const ITEM = { listStyle: 'none' } satisfies CSSProperties
+
+/** Stamps sit at their own width, not stretched across the group. */
+const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
+
+const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
+
+export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
   // Probed rather than required, the way `AppLink` and `DashboardChooser` do:
   // component tests render these surfaces without a RouterProvider, and a hook
   // that throws on a missing context would make the whole screen untestable.
@@ -193,240 +229,239 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     await router?.navigate({ to: '/dashboard/$id', params: { id: row.localId } })
   }
 
-  /**
-   * Point this browser at the Game on the way into the wizard.
-   *
-   * Rendered as a link with a side effect rather than a button that navigates:
-   * `entityStore.create` stamps whatever container is current, so the container
-   * has to change BEFORE the wizard's create call — and going through `AppLink`
-   * keeps the CTA a real anchor (middle-click, open-in-new-tab, and the
-   * router-less fallback the component tests rely on).
-   */
-  function enterGameContainer() {
-    setActiveContainer({ kind: 'game', gameId })
+  function renderRow(row: RosterRow): ReactNode {
+    return (
+      <li key={row.serverId} style={ITEM}>
+        <EntityRow
+          entityType={row.kind}
+          name={row.name}
+          stats={rosterRowStats(row)}
+          linkAs={AppLink}
+          /* Every row is a door, and there is one: View, to the live sheet —
+             editable when the row is yours to edit (`row.can.openSheet`),
+             read-only when it is a crewmate's (`SheetView`). */
+          sheetHref={rosterSheetHref(row)}
+          /* The primary crawler is where new crew is assigned (ADR-037), so
+             the roster says which one it is. */
+          meta={row.primary ? '★ Primary' : undefined}
+          seal={
+            row.owner === null ? undefined : (
+              <OwnerSeal
+                owner={row.owner}
+                claimable={row.can.claim}
+                disabled={busy !== null}
+                onClaim={() => rowActions.pickUp(row)}
+              />
+            )
+          }
+          actions={
+            <>
+              {row.kind === 'mech' && row.can.openSheet && (
+                <Button
+                  variant="primary"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => void run(`dash-${row.serverId}`, () => launchDashboard(row))}
+                >
+                  Dashboard
+                </Button>
+              )}
+              {/* Picking up is the SEAL's job, not a button's — see
+                  `OwnerSeal`. Any owner may hand back, not just the table
+                  runner: ADR-030 §4 makes ownership voluntary outward, and the
+                  pick-up confirm promises exactly this as the way back out. */}
+              {row.can.release && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.offer(row)}
+                >
+                  Offer to the crew
+                </Button>
+              )}
+              {/* Pilots and mechs only. Copying the crawler is a product choice
+                  nobody has made yet: it is the crew's shared home rather than
+                  a character somebody keeps. */}
+              {row.kind !== 'crawler' && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.copy(row)}
+                >
+                  Copy to My stuff
+                </Button>
+              )}
+              {/* The move out (ADR-037): your own pilot or mech, or — for the
+                  table runner — a crawler. Offered once this browser holds the
+                  copy the move is made on; `ShelfSync` and `WiringSync` bring
+                  it in moments after it appears here. */}
+              {row.can.removeFromGame && row.localId !== null && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.removeFromGame(row, gameName)}
+                >
+                  Remove from game
+                </Button>
+              )}
+              {row.can.delete && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.remove(row)}
+                >
+                  Delete
+                </Button>
+              )}
+              {row.can.makePrimary && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() =>
+                    void run(`primary-${row.serverId}`, async () => {
+                      await setPrimaryCrawler({
+                        gameId: gameId as Id<'games'>,
+                        crawlerId: row.serverId as Id<'crawlers'>,
+                      })
+                    })
+                  }
+                >
+                  Make primary
+                </Button>
+              )}
+              {row.can.scrap && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.scrap(row)}
+                >
+                  Scrap
+                </Button>
+              )}
+            </>
+          }
+        />
+      </li>
+    )
+  }
+
+  /** A column's body: your rows framed under YOURS, then everyone else's. */
+  function columnBody(kind: RosterKind, columnRows: readonly RosterRow[]): ReactNode {
+    const { yours, others } = groupColumn(columnRows)
+    const yoursId = `${kind}-yours-label`
+    const othersId = `${kind}-others-label`
+    return (
+      <div style={STACK}>
+        {yours.length > 0 && (
+          <div style={YOURS}>
+            <Badge shape="stamp" size="mini" as="h3" id={yoursId} style={LABEL}>
+              Yours
+            </Badge>
+            <RosterList labelledBy={yoursId}>{yours.map(renderRow)}</RosterList>
+          </div>
+        )}
+        {others.length > 0 &&
+          (yours.length > 0 ? (
+            <div style={GROUP}>
+              <Badge
+                shape="stamp"
+                size="mini"
+                surface="inverse"
+                as="h3"
+                id={othersId}
+                style={LABEL}
+              >
+                Everyone else
+              </Badge>
+              <RosterList labelledBy={othersId}>{others.map(renderRow)}</RosterList>
+            </div>
+          ) : (
+            <RosterList>{others.map(renderRow)}</RosterList>
+          ))}
+      </div>
+    )
   }
 
   const loading = listing === undefined || members === undefined
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
-        <div>
-          {/* An h2, so the columns' h3s sit under something. The page reads
-              h1 (Game) → h2 (the crew, the panels) → h3 (Pilots / Mechs /
-              Crawlers); as a div it skipped a level and left the columns
-              parented by nothing. */}
-          <PageHeading variant="subheading">{gameName ?? 'The crew'}</PageHeading>
-          <Text variant="hint" className="text-left">
-            {caps.tableRunner
-              ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
-              : 'Everything the crew has brought to this game. Pick up anything nobody holds.'}
-          </Text>
-        </div>
-      </div>
+    <>
+      <Text variant="hint" style={HINT}>
+        {caps.tableRunner
+          ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
+          : 'Everything the crew has brought to this game. Pick up anything nobody holds.'}
+      </Text>
 
       {error !== null && (
-        <Text variant="hint" className="text-left text-[var(--color-roll-cascade)]">
+        <Text variant="hint" role="alert" style={ERROR}>
           {error}
         </Text>
       )}
 
-      {!caps.canAddCrew && caps.addCrewBlocked !== null && (
-        <Text variant="hint" className="text-left">
+      {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
+        <Text variant="hint" style={HINT}>
           {caps.addCrewBlocked}
         </Text>
       )}
 
       {loading ? (
-        <ConvexPending label="the crew" />
-      ) : (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {COLUMNS.map((column) => {
-            const Icon = ICON[column.kind]
-            const columnRows = rows[column.kind]
-            // The crawler column answers to the table runner (`createCrawler`);
-            // the other two to membership (`assertMayAddToContainer`).
-            const mayCreate =
-              column.kind === 'crawler'
-                ? caps.canRaiseCrawler
-                : caps.canAddCrew && viewerId !== null
-
-            return (
-              <div key={column.kind}>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <PageHeading variant="section" as="h3" className="text-rust">
-                    {column.title}
-                  </PageHeading>
-                  {mayCreate && columnRows.length > 0 && (
-                    <AppLink
-                      href={column.createHref}
-                      onClick={enterGameContainer}
-                      className={cn(
-                        buttonVariants({ variant: 'default', size: 'compact' }),
-                        'no-underline'
-                      )}
-                    >
-                      + {column.createLabel}
-                    </AppLink>
-                  )}
-                </div>
-
-                {columnRows.length === 0 ? (
-                  <EmptyState
-                    variant="quiet"
-                    body={
-                      column.kind === 'crawler' && !caps.canRaiseCrawler
-                        ? 'No Union Crawler yet — the Mediator raises one.'
-                        : column.empty
-                    }
-                    icon={<Icon className={cn('size-7', TONE_TEXT[column.kind])} />}
-                    action={
-                      mayCreate ? (
-                        <AppLink
-                          href={column.createHref}
-                          onClick={enterGameContainer}
-                          className={cn(
-                            buttonVariants({ variant: 'primary', size: 'compact' }),
-                            'no-underline'
-                          )}
-                        >
-                          {column.createLabel}
-                        </AppLink>
-                      ) : undefined
-                    }
-                  />
-                ) : (
-                  <ul className="flex flex-col gap-2.5">
-                    {columnRows.map((row) => (
-                      <li key={row.serverId} className="list-none">
-                        <EntityRow
-                          entityType={row.kind}
-                          name={row.name}
-                          stats={rosterRowStats(row)}
-                          linkAs={AppLink}
-                          /* Every row is a door, and there is one: View, to
-                             the live sheet — editable when the row is yours
-                             to edit (`row.can.openSheet`), read-only when it
-                             is a crewmate's (`SheetView`). */
-                          sheetHref={rosterSheetHref(row)}
-                          /* The primary crawler is where new crew is assigned
-                             (ADR-037), so the roster says which one it is. */
-                          meta={row.primary ? '★ Primary' : undefined}
-                          seal={
-                            row.owner === null ? undefined : (
-                              <OwnerSeal
-                                owner={row.owner}
-                                claimable={row.can.claim}
-                                disabled={busy !== null}
-                                onClaim={() => rowActions.pickUp(row)}
-                              />
-                            )
-                          }
-                          actions={
-                            <>
-                              {row.kind === 'mech' && row.can.openSheet && (
-                                <Button
-                                  variant="primary"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`dash-${row.serverId}`, () => launchDashboard(row))
-                                  }
-                                >
-                                  Dashboard
-                                </Button>
-                              )}
-                              {/* Picking up is the SEAL's job, not a button's —
-                                  see `OwnerSeal`. Any owner, not just the table runner: ADR-030
-                                  §4 says ownership is voluntary in the outward
-                                  direction, and the pick-up confirm promises
-                                  exactly this as the way back out. */}
-                              {row.can.release && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() => rowActions.offer(row)}
-                                >
-                                  Offer to the crew
-                                </Button>
-                              )}
-                              {/* Pilots and mechs only. Copying the crawler is a
-                                  product choice nobody has made yet, not an
-                                  impossibility: a crawler shelves like anything
-                                  else now, but it is the crew's shared home
-                                  rather than a character somebody keeps, so
-                                  "take your own copy of the table's crawler"
-                                  wants a decision before it gets a button. */}
-                              {row.kind !== 'crawler' && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() => rowActions.copy(row)}
-                                >
-                                  Copy to shelf
-                                </Button>
-                              )}
-                              {row.can.delete && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() => rowActions.remove(row)}
-                                >
-                                  Delete
-                                </Button>
-                              )}
-                              {row.can.makePrimary && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`primary-${row.serverId}`, async () => {
-                                      await setPrimaryCrawler({
-                                        gameId: gameId as Id<'games'>,
-                                        crawlerId: row.serverId as Id<'crawlers'>,
-                                      })
-                                    })
-                                  }
-                                >
-                                  Make primary
-                                </Button>
-                              )}
-                              {row.can.scrap && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() => rowActions.scrap(row)}
-                                >
-                                  Scrap
-                                </Button>
-                              )}
-                            </>
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )
-          })}
+        <div style={HINT}>
+          <ConvexPending label="the crew" />
         </div>
+      ) : (
+        <>
+          <SegmentSwitch active={activeSegment} onChange={onSegmentChange} />
+          <RosterGrid>
+            {COLUMNS.map((column) => {
+              const columnRows = rows[column.kind]
+              // The crawler column answers to the table runner (`createCrawler`);
+              // the other two to membership (`assertMayAddToContainer`).
+              const mayCreate = column.kind === 'crawler' ? caps.canRaiseCrawler : caps.canAddCrew
+              return (
+                <RosterColumn
+                  key={column.kind}
+                  kind={column.kind}
+                  title={column.title}
+                  active={activeSegment === column.kind}
+                  create={mayCreate ? column.create : undefined}
+                  emptyMessage={
+                    column.kind === 'crawler' && !caps.canRaiseCrawler
+                      ? 'No Union Crawler yet — the Mediator raises one.'
+                      : column.empty
+                  }
+                  headExtra={
+                    column.kind === 'mech' ? (
+                      <AppLink
+                        href="/mechs/patterns"
+                        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+                        style={PATTERNS_LINK}
+                      >
+                        Patterns
+                      </AppLink>
+                    ) : undefined
+                  }
+                  empty={columnRows.length === 0}
+                >
+                  {columnBody(column.kind, columnRows)}
+                </RosterColumn>
+              )
+            })}
+          </RosterGrid>
+        </>
       )}
 
-      <p className="font-body text-xs text-wk-muted">
+      <p style={FOOTNOTE}>
         What you can edit opens to edit; a crewmate&rsquo;s pilot or mech opens read-only, as it
-        stands right now.{' '}
-        <AppLink href="/" className={cn(buttonVariants({ variant: 'ghost', size: 'mini' }))}>
-          Back to your builds
-        </AppLink>
+        stands right now.
       </p>
 
       {confirmDialog}
-    </section>
+    </>
   )
 }

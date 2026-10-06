@@ -18,10 +18,12 @@ import { toast } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { moveTo, SHELF } from '../../lib/container'
 import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { useEntityStore } from '../../stores/entityStore'
+import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { Confirm } from '../shared/useConfirm'
 
 /** The table a pilot or mech row's ownership mutations address. */
@@ -36,6 +38,11 @@ export type RowActions = {
   offer: (row: RosterRow) => void
   /** Copy a pilot or mech into My stuff. */
   copy: (row: RosterRow) => void
+  /**
+   * Take a build out of the Game it is in, to My stuff — same record, same id
+   * (a move, never a copy). `gameName` names the Game in the confirm.
+   */
+  removeFromGame: (row: RosterRow, gameName: string | null) => void
   /** Delete a pilot or mech you own, for everyone. */
   remove: (row: RosterRow) => void
   /** Scrap the crew's crawler (the table runner's act). */
@@ -97,7 +104,32 @@ export function useRowActions(confirm: Confirm): RowActions {
               row.kind === 'pilot' ? 'pilot' : 'mech',
               copyForShelf(row.body, row.name) as never
             )
-          toast.success(`Copied ${created.name} to your shelf.`)
+          toast.success(`Copied ${created.name} to My stuff.`)
+        },
+      }),
+
+    /**
+     * The move the live sheet's "In:" select makes, offered from the row. It
+     * goes through the store like that one does — it is a container patch on
+     * the copy this browser holds, which the store mirrors up (and routes a
+     * crawler through `entities.moveCrawler`). The surface offers it only on a
+     * row whose copy has arrived (`row.localId`), so there is always one here.
+     */
+    removeFromGame: (row, gameName) =>
+      confirm({
+        ...ROW_ACTION_COPY.leaveGame({
+          name: row.name,
+          kind: row.kind,
+          from: gameName,
+          to: SHELF,
+        }),
+        onConfirm: async () => {
+          // Unreachable from the hub, which offers this only once the copy has
+          // arrived — so reaching it is a defect, and the confirm reports it.
+          if (row.localId === null) throw new Error('Remove from game offered with no local copy')
+          await useEntityStore
+            .getState()
+            .update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)
         },
       }),
 

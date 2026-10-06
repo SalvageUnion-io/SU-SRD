@@ -21,6 +21,16 @@ altering any of its enforcement modes.
 The operational reference (deployments, env vars, secrets, rotation) is
 [`accounts-and-games.md`](../architecture/accounts-and-games.md).
 
+**2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
+— the Games index (`/games`), a Game's crew page (`/games/:id`) and the
+Mediator page (`/mediator/:id`) — are one place now: the hub at `/`, whose
+"Showing" select lists My stuff (the shelf) and every Game. A picked Game shows
+its roster there, the viewer's own builds first, with the members' actions and
+then the Mediator's instruments below the lists; "+ New game" starts or joins
+one. The old URLs redirect (the two with an id pick that Game first). §6 is
+otherwise unchanged: the Mediator keeps a surface of their own, as a section
+only they see.
+
 ## Context
 
 [ADR-001](ADR-001-local-first-no-backend.md) made ITUN local-first with no

@@ -97,11 +97,12 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `cockpitPrefsStore`, `patternStore`, `encounterStore`, and the ephemeral
   `playStateStore` (Dashboard mount state).
 - **Workspaces are retired.** An entity lives in exactly one **container** — a
-  shared **Game** or the owner's personal **Shelf** — encoded as one nullable
-  `gameId` and resolved through `src/lib/container.ts`, never by reading
-  `workspaceId` (deprecated, kept only as a pre-ADR-030 fallback). Filter with
-  `containerOf` + `sameContainer`, and only when `mode === 'connected'`: an
-  anonymous user has no Games, so their surfaces render the whole pile unfiltered.
+  shared **Game** or the owner's **Shelf** ("My stuff") — encoded as one
+  nullable `gameId` and resolved through `src/lib/container.ts`, never by
+  reading `workspaceId` (a pre-ADR-030 fallback). Filter with `containerOf` +
+  `sameContainer`, and only when `mode === 'connected'`: an anonymous user has
+  no Games, so their surfaces render the whole pile unfiltered. `/` (`Roster`)
+  shows one container at a time; there are no Games pages.
 - **Assignments** ([ADR-037](../../docs/adrs/ADR-037-assignment-model.md)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
@@ -165,8 +166,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   and never by rendering `String(err)` from a mutation.
 - **Build every Convex mutation with `mutation` / `internalMutation` from
   `convex/model/entities.ts`, never from `_generated/server`.** Those wrap the
-  generated builders with the triggers that keep `games.summary` (the Games
-  list's counts) current; a mutation built without them writes rows the summary
+  generated builders with the triggers that keep `games.summary` (a Game's
+  counts) current; a mutation built without them writes rows the summary
   never hears about. Biome enforces it inside `convex/`. Every public
   query/mutation also needs a caller in `src/` —
   `tools/check-convex-callers.ts` fails on one nobody calls.

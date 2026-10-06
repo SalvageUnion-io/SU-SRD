@@ -8,10 +8,10 @@
  * exists". `games.setMediator` is the only mutation that flips that flag — and
  * until this panel, **its only callers were tests.**
  *
- * The consequence was a lockout rather than a missing nicety. `MediatorScreen`
- * hard-gates on `mediator.amMediator`, and `GameScreen`'s only link to
- * `/mediator/:id` is conditional on the viewer already holding the flag, so
- * nothing in the app could ever set it. The remaining route in — a
+ * The consequence was a lockout rather than a missing nicety. The Mediator's
+ * instruments (now the hub's Mediator section) hard-gate on
+ * `mediator.amMediator`, so without this panel nothing in the app could ever
+ * set the flag that opens them. The remaining route in — a
  * `role: 'mediator'` invite — short-circuits for existing members
  * (`invites.redeem` returns `already` when a membership exists), and the
  * Organizer is by construction already a member of their own Game. A solo
@@ -39,7 +39,7 @@ export function MediatorPanel({ gameId }: { gameId: Id<'games'> }) {
     <Card
       headerBg="bg-ink"
       headerContent={
-        <Badge shape="stamp" as="h2" size="full">
+        <Badge shape="stamp" as="h3" size="full">
           Who mediates
         </Badge>
       }

@@ -1,10 +1,11 @@
 /**
  * MoveToContainerControl — live-sheet affordance for moving one entity between
- * its **Shelf** and a **Game** (ADR-030 §2).
+ * **My stuff** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
  * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
  * two real containers. Moving INTO a Game is one tap; moving OUT of one — back
- * to the Shelf, or on to another Game — asks first.
+ * to My stuff, or on to another Game — asks first. The hub's rows offer the
+ * same moves (`MoveToGameSelect`, and "Remove from game" on a Game's rows).
  *
  * ## Why only the way out asks
  *
@@ -45,13 +46,13 @@
  *
  * The options come from `moveDestinations` (`lib/games/gameRoster.ts`), the
  * client mirror of the server's move rules (ADR-037): a pilot or mech may go to
- * the Shelf or any Game you belong to; a crawler moves only at its table
- * runner's hand, Shelf → a Game they run or back. With nowhere to go the
+ * My stuff or any Game you belong to; a crawler moves only at its table
+ * runner's hand, My stuff → a Game they run or back. With nowhere to go the
  * select still shows where the entity is, disabled.
  *
  * ## Solo renders nothing
  *
- * With no account there is only the Shelf, so there is nowhere to move to —
+ * With no account there is only My stuff, so there is nowhere to move to —
  * see `ContainerSwitcher` for the same branch and the reasoning behind it.
  */
 
@@ -160,7 +161,7 @@ function ConnectedMoveToContainerControl({
           onChange={handleChange}
           disabled={pending || destinations.length <= 1}
           className="w-auto disabled:opacity-50 sm:min-h-9"
-          aria-label="Move to Game or Shelf"
+          aria-label="Move to a game or My stuff"
         >
           {shelfOptions.map((d) => (
             <option key="shelf" value="shelf">
@@ -169,8 +170,8 @@ function ConnectedMoveToContainerControl({
           ))}
           {/* A record left in a container that is not among the user's Games —
               a v13 phantom id, or a Game they have since left — is named
-              "Unknown game" by `moveDestinations` rather than passed off as the
-              Shelf, which would be a lie about where it lives. */}
+              "Unknown game" by `moveDestinations` rather than passed off as
+              My stuff, which would be a lie about where it lives. */}
           {gameOptions.length > 0 && (
             <optgroup label="Games">
               {gameOptions.map((d) => (
