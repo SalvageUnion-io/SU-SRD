@@ -44,11 +44,11 @@ type EntityCardSubHeaderProps = {
    * whose stats these are.
    */
   nested?: boolean
-  /** Foreground for this band — the SAME value the card gives its header title
-   * (`onBandText`). The sub-header rides a darker shade of the same tone, so it
-   * flips to ink exactly when the title does (damaged/destroyed greys, ghosted
-   * action/NPC bands); hardcoding paper left it unreadable on those light
-   * bands. Defaults to paper, the solid-tone case. */
+  /** Foreground for this band: the deep band's own text colour, chosen by WCAG
+   * contrast against `darkTone` (`resolveCardColors().onDarkText`). It is NOT the
+   * header title's value. The sub-header sits on a darker shade, so it can need
+   * paper while the title needs ink (TL1: ink header, paper sub-header; see
+   * cardSeams.test.ts). Defaults to paper, the solid-tone case. */
   onBandText?: string
 }
 
