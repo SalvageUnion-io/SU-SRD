@@ -76,13 +76,6 @@ token by hand.
   }
   ```
 
-  Owner option, not yet done: re-authenticate the agent host's `gh` with a
-  fine-grained PAT granting Contents, Pull requests, Issues, Actions, Workflows
-  and Checks (read/write) and Metadata (read), and no Administration, Secrets,
-  Variables or Environments. Ruleset and secret writes then return 403 on every
-  host, not only where autoMode's `hard_deny` loads. Today `gh auth status`
-  shows an OAuth token with `repo` scope, which includes administration.
-
 - **In a cloud session**, `gh` is not installed and the session supplies its
   own `mcp__github__*` tools instead. See [Cloud sessions](#cloud-sessions).
 
