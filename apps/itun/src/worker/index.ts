@@ -10,9 +10,9 @@
  *
  *   1. a retired URL           → 301 to the page that replaced it (the Share
  *      Snapshot screen, removed in #793, and the per-entity detail pages
- *      collapsed into the live sheet). The table is `./retiredRoutes.ts`,
- *      which the service worker's navigation denylist also reads — that is
- *      what lets this 301 reach an installed PWA at all.
+ *      collapsed into the live sheet). The table is `./retiredRoutes.ts`.
+ *      An installed PWA reaches this too: the service worker sends every
+ *      navigation to the network first (`src/lib/sw/workbox.ts`).
  *   2. `/api/snapshots`        → POST publishes; every other method 405.
  *   3. `/api/snapshots/:id`    → DELETE revokes, GET retrieves. DELETE must be
  *      matched BEFORE GET, or an unconditioned retrieve swallows it into a 405.
@@ -23,6 +23,9 @@
  *      makes `/robots.txt` and `/favicon.ico` behave, and what stops every
  *      typo being an indexable soft-404 — see rule 6's own note below.
  *   7. everything else         → the SPA shell, 200.
+ *
+ * Every HTML document, whichever rule served it, leaves with
+ * `SHELL_CACHE_CONTROL` — see the note on that constant.
  *
  * ## Rule 4 is the one that has already broken production
  *
@@ -294,7 +297,8 @@ async function spaShell(request: Request, env: Env): Promise<Response> {
   if (!meta) {
     // Re-wrap so the status is 200 for a client-side route rather than whatever
     // the asset lookup returned, and so this response is not confused with a hit
-    // on a real file.
+    // on a real file. (Its Cache-Control is forced on the way out — see
+    // `SHELL_CACHE_CONTROL`.)
     return new Response(shell.body, { status: 200, headers: shell.headers })
   }
 
@@ -340,7 +344,27 @@ const SECURITY_HEADERS: Record<string, string> = {
 }
 
 /**
- * Copy a response, forcing the security headers on.
+ * The Cache-Control on every HTML document this Worker sends: the SPA shell, on
+ * whichever rule served it (rule 7 for a client route, rule 5 for `/` itself).
+ *
+ * It used to be inherited from whatever `ASSETS.fetch` returned — which is
+ * correct today only because Workers Static Assets defaults to this exact value.
+ * The `/*.html` rule in `public/_headers` cannot be the guarantee: Cloudflare does not
+ * apply `_headers` to responses Worker code builds (the same gap
+ * `SECURITY_HEADERS` closes), and rule 7 rebuilds every shell it serves. A
+ * shell cached past a deploy names chunks that no longer exist, and the service
+ * worker's network-first navigations (`src/lib/sw/workbox.ts`) are only as
+ * fresh as this header lets the HTTP cache be.
+ *
+ * Kept identical to the `/*.html` block of `public/_headers`;
+ * `__tests__/routing.test.ts` asserts the two agree.
+ */
+const SHELL_CACHE_CONTROL = 'public, max-age=0, must-revalidate'
+
+/**
+ * Copy a response, forcing the security headers on — and, for an HTML
+ * document, `SHELL_CACHE_CONTROL`, which has the same `_headers` gap and so
+ * gets the same once-on-the-way-out fix.
  *
  * `Response.redirect()` returns an immutable response, so the headers cannot be
  * mutated in place — rebuilding is not an optimisation choice here, it is the
@@ -349,6 +373,9 @@ const SECURITY_HEADERS: Record<string, string> = {
 function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers)
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) headers.set(name, value)
+  if (headers.get('content-type')?.startsWith('text/html')) {
+    headers.set('cache-control', SHELL_CACHE_CONTROL)
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -383,10 +410,9 @@ async function route(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Re
 
   // 1. Retired URL. 301 rather than 302: none of these screens is coming back.
   //
-  // This reaches installed PWAs only because the service worker's
-  // `navigateFallbackDenylist` is built from the same table — otherwise a
-  // cached navigation is answered from Cache Storage and never gets here. See
-  // `./retiredRoutes.ts`.
+  // This reaches installed PWAs too, because the service worker sends every
+  // navigation to the network before its precache (`src/lib/sw/workbox.ts`).
+  // See `./retiredRoutes.ts`.
   const retired = retiredRedirect(path)
   if (retired) return Response.redirect(`${url.origin}${retired}`, 301)
 

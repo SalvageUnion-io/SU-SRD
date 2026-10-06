@@ -55,21 +55,42 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Artwork and icons are content-addressed by name and never mutated in place.
-/*.png
-  Cache-Control: public, max-age=31536000, immutable
+# `/assets/*` is the ONLY content-hashed path srd emits — every image an
+# import references (eldridge-coast-map) lands there with a hash in its name.
+# Every other image is a FIXED name replaced in place when it changes: the
+# og:image and manifest icons, the favicons, the header logos, and the
+# per-entity `*.og.png` unfurls that `og:generate` rewrites whenever the tile
+# rendering changes. These used to match `/*.png` … `/*.svg` as `immutable` for
+# a year, so a changed icon could never reach a returning visitor. itun's
+# `_headers` made the same call for the same reason.
+#
+# One hour, then a day of stale-while-revalidate: a change arrives within the
+# hour, and nobody waits on a revalidation to see an icon.
+#
+# Listed by path, NOT as `/*.png`. Cloudflare applies EVERY matching rule and
+# joins a repeated header with a comma, and a root splat also matches
+# `/assets/` — measured on production while `/*.webp` was immutable:
+#   cache-control: public, max-age=31536000, immutable, public, max-age=31536000, immutable
+# Harmless while both halves agreed, contradictory once they don't. An image
+# this list misses gets the platform default, `max-age=0, must-revalidate`:
+# always fresh, never stuck. `ssg/__tests__/headers.test.ts` holds all of this.
+/og-image.png
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/*.jpg
-  Cache-Control: public, max-age=31536000, immutable
+/web-app-manifest-*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/*.jpeg
-  Cache-Control: public, max-age=31536000, immutable
+/Powered_by_Salvage_Black.webp
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/*.webp
-  Cache-Control: public, max-age=31536000, immutable
+/favicons/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/*.svg
-  Cache-Control: public, max-age=31536000, immutable
+/logos/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/schema/*.og.png
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 # HTML is the one thing that must never be cached: a deploy rotates the hashed
 # chunk names, and a stale document names chunks that no longer exist.

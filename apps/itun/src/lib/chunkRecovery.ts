@@ -6,16 +6,32 @@
  * route render can pull a dozen hashed chunks *after* first paint. Every one of
  * those URLs is only valid for the build that emitted it.
  *
- * That window is not rare here. The PWA serves navigations cache-first from a
- * precached `index.html`, then — on `skipWaiting` + `clientsClaim` +
- * `cleanupOutdatedCaches` — installs the new build and deletes the old precache
- * *underneath the live page*. The page carries on asking for chunk names that
- * no longer exist anywhere, and at ~3 deploys a day the odds of a share link
- * being opened inside that window are not small. Symptom: a snapshot or public
- * sheet that renders only after four or five refreshes.
+ * ## Where the stale page comes from now
  *
- * The fix is to notice and reload once, because a reload fetches a current
- * `index.html` naming current hashes. It pairs with the `/assets/*` → 404 rule
+ * This was first written against `registerType: 'autoUpdate'`, whose forced
+ * `skipWaiting` + `clientsClaim` activated each new worker *underneath the live
+ * page* and dropped the old build's precache entries while the page was still
+ * resolving chunks against them (symptom: a share link that rendered on the
+ * fifth refresh). That cause is gone — the worker is `prompt` and waits (see
+ * `vite.config.ts`) — but the window this guards is not:
+ *
+ * - **A tab open across a deploy.** Its shell names chunks the Worker no
+ *   longer serves once the deploy renamed them. The precache covers them only
+ *   if the active worker is that shell's build — and navigations are
+ *   network-first (`src/lib/sw/workbox.ts`), so right after a deploy a page
+ *   normally boots AHEAD of its worker, and the chunks it fetches later were
+ *   only ever on the network. At ~3 deploys a day, a session spanning two is
+ *   ordinary.
+ * - **Another tab accepting the update.** `SKIP_WAITING` activates the new
+ *   worker for every tab, and activating drops the previous build's precache
+ *   entries; only the tab that clicked reloads.
+ *
+ * Either way the page asks for chunk names that no longer exist anywhere. The
+ * fix is to notice and reload once: a reload is a navigation, which boots the
+ * deployed `index.html` naming current hashes (or, offline, the precached
+ * shell, which names exactly the chunks the precache holds). The update toast
+ * (`src/lib/sw/register.ts`) is the polite path; this is the backstop for the
+ * tab that hit the gap first. It pairs with the `/assets/*` → 404 rule
  * in `src/worker/index.ts`: without that rule a missing chunk came back as `200
  * text/html` from the SPA fallback, which fails the import on MIME type but is
  * also, thanks to the `/assets/*` header block, cached `immutable` for a year.

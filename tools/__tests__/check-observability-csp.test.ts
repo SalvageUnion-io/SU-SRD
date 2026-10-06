@@ -1,6 +1,16 @@
-import { describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 
 /**
  * Behaviour tests for the CSP half of `tools/check-observability.ts`.
@@ -16,8 +26,47 @@ const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
 const SENTRY_HOST = 'https://*.ingest.de.sentry.io'
 
+/**
+ * Every file the check reads in its static mode (it resolves them from its
+ * cwd). These tests run it against a private copy of them and mutate only the
+ * copy — never the working tree. Renaming the real `_headers` aside raced every
+ * other workspace's tests that read it, because `test:coverage` runs the
+ * workspaces concurrently: an srd test read `apps/srd/public/_headers` while it
+ * was stashed, and failed with ENOENT. A file the check starts reading without
+ * being listed here fails the first test below, not silently.
+ */
+const CHECKED_FILES = [
+  'apps/srd/src/lib/observability.ts',
+  'apps/srd/src/runtime/islands.client.ts',
+  'apps/srd/wrangler.jsonc',
+  'apps/srd/public/_headers',
+  'apps/itun/src/lib/observability.ts',
+  'apps/itun/src/main.tsx',
+  'apps/itun/wrangler.jsonc',
+  'apps/itun/public/_headers',
+  'apps/itun/src/worker/index.ts',
+  'apps/su-assets/wrangler.jsonc',
+  'apps/su-assets/src/worker.ts',
+  'apps/discord-bot/wrangler.jsonc',
+  'apps/discord-bot/src/http/worker.ts',
+]
+
+let TREE = ''
+
+beforeAll(() => {
+  TREE = mkdtempSync(join(tmpdir(), 'check-observability-'))
+  for (const file of CHECKED_FILES) {
+    mkdirSync(dirname(join(TREE, file)), { recursive: true })
+    cpSync(join(ROOT, file), join(TREE, file))
+  }
+})
+
+afterAll(() => {
+  rmSync(TREE, { recursive: true, force: true })
+})
+
 async function runCheck() {
-  const proc = Bun.spawn(['bun', TOOL], { cwd: ROOT, stdout: 'pipe', stderr: 'pipe' })
+  const proc = Bun.spawn(['bun', TOOL], { cwd: TREE, stdout: 'pipe', stderr: 'pipe' })
   const [stdout, stderr, exitCode] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
@@ -31,7 +80,7 @@ async function withFileContents(
   mutate: (s: string) => string,
   fn: () => Promise<void>
 ) {
-  const abs = join(ROOT, relPath)
+  const abs = join(TREE, relPath)
   const original = readFileSync(abs, 'utf-8')
   try {
     writeFileSync(abs, mutate(original))
@@ -43,7 +92,7 @@ async function withFileContents(
 
 /** Rename a file out of the way, run, then put it back. */
 async function withFileAbsent(relPath: string, fn: () => Promise<void>) {
-  const abs = join(ROOT, relPath)
+  const abs = join(TREE, relPath)
   const stash = `${abs}.check-observability-test-stash`
   renameSync(abs, stash)
   try {

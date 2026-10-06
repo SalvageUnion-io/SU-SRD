@@ -362,11 +362,12 @@ ceasing to resolve and only a bookmark noticing. The retired Share Snapshot
 URL (`/sheet/:kind/:id/share`) once needed its own client-side redirect route,
 because the Worker's 301 alone was not enough: the service worker answered the
 navigation from its precache and the Worker never saw it. That route is gone;
-`apps/itun/src/worker/retiredRoutes.ts` now feeds both the Worker's 301 and the
-service worker's `navigateFallbackDenylist`, and it is the denylist half that
-makes the 301 sufficient. Do not reintroduce per-URL redirect routes — add the
-retired shape to that table. A unification that moves route families will meet
-that same problem three times.
+`apps/itun/src/worker/retiredRoutes.ts` feeds the Worker's 301, and the 301 is
+sufficient because the service worker now sends every navigation to the
+network first (`apps/itun/src/lib/sw/workbox.ts`; it used to need a
+`navigateFallbackDenylist` built from the same table). Do not reintroduce
+per-URL redirect routes — add the retired shape to that table. A unification
+that moves route families will meet that same problem three times.
 
 **Work.**
 
@@ -376,12 +377,12 @@ that same problem three times.
   tests in `apps/itun/src/routes/__tests__/`.
 - A retired-URL table: every share URL shape the app has ever served, and what
   answers it now. `apps/itun/src/worker/retiredRoutes.ts` is that table for the
-  retired app routes (the Worker 301s each one, and the service worker's
-  navigation denylist is built from it); share URLs belong in the same table,
-  because the rule is about the set and not about one route.
+  retired app routes (the Worker 301s each one); share URLs belong in the same
+  table, because the rule is about the set and not about one route.
 - The guard must cover **both halves of the PWA problem**: the service worker
-  answering a navigation from its precache, and the Worker's own path handling
-  in `apps/itun/src/worker/index.ts`.
+  answering a navigation from its precache (held off by the network-first
+  navigation rule, `apps/itun/src/lib/sw/__tests__/workbox.test.ts`), and the
+  Worker's own path handling in `apps/itun/src/worker/index.ts`.
 
 **Gate.**
 

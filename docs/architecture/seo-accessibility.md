@@ -65,8 +65,11 @@ They live in `src/endpoints/` and are registered in `ssg/endpoints.ts`.
 - **PWA** — `ssg/pwa.ts` runs `workbox-build`'s `generateSW` over the finished
   `dist` (replacing `@vite-pwa/astro`), keeping the same
   `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`,
-  `skipWaiting`, `clientsClaim` and runtime-caching rules, and still emitting
-  `registerSW.js`.
+  `skipWaiting` and `clientsClaim`, and still emitting `registerSW.js`.
+  Navigations are `NetworkFirst` into the `pages` cache with a 3 s timeout, so
+  the cache answers only offline or on a slow network; its header says why
+  `skipWaiting` stays safe, and `src/runtime/chunkRecovery.client.ts` reloads a
+  page once when its build's chunks are gone.
 
 ### Structured Data (JSON-LD)
 
