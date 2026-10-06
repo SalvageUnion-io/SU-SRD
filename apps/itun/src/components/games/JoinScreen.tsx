@@ -9,6 +9,7 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
+import { failureMessage } from '../shared/useConfirm'
 
 /**
  * `/join/$code` — the link half of an invite.
@@ -64,6 +65,25 @@ function ConnectedJoin({ code }: { code: string }) {
     )
   }
 
+  // Before the dead-code check: declining makes the live preview report
+  // 'declined', and the person who just said no should read that they did,
+  // not that somebody else's invite went dead.
+  if (declined) {
+    return (
+      <Card>
+        <div className="flex flex-col gap-3 p-4">
+          <Text>You declined the invite to {preview.gameName}.</Text>
+          <Text variant="hint" className="text-left">
+            If you change your mind, ask {preview.invitedBy} for a new one.
+          </Text>
+          <div>
+            <AppLink href="/">Go to your games</AppLink>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
   if (preview.status !== 'active') {
     return (
       <Card>
@@ -90,22 +110,6 @@ function ConnectedJoin({ code }: { code: string }) {
           <Text>This invite to {preview.gameName} was sent to a different Discord account.</Text>
           <Text variant="hint" className="text-left">
             Sign in with the account it was sent to, or ask {preview.invitedBy} to invite this one.
-          </Text>
-          <div>
-            <AppLink href="/">Go to your games</AppLink>
-          </div>
-        </div>
-      </Card>
-    )
-  }
-
-  if (declined) {
-    return (
-      <Card>
-        <div className="flex flex-col gap-3 p-4">
-          <Text>You declined the invite to {preview.gameName}.</Text>
-          <Text variant="hint" className="text-left">
-            If you change your mind, ask {preview.invitedBy} for a new one.
           </Text>
           <div>
             <AppLink href="/">Go to your games</AppLink>
@@ -151,7 +155,9 @@ function ConnectedJoin({ code }: { code: string }) {
     setError(null)
     void decline({ code })
       .then(() => setDeclined(true))
-      .catch((err: Error) => setError(err.message))
+      .catch((err: unknown) =>
+        setError(failureMessage(err, 'That invite could not be declined. Try again.'))
+      )
   }
 
   return (

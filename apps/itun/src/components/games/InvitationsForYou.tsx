@@ -26,6 +26,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { failureMessage } from '../shared/useConfirm'
 import { GamePanel } from './GamePanel'
+import { humanExpiry } from './InvitePanel'
 
 const PLACE = { marginTop: tokens.space[20] } satisfies CSSProperties
 
@@ -36,12 +37,6 @@ const LIST = {
 } satisfies CSSProperties
 
 const ERROR = { textAlign: 'left', color: tokens.color.rollCascade } satisfies CSSProperties
-
-function daysLeft(expiresAt: number | null): string | null {
-  if (expiresAt === null) return null
-  const days = Math.ceil((expiresAt - Date.now()) / (1000 * 60 * 60 * 24))
-  return days <= 1 ? 'expires today' : `${days} days left`
-}
 
 function ConnectedInvitations() {
   const invitations = useQuery(api.invites.forMe, {})
@@ -79,7 +74,7 @@ function ConnectedInvitations() {
                   : invite.grantCount === 1
                     ? 'a character is waiting for you'
                     : `${invite.grantCount} characters are waiting for you`,
-                daysLeft(invite.expiresAt),
+                humanExpiry(invite.expiresAt),
               ]
                 .filter((segment) => segment !== null)
                 .join(' · ')}

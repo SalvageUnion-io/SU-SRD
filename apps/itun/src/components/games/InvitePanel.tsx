@@ -34,7 +34,7 @@ import { ConvexPending } from '../shared/ConvexPending'
  *     read access to every crewmate's sheet (ADR-030 §5).
  */
 
-function humanExpiry(expiresAt: number | null): string {
+export function humanExpiry(expiresAt: number | null): string {
   if (expiresAt === null) return 'no expiry'
   const days = Math.ceil((expiresAt - Date.now()) / (1000 * 60 * 60 * 24))
   if (days <= 0) return 'expired'

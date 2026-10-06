@@ -23,6 +23,8 @@ import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let redeemResult: unknown = { kind: 'joined', gameId: 'g1', granted: 0 }
 let redeemError: Error | null = null
+// The preview a decline test started from, re-served as declined once it lands.
+let declinedPreview: Record<string, unknown> = {}
 // Which mutations the screen called, by name — redeem and decline share the
 // stub, so the name is what tells "joined" from "declined" apart.
 const mutationCalls: string[] = []
@@ -42,7 +44,14 @@ const convexMocks = await installConvexMocks({
       const name = getFunctionName(ref as FunctionReference<'mutation'>)
       mutationCalls.push(name)
       if (redeemError !== null) throw redeemError
-      return name === 'invites:decline' ? null : redeemResult
+      if (name === 'invites:decline') {
+        // What the live subscription does: the declined invite now previews
+        // as declined, which is exactly what the screen must not mistake for
+        // somebody else's dead code.
+        setQueryAnswers({ 'invites:preview': preview({ ...declinedPreview, status: 'declined' }) })
+        return null
+      }
+      return redeemResult
     },
     useConvexAuth: () => ({ isAuthenticated, isLoading: false }),
   },
@@ -162,7 +171,8 @@ describe('an invite addressed to you (ADR-038)', () => {
   })
 
   test('declining says so and goes nowhere', async () => {
-    renderJoin(preview({ addressed: 'discord', forYou: true }))
+    declinedPreview = { addressed: 'discord', forYou: true }
+    renderJoin(preview(declinedPreview))
     fireEvent.click(screen.getByText('Decline'))
     await waitFor(() => expect(screen.getByText(/You declined the invite/)).toBeTruthy())
 
