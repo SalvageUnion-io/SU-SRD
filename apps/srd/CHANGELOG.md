@@ -2,6 +2,19 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.11.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.10.1...srd-v2.11.0) (2026-10-06)
+
+
+### Features
+
+* **itun:** retire snapshot shares; the live public sheet is the only way to share ([#1037](https://github.com/SalvageUnion-io/SU-SRD/issues/1037)) ([f932244](https://github.com/SalvageUnion-io/SU-SRD/commit/f93224426a1fe0201d77b465fe1af36127adab44))
+
+
+### Bug Fixes
+
+* **deps:** clear the high and critical audit advisories ([#1044](https://github.com/SalvageUnion-io/SU-SRD/issues/1044)) ([b5607f7](https://github.com/SalvageUnion-io/SU-SRD/commit/b5607f777ce62050442e1432ea74e162a7ae5109))
+* every visit boots the deployed version (ITUN + SRD service workers) ([#1026](https://github.com/SalvageUnion-io/SU-SRD/issues/1026)) ([4e5c6eb](https://github.com/SalvageUnion-io/SU-SRD/commit/4e5c6eb8e4a7c140fdb6761da52020436636debc))
+
 ## [2.10.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.10.0...srd-v2.10.1) (2026-09-28)
 
 
