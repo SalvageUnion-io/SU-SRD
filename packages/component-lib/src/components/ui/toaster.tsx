@@ -1,12 +1,25 @@
 // eslint-disable-next-line react-refresh/only-export-components
 export { toast } from 'sonner'
 
+import type { ToasterProps as SonnerToasterProps } from 'sonner'
 import { Toaster as SonnerToaster } from 'sonner'
 
-export function Toaster() {
+type ToasterProps = {
+  /**
+   * Distance from the viewport edges (desktop / below 600px). Sonner's defaults
+   * apply to any edge left out. ITUN raises the bottom edge so its toasts stack
+   * above the search FAB that shares their corner.
+   */
+  offset?: SonnerToasterProps['offset']
+  mobileOffset?: SonnerToasterProps['mobileOffset']
+}
+
+export function Toaster({ offset, mobileOffset }: ToasterProps = {}) {
   return (
     <SonnerToaster
       position="bottom-right"
+      offset={offset}
+      mobileOffset={mobileOffset}
       toastOptions={{
         style: {
           background: 'var(--color-ink)',

@@ -3,7 +3,7 @@
  * comboboxes (audit item 11).
  *
  * srd's SearchIsland (dropdown-under-input, URL navigation) and ITUN's
- * GlobalSearch (ModalShell dialog, detail-modal navigation) duplicated the
+ * GlobalSearch (bottom-right FAB panel, detail-modal navigation) duplicated the
  * same ~150 lines: 150 ms debounce, category+entity result blending
  * (3 schema slots inside a 10-row budget), ArrowUp/Down/Enter selection, and
  * the combobox ARIA id wiring. This hook owns that logic; the apps own their
