@@ -359,9 +359,9 @@ describe('Roster — delete flow', () => {
       fireEvent.click(screen.getByRole('button', { name: /Delete Mira Cole/i }))
     })
 
-    // Dialog should open with the entity name (title renders visibly in the
-    // ModalShell header plus sr-only Dialog.Title/Description)
-    expect(screen.getByRole('dialog')).toBeTruthy()
+    // The shared ConfirmDialog opens, an alert dialog naming the entity (its
+    // title renders visibly in the header plus the sr-only Dialog.Title)
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(screen.getAllByText(/Delete Mira Cole/i).length).toBeGreaterThan(0)
   })
 
@@ -408,6 +408,6 @@ describe('Roster — delete flow', () => {
     // Entity should still be present
     expect(screen.getByText('Fen Oya')).toBeTruthy()
     // Dialog should be closed
-    expect(screen.queryByRole('dialog')).toBeFalsy()
+    expect(screen.queryByRole('alertdialog')).toBeFalsy()
   })
 })

@@ -1,0 +1,144 @@
+/**
+ * The destructive and ownership verbs on a Game roster row, each behind its
+ * confirm.
+ *
+ * Every verb here changes who has a build or whether it exists — picking it up,
+ * offering it back, copying it, deleting it, scrapping the crawler — so none of
+ * them runs on the press. Each opens the surface's confirm (`useConfirm`) with
+ * its words from `lib/games/rowActionCopy.ts`, and does the work only when the
+ * player confirms. A failure stays on the dialog with its reason.
+ *
+ * Kept out of `GameRoster` so another surface that lists the same rows offers
+ * the same verbs with the same consequences, rather than a second copy of each
+ * mutation sequence drifting from the first. What a row is ALLOWED to do is
+ * still `row.can` (`lib/games/gameRoster.ts`); this only does it.
+ */
+
+import { toast } from 'component-lib'
+import { useMutation } from 'convex/react'
+import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
+import { copyForShelf } from '../../lib/copyEntity'
+import type { RosterRow } from '../../lib/games/gameRoster'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { useEntityStore } from '../../stores/entityStore'
+import type { Confirm } from '../shared/useConfirm'
+
+/**
+ * Make sure this browser holds the row, then hand back the id a sheet route
+ * takes. Adoption keeps the entity's own id, so the copy IS the entity rather
+ * than a fork of it — see `entityStore.adopt`.
+ */
+export async function ensureLocal(row: RosterRow): Promise<string | null> {
+  const id = row.body.id
+  if (typeof id !== 'string' || id.length === 0) return row.localId
+  // Adopted even when a copy is already here: the server is the source of
+  // record, and the copy may be stale — most obviously for the crawler, which
+  // the whole crew edits. Overwriting is safe because every local write
+  // mirrors up immediately, so a local copy is never legitimately ahead.
+  await useEntityStore.getState().adopt(row.kind, row.body as never)
+  return id
+}
+
+/** The table a pilot or mech row's ownership mutations address. */
+function ownableTable(row: RosterRow): 'pilots' | 'mechs' {
+  return row.kind === 'pilot' ? 'pilots' : 'mechs'
+}
+
+export type RowActions = {
+  /** Claim an unclaimed character, then pull it into this browser. */
+  pickUp: (row: RosterRow) => void
+  /** Hand a character you hold back to the crew. */
+  offer: (row: RosterRow) => void
+  /** Copy a pilot or mech into My stuff. */
+  copy: (row: RosterRow) => void
+  /** Delete a pilot or mech you own, for everyone. */
+  remove: (row: RosterRow) => void
+  /** Scrap the crew's crawler (the table runner's act). */
+  scrap: (row: RosterRow) => void
+}
+
+export function useRowActions(confirm: Confirm): RowActions {
+  const claim = useMutation(api.ownership.claim)
+  const release = useMutation(api.ownership.release)
+  const scrapCrawler = useMutation(api.entities.removeCrawler)
+  const removeEntity = useMutation(api.entities.remove)
+
+  /** Drop this browser's cached copy once the server no longer lets us hold it. */
+  async function forgetLocal(row: RosterRow): Promise<void> {
+    if (row.localId !== null) await useEntityStore.getState().forget(row.kind, row.localId)
+  }
+
+  return {
+    pickUp: (row) =>
+      confirm({
+        ...ROW_ACTION_COPY.pickUp(row.name),
+        onConfirm: async () => {
+          await claim({ table: ownableTable(row), entityId: row.serverId })
+          // Pull it down so it opens straight away — picking something up and
+          // then having nowhere to open it would be half a verb.
+          await ensureLocal(row)
+        },
+      }),
+
+    offer: (row) =>
+      confirm({
+        ...ROW_ACTION_COPY.offer(row.name, row.kind),
+        onConfirm: async () => {
+          await release({ table: ownableTable(row), entityId: row.serverId })
+          // It belongs to the table now, not to this browser: keeping a local
+          // copy would leave an editor whose writes the server refuses.
+          await forgetLocal(row)
+        },
+      }),
+
+    /**
+     * Offered on every pilot and mech row, including a crewmate's and an
+     * unclaimed pre-gen, because it is derived from what you may already read:
+     * membership of the Game grants the frozen crew view of every row, and
+     * copying what is on your screen escalates nothing. It is also the only way
+     * to keep a character when you walk away from a table — releasing one
+     * leaves it behind, unclaimed.
+     *
+     * It asks first even though it destroys nothing: it makes a second build,
+     * and a player who expected a move would otherwise find two of them.
+     */
+    copy: (row) =>
+      confirm({
+        ...ROW_ACTION_COPY.copy(row.name),
+        onConfirm: async () => {
+          const created = await useEntityStore
+            .getState()
+            .create(
+              row.kind === 'pilot' ? 'pilot' : 'mech',
+              copyForShelf(row.body, row.name) as never
+            )
+          toast.success(`Copied ${created.name} to your shelf.`)
+        },
+      }),
+
+    remove: (row) =>
+      confirm({
+        ...ROW_ACTION_COPY.deleteFromGame(row.name),
+        onConfirm: async () => {
+          // Server first, addressed by server id: the row may never have been
+          // in this browser, and a template pre-gen has no appId for the mirror
+          // to address it by.
+          await removeEntity({ table: ownableTable(row), entityId: row.serverId })
+          // Then drop the cached copy, exactly as release and scrap do.
+          // `forget`, not `delete`: the server row is already gone, so a second
+          // mirrored destruction would be a no-op at best.
+          await forgetLocal(row)
+        },
+      }),
+
+    scrap: (row) =>
+      confirm({
+        ...ROW_ACTION_COPY.scrap(row.name),
+        onConfirm: async () => {
+          await scrapCrawler({ crawlerId: row.serverId as Id<'crawlers'> })
+          await forgetLocal(row)
+        },
+      }),
+  }
+}

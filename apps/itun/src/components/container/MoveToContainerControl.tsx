@@ -2,9 +2,23 @@
  * MoveToContainerControl — live-sheet affordance for moving one entity between
  * its **Shelf** and a **Game** (ADR-030 §2).
  *
- * Replaces `AssignToWorkspaceButton`. Same shape and same friction — a select,
- * not a dialog, so a move is one tap — with Workspaces swapped for the two real
- * containers.
+ * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
+ * two real containers. Moving INTO a Game is one tap; moving OUT of one — back
+ * to the Shelf, or on to another Game — asks first.
+ *
+ * ## Why only the way out asks
+ *
+ * Putting a build into a Game takes nothing from anybody. Taking it out takes
+ * it off a roster the rest of the table was reading, which is the destructive
+ * direction, so that move goes through a confirm (words in
+ * `lib/games/rowActionCopy.ts`) and only runs once the player says yes. The
+ * select is controlled by the entity's real container, so a cancelled move
+ * leaves it showing where the build still is.
+ *
+ * The confirm is the CALLER's (`confirm`, from `useConfirm`), not this
+ * control's. The sheet renders this inside its ⋯ menu, which unmounts its
+ * children on any outside pointerdown — and the dialog is portalled outside
+ * it, so a dialog owned here would be torn down by the press that answers it.
  *
  * ## A move is one field, and that is the whole design
  *
@@ -38,18 +52,25 @@ import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { ContainerFields } from '../../lib/container'
-import { containerOf, moveTo } from '../../lib/container'
+import type { Container, ContainerFields } from '../../lib/container'
+import { containerOf, moveTo, sameContainer } from '../../lib/container'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
+import type { Confirm } from '../shared/useConfirm'
 
 type MoveToContainerControlProps = {
   entityType: AssignableType
   entityId: string
   /** The entity's current container fields (`gameId`, legacy `workspaceId`). */
-  entity: ContainerFields
+  entity: ContainerFields & { name: string }
+  /**
+   * Opens the confirm a move out of a Game goes through. Owned by an
+   * always-mounted ancestor — see "Why only the way out asks" above.
+   */
+  confirm: Confirm
   onChanged?: () => void
   className?: string
 }
@@ -58,6 +79,7 @@ function ConnectedMoveToContainerControl({
   entityType,
   entityId,
   entity,
+  confirm,
   onChanged,
   className,
 }: MoveToContainerControlProps) {
@@ -67,18 +89,45 @@ function ConnectedMoveToContainerControl({
 
   const current = containerOf(entity)
 
-  async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const next = parseContainer(e.target.value)
+  /** A Game's name as the reader knows it, or null when it is not one of theirs. */
+  function gameName(gameId: string): string | null {
+    return games?.find((game) => game._id === gameId)?.name ?? null
+  }
+
+  async function move(next: Container) {
+    await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    onChanged?.()
+  }
+
+  async function moveNow(next: Container) {
     setPending(true)
     setError(null)
     try {
-      await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
-      onChanged?.()
+      await move(next)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to move this build.')
     } finally {
       setPending(false)
     }
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = parseContainer(e.target.value)
+    if (current.kind !== 'game' || sameContainer(current, next)) {
+      void moveNow(next)
+      return
+    }
+    // Out of a Game: ask first. A failure is shown on the dialog, which
+    // outlives this control, so the move runs bare here.
+    confirm({
+      ...ROW_ACTION_COPY.leaveGame({
+        name: entity.name,
+        kind: entityType,
+        from: gameName(current.gameId),
+        to: next.kind === 'shelf' ? next : { kind: 'game', name: gameName(next.gameId) },
+      }),
+      onConfirm: () => move(next),
+    })
   }
 
   return (
@@ -90,7 +139,7 @@ function ConnectedMoveToContainerControl({
         <Select
           id={`container-move-${entityId}`}
           value={serializeContainer(current)}
-          onChange={(e) => void handleChange(e)}
+          onChange={handleChange}
           disabled={pending}
           className="w-auto disabled:opacity-50 sm:min-h-9"
           aria-label="Move to Game or Shelf"

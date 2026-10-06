@@ -35,27 +35,24 @@
  * the server body is cached into IndexedDB under its own id, which is what
  * makes the sheet and the Dashboard work at all for a character built at
  * somebody else's table.
+ *
+ * ## Every verb that changes who has a build asks first
+ *
+ * Pick up, Offer to the crew, Copy to shelf, Delete and Scrap each open one
+ * shared confirm (`useConfirm`) that says what will happen and whether it can be
+ * undone, and do nothing until the player confirms. The verbs and their words
+ * live outside this file — `useRowActions` and `lib/games/rowActionCopy.ts` —
+ * so any other surface listing these rows offers the same consequences.
  */
 
 import { useRouter } from '@tanstack/react-router'
-import {
-  Button,
-  buttonVariants,
-  cn,
-  EmptyState,
-  EntityRow,
-  ModalShell,
-  PageHeading,
-  Text,
-  toast,
-} from 'component-lib'
-import { useMutation, useQuery } from 'convex/react'
+import { Button, buttonVariants, cn, EmptyState, EntityRow, PageHeading, Text } from 'component-lib'
+import { useQuery } from 'convex/react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
-import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
 import { rosterRowStats } from '../../lib/games/rosterRowStats'
@@ -63,10 +60,11 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { setActiveContainer } from '../../stores/activeContainerStore'
-import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { useConfirm } from '../shared/useConfirm'
 import { OwnerSeal } from './OwnerSeal'
+import { ensureLocal, useRowActions } from './useRowActions'
 
 type GameRosterProps = {
   gameId: string
@@ -124,19 +122,13 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const router = useRouter({ warn: false })
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  /** The row whose UNCLAIMED seal was pressed, awaiting confirmation. */
-  const [claimTarget, setClaimTarget] = useState<RosterRow | null>(null)
-  /** The row whose Delete was pressed, awaiting confirmation. */
-  const [deleteTarget, setDeleteTarget] = useState<RosterRow | null>(null)
+  // One confirm for every row verb; see `useRowActions`.
+  const { confirm, dialog: confirmDialog } = useConfirm()
+  const rowActions = useRowActions(confirm)
 
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
-
-  const claim = useMutation(api.ownership.claim)
-  const release = useMutation(api.ownership.release)
-  const scrapCrawler = useMutation(api.entities.removeCrawler)
-  const removeEntity = useMutation(api.entities.remove)
 
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
@@ -173,53 +165,6 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       tableRunner: caps.tableRunner,
       localIds: new Set(localCrawlers.map((c) => c.id)),
     }),
-  }
-
-  /**
-   * Make sure this browser holds the row, then hand back the id a sheet route
-   * takes. Adoption keeps the entity's own id, so the copy IS the entity rather
-   * than a fork of it — see `entityStore.adopt`.
-   */
-  async function ensureLocal(row: RosterRow): Promise<string | null> {
-    const id = row.body.id
-    if (typeof id !== 'string' || id.length === 0) return row.localId
-    // Adopted even when a copy is already here: the server is the source of
-    // record, and the copy may be stale — most obviously for the crawler, which
-    // the whole crew edits. Overwriting is safe because every local write
-    // mirrors up immediately, so a local copy is never legitimately ahead.
-    await useEntityStore.getState().adopt(row.kind, row.body as never)
-    return id
-  }
-
-  /**
-   * Take a copy of this row onto your own shelf.
-   *
-   * Offered on **every** row, including a crewmate's and an unclaimed pre-gen,
-   * because it is derived from what you may already read: membership of the Game
-   * grants the frozen crew view of every row, and copying what is on your screen
-   * escalates nothing. It is also the only way to keep a character when you
-   * walk away from a table — releasing a character leaves it behind, unclaimed.
-   *
-   * Deliberately no confirm. Copying destroys nothing and the result is one more
-   * build on your shelf, so a modal would be friction guarding an undo-by-delete.
-   *
-   * Crawlers are still excluded at the call site, but the reason has changed and
-   * is worth stating plainly. It used to be a **model limitation**: `crawlers`
-   * had a non-nullable `gameId`, so a shelved crawler had no server row to be.
-   * That is no longer true — a crawler shelves like anything else now, which is
-   * how deleting a Game keeps one.
-   *
-   * So the exclusion is a **product choice nobody has made yet**, not an
-   * impossibility. A crawler is the crew's shared home rather than a character
-   * somebody keeps, so "take your own copy of the table's crawler" wants a
-   * decision before it gets a button. Offering it is a small change if that
-   * decision goes the other way.
-   */
-  async function copyToShelf(row: RosterRow) {
-    const created = await useEntityStore
-      .getState()
-      .create(row.kind === 'pilot' ? 'pilot' : 'mech', copyForShelf(row.body, row.name) as never)
-    toast.success(`Copied ${created.name} to your shelf.`)
   }
 
   async function run(key: string, work: () => Promise<void>) {
@@ -372,7 +317,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                 owner={row.owner}
                                 claimable={row.can.claim}
                                 disabled={busy !== null}
-                                onClaim={() => setClaimTarget(row)}
+                                onClaim={() => rowActions.pickUp(row)}
                               />
                             )
                           }
@@ -412,34 +357,24 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   variant="ghost"
                                   size="mini"
                                   disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`offer-${row.serverId}`, async () => {
-                                      await release({
-                                        table: row.kind === 'pilot' ? 'pilots' : 'mechs',
-                                        entityId: row.serverId,
-                                      })
-                                      // It belongs to the table now, not to this
-                                      // browser: keeping a local copy would leave
-                                      // an editor whose writes the server refuses.
-                                      if (row.localId !== null) {
-                                        await useEntityStore
-                                          .getState()
-                                          .forget(row.kind, row.localId)
-                                      }
-                                    })
-                                  }
+                                  onClick={() => rowActions.offer(row)}
                                 >
                                   Offer to the crew
                                 </Button>
                               )}
+                              {/* Pilots and mechs only. Copying the crawler is a
+                                  product choice nobody has made yet, not an
+                                  impossibility: a crawler shelves like anything
+                                  else now, but it is the crew's shared home
+                                  rather than a character somebody keeps, so
+                                  "take your own copy of the table's crawler"
+                                  wants a decision before it gets a button. */}
                               {row.kind !== 'crawler' && (
                                 <Button
                                   variant="ghost"
                                   size="mini"
                                   disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`copy-${row.serverId}`, () => copyToShelf(row))
-                                  }
+                                  onClick={() => rowActions.copy(row)}
                                 >
                                   Copy to shelf
                                 </Button>
@@ -449,7 +384,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   variant="ghost"
                                   size="mini"
                                   disabled={busy !== null}
-                                  onClick={() => setDeleteTarget(row)}
+                                  onClick={() => rowActions.remove(row)}
                                 >
                                   Delete
                                 </Button>
@@ -459,18 +394,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   variant="ghost"
                                   size="mini"
                                   disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`scrap-${row.serverId}`, async () => {
-                                      await scrapCrawler({
-                                        crawlerId: row.serverId as Id<'crawlers'>,
-                                      })
-                                      if (row.localId !== null) {
-                                        await useEntityStore
-                                          .getState()
-                                          .forget('crawler', row.localId)
-                                      }
-                                    })
-                                  }
+                                  onClick={() => rowActions.scrap(row)}
                                 >
                                   Scrap
                                 </Button>
@@ -495,114 +419,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         </AppLink>
       </p>
 
-      {/* The destructive twin of the pick-up confirm, in the danger tone the
-          Roster's own delete uses. It names the alternative on purpose: at a
-          shared table, "I am done with this character" almost always means
-          somebody else could have them, and a player who deletes when they
-          meant to hand over cannot undo it. */}
-      <ModalShell
-        open={deleteTarget !== null}
-        onOpenChange={(next) => {
-          if (!next) setDeleteTarget(null)
-        }}
-        title={`Delete ${deleteTarget?.name ?? ''}?`}
-        tone="danger"
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
-            This cannot be undone. {deleteTarget?.name ?? 'This character'} will be removed from
-            this game for everyone, and from this browser.
-          </div>
-          <div className="font-body text-xs text-wk-muted">
-            Only leaving the table? “Offer to the crew” hands them back instead — they stay in the
-            game for somebody else to pick up.
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="compact" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              size="compact"
-              disabled={busy !== null}
-              onClick={() => {
-                const row = deleteTarget
-                if (row === null || row.kind === 'crawler') return
-                void run(`delete-${row.serverId}`, async () => {
-                  // Server first, addressed by server id: the row may never
-                  // have been in this browser, and a template pre-gen has no
-                  // appId for the mirror to address it by.
-                  await removeEntity({
-                    table: row.kind === 'pilot' ? 'pilots' : 'mechs',
-                    entityId: row.serverId,
-                  })
-                  // Then drop the cached copy, exactly as release and scrap do.
-                  // `forget`, not `delete`: the server row is already gone, so
-                  // a second mirrored destruction would be a no-op at best.
-                  if (row.localId !== null) {
-                    await useEntityStore.getState().forget(row.kind, row.localId)
-                  }
-                  setDeleteTarget(null)
-                })
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
-
-      {/* Picking a character up is constructive, not destructive, so this is an
-          `action`-toned confirm rather than the danger one the delete flows use.
-          It exists to say what happens next — it becomes yours, and it lands in
-          this browser — which the seal alone cannot. */}
-      <ModalShell
-        open={claimTarget !== null}
-        onOpenChange={(next) => {
-          if (!next) setClaimTarget(null)
-        }}
-        title={`Pick up ${claimTarget?.name ?? ''}?`}
-        tone="action"
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
-            {claimTarget?.name ?? 'This character'} is unclaimed — the Mediator left them for
-            somebody to take. Picking them up makes you their owner: they become yours to edit, they
-            open in this browser, and every change saves back to the game.
-          </div>
-          <div className="font-body text-xs text-wk-muted">
-            Changed your mind later? Hand them back with “Offer to the crew”.
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="compact" onClick={() => setClaimTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="compact"
-              disabled={busy !== null}
-              onClick={() => {
-                const row = claimTarget
-                if (row === null) return
-                void run(`claim-${row.serverId}`, async () => {
-                  await claim({
-                    table: row.kind === 'pilot' ? 'pilots' : 'mechs',
-                    entityId: row.serverId,
-                  })
-                  // Pull it down so it opens straight away — picking something
-                  // up and then having nowhere to open it would be half a verb.
-                  await ensureLocal(row)
-                  setClaimTarget(null)
-                })
-              }}
-            >
-              Pick up
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
+      {confirmDialog}
     </section>
   )
 }

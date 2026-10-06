@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { ConvexError } from 'convex/values'
 
 /**
  * `GamesScreen` in its connected state — the Games *index*.
@@ -247,6 +248,21 @@ describe('deleting a game from the index', () => {
 
     expect(screen.queryByText(/It cannot be undone/i)).toBeNull()
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
+  })
+
+  test('a refused delete stays on the dialog, in the words the server chose', async () => {
+    withQueries(queriesFor({ ...GAME, organizer: true }))
+    redeemError = new ConvexError('Only the Organizer can delete this game')
+    wrap()
+
+    fireEvent.click(screen.getByLabelText('Delete Union Crawler #430'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete game' }))
+    })
+
+    // Closing silently would look like the game had been deleted.
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toBe('Only the Organizer can delete this game')
   })
 })
 

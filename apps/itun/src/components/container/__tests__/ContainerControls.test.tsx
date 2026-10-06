@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { ComponentProps, ReactNode } from 'react'
 
 /**
  * The two Game / Shelf controls (ADR-030 §2): the header switcher and the
@@ -8,9 +8,10 @@ import type { ReactNode } from 'react'
  *
  * What these pin: both render nothing for somebody who is not signed in (there
  * is no second container to offer), both list the account's Games once loaded,
- * a move re-stamps `gameId` on the SAME entity rather than copying it, and a
- * record in a container the account cannot reach says so instead of reading as
- * "on the Shelf".
+ * a move re-stamps `gameId` on the SAME entity rather than copying it, a move
+ * OUT of a Game asks first (and does nothing until confirmed), and a record in
+ * a container the account cannot reach says so instead of reading as "on the
+ * Shelf".
  *
  * Signed in here means a real `ConnectionProvider` over a mocked Convex client,
  * whose `mutation` records the server commit a move makes.
@@ -21,6 +22,8 @@ import { pilotFixture } from '../../__tests__/fixtures'
 
 let authed = true
 const serverWrites: { args: Record<string, unknown> }[] = []
+/** Set to make the next server commit fail, as an offline or refused write would. */
+let failWrites = false
 
 const convexMocks = await installConvexMocks({
   convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
@@ -29,6 +32,7 @@ const convexMocks = await installConvexMocks({
       isConvexConfigured: true,
       convexClient: {
         mutation: async (_ref: unknown, args: Record<string, unknown>) => {
+          if (failWrites) throw new Error('[CONVEX M(entities:upsertByAppId)] Server Error')
           serverWrites.push({ args })
         },
       },
@@ -38,6 +42,7 @@ const convexMocks = await installConvexMocks({
 
 const { ContainerSwitcher } = await import('../ContainerSwitcher')
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
+const { useConfirm } = await import('../../shared/useConfirm')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
@@ -56,6 +61,7 @@ const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvi
 
 beforeEach(async () => {
   authed = true
+  failWrites = false
   serverWrites.length = 0
   db._resetDbSingleton()
   await db._clearAllStores()
@@ -106,30 +112,46 @@ describe('ContainerSwitcher', () => {
   })
 })
 
+type MoveProps = Omit<ComponentProps<typeof MoveToContainerControl>, 'confirm'>
+
+/** The control as the sheet mounts it: the confirm owned by an ancestor. */
+function MoveHarness(props: MoveProps) {
+  const { confirm, dialog } = useConfirm()
+  return (
+    <>
+      <MoveToContainerControl {...props} confirm={confirm} />
+      {dialog}
+    </>
+  )
+}
+
+/** A signed-in player's pilot, cached where a move will look for it. */
+async function cachedPilot(gameId: string | null) {
+  const pilot = pilotFixture({ id: 'p1', name: 'Mira Cole', gameId })
+  // Cached the way a signed-in player's roster is: in the IndexedDB cache.
+  // `ConnectionProvider` pushes this same state on mount; pushing it first
+  // puts the row where the move will look for it.
+  setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
+  await useEntityStore.getState().adopt('pilot', pilot)
+  return pilot
+}
+
+const gameIdOf = () => useEntityStore.getState().list('pilot')[0]?.gameId
+
 describe('MoveToContainerControl', () => {
   test('renders nothing for somebody who is not signed in', () => {
     authed = false
     const { container } = wrap(
-      <MoveToContainerControl entityType="pilot" entityId="p1" entity={{ gameId: null }} />
+      <MoveHarness entityType="pilot" entityId="p1" entity={{ name: 'Mira Cole', gameId: null }} />
     )
     expect(container.textContent).toBe('')
   })
 
   test('a move re-homes the same entity — same id, new gameId, sent to the server', async () => {
-    const pilot = pilotFixture({ id: 'p1', gameId: null })
-    // Cached the way a signed-in player's roster is: in the IndexedDB cache.
-    // `ConnectionProvider` pushes this same state on mount; pushing it first
-    // puts the row where the move will look for it.
-    setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
-    await useEntityStore.getState().adopt('pilot', pilot)
+    const pilot = await cachedPilot(null)
     let changed = 0
     wrap(
-      <MoveToContainerControl
-        entityType="pilot"
-        entityId="p1"
-        entity={pilot}
-        onChanged={() => changed++}
-      />
+      <MoveHarness entityType="pilot" entityId="p1" entity={pilot} onChanged={() => changed++} />
     )
 
     fireEvent.change(screen.getByLabelText('Move to Game or Shelf'), {
@@ -137,6 +159,8 @@ describe('MoveToContainerControl', () => {
     })
 
     await waitFor(() => expect(changed).toBe(1))
+    // Into a Game from the Shelf takes nothing from anybody: no confirm.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     const pilots = useEntityStore.getState().list('pilot')
     // One entity, moved — never a copy. A copy would leave two of the same
     // character with no way to tell which one the table can see.
@@ -149,9 +173,102 @@ describe('MoveToContainerControl', () => {
   })
 
   test('a container the account cannot reach is named, not passed off as the Shelf', () => {
-    wrap(<MoveToContainerControl entityType="pilot" entityId="p1" entity={{ gameId: 'phantom' }} />)
+    wrap(
+      <MoveHarness
+        entityType="pilot"
+        entityId="p1"
+        entity={{ name: 'Mira Cole', gameId: 'phantom' }}
+      />
+    )
     const select = screen.getByLabelText('Move to Game or Shelf') as HTMLSelectElement
     expect(select.value).toBe('game:phantom')
     expect(select.selectedOptions[0]?.textContent).toBe('Unknown game')
+  })
+})
+
+describe('MoveToContainerControl — taking a build out of a Game', () => {
+  test('asks first, naming the game, and moves nothing until confirmed', async () => {
+    const pilot = await cachedPilot('g1')
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move to Game or Shelf'), {
+      target: { value: 'shelf' },
+    })
+
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Take Mira Cole out of Union Crawler #430?')
+    expect(dialog.textContent).toContain('goes back to My stuff')
+    expect(gameIdOf()).toBe('g1')
+    expect(serverWrites).toHaveLength(0)
+  })
+
+  test('Cancel leaves it in the game', async () => {
+    const pilot = await cachedPilot('g1')
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move to Game or Shelf'), {
+      target: { value: 'shelf' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(gameIdOf()).toBe('g1')
+    expect(serverWrites).toHaveLength(0)
+    // The select still says where the build actually is.
+    expect((screen.getByLabelText('Move to Game or Shelf') as HTMLSelectElement).value).toBe(
+      'game:g1'
+    )
+  })
+
+  test('confirming moves it to the Shelf', async () => {
+    const pilot = await cachedPilot('g1')
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move to Game or Shelf'), {
+      target: { value: 'shelf' },
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move to My stuff' }))
+    })
+
+    await waitFor(() => expect(gameIdOf()).toBeNull())
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+      appId: 'p1',
+      gameId: null,
+    })
+  })
+
+  test('a move to another game is asked about too, naming both', async () => {
+    const pilot = await cachedPilot('g1')
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move to Game or Shelf'), {
+      target: { value: 'game:g2' },
+    })
+
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog.textContent).toContain('Move Mira Cole to The Long Haul?')
+    expect(dialog.textContent).toContain("leaves Union Crawler #430's roster")
+    expect(gameIdOf()).toBe('g1')
+  })
+
+  test('a failed move keeps the dialog open with a reason, and the build where it was', async () => {
+    const pilot = await cachedPilot('g1')
+    wrap(<MoveHarness entityType="pilot" entityId="p1" entity={pilot} />)
+
+    fireEvent.change(screen.getByLabelText('Move to Game or Shelf'), {
+      target: { value: 'shelf' },
+    })
+    failWrites = true
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move to My stuff' }))
+    })
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    // The redacted server string is never what the player reads.
+    expect(screen.getByRole('alert').textContent).toBe('Mira Cole could not be moved. Try again.')
+    expect(gameIdOf()).toBe('g1')
   })
 })
