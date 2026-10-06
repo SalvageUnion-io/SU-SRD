@@ -56,7 +56,7 @@ const members = useQuery(api.games.members, { gameId })
 - **There may be no provider.** A build with no `VITE_CONVEX_URL` (CI, a fresh
   checkout) mounts no Convex context, so gate the subtree on
   `isConvexConfigured` (`src/lib/connection/convexClient.ts`) as
-  `AccountStrip.tsx` does — never call a Convex hook unconditionally.
+  `HeaderAccount.tsx` does; never call a Convex hook unconditionally.
 
 ## There is no TanStack Query
 
