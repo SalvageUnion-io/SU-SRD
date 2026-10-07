@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import schema, { seatMount, seatRange } from '../../convex/schema'
-import { RANGE_BANDS, SeatSchema } from '../../src/lib/schemas/seat'
+import { CORE_ROLL_BANDS } from 'salvageunion-reference/rules'
+import schema, { seatMount, seatRange, seatResolving, seatRollBand } from '../../convex/schema'
+import { CORE_ROLL_BAND_NAMES, RANGE_BANDS, SeatSchema } from '../../src/lib/schemas/seat'
 
 /**
  * `convex/schema.ts` declares the `seats` columns as Convex validators, and
@@ -27,6 +28,21 @@ describe('seats: Convex validators mirror the Zod seat schema', () => {
       SeatSchema.shape.mount.options.map((o) => [o.shape.kind.value, sorted(Object.keys(o.shape))])
     )
     expect(convex).toEqual(zod)
+  })
+
+  test('the resolve in progress, and its roll bands', () => {
+    const zod = SeatSchema.shape.resolving.unwrap()
+    expect(sorted(Object.keys(seatResolving.fields))).toEqual(sorted(Object.keys(zod.shape)))
+
+    const convexBands = seatRollBand.members.map((m) => m.value)
+    expect(sorted(convexBands)).toEqual(sorted(CORE_ROLL_BAND_NAMES))
+    // Both mirror the rules package's own list of bands.
+    expect(sorted(CORE_ROLL_BAND_NAMES)).toEqual(sorted(Object.keys(CORE_ROLL_BANDS)))
+    const roll = zod.shape.roll.unwrap()
+    expect(sorted(roll.shape.band.options)).toEqual(sorted(CORE_ROLL_BAND_NAMES))
+    expect(sorted(Object.keys(roll.shape))).toEqual(
+      sorted(Object.keys(seatResolving.fields.roll.fields))
+    )
   })
 
   test('the table has exactly the seat fields', () => {

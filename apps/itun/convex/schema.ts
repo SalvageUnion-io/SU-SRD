@@ -70,9 +70,10 @@ export const softLinkType = v.union(
  * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus
  * `'game'`.
  *
- * `'game'` has no local counterpart because it only arises server-side: a
- * table-wide alert (`proposals.broadcast`) and a recorded Discord roll
- * (`botClient.recordRoll`) are log rows about the Game itself rather than about
+ * `'game'` has no local counterpart because it never reaches IndexedDB: a
+ * table-wide alert (`proposals.broadcast`), a recorded Discord roll
+ * (`botClient.recordRoll`) and a Dashboard roll (`appendChangeLog`, from
+ * `dashboardRolls.ts`) are log rows about the Game itself rather than about
  * anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
  */
@@ -114,6 +115,27 @@ export const seatMount = v.union(
   v.object({ kind: v.literal('foot') }),
   v.object({ kind: v.literal('boarded'), mechId: v.string() })
 )
+
+/**
+ * Mirrors `CORE_ROLL_BAND_NAMES` (src/lib/schemas/seat.ts), the Core Mechanic's
+ * five bands. Exported: see above.
+ */
+export const seatRollBand = v.union(
+  v.literal('nailed'),
+  v.literal('success'),
+  v.literal('tough'),
+  v.literal('failure'),
+  v.literal('cascade')
+)
+
+/** Mirrors `SeatResolvingSchema` (src/lib/schemas/seat.ts). Exported: see above. */
+export const seatResolving = v.object({
+  ref: v.string(),
+  name: v.string(),
+  activated: v.boolean(),
+  roll: v.optional(v.object({ roll: v.number(), band: seatRollBand })),
+  applied: v.boolean(),
+})
 
 /**
  * The columns and indexes `pilots`, `mechs` and `crawlers` share: one table
@@ -660,9 +682,10 @@ export default defineSchema({
    * ends, and mount is never a field on either record. Only someone who may
    * write the pilot writes its seat; every member reads every seat.
    *
-   * There is no "in Downtime" column: that is the `downtime` row above. The
-   * action being resolved joins later as an optional field, which every
-   * existing row still validates against.
+   * There is no "in Downtime" column: that is the `downtime` row above.
+   * `resolving` is the deck action in progress, so a reload mid-roll keeps it
+   * and the crew watches it live. It is optional, so a seat that never
+   * resolved anything, and every row written before it existed, validates.
    */
   seats: defineTable({
     gameId: v.id('games'),
@@ -672,6 +695,8 @@ export default defineSchema({
     range: seatRange,
     /** Refs of the activated contributions that are switched on (ADR-029 §4). */
     activeEffects: v.array(v.string()),
+    /** The deck action being resolved; absent when none is. */
+    resolving: v.optional(seatResolving),
     updatedAt: v.number(),
   })
     // `gameId` alone is a prefix of this: the crew's seats in one read, and

@@ -1,6 +1,8 @@
 import { v } from 'convex/values'
+import type { Id } from './_generated/dataModel'
+import { query } from './_generated/server'
 import { mutation } from './model/entities'
-import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
+import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
 
 /**
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
@@ -94,5 +96,51 @@ export const appendChangeLog = mutation({
         })
       )
     )
+  },
+})
+
+/** The most roll rows `rolls` returns, whatever the caller asks for. */
+const MAX_ROLLS = 100
+
+/**
+ * The Game's rolls, newest first: the Dashboard's (`source 'dashboard'`) and
+ * the Discord bot's (`'discord-bot'`), which both write `entityType 'game'`,
+ * `field 'roll'` rows ([ADR-038](../../../docs/ARCHITECTURE.md#adr-038) §2).
+ *
+ * Reads only the newest `limit` rows off `by_game_field`, as
+ * `proposals.alerts` does, so the subscription stays the same size however
+ * long the campaign runs. Each row's `after` is `{ description, result }`; a
+ * row without a string description still appears, with a placeholder, rather
+ * than vanishing from the log. The roller is named the way `games.members`
+ * names them, which every member can already read.
+ */
+export const rolls = query({
+  args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await requireMember(ctx, args.gameId)
+    const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 30) : 30
+    const limit = Math.min(Math.max(requested, 0), MAX_ROLLS)
+    const rows = await ctx.db
+      .query('changeLog')
+      .withIndex('by_game_field', (q) => q.eq('gameId', args.gameId).eq('field', 'roll'))
+      .order('desc')
+      .take(limit)
+
+    const names = new Map<Id<'users'>, string>()
+    for (const actorId of new Set(rows.flatMap((r) => (r.actorId === null ? [] : [r.actorId])))) {
+      const user = await ctx.db.get(actorId)
+      names.set(actorId, user?.displayName ?? user?.name ?? 'Unknown pilot')
+    }
+
+    return rows.map((r) => {
+      const after = (r.after ?? {}) as { description?: unknown }
+      return {
+        _id: r._id,
+        ts: r.ts,
+        source: r.source,
+        description: typeof after.description === 'string' ? after.description : 'A roll',
+        actorName: r.actorId === null ? null : (names.get(r.actorId) ?? null),
+      }
+    })
   },
 })

@@ -15,9 +15,12 @@ import { linkIdOf } from './entities'
  */
 
 /** The play state a seat holds, without its keys and timestamp. */
-export type SeatState = Pick<Doc<'seats'>, 'mount' | 'range' | 'activeEffects'>
+export type SeatState = Pick<Doc<'seats'>, 'mount' | 'range' | 'activeEffects' | 'resolving'>
 
-/** What a pilot with no seat row is: on foot, at Close range, nothing switched on. */
+/**
+ * What a pilot with no seat row is: on foot, at Close range, nothing switched
+ * on, and resolving nothing.
+ */
 export function defaultSeat(): SeatState {
   return { mount: { kind: 'foot' }, range: 'Close', activeEffects: [] }
 }
@@ -51,7 +54,8 @@ export async function seatsInGame(
  * A pilot takes its seat with it: the seat describes play in that Game, and a
  * pilot that comes back starts on foot like any other. A mech leaves its
  * boarder standing: the seat stays, back on foot, because the pilot is still at
- * the table.
+ * the table. Whatever it was resolving goes with the mech, as it does on any
+ * change of mount.
  */
 export async function releaseSeatsOf(
   ctx: MutationCtx,
@@ -70,7 +74,11 @@ export async function releaseSeatsOf(
   }
   for (const seat of await seatsInGame(ctx, gameId)) {
     if (seat.mount.kind === 'boarded' && seat.mount.mechId === id) {
-      await ctx.db.patch(seat._id, { mount: { kind: 'foot' }, updatedAt: Date.now() })
+      await ctx.db.patch(seat._id, {
+        mount: { kind: 'foot' },
+        resolving: undefined,
+        updatedAt: Date.now(),
+      })
     }
   }
 }
