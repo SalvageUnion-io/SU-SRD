@@ -153,6 +153,14 @@ one most likely to be left behind "because it already works".
 - **Exit:** `pc-class-defined` is 0 and the rule plus `pc-class-contract` are
   deleted; no `apps/itun/src/components/dashboard/` file in the Tailwind list; the Dashboard
   Ladle stories and the ITUN dashboard route render identically to `main`.
+- **Status (2026-10-07): open.** The Dashboard redesign
+  ([dashboard-redesign.md](../architecture/dashboard-redesign.md) §4.3) was to
+  finish P5 and did not. Its new components are style objects with no `.pc-*`
+  class, and its deletions took `pc-class-defined` from 129 to 103, but the
+  Major's bays, the deck, resolve, Tables, SRD and Downtime surfaces still use
+  `.pc-*` rules, and 13 files under `components/dashboard/` are still in the
+  Tailwind list. `styles/dashboard.css`, its export and `pc-class-contract`
+  stay until the count is 0.
 
 ### P6 — The apps
 

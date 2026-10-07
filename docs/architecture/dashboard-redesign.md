@@ -1,24 +1,29 @@
 # Dashboard redesign: the Flight Deck
 
-> **Status:** Plan, dated 2026-10-06. Layers 1 to 8 are built; the rest is
-> not. The product decisions in §2 and the answers in §8 were made by the
-> product owner. The decision is recorded in
-> [ADR-038](../ARCHITECTURE.md#adr-038). The
-> work is tracked in the [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7), with one issue
+> **Status:** Done. Planned 2026-10-06; layers 0 to 9 built by 2026-10-07.
+> This file is now the record of the decisions: code comments cite D1–D12,
+> §3 and §4.2, so it stays. What is built is
+> [dashboard.md](dashboard.md); where the two differ, that doc and the code
+> are right. One part of §4.3 was not met: the Dashboard's `.pc-*` scope is
+> smaller but not gone, so [tailwind-removal.md](../design-system/tailwind-removal.md)
+> P5 is still open. The product decisions in §2 and the answers in §8 were
+> made by the product owner, and recorded in
+> [ADR-038](../ARCHITECTURE.md#adr-038). The work was tracked in the
+> [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7), with one issue
 > per layer in §5.
 >
 > Wireframes (round 2, the chosen layout):
 > <https://claude.ai/artifact/A2UW8etgN4fzRexbsjacJt>. Round 1 compared three
 > concepts: <https://claude.ai/artifact/J8KCRx3byHFSqodscw4Rzg>.
 >
-> Read alongside [dashboard.md](dashboard.md) (what is built today),
+> Read alongside [dashboard.md](dashboard.md) (what is built),
 > [ADR-015](../ARCHITECTURE.md#adr-015) (the decisions
 > this plan amends), [ADR-030](../ARCHITECTURE.md#adr-030)
 > (Games, roles, "propose, never impose"),
 > [ADR-037](../ARCHITECTURE.md#adr-037) (the links the Board menu
 > reads), [ADR-007](../ARCHITECTURE.md#adr-007) (unchanged by this
 > plan) and [tailwind-removal.md](../design-system/tailwind-removal.md) §P5
-> (this plan absorbs it for the Dashboard).
+> (this plan meant to absorb it for the Dashboard; see §4.3).
 
 ---
 
@@ -188,6 +193,12 @@ as it is deleted. When the last `.pc-*` rule goes, `styles/dashboard.css` and
 its package export go with it. That meets §P5's exit for the Dashboard, so P5
 is done by this plan, not run separately.
 
+**Outcome (layer 9):** the new components follow §4 and added no `.pc-*`
+class, and the deletions took `pc-class-defined` from 129 to 103. The rest
+did not go: the Major reuses the band and bay rules, and the deck, resolve,
+Tables, SRD and Downtime surfaces kept theirs. So `styles/dashboard.css`, its
+export and the `pc-class-contract` guard stay, and P5 is still open.
+
 ## 5. Layers
 
 One PR per layer, submitted as a `gh stack`. Each layer passes `bun run check`
@@ -245,8 +256,7 @@ Dashboard Is a Game Surface with Shared Play State", written in layer 0. It:
 
 ## 7. Statements this plan makes false
 
-Layer 9 fixes these. Each layer fixes the ones it makes false sooner, if it
-can.
+Fixed, by layer 9 at the latest; each layer fixed the ones it made false.
 
 - `docs/architecture/dashboard.md`: §2 layout (Dial, Active Item band,
   display following Dial focus), §4.1 table (playStateStore, cockpitPrefsStore,
