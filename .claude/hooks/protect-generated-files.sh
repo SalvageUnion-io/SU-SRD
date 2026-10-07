@@ -32,15 +32,19 @@ fi
 # regenerates — a path that CI fails on for drift but that is missing here is a
 # trap: the agent edits it, the edit looks accepted, and CI rejects it later
 # with a message about drift rather than about the edit.
+# tools/__tests__/claude-hooks.test.ts maps every GENERATED_PATHS entry in
+# tools/check-generated.ts to a file this list must block (or deliberately
+# allow), so a new generated path fails that test until it is added here.
+# tools/a11y-baseline.json is NOT listed: a11y-scan.ts has no --update-baseline,
+# so a hand-edit is the only way to prune a stale entry.
 PROTECTED_PATTERNS=(
-  "*packages/salvageunion-reference/schemas/*.schema.json"
+  "*packages/salvageunion-reference/schemas/*.json"
   "*packages/salvageunion-reference/lib/generated/*"
   "*routeTree.gen.ts"
   "*/dist/*"
   "*tsconfig.tsbuildinfo"
   "*apps/itun/convex/_generated/*"
   "*bun.lock"
-  "*tools/a11y-baseline.json"
   "*tools/styling-baseline.json"
   "*.vscode/settings.json"
 )
@@ -55,7 +59,7 @@ for pattern in "${PROTECTED_PATTERNS[@]}"; do
       echo "  packages/salvageunion-reference/lib/schemas/ and run 'bun run build:package'." >&2
       echo "  routeTree.gen.ts: TanStack Router regenerates it." >&2
       echo "  bun.lock: change the manifest and let the resolver rewrite it." >&2
-      echo "  baselines: these ratchet down on their own; do not edit to make a check pass." >&2
+      echo "  tools/styling-baseline.json: run 'bun tools/check-styling.ts --update-baseline'; never edit it to make a check pass." >&2
       exit 2
       ;;
   esac
