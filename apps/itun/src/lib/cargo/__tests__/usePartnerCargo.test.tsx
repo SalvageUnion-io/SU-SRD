@@ -232,3 +232,32 @@ describe('usePartnerCargo — fresh-read guard', () => {
     expect(captured).toHaveLength(0)
   })
 })
+
+describe('usePartnerCargo — a crawler the viewer may not write (ADR-038 §5)', () => {
+  test('Stow and Load refuse and say why; the partner hold stays open', async () => {
+    const carried = [lot('lot-a', 'Spare Servo')]
+    const host = makeHost([makePartner('partner-1', carried)])
+    const captured: CapturedUpdate[] = []
+
+    const { result } = renderHook(() =>
+      usePartnerCargo({
+        found: { hostKind: 'mech', host, partner: makePartner('partner-1', carried) },
+        techLevel: 3,
+        crawler: makeCrawler([lot('lot-z', 'Fuel Cell')]),
+        crawlerReadOnly: true,
+        store: makeStore(captured, { host }),
+      })
+    )
+
+    expect(result.current.crawlerLocked).toMatch(/mediator keeps the crawler/i)
+    const stow = await result.current.stow('lot-a')
+    expect(stow.ok === false && stow.reason).toMatch(/mediator keeps the crawler/i)
+    expect((await result.current.load('lot-z')).ok).toBe(false)
+    // Nothing reached the store, so nothing reached the server either.
+    expect(captured).toHaveLength(0)
+
+    // Unloading off the partner writes only its host, which is the player's.
+    expect((await result.current.removeLot('lot-a')).ok).toBe(true)
+    expect(captured.map((u) => u.type)).toEqual(['mech'])
+  })
+})

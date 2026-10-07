@@ -67,6 +67,12 @@ type MechItemCardProps = {
   currentEP?: number
   /** Linked crawler's scrap pool; null when no crawler is wired. */
   scrapPool: ScrapPool | null
+  /**
+   * Why the viewer may not draw on `scrapPool` (the Mediator keeps a Game's
+   * crawler, ADR-038 §5), or null/absent when they may. Closes only the
+   * deduction; repairing without one stays open.
+   */
+  scrapPoolLocked?: string | null
   readOnly: boolean
   /** Cycle this item's condition (Intact → Damaged → Destroyed). */
   onStatusCycle: () => void
@@ -94,6 +100,7 @@ export function MechItemCard({
   usesRemaining,
   currentEP,
   scrapPool,
+  scrapPoolLocked = null,
   readOnly,
   onStatusCycle,
   onUse,
@@ -123,7 +130,8 @@ export function MechItemCard({
   const cost = repairScrapCost(entity.salvageValue)
   // techLevel can be 'B'/'N' (Bio/Nano) — only numeric TLs map to pool buckets.
   const itemTl = typeof entity.techLevel === 'number' ? entity.techLevel : undefined
-  const deductTl = scrapPool ? repairPoolTl(scrapPool, itemTl, cost) : null
+  const deductTl =
+    scrapPool && scrapPoolLocked === null ? repairPoolTl(scrapPool, itemTl, cost) : null
 
   const useDisabledReason =
     condition === 'destroyed'
@@ -142,9 +150,11 @@ export function MechItemCard({
   const deductDisabledReason =
     deductTl !== null
       ? null
-      : scrapPool
-        ? `Not enough TL ${itemTl ?? 1}+ scrap in the crawler pool`
-        : 'No crawler linked — no pool to deduct from'
+      : scrapPool && scrapPoolLocked !== null
+        ? scrapPoolLocked
+        : scrapPool
+          ? `Not enough TL ${itemTl ?? 1}+ scrap in the crawler pool`
+          : 'No crawler linked — no pool to deduct from'
 
   // All per-card interactivity rides the controls overlay (no footer actions):
   // Use, the uses stepper, and Repair (which opens a modal confirm), plus the

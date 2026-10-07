@@ -54,6 +54,7 @@ export function SheetMech({
   segments,
   editable,
   readOnly,
+  crawlerReadOnly,
   store,
   storeState,
   lookup,
@@ -240,6 +241,7 @@ export function SheetMech({
           store={store}
           readOnly={readOnly}
           crawler={composition.crawler}
+          crawlerReadOnly={crawlerReadOnly}
           linkedUnits={rail}
           pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}
         />

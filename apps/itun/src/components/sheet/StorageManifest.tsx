@@ -17,8 +17,9 @@
  *
  * All transfer semantics live in the useCargo reducer — this component only
  * renders its state and dispatches. Unlinked boundary = disabled move
- * buttons with a title reason (design pattern 8). readOnly removes the move
- * buttons entirely.
+ * buttons with a title reason (design pattern 8), and so is a crawler the
+ * viewer may not write (`cargo.crawlerLocked`: a player's mech in a Game, whose
+ * crawler the Mediator keeps). readOnly removes the move buttons entirely.
  *
  * Player-facing vocabulary — one verb pair per container, so membership of the
  * mech hold and membership of the Storage Bay each read the same whether the lot
@@ -145,11 +146,13 @@ function moveAffordance(
   linked: boolean
 ): { label: string; disabledReason: string | null } {
   let label = side === 'mech' ? 'Stow →' : '← Load'
-  let disabledReason: string | null = linked
-    ? null
-    : side === 'mech'
+  // Both moves write the crawler, so a crawler the viewer may not write closes
+  // them whichever sheet they are on.
+  let disabledReason: string | null = !linked
+    ? side === 'mech'
       ? 'No crawler linked — nothing to stow to.'
       : 'No mech docked — nothing to load onto.'
+    : cargo.crawlerLocked
 
   if (side === 'crawler' && disabledReason === null) {
     const per = perUnitCost(lot)
@@ -638,6 +641,11 @@ export function StorageManifest({
               <span className="font-body text-xs text-ink">
                 {used}/{cap} slots &middot; {free} free
               </span>
+            )}
+            {cargo.crawlerLocked !== null && !readOnly && (
+              <p className="m-0 font-body text-note leading-snug text-wk-muted">
+                {cargo.crawlerLocked}
+              </p>
             )}
           </>
         ) : (

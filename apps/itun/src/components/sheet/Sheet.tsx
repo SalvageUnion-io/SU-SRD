@@ -97,6 +97,13 @@ type SheetProps = {
    */
   readOnly?: boolean
   /**
+   * The viewer may not write the Game's crawler: a player, whose crawler the
+   * Mediator keeps (ADR-038 §5). Only the server knows the viewer's role, so
+   * `SheetView` decides; the crawler-side cargo moves and scrap draws on a
+   * pilot's or mech's own sheet close, and nothing else does.
+   */
+  crawlerReadOnly?: boolean
+  /**
    * Where the sheet's back link goes. Defaults to the Roster.
    *
    * A sheet reached from a Game's crew list belongs to that game for the length
@@ -145,6 +152,7 @@ export function Sheet({
   softLinkStore,
   store = useEntityStore,
   readOnly: readOnlyProp = false,
+  crawlerReadOnly = false,
   back = { href: '/', label: 'Roster' },
   pilotAbilities,
   others,
@@ -322,6 +330,7 @@ export function Sheet({
     segments,
     editable: !readOnly,
     readOnly,
+    crawlerReadOnly,
     store,
     storeState,
     lookup,

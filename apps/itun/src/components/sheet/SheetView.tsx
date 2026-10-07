@@ -23,6 +23,11 @@
  * holds, because the Game is what the listing beside it is read from, and
  * because "held here" is not "yours" — a copy can outlive its ownership.
  *
+ * `games.get` says whether the caller runs that Game's table, which is who
+ * writes its crawler (ADR-038 §5). On a player's own sheet the cargo moves and
+ * scrap draws that would write it are closed (`crawlerReadOnly`) rather than
+ * left to half-land when the server refuses them.
+ *
  * Lives here rather than in the route file so that file exports nothing but
  * `Route` (`routes/__tests__/routeExports.test.ts`).
  */
@@ -31,8 +36,10 @@ import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { containerOf } from '../../lib/container'
 import { pageTitle } from '../../lib/pageTitle'
 import type { EntityRef } from '../../lib/schemas/entity'
 import { useEntityStore } from '../../stores/entityStore'
@@ -84,6 +91,13 @@ function ConnectedSheetView({ kind, id }: SheetViewProps) {
   const located = useQuery(api.entities.locate, online ? { kind, id } : 'skip')
   const gameId = located?.gameId ?? null
   const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
+  // The Game whose crawler this sheet's cargo reaches: the server's answer once
+  // it has one, the local copy's until then (a linked crawler shares its
+  // container, ADR-037). Closed until the server says the viewer runs it.
+  const heldIn = held === null ? null : containerOf(held)
+  const tableId = gameId ?? (heldIn?.kind === 'game' ? (heldIn.gameId as Id<'games'>) : null)
+  const table = useQuery(api.games.get, online && tableId !== null ? { gameId: tableId } : 'skip')
+  const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
 
   const store = useMemo(
     () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
@@ -112,7 +126,7 @@ function ConnectedSheetView({ kind, id }: SheetViewProps) {
 
   // Yours: the local copy, editable — unless the server says otherwise.
   if (held !== null && (located == null || located.mayEdit)) {
-    return <Sheet kind={kind} id={id} others={others} />
+    return <Sheet kind={kind} id={id} others={others} crawlerReadOnly={crawlerReadOnly} />
   }
 
   if (!online) {

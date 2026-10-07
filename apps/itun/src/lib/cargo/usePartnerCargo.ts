@@ -38,6 +38,7 @@ import type {
   CargoUsage,
 } from './cargoTransfer'
 import { cargoTransfer, carrierCargoUsage } from './cargoTransfer'
+import { CRAWLER_KEPT_BY_MEDIATOR } from './useCargo'
 
 type UsePartnerCargoOptions = {
   found: PartnerWithHost
@@ -47,12 +48,19 @@ type UsePartnerCargoOptions = {
   crawler?: Crawler | null
   store?: typeof useEntityStore
   readOnly?: boolean
+  /**
+   * The viewer may not write the crawler (a player in a Game, ADR-038 §5):
+   * Stow and Load refuse, the partner's own hold still works.
+   */
+  crawlerReadOnly?: boolean
   /** Change Log provenance for the writes this hook commits (ADR-022). */
   meta?: ChangeMeta
 }
 
 export type UsePartnerCargoResult = {
   state: CargoBoundaryState
+  /** Why Stow and Load are closed to this viewer, or null when they are open. */
+  crawlerLocked: string | null
   usage: CargoUsage
   /** Partner → crawler Storage Bay, whole lot. */
   stow: (lotId: string) => Promise<CargoTransferResult>
@@ -70,10 +78,12 @@ export function usePartnerCargo({
   crawler,
   store = useEntityStore,
   readOnly = false,
+  crawlerReadOnly = false,
   meta = LIVE_SHEET_MANUAL,
 }: UsePartnerCargoOptions): UsePartnerCargoResult {
   const { partner, hostKind, host } = found
   const storeState = store()
+  const crawlerLocked = crawlerReadOnly ? CRAWLER_KEPT_BY_MEDIATOR : null
 
   const state: CargoBoundaryState = {
     carrierLots: partner.cargoLots ?? [],
@@ -94,6 +104,7 @@ export function usePartnerCargo({
         reason: 'No crawler is linked — nothing to transfer to or from.',
       }
     }
+    if (needsDepot && crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 
     // Reduce against a FRESH read, not the render-time `state` snapshot — the
     // same guard `useCargo.dispatchMechLocal` carries. These are per-lot
@@ -155,6 +166,7 @@ export function usePartnerCargo({
 
   return {
     state,
+    crawlerLocked,
     usage: carrierCargoUsage(state.carrierLots, state.carrierCargoCap),
     stow: (lotId) => dispatch({ type: 'stow', lotId }, true),
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }, true),

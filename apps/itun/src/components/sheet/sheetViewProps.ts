@@ -34,6 +34,12 @@ export type SheetViewCommonProps = {
   segments?: LiveSheetSegment[]
   editable: boolean
   readOnly: boolean
+  /**
+   * The viewer may not write the Game's crawler (a player: the Mediator keeps
+   * it, ADR-038 §5). Closes the cargo moves and scrap draws that would write
+   * it from a pilot's or mech's own sheet; `readOnly` still governs the rest.
+   */
+  crawlerReadOnly: boolean
   /** Injectable store hook, forwarded to body sheets/controls. */
   store: typeof useEntityStore
   storeState: SheetStoreState

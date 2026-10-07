@@ -130,6 +130,33 @@ describe('MechSheet — The Hold (Stow →)', () => {
     expect(stow.getAttribute('title')).toMatch(/no crawler linked/i)
   })
 
+  test("Stow is closed with the reason on a player's mech, whose crawler the Mediator keeps", async () => {
+    const captured: CapturedUpdate[] = []
+    const lot = makeUnitLot('Sealed Crate', { units: 2 })
+    const mech = makeMech({ cargoLots: [lot] })
+    const crawler = makeCrawler()
+    render(
+      <MechSheet
+        mech={mech}
+        store={makeStore(mech, captured, crawler)}
+        crawler={crawler}
+        crawlerReadOnly
+      />
+    )
+
+    const stow = screen.getByRole('button', { name: /stow sealed crate/i })
+    expect((stow as HTMLButtonElement).disabled).toBe(true)
+    expect(stow.getAttribute('title')).toMatch(/mediator keeps the crawler/i)
+    // Said on the page too, not only in a tooltip a touch screen never shows.
+    expect(screen.getByText(/mediator keeps the crawler/i)).toBeTruthy()
+
+    // The mech's own hold is still the player's.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /unload sealed crate/i }))
+    })
+    expect(captured.map((u) => u.type)).toEqual(['mech'])
+  })
+
   test('over-capacity renders honest red SlotGrid cells (never clamped)', () => {
     // Cap 6 (Scrapper) but 8 units held → 2 over-capacity cells.
     const mech = makeMech({

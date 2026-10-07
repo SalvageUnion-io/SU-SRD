@@ -105,6 +105,12 @@ type MechSheetProps = {
    */
   crawler?: Crawler | null
   /**
+   * The viewer may not write `crawler`: a player's own mech in a Game, whose
+   * crawler the Mediator keeps (ADR-038 §5). Closes The Hold's Stow and the
+   * repair's scrap-pool deduction; the mech's own edits stay open.
+   */
+  crawlerReadOnly?: boolean
+  /**
    * The Linked Units rail content (pilot + crawler rail row/RailEmpty), built
    * by SheetMech from `composition` — MechSheet has no composition access of
    * its own, so this is passed straight through into the R4 section.
@@ -125,6 +131,7 @@ export function MechSheet({
   store = useEntityStore,
   readOnly = false,
   crawler = null,
+  crawlerReadOnly = false,
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
@@ -145,6 +152,7 @@ export function MechSheet({
     store,
     readOnly,
     crawler,
+    crawlerReadOnly,
     pilotAbilities,
   })
   const actions = useMechSheetActions({ mech, store, storeState, crawler })
@@ -173,6 +181,7 @@ export function MechSheet({
               condition={conditions[slug] ?? 'intact'}
               usesRemaining={mech.itemUses?.[slug]}
               scrapPool={model.scrapPool}
+              scrapPoolLocked={cargo.crawlerLocked}
               readOnly={readOnly}
               onStatusCycle={() => {
                 void actions.cycleItemCondition(kind, slug)
