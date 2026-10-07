@@ -148,8 +148,8 @@ The Dashboard opens for a pilot in a Game that has a Mediator
 ([ADR-038](../ARCHITECTURE.md#adr-038) §1),
 from the Play button on your own pilot rows in the Game roster
 (`GameRoster.tsx`), shown only while the Game has a Mediator. The route keys on
-the pilot; its mech is the one assigned to it (`mech-to-pilot`) and its crawler
-its own (`pilot-to-crawler`). An old mech-keyed URL redirects to the mech's
+the pilot; its mech is the one its seat has boarded (§2), or on foot the one
+assigned to it (`mech-to-pilot`), and its crawler its own (`pilot-to-crawler`). An old mech-keyed URL redirects to the mech's
 pilot.
 
 `DashboardGate` decides who may play, live, in the component: an anonymous

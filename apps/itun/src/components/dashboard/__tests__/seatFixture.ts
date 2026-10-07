@@ -7,7 +7,7 @@ export type SeatCall = { write: keyof Omit<SeatHandle, 'seat'>; args: unknown[] 
 /**
  * A seat handle for component tests: it reads `seat` and records every write
  * instead of sending it. The Convex side of the seat is tested in
- * `test/convex/seats.test.ts`, and the hook's own wiring in `useSeat.test.tsx`.
+ * `test/convex/seats.test.ts`, and the hook's own wiring in `useSeat.connected.test.tsx`.
  */
 export function fakeSeat(seat: Partial<SeatView> = {}): { handle: SeatHandle; calls: SeatCall[] } {
   const calls: SeatCall[] = []
