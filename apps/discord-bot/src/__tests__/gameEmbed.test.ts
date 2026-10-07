@@ -26,7 +26,8 @@ const WEB = 'https://intheunionnow.com'
 beforeAll(async () => {
   // The maxima are DERIVED from chassis and class data, so the builders are
   // meaningless without the dataset loaded. That dependency is the point: the
-  // server cannot compute these, and the bot can.
+  // bot derives them itself from the package (Convex's crew.vitals derives the
+  // same numbers; moving the bot onto those is #1068).
 })
 
 function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown> }): OwnedEntity {

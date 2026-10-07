@@ -79,9 +79,10 @@ character editing, and no `/su damage` — a Mediator writing another player's
 sheet is forbidden on every surface (ADR-030 §4); it becomes a proposal or it
 does not exist.
 
-**Maxima are derived here, not fetched.** Convex stores entity bodies opaquely
-and cannot compute max HP/SP/Heat, so `gameEmbed.ts` derives them via
-`salvageunion-reference/rules` ([ADR-006](../../docs/ARCHITECTURE.md#adr-006)).
+**Maxima are derived here, not fetched.** `gameEmbed.ts` derives max
+HP/SP/Heat via `salvageunion-reference/rules`
+([ADR-006](../../docs/ARCHITECTURE.md#adr-006)). Convex's `crew.vitals` now
+derives them too, with the same rules; moving the bot onto those is #1068.
 
 **`/su sheet` is the live sheet folded into a message.** `gameEmbed.ts` maps it
 one-to-one onto `EmbedData` — identity band → description, vitals rail → inline
