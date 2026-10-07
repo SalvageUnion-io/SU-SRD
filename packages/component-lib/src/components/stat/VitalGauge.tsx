@@ -220,16 +220,8 @@ export function VitalGauge({
   // COMPACT — the single-row instrument bar (dashboard cue): label · one segment
   // row · value/max on one line. No big numeral, caption, or multi-row split.
   if (size === 'compact') {
-    return (
-      // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
-      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
-      <div
-        role={editable ? 'group' : 'img'}
-        aria-label={summary}
-        onKeyDown={editable ? onKeyDown : undefined}
-        className={cn('flex w-full items-center gap-2', className)}
-        style={style}
-      >
+    const readout = (
+      <>
         <span
           className={cn(
             capsLabel({ size: 'label', tracking: 'caps' }),
@@ -278,36 +270,73 @@ export function VitalGauge({
         >
           {shown}/{max}
         </span>
-        {/*
-         * Guided Play teaches as it enforces (ADR-021), so the compact
-         * instrument carries provenance too. This branch used to return before
-         * any of the override/provenance chrome, which is why the Dashboard
-         * silently dropped both props.
-         */}
-        {provenance && (
-          <StatProvenance
-            statLabel={`Max ${label}`}
-            lines={provenance}
-            total={max}
-            overridden={isOverridden}
-            className={cn(
-              'shrink-0 border-b-0 text-label leading-none',
-              onDark ? 'text-paper-60 hover:text-paper' : 'text-wk-muted hover:text-ink'
-            )}
-          >
-            {isOverridden ? '*' : 'ⓘ'}
-          </StatProvenance>
+      </>
+    )
+    /*
+     * Guided Play teaches as it enforces (ADR-021), so the compact instrument
+     * carries provenance too. This branch used to return before any of the
+     * override/provenance chrome, which is why the Dashboard silently dropped
+     * both props.
+     *
+     * The trigger is held to the WCAG 2.5.8 24×24px target: as a bare glyph it
+     * measured about 10×8px, and stacked gauges sit too close for the spacing
+     * exception.
+     */
+    const trigger = provenance && (
+      <StatProvenance
+        statLabel={`Max ${label}`}
+        lines={provenance}
+        total={max}
+        overridden={isOverridden}
+        className={cn(
+          'inline-flex min-h-[24px] min-w-[24px] shrink-0 items-center justify-center border-0 text-label leading-none',
+          onDark ? 'text-paper-60 hover:text-paper' : 'text-wk-muted hover:text-ink'
         )}
+      >
+        {isOverridden ? '*' : 'ⓘ'}
+      </StatProvenance>
+    )
+    // A read-only gauge is an image, and an image may not contain a control
+    // (axe `nested-interactive`): with a provenance trigger the image wraps
+    // the readout alone and the trigger sits beside it.
+    if (!editable && trigger) {
+      return (
+        <div className={cn('flex w-full items-center gap-2', className)} style={style}>
+          <div role="img" aria-label={summary} className="flex min-w-0 flex-1 items-center gap-2">
+            {readout}
+          </div>
+          {trigger}
+        </div>
+      )
+    }
+    return (
+      // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
+      <div
+        role={editable ? 'group' : 'img'}
+        aria-label={summary}
+        onKeyDown={editable ? onKeyDown : undefined}
+        className={cn('flex w-full items-center gap-2', className)}
+        style={style}
+      >
+        {readout}
+        {trigger}
       </div>
     )
   }
 
+  // A read-only gauge is an image, and an image may not contain a control (axe
+  // `nested-interactive`). When the read-only header still carries one — the
+  // provenance trigger or ↺ — the track alone takes the image role.
+  const interactive = editable || editableMax
+  const headerControl = provenance !== undefined || (isOverridden && onRevertOverride !== undefined)
+  const trackIsImage = !interactive && headerControl
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
-    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dynamically group|img|none — each set with a label it supports — but biome can't resolve the ternary
     <div
-      role={editable || editableMax ? 'group' : 'img'}
-      aria-label={summary}
+      role={interactive ? 'group' : trackIsImage ? undefined : 'img'}
+      aria-label={trackIsImage ? undefined : summary}
       onKeyDown={editable ? onKeyDown : undefined}
       className={cn('w-full py-1', className)}
       style={style}
@@ -437,7 +466,12 @@ export function VitalGauge({
 
       {/* Segmented track — balanced rows, max 6 per row (the pip-row split /
           "looping chips" rule; shared with the Stat tracker). */}
-      <div className={cn('flex flex-col', isDense ? 'gap-[3px]' : 'gap-1')}>
+      {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: the label is set only with role=img */}
+      <div
+        role={trackIsImage ? 'img' : undefined}
+        aria-label={trackIsImage ? summary : undefined}
+        className={cn('flex flex-col', isDense ? 'gap-[3px]' : 'gap-1')}
+      >
         {statBlockRowStarts(segCount).map((segRow) => (
           <div key={segRow.start} className={cn('flex', isDense ? 'gap-[3px]' : 'gap-1')}>
             {Array.from({ length: segRow.count }).map((_, c) => {

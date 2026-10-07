@@ -112,6 +112,22 @@ describe('VitalGauge — read-only', () => {
     expect(img.querySelectorAll('[data-pip]').length).toBe(13)
     expect(img.querySelectorAll('[data-pip="on"]').length).toBe(13)
   })
+
+  // axe `nested-interactive`: an image may not contain a control, so the
+  // provenance trigger of a read-only gauge sits outside the role=img element.
+  const LINES = [{ kind: 'base' as const, label: 'Pilot', amount: 10 }]
+
+  test.each(['full', 'compact'] as const)(
+    'a %s read-only gauge keeps its provenance trigger outside the image',
+    (size) => {
+      render(<VitalGauge label="HP" value={7} max={10} readOnly size={size} provenance={LINES} />)
+      const img = screen.getByRole('img', { name: 'HP 7 of 10' })
+      const trigger = screen.getByRole('button', { name: /max hp: how this is derived/i })
+      expect(img.contains(trigger)).toBe(false)
+      expect(img.querySelectorAll('[data-pip]').length).toBe(10)
+      cleanup()
+    }
+  )
 })
 
 describe('VitalGauge — cap override (ADR-022)', () => {
