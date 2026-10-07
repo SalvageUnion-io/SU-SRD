@@ -68,14 +68,15 @@ describe('DisplayPanel', () => {
     expect(container.querySelector('a[href="/sheet/mech/m1"]')).toBeTruthy()
   })
 
-  test('crawler focus → foot carries Enter Downtime + a crawler sheet link (D5)', () => {
+  test('crawler focus → foot carries a crawler sheet link, and no way into Downtime (D8)', () => {
     const focus: DisplayFocus = 'crawler'
     const { container } = renderDV(focus)
     expect(container.querySelector('a[href="/sheet/crawler/c1"]')).toBeTruthy()
+    // Downtime is the Game's: the Mediator starts it for everyone from the rail.
     const downtime = [...container.querySelectorAll('button')].some((b) =>
-      b.textContent?.includes('Enter Downtime')
+      b.textContent?.includes('Downtime')
     )
-    expect(downtime).toBe(true)
+    expect(downtime).toBe(false)
   })
 
   const tablesFocus: DisplayFocus = 'tables'

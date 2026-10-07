@@ -7,8 +7,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import type { CrawlerUpkeep } from '../CrawlerSlot'
+import type { PlayStore } from '../SlotRow'
 import { SlotRow } from '../SlotRow'
 import type { SlotKind } from '../slotLayout'
 import { slotsFor } from '../slotLayout'
@@ -26,6 +28,8 @@ type Overrides = Partial<{
   mech: typeof mech
   crawler: typeof crawler | null
   mediator: boolean
+  upkeep: CrawlerUpkeep | null
+  store: PlayStore
   onExpand: (kind: SlotKind, trigger: HTMLButtonElement) => void
 }>
 
@@ -40,6 +44,8 @@ function renderRow(o: Overrides = {}) {
       boarded={mount === 'mech'}
       seat={seat}
       mediator={o.mediator ?? false}
+      upkeep={o.upkeep ?? null}
+      store={o.store}
       mount={mount}
       onExpand={o.onExpand ?? (() => {})}
     />
@@ -193,5 +199,86 @@ describe("the crawler is the Mediator's (D11)", () => {
     for (const verb of ['Salvage', 'Craft', 'Scrap Mech']) {
       expect(screen.getByText(verb)).toBeTruthy()
     }
+  })
+})
+
+describe('Upkeep is paid once per Downtime, by the Mediator (D8, D11)', () => {
+  const stocked = crawlerFixture({
+    id: 'c1',
+    name: 'Mother Hen',
+    techLevel: 'tech-2',
+    scrapPool: { tl2: 8 },
+  })
+
+  /** A store that records crawler writes. */
+  function recording() {
+    const writes: Array<Record<string, unknown>> = []
+    const store = {
+      get: () => stocked,
+      update: async (_type: string, _id: string, patch: Record<string, unknown>) => {
+        writes.push(patch)
+        return stocked
+      },
+      transfer: async () => undefined,
+    } as unknown as PlayStore
+    return { store, writes }
+  }
+
+  function upkeep(spent: boolean, claims: boolean[]): CrawlerUpkeep {
+    return {
+      spent,
+      spend: async () => {
+        claims.push(true)
+        return !spent && claims.length === 1
+      },
+    }
+  }
+
+  test('a player sees whether it is paid, and no Pay Upkeep', () => {
+    renderRow({ mount: 'downtime', crawler: stocked, upkeep: upkeep(false, []) })
+    expect(screen.getByText('Outstanding')).toBeTruthy()
+    expect(screen.queryByText('Pay Upkeep')).toBeNull()
+  })
+
+  test('the Mediator claims it on the Game first, then draws the Scrap', async () => {
+    const claims: boolean[] = []
+    const { store, writes } = recording()
+    renderRow({
+      mount: 'downtime',
+      crawler: stocked,
+      mediator: true,
+      upkeep: upkeep(false, claims),
+      store,
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Pay Upkeep'))
+    })
+    expect(claims).toHaveLength(1)
+    expect(writes).toHaveLength(1)
+    expect(writes[0]?.scrapPool).toEqual({ tl2: 3 })
+    expect(writes[0]?.upgradePool).toBe(5)
+  })
+
+  test('already paid elsewhere: the claim answers false and nothing is drawn', async () => {
+    const claims = [true]
+    const { store, writes } = recording()
+    renderRow({
+      mount: 'downtime',
+      crawler: stocked,
+      mediator: true,
+      upkeep: upkeep(false, claims),
+      store,
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Pay Upkeep'))
+    })
+    expect(writes).toEqual([])
+    expect(screen.getByText('Upkeep is already paid this Downtime.')).toBeTruthy()
+  })
+
+  test('paid: the button goes, and the bay says so', () => {
+    renderRow({ mount: 'downtime', crawler: stocked, mediator: true, upkeep: upkeep(true, []) })
+    expect(screen.getByText('Paid this Downtime')).toBeTruthy()
+    expect(screen.queryByText('Pay Upkeep')).toBeNull()
   })
 })

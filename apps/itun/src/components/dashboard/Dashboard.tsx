@@ -18,6 +18,13 @@
  * mount (docs/architecture/dashboard-redesign.md D1). ⤢ on a Minor opens that
  * entity's Major over the display (`SlotOverlay`) without moving the slots.
  *
+ * Downtime is the Game's (D8): its `downtime` row, read through
+ * `useDowntime`. While a step is running the Crawler is Major and the step
+ * guide (`DowntimeWizard`) replaces the deck, on every member's Dashboard at
+ * once; when it ends, each player is back wherever their seat says. The
+ * Mediator starts and ends it from the rail and moves it on from the guide
+ * (plan §8 A1); everyone marks their own step done.
+ *
  * Below it, the deck (`DeckList`) sits beside the display's tabs
  * (`DisplayTabs`, D5): an action chosen from the deck opens in the Resolve
  * tab, and its progress is saved on the seat (`useActionsDeck`). A strip along
@@ -26,7 +33,9 @@
  * doing — the Game's rolls, alerts and the crew's derived status — is
  * `useGameFeed`'s.
  * Only the screen's arrangement stays on the device (D7): the open tab, the
- * Reference tab's entity, the deck's filters and the ⤢ overlay.
+ * Reference tab's entity, the deck's filters and the ⤢ overlay. So does the
+ * deck's one-shot hand-off of a destructive outcome to the Major's Take Damage
+ * overlay, which is component state here.
  */
 
 import { buttonVariants } from 'component-lib'
@@ -40,7 +49,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { useEntityStore } from '../../stores/entityStore'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
@@ -65,6 +73,8 @@ import { SlotMajor, SlotRow } from './SlotRow'
 import type { SlotKind } from './slotLayout'
 import { useActionsDeck } from './useActionsDeck'
 import { useBoardSources } from './useBoardSources'
+import type { DowntimeHandle } from './useDowntime'
+import { NO_DOWNTIME, useDowntime } from './useDowntime'
 import type { GameFeed } from './useGameFeed'
 import { crewLines, NO_GAME_FEED, useGameFeed } from './useGameFeed'
 import type { MountState, SeatHandle } from './useSeat'
@@ -74,7 +84,8 @@ type DashboardProps = {
   pilotId: string
   /**
    * The viewer is the Mediator of the pilot's Game, who alone runs the crawler
-   * (plan D11). `DashboardGate` reads it from `games.get`.
+   * (plan D11) and Downtime (D8). `DashboardGate` reads it from `games.get`,
+   * the membership's own flag.
    */
   mediator?: boolean
 }
@@ -89,6 +100,7 @@ export function Dashboard({ pilotId, mediator = false }: DashboardProps) {
         seat={NO_SEAT}
         sources={NO_BOARD_SOURCES}
         feed={NO_GAME_FEED}
+        downtime={NO_DOWNTIME}
         mediator={mediator}
       />
     )
@@ -104,6 +116,7 @@ function SeatedDashboard({ pilotId, mediator }: { pilotId: string; mediator: boo
       seat={useSeat(pilot)}
       sources={useBoardSources(pilot)}
       feed={useGameFeed(pilot)}
+      downtime={useDowntime(pilot)}
       mediator={mediator}
     />
   )
@@ -159,6 +172,7 @@ function DashboardView({
   seat,
   sources,
   feed,
+  downtime,
   mediator,
 }: {
   pilotId: string
@@ -167,15 +181,19 @@ function DashboardView({
   sources: BoardSources
   /** The rest of the table: rolls, alerts, the inbox, the crew (`useGameFeed`). */
   feed: GameFeed
+  /** The Game's Downtime (`useDowntime`). */
+  downtime: DowntimeHandle
   mediator: boolean
 }) {
   const storeState = useEntityStore()
-  const inDowntime = usePlayStateStore((s) => s.downtime)
-  const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
+  // The Crawler is Major while the Game's Downtime has a step running (D1, D8).
+  const inDowntime = downtime.downtime.running
   // Screen arrangement stays on the device and resets with the page (D7).
   const [tab, setTab] = useState<DisplayTab>('resolve')
   const [reference, setReference] = useState<ReferenceFocus | null>(null)
   const [expanded, setExpanded] = useState<Expanded | null>(null)
+  // The deck's Apply arms it; the slot row's Major opens Take Damage and consumes it.
+  const [damageArmed, setDamageArmed] = useState(false)
   const pilot = storeState.get('pilot', pilotId)
 
   const lookup: EntityLookup = {
@@ -203,6 +221,7 @@ function DashboardView({
     onRange: seat.setRange,
     resolving: seat.seat.resolving,
     onResolving: (next) => (next === null ? seat.clearResolving() : seat.setResolving(next)),
+    onDamagePrompt: () => setDamageArmed(true),
   })
 
   if (!pilot) {
@@ -238,8 +257,25 @@ function DashboardView({
     seat,
     board: boardMenu({ pilotId, assigned: composition.mech, sources }),
     mediator,
+    upkeep: inDowntime
+      ? { spent: downtime.downtime.upkeepSpent, spend: downtime.spendUpkeep }
+      : null,
     store: storeState,
   }
+  // The Mediator's half of Downtime on the rail: Start, then End (plan §8 A1).
+  const downtimeAction = !mediator
+    ? undefined
+    : isDowntime
+      ? {
+          label: '■ End Downtime',
+          title: 'End Downtime for the whole table; everyone returns to their seat',
+          onClick: downtime.end,
+        }
+      : {
+          label: 'Start Downtime ▶',
+          title: 'Start Downtime for the whole table at its first step',
+          onClick: downtime.begin,
+        }
   // The Reference tab shows the Major's entity until another is chosen.
   const referable: { focus: ReferenceFocus; label: string }[] = [
     { focus: 'pilot', label: 'Pilot' },
@@ -294,13 +330,14 @@ function DashboardView({
               </AppLink>
             }
             status={<SavedIndicator gameName={feed.gameName} />}
-            onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
+            downtimeAction={downtimeAction}
           />
         }
         primary={
           <SlotRow
             {...slots}
             mount={mount}
+            damagePrompt={{ armed: damageArmed, consume: () => setDamageArmed(false) }}
             onExpand={(kind, trigger) => setExpanded({ kind, trigger })}
           />
         }
@@ -308,7 +345,14 @@ function DashboardView({
           <div style={DISPLAY}>
             {isDowntime ? (
               <div style={DISPLAY_BODY}>
-                <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
+                <DowntimeWizard
+                  crawler={crawler}
+                  mech={mech}
+                  pilot={pilot}
+                  downtime={downtime}
+                  mediator={mediator}
+                  viewerId={sources.viewerId}
+                />
               </div>
             ) : (
               <div style={DECK_AND_TABS}>
@@ -353,12 +397,7 @@ function DashboardView({
                 returnFocusTo={expanded.trigger}
                 onClose={() => setExpanded(null)}
               >
-                <SlotMajor
-                  {...slots}
-                  kind={expanded.kind}
-                  mount={mount}
-                  hostsDamagePrompt={false}
-                />
+                <SlotMajor {...slots} kind={expanded.kind} mount={mount} damagePrompt={null} />
               </SlotOverlay>
             ) : null}
           </div>

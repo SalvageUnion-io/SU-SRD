@@ -35,7 +35,6 @@ import {
 import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { activatableEffects } from './dashboardEffects'
 import { recordRoll } from './dashboardRolls'
@@ -52,7 +51,7 @@ import {
 import type { BandBay, BandButton, MajorModel } from './MajorFrame'
 import { MajorFrame, StorageBay } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
-import type { PlayStore } from './SlotRow'
+import type { DamagePrompt, PlayStore } from './SlotRow'
 import { mechMinorModel, mechStats } from './slotModels'
 
 export function MechMinor({
@@ -107,7 +106,7 @@ export function MechMajor({
   onToggleEffect,
   onDismount,
   onEject,
-  hostsDamagePrompt,
+  damagePrompt,
 }: {
   mech: Mech
   /** Beefcake raises the piloted MECH's Max SP and Cargo (ADR-029). */
@@ -126,10 +125,11 @@ export function MechMajor({
   /** The emergency exit, sent only after the player confirms it (ADR-007). */
   onEject: () => void
   /**
-   * Whether this copy answers the deck's Take Damage hand-off. Only the slot
-   * row's Major does; the ⤢ overlay's copy must not consume it.
+   * The deck's Take Damage hand-off, which this copy answers. Only the slot
+   * row's Major gets it; the ⤢ overlay's copy passes null so it never
+   * consumes it.
    */
-  hostsDamagePrompt: boolean
+  damagePrompt: DamagePrompt | null
 }) {
   const {
     chassis,
@@ -153,14 +153,14 @@ export function MechMajor({
 
   // The deck's Apply step routes a destructive Cascade Failure here: open the
   // Take-Structure-Damage overlay pre-armed for the player to confirm (ADR-007).
-  const damagePromptArmed = usePlayStateStore((st) => st.damagePromptArmed)
-  const consumeDamagePrompt = usePlayStateStore((st) => st.consumeDamagePrompt)
+  const armed = damagePrompt?.armed ?? false
+  const consume = damagePrompt?.consume
   useEffect(() => {
-    if (hostsDamagePrompt && damagePromptArmed) {
+    if (armed && consume) {
       setPrompt({ kind: 'dmg' })
-      consumeDamagePrompt()
+      consume()
     }
-  }, [hostsDamagePrompt, damagePromptArmed, consumeDamagePrompt])
+  }, [armed, consume])
 
   const fresh = () => store.get('mech', mech.id) ?? mech
 
