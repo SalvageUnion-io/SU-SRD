@@ -49,7 +49,8 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
   the entity's responsibility **bays**, each gauges plus a button grid, with a
   narrow side column. Mech: Reactor · Chassis, side Effects · Egress. Pilot:
   Vitals · Kit · Abilities · Mount. Crawler: Hull · Stores · Bays, side
-  Upkeep · Upgrade · Scrap; its verbs show to the Mediator only. A Minor
+  Upkeep · Upgrade · Scrap; its verbs show to the Mediator only, and Pay
+  Upkeep only in the Upkeep & Upgrade step. A Minor
   (`MinorFrame`) shows a gauge or two and turns red on an injury, a damaged
   system or a damaged bay; ⤢ opens that entity's Major over the display
   (`SlotOverlay`) without moving the slots.

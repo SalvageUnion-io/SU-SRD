@@ -441,10 +441,10 @@ The closed list of real transactions on the Live Sheet:
 Nothing blocks (a disabled button plus a visible advisory); `scrapPool` stays
 hand-editable; writes are tagged `LIVE_SHEET_TXN`, except row 3
 (`MechSheet.tsx`'s `repairItem` still writes `LIVE_SHEET_MANUAL`). The list is
-closed: a new transaction goes on the Dashboard. Upkeep is paid on the
-Dashboard during a Game's Downtime (`CrawlerSlot.tsx`, claimed once through
-`downtime.spendUpkeep`, written as `DASHBOARD_TXN`) and stays on the sheet
-outside a Game.
+closed: a new transaction goes on the Dashboard. In a Game's Downtime, Upkeep
+is paid on the Dashboard in the Upkeep & Upgrade step only (`CrawlerSlot.tsx`,
+claimed once through `downtime.spendUpkeep`, as `DASHBOARD_TXN`); the sheet's
+Upkeep is editable any time.
 
 ### Destructive consequences and provenance
 

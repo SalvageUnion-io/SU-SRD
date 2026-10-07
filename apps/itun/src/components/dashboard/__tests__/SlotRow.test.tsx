@@ -224,9 +224,10 @@ describe('Upkeep is paid once per Downtime, by the Mediator (D8, D11)', () => {
     return { store, writes }
   }
 
-  function upkeep(spent: boolean, claims: boolean[]): CrawlerUpkeep {
+  function upkeep(spent: boolean, claims: boolean[], payable = true): CrawlerUpkeep {
     return {
       spent,
+      payable,
       spend: async () => {
         claims.push(true)
         return !spent && claims.length === 1
@@ -274,6 +275,17 @@ describe('Upkeep is paid once per Downtime, by the Mediator (D8, D11)', () => {
     })
     expect(writes).toEqual([])
     expect(screen.getByText('Upkeep is already paid this Downtime.')).toBeTruthy()
+  })
+
+  test('outside the Upkeep & Upgrade step: no Pay Upkeep, and the bay says when', () => {
+    renderRow({
+      mount: 'downtime',
+      crawler: stocked,
+      mediator: true,
+      upkeep: upkeep(false, [], false),
+    })
+    expect(screen.getByText('Outstanding · paid in the Upkeep & Upgrade step')).toBeTruthy()
+    expect(screen.queryByText('Pay Upkeep')).toBeNull()
   })
 
   test('paid: the button goes, and the bay says so', () => {
