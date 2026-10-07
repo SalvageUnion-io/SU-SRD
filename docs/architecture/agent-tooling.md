@@ -257,8 +257,10 @@ CSP source: srd's `apps/srd/public/_headers`, itun's
 `apps/itun/src/worker/securityHeaders.ts`. **If you change the CSP or the
 Sentry region, change both in lockstep.**
 
-**Sourcemaps.** `srd` and `itun` both upload through `@sentry/vite-plugin`,
-gated on `SENTRY_AUTH_TOKEN`, so only `deploy-cloudflare.yml` ever uploads.
+**Sourcemaps.** `srd` and `itun` both upload through one helper,
+`sentrySourcemaps()` in `observability/vite` (`@sentry/vite-plugin`, `hidden`
+maps deleted after upload), gated on `SENTRY_AUTH_TOKEN`, so only
+`deploy-cloudflare.yml` ever uploads.
 One org token and `vars.SENTRY_ORG` serve both; the project is
 `vars.SENTRY_PROJECT` for itun and the literal `srd` for srd, so the token must
 be able to write releases to both projects. srd had no upload until the

@@ -15,6 +15,23 @@ import { routes } from '../routes'
 /** Well under the ~1,040 pages the site emits: a collapse detector, not a budget. */
 const PAGE_FLOOR = 900
 
+/**
+ * The only inline `<script>` types srd may emit. `public/_headers` gives
+ * `script-src` no hashes and no 'unsafe-inline', so an inline script of any
+ * other type is blocked in production: load it by URL instead. JSON and
+ * JSON-LD are data blocks `script-src` never gates; speculation rules are
+ * allowed by `'inline-speculation-rules'`.
+ */
+const INLINE_SCRIPT_TYPES = new Set(['application/json', 'application/ld+json', 'speculationrules'])
+
+/** Every `<script>` opening tag with no `src` whose type the CSP would block. */
+function blockedInlineScripts(html: string): string[] {
+  return [...html.matchAll(/<script(?=[\s/>])[^>]*>/gi)]
+    .map(([tag]) => tag)
+    .filter((tag) => !/\bsrc\s*=/i.test(tag))
+    .filter((tag) => !INLINE_SCRIPT_TYPES.has(tag.match(/\btype="([^"]*)"/i)?.[1] ?? ''))
+}
+
 const ASSETS: BuildAssets = {
   scripts: ['/assets/islands.js'],
   styles: ['/assets/styles.css'],
@@ -40,7 +57,9 @@ describe('route registry', () => {
 
   it.each(routes.map((r) => r.pattern))('renders the first %s page to a document', (pattern) => {
     const first = resolved.find((r) => r.pattern === pattern)?.pages[0]
-    expect(first?.render(ASSETS)).toStartWith('<!doctype html>')
+    const html = first?.render(ASSETS) ?? ''
+    expect(html).toStartWith('<!doctype html>')
+    expect(blockedInlineScripts(html)).toEqual([])
   })
 
   it('server-renders a /schema/<id>/ listing as links, without inlining its entities', () => {

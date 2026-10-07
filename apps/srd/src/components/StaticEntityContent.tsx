@@ -6,8 +6,10 @@ import type { StaticEntitySummary } from 'salvageunion-reference'
  * StaticEntityContent — the SSR / no-JS entity fallback. Renders a plain,
  * crawler-friendly summary of an entity (name, description, stats, content,
  * traits, source). On the static site the hydrated island supplies the real
- * display and BaseLayout strips this `data-static-fallback` block for JS users,
- * so the two never double up.
+ * display: `global.css`'s `@media (scripting: enabled)` rule hides this
+ * `data-static-fallback` block for JS users before first paint, and
+ * `ReferenceEntityIsland` hides it on mount and removes it once game data is
+ * ready, so the two never double up.
  *
  * Route-agnostic: trait/keyword links are resolved by the injected
  * `resolveTraitHref` (srd passes its build-time resolver); without it,
@@ -23,8 +25,9 @@ type StaticEntityContentProps = {
 export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityContentProps) {
   return (
     <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-ink">
-      {/* SSR / no-JS heading. JS users get this whole block stripped by BaseLayout
-          and the hydrated island supplies the real <h1>, so they never double up. */}
+      {/* SSR / no-JS heading. For JS users global.css's `@media (scripting: enabled)`
+          rule hides this block, ReferenceEntityIsland removes it, and the island
+          supplies the real <h1>, so they never double up. */}
       <PageHeading className="mb-3 w-fit">{summary.name}</PageHeading>
 
       {summary.description && <p className="mb-3 italic">{summary.description}</p>}

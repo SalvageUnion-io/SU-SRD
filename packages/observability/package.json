@@ -13,6 +13,10 @@
       "types": "./src/cloudflare.ts",
       "default": "./src/cloudflare.ts"
     },
+    "./vite": {
+      "types": "./src/vite.ts",
+      "default": "./src/vite.ts"
+    },
     "./worker-http": {
       "types": "./src/workerHttp.ts",
       "default": "./src/workerHttp.ts"
@@ -24,6 +28,7 @@
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage"
   },
   "dependencies": {
-    "@sentry/cloudflare": "10.69.0"
+    "@sentry/cloudflare": "10.69.0",
+    "@sentry/vite-plugin": "5.4.0"
   }
 }

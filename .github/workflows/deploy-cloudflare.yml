@@ -364,8 +364,9 @@ jobs:
       # is a stack of mangled frames pointing at `assets/<entry>-<hash>.js` — an
       # event that exists, is counted, and cannot be acted on.
       #
-      # `apps/itun/vite.config.ts` and `apps/srd/ssg/vite.config.ts` gate BOTH
-      # the plugin and `build.sourcemap` on `SENTRY_AUTH_TOKEN`, so with the
+      # Both apps' Vite builds take `sentrySourcemaps()` from
+      # `packages/observability/src/vite.ts`, which gates BOTH the plugin and
+      # `build.sourcemap` on `SENTRY_AUTH_TOKEN`, so with the
       # secret absent the build silently emits no maps and uploads nothing. The
       # itun build step passes all three variables and they resolved to empty on
       # every deploy since P7: the repository has exactly four secrets and none
@@ -443,7 +444,7 @@ jobs:
           # these are never exposed to its bundle.
           PUBLIC_COMMIT_REF: ${{ needs.plan.outputs.sha }}
           PUBLIC_SENTRY_DSN: ${{ vars.SRD_SENTRY_DSN || vars.PUBLIC_SENTRY_DSN }}
-          # Source-map upload (apps/srd/ssg/vite.config.ts). Same token and org
+          # Source-map upload (packages/observability/src/vite.ts). Same token and org
           # as itun; the PROJECT is srd's own, and is written literally rather
           # than read from `vars.SENTRY_PROJECT`, which names itun's. A project
           # slug is public (it is in every Sentry URL and in

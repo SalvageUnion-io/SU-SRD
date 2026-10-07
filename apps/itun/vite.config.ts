@@ -1,20 +1,11 @@
-import { sentryVitePlugin } from '@sentry/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
+import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { WORKBOX_OPTIONS } from './src/lib/sw/workbox'
-
-// Sourcemap upload is entirely env-gated on SENTRY_AUTH_TOKEN, mirroring the
-// discipline of src/lib/observability.ts: absent locally and in CI (no token
-// provisioned there), so the plugin is inert and no sourcemaps are generated
-// or shipped. Provisioned only on the production build in
-// `.github/workflows/deploy-cloudflare.yml`, from repository secrets
-// (SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT — not committed), which
-// refuses to build itun without all three.
-const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -81,43 +72,10 @@ export default defineConfig({
         ],
       },
     }),
-    // Must run last in the plugins array (Sentry's own requirement — it needs
-    // to see the final Rollup output to attach + upload sourcemaps). Inert
-    // (returns nothing) unless sentryAuthToken is set.
-    sentryAuthToken
-      ? sentryVitePlugin({
-          org: process.env.SENTRY_ORG,
-          project: process.env.SENTRY_PROJECT,
-          authToken: sentryAuthToken,
-          // Explicit release name pinned to the same VITE_COMMIT_REF the
-          // client tags itself with at runtime (src/lib/observability.ts) —
-          // auto-detecting from git would use the CI checkout's shallow
-          // clone and could silently mismatch, breaking sourcemap resolution.
-          release: { name: process.env.VITE_COMMIT_REF, inject: false },
-          sourcemaps: {
-            filesToDeleteAfterUpload: ['dist/**/*.map'],
-          },
-          // No plugin usage telemetry to Sentry from CI builds.
-          telemetry: false,
-          // Observability tooling that can take down a deploy is an
-          // anti-pattern: an expired token, wrong org/project, or a Sentry
-          // API blip should degrade to "no sourcemaps this deploy", not fail
-          // the deploy. Warn instead of the plugin's default throw.
-          //
-          // This tolerates a FAILING upload, which is different from tolerating
-          // an ABSENT credential: `deploy-cloudflare.yml` refuses to build
-          // without all three; this handler covers the blip, not the gap.
-          errorHandler: (error) => {
-            console.warn('[sentry-vite-plugin] sourcemap upload failed (non-fatal):', error)
-          },
-        })
-      : false,
+    // Must run last; inert without SENTRY_AUTH_TOKEN (see observability/vite).
+    ...sentrySourcemaps('dist'),
   ],
   build: {
-    // Only emit sourcemaps when actually uploading them (see sentryAuthToken
-    // above) — the upload step deletes them from dist/ afterward, so default
-    // builds (local, CI, unconfigured deploys) never generate or ship maps.
-    sourcemap: !!sentryAuthToken,
     rolldownOptions: {
       output: {
         // Named groups for the code every route loads (audit AP-11).

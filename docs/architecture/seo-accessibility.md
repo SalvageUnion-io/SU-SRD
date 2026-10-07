@@ -115,10 +115,12 @@ Entity pages use progressive enhancement so crawlers see full text content even 
 **3. Client-side replacement** (`ReferenceEntityIsland.tsx`):
 When the island **mounts** — `createRoot`, never `hydrateRoot`; there is no
 hydration anywhere in this app — it removes `[data-static-fallback]` elements and
-replaces them with the interactive `ReferenceEntityCard`. `BaseLayout` also stamps
-`document.documentElement.classList.add('js')` synchronously before first paint so
-`.js [data-static-fallback] { display: none }` (`global.css`) hides the no-JS text
-for JS users; without it the naked static text flashed on every entity load.
+replaces them with the interactive `ReferenceEntityCard`. JS users never see the
+no-JS text before that: `@media (scripting: enabled) { [data-static-fallback] {
+display: none } }` in `apps/srd/src/styles/global.css` hides it before first paint,
+with no inline script, so the CSP `script-src` stays literal. A browser too old to
+know the `scripting` media feature shows the fallback until the island hides it — a
+brief flash of the static text, never a lost page.
 
 `EntityCardStatic` — the zero-JS render path used by 82% of entity pages — is
 **not** an island at all; it renders straight into the page tree.
