@@ -192,6 +192,12 @@ export const vitals = query({
         return {
           _id: p._id,
           appId: p.appId ?? null,
+          /**
+           * The id links, seats and `/sheet/$kind/$id` use: the app id, or a
+           * template pre-gen's body id (`linkIdOf`). Key on this, not `appId`,
+           * which a Starter Set row never has.
+           */
+          linkId: id,
           ownerId: p.ownerId,
           ownerName: p.ownerId === null ? null : (names.get(p.ownerId) ?? null),
           name: ((p.body as Record<string, unknown> | null)?.callsign as string) ?? 'Pilot',
@@ -204,17 +210,22 @@ export const vitals = query({
           ...derivePilot(id, pilot),
         }
       }),
-      mechs: mechs.map((m) => ({
-        _id: m._id,
-        appId: m.appId ?? null,
-        ownerId: m.ownerId,
-        ownerName: m.ownerId === null ? null : (names.get(m.ownerId) ?? null),
-        name: ((m.body as Record<string, unknown> | null)?.name as string) ?? 'Mech',
-        currentSP: num(m.body, 'currentSP'),
-        currentEP: num(m.body, 'currentEP'),
-        currentHeat: num(m.body, 'currentHeat'),
-        ...deriveMech(linkIdOf(m) ?? null, m.body),
-      })),
+      mechs: mechs.map((m) => {
+        const id = linkIdOf(m) ?? null
+        return {
+          _id: m._id,
+          appId: m.appId ?? null,
+          /** The id a pilot's `mechId` and the seats name it by (see the pilot's). */
+          linkId: id,
+          ownerId: m.ownerId,
+          ownerName: m.ownerId === null ? null : (names.get(m.ownerId) ?? null),
+          name: ((m.body as Record<string, unknown> | null)?.name as string) ?? 'Mech',
+          currentSP: num(m.body, 'currentSP'),
+          currentEP: num(m.body, 'currentEP'),
+          currentHeat: num(m.body, 'currentHeat'),
+          ...deriveMech(id, m.body),
+        }
+      }),
     }
   },
 })

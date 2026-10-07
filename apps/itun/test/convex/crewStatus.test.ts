@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { mechStats, pilotVitals } from '../../src/components/dashboard/slotModels'
+import { crewLines } from '../../src/components/dashboard/useGameFeed'
 import { mechStatus, pilotStatus } from '../../src/lib/rules/crewStatus'
 import type { Mech } from '../../src/lib/schemas/mech'
 import { MechSchema } from '../../src/lib/schemas/mech'
@@ -230,6 +231,48 @@ describe('crew.vitals derives what the client derives', () => {
     const wren = byAppId((await bex.as.query(api.crew.vitals, { gameId })).pilots, 'wren')
     expect(wren.status.ejected).toBe(false)
     expect(wren.attention).toBe(false)
+  })
+})
+
+describe('crew.vitals keys a template pre-gen by its link id', () => {
+  test('a Starter Set pilot and mech, with no app id, reach the Crew tab as a row', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const gameId = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+
+    const before = await u.as.query(api.crew.vitals, { gameId })
+    const rows = [...before.pilots, ...before.mechs]
+    // Starter Set rows carry only a body id, and claiming one adds none…
+    expect(before.pilots.length).toBeGreaterThan(0)
+    expect(rows.every((r) => r.appId === null)).toBe(true)
+    // …yet every row carries the id the seats and `mechId` name it by.
+    expect(rows.every((r) => r.linkId !== null)).toBe(true)
+
+    // A pre-gen with an assigned mech: its `mechId` is that mech's `linkId`.
+    const pilot = before.pilots.find((p) => p.mechId !== null)
+    const pilotId = pilot?.linkId ?? null
+    const mechId = pilot?.mechId ?? null
+    if (pilotId === null || mechId === null) throw new Error('no assigned pre-gen')
+    const mech = before.mechs.find((m) => m.linkId === mechId)
+    expect(mech).toBeDefined()
+
+    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilot?._id ?? '' })
+    await u.as.mutation(api.ownership.claim, { table: 'mechs', entityId: mech?._id ?? '' })
+    await u.as.mutation(api.seats.board, { gameId, pilotId, mechId })
+
+    const crew = await u.as.query(api.crew.vitals, { gameId })
+    expect(crew.pilots.every((p) => p.appId === null)).toBe(true)
+    const seats = await u.as.query(api.seats.forGame, { gameId })
+    const lines = crewLines(crew, seats, pilotId)
+    // Every pre-gen has a row, and the boarded one carries its mech's numbers.
+    expect(lines).toHaveLength(crew.pilots.length)
+    const own = lines[0]
+    expect(own?.pilotId).toBe(pilotId)
+    expect(own?.self).toBe(true)
+    expect(own?.href).toBe(`/sheet/pilot/${pilotId}`)
+    expect(own?.where).toBe(`In ${mech?.name}`)
+    expect(own?.vitals).toMatch(/^HP \d+\/\d+ · AP \d+\/\d+$/)
+    expect(own?.mech).toMatch(/ · SP \d+\/\d+ · Heat \d+\/\d+$/)
   })
 })
 

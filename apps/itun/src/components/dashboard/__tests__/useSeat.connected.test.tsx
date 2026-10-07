@@ -309,6 +309,7 @@ function crewAnswer(seats: ReturnType<typeof seatRow>[], trouble = false) {
     return {
       _id: `row-${appId.replace('seat-', '')}`,
       appId,
+      linkId: appId,
       ownerId,
       ownerName: null,
       name,
@@ -325,6 +326,7 @@ function crewAnswer(seats: ReturnType<typeof seatRow>[], trouble = false) {
   const mech = (appId: string, name: string) => ({
     _id: `row-${appId.replace('seat-', '')}`,
     appId,
+    linkId: appId,
     ownerId: null,
     ownerName: null,
     name,
