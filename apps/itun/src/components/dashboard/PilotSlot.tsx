@@ -1,29 +1,62 @@
 /**
- * PilotBand — the Active Item while On Foot: the pilot's HP/AP vitals, Take
- * Damage with the player-confirmed Critical Injury roll (ADR-007), and the
- * control to board the mech.
+ * PilotSlot — the pilot in the slot row, in its two forms
+ * (docs/architecture/dashboard-redesign.md D2, D3):
+ *
+ *  - `PilotMajor`, on foot: Vitals (HP, AP, Take Damage with the
+ *    player-confirmed Critical Injury roll, ADR-007), Kit, Abilities and Mount.
+ *  - `PilotMinor`, boarded or in Downtime: HP and AP, and any injury in red.
+ *
+ * Both read the same vitals (`pilotVitals`), so a Minor and the Major it opens
+ * into never disagree about a maximum.
  */
 
 import { CountStepper } from 'component-lib'
 import { useEffect, useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
 import {
-  pilotMaxAP,
-  pilotMaxHP,
-  resolvePool,
+  pilotMaxHPParts,
   resolvePoolStart,
+  resolveRef,
   rollDie,
 } from 'salvageunion-reference/rules'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
+import { readReference } from '../../lib/readReference'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { PlayStore } from './ActiveItemBand'
-import type { ActiveItemBandModel } from './ActiveItemBandFrame'
-import { ActiveItemBandFrame } from './ActiveItemBandFrame'
 import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from './dashboardRules'
+import type { MajorModel } from './MajorFrame'
+import { MajorFrame } from './MajorFrame'
+import { MinorFrame } from './MinorFrame'
+import type { PlayStore } from './SlotRow'
+import { injuryLines, pilotMinorModel, pilotVitals } from './slotModels'
+
+export function PilotMinor({
+  pilot,
+  crawler,
+  boardedIn,
+  onExpand,
+}: {
+  pilot: Pilot
+  crawler: Crawler | null
+  boardedIn: string | null
+  onExpand: (trigger: HTMLButtonElement) => void
+}) {
+  return (
+    <MinorFrame
+      view={pilotMinorModel(pilot, crawler, boardedIn)}
+      slot="Pilot"
+      onExpand={onExpand}
+    />
+  )
+}
+
+/** A reference name for a stored ref, or the ref itself when it doesn't resolve. */
+function refName(ref: string, find: (ref: string) => { name: string } | null): string {
+  return readReference('dashboard.pilotKit', () => find(ref)?.name, undefined) ?? ref
+}
 
 type PilotPrompt =
   | { kind: 'log'; log: string }
@@ -31,23 +64,29 @@ type PilotPrompt =
   | { kind: 'crit'; effect: CriticalInjuryEffect | null; log: string }
   | null
 
-export function PilotBand({
+export function PilotMajor({
   pilot,
   crawler,
   store,
+  boardedIn,
   onBoard,
+  hostsDamagePrompt,
 }: {
   pilot: Pilot
   /** The pilot's crawler — its tier drives Stat Training (max HP/AP). */
   crawler: Crawler | null
   store: PlayStore
+  /** The mech the seat has the pilot in, or null on foot. */
+  boardedIn: string | null
   onBoard: () => void
+  /**
+   * Whether this copy answers the deck's Take Damage hand-off. Only the slot
+   * row's Major does; the ⤢ overlay's copy must not consume it.
+   */
+  hostsDamagePrompt: boolean
 }) {
-  const crawlerTechLevel = resolveEffectiveCrawlerLevel(pilot, crawler)
-  const maxHP = Math.max(0, pilotMaxHP({ ...pilot, crawlerTechLevel }))
-  const maxAP = Math.max(0, pilotMaxAP({ ...pilot, crawlerTechLevel }))
-  const hp = resolvePool(pilot.currentHP, maxHP)
-  const ap = resolvePool(pilot.currentAP, maxAP)
+  const { statInput, maxHP, gauges } = pilotVitals(pilot, crawler)
+  const hp = gauges[0]?.value ?? 0
 
   const [prompt, setPrompt] = useState<PilotPrompt>(null)
   const [dmg, setDmg] = useState(1)
@@ -57,18 +96,21 @@ export function PilotBand({
   const damagePromptArmed = usePlayStateStore((st) => st.damagePromptArmed)
   const consumeDamagePrompt = usePlayStateStore((st) => st.consumeDamagePrompt)
   useEffect(() => {
-    if (damagePromptArmed) {
+    if (hostsDamagePrompt && damagePromptArmed) {
       setPrompt({ kind: 'dmg' })
       consumeDamagePrompt()
     }
-  }, [damagePromptArmed, consumeDamagePrompt])
+  }, [hostsDamagePrompt, damagePromptArmed, consumeDamagePrompt])
 
   const fresh = () => store.get('pilot', pilot.id) ?? pilot
 
   function applyDamage() {
     const p = fresh()
     const { patch, effect } = pilotDamagePatch({
-      currentHP: resolvePoolStart(p.currentHP, Math.max(0, pilotMaxHP({ ...p, crawlerTechLevel }))),
+      currentHP: resolvePoolStart(
+        p.currentHP,
+        Math.max(0, pilotMaxHPParts({ ...p, crawlerTechLevel: statInput.crawlerTechLevel }).total)
+      ),
       amount: dmg,
       vulnerable: false,
     })
@@ -91,7 +133,7 @@ export function PilotBand({
     )
   }
 
-  const overlay = ((): ActiveItemBandModel['overlay'] => {
+  const overlay = ((): MajorModel['overlay'] => {
     if (!prompt) return null
     const onClose = () => setPrompt(null)
     if (prompt.kind === 'log') {
@@ -127,16 +169,21 @@ export function PilotBand({
     }
   })()
 
-  const view: ActiveItemBandModel = {
+  const kit = pilot.equipment.map((ref) => ({
+    text: refName(ref, (r) => resolveRef(SalvageUnionReference.Equipment, r)),
+  }))
+  const abilities = pilot.abilities.map((ref) => ({
+    text: refName(ref, (r) => resolveRef(SalvageUnionReference.Abilities, r)),
+  }))
+
+  const view: MajorModel = {
     fam: 'pilot',
-    stampLabel: 'On Foot',
+    stampLabel: boardedIn === null ? 'On Foot' : 'Boarded',
     bays: [
       {
         label: 'Vitals',
-        gauges: [
-          { label: 'HP', value: hp, max: maxHP, tone: 'pilot' },
-          { label: 'AP', value: ap, max: maxAP, tone: 'pilot' },
-        ],
+        gauges,
+        lines: injuryLines(pilot).map((text) => ({ text, warn: true })),
         buttons: [
           {
             label: 'Take Dmg',
@@ -156,19 +203,34 @@ export function PilotBand({
         ],
       },
       {
-        label: 'Mount',
-        buttons: [
-          {
-            label: '▶ Board Mech',
-            onClick: onBoard,
-            variant: 'go',
-            wide: true,
-            title: 'Board the mech',
-          },
-        ],
+        label: 'Kit',
+        chips: kit.length > 0 ? kit : undefined,
+        lines: kit.length > 0 ? undefined : [{ text: 'No equipment.' }],
+        buttons: [],
       },
+      {
+        label: 'Abilities',
+        chips: abilities.length > 0 ? abilities : undefined,
+        lines: abilities.length > 0 ? undefined : [{ text: 'No abilities.' }],
+        buttons: [],
+      },
+      boardedIn === null
+        ? {
+            label: 'Mount',
+            buttons: [
+              {
+                label: '▶ Board Mech',
+                onClick: onBoard,
+                variant: 'go',
+                wide: true,
+                title: 'Board the mech',
+              },
+            ],
+          }
+        : // Boarded, the way out is the Mech's Egress, not a second control here.
+          { label: 'Mount', lines: [{ text: `In ${boardedIn}` }], buttons: [] },
     ],
     overlay,
   }
-  return <ActiveItemBandFrame view={view} />
+  return <MajorFrame view={view} />
 }

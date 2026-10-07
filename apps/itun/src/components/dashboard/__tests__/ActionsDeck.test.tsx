@@ -28,8 +28,8 @@ import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
 import { ActionsDeck } from '../ActionsDeck'
-import type { PlayStore } from '../ActiveItemBand'
 import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+import type { PlayStore } from '../SlotRow'
 
 beforeAll(hydrateStores)
 

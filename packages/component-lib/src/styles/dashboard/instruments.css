@@ -1,6 +1,6 @@
 /*
  * Dashboard ("Pit HUD") instrument stylesheet — the `.pc-*` surfaces that fill
- * the layout regions: rail buttons, stamps, the Active Item band, the dial, and
+ * the layout regions: rail buttons, stamps, the slot row's Major band, and
  * the light "document under glass" display content.
  *
  * The Dashboard is warm-paper INSTRUMENTS ON A DARK GROUND — the same paper/ink
@@ -10,7 +10,7 @@
  * `--text-*` / `--tracking-*` tokens (component-lib theme.css) directly. Three
  * grounds, and brightest always means "read this": `--color-ink-deep` behind
  * everything, `--color-band-cream` for instrument chassis, `--color-paper` for
- * the display and the dial's active seat. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
+ * the display. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
  * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
  * (rail + display); everything else is flat/inset (ADR-018).
  *
@@ -20,8 +20,8 @@
 
 /* ---- Keyboard focus: the canonical rust ring, in raw CSS ----
  *
- * Every interactive surface in this file is a NATIVE <button> (or a
- * role="option" button, in the dial), so it takes keyboard focus — but this
+ * Every interactive surface in this file is a NATIVE <button>, so it takes
+ * keyboard focus — but this
  * stylesheet styled `:hover` five times and `:focus` zero times, and no global
  * `:focus-visible` rule exists in either app or in the library. That left a
  * keyboard user driving the cockpit with no visible caret at all: the browser
@@ -64,8 +64,7 @@
 .pc-deck-source:focus-visible,
 .pc-tablepick-item:focus-visible,
 .pc-srd-result:focus-visible,
-.pc-srd-row:focus-visible,
-.pc-cell:focus-visible {
+.pc-srd-row:focus-visible {
   outline: 3px solid transparent;
   outline-offset: 1px;
   box-shadow: var(--focus-ring-shadow);
@@ -91,8 +90,8 @@
   color: var(--color-ink-50);
 }
 
-/* ---- Active Item band: responsibility bays (gauge + button grid) ---- */
-/* The Active Item band is an INSTRUMENT surface: cream chassis on the dark
+/* ---- Major slot band: responsibility bays (gauge + button grid) ---- */
+/* The Major band is an INSTRUMENT surface: cream chassis on the dark
    canvas ground. Before the ground went dark it could be transparent (paper on
    paper); now it has to carry its own card or its gauges and bay dividers would
    float on the workbench. */
@@ -596,237 +595,8 @@
 /* DashboardGauge's bespoke segmented bar was retired — it now renders through
    the shared VitalGauge (surface="instrument"); see DashboardGauge.tsx. */
 
-/* ---- Rotary Dial (momentum wheel) ---- */
-.pc-wheel-col {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: 100%;
-  overflow: visible;
-}
-/* The stage the wheel rolls in: seats are absolutely stacked and JS sets each
-   seat's real top + height. Clipped so cards rolling off the top don't bleed
-   over the rail and cards off the bottom don't spill past the controls. The
-   active slot is flush with the top, so the active card aligns with the
-   primary row (its top edge = the Active row's top). */
-.pc-wheel-stage {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  /* Clip vertically (cards rolling off the top don't bleed over the rail) but
-     NOT horizontally, so the wider active card can overhang left into the
-     primary row's reserved space (the viewfinder = the intersection corner). */
-  overflow: visible;
-  clip-path: inset(0 -400px);
-  touch-action: none;
-  cursor: grab;
-}
-.pc-wheel-stage:active {
-  cursor: grabbing;
-}
-/* Explicit, so the `hidden` attribute the Dial sets while its config panel is
-   open cannot be defeated by a future `display` declaration on the class. */
-.pc-wheel-stage[hidden] {
-  display: none;
-}
-/* Seats are stacked; JS sets each seat's real top + width + height from the
-   scroll position (no scale — labels keep their size and match the mech stamp). */
-.pc-wheel-seat {
-  position: absolute;
-  right: 0;
-  will-change: top, width, height;
-}
-.pc-cell {
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
-  border-radius: var(--radius-panel);
-  background: var(--color-band-cream);
-  box-shadow: inset 0 1px 2px var(--color-ink-8);
-  cursor: pointer;
-  padding: 5px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  text-align: left;
-  color: var(--color-ink);
-  overflow: hidden;
-}
-/* The seat in the viewfinder is the SAME cream as the cells queued behind it.
-   It used to be paper, on a "brightest = active" reading — but that made the
-   active card the one odd surface in a column of matching ones, and the dial
-   already marks it by size and by its heavier border. One card background
-   across the whole cockpit; emphasis comes from the frame, not the fill. */
-.pc-cell-active {
-  border-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
-  background: var(--color-band-cream);
-  box-shadow: inset 0 1px 3px var(--color-ink-8);
-  cursor: default;
-}
-.pc-cell.statless {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-/* Match the Active Item band's entity stamp (a Badge shape="stamp") so the dial
-   cell labels line up with, and stay the same size as, that label. */
-/* The dial card's entity stamp. `align-self: flex-start` keeps it chip-width,
-   but a long enough label ("Crawler · Crawler #430 'Tenacity'") still wrapped to
-   two lines and swelled the stamp into a full-width banner — the heaviest block
-   on the screen, and loudest for the least urgent item in the rail. A stamp is a
-   label, not a paragraph: hold it to one line and clip. */
-.pc-cell-lab {
-  align-self: flex-start;
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-caption);
-  line-height: 1;
-  padding: 5px 9px 6px;
-  border-radius: 0; /* stamps are square (ruleset §4.4) */
-  color: var(--color-paper);
-}
-.pc-cell-lab.mech {
-  background: var(--color-sheet-mech-deep);
-}
-.pc-cell-lab.pilot {
-  background: var(--color-sheet-pilot-deep);
-}
-.pc-cell-lab.crawler {
-  background: var(--color-sheet-crawler-deep);
-}
-.pc-cell-gauges {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.pc-cell-title {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-lede);
-  line-height: 1;
-  color: var(--color-ink);
-}
-/*
- * Statless cells (Actions / Tables / SRD) carry no gauges, so in the tall active
- * seat they used to be a single centred title scaled to `--text-display`: the
- * largest element AND the largest type on the whole surface, containing two
- * words, directly above a display panel already showing that same view. It read
- * as an unfinished panel, and the plain centred text made it a sibling of
- * `.pc-placeholder` ("not built yet") rather than of the rich entity cards.
- *
- * The seat's geometry is deliberately NOT changed here — the dial's height/width
- * interpolation and scroll accumulation are shared by every cell, and this
- * branch holds the dashboard's layout fixed. What changes is the weight: the
- * title drops to the same rung the entity cells use and becomes an ink slab, so
- * the cell reads as a labelled instrument plate at rest instead of empty space.
- */
-.pc-cell-active.statless .pc-cell-title {
-  align-self: stretch;
-  background: var(--color-ink);
-  color: var(--color-paper);
-  padding: 6px 10px 7px;
-  font-size: var(--text-lede);
-}
-.pc-cell-sub {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-micro);
-  color: var(--color-ink-50);
-}
-.pc-wheel-ctl {
-  display: flex;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-/* --------------------------------------------------------------------------
- * Phase 7 — dial config (⚙), cargo-hold overlay, table picker.
- * ------------------------------------------------------------------------ */
+/* ---- Phase 7 — cargo-hold overlay, table picker ---- */
 
-/* The ⚙ gear sits alongside ▲▼ but is intrinsically sized, not stretched. */
-/* Dial-config overlay — covers the dial column like the resolve overlay. */
-.pc-dialcfg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 12px 10px;
-  background: var(--color-band-cream);
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
-  border-radius: var(--radius-panel);
-  z-index: 3;
-}
-.pc-dialcfg-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.pc-dialcfg-title {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  color: var(--color-ink-50);
-}
-.pc-dialcfg-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow-y: auto;
-}
-.pc-dialcfg-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 6px 8px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-}
-/* Wrapper only — the switch inside is a `Toggle`, which owns its own <label>,
-   cursor and hit target, so this no longer claims `cursor: pointer` for a
-   region that is mostly inert text. */
-.pc-dialcfg-show {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.pc-dialcfg-lab {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-note);
-  color: var(--color-ink);
-}
-.pc-dialcfg-lab.hidden {
-  color: var(--color-ink-50);
-  text-decoration: line-through;
-}
-.pc-dialcfg-move {
-  display: flex;
-  gap: 4px;
-  flex: 0 0 auto;
-}
 /* Cargo-hold overlay body (inside the mech-band resolve overlay). */
 .pc-cargo {
   display: flex;

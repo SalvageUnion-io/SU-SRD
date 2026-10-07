@@ -1,28 +1,75 @@
 /**
- * CrawlerBand — the Active Item while in Downtime (Phase 6): the crawler's
- * Structure, the Downtime economy verbs (Area Salvage, Craft, Scrap Mech) and
- * the Leave control. Rules run through `dashboardEconomy.ts`; the destructive
- * Scrap Mech commits through `transfer` as one all-or-nothing write (ADR-007).
+ * CrawlerSlot — the crawler in the slot row, in its two forms
+ * (docs/architecture/dashboard-redesign.md D2, D3):
+ *
+ *  - `CrawlerMajor`, in Downtime: Hull (SP, Tech Level), Stores (the scrap
+ *    pool, Salvage, Craft) and Bays (each one's condition), with Upkeep,
+ *    Upgrade and Scrap a mech in a narrow side column.
+ *  - `CrawlerMinor`, the rest of the time: SP, Tech Level and the scrap pool,
+ *    with a damaged bay in red.
+ *
+ * A Game's crawler is the Mediator's (D11). Only the Mediator gets the verbs;
+ * a player sees the numbers and the bays and asks at the table. Until the
+ * server enforces it (plan layer 8) this only hides the controls.
+ *
+ * Rules run through `dashboardEconomy.ts`; the destructive Scrap Mech commits
+ * through `transfer` as one all-or-nothing write (ADR-007).
  */
 
 import type { StepRule } from 'component-lib'
 import { RuleBrief } from 'component-lib'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { crawlerMaxSPParts, resolvePool, rollDie } from 'salvageunion-reference/rules'
+import { rollDie } from 'salvageunion-reference/rules'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { crawlerUpgradeQuote, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { PlayStore } from './ActiveItemBand'
-import type { ActiveItemBandModel } from './ActiveItemBandFrame'
-import { ActiveItemBandFrame } from './ActiveItemBandFrame'
 import {
   areaSalvageOutcome,
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
 } from './dashboardEconomy'
+import type { BandBay, MajorModel } from './MajorFrame'
+import { MajorFrame } from './MajorFrame'
+import { MinorFrame } from './MinorFrame'
+import type { PlayStore } from './SlotRow'
+import { bayConditions, crawlerMinorModel, hullGauge, scrapLine } from './slotModels'
+
+export function CrawlerMinor({
+  crawler,
+  onExpand,
+}: {
+  crawler: Crawler
+  onExpand: (trigger: HTMLButtonElement) => void
+}) {
+  return <MinorFrame view={crawlerMinorModel(crawler)} slot="Crawler" onExpand={onExpand} />
+}
+
+const CRAFT_LIST: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  maxHeight: '40vh',
+  overflowY: 'auto',
+}
+
+const CRAFT_ROW: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+}
+
+const CRAFT_COST: CSSProperties = {
+  flexShrink: 0,
+  fontVariantNumeric: 'tabular-nums',
+  opacity: 0.7,
+}
 
 /** Cited when an action needs a numeric crawler Tech Level and the slug has none. */
 const NO_TECH_LEVEL_RULE: StepRule = {
@@ -72,17 +119,18 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
   }
 
   return (
-    <div className="flex max-h-[40vh] flex-col gap-1 overflow-y-auto">
+    <div style={CRAFT_LIST}>
       {note ? <p className="pc-resolve-log">{note}</p> : null}
       {items.slice(0, 40).map((item) => (
         <button
           key={`${item.techLevel}-${item.name}`}
           type="button"
           onClick={() => craft(item)}
-          className="flex items-center justify-between gap-3 rounded-card border border-ink/20 px-2 py-1 text-left text-caption hover:bg-ink-8"
+          className="pc-srd-row"
+          style={CRAFT_ROW}
         >
           <span>{item.name}</span>
-          <span className="shrink-0 tabular-nums opacity-70">
+          <span style={CRAFT_COST}>
             T{item.techLevel} · {item.salvageValue} Scrap
           </span>
         </button>
@@ -99,20 +147,22 @@ type EconPrompt =
   | { kind: 'blocked'; rule: StepRule }
   | null
 
-export function CrawlerBand({
+export function CrawlerMajor({
   crawler,
   mech,
   store,
-  onLeave,
+  mediator,
+  stampLabel,
 }: {
   crawler: Crawler
+  /** The mech Scrap Mech breaks down: the pilot's own. */
   mech: Mech
   store: PlayStore
-  onLeave: () => void
+  /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
+  mediator: boolean
+  /** "Downtime" in the slot row; what the crawler is doing, through ⤢. */
+  stampLabel: string
 }) {
-  const spParts = crawlerMaxSPParts(crawler)
-  const maxSP = spParts.total
-  const sp = resolvePool(crawler.currentSP, maxSP)
   const [prompt, setPrompt] = useState<EconPrompt>(null)
   const crawlerTl = crawlerTechLevelOf(crawler)
 
@@ -163,7 +213,7 @@ export function CrawlerBand({
     setPrompt({ kind: 'scrap', total: breakdown.total, skipped: breakdown.skipped.length })
   }
 
-  const overlay = ((): ActiveItemBandModel['overlay'] => {
+  const overlay = ((): MajorModel['overlay'] => {
     if (!prompt) return null
     const onClose = () => setPrompt(null)
     if (prompt.kind === 'blocked') {
@@ -196,15 +246,30 @@ export function CrawlerBand({
     return { title: 'Craft', onClose, body: <CraftBody crawler={crawler} store={store} /> }
   })()
 
-  const view: ActiveItemBandModel = {
-    fam: 'crawler',
-    stampLabel: 'Downtime',
-    overlay,
-    bays: [
+  const type = crawler.type ? resolveCrawlerType(crawler.type) : null
+  const upgrade =
+    crawlerTl === undefined ? null : crawlerUpgradeQuote(crawlerTl, crawler.upgradePool ?? 0)
+
+  const hull: BandBay = {
+    label: 'Hull',
+    gauges: [hullGauge(crawler)],
+    lines: [
       {
-        label: 'Crawler',
-        gauges: [{ label: 'SP', value: sp, max: maxSP, tone: 'crawler' }],
-        buttons: [
+        text: [type?.name, crawlerTl === undefined ? 'Tech Level ?' : `Tech Level ${crawlerTl}`]
+          .filter(Boolean)
+          .join(' · '),
+      },
+    ],
+    buttons: [],
+  }
+  const stores: BandBay = {
+    label: 'Stores',
+    lines: [
+      { text: scrapLine(crawler) },
+      ...(mediator ? [] : [{ text: 'The Mediator runs the crawler. Ask at the table.' }]),
+    ],
+    buttons: mediator
+      ? [
           {
             label: 'Salvage',
             onClick: () =>
@@ -214,26 +279,63 @@ export function CrawlerBand({
             title: 'Roll Area Salvage and deposit what you find',
           },
           { label: 'Craft', onClick: () => setPrompt({ kind: 'craft' }), title: 'Craft an item' },
-        ],
-      },
+        ]
+      : [],
+  }
+  const bays = bayConditions(crawler)
+  const bayBay: BandBay = {
+    label: 'Bays',
+    chips: bays.map((b) => ({ text: b.damaged ? `${b.name} damaged` : b.name, warn: b.damaged })),
+    lines: bays.length === 0 ? [{ text: 'No bays installed.' }] : undefined,
+    buttons: [],
+  }
+  // The side column: what this Downtime costs, how close the next Tech Level
+  // is, and the one destructive verb.
+  const upkeep: BandBay = {
+    label: 'Upkeep',
+    side: true,
+    lines: [
       {
-        label: 'Downtime',
-        buttons: [
-          {
-            label: 'Scrap Mech',
-            onClick: doScrap,
-            variant: 'danger',
-            title: 'Break the mech down into Scrap — destructive',
-          },
-          {
-            label: '◄ Leave Downtime',
-            onClick: onLeave,
-            wide: true,
-            title: 'Return to the previous mount',
-          },
-        ],
+        text:
+          crawlerTl === undefined
+            ? `${UPKEEP_SCRAP} Scrap per Downtime`
+            : `${UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
+      },
+    ],
+    buttons: [],
+  }
+  const upgradeBay: BandBay = {
+    label: 'Upgrade',
+    side: true,
+    lines: [
+      {
+        text:
+          upgrade === null
+            ? 'No further Tech Level'
+            : `Pool ${crawler.upgradePool ?? 0}/${upgrade.cost} to Tech ${upgrade.toTl}`,
+      },
+    ],
+    buttons: [],
+  }
+  const scrap: BandBay = {
+    label: 'Scrap a mech',
+    side: true,
+    columns: 1,
+    buttons: [
+      {
+        label: 'Scrap Mech',
+        onClick: doScrap,
+        variant: 'danger',
+        title: `Break ${mech.name} down into Scrap — destructive`,
       },
     ],
   }
-  return <ActiveItemBandFrame view={view} />
+
+  const view: MajorModel = {
+    fam: 'crawler',
+    stampLabel,
+    overlay,
+    bays: [hull, stores, bayBay, upkeep, upgradeBay, ...(mediator ? [scrap] : [])],
+  }
+  return <MajorFrame view={view} />
 }

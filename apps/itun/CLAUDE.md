@@ -94,8 +94,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 ## State flow (`src/stores/`)
 
 - `entityStore` (pilots/mechs/crawlers/softLinks), plus `activeContainerStore`,
-  `cockpitPrefsStore`, `patternStore`, `encounterStore`, and
-  `playStateStore` (Dashboard Downtime and Dial).
+  `patternStore`, `encounterStore`, and `playStateStore` (Dashboard Downtime).
 - **Workspaces are retired.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
   nullable `gameId` and resolved through `src/lib/container.ts`, never by
@@ -128,8 +127,8 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
-  `ActionsDeck.tsx` and the Active Item bands (`MechBand.tsx`,
-  `PilotBand.tsx`, `CrawlerBand.tsx`) as one write-through
+  `ActionsDeck.tsx` and the slots (`MechSlot.tsx`, `PilotSlot.tsx`,
+  `CrawlerSlot.tsx`) as one write-through
   ([ADR-008](../../docs/ARCHITECTURE.md#adr-008),
   [ADR-021](../../docs/ARCHITECTURE.md#adr-021)).
 - Non-destructive heat-check outcomes auto-apply; destructive condition changes

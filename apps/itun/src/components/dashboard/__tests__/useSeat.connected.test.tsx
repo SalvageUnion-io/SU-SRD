@@ -95,7 +95,7 @@ afterAll(async () => {
 
 beforeEach(() => {
   // Another file may have left this device in Downtime.
-  usePlayStateStore.setState({ downtime: false, wheel: 0 })
+  usePlayStateStore.setState({ downtime: false })
   sent.length = 0
   updaters.clear()
   refusal = null

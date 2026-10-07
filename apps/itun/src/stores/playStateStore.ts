@@ -9,9 +9,8 @@
  *  - whether this device has entered Downtime, with the guided wizard's step
  *    (`dtStep`) and its per-step "Mark Complete" toggles (`dtDone`). Leaving
  *    Downtime returns to whatever the seat says;
- *  - the selected index on the rotary Dial;
- *  - the one-shot hand-off from the deck's Apply step to the band's Take
- *    Damage overlay.
+ *  - the one-shot hand-off from the deck's Apply step to the Major slot's
+ *    Take Damage overlay.
  */
 
 import { create } from 'zustand'
@@ -19,20 +18,17 @@ import { create } from 'zustand'
 type PlayState = {
   /** True while this device is in Downtime: the crawler runs the Dashboard. */
   downtime: boolean
-  /** Selected index on the rotary Dial. */
-  wheel: number
   /** Current step index in the Downtime wizard (0-based). */
   dtStep: number
   /** Per-step "Mark Complete" toggles, keyed by step index (ephemeral). */
   dtDone: Record<number, boolean>
   /** One-shot signal: the deck's Apply step armed a destructive outcome, so the
-   *  active Item band should open its Take-Damage overlay (pre-armed) for the
-   *  player to confirm. Consumed (reset) by the band once it opens the overlay. */
+   *  Major slot should open its Take-Damage overlay (pre-armed) for the
+   *  player to confirm. Consumed (reset) by the Major once it opens the overlay. */
   damagePromptArmed: boolean
-  setWheel: (wheel: number) => void
-  /** Arm the destructive-outcome hand-off (deck Apply → active band overlay). */
+  /** Arm the destructive-outcome hand-off (deck Apply → the Major's overlay). */
   armDamagePrompt: () => void
-  /** Consume the destructive-outcome signal (band opened its overlay). */
+  /** Consume the destructive-outcome signal (the Major opened its overlay). */
   consumeDamagePrompt: () => void
   /** Enter Downtime at the wizard's first step. */
   enterDowntime: () => void
@@ -46,11 +42,9 @@ type PlayState = {
 
 export const usePlayStateStore = create<PlayState>((set) => ({
   downtime: false,
-  wheel: 0,
   dtStep: 0,
   dtDone: {},
   damagePromptArmed: false,
-  setWheel: (wheel) => set({ wheel }),
   armDamagePrompt: () => set({ damagePromptArmed: true }),
   consumeDamagePrompt: () => set({ damagePromptArmed: false }),
   enterDowntime: () => set((s) => (s.downtime ? s : { downtime: true, dtStep: 0, dtDone: {} })),

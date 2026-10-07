@@ -87,7 +87,6 @@
         "src/lib/snapshot/id.ts",
         "src/stores/entityStore.ts",
         "src/stores/activeContainerStore.ts",
-        "src/stores/cockpitPrefsStore.ts",
         "src/stores/types.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`

@@ -2,8 +2,9 @@
  * Whether the reference-search FAB (`components/shared/GlobalSearch.tsx`)
  * would cover a route's own bottom-right controls:
  *
- * - `/dashboard/*` — the Dial's ▲ ▼ ⚙ bar is the canvas's bottom-right
- *   corner, and the Dashboard carries its own SRD display.
+ * - `/dashboard/*` — the canvas never scrolls, so the button would sit over
+ *   the display's bottom-right corner for good, and the Dashboard carries
+ *   its own SRD display. (The Dial's ▲ ▼ ⚙ bar, the first reason, is gone.)
  * - `/pilots/new`, `/mechs/new`, `/crawlers/new` — the wizard's sticky
  *   Back / Next pill floats in exactly that corner.
  *

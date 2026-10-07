@@ -2,8 +2,8 @@
  * DisplayPanel — the Dashboard's main display: the ONE surface that reads
  * "forward".
  *
- * `DisplayPanel` resolves the Dial focus (+ play-state store / rules) into a
- * discriminated `DisplayContent`; `DisplayPanelFrame` renders it — the faithful
+ * `DisplayPanel` resolves the chosen `DisplayFocus` (+ play-state store /
+ * rules) into a discriminated `DisplayContent`; `DisplayPanelFrame` renders it — the faithful
  * light SRD reference document (reused ReferenceEntityCard / RollTable), the
  * Tables picker, the SRD Explorer, or the store/rules-wired Actions deck (passed
  * as a slot). Statful focuses resolve the entity's reference data and build the
@@ -16,7 +16,7 @@
 
 import type { ReferenceEntityControl } from 'component-lib'
 import { Button, ControlButtons, ReferenceEntityCard, RollTable } from 'component-lib'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -27,7 +27,6 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActionsDeck } from './ActionsDeck'
-import type { DialItem } from './dialItems'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories'
@@ -159,7 +158,7 @@ function EntityCard({
   return <ReferenceEntityCard data={data} hide={HIDE_CHOICES} controls={controls} />
 }
 
-/** What the display shows — resolved by the app from the Dial focus + store. */
+/** What the display shows — resolved by the app from the focus + store. */
 export type DisplayContent =
   | { kind: 'note'; text: string }
   | { kind: 'tables' }
@@ -197,8 +196,14 @@ export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
   }
 }
 
+/**
+ * What the display is pointed at. Until the display tabs (plan layer 6), the
+ * Dashboard's `DisplayPicker` chooses it, as the Dial used to.
+ */
+export type DisplayFocus = 'actions' | 'pilot' | 'mech' | 'crawler' | 'tables' | 'srd'
+
 type DisplayPanelProps = {
-  focus: DialItem | undefined
+  focus: DisplayFocus
   mech: Mech
   pilot: Pilot | null
   crawler: Crawler | null
@@ -212,31 +217,26 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
   const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
 
   const content = ((): DisplayContent => {
-    if (!focus) return { kind: 'note', text: 'Nothing selected.' }
-
-    if (focus.statless) {
-      if (focus.key === 'tables') return { kind: 'tables' }
-      if (focus.key === 'actions') {
-        return {
-          kind: 'slot',
-          node: (
-            <ActionsDeck
-              mech={mech}
-              pilot={pilot}
-              crawler={crawler}
-              mount={mount}
-              range={seat.seat.range}
-              onRange={seat.setRange}
-            />
-          ),
-        }
+    if (focus === 'tables') return { kind: 'tables' }
+    if (focus === 'srd') return { kind: 'srd' }
+    if (focus === 'actions') {
+      return {
+        kind: 'slot',
+        node: (
+          <ActionsDeck
+            mech={mech}
+            pilot={pilot}
+            crawler={crawler}
+            mount={mount}
+            range={seat.seat.range}
+            onRange={seat.setRange}
+          />
+        ),
       }
-      if (focus.key === 'srd') return { kind: 'srd' }
-      return { kind: 'note', text: focus.label }
     }
 
-    // Statful entity focus → its reference card + entity-level foot actions.
-    if (focus.key.startsWith('mech:')) {
+    // An entity focus → its reference card + entity-level foot actions.
+    if (focus === 'mech') {
       const chassis = resolveChassisRef(mech.chassisRef)
       const controls: ReferenceEntityControl[] = []
       if (mount === 'pilot') {
@@ -256,7 +256,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
         controls,
       }
     }
-    if (focus.key.startsWith('pilot:') && pilot) {
+    if (focus === 'pilot' && pilot) {
       const cls = SalvageUnionReference.Classes.getById(pilot.classRef) ?? null
       return {
         kind: 'entity',
@@ -265,7 +265,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
         controls: [{ key: 'sheet', href: `/sheet/pilot/${pilot.id}`, label: 'Full pilot sheet →' }],
       }
     }
-    if (focus.key.startsWith('crawler:') && crawler) {
+    if (focus === 'crawler' && crawler) {
       const crawlerRef = crawler.type ? resolveCrawlerType(crawler.type) : null
       return {
         kind: 'entity',
@@ -284,8 +284,46 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
       }
     }
 
-    return { kind: 'note', text: focus.label }
+    return { kind: 'note', text: 'Nothing to show.' }
   })()
 
   return <DisplayPanelFrame content={content} />
+}
+
+const PICKER: CSSProperties = { padding: '8px 12px 0', flex: '0 0 auto' }
+
+/** A bare fieldset: the group, without the browser's frame around it. */
+const GROUP: CSSProperties = { border: 0, margin: 0, padding: 0, minInlineSize: 0 }
+
+/**
+ * What the Dial used to do for the display, as a plain row of toggle buttons:
+ * choose what it shows. Each is a button with `aria-pressed`, not a tab — the
+ * display tabs and their keyboard model are plan layer 6, which replaces this.
+ */
+export function DisplayPicker({
+  focus,
+  options,
+  onFocus,
+}: {
+  focus: DisplayFocus
+  options: readonly { focus: DisplayFocus; label: string }[]
+  onFocus: (focus: DisplayFocus) => void
+}) {
+  return (
+    <div style={PICKER}>
+      <fieldset className="pc-deck-tabs" style={GROUP} aria-label="Display">
+        {options.map((o) => (
+          <button
+            key={o.focus}
+            type="button"
+            aria-pressed={focus === o.focus}
+            className={`pc-deck-tab${focus === o.focus ? ' is-active' : ''}`}
+            onClick={() => onFocus(o.focus)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </fieldset>
+    </div>
+  )
 }

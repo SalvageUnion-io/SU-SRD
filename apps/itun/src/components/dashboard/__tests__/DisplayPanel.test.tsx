@@ -1,6 +1,6 @@
 /**
- * Tests for DisplayPanel — the Dashboard's main display. Verifies each dial-focus
- * kind renders without throwing and reuses the real reference components:
+ * Tests for DisplayPanel — the Dashboard's main display. Verifies each focus
+ * renders without throwing and reuses the real reference components:
  * a resolvable chassis → a ReferenceEntityCard card; Tables → a RollTable;
  * unresolvable slugs → a graceful note (never a crash).
  *
@@ -14,8 +14,8 @@ import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
-import { DisplayPanel } from '../DisplayPanel'
-import type { DialItem } from '../dialItems'
+import type { DisplayFocus } from '../DisplayPanel'
+import { DisplayPanel, DisplayPicker } from '../DisplayPanel'
 import { boardedSeat } from './seatFixture'
 
 beforeAll(hydrateStores)
@@ -27,7 +27,7 @@ beforeAll(async () => {
   if (first?.id) chassisSlug = first.id
 })
 
-function renderDV(focus: DialItem | undefined, mechChassis = chassisSlug) {
+function renderDV(focus: DisplayFocus, mechChassis = chassisSlug) {
   const mech = mechFixture({ id: 'm1', name: 'Rig', chassisRef: mechChassis })
   const crawler = crawlerFixture({ id: 'c1', name: 'Hauler', techLevel: '3' })
   return render(
@@ -46,14 +46,7 @@ function renderDV(focus: DialItem | undefined, mechChassis = chassisSlug) {
 
 describe('DisplayPanel', () => {
   test('mech focus → a resolvable chassis renders a reference card', () => {
-    const focus: DialItem = {
-      key: 'mech:m1',
-      kind: 'mech',
-      statless: false,
-      label: 'Mech · Rig',
-      tone: 'mech',
-      gauges: [],
-    }
+    const focus: DisplayFocus = 'mech'
     const { container } = renderDV(focus)
     // The reference card renders real content, not the fallback note.
     expect(container.querySelector('.pc-display-note')).toBeNull()
@@ -61,14 +54,7 @@ describe('DisplayPanel', () => {
   })
 
   test('mech focus → an unresolvable chassis falls back to a note, no throw', () => {
-    const focus: DialItem = {
-      key: 'mech:m1',
-      kind: 'mech',
-      statless: false,
-      label: 'Mech · Rig',
-      tone: 'mech',
-      gauges: [],
-    }
+    const focus: DisplayFocus = 'mech'
     const { container } = renderDV(focus, 'definitely-not-a-chassis')
     expect(container.querySelector('.pc-entity-fallback')?.textContent).toContain(
       'not in the reference set'
@@ -76,27 +62,13 @@ describe('DisplayPanel', () => {
   })
 
   test('mech focus → foot carries a "Full mech sheet" link (D5)', () => {
-    const focus: DialItem = {
-      key: 'mech:m1',
-      kind: 'mech',
-      statless: false,
-      label: 'Mech · Rig',
-      tone: 'mech',
-      gauges: [],
-    }
+    const focus: DisplayFocus = 'mech'
     const { container } = renderDV(focus)
     expect(container.querySelector('a[href="/sheet/mech/m1"]')).toBeTruthy()
   })
 
   test('crawler focus → foot carries Enter Downtime + a crawler sheet link (D5)', () => {
-    const focus: DialItem = {
-      key: 'crawler:c1',
-      kind: 'crawler',
-      statless: false,
-      label: 'Crawler · Hauler',
-      tone: 'crawler',
-      gauges: [],
-    }
+    const focus: DisplayFocus = 'crawler'
     const { container } = renderDV(focus)
     expect(container.querySelector('a[href="/sheet/crawler/c1"]')).toBeTruthy()
     const downtime = [...container.querySelectorAll('button')].some((b) =>
@@ -105,13 +77,7 @@ describe('DisplayPanel', () => {
     expect(downtime).toBe(true)
   })
 
-  const tablesFocus: DialItem = {
-    key: 'tables',
-    kind: 'tables',
-    statless: true,
-    label: 'Tables',
-    sublabel: 'roll',
-  }
+  const tablesFocus: DisplayFocus = 'tables'
 
   test('Tables focus → a RollTable whose title is the picker trigger (D3)', () => {
     const { container } = renderDV(tablesFocus)
@@ -180,13 +146,7 @@ describe('DisplayPanel', () => {
   })
 
   test('Actions focus → the interactive ActionsDeck (Phase 5)', () => {
-    const focus: DialItem = {
-      key: 'actions',
-      kind: 'actions',
-      statless: true,
-      label: 'Actions',
-      sublabel: 'deck',
-    }
+    const focus: DisplayFocus = 'actions'
     const { container } = renderDV(focus)
     // The deck renders (list or empty state), never the generic placeholder note.
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
@@ -195,13 +155,7 @@ describe('DisplayPanel', () => {
   })
 
   test('SRD focus → the interactive SrdExplorer (D4)', () => {
-    const focus: DialItem = {
-      key: 'srd',
-      kind: 'srd',
-      statless: true,
-      label: 'SRD Explorer',
-      sublabel: 'reference browser',
-    }
+    const focus: DisplayFocus = 'srd'
     const { container } = renderDV(focus)
     // The explorer renders its search + the SRD catalog, never the generic
     // placeholder. The catalog's exact contents are component-lib's business
@@ -211,9 +165,30 @@ describe('DisplayPanel', () => {
     expect(container.querySelectorAll('.pc-srd-catalog-grid button').length).toBeGreaterThan(0)
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })
+})
 
-  test('no focus → graceful empty note', () => {
-    const { container } = renderDV(undefined)
-    expect(container.querySelector('.pc-display-note')?.textContent).toContain('Nothing selected')
+describe('DisplayPicker', () => {
+  const options = [
+    { focus: 'actions', label: 'Actions' },
+    { focus: 'tables', label: 'Tables' },
+  ] as const
+
+  test('marks the shown view pressed, and asks for another on click', () => {
+    const asked: DisplayFocus[] = []
+    const { getByRole } = render(
+      <DisplayPicker focus="actions" options={options} onFocus={(f) => asked.push(f)} />
+    )
+    expect(getByRole('button', { name: 'Actions' }).getAttribute('aria-pressed')).toBe('true')
+    expect(getByRole('button', { name: 'Tables' }).getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(getByRole('button', { name: 'Tables' }))
+    expect(asked).toEqual(['tables'])
+  })
+
+  test('is a group of toggle buttons, not a tablist without a keyboard model', () => {
+    const { container } = render(
+      <DisplayPicker focus="actions" options={options} onFocus={() => {}} />
+    )
+    expect(container.querySelector('fieldset')?.getAttribute('aria-label')).toBe('Display')
+    expect(container.querySelector('[role="tablist"], [role="tab"], [role="listbox"]')).toBeNull()
   })
 })

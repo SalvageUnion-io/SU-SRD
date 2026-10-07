@@ -510,7 +510,7 @@ and returns `meltdown: true` to confirm; Critical rolls and Eject are explicit
 steps. An item marked Destroyed applies at once with an Undo toast
 (`sheet/destroyedUndoToast.ts`).
 
-**Heat:** `MechBand.tsx` and `ActionsDeck.tsx` call `heatCheckOncePatch()` /
+**Heat:** `MechSlot.tsx` and `ActionsDeck.tsx` call `heatCheckOncePatch()` /
 `pushPatch()` and record `lastHeatCheck`. Auto: a pass, `20`, and `11–19`
 (`shutdown` + `vulnerable`, SP damage equal to heat). Player-driven: `6–10` /
 `2–5` set `requiresPlayerChoice` and the player marks the item's `StatusBadge`
@@ -528,11 +528,11 @@ overload flags, `lastHeatCheck`, `maxSpModifier`, `maxEpModifier`,
 are the package's `lib/rules/derivedStats.ts`.
 
 **Controls:** the Dashboard (`src/components/dashboard/`) has damage and
-Criticals (`MechBand.tsx`, `PilotBand.tsx`: `mechDamagePatch`,
+Criticals (`MechSlot.tsx`, `PilotSlot.tsx`: `mechDamagePatch`,
 `critDamagePatch`, `pilotDamagePatch`, `critInjuryPatch`), the reactor,
 activation and `performCoreRoll`, Downtime (`DowntimeWizard.tsx`;
 `mechBayStatus` / `medBayStatus` from `lib/rules/downtime.ts`), and salvage,
-crafting and scrapping (`CrawlerBand.tsx`, `dashboardEconomy.ts` →
+crafting and scrapping (`CrawlerSlot.tsx`, `dashboardEconomy.ts` →
 `lib/rules/salvage.ts`, `lib/rules/crafting.ts`, `lib/rules/scrapMech.ts`).
 The Live Sheet has the crawler economy (`lib/rules/crawlerEconomy.ts`, mounted
 by `SheetCrawler.tsx`) and

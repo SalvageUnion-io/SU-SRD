@@ -2,7 +2,7 @@
  * Unit tests for playStateStore — the Dashboard's remaining per-device state.
  *
  * Mount, range and effects live on the seat now (`useSeat`); what is left is
- * Downtime on this device, the Dial index and the damage hand-off. This store
+ * Downtime on this device and the damage hand-off. This store
  * is intentionally non-persisted; there is no IndexedDB behaviour to test.
  */
 
@@ -11,18 +11,11 @@ import { usePlayStateStore } from '../playStateStore'
 
 describe('playStateStore', () => {
   beforeEach(() => {
-    usePlayStateStore.setState({ downtime: false, wheel: 0, dtStep: 0, dtDone: {} })
+    usePlayStateStore.setState({ downtime: false, dtStep: 0, dtDone: {} })
   })
 
-  test('defaults to out of Downtime, dial at 0', () => {
-    const s = usePlayStateStore.getState()
-    expect(s.downtime).toBe(false)
-    expect(s.wheel).toBe(0)
-  })
-
-  test('setWheel moves the dial index', () => {
-    usePlayStateStore.getState().setWheel(3)
-    expect(usePlayStateStore.getState().wheel).toBe(3)
+  test('defaults to out of Downtime', () => {
+    expect(usePlayStateStore.getState().downtime).toBe(false)
   })
 
   test('enterDowntime enters it and resets the wizard', () => {
@@ -55,11 +48,11 @@ describe('playStateStore', () => {
     expect(usePlayStateStore.getState().dtDone[2]).toBe(false)
   })
 
-  test('armDamagePrompt / consumeDamagePrompt is a one-shot hand-off (deck Apply → band)', () => {
+  test('armDamagePrompt / consumeDamagePrompt is a one-shot hand-off (deck Apply → the Major)', () => {
     expect(usePlayStateStore.getState().damagePromptArmed).toBe(false)
     usePlayStateStore.getState().armDamagePrompt()
     expect(usePlayStateStore.getState().damagePromptArmed).toBe(true)
-    // The active band consumes it once it opens its Take-Damage overlay.
+    // The Major consumes it once it opens its Take-Damage overlay.
     usePlayStateStore.getState().consumeDamagePrompt()
     expect(usePlayStateStore.getState().damagePromptArmed).toBe(false)
   })

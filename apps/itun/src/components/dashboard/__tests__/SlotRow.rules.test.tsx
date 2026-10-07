@@ -1,5 +1,5 @@
 /**
- * Tests for the Phase-5 rules buttons on ActiveItemBand — a stub store captures
+ * Tests for the Phase-5 rules buttons in the Major slot — a stub store captures
  * every `update(...)` so we can assert the exact patch each handler writes
  * (deterministic controls only: Vent, Shutdown toggle, and self-declared SP/HP
  * damage; the d20-driven Push / Heat Check / Critical rolls are exercised in
@@ -12,9 +12,17 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import type { PlayStore } from '../ActiveItemBand'
-import { ActiveItemBand } from '../ActiveItemBand'
+import type { PlayStore } from '../SlotRow'
+import { SlotRow } from '../SlotRow'
 import { boardedSeat, fakeSeat } from './seatFixture'
+
+/** The slot row's other inputs, which these tests don't vary. */
+const ROW = {
+  pilot: pilotFixture({ id: 'p-row', name: 'Vesh' }),
+  crawler: null,
+  mediator: false,
+  onExpand: () => {},
+}
 
 const mech = mechFixture({
   id: 'm1',
@@ -46,14 +54,15 @@ async function clickAndSettle(el: HTMLElement): Promise<void> {
   })
 }
 
-describe('ActiveItemBand rules buttons', () => {
+describe('Major slot rules buttons', () => {
   test('Vent writes Heat 0 + Vulnerable (no auto-shutdown; Vent ≠ Shutdown, plan §5.1)', async () => {
     const { store, calls } = stubStore([mech])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={mech}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(mech.id).handle}
         store={store}
       />
@@ -66,10 +75,11 @@ describe('ActiveItemBand rules buttons', () => {
   test('Shutdn toggles the shutdown flag', () => {
     const { store, calls } = stubStore([mech])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={mech}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(mech.id).handle}
         store={store}
       />
@@ -81,10 +91,11 @@ describe('ActiveItemBand rules buttons', () => {
   test('Take Dmg applies the entered SP damage', async () => {
     const { store, calls } = stubStore([mech])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={mech}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(mech.id).handle}
         store={store}
       />
@@ -100,10 +111,12 @@ describe('ActiveItemBand rules buttons', () => {
   test('pilot Take Dmg applies HP damage on foot', async () => {
     const { store, calls } = stubStore([mech, pilot])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={mech}
         pilot={pilot}
         mount="pilot"
+        boarded={false}
         seat={fakeSeat().handle}
         store={store}
       />
@@ -117,7 +130,15 @@ describe('ActiveItemBand rules buttons', () => {
     const { store } = stubStore([mech, pilot])
     const seat = boardedSeat(mech.id)
     render(
-      <ActiveItemBand mech={mech} pilot={pilot} mount="mech" seat={seat.handle} store={store} />
+      <SlotRow
+        {...ROW}
+        mech={mech}
+        pilot={pilot}
+        mount="mech"
+        boarded
+        seat={seat.handle}
+        store={store}
+      />
     )
     fireEvent.click(screen.getByText('Eject'))
     // Nothing reaches the seat until confirmed.
@@ -132,7 +153,15 @@ describe('ActiveItemBand rules buttons', () => {
     const { store } = stubStore([mech, squeezer])
     const off = boardedSeat(mech.id)
     const { unmount } = render(
-      <ActiveItemBand mech={mech} pilot={squeezer} mount="mech" seat={off.handle} store={store} />
+      <SlotRow
+        {...ROW}
+        mech={mech}
+        pilot={squeezer}
+        mount="mech"
+        boarded
+        seat={off.handle}
+        store={store}
+      />
     )
     fireEvent.click(screen.getByText('○ Squeeze it in'))
     expect(off.calls).toEqual([{ write: 'toggleEffect', args: ['Squeeze it in'] }])
@@ -143,7 +172,15 @@ describe('ActiveItemBand rules buttons', () => {
       activeEffects: ['Squeeze it in'],
     })
     render(
-      <ActiveItemBand mech={mech} pilot={squeezer} mount="mech" seat={on.handle} store={store} />
+      <SlotRow
+        {...ROW}
+        mech={mech}
+        pilot={squeezer}
+        mount="mech"
+        boarded
+        seat={on.handle}
+        store={store}
+      />
     )
     expect(screen.getByText('● Squeeze it in')).toBeTruthy()
   })
@@ -167,10 +204,11 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
     const blocked = { ...hotMech, currentHeat: 3 } // 3 + 2 > 4
     const { store, calls } = stubStore([blocked])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={blocked}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(blocked.id).handle}
         store={store}
       />
@@ -191,10 +229,11 @@ describe('blocked controls teach the rule (F6, ADR-021)', () => {
     const ok = { ...hotMech, currentHeat: 0 } // 0 + 2 <= 4
     const { store, calls } = stubStore([ok])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={ok}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(ok.id).handle}
         store={store}
       />

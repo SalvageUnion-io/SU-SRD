@@ -54,7 +54,6 @@ import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
-import type { PlayStore } from './ActiveItemBand'
 import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
 import {
   actionReachable,
@@ -72,6 +71,7 @@ import {
   TIMING_TABS,
   tabMatchesAction,
 } from './dashboardRules'
+import type { PlayStore } from './SlotRow'
 import type { MountState } from './useSeat'
 
 /**
@@ -528,7 +528,7 @@ export function ActionsDeck({
       // An unrecorded live stat means UNSPENT, not empty — a pilot who has never
       // spent AP is at full AP. Defaulting to 0 here banked the spend against an
       // empty pool and wrote AP 0 on the first activation. The stored value stays
-      // authoritative when present (same rule as ActiveItemBand's damage write):
+      // authoritative when present (same rule as the Mech Major's damage write):
       // never clamp it here, since an unresolved ref makes the max 0.
       const patch = pilotActivationPatch({
         apCost: economy.epCost,
