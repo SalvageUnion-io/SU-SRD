@@ -2,6 +2,15 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.11.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.11.0...srd-v2.11.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **a11y:** pick card-band text by contrast; scan ITUN and phones with axe [audit-3 P12] ([#1082](https://github.com/SalvageUnion-io/SU-SRD/issues/1082)) ([70e88af](https://github.com/SalvageUnion-io/SU-SRD/commit/70e88af5e9b7bb64af0c2b5e778089a5cca324e8))
+* **srd:** AA chrome text and honest head metadata [audit-3 P4] ([#1074](https://github.com/SalvageUnion-io/SU-SRD/issues/1074)) ([ca9324a](https://github.com/SalvageUnion-io/SU-SRD/commit/ca9324abe3c6ee1d8f8b9261be86136f2cfb3a21))
+* **srd:** ship listing links; cache the search index [audit-3 P7] ([#1077](https://github.com/SalvageUnion-io/SU-SRD/issues/1077)) ([113be67](https://github.com/SalvageUnion-io/SU-SRD/commit/113be6741fcf69976a7ab5522a787388e6074d51))
+
 ## [2.11.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v2.10.1...srd-v2.11.0) (2026-10-06)
 
 
