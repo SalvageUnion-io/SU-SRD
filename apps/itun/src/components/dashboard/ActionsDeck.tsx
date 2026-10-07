@@ -15,7 +15,7 @@
  *   Roll      → the Core Mechanic d20 + its band (component state, never stored)
  *   Push      → reroll the d20, +2 Heat, forcing a Heat Check (mech deck only)
  *   Apply     → commit the rolled outcome (Cascade Failure is routed to the
- *               Active Item band, never auto-written)
+ *               Mech's Major slot, never auto-written)
  *
  * On foot (`mount === 'pilot'`) the deck is the pilot's abilities + equipment on
  * the AP economy. Boarded, it is BOTH: the mech's chassis + systems + modules on
@@ -567,7 +567,7 @@ export function ActionsDeck({
   /**
    * Apply commits the rolled outcome (ADR-007). Non-destructive bands auto-commit;
    * a Cascade Failure is destructive — it is NOT auto-written; the deck ARMS the
-   * active Item band to open its Take-Damage overlay so the player confirms there.
+   * Mech's Major slot to open its Take-Damage overlay so the player confirms there.
    */
   function doApply(result: CoreRollResult) {
     if (isDestructiveOutcome(result.band)) {

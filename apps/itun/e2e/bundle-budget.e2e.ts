@@ -191,7 +191,7 @@ test.describe('bundle-size budget', () => {
     // Same unknown-id probe as the sheet test. This run is signed out, so
     // DashboardGate renders its "Sign in to play" shell, but only after the
     // route chunk has loaded, and that chunk imports the whole Dashboard
-    // (instruments, dial, display) statically. The byte count is the route's
+    // (instruments, slot row, display) statically. The byte count is the route's
     // true cost.
     const CEILING = 2_370_000
     const totals = await captureJsTotals(page, '/dashboard/budget-probe')

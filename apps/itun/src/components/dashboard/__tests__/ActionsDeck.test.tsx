@@ -312,7 +312,7 @@ describe('ActionsDeck', () => {
     const routed = container.querySelector('.pc-deck-apply-route')
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a
-    // destructive band is routed to the Active Item band, never auto-applied).
+    // destructive band is routed to the Mech's Major slot, never auto-applied).
     expect(calls).toHaveLength(0)
   })
 

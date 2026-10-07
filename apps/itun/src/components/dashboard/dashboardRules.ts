@@ -523,7 +523,7 @@ export function economyForActivation(
 /**
  * Classify a rolled outcome for the Apply step (ADR-007). A Cascade Failure is
  * the destructive band — its severe consequence must NEVER be auto-written; the
- * caller routes it to the Active Item band's player-confirmed controls (Push /
+ * caller routes it to the Mech Major slot's player-confirmed controls (Push /
  * Take Dmg / Critical). Every other band is non-destructive and auto-commits.
  */
 export function isDestructiveOutcome(band: CoreRollBand): boolean {
