@@ -3478,15 +3478,14 @@ no owner, read by every member, edited only by the table runner
 
 #### 5a. Setting the table up: who raises the crawler, and when a Game takes crew
 
-Communal-to-**edit** is not free-to-**create**, and the crawler is where the two
-come apart:
+Communal is not free-to-**create**:
 
 - **Raising and scrapping a crawler is the table runner's act** — the Mediator,
   or the Organizer while a Game has no Mediator (the same narrow fallback §3
   already grants for assignment, and for the same reason: a Game is created with
   `mediator: false` on its only membership, so a Mediator-strict rule would make
-  every new Game an unreachable state). Filling the crawler's fields stays
-  everyone's, exactly as §5 says.
+  every new Game an unreachable state). So is filling its fields (§5, as
+  amended by [ADR-038](#adr-038) §5).
 - ~~**A Game takes a player's pilots and mechs once it has a crawler.**~~
   **Amended by [ADR-037](#adr-037):** any member may bring
   their pilots and mechs into any Game they belong to, crawler or not. The
@@ -3584,9 +3583,9 @@ carries the same two container columns as `pilots` and `mechs`.
 
 **Communal is unchanged.** It is now written as `ownerId: null` on a row whose
 `gameId` is set — the same fact, stated in a column instead of by a column's
-absence. Any member may still edit the crawler, conflicting writes still resolve
-by field-level merge, and raising or scrapping one inside a Game is still the
-table runner's act under §5a.
+absence. Conflicting writes still resolve by field-level merge, and raising,
+scrapping and (since [ADR-038](#adr-038) §5) editing one inside a Game are the
+table runner's acts.
 
 What the amendment adds is the third row of §2's ownership table — `gameId:
 null` with an owner, *on the shelf* — which the crawler was the one entity
