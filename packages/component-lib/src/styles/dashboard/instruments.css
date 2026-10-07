@@ -132,7 +132,9 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-micro);
   line-height: 1;
-  color: var(--color-ink-50);
+  /* ink-75, not ink-50: ink-50 on band-cream is 3.04:1, under AA's 4.5:1 for
+     text this small. */
+  color: var(--color-ink-75);
 }
 .pc-bay-gauges {
   display: flex;
