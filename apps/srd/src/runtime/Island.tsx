@@ -43,7 +43,8 @@ export type IslandProps = {
    */
   ssr?: boolean
   /**
-   * The island element itself, rendered into the placeholder only when
+   * The server markup — usually the island element itself (a page may pass a
+   * static stand-in instead) — rendered into the placeholder only when
    * `ssr` is true. Passing it as children (rather than looking the component
    * up in a server-side registry) keeps the SSR module graph explicit: a page
    * that wants server markup imports the component, a page that does not

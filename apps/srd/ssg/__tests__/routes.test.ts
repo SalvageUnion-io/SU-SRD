@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { getModel } from 'salvageunion-reference'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
 import type { BuildAssets } from '../document'
 import { outputPathFor } from '../outputPath'
@@ -40,6 +41,24 @@ describe('route registry', () => {
   it.each(routes.map((r) => r.pattern))('renders the first %s page to a document', (pattern) => {
     const first = resolved.find((r) => r.pattern === pattern)?.pages[0]
     expect(first?.render(ASSETS)).toStartWith('<!doctype html>')
+  })
+
+  it('server-renders a /schema/<id>/ listing as links, without inlining its entities', () => {
+    const listings = resolved.find((r) => r.pattern === '/schema/[schemaId]')?.pages ?? []
+    expect(listings.length).toBeGreaterThan(0)
+    for (const listing of listings) {
+      const schemaId = listing.route.split('/')[2] ?? ''
+      const entities = getModel(schemaId)?.all() ?? []
+      const html = listing.render(ASSETS)
+      const props = html.match(
+        /<script type="application\/json" data-island-props>(.*?)<\/script>/s
+      )
+      // The island reads its entities from the ORM; inlined, they were up to 162 KB.
+      expect(props?.[1]).toBeString()
+      expect(props?.[1]?.length ?? 0).toBeLessThan(4096)
+      const links = html.match(new RegExp(`href="/schema/${schemaId}/item/`, 'g')) ?? []
+      expect(links.length).toBeGreaterThanOrEqual(entities.length)
+    }
   })
 
   it('keeps every noindexed page out of the sitemap', () => {

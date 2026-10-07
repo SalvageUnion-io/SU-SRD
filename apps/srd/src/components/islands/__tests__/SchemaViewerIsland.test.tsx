@@ -33,12 +33,9 @@ describe('SchemaViewerIsland', () => {
     // FilterRow renders a visible <span> label — old code used aria-label (not visible text)
     // Verifies FilterRow is used rather than the old manual div+role="group" pattern
     const firstSchema = required(entitySchemas[0], 'first entity schema')
-    const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
-    const entities = model.all()
 
     const { container } = render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId={firstSchema.id}
         techLevels={[1, 2, 3]}
         sources={['Core', 'Rig']}
@@ -63,7 +60,6 @@ describe('SchemaViewerIsland', () => {
     it(`renders all ${entities.length} entities for "${schema.displayName}" (${schema.id})`, () => {
       const { container } = render(
         <SchemaViewerIsland
-          initialData={entities}
           schemaId={schema.id}
           techLevels={getUniqueTechLevels(entities)}
           sources={getUniqueSources(entities)}
@@ -77,16 +73,9 @@ describe('SchemaViewerIsland', () => {
 
   it('renders filter buttons when multiple tech levels exist', () => {
     const firstSchema = required(entitySchemas[0], 'first entity schema')
-    const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
-    const entities = model.all()
 
     const { container } = render(
-      <SchemaViewerIsland
-        initialData={entities}
-        schemaId={firstSchema.id}
-        techLevels={[1, 2, 3]}
-        sources={['Core']}
-      />
+      <SchemaViewerIsland schemaId={firstSchema.id} techLevels={[1, 2, 3]} sources={['Core']} />
     )
 
     const filterButtons = container.querySelectorAll('button[aria-pressed]')
@@ -99,7 +88,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="systems"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -121,7 +109,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="systems"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -151,7 +138,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="systems"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -177,7 +163,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId={firstSchema.id}
         techLevels={[1, 2, 3]}
         sources={['Core', 'Rig', 'Nope']}
@@ -207,7 +192,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="systems"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -241,7 +225,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="systems"
         techLevels={techLevels}
         sources={getUniqueSources(entities)}
@@ -261,7 +244,6 @@ describe('SchemaViewerIsland', () => {
 
     const { container } = render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="abilities"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -282,7 +264,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="abilities"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -310,7 +291,6 @@ describe('SchemaViewerIsland', () => {
 
     render(
       <SchemaViewerIsland
-        initialData={entities}
         schemaId="abilities"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
@@ -337,7 +317,6 @@ describe('SchemaViewerIsland', () => {
     try {
       render(
         <SchemaViewerIsland
-          initialData={entities}
           schemaId="systems"
           techLevels={getUniqueTechLevels(entities)}
           sources={getUniqueSources(entities)}
