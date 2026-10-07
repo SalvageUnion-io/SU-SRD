@@ -55,7 +55,7 @@ JSON API: `apps/srd/src/endpoints/schemaJson.ts`, `schemaDefinitionJson.ts`,
   `./schema-definitions` (`getJsonSchemaDefinition`) keeps the ~783 KB JSON
   Schema corpus off the barrel; only srd's `/schema/[id].schema.json` endpoint
   imports it. `./testing` is test-only: `entityFixture(schema, fields)` and
-  `malformed<T>(value)`, never `as unknown as SURef*`.
+  `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` is the JSON.
 - **The barrel is an explicit list.** `lib/index.ts` and `lib/rules/index.ts`
   name each export that has an outside consumer; no `export *`, no Zod schemas.
   `lib/index.ts` is the API's source of truth: 27 model accessors, `.get` /
@@ -68,10 +68,10 @@ JSON API: `apps/srd/src/endpoints/schemaJson.ts`, `schemaDefinitionJson.ts`,
   is generated from `lib/schemas/`: edit those, then `bun run build:package`.
 - **Lazy loading.** One stable `LazyModel<T>` per schema;
   `preload('all' | ids[])` dynamic-imports in parallel and installs the backing
-  model (`_install()`); idempotent; `isLoaded(id)`. Access before load throws
-  `Schema "chassis" not loaded`; an unknown id throws `No loader found for
-  schema ID`; valid ids are `dataLoaders` in
-  `lib/generated/modelFactoryRegistry.generated.ts`. Loads are trusted: CI
+  model (`_install()`); idempotent; `isLoaded(id)`. Access before load, or an
+  id not in `dataLoaders` (`lib/generated/modelFactoryRegistry.generated.ts`),
+  throws. Convex has no dynamic `import()`, so it `install()`s imported files
+  instead. Loads are trusted: CI
   validates every file and `lib/dataCanonical.test.ts` proves the parse is the
   identity, so no runtime module imports Zod (`lib/loadPathBundle.test.ts`).
 - **Reference strings** are `"schemaId::entityId"` (ids are UUIDs except
