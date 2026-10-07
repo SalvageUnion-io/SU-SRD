@@ -160,7 +160,8 @@ who ejected and nothing else records it.
 - **Entry point:** Launch Dashboard at the top of the Game hub
   (`LaunchDashboard.tsx` in `GameHub.tsx`, #1103), for players and the
   Mediator alike, shown only when the Game has a Mediator. Its dialog asks
-  only for the pilot, pre-selecting one you own. It replaced the roster's
+  only for the pilot, from those this browser holds (the gate opens no
+  other), pre-selecting one you own. It replaced the roster's
   per-row Play button and the shelf sheets' "Play in a Game" hint, which
   themselves replaced the mech-row Dashboard button. The `DashboardChooser`
   wizard and its mounts in `Roster.tsx`, `SheetPilot.tsx` and `SheetMech.tsx`

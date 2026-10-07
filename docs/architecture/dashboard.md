@@ -215,8 +215,11 @@ Dashboard** at the top of the Game hub, the page `/` shows once a Game is
 picked (`LaunchDashboard.tsx`, mounted by `GameHub.tsx`). Players and the
 Mediator see it alike, only while the Game has a Mediator; without one the hub
 says the Dashboard opens once it has one. It opens a dialog whose one choice is
-the pilot: the Game's pilots, yours first, with your first one pre-selected. A
-viewer who owns none picks one, and **Launch** goes to `/dashboard/$pilotId`.
+the pilot: the Game's pilots this browser holds, yours first, with your first
+one pre-selected. A viewer who owns none of them picks one, and **Launch** goes
+to `/dashboard/$pilotId`. The gate reads the pilot from the local store, which
+never holds a crewmate's pilot, so neither it nor a pre-gen made in another
+browser is offered; a viewer holding none is told so.
 No roster row, live sheet or Games-menu item launches it. The route keys on
 the pilot; its mech is the one its seat has boarded (§2), or on foot the one
 assigned to it (`mech-to-pilot`), and its crawler its own (`pilot-to-crawler`).
@@ -227,8 +230,8 @@ old mech-keyed URL redirects to the mech's pilot.
 session, a shelf pilot, a non-member and a Game with no Mediator each get a
 shell saying what is missing, and an open Dashboard falls back to the shell if
 the Game loses its Mediator. Disconnected is not a refusal; the Dashboard stays
-open read-only. A crewmate's pilot is the gate's to admit, and the server
-refuses every write the viewer may not make.
+open read-only. The gate does not open a crewmate's pilot: it is not in this
+browser, so it gets "Pilot not found". Their read-only sheet is on the roster.
 
 ## 9. Testing
 
