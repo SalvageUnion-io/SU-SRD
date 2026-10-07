@@ -443,16 +443,23 @@ function trackedMarkdown(root: string): string[] {
 /** Inline `[text](target)` and reference-definition `[label]: target` links. */
 const LINK_RE = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)|^\s*\[[^\]]+\]:\s*<?([^\s>]+)>?/gm
 
+/** `text` with every `<…>` tag removed, repeated until none re-forms (`<a<b>>`). */
+function stripTags(text: string): string {
+  let out = text
+  for (let prev = ''; prev !== out; ) {
+    prev = out
+    out = out.replace(/<[^>]+>/g, '')
+  }
+  return out
+}
+
 /**
  * A heading's anchor as GitHub renders it: link and code markup reduced to
  * their text, lowercased, every character but a letter, digit, space, `-` or
  * `_` dropped, and each space turned into `-` (so "A — B" is `a--b`).
  */
 export function headingSlug(heading: string): string {
-  return heading
-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/`([^`]*)`/g, '$1')
-    .replace(/<[^>]+>/g, '')
+  return stripTags(heading.replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/`([^`]*)`/g, '$1'))
     .replace(/[*~]/g, '')
     .replace(/(^|\s)_+|_+(?=\s|$)/g, '$1')
     .toLowerCase()
