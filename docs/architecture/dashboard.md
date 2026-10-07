@@ -49,12 +49,17 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
   entity's reference card, the tables roller, or the SRD explorer; a deck
   action enters its resolve flow.
 
-**Mount state** is `pilot | mech | downtime`: Board takes the pilot into the
+**Mount state** is `pilot | mech | downtime`: Board takes the pilot into a
 mech, Dismount or Eject (confirm-twice) takes them out, and Downtime is
 crawler-dominant, with `DowntimeWizard` in place of the display. On foot or
 boarded, and in which mech, is the pilot's **seat** on the Game (§4.1); a
 boarded pilot runs the mech the seat names, which need not be their assigned
-one. The active
+one. Board is a split button in the Mount bay (`BoardControl`, over
+`boardMenu.ts`): the main half boards the assigned mech, and ▾ lists every
+mech on the pilot's crawler (only the viewer's own with no crawler), with
+another player's, destroyed and taken mechs disabled with the reason. An
+unclaimed spare is "Claim and board", confirmed first: `ownership.claim`, then
+the seat. Boarding never draws a `mech-to-pilot` link. The active
 family tints the whole canvas; hue means ontology, and state is a treatment
 (hatch, strike, redline), never a second hue.
 
@@ -150,8 +155,9 @@ The Dashboard opens for a pilot in a Game that has a Mediator
 from the Play button on your own pilot rows in the Game roster
 (`GameRoster.tsx`), shown only while the Game has a Mediator. The route keys on
 the pilot; its mech is the one its seat has boarded (§2), or on foot the one
-assigned to it (`mech-to-pilot`), and its crawler its own (`pilot-to-crawler`). An old mech-keyed URL redirects to the mech's
-pilot.
+assigned to it (`mech-to-pilot`), and its crawler its own (`pilot-to-crawler`).
+A pilot with no assigned mech plays on foot and boards from the Board menu. An
+old mech-keyed URL redirects to the mech's pilot.
 
 `DashboardGate` decides who may play, live, in the component: an anonymous
 session, a shelf pilot, a non-member and a Game with no Mediator each get a
@@ -176,7 +182,10 @@ No `eval` or `new Function` ([ADR-013](../ARCHITECTURE.md#adr-013)).
 The slot row and the display picker are plain buttons, the picker's with
 `aria-pressed`; neither claims a composite role it has no keyboard model for.
 The ⤢ overlay is a modal dialog: it takes focus, keeps Tab inside, closes on
-Escape and returns focus to ⤢. Every hue pairs with a non-colour cue.
+Escape and returns focus to ⤢. The Board menu is a list of buttons in the
+Major's overlay, not a `menu`: it focuses the first boardable mech, closes on
+Escape and returns focus to ▾, and each disabled mech's reason is visible text
+tied to it by `aria-describedby`. Every hue pairs with a non-colour cue.
 
 ### 10.3 Scale-to-fit vs zoom
 
