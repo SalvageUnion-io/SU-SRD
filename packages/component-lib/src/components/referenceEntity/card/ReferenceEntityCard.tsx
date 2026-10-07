@@ -233,7 +233,7 @@ function ReferenceEntityCardInner({
   // A damaged/destroyed card — or one nested under a damaged host — greys its
   // whole tone; actions and nested NPCs ghost their host's (see `resolveCardColors`).
   const isDown = status === 'damaged' || status === 'destroyed' || !!hostDown
-  const { onBandText, headerBg, headerBgColor, darkTone, frameColor, ownToneBase } =
+  const { onBandText, headerBg, headerBgColor, darkTone, onDarkText, frameColor, ownToneBase } =
     resolveCardColors({ tone, isDown, isGhosted, hostTone })
   const techLevel = getTechLevel(entity)
   // EFFECTIVE TECH LEVEL — the host's `scalingParent` level wins over the
@@ -421,7 +421,6 @@ function ReferenceEntityCardInner({
   // condition toggle (Intact/Damaged/Destroyed) is NOT here — it rides the
   // top-right frame as its own stamp-seal (`statusSealNode` below).
   const overlayControls: ReferenceEntityControl[] | undefined = controls
-  const titleTextClass = onBandText
   const header = (
     <EntityCardHeader
       title={name}
@@ -430,7 +429,7 @@ function ReferenceEntityCardInner({
       bg={headerBg}
       bgColor={headerBgColor}
       titleClass={titleClass}
-      titleTextClass={titleTextClass}
+      titleTextClass={onBandText}
       stats={effectiveHeaderStats}
       narrowStats={effectiveNarrowStats}
       rightContent={effectiveRightContent}
@@ -832,7 +831,7 @@ function ReferenceEntityCardInner({
           leading={subHeaderLeading}
           compact={compact}
           nested={depth > 0}
-          onBandText={onBandText}
+          onBandText={onDarkText}
         />
         <div
           className={cn(
@@ -1010,6 +1009,7 @@ function ReferenceEntityCardInner({
           ? (footerOverride ?? (
               <EntityCardIdentityFooter
                 bgColor={darkTone}
+                onBandText={onDarkText}
                 typeLabel={footerType}
                 source={provenance.source}
                 booklet={provenance.booklet}

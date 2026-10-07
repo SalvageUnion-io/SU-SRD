@@ -4,7 +4,11 @@ import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
-import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
+import {
+  accentDeepColor,
+  borderColorFromHeaderBg,
+  onToneText,
+} from '../referenceEntity/referenceEntityHelpers'
 import { CardControlRail } from './CardControlRail'
 import type { CardExtent, CardSize } from './displayMode'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
@@ -382,7 +386,11 @@ export function Card({
             content OR foot extras (actions/meta) to fold into the band. */}
         {!isListing && (footerContent || (footMeta && footMeta.length > 0)) && (
           <div
-            className="flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-caps-tight text-paper"
+            className={cn(
+              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-caps-tight',
+              // Ink or paper by contrast with the band actually painted.
+              onToneText(subHeaderBg)
+            )}
             // Footer is the DARKER shade (matches the sub-header + the
             // reference-entity footer), not the header tone.
             style={{ backgroundColor: subHeaderBg }}
@@ -393,7 +401,7 @@ export function Card({
                 {footMeta.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-                    <span className="font-cond text-micro font-bold uppercase leading-none tracking-caps-tight opacity-75">
+                    <span className="font-cond text-micro font-bold uppercase leading-none tracking-caps-tight">
                       {metaLabel}
                     </span>
                     <span className="font-body text-caption font-bold leading-none">{value}</span>

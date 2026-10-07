@@ -158,13 +158,13 @@ Both React apps get the built-in a11y rule group automatically — no separate p
 Enforces: `noSvgWithoutTitle`, `useAriaPropsForRole`, `noAutofocus`, `useKeyWithClickEvents`, `noStaticElementInteractions`, and more.
 
 **Automated scanning** (`tools/a11y-scan.ts`):
-Playwright + axe-core WCAG 2.1 AA scanner. CI (`build-srd`) runs it as `bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>`, scanning exactly the baseline's pages. Ad-hoc usage:
+Playwright + axe-core WCAG 2.2 AA scanner. CI (`build-srd`) runs it as `bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json --device 'Pixel 7' <base-url>`, scanning exactly the baseline's pages at desktop and as a phone; `build-itun` does the same over `tools/a11y-baseline-itun.json`. A stale entry fails the run until `--update-baseline` deletes it. Ad-hoc usage:
 
 ```bash
 bun tools/a11y-scan.ts http://localhost:4321 / /schema/chassis/ /about/
 ```
 
-Reports violations with impact level (critical/serious/moderate/minor), node examples, and help URLs. Runs Playwright's headless Chromium with `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, and `best-practice` rulesets.
+Reports violations with impact level (critical/serious/moderate/minor), node examples, and help URLs. Runs Playwright's headless Chromium with `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`, and `best-practice` rulesets.
 
 ### Landmark Structure
 
@@ -259,6 +259,14 @@ had two spellings. Values were preserved; only the names changed:
 **Key principle**: entity accent colours (mech green, crawler pink, pilot orange)
 are used as background accents or on large header text, never as small body text
 on paper.
+
+**Text on a tone band** is ink or paper, whichever contrasts more with the band
+actually painted: `onToneText` in `packages/component-lib/src/design/contrast.ts`
+resolves the band's CSS (`var(--color-*)`, `color-mix()`) to sRGB and compares
+WCAG relative luminance. Every card band uses it. `design/contrast.test.ts`
+walks every tone a card wears in the dataset (solid, ghosted, damaged) and holds
+the sub-header and footer at 4.5:1; three header tones (crawler, TL3, Nanite)
+miss 4.5:1 with either foreground, clear 3:1, and are listed there by name.
 
 ### Mobile Accessibility
 

@@ -134,10 +134,15 @@ jobs:
               - *shared
               - 'apps/itun/**'
               - 'packages/component-lib/**'
+              # the build job's axe scan and the debt it accepts
+              - 'tools/a11y-scan.ts'
+              - 'tools/a11y-baseline-itun.json'
             web:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
+              - 'tools/a11y-scan.ts'
+              - 'tools/a11y-baseline.json'
             bot:
               - *shared
               - 'apps/discord-bot/**'
@@ -278,10 +283,11 @@ jobs:
         working-directory: apps/srd
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts
 
-      # WCAG 2.1 AA on the pages in tools/a11y-baseline.json, against the
-      # dist built above. Blocks on any violation the baseline does not accept,
-      # and on a baseline entry that no longer fires. It used to run only
-      # nightly, so a regression merged green and surfaced the next morning.
+      # WCAG 2.2 AA on the pages in tools/a11y-baseline.json, against the
+      # dist built above, at desktop and as a phone. Blocks on any violation
+      # the baseline does not accept, and on a baseline entry that no longer
+      # fires. It used to run only nightly, so a regression merged green and
+      # surfaced the next morning.
       - name: Accessibility scan (axe-core)
         run: |
           set -euo pipefail
@@ -292,8 +298,8 @@ jobs:
             if curl -sfo /dev/null http://localhost:4399/; then break; fi
             sleep 1
           done
-          bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json http://localhost:4399 \
-            > a11y-report.json
+          bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json --device 'Pixel 7' \
+            http://localhost:4399 > a11y-report.json
 
       - name: Upload a11y report on failure
         if: failure()
@@ -347,6 +353,31 @@ jobs:
       - name: Run smoke + bundle-budget specs
         working-directory: apps/itun
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
+
+      # srd's scan, for ITUN: the routes in tools/a11y-baseline-itun.json, at
+      # desktop and as a phone. `--ready main` waits out the reference-data
+      # gate, whose loading screen has no <main>.
+      - name: Accessibility scan (axe-core)
+        run: |
+          set -euo pipefail
+          bun apps/itun/scripts/preview.ts --port 4398 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do
+            if curl -sfo /dev/null http://localhost:4398/; then break; fi
+            sleep 1
+          done
+          bun tools/a11y-scan.ts --baseline tools/a11y-baseline-itun.json --device 'Pixel 7' \
+            --ready main http://localhost:4398 > a11y-report.json
+
+      - name: Upload a11y report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-report-itun
+          path: a11y-report.json
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload Playwright report on failure
         if: failure()
