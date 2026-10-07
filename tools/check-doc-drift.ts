@@ -611,7 +611,7 @@ const OVER_BUDGET: Record<string, number> = {
  */
 const COLLAPSED_DOCS: Record<string, number> = {
   // ~60K of architecture plus the 39 ADRs folded in from docs/adrs/, as measured.
-  'docs/ARCHITECTURE.md': 297_035,
+  'docs/ARCHITECTURE.md': 297_245,
 }
 
 export function checkDocSizes(

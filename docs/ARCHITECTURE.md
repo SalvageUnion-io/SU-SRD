@@ -1060,7 +1060,7 @@ dated paragraph in the Status of the ADR it amends. Numbers are never reused.
 (accounts, Games, and Convex as the server of record), whose remaining Solo
 guarantee [ADR-034](#adr-034) then withdrew.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-001`
+Full text: `git show c2476d1c:docs/adrs/ADR-001-local-first-no-backend.md`
 
 ## ADR-002
 
@@ -1657,7 +1657,7 @@ and ships compiled output.
 decision (static, pre-rendered, no backend, React islands) and replaces only the
 framework: Astro gave way to the in-house generator at `apps/srd/ssg/`.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-012`
+Full text: `git show c2476d1c:docs/adrs/ADR-012-srd-astro-static.md`
 
 ## ADR-013
 
@@ -1932,7 +1932,7 @@ illegible on phones).
 Accepted, and **merged into [ADR-015](#adr-015)** as
 its Dashboard decision 1. The number is kept because code cites it.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-016`
+Full text: `git show c2476d1c:docs/adrs/ADR-016-dashboard-rotary-dial-instrument-split.md`
 
 That decision is replaced by [ADR-038](#adr-038) (Major and Minor slots).
 
@@ -1945,7 +1945,7 @@ That decision is replaced by [ADR-038](#adr-038) (Major and Minor slots).
 Accepted, and **merged into [ADR-015](#adr-015)** as
 its Dashboard decision 2. The number is kept because code cites it.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-017`
+Full text: `git show c2476d1c:docs/adrs/ADR-017-dashboard-reuse-faithful-srd-display.md`
 
 ## ADR-018
 
@@ -1956,7 +1956,7 @@ Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-017`
 Accepted, and **merged into [ADR-015](#adr-015)** as
 its Dashboard decision 3. The number is kept because code cites it.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-018`
+Full text: `git show c2476d1c:docs/adrs/ADR-018-dashboard-instrument-viewfinder-aesthetic.md`
 
 ## ADR-019
 
@@ -1967,7 +1967,7 @@ Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-018`
 Accepted, and **merged into [ADR-015](#adr-015)** as
 its Dashboard decision 4. The number is kept because code cites it.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-019`
+Full text: `git show c2476d1c:docs/adrs/ADR-019-dashboard-play-state-ephemeral.md`
 
 Its play-state decision is reversed by [ADR-038](#adr-038): play state becomes a
 per-pilot seat saved on the Game. Mount still never reaches a pilot or mech record.
@@ -1981,7 +1981,7 @@ per-pilot seat saved on the Game. Mount still never reaches a pilot or mech reco
 Accepted, and **merged into [ADR-015](#adr-015)** as
 its Dashboard decision 5. The number is kept because code cites it.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-020`
+Full text: `git show c2476d1c:docs/adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md`
 
 ## ADR-021
 
@@ -2440,7 +2440,7 @@ superseded by [ADR-028](#adr-028). The slug-keyed
 `equipmentLoadouts` this recorded became per-instance partners on both the
 pilot and the mech.
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-023`
+Full text: `git show c2476d1c:docs/adrs/ADR-023-drone-equipment-installed-loadout.md`
 
 ## ADR-024
 
@@ -2844,7 +2844,7 @@ equipment was already TL1.)
 this record's partner model (restated there under "The model") and removes its
 surface. Supersedes [ADR-023](#adr-023).
 
-Full text: `git show c2476d1c:docs/ARCHITECTURE.md#adr-027`
+Full text: `git show c2476d1c:docs/adrs/ADR-027-partners-owned-by-host.md`
 
 ## ADR-028
 

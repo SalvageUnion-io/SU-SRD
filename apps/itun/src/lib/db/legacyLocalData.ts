@@ -15,7 +15,7 @@
  * IndexedDB. So a browser that had ever held a build stayed on a second source
  * of truth for good: a durable local roster, invisible to the account, that
  * reappeared the moment its owner signed out. That is precisely the state
- * [ADR-035](../../../../docs/ARCHITECTURE.md#adr-035) exists
+ * [ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035) exists
  * to end.
  *
  * ## What it is now

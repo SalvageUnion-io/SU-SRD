@@ -31,7 +31,7 @@
  * outlive the thing that grants it. This is also why partners get no index
  * route: they are not roster citizens.
  *
- * Superseded [ADR-023](../../../../docs/ARCHITECTURE.md#adr-023),
+ * Superseded [ADR-023](../../../../../docs/ARCHITECTURE.md#adr-023),
  * whose `Pilot.equipmentLoadouts` was keyed by equipment SLUG. That collapsed
  * multiples of one partner into a single shared entry — a live bug, because
  * Mecha Packmaster grants TWO Mecha Companions and Big Brother's DronTek pattern

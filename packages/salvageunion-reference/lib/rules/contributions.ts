@@ -7,7 +7,7 @@
  * attached, so a derivation can hand the provenance panel "Beefcake +7" instead
  * of an anonymous addend.
  *
- * Pure and side-effect-free ([ADR-006](../../docs/ARCHITECTURE.md#adr-006)):
+ * Pure and side-effect-free ([ADR-006](../../../../docs/ARCHITECTURE.md#adr-006)):
  * no I/O, no ORM writes, no mutation of inputs.
  */
 
