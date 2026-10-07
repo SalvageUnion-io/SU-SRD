@@ -8,6 +8,8 @@
  * Prerequisites: the salvageunion-reference schemas used by these utilities
  * must be preloaded before the first call:
  *   SalvageUnionReference.preload(['chassis', 'systems', 'modules', 'equipment', 'crawler-tech-levels'])
+ * or, where dynamic `import()` is unavailable (Convex), installed from the
+ * imported files with `SalvageUnionReference.install({ chassis, … })`.
  *
  * Migrated from apps/itun/src/lib/rules/ — see ADR-006. Tier 1/2
  * modules (fully portable pure math) live here; Tier 3 modules (deep coupling

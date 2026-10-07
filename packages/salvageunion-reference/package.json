@@ -26,7 +26,8 @@
     "./testing": {
       "types": "./lib/testing.ts",
       "default": "./lib/testing.ts"
-    }
+    },
+    "./data/*": "./data/*"
   },
   "sideEffects": [
     "./lib/zod.ts"

@@ -74,7 +74,34 @@ async function loadSingleSchema(schemaId: string): Promise<void> {
   if (!dataLoader) throw new Error(`No loader found for schema ID: ${schemaId}`)
 
   // Trusted: the committed file IS the parsed form (lib/dataCanonical.test.ts).
-  const rawData = await dataLoader()
+  registerSchema(schemaId, await dataLoader())
+}
+
+/**
+ * Install schemas from rows the caller has already imported, synchronously.
+ * Idempotent like {@link loadSchemas}: an already-loaded schema is skipped.
+ *
+ * For a runtime that cannot run the loaders' dynamic `import()`: Convex's
+ * default runtime throws "dynamic module import unsupported", so a Convex
+ * module imports the data files statically and hands them here. The rows are
+ * trusted exactly as a loaded file is, so pass the committed files unchanged.
+ *
+ * @returns the schema ids this call installed (none when all were loaded)
+ */
+export function installSchemas(
+  data: Readonly<Partial<Record<string, readonly unknown[]>>>
+): string[] {
+  const installed: string[] = []
+  for (const [schemaId, rows] of Object.entries(data)) {
+    if (!dataLoaders[schemaId]) throw new Error(`No loader found for schema ID: ${schemaId}`)
+    if (rows === undefined || loadedSchemas.has(schemaId)) continue
+    registerSchema(schemaId, [...rows])
+    installed.push(schemaId)
+  }
+  return installed
+}
+
+function registerSchema(schemaId: string, rawData: unknown[]): void {
   const displayNameValue = schemaDisplayNames[schemaId]?.singular ?? schemaId
   const model = new BaseModel(rawData, schemaId, displayNameValue)
 
