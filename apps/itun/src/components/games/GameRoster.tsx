@@ -32,9 +32,9 @@
  * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
- * otherwise; `entities.locate` decides and `SheetView` renders it. Your own
- * pilots also have Play, to the Dashboard, while the Game has a Mediator
- * (ADR-038 §1). This is the Dashboard's only entry point.
+ * otherwise; `entities.locate` decides and `SheetView` renders it. No row
+ * launches the Dashboard: that is the hub's Launch Dashboard, above the roster
+ * (`LaunchDashboard`, ADR-038 §1).
  *
  * ## Every verb that changes who has a build asks first
  *
@@ -45,7 +45,6 @@
  * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
-import { useRouter } from '@tanstack/react-router'
 import { Badge, Button, buttonVariants, EntityRow, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -56,7 +55,6 @@ import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hook
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import {
   crawlerRows,
-  gameHasMediator,
   groupColumn,
   ownableRows,
   rosterSheetHref,
@@ -158,10 +156,6 @@ const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
-  // Probed rather than required, the way `AppLink` does:
-  // component tests render these surfaces without a RouterProvider, and a hook
-  // that throws on a missing context would make the whole screen untestable.
-  const router = useRouter({ warn: false })
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   // One confirm for every row verb; see `useRowActions`.
@@ -188,9 +182,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     members: roster,
     crawlerCount: listing?.crawlers.length ?? 0,
   })
-  // The Dashboard opens only in a Game with a Mediator (ADR-038 §1), so Play is
-  // offered only then. The route checks it again, live.
-  const mayPlay = gameHasMediator(roster)
 
   const rows: Record<RosterKind, RosterRow[]> = {
     pilot: ownableRows({
@@ -227,14 +218,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     }
   }
 
-  async function play(row: RosterRow) {
-    // Your own pilot is in this browser already — `ShelfSync` caches everything
-    // you own — so there is nothing to fetch; a pilot still on its way in has
-    // not arrived yet, and says so.
-    if (row.localId === null) throw new Error('That pilot has not reached this browser yet.')
-    await router?.navigate({ to: '/dashboard/$pilotId', params: { pilotId: row.localId } })
-  }
-
   function renderRow(row: RosterRow): ReactNode {
     return (
       <li key={row.serverId} style={ITEM}>
@@ -262,18 +245,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
           }
           actions={
             <>
-              {/* The Dashboard is keyed on the pilot, so Play is on your own
-                  pilot rows; a mech is boarded from inside it. */}
-              {row.kind === 'pilot' && row.owner?.mine === true && mayPlay && (
-                <Button
-                  variant="primary"
-                  size="mini"
-                  disabled={busy !== null}
-                  onClick={() => void run(`play-${row.serverId}`, () => play(row))}
-                >
-                  Play
-                </Button>
-              )}
               {/* Picking up is the SEAL's job, not a button's — see
                   `OwnerSeal`. Any owner may hand back, not just the table
                   runner: ADR-030 §4 makes ownership voluntary outward, and the

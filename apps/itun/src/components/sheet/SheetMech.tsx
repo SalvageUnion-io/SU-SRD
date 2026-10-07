@@ -31,7 +31,6 @@ import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
-import { PlayInGameHint } from './PlayInGameHint'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
@@ -224,17 +223,7 @@ export function SheetMech({
       back={back}
       segments={segments}
       syncStats={{ cargo: cargoUsed }}
-      actions={
-        editable ? (
-          <>
-            {/* The Dashboard is Game-only and keyed on the pilot (ADR-038 §1). */}
-            {container.kind === 'shelf' && <PlayInGameHint />}
-            {actions}
-          </>
-        ) : (
-          actions
-        )
-      }
+      actions={actions}
       renderBody={() => (
         <MechSheet
           mech={mech}
