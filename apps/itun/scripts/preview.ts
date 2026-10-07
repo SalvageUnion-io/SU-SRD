@@ -43,7 +43,8 @@
  * of soft-404s.
  *
  * This is a test convenience server. It sets no caching or security headers;
- * `public/_headers` and the Worker own those in production.
+ * `public/_headers` (caching) and the Worker (security) own those in
+ * production.
  */
 
 import type { Server } from 'bun'

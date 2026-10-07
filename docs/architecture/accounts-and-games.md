@@ -215,8 +215,8 @@ through a mutation recounts it.
 
 To run a maintenance function in production, dispatch the **Convex
 maintenance** workflow (`.github/workflows/convex-maintenance.yml`, `main`
-only); it runs the function with the repo's `CONVEX_DEPLOY_KEY`. From a machine
-with production access the same thing is:
+only); it runs the function with the `production` environment's
+`CONVEX_DEPLOY_KEY`. From a machine with production access the same thing is:
 
 ```bash
 cd apps/itun

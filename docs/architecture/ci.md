@@ -119,7 +119,7 @@ declares which areas make it relevant:
 
 - **Always**: Biome (`biome ci .` — lint, format *and* the organizeImports
   assist), `workflows` (aggregate gate, path filters, bunx pinning, Bun version,
-  Convex deploy guard), `styling` (design tokens, styling ownership, srd
+  Convex deploy guard, deploy order, production-secret environment), `styling` (design tokens, styling ownership, srd
   stylesheet entry) and `actionlint`.
 - **`actionlint`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
   each pinned to an exact version and verified against a recorded sha256 before
@@ -223,7 +223,10 @@ times out reports green.
 ## Deploy set (`deploy-cloudflare.yml`)
 
 The deploy workflow's own comments carry its guard rationale (provenance check,
-credential guards, Sentry).
+credential guards, Sentry). The four production secrets (`CLOUDFLARE_API_TOKEN`,
+`CONVEX_DEPLOY_KEY`, `SENTRY_AUTH_TOKEN`, `RELEASE_PLEASE_TOKEN`) live only in
+the `production` GitHub Environment, which admits `main` alone and has no
+reviewers; every job that reads one declares it (`workflows`' `secrets-env`).
 The part that interacts with CI:
 
 - **Shape: `plan` -> `build-srd` / `build-itun` -> `push-convex` -> `deploy-*`
@@ -312,7 +315,7 @@ A `workflow_dispatch`-only workflow that runs one allowlisted, idempotent Convex
 maintenance function (today `repairContainers` in `apps/itun/convex/maintenance.ts`)
 against production with `CONVEX_DEPLOY_KEY`. It passes `--prod` explicitly and
 refuses any key that is not `prod:` or `project:`, because a project key without
-`--prod` sends `convex run` to the dev deployment. Its `main`-only `if:` is an
-accident guard, not a boundary: a dispatch runs the workflow file from the
-dispatched ref. Adding a function means adding it to both the `choice` input and
+`--prod` sends `convex run` to the dev deployment. Its `main`-only `if:` is the
+accident guard; the boundary is the job's `environment: production`, since a
+dispatch runs the workflow file from the dispatched ref. Adding a function means adding it to both the `choice` input and
 the step's `case`, and it must be safe to re-run.

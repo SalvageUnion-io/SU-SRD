@@ -252,8 +252,10 @@ build looks identical to a working one; and even with a DSN, a `connect-src`
 that omits the ingest origin blocks every event while still looking healthy.
 [`tools/check-observability.ts`](../../tools/check-observability.ts) checks both
 halves together (`bun run check observability`, part of every `bun run check`)
-and pins the ingest host as `https://*.ingest.de.sentry.io`. **If you change the
-CSP or the Sentry region, change both in lockstep.**
+and pins the ingest host as `https://*.ingest.de.sentry.io`. Each app has one
+CSP source: srd's `apps/srd/public/_headers`, itun's
+`apps/itun/src/worker/securityHeaders.ts`. **If you change the CSP or the
+Sentry region, change both in lockstep.**
 
 **Sourcemaps.** `srd` and `itun` both upload through `@sentry/vite-plugin`,
 gated on `SENTRY_AUTH_TOKEN`, so only `deploy-cloudflare.yml` ever uploads.

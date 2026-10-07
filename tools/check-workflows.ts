@@ -2,7 +2,7 @@
 /**
  * Workflow invariants — `bun run check workflows`.
  *
- * Six properties of `.github/`, checked from one parse of every workflow and
+ * Seven properties of `.github/`, checked from one parse of every workflow and
  * composite action. They used to be five scripts, and two of them carried a
  * hand-written YAML state machine "because there is no parser in this repo" —
  * while `Bun.YAML.parse` shipped in the runtime that ran them. Each of those
@@ -42,12 +42,17 @@
  *                 skipped by design, so each must carry an explicit status
  *                 function in its `if:` — the implicit `success()` is false
  *                 whenever any ancestor was skipped.
+ *   secrets-env   every job that reads a production secret (Cloudflare, Convex,
+ *                 Sentry, the release PAT) declares `environment: production`.
+ *                 The secrets live only in that environment, which admits
+ *                 `main` alone, so a workflow copy dispatched from a branch
+ *                 cannot read one.
  *
  * Every check refuses to pass by absence: a parse that found no jobs, no
  * filter groups or no workflow files is a failure, not a clean result.
  *
  * Usage:
- *   bun tools/check-workflows.ts                     # all six
+ *   bun tools/check-workflows.ts                     # all seven
  *   bun tools/check-workflows.ts --only=pinning      # one (comma-separate for more)
  */
 
@@ -663,6 +668,75 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   }
 }
 
+// ─── secrets-env ────────────────────────────────────────────────────────────
+
+/** The secrets that can act on production. They live only in the environment. */
+export const PRODUCTION_SECRETS = [
+  'CLOUDFLARE_API_TOKEN',
+  'CONVEX_DEPLOY_KEY',
+  'SENTRY_AUTH_TOKEN',
+  'RELEASE_PLEASE_TOKEN',
+] as const
+
+export const PRODUCTION_ENV = 'production'
+
+const PRODUCTION_SECRET_REF = new RegExp(
+  `\\$\\{\\{\\s*secrets\\.(${PRODUCTION_SECRETS.join('|')})\\b`,
+  'g'
+)
+
+/** `environment: production` and `environment: { name: production }` both count. */
+function environmentOf(job: Yaml): string | undefined {
+  const env = job.environment
+  if (typeof env === 'string') return env
+  return isObject(env) && typeof env.name === 'string' ? env.name : undefined
+}
+
+/**
+ * Every job that reads a production secret declares `environment: production`.
+ *
+ * The environment admits deployments from `main` only, and the secrets are
+ * stored there rather than at repository level. A job outside it cannot read
+ * them, so an edited copy of a workflow dispatched from a branch never holds a
+ * production credential — and a job that forgets the declaration reads an empty
+ * string on `main` too, which this names before a deploy finds it.
+ */
+export function checkSecretsEnv(ctx: WorkflowContext): CheckResult {
+  const failures: string[] = []
+  const workflows = new Set<string>()
+  let readers = 0
+  for (const f of workflowsOnly(ctx)) {
+    const jobs = isObject(f.doc.jobs) ? f.doc.jobs : {}
+    for (const [id, job] of Object.entries(jobs)) {
+      if (!isObject(job)) continue
+      const names = [
+        ...new Set([...JSON.stringify(job).matchAll(PRODUCTION_SECRET_REF)].map((m) => m[1])),
+      ]
+      if (names.length === 0) continue
+      readers++
+      workflows.add(f.path)
+      if (environmentOf(job) === PRODUCTION_ENV) continue
+      failures.push(
+        `${f.path} job \`${id}\` reads secrets.${names.join(', secrets.')} without ` +
+          `\`environment: ${PRODUCTION_ENV}\` — the secret lives only in that environment, ` +
+          'which admits `main` alone. Add `environment: production` under its `runs-on:`.'
+      )
+    }
+  }
+  if (readers === 0) {
+    failures.push(
+      `no job reads ${PRODUCTION_SECRETS.join(', ')} — this would pass by doing nothing. ` +
+        'If the secrets were renamed, update PRODUCTION_SECRETS.'
+    )
+  }
+  return {
+    ok:
+      `${readers} job(s) in ${workflows.size} workflow(s) reading a production secret ` +
+      `declare environment: ${PRODUCTION_ENV}`,
+    failures,
+  }
+}
+
 // ─── runner ─────────────────────────────────────────────────────────────────
 
 export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
@@ -672,6 +746,7 @@ export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'bun-version', label: 'Bun version', run: checkBunVersion },
   { id: 'convex-guard', label: 'Convex deploy guard', run: checkConvexGuard },
   { id: 'deploy-order', label: 'deploy job order', run: checkDeployOrder },
+  { id: 'secrets-env', label: 'production secrets env', run: checkSecretsEnv },
 ]
 
 /** Read the real repo into a context. */

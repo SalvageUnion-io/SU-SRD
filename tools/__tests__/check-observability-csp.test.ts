@@ -17,10 +17,13 @@ import { dirname, join } from 'node:path'
  *
  * This is the check whose absence let a fully-built Sentry stack sit dark in
  * production: a `connect-src` missing the ingest origin blocks every event in
- * the browser while the app looks completely healthy. Each app's
- * `public/_headers` is its only CSP source, so it must exist, declare a
- * `connect-src`, and permit the Sentry origin.
+ * the browser while the app looks completely healthy. Each app has one CSP
+ * source — srd's `public/_headers`, itun's `src/worker/securityHeaders.ts`
+ * (its Worker sets the header in code) — which must declare a `connect-src`
+ * that permits the Sentry origin.
  */
+
+const ITUN_CSP_MODULE = 'apps/itun/src/worker/securityHeaders.ts'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
@@ -45,6 +48,7 @@ const CHECKED_FILES = [
   'apps/itun/wrangler.jsonc',
   'apps/itun/public/_headers',
   'apps/itun/src/worker/index.ts',
+  ITUN_CSP_MODULE,
   'apps/su-assets/wrangler.jsonc',
   'apps/su-assets/src/worker.ts',
   'apps/discord-bot/wrangler.jsonc',
@@ -108,21 +112,23 @@ describe('check-observability CSP', () => {
     expect(exitCode).toBe(0)
   })
 
-  test('fails when _headers declares no CSP at all', async () => {
+  test('fails when the CSP module no longer declares the literal', async () => {
+    // A type annotation defeats the literal match while every import still
+    // resolves — the same shape a tidy-up into a typed constant would take.
     await withFileContents(
-      'apps/itun/public/_headers',
-      (s) => s.replace(/Content-Security-Policy/g, 'X-Retired-Policy'),
+      ITUN_CSP_MODULE,
+      (s) => s.replace('export const ITUN_CSP =', 'export const ITUN_CSP: string ='),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain('declares no Content-Security-Policy')
+        expect(stderr).toContain('declares no ITUN_CSP literal')
       }
     )
   })
 
   test('a CSP that omits the Sentry origin fails', async () => {
     await withFileContents(
-      'apps/itun/public/_headers',
+      ITUN_CSP_MODULE,
       (s) => s.replace(SENTRY_HOST, 'https://example.invalid'),
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -178,10 +184,25 @@ describe('check-observability Workers static-assets headers', () => {
       async () => {
         await withFileAbsent('apps/itun/public/_headers', async () => {
           const { stderr } = await runCheck()
-          // The ASSETS rule does not fire for a config that declares no assets;
-          // the missing CSP source still fails under its own rule.
+          // The ASSETS rule does not fire for a config that declares no assets,
+          // and itun's CSP lives in its Worker module, so nothing fails for it.
           expect(stderr).not.toContain('apps/itun/public/_headers does not exist')
-          expect(stderr).toContain('no CSP source found at apps/itun/public/_headers')
+          expect(stderr).not.toContain('[itun]')
+        })
+      }
+    )
+  })
+
+  test('with no assets and no CSP module, a missing _headers still fails as no CSP source', async () => {
+    await withFileContents(
+      'apps/srd/wrangler.jsonc',
+      (s) => s.replace(/"assets"\s*:/, '"assetsDisabledForTest":'),
+      async () => {
+        await withFileAbsent('apps/srd/public/_headers', async () => {
+          const { exitCode, stderr } = await runCheck()
+          expect(exitCode).toBe(1)
+          expect(stderr).not.toContain('apps/srd/public/_headers does not exist')
+          expect(stderr).toContain('no CSP source found at apps/srd/public/_headers')
         })
       }
     )

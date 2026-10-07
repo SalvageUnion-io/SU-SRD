@@ -174,6 +174,7 @@ jobs:
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 15
     outputs:
       sha: ${{ steps.target.outputs.sha }}
@@ -310,7 +311,7 @@ jobs:
           if [ -z "$CONVEX_DEPLOY_KEY" ]; then
             echo "FATAL: production deploy with no CONVEX_DEPLOY_KEY." >&2
             echo "Refusing to ship a Solo client against an un-pushed Convex backend." >&2
-            echo "Set it in Settings > Secrets and variables > Actions." >&2
+            echo "Set it in Settings > Environments > production > Environment secrets." >&2
             exit 1
           fi
 
@@ -398,9 +399,8 @@ jobs:
             fi
           done
           if [ "$missing" = "1" ]; then
-            echo "Settings > Secrets and variables > Actions:" >&2
-            echo "  SENTRY_AUTH_TOKEN -> Secrets (it can write to the Sentry org)" >&2
-            echo "  SENTRY_ORG, SENTRY_PROJECT -> Variables (public slugs)" >&2
+            echo "  SENTRY_AUTH_TOKEN -> Settings > Environments > production (it can write to the Sentry org)" >&2
+            echo "  SENTRY_ORG, SENTRY_PROJECT -> Settings > Secrets and variables > Actions > Variables (public slugs)" >&2
             exit 1
           fi
 
@@ -417,6 +417,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true'
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -541,6 +542,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true'
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -600,6 +602,7 @@ jobs:
     needs: [plan, build-srd, build-itun]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -650,6 +653,7 @@ jobs:
     needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.assets == 'true' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -671,6 +675,7 @@ jobs:
     needs: [plan, build-srd, build-itun, push-convex, og-srd]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.srd == 'true' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -698,6 +703,7 @@ jobs:
     needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.itun == 'true' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -737,6 +743,7 @@ jobs:
     needs: [plan, build-srd, build-itun, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.outputs.stale != 'true' && needs.plan.outputs.bot == 'true' }}
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout

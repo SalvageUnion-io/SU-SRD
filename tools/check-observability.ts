@@ -25,8 +25,10 @@
  *          DSN env var,
  *       2. that module's init is actually CALLED from the app entry (an
  *          uncalled init is the same as no init),
- *       3. the app's `public/_headers` CSP `connect-src` lists the Sentry
- *          ingest origin — so the beacon can never be silently walled off again,
+ *       3. the app's CSP source (srd `public/_headers`, itun
+ *          `src/worker/securityHeaders.ts`) has a `connect-src` listing the
+ *          Sentry ingest origin — so the beacon can never be silently walled
+ *          off again,
  *       4. each Cloudflare Worker wraps its export with `withObservability` and
  *          grants `nodejs_als`.
  *
@@ -57,7 +59,7 @@ import { join } from 'node:path'
  * default is `us`, and a DSN issued in one region is silently unusable under a
  * CSP written for the other — the beacon is blocked in the browser and the
  * project simply reports nothing, which looks exactly like "no errors". This
- * constant and each app's `_headers` CSP must agree, and `checkLive` below also
+ * constant and each app's CSP source must agree, and `checkLive` below also
  * compares them against the host in the DSN actually shipped to production, so
  * a region mismatch fails loudly instead of going quiet.
  */
@@ -81,13 +83,19 @@ type BrowserApp = {
    * The app's Workers config, and the `_headers` its Cloudflare deploy serves.
    *
    * When `wrangler.jsonc` declares `assets`, Cloudflare serves this app from
-   * static assets and `_headers` is the ONLY way it gets a policy — nothing in
-   * the Worker path adds one. So an absent `_headers` is an outage (no CSP, no
-   * HSTS, no X-Frame-Options), not "nothing to check".
+   * static assets and reads `_headers` for it — srd's whole header policy,
+   * itun's Cache-Control. So an absent `_headers` is a deploy fault, not
+   * "nothing to check".
    */
   wranglerPath: string
-  /** The `_headers` a Workers Static Assets deploy reads; the app's only CSP source. */
+  /** The `_headers` a Workers Static Assets deploy reads; the CSP source unless `cspModule` is set. */
   headersPath: string
+  /**
+   * A TS module exporting the policy as ONE double-quoted literal named
+   * `exportName`. When set, it is the CSP source and `_headers` is not parsed
+   * for a CSP — the app's Worker sets the header in code on every response.
+   */
+  cspModule?: { path: string; exportName: string }
   /** Production origin, for --live. */
   productionUrl: string
 }
@@ -109,6 +117,7 @@ const BROWSER_APPS: BrowserApp[] = [
     entryPath: 'apps/itun/src/main.tsx',
     wranglerPath: 'apps/itun/wrangler.jsonc',
     headersPath: 'apps/itun/public/_headers',
+    cspModule: { path: 'apps/itun/src/worker/securityHeaders.ts', exportName: 'ITUN_CSP' },
     productionUrl: 'https://intheunionnow.com',
   },
 ]
@@ -191,8 +200,8 @@ function checkStatic(app: BrowserApp): void {
     fail(app.name, `${app.entryPath} never calls initBrowserObservability()`)
   }
 
-  // If Cloudflare serves this app from static assets, `_headers` is the only
-  // thing that can carry a policy there, so its absence is an outage.
+  // If Cloudflare serves this app from static assets, it reads `_headers` for
+  // it, so the file's absence is a deploy fault whatever else carries the CSP.
   const wrangler = read(app.wranglerPath)
   const headers = read(app.headersPath)
   if (headers === null) {
@@ -200,23 +209,41 @@ function checkStatic(app: BrowserApp): void {
       fail(
         app.name,
         `${app.wranglerPath} declares "assets", so Cloudflare serves this app from ` +
-          `static assets — but ${app.headersPath} does not exist. The Worker adds no ` +
-          `headers of its own, so the deployed site would ship no CSP, no HSTS and no ` +
-          `X-Frame-Options.`
+          `static assets — but ${app.headersPath} does not exist. It carries the ` +
+          `deploy's Cache-Control (and, for srd, the whole header policy).`
       )
-    } else {
-      fail(app.name, `no CSP source found at ${app.headersPath} — the Sentry beacon is unguarded`)
+      return
     }
-    return
+    if (!app.cspModule) {
+      fail(app.name, `no CSP source found at ${app.headersPath} — the Sentry beacon is unguarded`)
+      return
+    }
   }
 
   // The CSP half — the one that would have made a provisioned DSN look
   // healthy while silently dropping every event.
-  const connectSrc = connectSrcOf(headers)
+  let source: string
+  let connectSrc: string | null
+  if (app.cspModule) {
+    // The policy the Worker sets in code. Read as a literal rather than
+    // imported, so this gate stays a plain file scan with no app module graph.
+    const { path, exportName } = app.cspModule
+    source = path
+    const literal = new RegExp(`export const ${exportName}\\s*=\\s*"([^"]+)"`)
+    const policy = read(path)?.match(literal)?.[1]
+    if (policy === undefined) {
+      fail(app.name, `${path} declares no ${exportName} literal — the Sentry beacon is unguarded`)
+      return
+    }
+    connectSrc = connectSrcOfPolicy(policy)
+  } else {
+    source = app.headersPath
+    connectSrc = connectSrcOf(headers ?? '')
+  }
   if (connectSrc === null) {
     fail(
       app.name,
-      `${app.headersPath} declares no Content-Security-Policy connect-src — the ` +
+      `${source} declares no Content-Security-Policy connect-src — the ` +
         `Sentry beacon is unguarded`
     )
     return
@@ -224,7 +251,7 @@ function checkStatic(app: BrowserApp): void {
   if (!connectSrc.includes(SENTRY_INGEST_HOST)) {
     fail(
       app.name,
-      `${app.headersPath}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
+      `${source}: CSP connect-src does not allow ${SENTRY_INGEST_HOST} — Sentry ` +
         `events would be blocked in the browser.\n      got: ${connectSrc}`
     )
   }

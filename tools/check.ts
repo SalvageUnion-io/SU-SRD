@@ -169,7 +169,8 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'workflows',
-    guards: 'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard',
+    guards:
+      'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
     profiles: ALL,

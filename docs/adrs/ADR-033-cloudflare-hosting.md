@@ -12,6 +12,11 @@ plan was deleted once every phase closed; code comments that cite a phase
 identifiers (Workers, buckets, zones) are in
 [architecture/agent-tooling.md](../architecture/agent-tooling.md).
 
+**Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
+GitHub Environment** restricted to `main`, with no reviewers, so a workflow copy
+dispatched from a branch cannot read them. Production deploys still need no
+environment approval.
+
 Amends [ADR-004](ADR-004-snapshot-netlify-functions.md): snapshots keep the
 endpoint shape, the ID scheme, the payload cap and the unauthenticated contract
 that ADR-004 decided, and change only the platform underneath them — Netlify
@@ -237,7 +242,8 @@ that can deploy production. The bar it is held to:
   R2 per bucket but not Workers per script, so the Workers half can edit any
   Worker on the account (§6). Narrow the half that can be narrowed, and do not
   describe the other half as contained.
-- Stored as an Actions secret. Never in a `wrangler.jsonc`, never in a `.env`
+- Stored as a secret of the `production` GitHub Environment, restricted to
+  `main`, with no reviewers. Never in a `wrangler.jsonc`, never in a `.env`
   git can see.
 - Every deploy is gated on CI succeeding for the same commit on `main`, so a red
   gate cannot deploy. A green gate suffices: production deploys need no
