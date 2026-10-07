@@ -10,7 +10,7 @@ The **Dashboard** is ITUN's live actual-play surface: a player's **Pilot + Mech 
 Crawler** composed into one screen that never scrolls, where every game action is
 a button. It is built — components in `apps/itun/src/components/dashboard/`,
 stylesheets in `packages/component-lib/src/styles/dashboard/`, route
-`/dashboard/$id` (`apps/itun/src/routes/dashboard/$id.tsx`).
+`/dashboard/$pilotId` (`apps/itun/src/routes/dashboard/$pilotId.tsx`).
 
 The decisions are [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)
 and its merged Dashboard decisions (formerly ADRs 016–020). The live-play state
@@ -135,11 +135,19 @@ not built. No-scroll is a landscape-desktop contract.
 
 ## 8. Launch flow
 
-`DashboardChooser` is a pilot → mech → crawler wizard, mounted from the Roster,
-a Game's roster and the pilot and mech sheets. On confirm it ensures the soft
-links the composition needs and routes to `/dashboard/$id`. `dashboardLaunch.ts` can instantiate a stand-in
-mech from a saved pattern and a default crawler of a chosen Tech Level; both are
-real, deletable records.
+The Dashboard opens for a pilot in a Game that has a Mediator
+([ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md) §1),
+from the Play button on your own pilot rows in the Game roster
+(`GameRoster.tsx`), shown only while the Game has a Mediator. The route keys on
+the pilot; its mech is the one assigned to it (`mech-to-pilot`) and its crawler
+its own (`pilot-to-crawler`). An old mech-keyed URL redirects to the mech's
+pilot.
+
+`DashboardGate` decides who may play, live, in the component: an anonymous
+session, a shelf pilot, a non-member and a Game with no Mediator each get a
+shell saying what is missing, and an open Dashboard falls back to the shell if
+the Game loses its Mediator. Disconnected is not a refusal; the Dashboard stays
+open read-only. Shelf sheets show a "Play in a Game" hint instead of a launcher.
 
 ## 9. Testing
 

@@ -8,7 +8,7 @@ the specific overrides are listed under [Supersession](#supersession--precedence
 
 "Accepted" records the **decision**; the code has since largely caught up (the
 Wizard enforces Guided Creation hard on the create path, the Dashboard ships at
-`/dashboard/$id`, and ADR-022's Change Log is live). The living, authoritative
+`/dashboard/$pilotId`, and ADR-022's Change Log is live). The living, authoritative
 placement table is the matrix in
 [`rules-engine-boundary.md`](../architecture/rules-engine-boundary.md) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR

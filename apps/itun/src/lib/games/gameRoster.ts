@@ -134,6 +134,15 @@ export function isTableRunner(viewerId: string | null, members: readonly GameMem
 }
 
 /**
+ * Whether anybody mediates this Game. Mirrors `gameHasMediator` in
+ * `convex/model/permissions.ts`. The Dashboard opens only when this is true
+ * (ADR-038 §1), so the roster offers Play by it and the route checks it live.
+ */
+export function gameHasMediator(members: readonly GameMember[]): boolean {
+  return members.some((m) => m.mediator)
+}
+
+/**
  * What the viewer may do to this Game.
  *
  * Any member may bring pilots and mechs in, crawler or not — mirroring

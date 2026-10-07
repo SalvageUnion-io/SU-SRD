@@ -20,7 +20,10 @@ durable ([ADR-034](../adrs/ADR-034-account-required-persistence.md)): writes go
 to an in-memory backend and are gone on reload, and signing in is what keeps
 them (`AccountReconciler` sends them to the account). A build with no
 `VITE_CONVEX_URL` compiled in (CI, a fresh checkout) is permanently Solo, and no
-Solo write is ever refused. There used to be a durable anonymous IndexedDB
+Solo write is ever refused. Solo has no Dashboard: it opens only for a pilot in
+a Game with a Mediator
+([ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md)), so a
+Solo player plays on the live sheet. There used to be a durable anonymous IndexedDB
 backend (`local`) in builds without `VITE_REQUIRE_ACCOUNT`; both are retired. A
 signed-in user who loses connectivity goes **read-only** rather than falling back
 to IndexedDB — falling back would fork their data against the server of record

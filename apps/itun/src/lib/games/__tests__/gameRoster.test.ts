@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { GameMember } from '../gameRoster'
 import {
   crawlerRows,
+  gameHasMediator,
   groupColumn,
   isTableRunner,
   moveDestinations,
@@ -62,6 +63,18 @@ describe('who runs the table', () => {
 
   test('somebody who is not in the game never does', () => {
     expect(isTableRunner('u-stranger', ALL)).toBe(false)
+  })
+})
+
+describe('whether the game has a Mediator', () => {
+  test('it does when any member mediates', () => {
+    expect(gameHasMediator(ALL)).toBe(true)
+  })
+
+  test('an Organizer is not a Mediator', () => {
+    // The Dashboard needs a real Mediator (ADR-038 §1); the Organizer's
+    // table-runner fallback does not count.
+    expect(gameHasMediator([ORGANIZER, PLAYER])).toBe(false)
   })
 })
 

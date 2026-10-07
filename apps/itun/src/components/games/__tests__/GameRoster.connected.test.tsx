@@ -160,9 +160,21 @@ describe('what a row offers', () => {
     expect(view.getAttribute('href')).toBe('/sheet/pilot/a-free')
   })
 
-  test('your own mech also offers the Dashboard', async () => {
-    await renderAs(ME, listing({ mechs: [MY_MECH] }))
-    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeTruthy()
+  test('your own pilot offers Play when the Game has a Mediator', async () => {
+    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT], mechs: [MY_MECH] }))
+    // One Play, on your pilot: the Dashboard is keyed on the pilot (ADR-038
+    // §1), so a crewmate's pilot and your mech have none.
+    expect(screen.getAllByRole('button', { name: 'Play' })).toHaveLength(1)
+    const row = screen.getByRole('button', { name: 'Play' }).closest('li')
+    expect(row?.textContent).toContain('Roach-Boy')
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).toBeNull()
+  })
+
+  test('but not when nobody mediates', async () => {
+    const noMediator = MEMBERS.map((m) => ({ ...m, mediator: false }))
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }), noMediator)
+    // The Dashboard would refuse it, so the roster does not offer it.
+    expect(screen.queryByRole('button', { name: 'Play' })).toBeNull()
   })
 
   test('what you own can be handed back to the crew', async () => {

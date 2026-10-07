@@ -278,7 +278,7 @@ This doc is the target. Where the code stands today:
   there is no advisory `Banner` — nothing can be in violation. The deliberate
   exit is `OffRulesEscape` (leave the wizard for the blank Free-Edit path). The
   wizard only creates; an existing entity is edited on the Live Sheet.
-- **Dashboard** is **built** at `/dashboard/$id` (`src/components/dashboard/`,
+- **Dashboard** is **built** at `/dashboard/$pilotId` (`src/components/dashboard/`,
   Phases 1–7; design: [dashboard.md](dashboard.md), decision:
   [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)), composing
   Pilot + Mech + Crawler with its lifecycle-transaction layers (use a system,

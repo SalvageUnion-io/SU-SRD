@@ -188,12 +188,14 @@ test.describe('bundle-size budget', () => {
   })
 
   test('the dashboard stays under budget', async ({ page }) => {
-    // Same unknown-id probe as the sheet test — Dashboard.tsx renders
-    // "Mech not found" only after its chunk (instruments, dial, display) has
-    // loaded, so the byte count is the route's true cost.
+    // Same unknown-id probe as the sheet test. This run is signed out, so
+    // DashboardGate renders its "Sign in to play" shell, but only after the
+    // route chunk has loaded, and that chunk imports the whole Dashboard
+    // (instruments, dial, display) statically. The byte count is the route's
+    // true cost.
     const CEILING = 2_370_000
     const totals = await captureJsTotals(page, '/dashboard/budget-probe')
-    report('/dashboard/:id', totals, CEILING)
+    report('/dashboard/:pilotId', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 })

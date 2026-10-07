@@ -8,7 +8,10 @@ conditions on their own mech. The combat loop itself is **client-side**
 [ADR-034](../adrs/ADR-034-account-required-persistence.md)): state is mutated
 through the Zustand stores ([ADR-003](../adrs/ADR-003-zustand-hydration.md)),
 which write through to Convex when signed in (IndexedDB is its cache) and to
-the in-memory backend when anonymous — Solo play is not persisted. There are no
+the in-memory backend when anonymous — Solo play is not persisted, and has no
+Dashboard: that opens only for a pilot in a Game with a Mediator
+([ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md)), so
+Solo play, and play in a Game with no Mediator, is on the live sheet. There are no
 combat RPCs and no turn enforcement. There **is** an append-only
 `changeLog` provenance store ([ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md)) —
 it records what happened; it is not an undo/redo system.

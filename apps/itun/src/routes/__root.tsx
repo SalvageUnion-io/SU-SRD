@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { AppHeader, CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
@@ -50,6 +50,9 @@ function RootComponent() {
 
   return (
     <AppConvexProvider>
+      {/* A route's `head` title. React hoists the <title> into the document
+          head, ahead of index.html's, and removes it when the route leaves. */}
+      <HeadContent />
       <EntityHrefProvider value={itunEntityHref}>
         {/* The shared brand header renders on EVERY route — including the live
           sheet (/sheet/*) and public sheet (/p/*) surfaces, which sit below

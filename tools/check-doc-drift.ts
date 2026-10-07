@@ -465,7 +465,7 @@ const OVER_BUDGET: Record<string, number> = {
   '.claude/rules/react-components.md': 4_465,
   '.claude/rules/testing-patterns.md': 7_812,
   'apps/discord-bot/CLAUDE.md': 8_337,
-  'apps/itun/CLAUDE.md': 13_806,
+  'apps/itun/CLAUDE.md': 13_795,
   'apps/srd/CLAUDE.md': 11_799,
   'CLAUDE.md': 12_410,
   'packages/component-lib/CLAUDE.md': 16_137,

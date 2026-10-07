@@ -1,13 +1,12 @@
 /**
- * Dashboard — the play-surface ("Pit HUD") root for a single mech.
+ * Dashboard — the play surface for one pilot, with their assigned mech and
+ * crawler (docs/architecture/dashboard.md).
  *
- * Phase 1 (read-only shell): loads the real mech from `entityStore`, lays the
- * locked four-surface grid inside the scale-to-fit canvas, and wires the rail.
- * The Active Item, Dial, and Display are placeholders here; later phases fill
- * them with instruments, the rotary dial, and the SRD reference/actions view.
- * No mutations happen yet.
- *
- * See docs/architecture/play-cockpit.md for the full plan.
+ * It is keyed on the pilot (ADR-038 §1): the mech is the one assigned to the
+ * pilot (`mech-to-pilot`) and the crawler the pilot's own (`pilot-to-crawler`),
+ * both resolved by the sheet's `resolveSheetComposition`. Whether this pilot
+ * may be played at all is `DashboardGate`'s question, asked before this
+ * renders.
  */
 
 import { buttonVariants } from 'component-lib'
@@ -36,26 +35,26 @@ import { DowntimeWizard } from './DowntimeWizard'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { RailBar } from './RailBar'
 
-export function Dashboard({ id }: { id: string }) {
+export function Dashboard({ pilotId }: { pilotId: string }) {
   const storeState = useEntityStore()
   // The active-row entity drives the whole-canvas tint (proposed ADR-018).
   const mount = usePlayStateStore((s) => s.mount)
   const wheel = usePlayStateStore((s) => s.wheel)
   const setWheel = usePlayStateStore((s) => s.setWheel)
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
-  const mech = storeState.get('mech', id)
+  const pilot = storeState.get('pilot', pilotId)
 
-  // Persisted dial prefs are scoped to the mech's container (ADR-030 §2) and
+  // Persisted dial prefs are scoped to the pilot's container (ADR-030 §2) and
   // kept in localStorage — see cockpitPrefsStore for why neither container is
   // the right record to hang them off. Hooks run unconditionally, before the
-  // no-mech early return, so `containerOf` is fed a stand-in when there is no
-  // mech yet; nothing reads those prefs in that state.
+  // early returns, so `containerOf` is fed a stand-in when there is no pilot
+  // yet; nothing reads those prefs in that state.
   //
   // `containerOf` mints a fresh object every render, so it is round-tripped
-  // through its serialized form to get a value that is stable while the mech's
+  // through its serialized form to get a value that is stable while the pilot's
   // container is — otherwise `setPrefs` would change identity on every render
   // and defeat every memo below it.
-  const containerKey = serializeContainer(containerOf(mech ?? {}))
+  const containerKey = serializeContainer(containerOf(pilot ?? {}))
   const container = useMemo(() => parseContainer(containerKey), [containerKey])
   const prefs = useCockpitPrefs(container)
   const setPrefs = useCallback(
@@ -65,12 +64,32 @@ export function Dashboard({ id }: { id: string }) {
     [container]
   )
 
-  if (!mech) {
+  const lookup: EntityLookup = {
+    get: (type, entityId) => storeState.get(type, entityId),
+  }
+  const composition = resolveSheetComposition({
+    kind: 'pilot',
+    id: pilotId,
+    links: storeState.softLinks,
+    store: lookup,
+  })
+  const mech = composition.mech
+  const crawler = composition.crawler
+
+  // The instruments are built around a mech; a pilot with none assigned is
+  // given one on their sheet. Choosing a mech here is the Board control's job.
+  if (!pilot || !mech) {
     return (
       <DashboardCanvas>
         <DashboardGrid
-          rail={<span>Mech not found</span>}
-          primary={<div className="pc-placeholder">No mech with id “{id}”.</div>}
+          rail={<span>{pilot ? `Pilot · ${pilot.name}` : 'Pilot not found'}</span>}
+          primary={
+            <div className="pc-placeholder">
+              {pilot
+                ? `${pilot.name} has no assigned mech. Assign one on their sheet to play.`
+                : `No pilot with id “${pilotId}”.`}
+            </div>
+          }
           display={<div className="pc-fill">—</div>}
           wheel={<div className="pc-placeholder">Dial</div>}
         />
@@ -78,19 +97,8 @@ export function Dashboard({ id }: { id: string }) {
     )
   }
 
-  const lookup: EntityLookup = {
-    get: (type, entityId) => storeState.get(type, entityId),
-  }
-  const composition = resolveSheetComposition({
-    kind: 'mech',
-    id,
-    links: storeState.softLinks,
-    store: lookup,
-  })
-  const pilot = composition.pilot
-  const crawler = composition.crawler
   const isDowntime = mount === 'downtime'
-  const onFoot = mount === 'pilot' && pilot !== null
+  const onFoot = mount === 'pilot'
   // Downtime is crawler-dominant: rail, stamp, and Active Item all follow the
   // crawler ontology (pink); otherwise the boarded mech / pilot on foot.
   const fam = isDowntime ? 'crawler' : onFoot ? 'pilot' : 'mech'
@@ -98,7 +106,7 @@ export function Dashboard({ id }: { id: string }) {
     ? crawler
       ? `Downtime · ${crawler.name}`
       : 'Downtime'
-    : onFoot && pilot
+    : onFoot
       ? `Pilot · ${pilot.name}`
       : `Mech · ${mech.name}`
 

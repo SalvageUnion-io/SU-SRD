@@ -3,14 +3,14 @@
 ## Status
 
 Accepted and **built** (`apps/itun/src/components/dashboard/`, routed at
-`/dashboard/$id`; architecture in [dashboard.md](../architecture/dashboard.md)).
+`/dashboard/$pilotId`; architecture in [dashboard.md](../architecture/dashboard.md)).
 This is the play-surface instance of the governing surface taxonomy in
 [ADR-021](ADR-021-itun-surface-taxonomy.md) — the **Guided Play** surface.
 
 ADRs 016–020 recorded this surface's sub-decisions; they are merged below as
 **Dashboard decisions**, and those five files are stubs pointing here.
 
-**Amended by [ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md)** (accepted, not yet built). Decision 1, the rotary
+**Amended by [ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md)** (accepted, partly built). Decision 1, the rotary
 Dial, is replaced by Major and Minor slots and a tabbed display. Decision 4's
 ephemeral play state is reversed: play state becomes a per-pilot seat saved on
 the Game, and the Dashboard becomes Game-only, needing a Mediator. Decision 4's

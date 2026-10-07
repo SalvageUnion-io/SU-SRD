@@ -2,10 +2,11 @@
 
 ## Status
 
-**Accepted; not yet built.** The plan that delivers it, layer by layer, is
+**Accepted; partly built.** Decision 1, the Game-only gate, is built. The plan
+that delivers the rest, layer by layer, is
 [dashboard-redesign.md](../architecture/dashboard-redesign.md), tracked in the
 [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7). Until its layers
-land, the Dashboard in code is the one [ADR-015](ADR-015-dashboard-distinct-play-surface.md)
+land, the rest of the Dashboard in code is the one [ADR-015](ADR-015-dashboard-distinct-play-surface.md)
 and [dashboard.md](../architecture/dashboard.md) describe.
 
 **Amends [ADR-015](ADR-015-dashboard-distinct-play-surface.md):**
