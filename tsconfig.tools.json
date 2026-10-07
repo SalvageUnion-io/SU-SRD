@@ -21,15 +21,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "lib": ["ES2022"],
-    "types": ["node", "bun-types"],
-    "moduleDetection": "force",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    // Checked, never emitted — the repo base emits declarations.
-    "noEmit": true,
-    "declaration": false,
-    "declarationMap": false,
-    "composite": false,
     // `tools/` reads JSON baselines (styling-baseline, a11y-baseline) directly.
     "resolveJsonModule": true
   },

@@ -4,14 +4,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ESNext",
-    // Nothing is emitted from here; `allowImportingTsExtensions` is only legal
-    // alongside `noEmit`.
-    "noEmit": true,
     "allowImportingTsExtensions": true,
-    // The repo base emits declarations; this workspace emits nothing.
-    "declaration": false,
-    "declarationMap": false,
-    "composite": false,
 
     /* srd's own */
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
@@ -19,8 +12,7 @@
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
-    "skipLibCheck": true,
-    "types": ["node", "bun-types"]
+    "skipLibCheck": true
   },
   // `e2e/**/*` + `playwright.config.ts`: Playwright transpiles specs without
   // type-checking them, and biome.jsonc disables the linter for both paths, so
