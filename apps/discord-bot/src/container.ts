@@ -41,7 +41,7 @@ import {
   ThumbnailBuilder,
 } from '@discordjs/builders'
 import { ButtonStyle, SeparatorSpacingSize } from 'discord-api-types/v10'
-import { truncate } from './format.js'
+import { truncate } from 'salvageunion-reference'
 
 /**
  * Discord's Components V2 ceilings.

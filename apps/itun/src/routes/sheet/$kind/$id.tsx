@@ -17,6 +17,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
 import { SheetView } from '../../../components/sheet/SheetView'
+import { pageTitle } from '../../../lib/pageTitle'
 import type { EntityRef } from '../../../lib/schemas/entity'
 import { useEntityStore } from '../../../stores/entityStore'
 
@@ -65,6 +66,9 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
       store.hydrate('softLink'),
     ])
   },
+  // The generic title. The entity's own name comes from the store in
+  // `SheetView`, so the tab follows a rename: a loader reads no player entity.
+  head: () => ({ meta: [{ title: pageTitle('Sheet') }] }),
   component: SheetPage,
   pendingComponent: SheetSkeleton,
   notFoundComponent: SheetKindNotFound,

@@ -1,11 +1,18 @@
 # Changelog
 
-Maintained by release-please (see [ADR-025](../../docs/adrs/ADR-025-reference-versioned-releases-surface-gate.md)).
+Maintained by release-please (see [ADR-025](../../docs/ARCHITECTURE.md#adr-025)).
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.13.5](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.4...salvageunion-reference-v2.13.5) (2026-10-07)
+
+
+### Bug Fixes
+
+* **srd:** AA chrome text and honest head metadata [audit-3 P4] ([#1074](https://github.com/SalvageUnion-io/SU-SRD/issues/1074)) ([ca9324a](https://github.com/SalvageUnion-io/SU-SRD/commit/ca9324abe3c6ee1d8f8b9261be86136f2cfb3a21))
 
 ## [2.13.4](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.3...salvageunion-reference-v2.13.4) (2026-10-06)
 

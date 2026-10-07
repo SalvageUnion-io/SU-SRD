@@ -13,7 +13,7 @@
  * So this asserts both halves: for every IndexedDB object store there is a
  * Convex table that could receive it, and a client commit path that actually
  * writes to it (the store → commit-path table is in
- * `docs/architecture/data-flow.md`). The first catches the cheaper and more
+ * `docs/ARCHITECTURE.md#data-flow`). The first catches the cheaper and more
  * common mistake: adding store number nine and forgetting the server entirely.
  *
  * ## Reading a failure

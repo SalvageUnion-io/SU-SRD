@@ -17,12 +17,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { api, internal } from '../../convex/_generated/api'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
-
-async function makeUser(t: ReturnType<typeof testConvex>, name: string) {
-  const userId = await t.run(async (ctx) => await ctx.db.insert('users', { name }))
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 /**
  * The `gameId` inside a row's body.

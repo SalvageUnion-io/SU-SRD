@@ -256,6 +256,32 @@ describe('your own sheet', () => {
   })
 })
 
+describe('the tab title', () => {
+  test('names your entity and follows a rename', async () => {
+    useEntityStore.setState({ pilots: [MY_PILOT] })
+    setQueryAnswers({
+      'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'entities:listForGame': listing(),
+    })
+    await view('pilot', MY_PILOT.id)
+    expect(document.title).toBe('Roach-Boy · In The Union Now')
+
+    await act(async () => {
+      useEntityStore.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
+    })
+    expect(document.title).toBe('Roach-Man · In The Union Now')
+  })
+
+  test("a crewmate's sheet, not held here, keeps the generic title", async () => {
+    setQueryAnswers({
+      'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'entities:listForGame': listing(),
+    })
+    await view('pilot', THEIR_PILOT.id)
+    expect(document.title).toBe('Sheet · In The Union Now')
+  })
+})
+
 describe('addresses', () => {
   test('a row id (the retired crew view) is replaced by the canonical app id', async () => {
     setQueryAnswers({

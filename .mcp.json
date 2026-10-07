@@ -14,7 +14,15 @@
     },
     "convex": {
       "command": "bunx",
-      "args": ["convex", "mcp", "start", "--project-dir", "apps/itun"]
+      "args": [
+        "convex@1.45.0",
+        "mcp",
+        "start",
+        "--project-dir",
+        "apps/itun",
+        "--disable-tools",
+        "envSet,envRemove,run"
+      ]
     },
     "context7": {
       "type": "http",

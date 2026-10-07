@@ -7,9 +7,10 @@
 
 import { assetSrcSetFor, cardImageSizes } from 'component-lib'
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
+import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
 import { EntityView } from '../../../../components/EntityView'
-import { SITE_URL } from '../../../../lib/constants'
+import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../lib/constants'
 import { itemHref, schemaHref } from '../../../../lib/entityHref'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../../lib/gameData'
 import { getItemStaticPaths } from '../../../../lib/staticPaths'
@@ -42,17 +43,14 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const traitLine = staticSummary?.traits.length
     ? ` Traits: ${staticSummary.traits.join(', ')}.`
     : ''
-  const metaDescription = firstParagraph
-    ? firstParagraph.length > 155
-      ? `${firstParagraph.slice(0, 152)}...`
-      : firstParagraph
-    : statLine
-      ? `${itemName} — ${schemaName} for the Salvage Union TTRPG. ${statLine}.${traitLine}`.slice(
-          0,
-          158
-        )
-      : itemDescription ||
-        `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`
+  const metaDescription = truncate(
+    firstParagraph ||
+      (statLine
+        ? `${itemName} — ${schemaName} for the Salvage Union TTRPG. ${statLine}.${traitLine}`
+        : itemDescription ||
+          `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`),
+    META_DESCRIPTION_MAX
+  )
 
   const structuredData: StructuredData = {
     '@context': 'https://schema.org',
@@ -104,7 +102,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: `${itemName} - ${schemaName} - Salvage Union System Reference Document`,
+      title: `${itemName} - ${schemaName}${TITLE_SUFFIX}`,
       description: metaDescription,
       canonical: canonicalUrl,
       ogType: 'article',

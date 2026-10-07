@@ -15,8 +15,8 @@
 
 - Use repo-relative paths in notes; the checkout location differs per machine.
 - Design canon: `docs/design-system/ruleset.md` — the authoritative laws.
-- Architecture docs: `docs/architecture/` (display-system, data-flow,
-  accounts-and-games, package-contracts, seo-accessibility, dashboard)
+- Architecture: `docs/ARCHITECTURE.md` (grep its `##` headings, Read by
+  offset); the Dashboard is `docs/architecture/dashboard.md`
 - Shared theme: `packages/component-lib/src/styles/theme.css` — **the single
   home for every design token.** Apps may not define one
   (`tools/check-styling.ts` fails the build at pre-push).
@@ -47,7 +47,7 @@ the over-capacity red idiom, heat escalation, roll colour scope.
   body+expand / footer) that non-entity surfaces compose.
 - They are **not** being merged and `ReferenceEntityCard` does not render
   through `Card`. The reasons are recorded in
-  `docs/architecture/display-system.md`; do not re-propose the merge without
+  `docs/ARCHITECTURE.md#display-system`; do not re-propose the merge without
   reading them.
 - Card sizing = two orthogonal axes, `size` (`large | medium | small`) and
   `extent` (`full | head | catalog`), in `components/shared/displayMode.ts`. The
@@ -82,7 +82,7 @@ the over-capacity red idiom, heat escalation, roll colour scope.
 
 Games make crawlers genuinely multi-user (ownership, claim/release, proposals,
 live crew vitals), so shared-space crawler UX is now a real requirement rather
-than a hypothetical. See ADR-030 (`docs/adrs/ADR-030-accounts-games-server-of-record.md`).
+than a hypothetical. See ADR-030 (`docs/ARCHITECTURE.md#adr-030`).
 
 ## Theme & Colour Notes
 
@@ -101,7 +101,7 @@ than a hypothetical. See ADR-030 (`docs/adrs/ADR-030-accounts-games-server-of-re
 - Heat escalates on the track: `heatDangerFrom(max)` (component-lib
   `stat/heatLevel.ts`) is the first pip index that reads `status-bad` red, at
   ~70% of cap. The colour escalation shipped; the `--animate-heat-pulse`
-  keyframe in `theme.css` is defined but applied by nothing.
+  keyframe was deleted (`theme.css` records why).
 - Expansion-source theming ideas (claw-scratch, beveled border, rain-streak,
   CRT scanlines) remain unbuilt concepts, not shipped styling.
 

@@ -4,8 +4,7 @@
     "target": "ES2020",
     "module": "NodeNext",
     "lib": ["ES2020"],
-    "moduleResolution": "nodenext",
-    "types": ["node", "bun-types"]
+    "moduleResolution": "nodenext"
   },
   "include": ["lib/**/*.ts", "tools/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.template.ts"]

@@ -15,23 +15,12 @@ import type { ReactNode } from 'react'
 import type { DocumentMeta } from '../../ssg/types'
 import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
-import { DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
+import { DEFAULT_OG_IMAGE, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
-
-/**
- * Mark the document as JS-capable synchronously, before first paint, so
- * `.js [data-static-fallback] { display:none }` (global.css) hides the SEO/no-JS
- * text block for JS users. Without this the naked static text painted until the
- * island mounted — a text-only flash on every entity load.
- *
- * Every navigation is a real document load, so this inline script runs on every
- * page.
- */
-const JS_CLASS_SCRIPT = "document.documentElement.classList.add('js')"
 
 /** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({
@@ -71,8 +60,6 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a fixed inline script literal, no interpolation */}
-        <script dangerouslySetInnerHTML={{ __html: JS_CLASS_SCRIPT }} />
         <title>{title}</title>
         <meta name="description" content={description} />
         <link rel="canonical" href={canonicalUrl} />
@@ -82,6 +69,7 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content={THEME_COLOR} />
         {/* Service-worker registration emitted by ssg/pwa.ts. */}
         <script defer src="/registerSW.js" />
 

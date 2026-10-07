@@ -42,8 +42,8 @@ export const IMMUTABLE_CACHE_CONTROL = 'public, max-age=31536000, immutable'
  * `default-src 'none'; sandbox`), so each Worker adds its own. Spread this
  * first and the Worker's own entries after, so a surface can override one.
  *
- * Keep in step with the static sites' `public/_headers`, which carry the same
- * six for the requests no Worker script handles.
+ * Keep in step with srd's `public/_headers`, which carries the same six for
+ * the requests no Worker script handles.
  */
 export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'x-frame-options': 'DENY',

@@ -1,0 +1,22 @@
+# The only dependency updater, and it updates GitHub Actions only. Bun
+# dependencies are updated by hand: docs/ARCHITECTURE.md#dependencies.
+version: 2
+updates:
+  - package-ecosystem: 'github-actions'
+    # `directory: '/'` scans only .github/workflows; the composite action in
+    # .github/actions/setup-bun needs its own entry or it stalls behind them.
+    directories:
+      - '/'
+      - '/.github/actions/*'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    # A supply-chain cooldown, like bunfig.toml's; zizmor asks for 7 days.
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    commit-message:
+      prefix: 'ci'

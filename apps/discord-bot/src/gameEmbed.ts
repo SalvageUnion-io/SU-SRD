@@ -1,5 +1,11 @@
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { findEntityBySlug, getAssetUrl, getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
+import {
+  findEntityBySlug,
+  getAssetUrl,
+  getEntitySlug,
+  srdEntityUrl,
+  truncate,
+} from 'salvageunion-reference'
 import {
   mechMaxHeat,
   mechMaxSP,
@@ -8,7 +14,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, ROLL_COLORS, truncate } from './format.js'
+import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, ROLL_COLORS } from './format.js'
 import type {
   ChannelResult,
   CrewResult,

@@ -8,7 +8,7 @@
  * WHY A LIFECYCLE TRANSACTION LIVES ON A FREE-EDIT SURFACE. ADR-021 puts
  * lifecycle transactions on the guided modes, so this control is an exception
  * — a **sanctioned** one, recorded in the "Sanctioned Live-Sheet transactions"
- * table in `docs/architecture/rules-engine-boundary.md`, which is the
+ * table in `docs/ARCHITECTURE.md#sanctioned-live-sheet-transactions`, which is the
  * authoritative placement doc. The short version: the crawler has no Dashboard
  * presence, the whole economy hangs off the crawler hero's lozenges, nothing
  * here blocks (every gate is a disabled button plus a visible advisory), and

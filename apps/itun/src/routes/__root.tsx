@@ -14,6 +14,7 @@ import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { itunEntityHref } from '../lib/entityHref'
+import { pageTitle } from '../lib/pageTitle'
 import { fabCollides } from '../lib/searchFab'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
 // the CSP needs no external font/style host and the offline PWA renders correctly.
@@ -29,6 +30,8 @@ import '../index.css'
 // The root boundary is the last resort — every other route gets its own via
 // the router's `defaultErrorComponent` (main.tsx). See RouteErrors.tsx.
 export const Route = createRootRoute({
+  // The default tab title; a page with its own sets it in its route's `head`.
+  head: () => ({ meta: [{ title: pageTitle() }] }),
   component: RootComponent,
   errorComponent: RootErrorComponent,
 })
@@ -50,8 +53,6 @@ function RootComponent() {
 
   return (
     <AppConvexProvider>
-      {/* A route's `head` title. React hoists the <title> into the document
-          head, ahead of index.html's, and removes it when the route leaves. */}
       <HeadContent />
       <EntityHrefProvider value={itunEntityHref}>
         {/* The shared brand header renders on EVERY route — including the live

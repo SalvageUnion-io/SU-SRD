@@ -12,7 +12,7 @@
  *  - `toast.dismiss()` runs on mount and on unmount, because the toast store is
  *    module-global and would otherwise leak between cells.
  */
-import { toast, Toaster } from 'component-lib'
+import { Toaster, toast } from 'component-lib'
 import { useEffect } from 'react'
 import { Caption } from '../preview-lib/harness'
 
@@ -50,6 +50,7 @@ export function Success() {
 }
 
 /** `toast.error` — the failure chip. */
+// biome-ignore lint/suspicious/noShadowRestrictedNames: the export name is this preview's label in the uploaded design system
 export function Error() {
   useToast(() =>
     toast.error('Save failed.', { description: 'Could not reach local storage.', ...STICKY })

@@ -8,10 +8,7 @@
   "buildCmd": "bun run build:package && ./node_modules/.bin/tsc -p .design-sync/tsconfig.dts.json && .ds-sync/node_modules/.bin/tailwindcss -i .design-sync/tailwind-entry.css -o packages/component-lib/.ds-css/compiled.css",
   "cssEntry": ".ds-css/compiled.css",
   "readmeHeader": ".design-sync/conventions.md",
-  "extraEntries": [
-    "salvageunion-reference",
-    "../../.design-sync/ds-provider.tsx"
-  ],
+  "extraEntries": ["salvageunion-reference", "../../.design-sync/ds-provider.tsx"],
   "extraFonts": [
     "../../apps/itun/node_modules/@fontsource/barlow/400.css",
     "../../apps/itun/node_modules/@fontsource/barlow/500.css",

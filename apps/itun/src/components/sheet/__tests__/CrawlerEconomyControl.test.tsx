@@ -17,8 +17,8 @@
  * SalvageControl.test.tsx. NO mock.module().
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { Roll } from 'salvageunion-reference/rules'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { ChangeMeta } from '../../../stores/entityStore'
@@ -26,10 +26,6 @@ import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import { crawlerFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Helpers

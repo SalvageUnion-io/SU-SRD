@@ -206,9 +206,10 @@ function from `component-lib` and `currentPath` is `location.pathname`, so the
 island computes both itself inside its own chunk — one copy, shared by every
 page, instead of 1,039 inlined copies. Do this; it is a stated goal of the plan.
 
-`SchemaViewerIsland`'s `initialData` (1.0 MB over 24 pages) is a _stretch_:
-correctness first. Only design it out if the island can source the same data via
-its existing `preloadSchemas` path without changing what the page shows.
+`SchemaViewerIsland`'s `initialData` (1.0 MB over 24 pages) is designed out
+too: the listing's schema is always in its `preloadSchemas`, so the island reads
+`getModel(schemaId).all()` behind its `GameDataGate` — the same call the page
+builds from.
 
 ## Per-island decisions (SSR flag)
 
@@ -217,7 +218,7 @@ its existing `preloadSchemas` path without changing what the page shows.
 | `SearchIsland`          | idle    | false    | chrome, no SEO value                                             |
 | `MobileSearchIsland`    | idle    | false    | chrome                                                           |
 | `MobileNavIsland`       | idle    | false    | chrome; props designed out                                       |
-| `SchemaViewerIsland`    | visible | **true** | the entity grid is this page's SEO content                       |
+| `SchemaViewerIsland`    | visible | **true** | SEO content; server markup is a link per entity, not the island  |
 | `ReferenceEntityIsland` | visible | false    | SSR would emit a skeleton; `StaticEntityContent` is the SEO path |
 | `ColophonIsland`        | visible | **true** | prose worth indexing                                             |
 | `SearchResultsIsland`   | only    | false    | was `client:only="react"`                                        |
@@ -230,10 +231,10 @@ ships no JS. That path must stay exactly as it is; it is 82% of entity pages.
 
 | Astro feature                                | replacement                                                                                                                                                                                                                                                                                |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ClientRouter` (view transitions)            | cross-document `@view-transition { navigation: auto; }` in `global.css`. Deletes the router JS. Also delete the `data-astro-rerun` `.js`-class script: with real document navigations the inline script runs on every page, so re-running it is moot.                                      |
+| `ClientRouter` (view transitions)            | cross-document `@view-transition { navigation: auto; }` in `global.css`. Deletes the router JS. The `data-astro-rerun` `.js`-class script is gone too: `@media (scripting: enabled)` in `global.css` hides the no-JS fallback with no script at all. |
 | `prefetch: { prefetchAll, hover }`           | `<script type="speculationrules">` with `eagerness: "moderate"` — browser-native, zero JS.                                                                                                                                                                                                 |
 | `@astrojs/sitemap`                           | `ssg/sitemap.ts`. Must reproduce the same filter: exclude `/image`, `/greembeem`, `.og.png`, `/og-card`. Emit `sitemap-index.xml` + `sitemap-0.xml` as Astro did.                                                                                                                          |
-| `@vite-pwa/astro`                            | `workbox-build`'s `generateSW` in `ssg/pwa.ts`, run over the finished `dist`. Reuse the existing config verbatim: `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`, `skipWaiting`, `clientsClaim`, and the two `runtimeCaching` rules. Keep emitting `registerSW.js`. (Since then the navigation rule became `NetworkFirst` — see `ssg/pwa.ts`.) |
+| `@vite-pwa/astro`                            | `workbox-build`'s `generateSW` in `ssg/pwa.ts`, run over the finished `dist`. Reuse the existing config verbatim: `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`, `skipWaiting`, `clientsClaim`, and the two `runtimeCaching` rules. Keep emitting `registerSW.js`. (Since then the navigation rule became `NetworkFirst` and `/search-index.json` gained a rule — see `ssg/pwa.ts`.) |
 | `astro:transitions` import                   | gone                                                                                                                                                                                                                                                                                       |
 | `Astro.props` / `Astro.params` / `Astro.url` | `RouteContext`                                                                                                                                                                                                                                                                             |
 | `astro check`                                | `tsc --noEmit` only                                                                                                                                                                                                                                                                        |
@@ -252,7 +253,7 @@ It has since been **deleted**, along with `make-parity-baseline.ts` and its
 tests. Its baseline was a ~56 MB Astro-era `dist` that was gitignored, absent
 from every checkout, and regenerable only by installing ~2,200 Astro-era
 packages — so in practice the gate had stopped being runnable at all, while the
-docs still told people to run it. [ADR-031](../../../docs/adrs/ADR-031-srd-vite-ssg.md)
+docs still told people to run it. [ADR-031](../../../docs/ARCHITECTURE.md#adr-031)
 called this shelf life in the original decision.
 
 ## Verification

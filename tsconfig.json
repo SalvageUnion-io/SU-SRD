@@ -17,11 +17,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
 
-    /* Emit Options */
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": false,
+    /* Emit: none. Every project is a type-check; bundlers do the building. */
+    "noEmit": true,
 
     /* Interop Constraints */
     "isolatedModules": true,
@@ -32,6 +29,8 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "module": "ESNext",
+    "moduleDetection": "force",
+    "types": ["node", "bun-types"],
 
     /* Type Checking */
     "skipLibCheck": true,

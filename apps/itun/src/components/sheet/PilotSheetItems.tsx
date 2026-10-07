@@ -355,6 +355,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         <Input
           id="new-item-slots"
           type="number"
+          numeric
           min={0}
           value={slots}
           aria-label="New item slot cost"
@@ -370,6 +371,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         <Input
           id="new-item-qty"
           type="number"
+          numeric
           min={1}
           value={qty}
           aria-label="New item quantity"

@@ -15,9 +15,9 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * only what their wizard needed (classes/abilities/equipment for /pilots/new)
  * which left ReferenceEntityCard throwing "Schema 'traits' not loaded"
  * when it rendered a chosen entity. A single preload of the full dataset
- * removes the matrix of per-route preload lists and matches the local-first
- * MVP model (the dataset is ~1-2 MB JSON; loading it up front is fine) — see
- * docs/architecture/data-flow.md for the fuller rationale.
+ * removes the matrix of per-route preload lists and is cheap (the dataset is
+ * ~1-2 MB of static JSON, loaded up front) — see
+ * docs/ARCHITECTURE.md#data-flow for the fuller rationale.
  *
  * Off the critical rendering path (the "deprioritized after first paint"
  * half): this component only wraps `<Outlet />` + `<GlobalSearch />` in
@@ -48,9 +48,9 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * Hoisting it here starts the load during module evaluation instead, so it
  * overlaps with React bootstrap and the rest of the entry chunk. This is the
  * pattern `apps/srd/src/lib/gameData.ts` already uses, and module-scope
- * `preload()` is explicitly sanctioned — `tools/check-architecture.ts` exempts
- * `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule,
- * calling them "the documented, correct way to eagerly bootstrap data loading".
+ * `preload()` is explicitly sanctioned — `tools/biome/noModuleScopeReferenceCall.grit`
+ * exempts `.preload()` / `.isLoaded()` from the no-module-scope-ORM-access rule
+ * as the lifecycle calls the preload contract exists to make eagerly.
  *
  * NOTE what this deliberately does NOT change: it still preloads `'all'` behind
  * a SINGLE gate. Narrowing that to a per-route schema list is the footgun this

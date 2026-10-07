@@ -31,7 +31,7 @@
  * deploy an older commit and move the record back to it.
  *
  * Usage: bun tools/deploy-surfaces.ts [--force-all] [--allow-backwards]
- * docs/architecture/ci.md, "Deploy set".
+ * docs/ARCHITECTURE.md#ci-deploy-set.
  */
 
 import { appendFileSync } from 'node:fs'

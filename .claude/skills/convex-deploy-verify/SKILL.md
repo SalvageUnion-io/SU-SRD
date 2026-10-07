@@ -12,8 +12,9 @@ Every failure mode on this path is **silent, and misattributes**. A missing
 network rather than at the typo. That is why this is a skill and not a one-line
 script — the commands are trivial, the traps are not.
 
-Full narrative: [`docs/architecture/accounts-and-games.md`](../../../docs/architecture/accounts-and-games.md).
-Identifiers: [`docs/architecture/agent-tooling.md`](../../../docs/architecture/agent-tooling.md).
+Full narrative: [accounts and Games operations](../../../docs/ARCHITECTURE.md#accounts-and-games-operations).
+Identifiers: [services and agent tooling](../../../docs/ARCHITECTURE.md#services-and-agent-tooling).
+Repairs, rotation and error reporting: the `convex-maintenance` skill.
 
 ## Before anything: which deployment?
 

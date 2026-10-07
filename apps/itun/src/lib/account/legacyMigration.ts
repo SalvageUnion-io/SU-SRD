@@ -14,7 +14,7 @@
  * The result is the bug this module was written for: a roster that is present
  * signed out and absent signed in. Two sources of truth, one of them invisible
  * to the product, exactly as
- * [ADR-035](../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md)
+ * [ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035)
  * describes.
  *
  * ## Two things go wrong, and both have to be fixed

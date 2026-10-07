@@ -12,7 +12,7 @@ import {
 } from 'component-lib'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { getEntitySlug, getSource, getTechLevel, getTree } from 'salvageunion-reference'
+import { getEntitySlug, getModel, getSource, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdEntityHref } from '../../lib/entityHref'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
@@ -54,7 +54,6 @@ function readUrlSet(name: string): Set<string> {
 }
 
 type SchemaViewerIslandProps = {
-  initialData: SURefEntity[]
   schemaId: string
   techLevels: (number | 'B' | 'N')[]
   sources: string[]
@@ -66,14 +65,49 @@ type SchemaViewerIslandProps = {
   preloadSchemas?: SchemaList
 }
 
-export function SchemaViewerIsland({
-  initialData,
+// Browse layout: filters always stack in a bar above the entity grid (at every
+// breakpoint), with the grid spanning full width below them.
+const containerClass = 'mx-auto w-full max-w-[1400px]'
+
+/**
+ * The listing's entities are not a prop: inlined into the page they were up to
+ * 162 KB of JSON per listing. The schema is already in `preloadSchemas` (see
+ * `getSchemaPreloadList`), so the grid reads it from the ORM once the gate
+ * opens — the same `getModel(id).all()` the page builds from.
+ */
+export function SchemaViewerIsland({ preloadSchemas, ...props }: SchemaViewerIslandProps) {
+  return (
+    <IslandErrorBoundary>
+      <GameDataGate
+        schemas={preloadSchemas}
+        fallback={
+          <div className={containerClass}>
+            <div className="w-full min-w-0 px-2 pb-6 md:px-6">
+              <MasonryColumns>
+                {Array.from({ length: 9 }, (_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
+                  <Skeleton key={i} mode="card" compact />
+                ))}
+              </MasonryColumns>
+            </div>
+          </div>
+        }
+      >
+        <SchemaViewer {...props} />
+      </GameDataGate>
+    </IslandErrorBoundary>
+  )
+}
+
+/** Rendered only behind the gate: `getModel(…).all()` throws on an unloaded schema. */
+function SchemaViewer({
   schemaId,
   techLevels,
   sources,
   trees = [],
-  preloadSchemas,
-}: SchemaViewerIslandProps) {
+}: Omit<SchemaViewerIslandProps, 'preloadSchemas'>) {
+  const initialData = useMemo(() => getModel(schemaId)?.all() ?? [], [schemaId])
+
   // Filter state initializes from the URL on mount so a shared/bookmarked link
   // restores the exact filtered view. Lazy initializers run once; the reads are
   // window-guarded for SSR.
@@ -179,9 +213,6 @@ export function SchemaViewerIsland({
   // Show the name input whenever the dataset is large enough to benefit from it
   const hasNameFilter = initialData.length > 12
 
-  // Browse layout: filters always stack in a bar above the entity grid (at every
-  // breakpoint), with the grid spanning full width below them.
-  const containerClass = 'mx-auto w-full max-w-[1400px]'
   const showAside = hasFilters || hasNameFilter
 
   const hasActiveFilters =
@@ -195,180 +226,160 @@ export function SchemaViewerIsland({
   }
 
   return (
-    <IslandErrorBoundary>
-      <GameDataGate
-        schemas={preloadSchemas}
-        fallback={
-          <div className={containerClass}>
-            <div className="w-full min-w-0 px-2 pb-6 md:px-6">
-              <MasonryColumns>
-                {Array.from({ length: 9 }, (_, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
-                  <Skeleton key={i} mode="card" compact />
-                ))}
-              </MasonryColumns>
-            </div>
-          </div>
-        }
-      >
-        <div className={containerClass}>
-          {showAside && (
-            <aside className="mb-6 flex w-full flex-col gap-4 px-2 pt-2 md:px-6 print:hidden">
-              {/* Search + Tech Level sit side by side on normal-sized screens
+    <div className={containerClass}>
+      {showAside && (
+        <aside className="mb-6 flex w-full flex-col gap-4 px-2 pt-2 md:px-6 print:hidden">
+          {/* Search + Tech Level sit side by side on normal-sized screens
                   (md+), stacking on narrow viewports. Source stays on its own row. */}
-              {(hasNameFilter || techLevels.length > 1) && (
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-6">
-                  {hasNameFilter && (
-                    <div className="md:shrink-0">
-                      <FilterRow label="Name">
-                        <input
-                          type="search"
-                          name="name-filter"
-                          value={nameFilter}
-                          onChange={(e) => setNameFilter(e.target.value)}
-                          placeholder="Filter by name…"
-                          aria-label="Filter items by name"
-                          // `text-base`, not `text-caption`: iOS Safari zooms the
-                          // viewport on a focused control under 16px, and this is
-                          // the filter a phone user reaches for first on a schema
-                          // listing. See the note in `chrome/inputs.tsx`.
-                          className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-base md:w-64"
-                        />
-                      </FilterRow>
-                    </div>
-                  )}
-                  {techLevels.length > 1 && (
-                    <div className="md:flex-1">
-                      <FilterRow label="Tech Level">
-                        <Badge
-                          shape="chip"
-                          as="button"
-                          aria-pressed={techLevelFilters.size === 0}
-                          surface={techLevelFilters.size === 0 ? 'solid' : 'ghost'}
-                          onClick={() => setTechLevelFilters(new Set())}
-                        >
-                          All
-                        </Badge>
-                        {techLevels.map((level) => {
-                          const numericLevel = typeof level === 'number' ? level : undefined
-                          const swatch =
-                            numericLevel !== undefined
-                              ? `var(--color-tl-${numericLevel})`
-                              : undefined
-                          const active = techLevelFilters.has(String(level))
-                          return (
-                            // Numeric tiers carry a colour swatch; B/N have no swatch and
-                            // tint the active fill via TECH_LEVEL_STYLES (className override).
-                            <Badge
-                              key={String(level)}
-                              shape="chip"
-                              as="button"
-                              aria-pressed={active}
-                              surface={active ? 'solid' : 'ghost'}
-                              swatch={swatch}
-                              className={
-                                active && !swatch ? TECH_LEVEL_STYLES[String(level)] : undefined
-                              }
-                              onClick={() => toggleTechLevel(level)}
-                            >
-                              {techLevelLabel(level)}
-                            </Badge>
-                          )
-                        })}
-                      </FilterRow>
-                    </div>
-                  )}
+          {(hasNameFilter || techLevels.length > 1) && (
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-6">
+              {hasNameFilter && (
+                <div className="md:shrink-0">
+                  <FilterRow label="Name">
+                    <input
+                      type="search"
+                      name="name-filter"
+                      value={nameFilter}
+                      onChange={(e) => setNameFilter(e.target.value)}
+                      placeholder="Filter by name…"
+                      aria-label="Filter items by name"
+                      // `text-base`, not `text-caption`: iOS Safari zooms the
+                      // viewport on a focused control under 16px, and this is
+                      // the filter a phone user reaches for first on a schema
+                      // listing. See the note in `chrome/inputs.tsx`.
+                      className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-base md:w-64"
+                    />
+                  </FilterRow>
                 </div>
               )}
-
-              {sources.length > 1 && (
-                <FilterRow label="Source">
-                  <Badge
-                    shape="chip"
-                    as="button"
-                    aria-pressed={sourceFilters.size === 0}
-                    surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
-                    onClick={() => setSourceFilters(new Set())}
-                  >
-                    All
-                  </Badge>
-                  {sources.map((source) => (
+              {techLevels.length > 1 && (
+                <div className="md:flex-1">
+                  <FilterRow label="Tech Level">
                     <Badge
-                      key={source}
                       shape="chip"
                       as="button"
-                      aria-pressed={sourceFilters.has(source)}
-                      surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
-                      onClick={() => toggleSource(source)}
+                      aria-pressed={techLevelFilters.size === 0}
+                      surface={techLevelFilters.size === 0 ? 'solid' : 'ghost'}
+                      onClick={() => setTechLevelFilters(new Set())}
                     >
-                      {source}
+                      All
                     </Badge>
-                  ))}
-                </FilterRow>
+                    {techLevels.map((level) => {
+                      const numericLevel = typeof level === 'number' ? level : undefined
+                      const swatch =
+                        numericLevel !== undefined ? `var(--color-tl-${numericLevel})` : undefined
+                      const active = techLevelFilters.has(String(level))
+                      return (
+                        // Numeric tiers carry a colour swatch; B/N have no swatch and
+                        // tint the active fill via TECH_LEVEL_STYLES (className override).
+                        <Badge
+                          key={String(level)}
+                          shape="chip"
+                          as="button"
+                          aria-pressed={active}
+                          surface={active ? 'solid' : 'ghost'}
+                          swatch={swatch}
+                          className={
+                            active && !swatch ? TECH_LEVEL_STYLES[String(level)] : undefined
+                          }
+                          onClick={() => toggleTechLevel(level)}
+                        >
+                          {techLevelLabel(level)}
+                        </Badge>
+                      )
+                    })}
+                  </FilterRow>
+                </div>
               )}
-
-              {trees.length > 1 && (
-                <FilterRow label="Tree">
-                  <Badge
-                    shape="chip"
-                    as="button"
-                    aria-pressed={treeFilters.size === 0}
-                    surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
-                    onClick={() => setTreeFilters(new Set())}
-                  >
-                    All
-                  </Badge>
-                  {trees.map((tree) => (
-                    <Badge
-                      key={tree}
-                      shape="chip"
-                      as="button"
-                      aria-pressed={treeFilters.has(tree)}
-                      surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
-                      onClick={() => toggleTree(tree)}
-                    >
-                      {tree}
-                    </Badge>
-                  ))}
-                </FilterRow>
-              )}
-            </aside>
+            </div>
           )}
 
-          {/* Entity Grid */}
-          <div className="w-full min-w-0 px-2 pb-6 md:px-6">
-            {filteredData.length === 0 ? (
-              <EmptyState
-                className="m-4"
-                headline="Nothing here"
-                body="No items match the current filters."
-                action={
-                  hasActiveFilters ? (
-                    <Button variant="primary" size="mini" onClick={clearFilters}>
-                      Clear filters
-                    </Button>
-                  ) : undefined
-                }
-              />
-            ) : (
-              <EntityHrefProvider value={srdEntityHref}>
-                <EntityDetailLinkProvider value={true}>
-                  <MasonryColumns>
-                    {filteredData.map((item: SURefEntity) => (
-                      <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
-                        <EntityCatalogTile
-                          entity={item}
-                          href={itemHref(schemaId, getEntitySlug(item))}
-                        />
-                      </Suspense>
-                    ))}
-                  </MasonryColumns>
-                </EntityDetailLinkProvider>
-              </EntityHrefProvider>
-            )}
-          </div>
-        </div>
-      </GameDataGate>
-    </IslandErrorBoundary>
+          {sources.length > 1 && (
+            <FilterRow label="Source">
+              <Badge
+                shape="chip"
+                as="button"
+                aria-pressed={sourceFilters.size === 0}
+                surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
+                onClick={() => setSourceFilters(new Set())}
+              >
+                All
+              </Badge>
+              {sources.map((source) => (
+                <Badge
+                  key={source}
+                  shape="chip"
+                  as="button"
+                  aria-pressed={sourceFilters.has(source)}
+                  surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
+                  onClick={() => toggleSource(source)}
+                >
+                  {source}
+                </Badge>
+              ))}
+            </FilterRow>
+          )}
+
+          {trees.length > 1 && (
+            <FilterRow label="Tree">
+              <Badge
+                shape="chip"
+                as="button"
+                aria-pressed={treeFilters.size === 0}
+                surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
+                onClick={() => setTreeFilters(new Set())}
+              >
+                All
+              </Badge>
+              {trees.map((tree) => (
+                <Badge
+                  key={tree}
+                  shape="chip"
+                  as="button"
+                  aria-pressed={treeFilters.has(tree)}
+                  surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
+                  onClick={() => toggleTree(tree)}
+                >
+                  {tree}
+                </Badge>
+              ))}
+            </FilterRow>
+          )}
+        </aside>
+      )}
+
+      {/* Entity Grid */}
+      <div className="w-full min-w-0 px-2 pb-6 md:px-6">
+        {filteredData.length === 0 ? (
+          <EmptyState
+            className="m-4"
+            headline="Nothing here"
+            body="No items match the current filters."
+            action={
+              hasActiveFilters ? (
+                <Button variant="primary" size="mini" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <EntityHrefProvider value={srdEntityHref}>
+            <EntityDetailLinkProvider value={true}>
+              <MasonryColumns>
+                {filteredData.map((item: SURefEntity) => (
+                  <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
+                    <EntityCatalogTile
+                      entity={item}
+                      href={itemHref(schemaId, getEntitySlug(item))}
+                    />
+                  </Suspense>
+                ))}
+              </MasonryColumns>
+            </EntityDetailLinkProvider>
+          </EntityHrefProvider>
+        )}
+      </div>
+    </div>
   )
 }

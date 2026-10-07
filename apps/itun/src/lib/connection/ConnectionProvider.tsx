@@ -69,7 +69,7 @@ function useConnectionState(signedIn: boolean, authSettled: boolean): Connection
    * roster.
    *
    * It no longer decides a backend — anonymous is always in-memory since
-   * [ADR-035](../../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md).
+   * [ADR-035](../../../../../docs/ARCHITECTURE.md#adr-035).
    * What still needs the answer is `ShelfSync`'s prune, which refuses to delete
    * anything while this reads `unknown`: absence from `listMine` cannot be
    * trusted to mean "deleted elsewhere" until we know there is nothing waiting

@@ -29,7 +29,7 @@ export default {
   // never reconciles it away; the open/closed state is a class on <html>, also
   // outside React. These target Ladle's internal shell classes (not a public API);
   // pinned to @ladle/react 5.1.1 — RE-VERIFY on any Ladle upgrade (see
-  // docs/design-system/ladle-styleguide.md §5.5/§9).
+  // docs/ARCHITECTURE.md#ladle-shell-relayout and #ladle-pin-and-type-imports).
   appendToHead: `
     <style>
       #ladle-nav-toggle { display: none; }

@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { refreshGameSummary } from '../../convex/model/entities'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -12,8 +14,6 @@ import { testConvex } from './harness'
  * stale must not strand the joiner outside the Game, and a knock must not be
  * a membership until someone says so.
  */
-
-type Ctx = ReturnType<typeof testConvex>
 
 /**
  * The first row, or a failure that says so.
@@ -26,13 +26,6 @@ function firstRow<T>(rows: T[]): T {
   const row = rows[0]
   if (row === undefined) throw new Error('expected at least one row, got none')
   return row
-}
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(async (ctx) => {
-    return await ctx.db.insert('users', { name, displayName: name })
-  })
-  return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
 async function seedGame(t: Ctx) {

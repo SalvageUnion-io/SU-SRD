@@ -17,7 +17,7 @@ import { convexAuth } from '@convex-dev/auth/server'
  *
  * Signing in used to be an *upgrade*, never a gate (D10). That is being
  * withdrawn by
- * [ADR-034](../../../docs/adrs/ADR-034-account-required-persistence.md):
+ * [ADR-034](../../../docs/ARCHITECTURE.md#adr-034):
  * anonymous play stays first-class for *building*, but keeping what you build
  * will require an account. Discord remains the only door for real users — see
  * `testOnlyProviders` below for the one exception and why it is not one.

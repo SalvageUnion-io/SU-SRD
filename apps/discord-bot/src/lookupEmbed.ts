@@ -43,9 +43,10 @@ import {
   replaceTraitReferences,
   SchemaToDisplayName,
   srdEntityUrl,
+  truncate,
   visiblePatterns,
 } from 'salvageunion-reference'
-import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, stripDanglingLink, truncate } from './format.js'
+import { EMBED_LIMIT, NEUTRAL_EMBED_COLOR, stripDanglingLink } from './format.js'
 
 const NEUTRAL = NEUTRAL_EMBED_COLOR
 

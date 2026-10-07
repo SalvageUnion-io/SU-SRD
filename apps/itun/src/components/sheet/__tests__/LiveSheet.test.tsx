@@ -8,14 +8,10 @@
  * component-lib EntityGrid.test.tsx.)
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, test } from 'bun:test'
+import { act, render, screen } from '@testing-library/react'
 import { must } from '../../__tests__/must'
 import { LiveSheet } from '../LiveSheet'
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // IntersectionObserver mock — happy-dom has no IO; capture the callback so a

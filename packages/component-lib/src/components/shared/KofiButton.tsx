@@ -16,7 +16,7 @@ import { cn } from '../../utils/cn'
  *
  * Requires the host CSP to allow `script-src https://storage.ko-fi.com`
  * (the button image is served from the same host, covered by `img-src https:`).
- * See each app's `public/_headers`.
+ * See srd's `public/_headers` and itun's `src/worker/securityHeaders.ts`.
  */
 
 const WIDGET_SRC = 'https://storage.ko-fi.com/cdn/widget/Widget_2.js'
@@ -38,7 +38,11 @@ export type KofiButtonProps = {
   code: string
   /** Button label. */
   label?: string
-  /** Button accent colour (hex). */
+  /**
+   * Button accent colour (hex). The widget sets its label in white on this, so
+   * the default is dark enough for WCAG AA: 5.5:1, where the `#72a4f2` it
+   * replaced measured 2.5:1.
+   */
   color?: string
   /** Optional class on the container element. */
   className?: string
@@ -47,7 +51,7 @@ export type KofiButtonProps = {
 export function KofiButton({
   code,
   label = 'Support me on Ko-fi',
-  color = '#72a4f2',
+  color = '#2e66c4',
   className,
 }: KofiButtonProps) {
   const ref = useRef<HTMLDivElement>(null)

@@ -12,18 +12,14 @@
  * justifies it (or worse, the reverse, which reads as a silently lost drone).
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, renderHook } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { act, renderHook } from '@testing-library/react'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { usePilotSheetActions } from '../pilotSheetActions'
 import type { SheetStoreState } from '../sheetViewProps'
-
-afterEach(() => {
-  cleanup()
-})
 
 type Captured = { patch: Record<string, unknown> }
 

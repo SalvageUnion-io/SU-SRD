@@ -11,14 +11,13 @@ export function Variants() {
     <Stack gap="1.5rem">
       <Group caption='variant="default" — Fira Code body face'>
         <Text>
-          Roll on the Core Mechanic Table with a d20; a 20 is a Nailed It, a 1 is a Cascade
-          Failure.
+          Roll on the Core Mechanic Table with a d20; a 20 is a Nailed It, a 1 is a Cascade Failure.
         </Text>
       </Group>
       <Group caption='variant="body" — reference prose / labelled values'>
         <Text variant="body">
-          The Iron Mongrel is a Tech Level 1 chassis with 10 Structure Points and 3 System Slots.
-          It vents 1 Heat at the start of each turn.
+          The Iron Mongrel is a Tech Level 1 chassis with 10 Structure Points and 3 System Slots. It
+          vents 1 Heat at the start of each turn.
         </Text>
       </Group>
       <Group caption='variant="hint" — centered italic rules tip'>

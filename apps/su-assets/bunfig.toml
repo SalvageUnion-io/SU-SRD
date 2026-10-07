@@ -1,7 +1,3 @@
-# Every workspace sets NODE_ENV = "test" here, so no suite runs with whatever
-# NODE_ENV the shell happened to carry — the kind of per-workspace divergence
-# that makes a suite pass locally and behave differently in CI.
-#
 # No `preload` — this workspace has no DOM, no IndexedDB and no reference-data
 # fixtures to stand up; the asset function is tested against plain Request /
 # Response objects.
@@ -9,6 +5,3 @@
 # Coverage counts this workspace's own files, not the other workspaces'
 # sources its tests load (tools/run-coverage.ts gates on this total).
 coveragePathIgnorePatterns = ["../**"]
-
-[test.env]
-NODE_ENV = "test"

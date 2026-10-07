@@ -90,14 +90,14 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'test',
-    guards: 'the full test suite, every workspace plus tools/',
+    guards: 'the full test suite, every workspace (tools/ is one)',
     fix: 'fix the test; `bun --filter <workspace> test` reruns one workspace',
     cmd: ['bun', 'run', 'test'],
     profiles: ['full'],
   },
   {
     id: 'typecheck',
-    guards: 'TypeScript across every workspace and tools/',
+    guards: 'TypeScript across every workspace, test/ and the .design-sync/ previews',
     fix: 'fix the type error',
     cmd: ['bun', 'run', 'typecheck'],
     areas: ['code'],
@@ -113,7 +113,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'biome',
-    guards: 'lint, format and import order (`biome ci .`)',
+    guards: 'lint, format, import order and the GritQL rules in tools/biome/ (`biome ci .`)',
     fix: '`bun run format`, then fix what remains',
     cmd: ['bunx', 'biome', 'ci', '.'],
     profiles: ALL,
@@ -129,17 +129,10 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'doc-drift',
-    guards: 'cited paths, bun scripts and markdown links exist; agent-doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); cut a doc over its size budget',
+    guards:
+      'cited paths, bun scripts and markdown links exist; each ADR once in ARCHITECTURE.md; agent-doc size budgets',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); keep each ADR one bare `## ADR-NNN` under # Decisions; cut a doc over its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
-    id: 'architecture',
-    guards: 'no module-scope ORM calls, no inlined pool defaults, component-lib size cap',
-    fix: 'move the ORM call inside a function, use `resolvePool`, or extract a seam under the size cap',
-    cmd: ['bun', 'tools/check-architecture.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
   },
@@ -169,9 +162,12 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'workflows',
-    guards: 'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard',
+    guards:
+      'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
+    // Reads only .github/, the manifests and .bun-version, all of them `code`.
+    areas: ['code'],
     profiles: ALL,
   },
   {
@@ -184,12 +180,12 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'audit',
     guards: 'no high-severity advisory in the dependency tree',
-    fix: 'upgrade or override the vulnerable package (docs/architecture/dependency-management.md)',
+    fix: 'upgrade or override the vulnerable package (docs/ARCHITECTURE.md#dependency-audit)',
     cmd: [
       'bun',
       'audit',
       '--audit-level=high',
-      // The one suppression (dependency-management.md, "Audit"): braces <=3.0.3
+      // The one suppression (docs/ARCHITECTURE.md#dependency-audit): braces <=3.0.3
       // has NO fixed release. It reaches the tree only through component-lib's
       // devDependency @ladle/react -> globby -> fast-glob -> micromatch, and
       // Ladle globs nothing but our own story patterns. Remove this line when
@@ -207,6 +203,8 @@ export const CHECKS: readonly CheckSpec[] = [
     guards: 'actionlint + zizmor over .github/ (pinned, hash-verified binaries)',
     fix: "fix the finding; zizmor's config is .github/zizmor.yml",
     cmd: ['tools/lint-workflows.sh'],
+    // Reads only .github/ (workflows, actions, zizmor.yml), all of it `code`.
+    areas: ['code'],
     profiles: ['full', 'ci'],
   },
 ]

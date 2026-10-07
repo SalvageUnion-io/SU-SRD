@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -10,15 +12,6 @@ import { testConvex } from './harness'
  * opposition can read the encounter before it happens — the one leak that
  * changes how the game is *played*, rather than merely who can edit what.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 /** A Game where `organizer` also mediates, plus a plain player. */
 async function seedMediatedGame(t: Ctx) {

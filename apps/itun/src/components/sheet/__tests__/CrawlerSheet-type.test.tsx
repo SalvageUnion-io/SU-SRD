@@ -16,7 +16,7 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
 import type { Crawler } from '../../../lib/schemas/crawler'
@@ -25,10 +25,6 @@ import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Patched crawler-type catalog

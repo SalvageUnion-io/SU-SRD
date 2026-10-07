@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -24,15 +25,6 @@ import { testConvex } from './harness'
  * Each test below fails against the pre-fix handler; the two happy-path cases
  * are the controls that say the fix did not simply close the door on everyone.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 function entry(gameId: string | null, over: Record<string, unknown> = {}) {
   return {

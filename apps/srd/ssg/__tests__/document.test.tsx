@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { SITE_URL } from '../../src/lib/constants'
+import { SITE_URL, THEME_COLOR } from '../../src/lib/constants'
 import { Island } from '../../src/runtime/Island'
 import type { BuildAssets } from '../document'
 import { renderDocument } from '../document'
@@ -221,6 +221,10 @@ describe('head assembly from DocumentMeta', () => {
     expect(
       metaContent(renderAbout({ title: 'Aegis', ogImageAlt: 'Aegis art' }), 'og:image:alt')
     ).toBe('Aegis art')
+  })
+
+  it("emits the manifest's theme-color on every page", () => {
+    expect(metaContent(renderAbout(), 'theme-color')).toBe(THEME_COLOR)
   })
 
   it('emits robots only for a noindex page', () => {

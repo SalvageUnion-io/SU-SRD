@@ -29,8 +29,8 @@ name: Audit Watch
 
 on:
   schedule:
-    # Mondays, ahead of the Dependabot and catalog-update batches, so an
-    # advisory is on the board before the PRs that might resolve it arrive.
+    # Mondays. No bot opens a PR for a vulnerable Bun dependency, so this
+    # issue is the weekly signal to fix one by hand.
     - cron: '0 5 * * 1'
   workflow_dispatch:
 
@@ -90,8 +90,8 @@ jobs:
               '`bun.lock` or a `package.json`, so **this may not be failing any PR** — which',
               'is the entire reason this job exists.',
               '',
-              'Watch list, per `docs/architecture/dependency-management.md`: `nanoid`,',
-              '`fast-uri`, `brace-expansion`, `shell-quote`, `filelist`. Four are floored in',
+              'Watch list, per `docs/ARCHITECTURE.md#dependency-audit`: `nanoid`,',
+              '`fast-uri`, `brace-expansion`, `filelist`. Three are floored in',
               '`overrides`; `brace-expansion` cannot be, because the tree holds two copies at',
               'incompatible majors and a tree-wide override would break the v2 consumer.',
               '',

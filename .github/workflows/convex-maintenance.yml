@@ -2,7 +2,7 @@
 #
 # WHY THIS EXISTS. Repairs like `maintenance:repairContainers` are internal
 # actions: nothing in the app calls them, and running them needs production
-# credentials that live only in this repo's Actions secrets
+# credentials that live only in the `production` GitHub Environment
 # (`CONVEX_DEPLOY_KEY`, the same key `deploy-cloudflare.yml` pushes with).
 # Without this workflow the only way to run one is a maintainer's own machine
 # with `bunx convex run --prod`, so a repair a PR asked for could sit unrun.
@@ -10,12 +10,12 @@
 # SAFETY:
 #   * `workflow_dispatch` only — never on a schedule or a push. Dispatching
 #     needs write access to the repo, and forks cannot trigger it.
-#   * `main` only, as an ACCIDENT guard. A dispatch runs the workflow file from
-#     the dispatched ref, so someone with write access could edit this `if:` on
-#     a branch — but they could equally push any workflow that reads the
-#     repo-level secret. The real controls are write access and `main`'s
-#     ruleset; a GitHub Environment restricted to `main` would be the hard
-#     boundary for this workflow and `deploy-cloudflare.yml` alike.
+#   * `main` only, twice. The `if:` is the accident guard; the job's
+#     `environment: production` is the boundary. A dispatch runs the workflow
+#     file from the dispatched ref, so an edited copy on a branch could drop the
+#     `if:` — but the environment admits deployments from `main` only, so that
+#     run fails before CONVEX_DEPLOY_KEY is readable. The production secrets
+#     exist only there (`bun run check workflows`, `secrets-env`).
 #   * An allowlist. `task` is a `choice` input AND the step re-checks it with a
 #     `case`, so adding a function to run here is a reviewed change to this
 #     file, never a free-text argument.
@@ -55,6 +55,7 @@ jobs:
     name: Run maintenance:${{ inputs.task }}
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 30
     steps:
       - name: Checkout

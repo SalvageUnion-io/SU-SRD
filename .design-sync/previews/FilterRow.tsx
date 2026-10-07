@@ -5,7 +5,7 @@
  */
 import { Badge, FilterRow } from 'component-lib'
 import { getSource, getTechLevel, getTree, SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 /**
  * The labelled filter band above SRD listings — a small-caps label with a
@@ -14,9 +14,9 @@ import { Group, Stack } from '../preview-lib/harness'
  */
 export function Facets() {
   const systems = SalvageUnionReference.Systems.all()
-  const techLevels = [
-    ...new Set(systems.map(getTechLevel).filter((tl) => tl !== undefined)),
-  ].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }))
+  const techLevels = [...new Set(systems.map(getTechLevel).filter((tl) => tl !== undefined))].sort(
+    (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })
+  )
   const sources = [
     ...new Set(systems.map(getSource).filter((s): s is string => typeof s === 'string')),
   ]

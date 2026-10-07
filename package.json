@@ -7,14 +7,14 @@
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "tools"
   ],
   "overrides": {
     "fast-uri": ">=3.1.6 <4",
     "filelist": ">=1.0.6",
     "nanoid": ">=3.3.18",
-    "sharp": ">=0.35.5",
-    "shell-quote": ">=1.11.0"
+    "sharp": ">=0.35.5"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
@@ -25,16 +25,12 @@
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
-    "axe-core": "4.13.0",
     "bun-types": "1.4.0",
-    "concurrently": "10.0.5",
     "fake-indexeddb": "6.2.5",
     "knip": "6.32.2",
     "lefthook": "2.1.10",
-    "playwright": "1.62.1",
     "tailwindcss": "4.3.3",
-    "typescript": "7.0.2",
-    "typescript-classic": "npm:typescript@6.0.3"
+    "typescript": "7.0.2"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
@@ -47,14 +43,12 @@
     "deploy-commands": "bun --filter discord-bot deploy-commands",
     "deploy-commands:global": "bun --filter discord-bot deploy-commands:global",
     "rules:extract": "bun tools/extract-rules.ts",
-    "typecheck": "concurrently -g 'tsc --noEmit -p tsconfig.tools.json' 'bun --filter \"*\" typecheck'",
+    "typecheck": "bun --filter \"*\" typecheck",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "test": "concurrently -g 'bun run test:workspaces' 'bun run test:tools'",
-    "test:workspaces": "bun --filter \"*\" test",
+    "test": "bun --filter \"*\" test",
     "test:coverage": "bun tools/run-coverage.ts",
-    "test:tools": "bun test ./tools",
     "e2e:itun": "cd apps/itun && bunx playwright test",
     "clean": "bun --filter \"*\" clean || true",
     "reap": "tools/prune-stale-worktrees.sh",

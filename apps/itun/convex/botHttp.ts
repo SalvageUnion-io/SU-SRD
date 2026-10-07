@@ -25,7 +25,7 @@ import { isFresh, isSignedByDiscord } from './model/discordInteraction'
  * `encounterNpcs`) but it is real, and the endgame is to remove it: point
  * Discord's interactions endpoint at a Convex HTTP action and verify Discord's
  * Ed25519 signature, at which point the id is attested rather than asserted.
- * See `docs/architecture/discord-bot-game-client.md` §3.
+ * See `docs/ARCHITECTURE.md#bot-authentication`.
  *
  * `ITUN_BOT_SECRET` unset disables the whole surface — a deployment that has
  * not opted in cannot be talked to by a bot, rather than being talked to by

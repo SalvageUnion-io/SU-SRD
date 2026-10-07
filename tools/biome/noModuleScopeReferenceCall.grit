@@ -1,0 +1,35 @@
+// A `SalvageUnionReference` accessor called at module scope runs at import
+// time, before the app's `preload()` has, and throws "Schema not loaded" with a
+// stack trace far from the call (docs/ARCHITECTURE.md#module-scope-orm-calls).
+// This matches a one- or two-level accessor call
+// with no function-like ancestor. `preload()` and `isLoaded()` are the lifecycle
+// calls the contract exists to make eagerly, so they are exempt.
+//
+// Scoped to shipped source in biome.jsonc: tests run after each workspace's
+// bunfig preload, and Ladle evaluates a story only after its PreloadGate.
+language js(typescript, jsx)
+
+or {
+  `SalvageUnionReference.$model.$method($args)`,
+  `SalvageUnionReference.$method($args)` where {
+    $method <: not or {
+      `preload`,
+      `isLoaded`
+    }
+  }
+} as $call where {
+  $call <: not within or {
+    JsFunctionDeclaration(),
+    JsFunctionExportDefaultDeclaration(),
+    JsFunctionExpression(),
+    JsArrowFunctionExpression(),
+    JsMethodClassMember(),
+    JsMethodObjectMember(),
+    JsGetterClassMember(),
+    JsGetterObjectMember(),
+    JsSetterClassMember(),
+    JsSetterObjectMember(),
+    JsConstructorClassMember()
+  } ,
+  register_diagnostic(span=$call, message="This SalvageUnionReference call runs at import time, before preload(), and throws 'Schema not loaded'. Move it inside a function, hook or effect (docs/ARCHITECTURE.md#module-scope-orm-calls).", severity="error")
+}

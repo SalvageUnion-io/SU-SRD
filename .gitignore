@@ -21,7 +21,7 @@ core
 **/playwright-report/
 **/test-results/
 **/.playwright-mcp/
-# Coverage output (each workspace's `test:coverage` lcov)
+# Coverage output (each workspace's lcov from `bun run test:coverage`)
 **/coverage/
 
 # Profiling artifacts (bun --cpu-prof / --heap-prof, bun build --metafile-md).

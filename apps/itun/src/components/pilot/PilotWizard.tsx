@@ -1,5 +1,5 @@
 import type { StepRule } from 'component-lib'
-import { OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -15,12 +15,7 @@ import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/
 import { PilotSchema } from '../../lib/schemas/pilot'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
-import {
-  clearWizardDraft,
-  readWizardDraft,
-  useWizardDraftSync,
-  wizardDraftKey,
-} from '../../lib/wizard/wizardDraft'
+import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
@@ -157,18 +152,23 @@ export function PilotWizard({
   // The step machine + the create submit, shared with the mech and crawler
   // wizards (`useWizardFlow`); the pilot's create input is a plain projection
   // of the form.
-  const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
+  const { step, gate, submitError, shell } = useWizardFlow({
     entityType: 'pilot',
     noun: 'pilot',
     steps: STEPS,
+    stepLabels: STEP_LABELS,
+    gateFor: (s) => pilotCreationStepGate(s, form),
     initialStep: 'stats',
     submitStep: 'review',
     form,
     draftKey,
+    formDirty,
     schema: PilotSchema,
     toCreateInput: pilotFormToCreateInput,
     failureMessage: 'Failed to save pilot. Please retry.',
     onComplete,
+    onCancel,
+    onOffRules,
   })
 
   function updateForm(patch: Partial<PilotWizardFormState>) {
@@ -243,10 +243,6 @@ export function PilotWizard({
       return { ...prev, equipment }
     })
   }
-
-  // Next-gating (§5.3): the hard step gates. The gate's reason renders in the
-  // footerNote so a locked Next always explains itself.
-  const gate = pilotCreationStepGate(step, form)
 
   // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19.
   const stepRule: StepRule = (() => {
@@ -352,26 +348,10 @@ export function PilotWizard({
     <WizShell
       kind="pilot"
       eyebrow="Pilot Bay"
-      steps={STEPS.map((s) => STEP_LABELS[s])}
-      active={currentIndex}
-      onStepClick={(i) => {
-        const s = STEPS[i]
-        if (s) setStep(s)
-      }}
+      {...shell}
       title={STEP_TITLES[step]}
-      tintedStepCard
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
-      escapeAction={!gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined}
-      onBack={currentIndex > 0 ? goBack : undefined}
-      onCancel={() => {
-        clearWizardDraft(draftKey)
-        onCancel()
-      }}
-      confirmCancel={formDirty}
-      onNext={goNext}
-      nextDisabled={!gate.ok}
-      busy={isSubmitting}
       submitLabel="Create Pilot ✦"
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />

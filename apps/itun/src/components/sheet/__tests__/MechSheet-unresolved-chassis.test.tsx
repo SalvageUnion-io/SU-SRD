@@ -7,17 +7,13 @@
  * installed item slugs keep their cards/fallbacks.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
-
-afterEach(() => {
-  cleanup()
-})
 
 const fakeMech: Mech = {
   id: 'mech-unresolved-1',
