@@ -1,4 +1,5 @@
 import { z } from 'salvageunion-reference/zod'
+import { containerFields } from './entity'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray
@@ -50,13 +51,7 @@ export const EncounterNpcSchema = z
   .object({
     id: z.string(),
     schemaVersion: z.literal(1),
-    /**
-     * Container this tracked NPC belongs to (ADR-030 §2): a Game id, `null`
-     * for the Shelf, absent for a record written before the split.
-     */
-    gameId: z.string().nullable().optional(),
-    /** @deprecated Pre-ADR-030 container. Read only as a fallback. */
-    workspaceId: z.string().optional(),
+    ...containerFields,
 
     /** Which reference schema the NPC came from. */
     refSchema: EncounterRefSchemaSchema,

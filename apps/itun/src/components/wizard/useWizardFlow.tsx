@@ -1,6 +1,6 @@
 /**
- * useWizardFlow — the step machine and the create submit the pilot, mech and
- * crawler wizards all run.
+ * useWizardFlow — the step machine, the create submit and the `WizShell`
+ * navigation props the pilot, mech and crawler wizards all run.
  *
  * Submit validates the create input against the entity's Zod schema (with a
  * throwaway `id` — the store mints the real one), surfaces the joined issue
@@ -11,10 +11,16 @@
  * so the crawler derives its starting SP and seeds its base bays inside its
  * own, and `failureMessage` is passed verbatim because the three wizards'
  * failure copy differs.
+ *
+ * `shell` is every `WizShell` prop the three wizards used to spell out alike
+ * (stepper, Back / Next / Cancel, the step gate and the Off-Rules escape);
+ * each wizard spreads it and adds only its own kind, copy and trackers.
  */
 
-import { toast } from 'component-lib'
+import { OffRulesEscape, toast } from 'component-lib'
+import type { ReactNode } from 'react'
 import { useState } from 'react'
+import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
 import type { AssignableType, CreateInput } from '../../stores/types'
@@ -44,13 +50,19 @@ export type WizardFlowOptions<
   noun: string
   /** The wizard's steps, in order. */
   steps: readonly TStep[]
+  /** Stepper-rail label per step. */
+  stepLabels: Record<TStep, string>
+  /** The hard creation gate for a step; a failing gate locks Next. */
+  gateFor: (step: TStep) => StepGateResult
   /** First step. */
   initialStep: TStep
   /** The step whose Next is a submit rather than an advance. */
   submitStep: TStep
   form: TForm
-  /** Session-draft key, cleared on a successful submit. */
+  /** Session-draft key, cleared on a successful submit or a cancel. */
   draftKey: string
+  /** Whether the form differs from empty — Cancel asks before discarding it. */
+  formDirty: boolean
   /** Validated with a throwaway id before the create write. */
   schema: WizardValidationSchema
   toCreateInput: (form: TForm) => CreateInput<T>
@@ -58,18 +70,34 @@ export type WizardFlowOptions<
   failureMessage: string
   /** Called with the new entity's id once the create has landed. */
   onComplete: (entityId: string) => void
+  onCancel: () => void
+  /** Leaves the guided flow for the blank Free-Edit path; offered on a locked step. */
+  onOffRules?: () => void
+}
+
+/** The `WizShell` props every creation wizard passes the same way. */
+export type WizardShellProps = {
+  steps: readonly string[]
+  active: number
+  onStepClick: (index: number) => void
+  tintedStepCard: true
+  escapeAction: ReactNode
+  onBack: (() => void) | undefined
+  onCancel: () => void
+  confirmCancel: boolean
+  /** Advance, or submit when already on `submitStep`. */
+  onNext: () => void
+  nextDisabled: boolean
+  busy: boolean
 }
 
 export type WizardFlow<TStep extends string> = {
   step: TStep
-  setStep: (step: TStep) => void
-  /** Index of `step` in `steps`; -1 if the step is not in it. */
-  currentIndex: number
-  /** Advance, or submit when already on `submitStep`. */
-  goNext: () => void
-  goBack: () => void
-  isSubmitting: boolean
+  /** `gateFor(step)`. */
+  gate: StepGateResult
   submitError: string | null
+  /** Spread onto `WizShell`. */
+  shell: WizardShellProps
 }
 
 export function useWizardFlow<
@@ -80,14 +108,19 @@ export function useWizardFlow<
   entityType,
   noun,
   steps,
+  stepLabels,
+  gateFor,
   initialStep,
   submitStep,
   form,
   draftKey,
+  formDirty,
   schema,
   toCreateInput,
   failureMessage,
   onComplete,
+  onCancel,
+  onOffRules,
 }: WizardFlowOptions<TStep, TForm, T>): WizardFlow<TStep> {
   const [step, setStep] = useState<TStep>(initialStep)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -145,5 +178,30 @@ export function useWizardFlow<
     }
   }
 
-  return { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError }
+  const gate = gateFor(step)
+
+  return {
+    step,
+    gate,
+    submitError,
+    shell: {
+      steps: steps.map((s) => stepLabels[s]),
+      active: currentIndex,
+      onStepClick: (i) => {
+        const s = steps[i]
+        if (s) setStep(s)
+      },
+      tintedStepCard: true,
+      escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
+      onBack: currentIndex > 0 ? goBack : undefined,
+      onCancel: () => {
+        clearWizardDraft(draftKey)
+        onCancel()
+      },
+      confirmCancel: formDirty,
+      onNext: goNext,
+      nextDisabled: !gate.ok,
+      busy: isSubmitting,
+    },
+  }
 }

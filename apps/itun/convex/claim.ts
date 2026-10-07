@@ -261,9 +261,24 @@ export const claimLocal = mutation({
       claimed += 1
     }
 
+    /*
+     * Pilots, mechs and crawlers share one table shape (`containerTable` in
+     * `schema.ts`), so they share one pass.
+     *
+     * The crawler was not always in it. The first version of this mutation took
+     * only pilots and mechs, which silently dropped the crew's HOME; and once it
+     * was claimed, a crawler had no shelf able to hold it, so it was parked on a
+     * placeholder **"Claimed crawler" Game of one** — an entire Game, plus a
+     * membership, raised solely to satisfy a non-nullable `gameId`, which then
+     * showed in the player's games list as a table they never made. `crawlers`
+     * now carries the same two container columns as `pilots` and `mechs`, so a
+     * claimed crawler lands exactly where a claimed pilot lands, on the
+     * claimer's shelf, by the same loop.
+     */
     for (const [table, rows] of [
       ['pilots', args.pilots],
       ['mechs', args.mechs],
+      ['crawlers', args.crawlers ?? []],
     ] as const) {
       for (const body of rows) {
         const parsed = PARSERS[table].safeParse(body)
@@ -276,11 +291,7 @@ export const claimLocal = mutation({
           continue
         }
 
-        const appId =
-          typeof (body as { id?: unknown }).id === 'string'
-            ? (body as { id: string }).id
-            : undefined
-
+        const appId = bodyAppId(body)
         if (appId !== undefined && (await appIdTaken(ctx, table, appId))) {
           present(body)
           continue
@@ -295,58 +306,6 @@ export const claimLocal = mutation({
         })
         bump(table)
       }
-    }
-
-    /**
-     * Crawlers, soft links and patterns are claimed too.
-     *
-     * The first version of this mutation took only pilots and mechs, which
-     * silently dropped the crawler — the crew's HOME — along with every
-     * pilot-to-crawler and mech-to-pilot link that makes a roster a roster, and
-     * every saved pattern. Somebody claiming a long-running solo campaign would
-     * have watched half of it vanish with no error.
-     *
-     * ## This used to invent a container, and no longer needs to
-     *
-     * A claimed crawler had no Game to go in and no shelf able to hold it, so
-     * it was parked on a placeholder **"Claimed crawler" Game of one** — an
-     * entire Game, plus a membership in it, raised solely to satisfy a
-     * non-nullable `gameId`. That is gone: `crawlers` now carries the same two
-     * container columns as `pilots` and `mechs`, so a claimed crawler lands
-     * exactly where a claimed pilot lands, on the claimer's shelf.
-     *
-     * Two problems go with it. The placeholder appeared in the player's games
-     * list as a table they never made and could not meaningfully use; and the
-     * ordering dance that raised it lazily — resolving what to write BEFORE
-     * inserting the Game, so that a re-claim with nothing new to say did not
-     * leave an empty one behind — was load-bearing machinery guarding a
-     * workaround. With no Game to raise there is nothing left to order, so the
-     * crawler pass is now the same straight loop the pilots and mechs use.
-     */
-    for (const body of args.crawlers ?? []) {
-      const parsed = PARSERS.crawlers.safeParse(body)
-      if (!parsed.success) {
-        skip(body)
-        continue
-      }
-      if (await namesALiveGame(ctx, body)) {
-        declined += 1
-        continue
-      }
-      const appId =
-        typeof (body as { id?: unknown }).id === 'string' ? (body as { id: string }).id : undefined
-      if (appId !== undefined && (await appIdTaken(ctx, 'crawlers', appId))) {
-        present(body)
-        continue
-      }
-      await ctx.db.insert('crawlers', {
-        gameId: null,
-        ownerId: userId,
-        appId,
-        body: shelveBody(parsed.data),
-        updatedAt: now,
-      })
-      bump('crawlers')
     }
 
     /**

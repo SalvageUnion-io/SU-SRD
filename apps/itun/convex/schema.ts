@@ -1,5 +1,6 @@
 import { authTables } from '@convex-dev/auth/server'
 import { defineSchema, defineTable } from 'convex/server'
+import type { GenericId, Validator } from 'convex/values'
 import { v } from 'convex/values'
 
 /**
@@ -113,6 +114,56 @@ export const seatMount = v.union(
   v.object({ kind: v.literal('foot') }),
   v.object({ kind: v.literal('boarded'), mechId: v.string() })
 )
+
+/**
+ * The columns and indexes `pilots`, `mechs` and `crawlers` share: one table
+ * shape, three tables. Only `ownerId` differs — the crawler's is optional
+ * (see the note on `crawlers`) — so it is the argument.
+ */
+function containerTable<
+  Owner extends Validator<GenericId<'users'> | null | undefined, 'required' | 'optional', string>,
+>(ownerId: Owner) {
+  return (
+    defineTable({
+      gameId: v.union(v.id('games'), v.null()),
+      ownerId,
+      /**
+       * The app-level UUID this row mirrors (ADR-030 §1).
+       *
+       * Convex mints its own `_id`, so a client holding only the local UUID has
+       * nothing to address a row by — which is what made an earlier
+       * write-mirroring attempt unworkable for updates and deletes. Carrying the
+       * app id as an indexed column gives one cheap lookup per write instead of
+       * a mapping table, and keeps `_id` idiomatic for everything server-side.
+       *
+       * Optional because rows created server-side (Game templates) have no local
+       * counterpart until somebody claims them.
+       */
+      appId: v.optional(v.string()),
+      /**
+       * Whether this entity is readable by anybody, with no account
+       * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
+       *
+       * A column rather than a body field because it is a **visibility** fact,
+       * which is server state in the same way `gameId` and `ownerId` are — and
+       * because the body is `v.any()`, so nothing here could enforce it.
+       *
+       * Absent means not public. That is the existing rule (ADR-030 §5:
+       * visibility begins at membership) and therefore the correct default for
+       * every row that already exists.
+       */
+      publicRead: v.optional(v.boolean()),
+      body: v.any(),
+      updatedAt: v.number(),
+    })
+      .index('by_game', ['gameId'])
+      // `ownerId` alone is a prefix of this, so it also serves every "all of
+      // mine" read; the second column is for "mine on the shelf" (`gameId:
+      // null`), which used to collect everything the owner held and filter.
+      .index('by_owner_game', ['ownerId', 'gameId'])
+      .index('by_app_id', ['appId'])
+  )
+}
 
 export default defineSchema({
   // Auth tables from @convex-dev/auth: authAccounts, authSessions, etc.
@@ -354,83 +405,9 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_invite_user', ['inviteId', 'userId']),
 
-  pilots: defineTable({
-    gameId: v.union(v.id('games'), v.null()),
-    ownerId: v.union(v.id('users'), v.null()),
-    /**
-     * The app-level UUID this row mirrors (ADR-030 §1).
-     *
-     * Convex mints its own `_id`, so a client holding only the local UUID has
-     * nothing to address a row by — which is what made an earlier
-     * write-mirroring attempt unworkable for updates and deletes. Carrying the
-     * app id as an indexed column gives one cheap lookup per write instead of
-     * a mapping table, and keeps `_id` idiomatic for everything server-side.
-     *
-     * Optional because rows created server-side (Game templates) have no local
-     * counterpart until somebody claims them.
-     */
-    appId: v.optional(v.string()),
-    /**
-     * Whether this entity is readable by anybody, with no account
-     * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
-     *
-     * A column rather than a body field because it is a **visibility** fact,
-     * which is server state in the same way `gameId` and `ownerId` are — and
-     * because the body is `v.any()`, so nothing here could enforce it.
-     *
-     * Absent means not public. That is the existing rule (ADR-030 §5:
-     * visibility begins at membership) and therefore the correct default for
-     * every row that already exists.
-     */
-    publicRead: v.optional(v.boolean()),
-    body: v.any(),
-    updatedAt: v.number(),
-  })
-    .index('by_game', ['gameId'])
-    // `ownerId` alone is a prefix of this, so it also serves every "all of
-    // mine" read; the second column is for "mine on the shelf" (`gameId:
-    // null`), which used to collect everything the owner held and filter.
-    .index('by_owner_game', ['ownerId', 'gameId'])
-    .index('by_app_id', ['appId']),
+  pilots: containerTable(v.union(v.id('users'), v.null())),
 
-  mechs: defineTable({
-    gameId: v.union(v.id('games'), v.null()),
-    ownerId: v.union(v.id('users'), v.null()),
-    /**
-     * The app-level UUID this row mirrors (ADR-030 §1).
-     *
-     * Convex mints its own `_id`, so a client holding only the local UUID has
-     * nothing to address a row by — which is what made an earlier
-     * write-mirroring attempt unworkable for updates and deletes. Carrying the
-     * app id as an indexed column gives one cheap lookup per write instead of
-     * a mapping table, and keeps `_id` idiomatic for everything server-side.
-     *
-     * Optional because rows created server-side (Game templates) have no local
-     * counterpart until somebody claims them.
-     */
-    appId: v.optional(v.string()),
-    /**
-     * Whether this entity is readable by anybody, with no account
-     * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
-     *
-     * A column rather than a body field because it is a **visibility** fact,
-     * which is server state in the same way `gameId` and `ownerId` are — and
-     * because the body is `v.any()`, so nothing here could enforce it.
-     *
-     * Absent means not public. That is the existing rule (ADR-030 §5:
-     * visibility begins at membership) and therefore the correct default for
-     * every row that already exists.
-     */
-    publicRead: v.optional(v.boolean()),
-    body: v.any(),
-    updatedAt: v.number(),
-  })
-    .index('by_game', ['gameId'])
-    // `ownerId` alone is a prefix of this, so it also serves every "all of
-    // mine" read; the second column is for "mine on the shelf" (`gameId:
-    // null`), which used to collect everything the owner held and filter.
-    .index('by_owner_game', ['ownerId', 'gameId'])
-    .index('by_app_id', ['appId']),
+  mechs: containerTable(v.union(v.id('users'), v.null())),
 
   /**
    * The crawler is communal **inside a Game** (D8) — `ownerId: null` — and any
@@ -466,8 +443,7 @@ export default defineSchema({
    * `gameId == null && ownerId == null` stays the one invalid combination, for
    * the crawler exactly as for everything else.
    */
-  crawlers: defineTable({
-    gameId: v.union(v.id('games'), v.null()),
+  crawlers: containerTable(
     /**
      * Null while the crawler is in a Game — that is what communal means (D8).
      * Set only on the shelf, where a container with no owner would be the
@@ -484,31 +460,8 @@ export default defineSchema({
      * shelved. Readers must treat the two identically; `ownerOf` in
      * `model/entities.ts` is the one place that decides it.
      */
-    ownerId: v.optional(v.union(v.id('users'), v.null())),
-    /** See `pilots.appId` — same reason, same lookup path. */
-    appId: v.optional(v.string()),
-    /**
-     * Whether this entity is readable by anybody, with no account
-     * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
-     *
-     * A column rather than a body field because it is a **visibility** fact,
-     * which is server state in the same way `gameId` and `ownerId` are — and
-     * because the body is `v.any()`, so nothing here could enforce it.
-     *
-     * Absent means not public. That is the existing rule (ADR-030 §5:
-     * visibility begins at membership) and therefore the correct default for
-     * every row that already exists.
-     */
-    publicRead: v.optional(v.boolean()),
-    body: v.any(),
-    updatedAt: v.number(),
-  })
-    .index('by_game', ['gameId'])
-    // `ownerId` alone is a prefix of this, so it also serves every "all of
-    // mine" read; the second column is for "mine on the shelf" (`gameId:
-    // null`), which used to collect everything the owner held and filter.
-    .index('by_owner_game', ['ownerId', 'gameId'])
-    .index('by_app_id', ['appId']),
+    v.optional(v.union(v.id('users'), v.null()))
+  ),
 
   /**
    * An assignment: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler'.

@@ -1,5 +1,5 @@
 import type { StepRule } from 'component-lib'
-import { OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SURefCrawler,
@@ -27,12 +27,7 @@ import {
   EMPTY_CRAWLER_FORM_STATE,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
-import {
-  clearWizardDraft,
-  readWizardDraft,
-  useWizardDraftSync,
-  wizardDraftKey,
-} from '../../lib/wizard/wizardDraft'
+import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import { SystemsList } from '../wizard/SystemsList'
@@ -158,14 +153,17 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
   // bare projection: a fresh crawler starts at its DERIVED full SP and
   // pre-seeds the base bay set. The failure copy is passed verbatim: the
   // crawler's carries no "Please retry." suffix.
-  const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
+  const { step, gate, submitError, shell } = useWizardFlow({
     entityType: 'crawler',
     noun: 'crawler',
     steps: STEPS,
+    stepLabels: STEP_LABELS,
+    gateFor: (s) => crawlerCreationStepGate(s, form),
     initialStep: 'type',
     submitStep: 'review',
     form,
     draftKey,
+    formDirty,
     schema: CrawlerSchema,
     toCreateInput: (f) => {
       // Fresh crawlers start at FULL SP — the DERIVED max (bare tech-level
@@ -183,6 +181,8 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
     },
     failureMessage: 'Failed to save crawler.',
     onComplete,
+    onCancel,
+    onOffRules,
   })
 
   function updateForm(patch: Partial<CrawlerWizardFormState>) {
@@ -250,10 +250,6 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
     const system = allSystems.find((s) => s.id === id)
     return system ? isWeaponSystem(system) : false
   }).length
-
-  // Next-gating (§5.3): the hard step gates. The gate's reason renders in the
-  // footerNote so a locked Next always explains itself.
-  const gate = crawlerCreationStepGate(step, form)
 
   // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213.
   const stepRule: StepRule = (() => {
@@ -323,26 +319,10 @@ export function CrawlerBuilder({ onComplete, onCancel, onOffRules }: CrawlerBuil
     <WizShell
       kind="crawler"
       eyebrow="Union Crawler"
-      steps={STEPS.map((s) => STEP_LABELS[s])}
-      active={currentIndex}
-      onStepClick={(i) => {
-        const s = STEPS[i]
-        if (s) setStep(s)
-      }}
+      {...shell}
       title={STEP_TITLES[step]}
-      tintedStepCard
       trackers={trackers}
       footerNote={footerNote}
-      escapeAction={!gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined}
-      onBack={currentIndex > 0 ? goBack : undefined}
-      onCancel={() => {
-        clearWizardDraft(draftKey)
-        onCancel()
-      }}
-      confirmCancel={formDirty}
-      onNext={goNext}
-      nextDisabled={!gate.ok}
-      busy={isSubmitting}
       submitLabel="Create Crawler ✦"
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />

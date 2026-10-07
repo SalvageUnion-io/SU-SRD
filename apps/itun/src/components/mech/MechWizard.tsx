@@ -1,5 +1,5 @@
 import type { StepRule } from 'component-lib'
-import { OffRulesEscape, RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
+import { RuleBrief, toast, WizShell, WizTracker } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import {
@@ -18,12 +18,7 @@ import {
 import { MechSchema } from '../../lib/schemas/mech'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from '../../lib/wizard/mechFormState'
-import {
-  clearWizardDraft,
-  readWizardDraft,
-  useWizardDraftSync,
-  wizardDraftKey,
-} from '../../lib/wizard/wizardDraft'
+import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import { useWizardFlow } from '../wizard/useWizardFlow'
@@ -137,18 +132,23 @@ export function MechWizard({ onComplete, onCancel, onOffRules }: MechWizardProps
   // The step machine + the create submit, shared with the pilot and crawler
   // wizards (`useWizardFlow`); the mech's create input is a plain projection
   // of the form.
-  const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
+  const { step, gate, submitError, shell } = useWizardFlow({
     entityType: 'mech',
     noun: 'mech',
     steps: STEPS,
+    stepLabels: STEP_LABELS,
+    gateFor: (s) => mechCreationStepGate(s, form),
     initialStep: 'scrap',
     submitStep: 'review',
     form,
     draftKey,
+    formDirty,
     schema: MechSchema,
     toCreateInput: mechFormToCreateInput,
     failureMessage: 'Failed to save mech. Please retry.',
     onComplete,
+    onCancel,
+    onOffRules,
   })
 
   function updateForm(patch: Partial<MechWizardFormState>) {
@@ -255,10 +255,6 @@ export function MechWizard({ onComplete, onCancel, onOffRules }: MechWizardProps
   function setMechName(value: string) {
     updateForm({ name: value, patternName: value })
   }
-
-  // Next-gating (§5.3): the hard step gates. The gate's reason renders in the
-  // footerNote so a locked Next always explains itself.
-  const gate = mechCreationStepGate(step, form)
 
   // Per-step RuleBrief: the Core Book's own Mech Workshop copy, pp.94–95.
   const stepRule: StepRule = (() => {
@@ -379,26 +375,10 @@ export function MechWizard({ onComplete, onCancel, onOffRules }: MechWizardProps
     <WizShell
       kind="mech"
       eyebrow="Mech Workshop"
-      steps={STEPS.map((s) => STEP_LABELS[s])}
-      active={currentIndex}
-      onStepClick={(i) => {
-        const s = STEPS[i]
-        if (s) setStep(s)
-      }}
+      {...shell}
       title={STEP_TITLES[step]}
-      tintedStepCard
       trackers={trackers}
       footerNote={footerNote}
-      escapeAction={!gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined}
-      onBack={currentIndex > 0 ? goBack : undefined}
-      onCancel={() => {
-        clearWizardDraft(draftKey)
-        onCancel()
-      }}
-      confirmCancel={formDirty}
-      onNext={goNext}
-      nextDisabled={!gate.ok}
-      busy={isSubmitting}
       submitLabel="Create Mech ✦"
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="mb-5" />
