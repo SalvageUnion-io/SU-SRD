@@ -9,18 +9,8 @@ paths:
 See `docs/architecture/display-system.md` for the architecture, and
 `docs/design-system/ruleset.md` for the governing design laws.
 
-> **Why this file is short.** Its previous version enumerated components, props
-> and control presets — and every one of those enumerations went stale as the
-> design-system pass landed. It still described `ReferenceEntityDisplay`
-> (deleted), `StatsBar` (deleted), `BlockContentRendererView` /
-> `StaticChoiceCard` (deleted), three control presets that no longer exist, and
-> `Card`'s `compact` / `listing` booleans (replaced). An agent following
-> it would have reached for half a dozen things that aren't there.
->
-> A rules file is loaded into every session that touches this area, so a stale
-> one does active harm. This version states the **rules**, which change slowly,
-> and points at the **source** for the roster, which changes fast. Do not
-> re-add prop tables or component lists here.
+Do not re-add prop tables or component lists here: state the rule, point at the
+source for the roster.
 
 ## The two card shells — deliberately separate
 
@@ -34,14 +24,9 @@ There are two, and the separation is a decision, not an accident:
   sub-header / body / footer) that the poster, sheet and modal surfaces compose.
   `ModalShell` is built on it.
 
-**They are NOT being merged.** A full assessment found the composition impossible
-without visual deltas across every SRD page — the frame-element difference alone
-shifts every absolute overlay by 3px, ghosted sub-header tones are underivable
-inside Card, and the two resolve `cardClick` fallback in opposite
-directions (first-wins vs last-wins). The entity card's header is also
-semantically richer: it distinguishes a stat cluster from flavour prose to decide
-which side yields, and Card's header slot is opaque to its content, so
-that rule cannot live there.
+**They are NOT being merged** (and their `cardClick` fallback resolves
+first-wins vs last-wins); the assessment is `docs/architecture/display-system.md`
+§The two card shells.
 
 So: **do not add entity-card features to Card**, and do not route the
 entity card through it. Share the VOCABULARY (`displayMode`, the controls

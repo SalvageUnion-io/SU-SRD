@@ -15,21 +15,11 @@ React component patterns using functional components and TypeScript.
 
 ## Component Organization
 
-Shared, app-agnostic components live in `packages/component-lib/src/components/`
-(`base/`, `chrome/`, `shared/`, `stat/`, `ui/`, `referenceEntity/`, `sheet/`,
-`dashboard/`, `skeleton/`, `wizard/`). Reach for the library **first** — see
-`docs/architecture/package-contracts.md` for what lives where, and read the
-barrel (`packages/component-lib/src/index.ts`) rather than trusting any
-hand-written inventory.
-
-Inside an app:
-
-- `src/components/shared/` — app-wide components that are not library-worthy
-  (app router glue, providers, gates)
-- `src/components/{feature}/` — feature-scoped components. In itun these are
-  lowercase feature folders: `account/`, `container/`, `contextual/`,
-  `crawler/`, `dashboard/`, `export/`, `games/`, `mech/`,
-  `pilot/`, `roster/`, `sheet/`, `wiring/`, `wizard/`.
+Shared, app-agnostic components live in `packages/component-lib/src/components/`;
+reach for the library first. Read the barrel (`packages/component-lib/src/index.ts`)
+and `docs/architecture/package-contracts.md` for what lives where, never a
+hand-written inventory. App-only components live in that app's
+`src/components/{feature}/`.
 
 ## UI Frameworks
 
@@ -69,24 +59,11 @@ Inside an app:
   [`display-system.md`](display-system.md) and
   `docs/architecture/display-system.md`. There is no render-prop layer.
 - No backend dependency - agnostic to data source
-
-## Styling ownership (CI-enforced)
-
-**All design tokens live in `packages/component-lib/src/styles/theme.css`.** An
-app must not declare an `@theme` block or define a `--color-*` / `--text-*` /
-`--tracking-*` / `--bw-*` / `--radius-*` / `--font-*` / `--shadow-*` token.
-`tools/check-styling.ts` (rule `styling/app-theme`) fails on it, and it runs
-in `check` and at **pre-push** via lefthook — so a violation surfaces late,
-after the code is written.
-
-There is exactly one exemption, listed in that file: the
-`--animate-loader-slide` keyframe binding in `apps/itun/src/index.css`. It
-exempts only the "no `@theme` in an app" clause — adding a reserved-namespace
-token inside it still fails.
-
-Two related rules from the same checker: authored app CSS must have a consumer
-(`dead-app-css`), and the dashboard `pc-*` class contract is closed in both
-directions (`pc-class-contract`).
+- Design tokens live only in `packages/component-lib/src/styles/theme.css`; an
+  app declaring its own fails `bun run check styling` (`app-theme`; also
+  `dead-app-css`, `pc-class-contract` in `tools/rules/stylingOwnership.ts`). Its
+  one exemption, the `--animate-loader-slide` binding in `apps/itun/src/index.css`,
+  covers only the no-`@theme` clause, never a reserved-namespace token.
 
 ## State Management
 

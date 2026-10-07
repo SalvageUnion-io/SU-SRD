@@ -31,10 +31,12 @@ caricature hides exactly the wrapping, overflow, tone and empty-state bugs the
 refresh is supposed to fix, so a mockup built against one is designing for a
 component that does not exist.
 
-- Render it via SSR — `react-dom/server` `renderToStaticMarkup` plus compiled
-  Tailwind (`@tailwindcss/node` + `@tailwindcss/oxide` Scanner over the rendered
-  markup, theme fonts embedded as data URIs). Capture HTML + CSS, not
-  screenshots.
+- Render it via SSR — `react-dom/server` `renderToStaticMarkup` (precedent:
+  `apps/srd/ssg/document.tsx`), styled by the stylesheet `bun --filter srd build`
+  emits (named in the build's Vite manifest under apps/srd/dist).
+  `packages/component-lib/src/styles/index.css` is only its Tailwind source,
+  which a browser cannot read. Use no package this repo does not declare.
+  Capture HTML + CSS, not screenshots.
 - Feed it **real ORM data** (`SalvageUnionReference.*`), deliberately including
   the awkward records — longest name, empty description, missing artwork.
 - Settle the read-only design before touching anything editable.
@@ -45,8 +47,9 @@ component that does not exist.
   one, are **not** barrel-exported, and have **no consumers**. Iteration is then
   zero-risk.
 - Show them as a **three-way Ladle story on one page**: old · new read-only ·
-  new editable, all driven by real data through the real components.
-  `bun run ladle`
+  new editable, all driven by real data through the real components. Open the
+  `ladle` launch config (`.claude/launch.json`, port 61000), or `bun run ladle`
+  outside Claude Code.
 - Add any write layer as **evolutions of the read-only card, never a redesign**.
 
 ## L3 — cutover, staged and green at every step

@@ -156,13 +156,13 @@ Both React apps get the built-in a11y rule group automatically — no separate p
 Enforces: `noSvgWithoutTitle`, `useAriaPropsForRole`, `noAutofocus`, `useKeyWithClickEvents`, `noStaticElementInteractions`, and more.
 
 **Automated scanning** (`tools/a11y-scan.ts`):
-Puppeteer + axe-core WCAG 2.1 AA scanner. Usage:
+Playwright + axe-core WCAG 2.1 AA scanner. CI and the nightly run it as `bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>`, scanning exactly the baseline's pages. Ad-hoc usage:
 
 ```bash
 bun tools/a11y-scan.ts http://localhost:4321 / /schema/chassis/ /about/
 ```
 
-Reports violations with impact level (critical/serious/moderate/minor), node examples, and help URLs. Runs headless Chrome with `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, and `best-practice` rulesets.
+Reports violations with impact level (critical/serious/moderate/minor), node examples, and help URLs. Runs Playwright's headless Chromium with `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, and `best-practice` rulesets.
 
 ### Landmark Structure
 
@@ -233,13 +233,7 @@ Keyboard: ArrowDown/ArrowUp navigate, Enter opens, Escape closes, Cmd+K/Ctrl+K f
 - Current page: `aria-current="page"`
 - Dual representation: HTML + JSON-LD `BreadcrumbList`
 
-**Filter chips** (`FilterChip.tsx`):
-
-```tsx
-<button type="button" onClick={onClick} aria-pressed={active}>
-  {label}
-</button>
-```
+**Filter chips** are `Badge as="button"` (`packages/component-lib/src/components/chrome/Badge.tsx`); the call site owns the pressed state and passes `aria-pressed` (see `apps/srd/src/components/islands/SchemaViewerIsland.tsx`).
 
 **Focus management**: Modals (`ModalShell`, built on Base UI's `Dialog` from `@base-ui/react/dialog`) trap focus and restore on close. Confirms go through `ConfirmDialog`, which renders `ModalShell` as Base UI's `AlertDialog` (`role="alertdialog"`, described by its visible body) and starts focus on Cancel for a destructive confirm. Search dropdown manages `aria-activedescendant` for virtual focus.
 

@@ -112,22 +112,6 @@ which redirects there. Either opens the live sheet — yours editable, a
 crewmate's read-only (ITUN's `entities.locate`). `/su crew` and `/su sheet` keep
 `gameSheetUrl`: it names the Game the row came from.
 
-**`/su sheet` is ephemeral, always — and that is a rule, not a default.** Most
-sheets are private ([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)
-makes a public URL opt-in and off by default), so replying publicly would post a
-build into the channel with no shareable page behind it and every link on it
-404ing. The Share field appears **only** when the server reports
-`publicRead: true`, and the reply stays ephemeral even then — publishing a page
-is the owner's act; posting it to this channel is not the asker's to make on
-their behalf. `src/__tests__/sheetVisibility.test.ts` holds both halves.
-
-**Every reply is a Components V2 container.** With `MessageFlags.IsComponentsV2`
-Discord rejects `content` and `embeds` outright, so nothing sends `embeds:`.
-The `EmbedData` / `LookupEmbed` builders survive as pure, tested *content*;
-the container adapters own presentation. **Limits are enforced once, in
-`toContainer`** (`enforceContainerLimits`, budgets in `V2_LIMIT`) — a different
-budget from `EMBED_LIMIT`, and not applied twice.
-
 ## Conventions
 
 - Slash commands use `@discordjs/builders`' `SlashCommandBuilder`
@@ -135,11 +119,5 @@ budget from `EMBED_LIMIT`, and not applied twice.
   — subcommands, plus the `game` subcommand **group**
 - Commands live in `src/commands/`, generally one file per command; the three
   small personal ones share `account.ts`
-- Handlers depend on the **narrow** interaction types in
-  `src/commands/interactions.ts`, never on a library's interaction classes. Add
-  a member there only when a handler genuinely reads it, and update the shared
-  fakes in `src/__tests__/fakeInteraction.ts` — never cast in a test
-- Every message is built as `ContainerData` and rendered by `toContainer`;
-  a new surface gets a `*Container.ts` builder, not an embed
 - Bot token and guild IDs come from environment variables. `src/config.ts` reads
   them at module scope, so tests preload `test/env.ts` via `bunfig.toml`

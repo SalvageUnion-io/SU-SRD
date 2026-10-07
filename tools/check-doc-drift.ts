@@ -10,9 +10,10 @@
  *            `bun run check <id>` in a live doc, workflow prompt or Claude
  *            hook names a real script or check id.
  *   links    every relative markdown link in a tracked `.md` file resolves.
- *   size     root and per-directory CLAUDE.md files stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000. They load into
- *            every agent session in scope, so growth costs every session.
+ *   size     root and per-directory CLAUDE.md files and `.claude/agents/*.md`
+ *            stay under 8,000 characters and `.claude/rules/*.md` under 4,000.
+ *            They load into every agent session in scope, so growth costs
+ *            every session.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -460,15 +461,10 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  '.claude/rules/display-system.md': 4_752,
-  '.claude/rules/itun-data-access.md': 4_188,
-  '.claude/rules/react-components.md': 4_465,
-  '.claude/rules/testing-patterns.md': 7_812,
-  'apps/discord-bot/CLAUDE.md': 8_337,
   'apps/itun/CLAUDE.md': 13_806,
   'apps/srd/CLAUDE.md': 11_799,
-  'CLAUDE.md': 12_391,
-  'packages/component-lib/CLAUDE.md': 16_137,
+  'CLAUDE.md': 12_192,
+  'packages/component-lib/CLAUDE.md': 16_132,
   'packages/salvageunion-reference/CLAUDE.md': 9_361,
 }
 
@@ -486,6 +482,7 @@ export function checkDocSizes(
   const budgeted = [
     ...claudeMds.map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
     ...rules.map((doc) => [doc, RULE_BUDGET] as const),
+    ...markdownIn(root, '.claude/agents').map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
   ]
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
