@@ -69,6 +69,19 @@ describe('resolveColor', () => {
     expect(resolveColor('red')).toBeUndefined()
   })
 
+  test('reads an alpha slash with or without spaces around it', () => {
+    expect(resolveColor('rgb(1 2 3/0.5)')).toBeUndefined()
+    expect(resolveColor('rgb(1 2 3 /0.5 )')).toBeUndefined()
+    expect(resolveColor('rgb(1 2 3 )')).toEqual([1, 2, 3])
+  })
+
+  test('rejects a long run of spaces without backtracking (CodeQL js/polynomial-redos)', () => {
+    const start = performance.now()
+    // The old pattern took ~1.8 s on this input; the linear one well under 1 ms.
+    expect(resolveColor(`rgb(1\t1\t1${' '.repeat(100_000)}`)).toBeUndefined()
+    expect(performance.now() - start).toBeLessThan(500)
+  })
+
   test('an unresolvable band keeps the caller’s fallback', () => {
     expect(foregroundOn(undefined)).toBe('paper')
     expect(foregroundOn('var(--color-tl-1)')).toBe('ink')
