@@ -434,15 +434,17 @@ The closed list of real transactions on the Live Sheet:
 
 | Control | Transacts | Why here |
 | --- | --- | --- |
-| `sheet/CrawlerEconomyControl.tsx` (Upkeep / Upgrade / Trade) | Scrap-pool draw, Upgrade-Pool credit, the Deterioration d20, the Scrap swap | No crawler Dashboard; the economy hangs off the crawler hero (Core Book p.218-223) |
+| `sheet/CrawlerEconomyControl.tsx` (Upkeep / Upgrade / Trade) | Scrap-pool draw, Upgrade-Pool credit, the Deterioration d20, the Scrap swap | The Dashboard's Crawler Major pays Upkeep only in a Game's Downtime; Solo, shelf and Mediator-less play, the Deterioration roll and Trade still happen on the sheet (Core Book p.218-223) |
 | `sheet/CrawlerSheet.tsx` bay Repair | 5 Scrap of crawler TL or higher; the bay flips Intact | Reached from the bay card; the draw is advisory |
 | `sheet/MechItemCard.tsx` repair + remaining uses | Field-repair Scrap; `_used` counters | Acts on the card in front of you |
 
 Nothing blocks (a disabled button plus a visible advisory); `scrapPool` stays
 hand-editable; writes are tagged `LIVE_SHEET_TXN`, except row 3
 (`MechSheet.tsx`'s `repairItem` still writes `LIVE_SHEET_MANUAL`). The list is
-closed: a new transaction goes on the Dashboard. If the crawler gets a
-Dashboard, row 1 moves there as `DASHBOARD_TXN`.
+closed: a new transaction goes on the Dashboard. Upkeep is paid on the
+Dashboard during a Game's Downtime (`CrawlerSlot.tsx`, claimed once through
+`downtime.spendUpkeep`, written as `DASHBOARD_TXN`) and stays on the sheet
+outside a Game.
 
 ### Destructive consequences and provenance
 
@@ -531,11 +533,13 @@ are the package's `lib/rules/derivedStats.ts`.
 Criticals (`MechSlot.tsx`, `PilotSlot.tsx`: `mechDamagePatch`,
 `critDamagePatch`, `pilotDamagePatch`, `critInjuryPatch`), the reactor,
 activation and `performCoreRoll`, Downtime (`DowntimeWizard.tsx`;
-`mechBayStatus` / `medBayStatus` from `lib/rules/downtime.ts`), and salvage,
-crafting and scrapping (`CrawlerSlot.tsx`, `dashboardEconomy.ts` →
-`lib/rules/salvage.ts`, `lib/rules/crafting.ts`, `lib/rules/scrapMech.ts`).
-The Live Sheet has the crawler economy (`lib/rules/crawlerEconomy.ts`, mounted
-by `SheetCrawler.tsx`) and
+`mechBayStatus` / `medBayStatus` from `lib/rules/downtime.ts`), and the
+crawler's Pay Upkeep, salvage, crafting and scrapping (`CrawlerSlot.tsx`,
+`dashboardEconomy.ts` → `lib/rules/crawlerEconomy.ts`, `lib/rules/salvage.ts`,
+`lib/rules/crafting.ts`, `lib/rules/scrapMech.ts`). The Live Sheet keeps the
+whole crawler economy for play outside a Game's Downtime — Upkeep, Upgrade,
+the Deterioration roll and Trade (`lib/rules/crawlerEconomy.ts`, mounted by
+`SheetCrawler.tsx`) — and
 per-card `setItemUses`, `repairItem`, `cycleItemCondition`. Gone:
 `HeatCheckControl`, `TakeDamageControl`, `PilotTakeDamageControl`,
 `SalvageControl`, `CraftingControl`, `DowntimeControl`, `ScrapMechControl`,
