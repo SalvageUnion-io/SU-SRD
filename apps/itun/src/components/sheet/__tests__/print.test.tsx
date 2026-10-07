@@ -14,14 +14,10 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -30,9 +26,8 @@ beforeAll(hydrateStores)
 // Minimal fake entities
 // ---------------------------------------------------------------------------
 
-const fakePilot: Pilot = {
+const fakePilot = pilotFixture({
   id: 'print-pilot-1',
-  schemaVersion: 1,
   name: 'Vera Mast',
   callsign: 'Sparks',
   classRef: 'engineer',
@@ -41,15 +36,10 @@ const fakePilot: Pilot = {
   motto: 'Fix it or lose it.',
   keepsake: 'A cracked circuit board.',
   appearance: 'Short, quick-eyed.',
-  background: '',
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeMech: Mech = {
+const fakeMech = mechFixture({
   id: 'print-mech-1',
-  schemaVersion: 1,
   name: 'Print Wraith',
   // MechSheet resolves chassis by name (the builder stores the name); use a
   // real chassis so structurePoints resolve and the SP pip row renders.
@@ -66,35 +56,14 @@ const fakeMech: Mech = {
       code: 'RAT',
     },
   ],
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeCrawler: Crawler = {
+const fakeCrawler = crawlerFixture({
   id: 'print-crawler-1',
-  schemaVersion: 1,
   name: 'Print Fortress',
-  techLevel: 'tech-1',
   crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
   systems: ['crawler-turret'],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
-
-// ---------------------------------------------------------------------------
-// Store helpers (minimal — no mock.module required)
-// ---------------------------------------------------------------------------
-
-type AnyEntity = Pilot | Mech | Crawler
-
-function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return makeEntityLookupMock(entities)
-}
-
-function makeEmptySoftLinkStore(): SoftLinkStore {
-  return makeSoftLinkStoreMock()
-}
+})
 
 // ---------------------------------------------------------------------------
 // Tests: print-relevant markup presence
@@ -106,8 +75,8 @@ describe('Print markup — PilotSheet', () => {
       <Sheet
         kind="pilot"
         id="print-pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     // PilotSheet renders <section class="sheet-section"> (print page-break target)
@@ -120,8 +89,8 @@ describe('Print markup — PilotSheet', () => {
       <Sheet
         kind="pilot"
         id="print-pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const header = container.querySelector('header')
@@ -133,8 +102,8 @@ describe('Print markup — PilotSheet', () => {
       <Sheet
         kind="pilot"
         id="print-pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const backLink = container.querySelector('header a[aria-label="Back to roster"]')
@@ -158,8 +127,8 @@ describe('Print markup — PilotSheet', () => {
       <Sheet
         kind="pilot"
         id="print-pilot-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const picker = container.querySelector('button[aria-label="Change class"]')
@@ -178,8 +147,8 @@ describe('Print markup — MechSheet', () => {
       <Sheet
         kind="mech"
         id="print-mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const section = container.querySelector('section[aria-labelledby="mech-sheet-heading"]')
@@ -191,8 +160,8 @@ describe('Print markup — MechSheet', () => {
       <Sheet
         kind="mech"
         id="print-mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     // MechSheet renders stat blocks (component-lib StatBlock after the Header C rebuild)
@@ -207,8 +176,8 @@ describe('Print markup — MechSheet', () => {
       <Sheet
         kind="mech"
         id="print-mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     // Smoke test: Sheet rendered some content. CSS print rules apply at the document
@@ -221,8 +190,8 @@ describe('Print markup — MechSheet', () => {
       <Sheet
         kind="mech"
         id="print-mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const h2 = container.querySelector('h2#mech-sheet-heading')
@@ -237,8 +206,8 @@ describe('Print markup — CrawlerSheet', () => {
       <Sheet
         kind="crawler"
         id="print-crawler-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const section = container.querySelector('section[aria-label$="crawler sheet"]')
@@ -264,8 +233,8 @@ describe('Print markup — stat pip rows', () => {
       <Sheet
         kind="pilot"
         id="pip-pilot-1"
-        entityStore={makeEntityStore([pilotWithPartialStats])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([pilotWithPartialStats])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const onPips = container.querySelectorAll('[data-pip="on"]')
@@ -282,8 +251,8 @@ describe('Print markup — stat pip rows', () => {
       <Sheet
         kind="mech"
         id="print-mech-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     // chassis stats vary, but with a resolved chassis there must be pip hooks.
@@ -296,8 +265,8 @@ describe('Print markup — stat pip rows', () => {
       <Sheet
         kind="crawler"
         id="print-crawler-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeEmptySoftLinkStore()}
+        entityStore={makeEntityLookupMock([fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock()}
       />
     )
     const pips = container.querySelectorAll('[data-pip]')

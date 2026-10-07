@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -12,16 +14,6 @@ import { testConvex } from './harness'
  * a browser takes — rather than unit-testing the helpers in isolation, because
  * the failure mode worth catching is a mutation that forgets to call them.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-/** Seed a user row and return an identity-bound handle for it. */
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(async (ctx) => {
-    return await ctx.db.insert('users', { name, displayName: name })
-  })
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 /** A Game created by `organizer`, plus a second member who is a plain Player. */
 async function seedGame(t: Ctx) {

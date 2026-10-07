@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -17,15 +19,6 @@ import { testConvex } from './harness'
  * badge is quietly wrong forever), and **an ordinary sheet edit does not touch
  * the Game at all** (or the churn is back).
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 function pilotBody(over: Record<string, unknown> = {}) {
   return {

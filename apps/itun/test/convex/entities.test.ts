@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { ConvexError } from 'convex/values'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -19,15 +21,6 @@ import { testConvex } from './harness'
  *     writes a crewmate's sheet — a Mediator wanting to change one goes through
  *     a proposal, not a privileged write path.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 /**
  * A minimal body that satisfies PilotSchema.

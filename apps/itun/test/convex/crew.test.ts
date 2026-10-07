@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import { MechSchema } from '../../src/lib/schemas/mech'
 import { PilotSchema } from '../../src/lib/schemas/pilot'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -13,15 +15,6 @@ import { testConvex } from './harness'
  * (which belongs to one person and to no crew) being reachable through a
  * Game-scoped read.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer')

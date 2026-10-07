@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { MechSchema } from '../../src/lib/schemas/mech'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -12,15 +14,6 @@ import { testConvex } from './harness'
  * that promise could quietly erode: a force-apply path appearing, a proposal
  * expiring and dropping damage, or two contradictory pendings against one field.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 async function seedTable(t: Ctx) {
   const gm = await makeUser(t, 'Mediator')

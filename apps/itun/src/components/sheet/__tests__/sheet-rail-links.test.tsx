@@ -20,20 +20,20 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { useEntityStore } from '../../../stores/entityStore'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import {
+  crawlerFixture,
+  mechFixture,
+  pilotFixture,
+  softLinkFixture,
+} from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 // Each, not All: the afterEach below un-hydrates the live store.
@@ -52,91 +52,30 @@ afterEach(() => {
   })
 })
 
-const fakePilot: Pilot = {
+const fakePilot = pilotFixture({
   id: 'pilot-1',
-  schemaVersion: 1,
   name: 'Yara Voss',
   callsign: 'Ghost',
-  classRef: 'scavenger',
-  abilities: [],
-  equipment: [],
   motto: 'Waste not.',
   keepsake: 'A bent coin.',
   appearance: 'Tall, weathered.',
-  background: '',
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeMech: Mech = {
+const fakeMech = mechFixture({
   id: 'mech-1',
-  schemaVersion: 1,
   name: 'Iron Fist',
   chassisRef: 'iron-mongrel',
-  systems: [],
-  modules: [],
-  cargoLots: [],
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeCrawler: Crawler = {
+const fakeCrawler = crawlerFixture({
   id: 'crawler-1',
-  schemaVersion: 1,
   name: 'Iron Tortoise',
   techLevel: 'tech-2',
-  systems: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-type AnyEntity = Pilot | Mech | Crawler
-
-function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return makeEntityLookupMock(entities)
-}
-
-function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  // The create mock is unused here; cast is safe — these tests never assign()
-  return makeSoftLinkStoreMock(links)
-}
-
-function makeLink(
-  id: string,
-  fromType: 'mech' | 'pilot' | 'crawler',
-  fromId: string,
-  toType: 'mech' | 'pilot' | 'crawler',
-  toId: string,
-  type: SoftLink['type']
-): SoftLink {
-  return {
-    id,
-    from: { type: fromType, id: fromId },
-    to: { type: toType, id: toId },
-    type,
-    createdAt: FIXTURE_NOW,
-  }
-}
-
-const mechToPilot = makeLink('link-1', 'mech', 'mech-1', 'pilot', 'pilot-1', 'mech-to-pilot')
-const pilotToCrawler = makeLink(
-  'link-2',
-  'pilot',
-  'pilot-1',
-  'crawler',
-  'crawler-1',
-  'pilot-to-crawler'
-)
-const mechToCrawler = makeLink(
-  'link-3',
-  'mech',
-  'mech-1',
-  'crawler',
-  'crawler-1',
-  'mech-to-crawler'
-)
+const mechToPilot = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
+const pilotToCrawler = softLinkFixture('pilot-to-crawler', 'pilot-1', 'crawler-1')
+const mechToCrawler = softLinkFixture('mech-to-crawler', 'mech-1', 'crawler-1')
 
 // ---------------------------------------------------------------------------
 // 1. Cross-links on the rail
@@ -161,8 +100,8 @@ describe('Sheet — rail cross-links', () => {
       <Sheet
         kind="pilot"
         id="pilot-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([mechToPilot, pilotToCrawler])}
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler])}
       />
     )
     expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
@@ -174,8 +113,8 @@ describe('Sheet — rail cross-links', () => {
       <Sheet
         kind="mech"
         id="mech-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech])}
-        softLinkStore={makeSoftLinkStore([mechToPilot])}
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
       />
     )
     expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
@@ -186,8 +125,8 @@ describe('Sheet — rail cross-links', () => {
       <Sheet
         kind="mech"
         id="mech-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([mechToCrawler])}
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([mechToCrawler])}
       />
     )
     expect(linkTo('/sheet/crawler/crawler-1')).toBeTruthy()
@@ -198,8 +137,8 @@ describe('Sheet — rail cross-links', () => {
       <Sheet
         kind="crawler"
         id="crawler-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([mechToPilot, pilotToCrawler, mechToCrawler])}
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler, mechToCrawler])}
       />
     )
     // Crew = every pilot wired to the crawler; the bay = every mech docked by
@@ -219,8 +158,8 @@ describe('Sheet — entity not found', () => {
       <Sheet
         kind="pilot"
         id="does-not-exist"
-        entityStore={makeEntityStore([])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getByRole('heading', { name: /pilot not found/i })).toBeTruthy()
@@ -234,8 +173,8 @@ describe('Sheet — entity not found', () => {
       <Sheet
         kind="mech"
         id="does-not-exist"
-        entityStore={makeEntityStore([])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getByRole('heading', { name: /mech not found/i })).toBeTruthy()
@@ -279,7 +218,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
     })
 
     expect(deleteFn).toHaveBeenCalledTimes(1)
-    expect(deleteFn).toHaveBeenCalledWith('softLink', 'link-1')
+    expect(deleteFn).toHaveBeenCalledWith('softLink', mechToPilot.id)
   })
 
   test('every filled slot can be unassigned: crew, bay, a mech’s pilot and crawler', () => {
@@ -307,8 +246,8 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
       <Sheet
         kind="pilot"
         id="pilot-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech])}
-        softLinkStore={makeSoftLinkStore([mechToPilot])}
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
       />
     )
 
@@ -325,8 +264,8 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
       <Sheet
         kind="pilot"
         id="pilot-1"
-        entityStore={makeEntityStore([fakePilot, fakeMech])}
-        softLinkStore={makeSoftLinkStore([mechToPilot])}
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
         readOnly
       />
     )

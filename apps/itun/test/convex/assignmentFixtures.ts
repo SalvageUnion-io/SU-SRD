@@ -3,10 +3,10 @@ import type { Id } from '../../convex/_generated/dataModel'
 import type { testConvex } from './harness'
 
 /**
- * Shared setup for the assignment-model suites (ADR-037): users, a Game with a
- * second member, and pilots / mechs / crawlers written through the same
- * mutations the client store calls, so every row carries the `appId` the
- * links address it by.
+ * Shared setup for the Convex suites: `makeUser` (every suite's identity-bound
+ * user) and, for the assignment-model suites (ADR-037), a Game with a second
+ * member plus pilots / mechs / crawlers written through the same mutations the
+ * client store calls, so every row carries the `appId` the links address it by.
  */
 
 export type Ctx = ReturnType<typeof testConvex>
