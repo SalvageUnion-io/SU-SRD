@@ -53,12 +53,12 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
  * down that path would be absurd. The bot is not that path: `/su crew` is one
  * request, typed by a person, a few times a session.
  *
- * More importantly, the numbers the bot wants **cannot be computed here**. Max
- * HP, max SP and max Heat are derived from class and chassis data that lives in
- * `salvageunion-reference`, which Convex does not have and should not grow. The
- * bot already depends on that package and preloads it at startup, so it derives
- * the maxima itself (ADR-006 — rules math lives in the package). Convex returns
- * what it stores; the bot renders what the rules say.
+ * The bot still derives max HP, max SP and max Heat itself: it depends on
+ * `salvageunion-reference` and preloads it at startup (ADR-006 — rules math
+ * lives in the package), so these return what Convex stores. Convex can derive
+ * them too now — `crew.vitals` runs the same rules over the same records for
+ * the Dashboard's Crew tab (`model/referenceData.ts` loads the data) — and
+ * moving the bot onto those values is #1068.
  */
 
 /*

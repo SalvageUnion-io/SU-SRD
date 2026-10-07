@@ -697,6 +697,11 @@ export default defineSchema({
     activeEffects: v.array(v.string()),
     /** The deck action being resolved; absent when none is. */
     resolving: v.optional(seatResolving),
+    /**
+     * True from an Eject until the pilot next boards or dismounts, so the crew
+     * sees who ejected (`crew.vitals`). Absent means they did not.
+     */
+    ejected: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     // `gameId` alone is a prefix of this: the crew's seats in one read, and

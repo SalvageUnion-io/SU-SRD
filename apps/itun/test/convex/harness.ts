@@ -64,6 +64,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './model/entities.ts': () => import('../../convex/model/entities'),
   './model/invites.ts': () => import('../../convex/model/invites'),
   './model/permissions.ts': () => import('../../convex/model/permissions'),
+  './model/referenceData.ts': () => import('../../convex/model/referenceData'),
   './model/seats.ts': () => import('../../convex/model/seats'),
 }
 

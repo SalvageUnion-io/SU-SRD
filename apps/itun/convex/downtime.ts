@@ -1,9 +1,11 @@
 import { v } from 'convex/values'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
 import { NotAuthorized, requireMediator, requireMember } from './model/permissions'
+import { loadReferenceData } from './model/referenceData'
 
 /**
  * Crew-wide Downtime (ADR-030, Phase 5).
@@ -109,15 +111,16 @@ export const begin = mutation({
  * Salvage" through "Prepare for the next Salvage Run", and says explicitly that
  * you "may go back to any of these steps". The dataset carries them as the
  * Crawler Downtime guide, which is what `DowntimeWizard` renders and what the
- * SRD publishes.
- *
- * Convex deliberately has no access to `salvageunion-reference` (ADR-006 — the
- * dataset and its rules math live in the package, and Convex "does not have and
- * should not grow" them), so this is a MIRROR, and a mirror needs a gate:
- * `apps/itun/test/convex/downtimeSteps.test.ts` asserts this constant equals
- * the guide's real step count, so the two cannot drift silently.
+ * SRD publishes, and Convex reads the same guide (`model/referenceData.ts`).
+ * This was a hard-coded mirror, with a test to stop it drifting, while Convex
+ * did not load the dataset.
  */
-const DOWNTIME_STEP_COUNT = 10
+function downtimeStepCount(): number {
+  loadReferenceData()
+  const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps
+  if (!steps || steps.length === 0) throw new Error('The Crawler Downtime guide has no steps')
+  return steps.length
+}
 
 /** Move the whole table to the next step. */
 export const advance = mutation({
@@ -133,7 +136,7 @@ export const advance = mutation({
     // unbounded, so `advance` could be called indefinitely and the Mediator's
     // panel would render "Step 14 / 10" while the solo wizard — which clamps
     // client-side — showed step 10. Same procedure, two surfaces, two answers.
-    const next = Math.min(row.stepIndex + 1, DOWNTIME_STEP_COUNT - 1)
+    const next = Math.min(row.stepIndex + 1, downtimeStepCount() - 1)
     if (next === row.stepIndex) return
 
     await ctx.db.patch(row._id, {

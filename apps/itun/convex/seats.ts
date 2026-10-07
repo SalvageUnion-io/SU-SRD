@@ -17,8 +17,8 @@ import { seatRange, seatResolving } from './schema'
  * A seat says whether its pilot is on foot or boarded (and in which mech), the
  * range band they declared, which activated effects are switched on, and the
  * deck action they are resolving, if any (plan §8 A6: the crew watches it
- * live, and a reload mid-roll keeps the roll). It is
- * keyed on the pilot, not the member, so a member covering for an absent player
+ * live, and a reload mid-roll keeps the roll), and whether they ejected (plan
+ * D6: the Crew tab flags it). It is keyed on the pilot, not the member, so a member covering for an absent player
  * runs two. Mount never becomes a field on a pilot or mech: a seat is its own
  * row that points at both by app id.
  *
@@ -90,7 +90,7 @@ function remount(seat: SeatState, mount: SeatState['mount']): Partial<SeatState>
 }
 
 /** One pilot's seat as `forGame` returns it: `null`, not absent, for "none yet". */
-type SeatRead = Omit<SeatState, 'resolving'> & {
+type SeatRead = Omit<SeatState, 'resolving' | 'ejected'> & {
   pilotId: string
   resolving: NonNullable<SeatState['resolving']> | null
   updatedAt: number | null
@@ -166,9 +166,10 @@ export const board = mutation({
       }
     }
 
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) =>
-      remount(seat, { kind: 'boarded', mechId })
-    )
+    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+      ...remount(seat, { kind: 'boarded', mechId }),
+      ejected: undefined,
+    }))
   },
 })
 
@@ -177,12 +178,17 @@ export const dismount = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
     await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
+    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+      ...remount(seat, { kind: 'foot' }),
+      ejected: undefined,
+    }))
   },
 })
 
 /**
- * Eject: the emergency exit, which leaves the pilot on foot as Dismount does.
+ * Eject: the emergency exit, which leaves the pilot on foot as Dismount does,
+ * and marks the seat `ejected` so the crew sees it (`crew.vitals`) until the
+ * pilot next boards or dismounts.
  *
  * Its own function because it is its own act at the table: the player confirms
  * it on the Dashboard (ADR-007), and nothing ever ejects a pilot for them.
@@ -191,7 +197,10 @@ export const eject = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
     await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
+    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+      ...remount(seat, { kind: 'foot' }),
+      ejected: true,
+    }))
   },
 })
 
