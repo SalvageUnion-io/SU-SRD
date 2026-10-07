@@ -1,18 +1,21 @@
 /**
- * Tests for ActionsDeck — the D1 actions instrument on the light display.
- * Verifies the deck renders from the real ORM as ONE flat grid (no per-source
- * headings), selecting an action opens the resolve panel, Activate writes the
- * EP/uses patch through the store, the timing tabs filter by actionType, and the
- * mount decides the roster: boarded lists the mech's actions AND the pilot's,
- * on foot only the pilot's (on the AP economy).
+ * Tests for the Actions deck — `useActionsDeck` driving `DeckList` (beside the
+ * display) and `ResolvePanel` (the Resolve tab). Verifies the deck renders from
+ * the real ORM as ONE flat grid (no per-source headings), selecting an action
+ * opens the resolve panel, Activate writes the EP/uses patch through the store,
+ * the timing filter narrows by actionType, the mount decides the roster
+ * (boarded lists the mech's actions AND the pilot's, on foot only the pilot's,
+ * on the AP economy), and the resolve in progress is the seat's: every step is
+ * written to it, and a seat that already holds a roll reopens on it.
  *
  * Reference content needs the ORM, so preload('all') runs once. A system with a
  * real EP cost is picked from the loaded set so the Activate write is exercised.
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   mechMaxEP,
@@ -23,13 +26,17 @@ import {
 } from 'salvageunion-reference/rules'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import type { SeatResolving } from '../../../lib/schemas/seat'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
-import { ActionsDeck } from '../ActionsDeck'
-import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+import { DeckList } from '../DeckList'
+import { buildMechActions, hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+import { ResolvePanel } from '../ResolvePanel'
 import type { PlayStore } from '../SlotRow'
+import type { ActionsDeckProps } from '../useActionsDeck'
+import { useActionsDeck } from '../useActionsDeck'
 
 beforeAll(hydrateStores)
 
@@ -137,12 +144,48 @@ function ignoreRange(): void {
   // The range band lives on the seat; these tests read the deck at Close.
 }
 
+/**
+ * The deck as the Dashboard mounts it — the list beside the Resolve tab — with
+ * the seat's `resolving` held in component state, as `useSeat`'s optimistic
+ * update holds it. `written` records every write to the seat.
+ */
+function ActionsDeck({
+  initial = null,
+  written = [],
+  ...props
+}: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & {
+  initial?: SeatResolving | null
+  written?: (SeatResolving | null)[]
+}) {
+  const [resolving, setResolving] = useState<SeatResolving | null>(initial)
+  const deck = useActionsDeck({
+    ...props,
+    resolving,
+    onResolving: (next) => {
+      written.push(next)
+      setResolving(next)
+    },
+  })
+  return (
+    <>
+      <DeckList view={deck.list} />
+      <ResolvePanel view={deck.resolve} />
+    </>
+  )
+}
+
 function renderDeck(mech: Mech, store: PlayStore) {
   return render(
     <EntityHrefProvider value={() => undefined}>
       <ActionsDeck mech={mech} range="Close" onRange={ignoreRange} store={store} />
     </EntityHrefProvider>
   )
+}
+
+/** The timing filter's toggle buttons. */
+function timing(name: string): HTMLElement {
+  const group = screen.getByRole('group', { name: 'Filter actions by timing' })
+  return within(group).getByRole('button', { name })
 }
 
 /** The deck cards are catalog-extent `ReferenceEntityCard` tiles laid out as one
@@ -172,7 +215,7 @@ function clickPrimaryAction(container: HTMLElement): { epCost: number } {
   return { epCost }
 }
 
-describe('ActionsDeck', () => {
+describe('the Actions deck', () => {
   test('renders ONE flat grid — no per-source headings above the cards', () => {
     expect(costedSystemId).toBeTruthy()
     const mech = makeMech()
@@ -240,7 +283,18 @@ describe('ActionsDeck', () => {
     expect(container.querySelector('.pc-deck-d20')).toBeTruthy()
   })
 
-  test('timing tabs filter the deck by actionType', () => {
+  test('the timing filter is toggle buttons, not tabs without a keyboard model', () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    expect(container.querySelector('[role="tablist"], [role="tab"]')).toBeNull()
+    expect(timing('All').getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(timing('Turn'))
+    expect(timing('Turn').getAttribute('aria-pressed')).toBe('true')
+    expect(timing('All').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  test('the timing filter narrows the deck by actionType', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
@@ -249,13 +303,13 @@ describe('ActionsDeck', () => {
     // Pick a timing tab that the system's actions do NOT match by intersecting
     // with a type absent from the deck. DownTime is not a tab, so use React
     // (Reaction) — most weapon systems are Turn actions, so React empties it.
-    fireEvent.click(screen.getByRole('tab', { name: 'React' }))
+    fireEvent.click(timing('React'))
     const reactItems = container.querySelectorAll('.pc-deck-grid > li').length
     // Either the deck filtered down, or it shows the no-match note.
     const emptied = reactItems < before || container.querySelector('.pc-deck-empty') !== null
     expect(emptied).toBe(true)
     // Back to All restores the full deck.
-    fireEvent.click(screen.getByRole('tab', { name: 'All' }))
+    fireEvent.click(timing('All'))
     expect(container.querySelectorAll('.pc-deck-grid > li').length).toBe(before)
   })
 
@@ -272,7 +326,7 @@ describe('ActionsDeck', () => {
     const sent: string[] = []
     render(
       <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} range="Long" onRange={(r) => sent.push(r)} store={store} />
+        <ActionsDeck mech={mech} range="Long" onRange={(r: string) => sent.push(r)} store={store} />
       </EntityHrefProvider>
     )
     expect(screen.getByTitle('Set engagement range to Long').getAttribute('aria-pressed')).toBe(
@@ -452,7 +506,7 @@ describe('ActionsDeck', () => {
  * These use a REAL chassis: `unknown-chassis` (used above) derives a max of 0,
  * which would make the assertions pass under the old behaviour too.
  */
-describe('ActionsDeck — unrecorded live stats default to full, not empty', () => {
+describe('the Actions deck — unrecorded live stats default to full, not empty', () => {
   const CHASSIS = 'Leviathan'
 
   test('Activate spends EP from the full pool when EP was never stored', () => {
@@ -557,5 +611,91 @@ describe('ActionsDeck — unrecorded live stats default to full, not empty', () 
     // Previously every one of these was Math.max(0, 0 - heat) === 0: an undamaged
     // mech recorded at SP 0, one hit from destroyed.
     for (const v of spWrites) expect(v).toBe(spMax - heatAtCheck)
+  })
+})
+
+/**
+ * The resolve in progress is the seat's (plan §8 A6): every step goes to it, so
+ * the crew watches it and a reload — a seat that already holds the roll —
+ * reopens on it.
+ */
+describe('the resolve on the seat', () => {
+  test('open, activate, roll and back are each written to the seat', () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const written: (SeatResolving | null)[] = []
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <ActionsDeck
+          mech={mech}
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+          written={written}
+        />
+      </EntityHrefProvider>
+    )
+    clickPrimaryAction(container)
+    fireEvent.click(screen.getByText('Activate'))
+    fireEvent.click(screen.getByText('Roll'))
+    fireEvent.click(screen.getByText('◀ Back'))
+
+    const key = buildMechActions(mech)[0]?.key
+    expect(written[0]).toMatchObject({ ref: key, activated: false, applied: false })
+    expect(written[1]).toMatchObject({ ref: key, activated: true })
+    expect(written[2]?.roll?.roll).toBeGreaterThanOrEqual(1)
+    expect(written[2]).toMatchObject({ ref: key, activated: true, applied: false })
+    expect(written[3]).toBeNull()
+    expect(screen.getByText('Choose an action from the deck to resolve it here.')).toBeTruthy()
+  })
+
+  test('a reload mid-resolve keeps the roll: the seat reopens the action on it', () => {
+    const mech = makeMech()
+    const { store, calls } = stubStore(mech)
+    const action = buildMechActions(mech)[0]
+    if (!action) throw new Error('the costed system has no action')
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <ActionsDeck
+          mech={mech}
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+          initial={{
+            ref: action.key,
+            name: action.name,
+            activated: true,
+            roll: { roll: 14, band: 'success' },
+            applied: false,
+          }}
+        />
+      </EntityHrefProvider>
+    )
+    expect(container.querySelector('.pc-deck-d20')?.textContent).toBe('14')
+    expect(screen.getByText('Activated')).toBeTruthy()
+    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
+    // Restoring rolls nothing and writes nothing.
+    expect(calls).toHaveLength(0)
+  })
+
+  test('a seat naming an action this deck no longer has says so, and can let it go', () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const written: (SeatResolving | null)[] = []
+    render(
+      <EntityHrefProvider value={() => undefined}>
+        <ActionsDeck
+          mech={mech}
+          range="Close"
+          onRange={ignoreRange}
+          store={store}
+          written={written}
+          initial={{ ref: 'gone', name: 'Crush', activated: false, applied: false }}
+        />
+      </EntityHrefProvider>
+    )
+    expect(screen.getByText('Crush is no longer in this deck.')).toBeTruthy()
+    fireEvent.click(screen.getByText('Clear'))
+    expect(written).toEqual([null])
   })
 })

@@ -11,7 +11,7 @@ type DashboardGridProps = {
   rail: ReactNode
   /** Primary row — the slot row: one Major and two Minors. */
   primary: ReactNode
-  /** The display surface (actions deck, SRD reference view, Downtime). */
+  /** The display surface (the deck beside the display tabs, or Downtime). */
   display: ReactNode
 }
 

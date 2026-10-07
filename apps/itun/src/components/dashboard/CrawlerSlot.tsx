@@ -34,6 +34,7 @@ import {
   crawlerTechLevelOf,
   scrapMechOutcome,
 } from './dashboardEconomy'
+import { recordRoll } from './dashboardRolls'
 import type { BandBay, MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
@@ -175,19 +176,22 @@ export function CrawlerMajor({
       areaTl: crawlerTl ?? 1,
       roll: rollDie,
     })
+    const log = result.requiresPlayerChoice
+      ? `${result.roll}: ${result.label} — pick a Damaged Chassis, System or Module at Tech ${result.areaTl}.`
+      : result.scrapQty > 0
+        ? `${result.roll}: ${result.label} — ${result.scrapQty} Tech ${result.areaTl} Scrap into the pool.`
+        : `${result.roll}: ${result.label}.`
     if (patch)
       runWrite(
         () => store.update('crawler', crawler.id, patch, DASHBOARD_TXN),
-        () =>
-          setPrompt({
-            kind: 'salvage',
-            log: result.requiresPlayerChoice
-              ? `${result.roll}: ${result.label} — pick a Damaged Chassis, System or Module at Tech ${result.areaTl}.`
-              : result.scrapQty > 0
-                ? `${result.roll}: ${result.label} — ${result.scrapQty} Tech ${result.areaTl} Scrap into the pool.`
-                : `${result.roll}: ${result.label}.`,
-          })
+        () => setPrompt({ kind: 'salvage', log })
       )
+    // Every roll goes to the Game's log, whether or not it found scrap
+    // (`dashboardRolls.ts`).
+    recordRoll(crawler, {
+      description: `${crawler.name} · Area Salvage ${log}`,
+      result: { kind: 'area-salvage', roll: result.roll, outcome: result.label },
+    })
   }
 
   /**

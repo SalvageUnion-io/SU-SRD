@@ -1,5 +1,5 @@
 import { Caption } from 'component-lib/stories/harness'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -11,8 +11,8 @@ import { BoardControl } from './BoardControl'
 import type { BoardOption } from './boardMenu'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
-import type { DisplayFocus } from './DisplayPanel'
-import { DisplayPicker } from './DisplayPanel'
+import type { DisplayTab } from './DisplayTabs'
+import { DisplayTabs } from './DisplayTabs'
 import type { BandBay, MajorModel, StorageLot } from './MajorFrame'
 import { MajorFrame, StorageBay } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
@@ -294,14 +294,33 @@ const DISPLAY_HOST: CSSProperties = {
   height: '100%',
 }
 
+const TAB_NAMES: Record<DisplayTab, string> = {
+  resolve: 'Resolve',
+  reference: 'Reference',
+  tables: 'Tables',
+  srd: 'SRD',
+  log: 'Log',
+  crew: 'Crew',
+}
+
+/** Each tab's panel, as a labelled stand-in: this story is about the slot row. */
+const STAND_INS = Object.fromEntries(
+  Object.entries(TAB_NAMES).map(([tab, name]) => [
+    tab,
+    <div key={tab} className="pc-fill">
+      Display · {name}
+    </div>,
+  ])
+) as Record<DisplayTab, ReactNode>
+
 /**
- * The slot row in the scaled 1280×800 canvas, with the display below it and
- * ⤢ opening a Minor's Major over the display. Resize the window to check the
+ * The slot row in the scaled 1280×800 canvas, with the display tabs below it
+ * and ⤢ opening a Minor's Major over the display. Resize the window to check the
  * layout at the canvas size and at its width floor (794×496, scale 0.62).
  */
 export const InTheCanvas = () => {
   const [open, setOpen] = useState<{ kind: SlotKind; trigger: HTMLButtonElement } | null>(null)
-  const [focus, setFocus] = useState<DisplayFocus>('actions')
+  const [tab, setTab] = useState<DisplayTab>('resolve')
   return (
     <DashboardCanvas>
       <DashboardGrid
@@ -310,16 +329,7 @@ export const InTheCanvas = () => {
         primary={<Slots mount="pilot" onExpand={(kind, trigger) => setOpen({ kind, trigger })} />}
         display={
           <div style={DISPLAY_HOST}>
-            <DisplayPicker
-              focus={focus}
-              options={[
-                { focus: 'actions', label: 'Actions' },
-                { focus: 'tables', label: 'Tables' },
-                { focus: 'srd', label: 'SRD' },
-              ]}
-              onFocus={setFocus}
-            />
-            <div className="pc-fill">Display · {focus}</div>
+            <DisplayTabs tab={tab} onTab={setTab} panels={STAND_INS} />
             {open ? (
               <SlotOverlay
                 title={

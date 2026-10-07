@@ -1,12 +1,12 @@
 /**
- * useSeat — the pilot's seat in its Game: mount, range band and activated
- * effects, read from and written to Convex
+ * useSeat — the pilot's seat in its Game: mount, range band, activated effects
+ * and the deck action being resolved, read from and written to Convex
  * ([ADR-038](../../../../../docs/ARCHITECTURE.md#adr-038) §2;
  * `convex/seats.ts`).
  *
  * Every member reads the whole crew's seats through one `seats.forGame`
- * subscription, so the crew sees a pilot board or switch an effect on as it
- * happens. Each write is a mutation with an optimistic update on that query, so
+ * subscription, so the crew sees a pilot board, switch an effect on or roll
+ * as it happens. Each write is a mutation with an optimistic update on that query, so
  * a toggle lands on screen at once rather than after the round trip; if the
  * server refuses it, Convex drops the optimistic value and the refusal is
  * shown.
@@ -35,7 +35,7 @@ import { serverMessage } from '../../lib/connection/serverError'
 import { containerOf } from '../../lib/container'
 import { reportWriteFailure } from '../../lib/runWrite'
 import type { Pilot } from '../../lib/schemas/pilot'
-import type { RangeBand, SeatMount } from '../../lib/schemas/seat'
+import type { RangeBand, SeatMount, SeatResolving } from '../../lib/schemas/seat'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 
 /** What the Dashboard reads off a seat. */
@@ -44,6 +44,8 @@ export type SeatView = {
   range: RangeBand
   /** Refs of the activated contributions that are switched on (ADR-029 §4). */
   activeEffects: string[]
+  /** The deck action being resolved, or null when none is. */
+  resolving: SeatResolving | null
 }
 
 export type SeatHandle = {
@@ -61,6 +63,10 @@ export type SeatHandle = {
   eject: () => void
   setRange: (range: RangeBand) => void
   toggleEffect: (ref: string) => void
+  /** Record the resolve in progress, replacing the last step. */
+  setResolving: (resolving: SeatResolving) => void
+  /** The resolve is over. */
+  clearResolving: () => void
 }
 
 /**
@@ -70,11 +76,12 @@ export type SeatHandle = {
  */
 export type MountState = 'mech' | 'pilot' | 'downtime'
 
-/** A pilot with no seat row: on foot, at Close, nothing switched on. */
+/** A pilot with no seat row: on foot, at Close, nothing switched on or resolving. */
 export const DEFAULT_SEAT: SeatView = {
   mount: { kind: 'foot' },
   range: 'Close',
   activeEffects: [],
+  resolving: null,
 }
 
 function ignore(): void {
@@ -94,6 +101,8 @@ export const NO_SEAT: SeatHandle = {
   eject: ignore,
   setRange: ignore,
   toggleEffect: ignore,
+  setResolving: ignore,
+  clearResolving: ignore,
 }
 
 type SeatRow = SeatView & { pilotId: string }
@@ -112,6 +121,17 @@ function patchCachedSeat(
     { gameId },
     seats.map((seat) => (seat.pilotId === pilotId ? { ...seat, ...change(seat) } : seat))
   )
+}
+
+/**
+ * A move to `mount`, as `seats.ts` makes it: a change of mount ends the resolve
+ * in progress, and re-boarding the same mech does not.
+ */
+function remount(seat: SeatView, mount: SeatMount): Partial<SeatView> {
+  const same =
+    seat.mount.kind === mount.kind &&
+    (mount.kind === 'foot' || (seat.mount.kind === 'boarded' && seat.mount.mechId === mount.mechId))
+  return same ? { mount } : { mount, resolving: null }
 }
 
 /** Show a refused seat write: the server's own words when it gave some. */
@@ -140,16 +160,16 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
   const seats = useQuery(api.seats.forGame, signedIn && gameId !== null ? { gameId } : 'skip')
 
   const board = useMutation(api.seats.board).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, () => ({
-      mount: { kind: 'boarded', mechId: args.mechId },
-    }))
+    patchCachedSeat(store, args.gameId, args.pilotId, (seat) =>
+      remount(seat, { kind: 'boarded', mechId: args.mechId })
+    )
   })
   const claim = useMutation(api.ownership.claim)
   const dismount = useMutation(api.seats.dismount).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, () => ({ mount: { kind: 'foot' } }))
+    patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   })
   const eject = useMutation(api.seats.eject).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, () => ({ mount: { kind: 'foot' } }))
+    patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   })
   const setRange = useMutation(api.seats.setRange).withOptimisticUpdate((store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, () => ({ range: args.range }))
@@ -161,6 +181,14 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
         : [...seat.activeEffects, args.ref],
     }))
   })
+  const setResolving = useMutation(api.seats.setResolving).withOptimisticUpdate((store, args) => {
+    patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: args.resolving }))
+  })
+  const clearResolving = useMutation(api.seats.clearResolving).withOptimisticUpdate(
+    (store, args) => {
+      patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: null }))
+    }
+  )
 
   const row = pilotId === null ? undefined : seats?.find((s) => s.pilotId === pilotId)
   const seat: SeatView = row ?? DEFAULT_SEAT
@@ -187,5 +215,7 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
     eject: () => send((args) => eject(args)),
     setRange: (range) => send((args) => setRange({ ...args, range })),
     toggleEffect: (ref) => send((args) => toggleEffect({ ...args, ref })),
+    setResolving: (resolving) => send((args) => setResolving({ ...args, resolving })),
+    clearResolving: () => send((args) => clearResolving(args)),
   }
 }

@@ -1,6 +1,7 @@
 /**
  * RailBar — the Dashboard's top rail content: return-to-workspace, the active
- * entity stamp, and the settings / leave-downtime action. Presentational only —
+ * entity stamp, whether play is being saved (`status`, the app's
+ * `SavedIndicator`), and the settings / leave-downtime action. Presentational only —
  * the `.pc-rail` region wrapper (grid area + flex row + forward border) is
  * supplied by DashboardGrid's rail slot, and the app injects its own router link
  * via `returnControl` (component-lib stays routing-agnostic).
@@ -22,11 +23,19 @@ export type RailBarProps = {
   fam?: RailFam
   /** Return-to-workspace control — the app passes its router link (an AppLink). */
   returnControl?: ReactNode
+  /** Saved / offline, at the right before the action (the app's `SavedIndicator`). */
+  status?: ReactNode
   /** When set, the rail's right action becomes "Leave Downtime". */
   onLeaveDowntime?: () => void
 }
 
-export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }: RailBarProps) {
+export function RailBar({
+  title,
+  fam = 'mech',
+  returnControl,
+  status,
+  onLeaveDowntime,
+}: RailBarProps) {
   return (
     <>
       {returnControl}
@@ -38,6 +47,7 @@ export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }:
         {title}
       </Badge>
       <span className="flex-1" />
+      {status}
       {onLeaveDowntime ? (
         <Button
           variant="ghost"

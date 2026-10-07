@@ -20,7 +20,7 @@
  */
 
 import type { Mech } from '../../lib/schemas/mech'
-import type { SeatMount } from '../../lib/schemas/seat'
+import type { SeatMount, SeatResolving } from '../../lib/schemas/seat'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */
 export type CrewRow = {
@@ -45,8 +45,11 @@ export type BoardSources = {
     mechs: readonly CrewRow[]
     softLinks: readonly CrewLink[]
   } | null
-  /** `seats.forGame`: every pilot's mount in the Game. */
-  seats: readonly { pilotId: string; mount: SeatMount }[]
+  /**
+   * `seats.forGame`: every pilot's mount in the Game, and what they are
+   * resolving (the Crew tab reads that; this menu does not).
+   */
+  seats: readonly { pilotId: string; mount: SeatMount; resolving?: SeatResolving | null }[]
   /** The signed-in viewer (`account.me`), or null before it arrives. */
   viewerId: string | null
 }
@@ -86,13 +89,14 @@ function bodyField(body: unknown, field: string): unknown {
 }
 
 /** The id links and seats use: the app id, or a template pre-gen's body id. */
-function linkId(row: CrewRow): string | null {
+export function linkId(row: CrewRow): string | null {
   if (row.appId !== null) return row.appId
   const id = bodyField(row.body, 'id')
   return typeof id === 'string' && id.length > 0 ? id : null
 }
 
-function nameOf(body: unknown, fallback: string): string {
+/** A listed entity's name, from its body. */
+export function nameOf(body: unknown, fallback: string): string {
   const name = bodyField(body, 'name')
   return typeof name === 'string' && name.length > 0 ? name : fallback
 }
