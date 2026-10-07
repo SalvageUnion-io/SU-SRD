@@ -127,21 +127,22 @@ describe('every roster change reaches the stored summary', () => {
 
   test('renaming the crawler is reflected; filling its bays is not a change', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
+    const { organizer, gameId } = await seedGame(t)
     await organizer.as.mutation(api.entities.createCrawler, {
       gameId,
       appId: 'c1',
       body: crawlerBody(),
     })
 
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    // The table runner keeps the crawler (ADR-038 §5): the Organizer, here.
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { name: 'Perseverance' },
     })
     expect((await storedSummary(t, gameId))?.crawlerName).toBe('Perseverance')
 
     const before = await t.run(async (ctx) => await ctx.db.get(gameId))
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { techLevel: '2' },
     })

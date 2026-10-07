@@ -204,7 +204,7 @@ describe('your own sheet', () => {
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
   })
 
-  test("your crawler lists crewmates' pilots as read-only rows to their live view", async () => {
+  test("the Mediator's crawler lists crewmates' pilots as read-only rows to their live view", async () => {
     useEntityStore.setState({
       crawlers: [CRAWLER],
       pilots: [MY_PILOT],
@@ -238,7 +238,7 @@ describe('your own sheet', () => {
     })
     await view('crawler', CRAWLER.id)
 
-    // Editable — the crawler is communal.
+    // Editable — this viewer runs the table, so the crawler is theirs (ADR-038 §5).
     expect(screen.getByRole('button', { name: /^Share this crawler$/ })).toBeTruthy()
     // The crewmate this browser does not cache is on the crew list…
     expect(screen.getByRole('link', { name: 'View Ash Vey' }).getAttribute('href')).toBe(
@@ -253,6 +253,23 @@ describe('your own sheet', () => {
       '/sheet/mech/m-theirs'
     )
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
+  })
+})
+
+describe("a player's view of the Game's crawler", () => {
+  test('is read-only even when this browser holds it, and says whose it is', async () => {
+    // WiringSync caches every crawler in your Games, so a player holds it.
+    useEntityStore.setState({ crawlers: [CRAWLER], pilots: [MY_PILOT] })
+    setQueryAnswers({
+      'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
+      'entities:listForGame': listing(),
+    })
+    await view('crawler', CRAWLER.id)
+
+    expect(screen.getByRole('note', { name: 'Read-only crew sheet' }).textContent).toContain(
+      'Only the Mediator changes it'
+    )
+    expect(screen.queryByRole('button', { name: /^Share this crawler$/ })).toBeNull()
   })
 })
 

@@ -31,8 +31,8 @@
  *
  * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
- * communal crawler — and read-only and live when it is a crewmate's; the rule
- * is in `lib/games/gameRoster.ts` and the rendering in `SheetView`. Your own
+ * crawler when you run the table (ADR-038 §5) — and read-only and live
+ * otherwise; `entities.locate` decides and `SheetView` renders it. Your own
  * pilots also have Play, to the Dashboard, while the Game has a Mediator
  * (ADR-038 §1). This is the Dashboard's only entry point.
  *

@@ -120,8 +120,8 @@ function bodyId(body: unknown): string | null {
  *
  * A crawler is adopted when this browser lacks it or the server row has moved
  * on since it was last adopted (`adoptedAt`, keyed by id, holds the row's
- * `updatedAt` at that adoption) — the crawler is communal, so a crewmate's edit
- * has to reach this cache too. The body is stamped with the ROW's container,
+ * `updatedAt` at that adoption) — the crawler is the crew's, so the
+ * Mediator's edit has to reach every member's cache too. The body is stamped with the ROW's container,
  * because the column is the authority (`maintenance.repairContainers`) and a
  * template-seeded body names no Game at all.
  *

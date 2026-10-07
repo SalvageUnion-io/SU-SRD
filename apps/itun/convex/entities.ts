@@ -26,6 +26,7 @@ import {
 } from './model/entities'
 import {
   getMembership,
+  isTableRunner,
   NotAuthorized,
   requireMember,
   requireTableRunner,
@@ -57,18 +58,17 @@ import { entityRefType, softLinkType } from './schema'
  * through a proposal (D7), not through here — there is deliberately no
  * privileged write path in this module.
  *
- * The crawler is the exception on both axes, because it is communal (D8): any
- * member may write it, resolved by field-level merge rather than
- * last-write-wins, since the scrap pool and cargo lots are genuinely contended
- * during Downtime.
+ * The crawler is the exception, because it belongs to the crew rather than to
+ * a player: in a Game **only the table runner** writes it — the Mediator, or
+ * the Organizer while the Game has none (ADR-038 §5). Players read it and ask
+ * at the table. Writes still resolve by field-level merge rather than
+ * last-write-wins, so a field the client did not touch is never overwritten.
  *
  * ## Who may put things *into* a Game
  *
- * Communal-to-edit is not the same as free-to-create, and the crawler is where
- * the two come apart. **Raising and scrapping a crawler is the table runner's
- * act; filling its fields is everyone's.** That split is what makes a Game a
- * table rather than a shared folder: the Mediator sets out what the crew sails
- * in, and the crew then keeps its scrap, cargo and bays between them.
+ * The crawler is the table runner's from end to end: **raising, editing and
+ * scrapping it are all theirs.** The Mediator sets out what the crew sails in
+ * and keeps its scrap, cargo and bays (ADR-038 §5).
  *
  * Pilots and mechs are the other way round: **any member may bring their own
  * into any Game they belong to**, crawler or no crawler. There used to be a
@@ -214,8 +214,8 @@ const LOCATE_TABLE = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as 
  * — a stranger's shelf, a Game you left — is `null`, the same answer as no row
  * at all. `gameId` is the Game whose listing renders it, so it is set only for
  * a Game the caller belongs to. `mayEdit` mirrors the write rules: a pilot or
- * mech is its owner's (`assertMayWrite`), a crawler in a Game is every
- * member's (ADR-030 D8).
+ * mech is its owner's (`assertMayWrite`), a crawler in a Game its table
+ * runner's (`assertMayEditCrawler`, ADR-038 §5).
  *
  * Returns `null` rather than throwing when signed out, because a reactive
  * query that throws takes the route's error boundary with it.
@@ -249,13 +249,19 @@ export const locate = query({
     if (row === null) return null
 
     const mine = (row.ownerId ?? null) === userId
-    const member = row.gameId !== null && (await getMembership(ctx, row.gameId, userId)) !== null
-    if (!mine && !member) return null
+    const membership = row.gameId === null ? null : await getMembership(ctx, row.gameId, userId)
+    if (!mine && membership === null) return null
+    // A Game's crawler has no owner: whoever runs the table writes it.
+    const runsTable =
+      args.kind === 'crawler' &&
+      row.gameId !== null &&
+      membership !== null &&
+      (await isTableRunner(ctx, row.gameId, membership))
     return {
       id: linkIdOf(row) ?? args.id,
       // Only a Game the caller may list: `listForGame` refuses anyone else.
-      gameId: member ? row.gameId : null,
-      mayEdit: mine || args.kind === 'crawler',
+      gameId: membership === null ? null : row.gameId,
+      mayEdit: mine || runsTable,
     }
   },
 })
@@ -544,11 +550,13 @@ export const removeCrawler = mutation({
 /**
  * Who may write a crawler's body — it depends on which container holds it.
  *
- * In a Game the crawler is communal (D8), so **any member** may edit it; that
- * is the whole point of a shared home and it is why crawler edits resolve by
- * field-level merge rather than by an ownership check. On a shelf there is no
- * crew to share with, so it is an ordinary owned entity and only its owner may
- * touch it.
+ * In a Game the crawler is the Mediator's (ADR-038 §5, plan D11): Salvage,
+ * Craft, Trade, Upkeep, Upgrade, damage and Scrap a mech are all theirs, and a
+ * player asks at the table. It was every member's (ADR-030 D8) until the
+ * Dashboard made the Mediator the one who runs Downtime. While a Game has no
+ * Mediator the Organizer holds it, as they hold raising and scrapping one
+ * (`requireTableRunner`), so a crawler is never left with nobody to keep it.
+ * On a shelf it is an ordinary owned entity and only its owner may touch it.
  *
  * Split out from the two call sites rather than inlined at each, because a
  * container-dependent rule written twice is a rule that will eventually be
@@ -556,7 +564,7 @@ export const removeCrawler = mutation({
  */
 async function assertMayEditCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
   if (doc.gameId !== null) {
-    await requireMember(ctx, doc.gameId)
+    await requireTableRunner(ctx, doc.gameId)
     return
   }
   const userId = await requireUser(ctx)
@@ -726,16 +734,15 @@ export const upsertByAppId = mutation({
  * Mirror a local crawler write, addressed by app id, as a **field-level merge**
  * (D19).
  *
- * The crawler needs its own mirror because it is the one entity whose local
- * edits are legitimate from *any* member — "players can only edit fields" is
- * only true end to end if those edits actually arrive.
+ * The crawler needs its own mirror because it has no owner in a Game: its
+ * writer is the table runner (`assertMayEditCrawler`), not whoever created
+ * the row.
  *
- * Last-write-wins would be wrong here in a way that shows up on exactly the
- * night it matters: during Downtime the whole crew touches the crawler within
- * the same few minutes, and a full-body write would silently discard whichever
- * member happened to lose the race. Merging per top-level field means two
- * people editing different things both succeed, and only a genuine same-field
- * collision contends.
+ * Last-write-wins would still be wrong here: a full-body write from a client
+ * holding a stale copy would silently undo whatever reached the server since
+ * (an Upkeep paid from a second tab, a field the hub changed). Merging per
+ * top-level field means two edits to different things both succeed, and only
+ * a genuine same-field collision contends.
  *
  * Unlike the ownable tables this **never inserts**. A missing row means the
  * crawler is not in this Game — either it is a purely local build (Solo, or on

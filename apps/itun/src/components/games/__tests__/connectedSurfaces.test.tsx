@@ -162,6 +162,18 @@ describe('DowntimePanel', () => {
     expect(screen.getByText(/Nobody yet/i)).toBeTruthy()
     expect(screen.getByText('Upkeep outstanding')).toBeTruthy()
   })
+
+  test('only the Mediator pays upkeep: the crawler is theirs (ADR-038 §5)', () => {
+    const running = { running: true, stepIndex: 0, completedBy: [], upkeepSpent: false }
+    withQueries(downtimeQueries(running, false))
+    const player = wrap(<DowntimePanel gameId={'g1' as never} />)
+    expect(screen.queryByText('Pay crawler upkeep')).toBeNull()
+    player.unmount()
+
+    withQueries(downtimeQueries(running, true))
+    wrap(<DowntimePanel gameId={'g1' as never} />)
+    expect(screen.getByText('Pay crawler upkeep')).toBeTruthy()
+  })
 })
 
 describe('ProposalInbox', () => {

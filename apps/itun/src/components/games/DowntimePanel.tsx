@@ -6,7 +6,9 @@ import type { Id } from '../../../convex/_generated/dataModel'
 /**
  * Crew-wide Downtime (Phase 5).
  *
- * The panel every member sees; the phase controls only appear for the Mediator.
+ * The panel every member sees; the phase controls and Upkeep only appear for
+ * the Mediator. It reads and writes the same `downtime` row the Dashboard
+ * follows (`useDowntime`), so a step advanced here moves every open Dashboard.
  *
  * What it is really for is the **who is still working** list. Before this, six
  * players ran six private Downtimes and reconciled verbally, and the Mediator's
@@ -17,9 +19,9 @@ import type { Id } from '../../../convex/_generated/dataModel'
  * rather than a bug — a name persisting would mean "finished at some point",
  * which is the opposite of what the Mediator needs.
  *
- * Upkeep is shown as a single crew-level fact. It is spent once by whoever gets
- * there first, and the button disables for everybody after — the double-charge
- * being the thing that made per-player Downtime unworkable.
+ * Upkeep is shown as a single crew-level fact. The crawler is the Mediator's
+ * (ADR-038 §5), so only they record it as paid, once per Downtime — the
+ * double-charge being the thing that made per-player Downtime unworkable.
  */
 export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
   const state = useQuery(api.downtime.state, { gameId })
@@ -93,14 +95,16 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
               >
                 Not yet
               </Button>
-              <Button
-                variant="ghost"
-                size="compact"
-                disabled={state.upkeepSpent}
-                onClick={() => void spendUpkeep({ gameId })}
-              >
-                Pay crawler upkeep
-              </Button>
+              {amMediator === true && (
+                <Button
+                  variant="ghost"
+                  size="compact"
+                  disabled={state.upkeepSpent}
+                  onClick={() => void spendUpkeep({ gameId })}
+                >
+                  Pay crawler upkeep
+                </Button>
+              )}
             </div>
 
             {amMediator === true && (

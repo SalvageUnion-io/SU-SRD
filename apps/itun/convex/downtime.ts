@@ -18,10 +18,11 @@ import { loadReferenceData } from './model/referenceData'
  * ## Upkeep is spent once, not six times
  *
  * `upkeepSpent` is a flag on the *Game's* Downtime, not on each member. The
- * crawler is communal, so its upkeep is one cost the crew pays together — six
- * members each spending it is the exact double-charging that made per-player
- * Downtime unworkable. The flag resets when a new Downtime starts, never when a
- * step advances.
+ * crawler is the crew's, so its upkeep is one cost paid once — six members
+ * each spending it is the exact double-charging that made per-player Downtime
+ * unworkable. Since the crawler became the Mediator's (ADR-038 §5) only the
+ * Mediator pays it, and the flag still guards a second tab or a second press.
+ * The flag resets when a new Downtime starts, never when a step advances.
  *
  * ## Completion is per step, not cumulative
  *
@@ -182,17 +183,18 @@ export const markStepDone = mutation({
 })
 
 /**
- * Record that the crew has paid crawler upkeep this Downtime.
+ * Record that the crew has paid crawler upkeep this Downtime. Mediator only:
+ * the crawler is theirs (ADR-038 §5, `assertMayEditCrawler`).
  *
- * Returns false when it was already spent rather than throwing: two players
- * pressing the button at the same moment is an ordinary race at a table, not an
+ * Returns false when it was already spent rather than throwing: a second press,
+ * or the hub and the Dashboard open side by side, is an ordinary race, not an
  * error to show anybody. The caller uses the result to decide whether to also
  * deduct the scrap.
  */
 export const spendUpkeep = mutation({
   args: { gameId: v.id('games') },
   handler: async (ctx, args): Promise<boolean> => {
-    await requireMember(ctx, args.gameId)
+    await requireMediator(ctx, args.gameId)
     const row = await readState(ctx, args.gameId)
     if (row === null || row.stepIndex === null) {
       throw new NotAuthorized('Downtime is not running')

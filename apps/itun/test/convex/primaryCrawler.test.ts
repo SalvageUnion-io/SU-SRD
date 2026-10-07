@@ -185,10 +185,10 @@ describe('moves — crawlers are the table runner’s', () => {
 
   test('a field patch never moves a crawler — its gameId is ignored', async () => {
     const t = testConvex()
-    const { organizer: o, player: p, gameId } = await seedTable(t)
+    const { organizer: o, gameId } = await seedTable(t)
     await addCrawler(o, 'c1', gameId)
 
-    await p.as.mutation(api.entities.patchCrawlerByAppId, {
+    await o.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { gameId: null, name: 'Renamed' },
     })

@@ -292,7 +292,7 @@ describe('what the game will accept', () => {
     expect(screen.getByRole('button', { name: 'Scrap' })).toBeTruthy()
   })
 
-  test('the crawler opens for every member — that is what communal means', async () => {
+  test('the crawler opens for every member to read', async () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
 
     expect(screen.getByText('#430 Tenacity')).toBeTruthy()

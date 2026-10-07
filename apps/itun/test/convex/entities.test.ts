@@ -293,10 +293,10 @@ describe('reading is per-game, writing is per-entity', () => {
   })
 })
 
-describe('the crawler is communal and merges per field', () => {
-  test('two members editing different fields do not clobber each other', async () => {
+describe("the crawler is the table runner's and merges per field", () => {
+  test('two edits to different fields do not clobber each other', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
+    const { organizer, gameId } = await seedGame(t)
     const crawlerId = await t.run(
       async (ctx) =>
         await ctx.db.insert('crawlers', {
@@ -322,7 +322,7 @@ describe('the crawler is communal and merges per field', () => {
       appId: 'c1',
       patch: { name: 'Tenacity' },
     })
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { techLevel: '2' },
     })
@@ -330,8 +330,8 @@ describe('the crawler is communal and merges per field', () => {
     const row = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     const body = row?.body as { name: string; techLevel: string; id: string }
 
-    // Both survive. A full-body write would have discarded whichever member
-    // lost the race — on exactly the night it matters, during Downtime.
+    // Both survive. A full-body write from a stale copy would have discarded
+    // whichever edit it did not know about.
     expect(body.name).toBe('Tenacity')
     expect(body.techLevel).toBe('2')
     expect(body.id).toBe('c1')
@@ -339,7 +339,7 @@ describe('the crawler is communal and merges per field', () => {
 
   test('a cleared field reaches the server: ↺ on a pinned Max SP drops the pin', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedGame(t)
+    const { organizer, gameId } = await seedGame(t)
     const crawlerId = await t.run(
       async (ctx) =>
         await ctx.db.insert('crawlers', {
@@ -355,7 +355,7 @@ describe('the crawler is communal and merges per field', () => {
         | Record<string, unknown>
         | undefined
 
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { maxSpOverride: 30 },
     })
@@ -364,14 +364,14 @@ describe('the crawler is communal and merges per field', () => {
     // The revert as the client used to send it. The Convex client drops an
     // undefined field when it serialises the args, so this is `{}` on the wire
     // — and the pin survives. That is the bug `unset` exists for.
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { maxSpOverride: undefined },
     })
     expect((await crawlerBodyOnServer())?.maxSpOverride).toBe(30)
 
     // The revert as the client sends it now.
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { maxSpOverride: undefined },
       unset: ['maxSpOverride'],
@@ -398,6 +398,40 @@ describe('the crawler is communal and merges per field', () => {
       })
     ).rejects.toThrow(/Invalid crawlers payload/)
     expect((await crawlerBodyOnServer())?.name).toBe('#430')
+  })
+
+  test('a player cannot touch the crawler; the table runner can', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', {
+          gameId,
+          ownerId: null,
+          appId: 'c9',
+          body: crawlerBody({ id: 'c9' }),
+          updatedAt: 1,
+        })
+    )
+    const nameOnServer = async () => {
+      const rows = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
+      return (rows.find((r) => r.appId === 'c9')?.body as { name?: string } | undefined)?.name
+    }
+
+    // ADR-038 §5: players read the crawler and ask at the table.
+    await expect(
+      player.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c9',
+        patch: { name: 'Mine now' },
+      })
+    ).rejects.toThrow(/only the mediator/i)
+    expect(await nameOnServer()).toBe('#430')
+    // With no Mediator appointed, the Organizer runs the table and keeps it.
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c9',
+      patch: { name: 'Tenacity' },
+    })
+    expect(await nameOnServer()).toBe('Tenacity')
   })
 
   test('a non-member cannot touch the crawler', async () => {

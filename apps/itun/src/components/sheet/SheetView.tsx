@@ -9,7 +9,8 @@
  *    rail shows assignments to crewmates' entities this browser does not cache:
  *    your crawler's whole crew, the crewmate's mech flying your pilot.
  *  - **Readable but not yours** — a crewmate's pilot or mech, an unclaimed
- *    pre-gen — the same `<Sheet>`, read-only, from a store built out of
+ *    pre-gen, and for a player the Game's crawler, which is the Mediator's
+ *    (ADR-038 §5) — the same `<Sheet>`, read-only, from a store built out of
  *    `entities.listForGame` (`readOnlySheetStore.ts`). Every body and link in
  *    the Game is in it, so the sheet shows their mech and crawler, and the query
  *    is reactive, so it stays current as they play. Nothing is cached locally:
@@ -158,7 +159,9 @@ function ConnectedSheetView({ kind, id }: SheetViewProps) {
         aria-label="Read-only crew sheet"
         className="border-b-2 border-ink bg-caution px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
       >
-        You are reading a crewmate&rsquo;s sheet. Only whoever holds it can make changes.
+        {kind === 'crawler'
+          ? 'This is the crew’s crawler. Only the Mediator changes it; ask at the table.'
+          : 'You are reading a crewmate’s sheet. Only whoever holds it can make changes.'}
       </div>
       <Sheet kind={kind} id={id} store={store} back={crew} readOnly />
     </div>
