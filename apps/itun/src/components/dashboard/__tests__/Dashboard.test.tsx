@@ -8,15 +8,22 @@
  * Dashboard at all is `DashboardGate`'s, tested in `DashboardGate.test.tsx`.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { setEntityBackendAuthState } from '../../../stores/entityBackend'
 import { useEntityStore } from '../../../stores/entityStore'
+import { usePlayStateStore } from '../../../stores/playStateStore'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { Dashboard } from '../Dashboard'
 
 beforeAll(hydrateStores)
+
+// The suite shares one process (--no-isolate), so another file's Downtime would
+// put this pilot's Dashboard into the Crawler Major. Start out of Downtime.
+beforeEach(() => {
+  usePlayStateStore.setState({ downtime: false, dtStep: 0, dtDone: {} })
+})
 
 afterAll(async () => {
   await useEntityStore.getState().forget('pilot', 'dash-lone-pilot')
