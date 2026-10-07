@@ -23,7 +23,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 - Run `bun install` from the root to install for all workspaces.
 - Add a dependency to a specific workspace by `cd`-ing into that package
   directory first. No bot updates the manifests; see
-  [`docs/architecture/dependency-management.md`](../../docs/architecture/dependency-management.md).
+  [dependencies](../../docs/ARCHITECTURE.md#dependencies).
 - A `workspace:*` dependency also has to appear in that app's CI path filter, or
   a change to it silently skips the app's build job. The `workflows` check
   (`tools/check-workflows.ts`, its `path-filters` half) asserts this from the manifests, so you will be told rather than bitten.

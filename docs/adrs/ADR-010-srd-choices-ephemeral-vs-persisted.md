@@ -49,5 +49,5 @@ surface decides the behavior:
 - The contract to preserve: **the shared library never persists.** Selection
   ownership and storage live in the consumer (ITUN), passed down through the
   `selections` / `onSelectionChange` props. Don't push storage into `component-lib`.
-- See `docs/architecture/display-system.md` for the full choice-card layer and
+- See `docs/ARCHITECTURE.md#display-system` for the full choice-card layer and
   resolved-data-row rendering.

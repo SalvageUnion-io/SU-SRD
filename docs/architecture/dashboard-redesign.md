@@ -248,10 +248,10 @@ can.
 - `apps/itun/src/stores/playStateStore.ts` header (deleted with the file).
 - `apps/itun/CLAUDE.md`: the `playStateStore` mention in the store list. That
   file is one character under its size budget, so offset any addition.
-- `docs/architecture/combat-loop.md` and `rules-engine-boundary.md`:
+- `docs/ARCHITECTURE.md` § Combat loop and § Rules and ITUN surfaces:
   component names (`ActionsDeck`, `MechBand`, `PilotBand`) and "composes a
   player's" wording, if they change.
-- `docs/architecture/data-flow.md`, `combat-loop.md` and `apps/itun/CLAUDE.md`'s
+- `docs/ARCHITECTURE.md` § Data flow and § Combat loop, and `apps/itun/CLAUDE.md`'s
   Solo rows: Solo play no longer includes the Dashboard.
 - `docs/design-system/ruleset.md` Dashboard laws, and
   `.claude/rules/react-components.md` (the `dashboard/` folder and `pc-*`

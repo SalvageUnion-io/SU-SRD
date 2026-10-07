@@ -15,6 +15,7 @@ import {
   checkReferencedScripts,
   citationReadsAsHistoryOrProposal,
   gitignoredMatcher,
+  headingSlug,
   pathCandidate,
   sentenceAround,
   splitMarkdownBlocks,
@@ -205,6 +206,15 @@ describe('checkBacktickedPathsExist', () => {
     expect(checkBacktickedPathsExist(root).failures).toEqual([])
   })
 
+  it('scans docs/ARCHITECTURE.md as a live-instruction doc', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': '## Data flow\n\nWrites go through `apps/itun/src/stores/gone.ts`.\n',
+    })
+    const { failures } = checkBacktickedPathsExist(root)
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
+  })
+
   it('does not let a negation in a NEIGHBOURING sentence excuse a stale path', () => {
     const root = fixture({
       'docs/architecture/x.md':
@@ -335,10 +345,10 @@ describe('checkReferencedScripts', () => {
 })
 
 describe('checkMarkdownLinks', () => {
-  it('resolves relative and root-relative links, and skips URLs, anchors, code and gitignored paths', () => {
+  it('resolves relative and root-relative links, validates anchors, and skips URLs, code and gitignored paths', () => {
     const root = fixture({
       '.gitignore': 'rules/*\n',
-      'docs/adrs/ADR-025-real.md': '# real\n',
+      'docs/adrs/ADR-025-real.md': '# real\n\n## Status\n',
       'docs/adrs/ADR-014.md': [
         'See [ADR-025](ADR-025-real.md#status) and [gone](ADR-025-versioned.md).',
         '[root](/docs/adrs/ADR-025-real.md) [web](https://example.com/x.md) [top](#context)',
@@ -349,12 +359,54 @@ describe('checkMarkdownLinks', () => {
         '```',
         '',
         '[ref]: ../missing.md',
+        '',
+        '## Context',
       ].join('\n'),
     })
     const { failures } = checkMarkdownLinks(root, ['docs/adrs/ADR-014.md'])
     expect(failures).toHaveLength(2)
     expect(failures[0]).toContain('docs/adrs/ADR-014.md:1 links to `ADR-025-versioned.md`')
     expect(failures[1]).toContain('docs/adrs/ADR-014.md:9 links to `../missing.md`')
+  })
+
+  it('fails an anchor that is no heading in the target or the same file', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': [
+        '# Architecture',
+        '## CI: reusing the PR’s run',
+        '## Convex error reporting — a dashboard toggle',
+        '### `@ladle/react` pin',
+        '```md',
+        '## Fenced is not a heading',
+        '```',
+        '## Notes',
+        '## Notes',
+        '[here](#missing) and [also](#notes-1)',
+      ].join('\n'),
+      'docs/README.md': [
+        '[a](ARCHITECTURE.md#ci-reusing-the-prs-run) [b](ARCHITECTURE.md#convex-error-reporting--a-dashboard-toggle)',
+        '[c](ARCHITECTURE.md#ladlereact-pin) [d](ARCHITECTURE.md#notes-1) [e](ARCHITECTURE.md)',
+        '[f](ARCHITECTURE.md#missing) [g](ARCHITECTURE.md#fenced-is-not-a-heading)',
+      ].join('\n'),
+    })
+    const { failures } = checkMarkdownLinks(root, ['docs/README.md', 'docs/ARCHITECTURE.md'])
+    expect(failures).toEqual([
+      'docs/README.md:3 links to `ARCHITECTURE.md#missing`, whose #missing is no heading in docs/ARCHITECTURE.md.',
+      'docs/README.md:3 links to `ARCHITECTURE.md#fenced-is-not-a-heading`, whose #fenced-is-not-a-heading is no heading in docs/ARCHITECTURE.md.',
+      'docs/ARCHITECTURE.md:10 links to `#missing`, whose #missing is no heading in docs/ARCHITECTURE.md.',
+    ])
+  })
+})
+
+describe('headingSlug', () => {
+  it('matches the anchors GitHub renders', () => {
+    expect(headingSlug('Component catalog (Ladle)')).toBe('component-catalog-ladle')
+    expect(headingSlug("CI: reusing the PR's run")).toBe('ci-reusing-the-prs-run')
+    expect(headingSlug('A — B')).toBe('a--b')
+    expect(headingSlug('Rotating `JWT_PRIVATE_KEY` / `JWKS`')).toBe(
+      'rotating-jwt_private_key--jwks'
+    )
+    expect(headingSlug('See [the doc](x.md) **now**')).toBe('see-the-doc-now')
   })
 })
 
@@ -368,14 +420,25 @@ describe('checkDocSizes', () => {
       '.claude/rules/b.md': 'x'.repeat(4_500),
       '.claude/agents/x.md': 'x'.repeat(8_001),
     })
-    const failures = checkDocSizes(root, { '.claude/rules/b.md': 4_500 }).failures
+    const failures = checkDocSizes(root, { '.claude/rules/b.md': 4_500 }, {}).failures
     expect(failures).toHaveLength(3)
     expect(failures.join('\n')).toContain('apps/itun/CLAUDE.md is 8001 characters')
     expect(failures.join('\n')).toContain('.claude/rules/a.md is 4001 characters')
     expect(failures.join('\n')).toContain('.claude/agents/x.md is 8001 characters')
-    expect(checkDocSizes(root, { 'gone.md': 1 }).failures.join('\n')).toContain(
+    expect(checkDocSizes(root, { 'gone.md': 1 }, {}).failures.join('\n')).toContain(
       'OVER_BUDGET names gone.md'
     )
+  })
+
+  it('holds a collapsed doc to its own budget, and fails an entry whose file is gone', () => {
+    const root = fixture({ 'docs/ARCHITECTURE.md': 'x'.repeat(101) })
+    expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 101 }).failures).toEqual([])
+    expect(checkDocSizes(root, {}, { 'docs/ARCHITECTURE.md': 100 }).failures.join('\n')).toContain(
+      'docs/ARCHITECTURE.md is 101 characters, over its 100-character budget'
+    )
+    expect(checkDocSizes(root, {}, { 'docs/GONE.md': 1 }).failures).toEqual([
+      'COLLAPSED_DOCS names docs/GONE.md, which does not exist. Remove the entry.',
+    ])
   })
 })
 

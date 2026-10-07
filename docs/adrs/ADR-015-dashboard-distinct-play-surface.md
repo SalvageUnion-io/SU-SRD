@@ -42,7 +42,7 @@ one-screen no-scroll instrument buttons). Sharing state (not chrome) keeps them
 consistent via the existing multi-tab broadcast. As the Guided Play surface it is
 where enforced lifecycle transactions live (see
 [ADR-021](ADR-021-itun-surface-taxonomy.md) and
-[rules-engine-boundary.md](../architecture/rules-engine-boundary.md)).
+[rules and ITUN surfaces](../ARCHITECTURE.md#rules-and-itun-surfaces)).
 
 ## Alternatives rejected
 

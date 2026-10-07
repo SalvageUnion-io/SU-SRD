@@ -8,7 +8,7 @@
 > (ownership: shelves and Games), [ADR-034](../adrs/ADR-034-account-required-persistence.md)
 > (Convex is the only source of truth: never add a store that exists only on a
 > device), [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md) and
-> [rules-engine-boundary.md](rules-engine-boundary.md) (enforcement modes).
+> [rules and ITUN surfaces](../ARCHITECTURE.md#rules-and-itun-surfaces) (enforcement modes).
 
 ---
 
@@ -154,7 +154,7 @@ that preloads `npcs`, `crawler-bays`, `crawlers`, `actions` and `traits`, and
 5. **Review.** The finished card, then create.
 
 Step gates live in `src/lib/rules/creation.ts` with the others. There are almost
-none: this is GM-grade tooling (rules-engine-boundary.md's Adjudicate column),
+none: this is GM-grade tooling (ARCHITECTURE.md § Rules and ITUN surfaces' Adjudicate mode),
 so the wizard guides and pre-fills rather than enforcing a build budget. The
 only hard gates are *name present* and *HP ≥ 1*.
 
@@ -171,7 +171,7 @@ Drafts persist through `wizardDraft.ts` like the others.
   same components the crawler bay card uses;
 - a current-HP tracker and conditions.
 
-No new card shell. `display-system.md` has two and this uses them.
+No new card shell. The [display system](../ARCHITECTURE.md#display-system) has two and this uses them.
 
 ### 4.3 Roster
 

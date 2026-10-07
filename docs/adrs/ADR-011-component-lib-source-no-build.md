@@ -25,7 +25,7 @@ the `.ts`/`.tsx` source, which their own Vite/Astro pipeline compiles.
 reference` types but knows nothing about IndexedDB, snapshots, or persistence
   (consumers inject behavior via slot props; see
   [ADR-010](ADR-010-srd-choices-ephemeral-vs-persisted.md) and
-  `docs/architecture/display-system.md`).
+  `docs/ARCHITECTURE.md#display-system`).
 
 This is **deliberately different** from `salvageunion-reference`, which _does_
 build ([ADR-005](ADR-005-reference-data-orm.md)) because it generates JSON Schema

@@ -78,5 +78,5 @@ const members = useQuery(api.games.members, { gameId })
   the typed hooks in `src/hooks/entities/` over the stores, and Connected reads
   use `convex/react`.
 
-Full picture: [data-flow.md](../../docs/architecture/data-flow.md),
-[accounts-and-games.md](../../docs/architecture/accounts-and-games.md).
+Full picture: [data flow](../../docs/ARCHITECTURE.md#data-flow),
+[accounts](../../docs/ARCHITECTURE.md#accounts-and-games-operations).

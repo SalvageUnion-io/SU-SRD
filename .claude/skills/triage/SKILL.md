@@ -23,8 +23,8 @@ recommendation you cannot justify.
 
 **A signal you could not reach is a finding, not a skip.** In a cloud session
 the `gh` CLI is usually absent and the `cloudflare-*`, `sentry` and `context7`
-MCP servers fail to connect through the egress proxy (see "Cloud sessions" in
-[`docs/architecture/agent-tooling.md`](../../../docs/architecture/agent-tooling.md)).
+MCP servers fail to connect through the egress proxy (see
+[cloud sessions](../../../docs/ARCHITECTURE.md#cloud-sessions)).
 For every step, use the first route that works and record which one you used:
 
 | Signal | Route 1 | Route 2 (no `gh`) |

@@ -19,7 +19,8 @@ backend, no auth). **Amends [ADR-022](ADR-022-provenance-log-and-overrides.md)**
 altering any of its enforcement modes.
 
 The operational reference (deployments, env vars, secrets, rotation) is
-[`accounts-and-games.md`](../architecture/accounts-and-games.md).
+[accounts and Games operations](../ARCHITECTURE.md#accounts-and-games-operations) and the
+`convex-maintenance` skill.
 
 **2026-10-06 — the Games pages are folded into the Roster hub.** §6's surfaces
 — the Games index (`/games`), a Game's crew page (`/games/:id`) and the

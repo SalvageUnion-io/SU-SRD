@@ -22,7 +22,7 @@
  * With one recorded exception: a handful of sanctioned Live-Sheet controls run a
  * real transaction (the crawler economy, bay Repair, per-card repair) and tag
  * `LIVE_SHEET_TXN`. That list is closed and lives in
- * `docs/architecture/rules-engine-boundary.md` — do not add to it here.
+ * `docs/ARCHITECTURE.md#sanctioned-live-sheet-transactions` — do not add to it here.
  */
 import type { ChangeMeta } from './entityStore'
 

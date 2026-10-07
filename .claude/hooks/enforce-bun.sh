@@ -163,7 +163,7 @@ if $blocked; then
   echo "  one-off binary -> bunx <pkg>        (but NOT 'bunx npm ...', which is what this catches)" >&2
   echo "" >&2
   echo "  An npm install here writes a package-lock.json and a node_modules tree that" >&2
-  echo "  disagree with bun.lock. See docs/architecture/dependency-management.md." >&2
+  echo "  disagree with bun.lock. See docs/ARCHITECTURE.md#dependencies." >&2
   exit 2
 fi
 

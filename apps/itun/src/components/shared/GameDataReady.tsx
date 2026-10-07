@@ -17,7 +17,7 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * when it rendered a chosen entity. A single preload of the full dataset
  * removes the matrix of per-route preload lists and is cheap (the dataset is
  * ~1-2 MB of static JSON, loaded up front) — see
- * docs/architecture/data-flow.md for the fuller rationale.
+ * docs/ARCHITECTURE.md#data-flow for the fuller rationale.
  *
  * Off the critical rendering path (the "deprioritized after first paint"
  * half): this component only wraps `<Outlet />` + `<GlobalSearch />` in

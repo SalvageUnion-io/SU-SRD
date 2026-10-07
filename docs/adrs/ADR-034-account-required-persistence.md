@@ -9,7 +9,7 @@ e2e suite signs in through `TestAuthBridge`. Where this ADR describes Solo as
 IndexedDB-backed, read it as history. The phased delivery plan was deleted once
 every phase closed (`git show c2476d1c:docs/architecture/persistence-and-pwa.md`);
 what stays true of it is in
-[architecture/data-flow.md](../architecture/data-flow.md).
+[data flow](../ARCHITECTURE.md#data-flow).
 
 **Partially superseded by [ADR-035](ADR-035-no-isolated-local-only-data.md)**,
 which withdraws one consequence recorded below — *"Declining the claim is a

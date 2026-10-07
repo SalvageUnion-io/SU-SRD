@@ -5,7 +5,7 @@ import { basename, dirname, join } from 'node:path'
 
 /**
  * Ladle catalog guard — the executable half of the story standard documented in
- * `docs/design-system/ladle-styleguide.md` and `component-lib/CLAUDE.md`.
+ * `docs/ARCHITECTURE.md#component-catalog-ladle` and `component-lib/CLAUDE.md`.
  *
  * The standard, in one line: ONE public component = ONE co-located story file =
  * ONE nav leaf, titled `Group[/Sub-group]/Component Title Case`.

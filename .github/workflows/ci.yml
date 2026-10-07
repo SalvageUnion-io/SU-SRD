@@ -1,7 +1,7 @@
 name: CI
 
-# The reasoning behind every non-obvious choice in this file — and the
-# incidents that produced most of them — is in docs/architecture/ci.md. Read it
+# The reasoning behind every non-obvious choice in this file is in
+# docs/ARCHITECTURE.md#ci-and-deploy (the incidents behind them are in git history). Read it
 # before changing a trigger, a path filter, a `needs:` edge or the aggregate
 # gate. Comments here say WHAT a step guards; the doc says WHY.
 
@@ -9,10 +9,10 @@ on:
   push:
     branches: ['main']
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
-  # PRs no checks at all — and `CI Success` is required (ci.md, "Triggers").
+  # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci-triggers).
   pull_request:
   # Dormant: no merge queue on `main` today, but this must be live BEFORE one
-  # is enabled or the queue waits forever (ci.md, "Triggers").
+  # is enabled or the queue waits forever (ARCHITECTURE.md#ci-triggers).
   merge_group:
 
 permissions:
@@ -22,8 +22,8 @@ permissions:
 
 # PRs: a new push supersedes the in-flight run. `main`: NEVER cancel — every
 # commit gets its own group and runs to completion, because a cancelled run on
-# main never fires the deploy workflow's `workflow_run` success (ci.md,
-# "Concurrency"; audit CI-01).
+# main never fires the deploy workflow's `workflow_run` success
+# (ARCHITECTURE.md#ci-concurrency; audit CI-01).
 concurrency:
   group: ci-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.event_name != 'push' }}
@@ -32,7 +32,7 @@ concurrency:
 jobs:
   # ---------------------------------------------------------------------------
   # Which areas a change touches. `shared` affects everything; `docs` is prose
-  # and agent config only. See ci.md, "Path filters", before adding a path.
+  # and agent config only. See ARCHITECTURE.md#ci-path-filters before adding a path.
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
 
       # A squash merge whose tree is its PR head's already passed CI as that PR:
       # every area stays empty, so `CI Success` passes at once and the deploy
-      # starts. Anything unproven runs everything (ci.md, "Reusing the PR's run").
+      # starts. Anything unproven runs everything (ARCHITECTURE.md#ci-reusing-the-prs-run).
       - name: Reuse the merged PR's green run
         id: tested
         if: github.event_name == 'push'
@@ -126,7 +126,7 @@ jobs:
               - 'bunfig.toml'
               - 'patches/**'
               # root prose rendered by srd + itun and asserted on by
-              # component-lib tests — the #731 incident (ci.md)
+              # component-lib tests — the #731 incident (ARCHITECTURE.md#ci-path-filters)
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -446,7 +446,7 @@ jobs:
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
   # tools/check-workflows.ts (aggregator) enforces it. CodeQL and the PR title
-  # are required separately (ci.md, "The aggregate gate").
+  # are required separately (ARCHITECTURE.md#ci-aggregate-gate).
   # ---------------------------------------------------------------------------
   quality-checks:
     name: CI Success

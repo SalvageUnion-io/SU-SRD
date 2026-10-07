@@ -99,7 +99,7 @@ salvageunion-reference`) is **out of scope for this decision** — it
 
 ## Consequences
 
-- Documentation (`docs/architecture/package-contracts.md`, this ADR) now
+- Documentation (`docs/ARCHITECTURE.md#packages-and-contracts`, this ADR) now
   matches the package's actual `package.json` shape: no `dist/`, no build
   step, no npm distribution.
 - External consumers have one clear, always-current integration path (the

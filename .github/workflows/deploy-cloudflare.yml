@@ -115,7 +115,7 @@ permissions:
 env:
   # The production Convex deployment's client URL, which itun is compiled
   # against. Public — it is in every shipped bundle — and documented in
-  # docs/architecture/agent-tooling.md. It is a constant rather than whatever
+  # docs/ARCHITECTURE.md#accounts-and-games-operations. It is a constant rather than whatever
   # `convex deploy --cmd` hands the build, because that command PUSHES the
   # backend, and the push must wait until every build is green (see
   # `push-convex`). `push-convex` asserts it equals the canonical URL the
@@ -448,7 +448,7 @@ jobs:
           # as itun; the PROJECT is srd's own, and is written literally rather
           # than read from `vars.SENTRY_PROJECT`, which names itun's. A project
           # slug is public (it is in every Sentry URL and in
-          # docs/architecture/agent-tooling.md), so it needs no variable.
+          # docs/ARCHITECTURE.md#sentry), so it needs no variable.
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: srd
@@ -626,7 +626,7 @@ jobs:
             [ "$CANONICAL_CONVEX_URL" = "$ITUN_CONVEX_URL" ] || {
             echo "FATAL: the deploy key resolves to $CANONICAL_CONVEX_URL but itun was built
             against $ITUN_CONVEX_URL. Update ITUN_CONVEX_URL in deploy-cloudflare.yml and
-            docs/architecture/agent-tooling.md." >&2; exit 1; }
+            docs/ARCHITECTURE.md." >&2; exit 1; }
         run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
 
   # ===========================================================================

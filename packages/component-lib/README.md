@@ -19,7 +19,7 @@ deleted (this README's list had grown six names that no longer existed).
 - **The barrel** — [`src/index.ts`](src/index.ts): every export, in one file.
 - **The catalog** — `bun run ladle` from the repo root: every public visual
   component, rendered with real SRD data.
-- **The rules** — [package-contracts.md](../../docs/architecture/package-contracts.md):
+- **The rules** — [packages and contracts](../../docs/ARCHITECTURE.md#component-lib):
   what may be exported and what consumers may import.
 
 ## Consuming
@@ -48,5 +48,5 @@ import { Card, ReferenceEntityCard, Text } from 'component-lib'
 ## Documentation
 
 - [`CLAUDE.md`](CLAUDE.md) — conventions for this package
-- [`/docs/architecture/display-system.md`](../../docs/architecture/display-system.md) — 3-layer render stack
-- [`/docs/architecture/package-contracts.md`](../../docs/architecture/package-contracts.md) — package API rules
+- [Display system](../../docs/ARCHITECTURE.md#display-system) — the two card shells
+- [Packages and contracts](../../docs/ARCHITECTURE.md#packages-and-contracts) — package API rules
