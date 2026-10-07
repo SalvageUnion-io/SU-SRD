@@ -2,6 +2,7 @@ import { Badge, Button, Card, PageHeading, Row, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { isUpkeepStep, UPKEEP_STEP_NAME } from '../../lib/rules/downtime'
 
 /**
  * Crew-wide Downtime (Phase 5).
@@ -21,7 +22,8 @@ import type { Id } from '../../../convex/_generated/dataModel'
  *
  * Upkeep is shown as a single crew-level fact. The crawler is the Mediator's
  * (ADR-038 §5), so only they record it as paid, once per Downtime — the
- * double-charge being the thing that made per-player Downtime unworkable.
+ * double-charge being the thing that made per-player Downtime unworkable — and
+ * only in the Upkeep & Upgrade step, which the server enforces too.
  */
 export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
   const state = useQuery(api.downtime.state, { gameId })
@@ -99,7 +101,12 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
                 <Button
                   variant="ghost"
                   size="compact"
-                  disabled={state.upkeepSpent}
+                  disabled={state.upkeepSpent || !isUpkeepStep(state.stepIndex)}
+                  title={
+                    isUpkeepStep(state.stepIndex)
+                      ? undefined
+                      : `Upkeep is paid in the ${UPKEEP_STEP_NAME} step`
+                  }
                   onClick={() => void spendUpkeep({ gameId })}
                 >
                   Pay crawler upkeep
