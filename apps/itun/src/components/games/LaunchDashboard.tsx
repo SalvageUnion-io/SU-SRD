@@ -95,7 +95,10 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   // tests render the hub without a RouterProvider.
   const router = useRouter({ warn: false })
   const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<string | null>(null)
+  // The player's own pick. Until they make one, the selection follows
+  // `preselect`, so a listing that answers after the picker opened still
+  // arrives with their pilot chosen.
+  const [picked, setPicked] = useState<string | null>(null)
 
   // The same three questions `GameRoster` asks, so Convex answers both from
   // one subscription each.
@@ -129,10 +132,11 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
     }).filter((row) => row.localId !== null)
   )
   const pilots = [...yours, ...others]
+  const selected = picked ?? preselect(pilots)
   const chosen = pilots.find((row) => row.serverId === selected) ?? null
 
   function openPicker() {
-    setSelected(preselect(pilots))
+    setPicked(null)
     setOpen(true)
   }
 
@@ -155,7 +159,11 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
         description="Choose the pilot to play."
       >
         <div style={BODY}>
-          {pilots.length === 0 ? (
+          {listing === undefined ? (
+            <Text variant="hint" style={HINT}>
+              Loading pilots…
+            </Text>
+          ) : pilots.length === 0 ? (
             <Text variant="hint" style={HINT}>
               None of this Game's pilots is saved in this browser. Create or claim one from the
               roster, then launch.
@@ -169,7 +177,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
                   name={`launch-pilot-${gameId}`}
                   value={row.serverId}
                   checked={row.serverId === selected}
-                  onChange={() => setSelected(row.serverId)}
+                  onChange={() => setPicked(row.serverId)}
                   label={row.name}
                   description={row.owner?.label}
                 />

@@ -451,6 +451,24 @@ describe('Launch Dashboard', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  test('opened before the pilots answer, it says so, then chooses yours when they arrive', async () => {
+    setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': undefined }))
+    let view: ReturnType<typeof render> | undefined
+    await act(async () => {
+      view = render(<GameHub gameId="g1" activeSegment="pilot" onSegmentChange={() => {}} />)
+    })
+    const dialog = await openPicker()
+    expect(within(dialog).getByText('Loading pilots…')).toBeTruthy()
+    expect(within(dialog).queryByText(/saved in this browser/)).toBeNull()
+
+    setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) }))
+    await act(async () => {
+      view?.rerender(<GameHub gameId="g1" activeSegment="pilot" onSegmentChange={() => {}} />)
+    })
+    const radios = within(screen.getByRole('dialog')).getAllByRole('radio') as HTMLInputElement[]
+    expect(radios.map((r) => r.checked)).toEqual([true, false])
+  })
+
   test('a viewer who owns no pilot gets no pre-selection, and picks one', async () => {
     await renderHub({
       'games:get': { ...GAME, mediator: true, organizer: true },
