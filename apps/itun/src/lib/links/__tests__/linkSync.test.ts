@@ -149,7 +149,7 @@ describe('planCrawlerSync', () => {
     expect(plan.adopt[0]?.body.gameId).toBe('g1')
   })
 
-  test("re-adopts when the row moved on — a crewmate's edit reaches this cache", () => {
+  test("re-adopts when the row moved on — the Mediator's edit reaches this cache", () => {
     const local = [{ id: 'c1', gameId: 'g1' }]
     const unchanged = planCrawlerSync({
       local,

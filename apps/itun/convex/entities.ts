@@ -482,9 +482,9 @@ export const remove = mutation({
  * a campaign look like a bug.
  *
  * There is deliberately no `unassigned` axis **inside a Game**: a crawler there
- * carries `ownerId: null`, which is exactly what communal means (D8). It
- * belongs to the crew from the moment it exists, which is why players may fill
- * in its fields without ever being handed it.
+ * carries `ownerId: null`, which is exactly what communal means (D8). It has
+ * no owner from the moment it exists and is never handed to anyone; its fields
+ * are the table runner's to fill, as raising and scrapping it are (ADR-038 §5).
  *
  * ## `gameId: null` raises one on your own shelf
  *
