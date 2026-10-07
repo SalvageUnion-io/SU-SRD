@@ -365,6 +365,9 @@ export function VitalGauge({
             <input
               ref={maxInputRef}
               type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              enterKeyHint="done"
               value={maxDraft}
               onChange={(event) => setMaxDraft(event.target.value)}
               onKeyDown={onMaxKeyDown}

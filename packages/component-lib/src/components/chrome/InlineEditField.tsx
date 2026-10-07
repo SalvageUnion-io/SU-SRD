@@ -183,6 +183,7 @@ export function InlineEditField({
         <Input
           ref={inputRef}
           type={type}
+          numeric={type === 'number'}
           value={draft}
           min={min}
           max={max}

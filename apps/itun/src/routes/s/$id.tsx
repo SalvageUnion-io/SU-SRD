@@ -16,9 +16,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { SheetSkeleton } from '../../components/sheet/SheetSkeleton'
 import { SnapshotLinkView } from '../../components/sheet/SnapshotLinkView'
 import { captureException } from '../../lib/observability'
+import { pageTitle } from '../../lib/pageTitle'
 import { retrieveSnapshotIdentity } from '../../lib/snapshot/client'
 
 export const Route = createFileRoute('/s/$id')({
+  head: () => ({ meta: [{ title: pageTitle('Retired link') }] }),
   loader: async ({ params }) => {
     try {
       return { identity: await retrieveSnapshotIdentity(params.id) }
@@ -43,6 +45,9 @@ export const Route = createFileRoute('/s/$id')({
       return { identity: null }
     }
   },
+  // Never on hover: the loader is a Worker fetch whose failure files a Sentry
+  // event, and the router preloads on intent (main.tsx).
+  preload: false,
   component: SnapshotLinkRoute,
   // A link that resolves lands on a sheet, so the sheet-shaped skeleton is the
   // honest placeholder while the loader's fetch is in flight.

@@ -32,6 +32,7 @@ import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { pageTitle } from '../../lib/pageTitle'
 import type { EntityRef } from '../../lib/schemas/entity'
 import { useEntityStore } from '../../stores/entityStore'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
@@ -44,10 +45,26 @@ import { SheetSkeleton } from './SheetSkeleton'
 type SheetViewProps = { kind: EntityRef['type']; id: string }
 
 export function SheetView({ kind, id }: SheetViewProps) {
+  useSheetTabTitle(kind, id)
   // A build with no Convex mounts no provider, so the hooks below would throw.
   // There is no server to ask, either: what this browser holds is all there is.
   if (!isConvexConfigured) return <Sheet kind={kind} id={id} />
   return <ConnectedSheetView kind={kind} id={id} />
+}
+
+/**
+ * Names the tab after the entity, and follows a rename. The route's `head`
+ * can only say "Sheet": it runs once per navigation, and a loader may not read
+ * a player entity (`.claude/rules/tanstack-router.md`). A sheet this browser
+ * does not hold (a crewmate's) keeps that generic title. `<HeadContent />`
+ * rewrites the tab on the next navigation, since every other route's title
+ * differs from the sheet's.
+ */
+function useSheetTabTitle(kind: EntityRef['type'], id: string) {
+  const name = useEntityStore((s) => s.get(kind, id)?.name ?? null)
+  useEffect(() => {
+    document.title = pageTitle(name || 'Sheet')
+  }, [name])
 }
 
 /** Whether the listing carries a row for this entity, parseable or not. */

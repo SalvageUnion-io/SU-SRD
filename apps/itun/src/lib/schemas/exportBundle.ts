@@ -55,8 +55,8 @@ export const ExportBundleSchema = z.object({
   workspaces: z.array(z.unknown()).default([]),
   softLinks: z.array(SoftLinkSchema),
   /**
-   * Saved mech patterns (gap 6: export is the ONLY backup path for local-first
-   * data — omitting patterns silently loses them). Defaulted so bundles
+   * Saved mech patterns (gap 6: export is the ONLY backup path for work that is
+   * not in an account — omitting patterns silently loses them). Defaulted so bundles
    * written before this field existed still import.
    */
   mechPatterns: z.array(MechPatternSchema).default([]),
