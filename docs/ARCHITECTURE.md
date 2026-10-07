@@ -5297,10 +5297,10 @@ with its mechs docked.
 
 ### Status
 
-**Accepted; partly built.** Decision 1, the Game-only gate, is built. The plan
+**Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
+is decision 2's seat, except the action being resolved. The plan
 that delivers the rest, layer by layer, is
-[dashboard-redesign.md](architecture/dashboard-redesign.md), tracked in the
-[Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7). Until its layers
+[dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
 land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
 and [dashboard.md](architecture/dashboard.md) describe.
 

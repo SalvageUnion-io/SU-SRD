@@ -49,7 +49,10 @@ scroll internally; the frame never does. `DashboardGrid` places four surfaces:
 
 **Mount state** is `pilot | mech | downtime`: Board takes the pilot into the
 mech, Dismount or Eject (confirm-twice) takes them out, and Downtime is
-crawler-dominant, with `DowntimeWizard` in place of the display. The active
+crawler-dominant, with `DowntimeWizard` in place of the display. On foot or
+boarded, and in which mech, is the pilot's **seat** on the Game (§4.1); a
+boarded pilot runs the mech the seat names, which need not be their assigned
+one. The active
 family tints the whole canvas; hue means ontology, and state is a treatment
 (hatch, strike, redline), never a second hue.
 
@@ -69,18 +72,24 @@ rather than a description. Do not fork the display for the Dashboard.
 | --------------------------------------------------------- | ------------------------------------------------------- |
 | HP / SP / EP / Heat, conditions, item uses, cargo         | the pilot / mech records (persisted)                    |
 | maxima                                                    | derived (`lib/rules/derivedStats.ts`), never stored     |
-| mount state, range band, turn flags, dial focus           | `playStateStore` — ephemeral, resets on reload          |
+| on foot or boarded (and in which mech), range band, activated effects | the pilot's seat on the Game (`convex/seats.ts`, `useSeat`) |
+| in Downtime, dial focus, Downtime wizard step             | `playStateStore` — ephemeral, resets on reload          |
 | dial show/hide and order                                  | `cockpitPrefsStore` — `localStorage`, per container     |
 | overlays, filters, resolve progress                       | component state                                         |
 
 Mount state must never reach the pilot/mech schema or a shared sheet: there is no
-"pilot in mech" field, only a `mech-to-pilot` soft link.
+"pilot in mech" field, only a `mech-to-pilot` soft link and the seat, its own row
+that points at both by app id. Every member reads the crew's seats; only whoever
+may write the pilot writes its seat, and boarding also needs the mech
+([ADR-038](../ARCHITECTURE.md#adr-038) §2).
 
 ### 4.2 Persistence
 
-Live-play writes go through `entityStore.update`, exactly the sheet's path
-([data flow](../ARCHITECTURE.md#data-flow)). The Dashboard never introduces a second write
-path, and adds no server surface of its own.
+Live-play writes to the pilot, mech and crawler go through `entityStore.update`,
+exactly the sheet's path ([data flow](../ARCHITECTURE.md#data-flow)). The
+Dashboard's own server surface is the seat: `convex/seats.ts`, written through
+`useSeat`'s mutations with optimistic updates, and refused here while
+Disconnected rather than queued.
 
 ### 4.3 The ADR-007 boundary on every control
 

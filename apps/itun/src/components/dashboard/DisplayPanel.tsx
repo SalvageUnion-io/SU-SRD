@@ -31,6 +31,7 @@ import type { DialItem } from './dialItems'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories'
+import type { MountState, SeatHandle } from './useSeat'
 
 const HIDE_CHOICES = { choices: true } as const
 
@@ -201,12 +202,14 @@ type DisplayPanelProps = {
   mech: Mech
   pilot: Pilot | null
   crawler: Crawler | null
+  /** Which entity runs the Dashboard, derived from the seat and Downtime. */
+  mount: MountState
+  /** The pilot's seat: boarding from the mech card, and the deck's range. */
+  seat: SeatHandle
 }
 
-export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps) {
+export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: DisplayPanelProps) {
   const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
-  const mount = usePlayStateStore((s) => s.mount)
-  const setMount = usePlayStateStore((s) => s.setMount)
 
   const content = ((): DisplayContent => {
     if (!focus) return { kind: 'note', text: 'Nothing selected.' }
@@ -216,7 +219,16 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
       if (focus.key === 'actions') {
         return {
           kind: 'slot',
-          node: <ActionsDeck mech={mech} pilot={pilot} crawler={crawler} mount={mount} />,
+          node: (
+            <ActionsDeck
+              mech={mech}
+              pilot={pilot}
+              crawler={crawler}
+              mount={mount}
+              range={seat.seat.range}
+              onRange={seat.setRange}
+            />
+          ),
         }
       }
       if (focus.key === 'srd') return { kind: 'srd' }
@@ -232,7 +244,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
           key: 'load',
           label: 'Load Into Mech ▶',
           ariaLabel: 'Load Into Mech',
-          onClick: () => setMount('mech'),
+          onClick: () => seat.board(mech.id),
           variant: 'primary',
         })
       }

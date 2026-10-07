@@ -16,6 +16,7 @@ import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import { DisplayPanel } from '../DisplayPanel'
 import type { DialItem } from '../dialItems'
+import { boardedSeat } from './seatFixture'
 
 beforeAll(hydrateStores)
 
@@ -31,7 +32,14 @@ function renderDV(focus: DialItem | undefined, mechChassis = chassisSlug) {
   const crawler = crawlerFixture({ id: 'c1', name: 'Hauler', techLevel: '3' })
   return render(
     <EntityHrefProvider value={() => undefined}>
-      <DisplayPanel focus={focus} mech={mech} pilot={null} crawler={crawler} />
+      <DisplayPanel
+        focus={focus}
+        mech={mech}
+        pilot={null}
+        crawler={crawler}
+        mount="mech"
+        seat={boardedSeat(mech.id).handle}
+      />
     </EntityHrefProvider>
   )
 }

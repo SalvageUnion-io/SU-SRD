@@ -4,15 +4,15 @@
  * patch with that lot removed (the explicit player-confirmed discard, ADR-007).
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import type { Mech } from '../../../lib/schemas/mech'
-import { usePlayStateStore } from '../../../stores/playStateStore'
 import { mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import type { PlayStore } from '../ActiveItemBand'
 import { ActiveItemBand } from '../ActiveItemBand'
+import { boardedSeat } from './seatFixture'
 
 const lotA: CargoLot = {
   id: 'lot-a',
@@ -58,13 +58,17 @@ function stubStore(entities: Mech[]): { store: PlayStore; calls: Call[] } {
 }
 
 describe('ActiveItemBand cargo hold', () => {
-  beforeEach(() => {
-    usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
-  })
-
   test('Storage opens the hold listing the cargo lots', () => {
     const { store } = stubStore([mech])
-    render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={mech}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
     fireEvent.click(screen.getByText('Storage'))
     expect(screen.getByLabelText('Jettison Sealed Crate')).toBeTruthy()
     expect(screen.getByLabelText('Jettison Tech 3 Scrap')).toBeTruthy()
@@ -73,7 +77,15 @@ describe('ActiveItemBand cargo hold', () => {
 
   test('Jettison writes cargoLots without the discarded lot', () => {
     const { store, calls } = stubStore([mech])
-    render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
+    render(
+      <ActiveItemBand
+        mech={mech}
+        pilot={null}
+        mount="mech"
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
     fireEvent.click(screen.getByText('Storage'))
     fireEvent.click(screen.getByLabelText('Jettison Sealed Crate'))
     expect(calls).toHaveLength(1)

@@ -99,7 +99,7 @@ type ContributionHost = { name?: string; contributions?: DeclaredContribution[] 
  * so the table keeps time and the app keeps state, which is the same division
  * ADR-001's honour system already relies on.
  *
- * Ephemeral (ADR-019): this lives in play state and is never persisted.
+ * Never on the entity: ITUN keeps it on the pilot's seat in a Game (ADR-038).
  */
 export type ActiveEffects = Readonly<Record<string, boolean>>
 

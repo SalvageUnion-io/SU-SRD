@@ -72,18 +72,25 @@ export function MechBand({
   store,
   hasPilot,
   pilotAbilities,
+  activeEffects: switchedOn,
+  onToggleEffect,
   onDismount,
+  onEject,
 }: {
   mech: Mech
   /** Beefcake raises the piloted MECH's Max SP and Cargo (ADR-029). */
   pilotAbilities?: string[]
   store: PlayStore
   hasPilot: boolean
+  /** Refs of the activated effects the seat has switched on (ADR-029 §4). */
+  activeEffects: readonly string[]
+  onToggleEffect: (ref: string) => void
   onDismount: () => void
+  /** The emergency exit, sent only after the player confirms it (ADR-007). */
+  onEject: () => void
 }) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const activeEffects = usePlayStateStore((st) => st.activeEffects)
-  const toggleEffect = usePlayStateStore((st) => st.toggleEffect)
+  const activeEffects = Object.fromEntries(switchedOn.map((ref) => [ref, true]))
   const piloting = { ...pilotingContext(mech, pilotAbilities), active: activeEffects }
   // What this mech/pilot could switch on (F1). Manual expiry: the table keeps
   // time, the app keeps state.
@@ -312,7 +319,7 @@ export function MechBand({
           label: 'Confirm Eject',
           onClick: () => {
             setPrompt(null)
-            onDismount()
+            onEject()
           },
           variant: 'danger',
         },
@@ -387,7 +394,7 @@ export function MechBand({
               label: 'Effects',
               buttons: activatable.map((e) => ({
                 label: `${activeEffects[e.ref] ? '\u25CF' : '\u25CB'} ${e.name}`,
-                onClick: () => toggleEffect(e.ref),
+                onClick: () => onToggleEffect(e.ref),
                 title: activeEffects[e.ref]
                   ? `${e.name} is active — click to end it`
                   : `${e.name}: ${e.summary}`,
@@ -400,7 +407,7 @@ export function MechBand({
         buttons: [
           {
             label: 'Dismount',
-            onClick: onDismount,
+            onClick: () => onDismount(),
             disabled: !hasPilot,
             variant: 'go',
             title: hasPilot ? 'Exit the mech (calm)' : 'No pilot assigned to this mech',

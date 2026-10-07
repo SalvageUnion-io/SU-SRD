@@ -28,9 +28,11 @@ import type * as model_discordInteraction from "../model/discordInteraction.js";
 import type * as model_entities from "../model/entities.js";
 import type * as model_invites from "../model/invites.js";
 import type * as model_permissions from "../model/permissions.js";
+import type * as model_seats from "../model/seats.js";
 import type * as ownership from "../ownership.js";
 import type * as proposals from "../proposals.js";
 import type * as publicSheet from "../publicSheet.js";
+import type * as seats from "../seats.js";
 import type * as shelf from "../shelf.js";
 import type * as templates from "../templates.js";
 
@@ -61,9 +63,11 @@ declare const fullApi: ApiFromModules<{
   "model/entities": typeof model_entities;
   "model/invites": typeof model_invites;
   "model/permissions": typeof model_permissions;
+  "model/seats": typeof model_seats;
   ownership: typeof ownership;
   proposals: typeof proposals;
   publicSheet: typeof publicSheet;
+  seats: typeof seats;
   shelf: typeof shelf;
   templates: typeof templates;
 }>;

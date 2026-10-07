@@ -12,6 +12,7 @@ import {
   requireTableRunner,
   requireUser,
 } from './model/permissions'
+import { deleteGamePlayState } from './model/seats'
 
 /**
  * Games — the shared container (ADR-030 §2).
@@ -263,6 +264,9 @@ export const destroy = mutation({
         .collect()
       for (const row of rows) await ctx.db.delete(row._id)
     }
+    // The seats and the Downtime row are the table's play state, so they go
+    // too, rather than lingering keyed on a Game that no longer exists.
+    await deleteGamePlayState(ctx, args.gameId)
 
     await ctx.db.delete(args.gameId)
   },

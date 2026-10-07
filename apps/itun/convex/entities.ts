@@ -31,6 +31,7 @@ import {
   requireTableRunner,
   requireUser,
 } from './model/permissions'
+import { releaseSeatsOf } from './model/seats'
 import { entityRefType, softLinkType } from './schema'
 
 /**
@@ -102,7 +103,7 @@ const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
  * privileged write here — changing someone else's sheet goes through a
  * proposal (D7), and giving this function a ctx would invite exactly that.
  */
-function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>): void {
+export function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>): void {
   if (doc.ownerId === userId) return
   if (doc.ownerId === null) {
     throw new NotAuthorized(
@@ -461,6 +462,7 @@ export const remove = mutation({
     assertMayWrite(doc, userId)
     await ctx.db.delete(doc._id)
     await pruneLinksOfRow(ctx, doc)
+    await releaseSeatsOf(ctx, args.table === 'pilots' ? 'pilot' : 'mech', doc, doc.gameId)
   },
 })
 
@@ -710,6 +712,9 @@ export const upsertByAppId = mutation({
       const row = await ctx.db.get(existing._id)
       if (row !== null) {
         await pruneLinksAcrossContainers(ctx, row, previousGameId)
+        // Moved out of a Game: a pilot's seat there goes, and a mech leaves
+        // whoever was aboard it on foot (ADR-038).
+        await releaseSeatsOf(ctx, kind, row, previousGameId)
         // Moved into a Game: aboard its primary crawler (ADR-037).
         await assignToPrimary(ctx, kind, row)
       }
@@ -998,6 +1003,7 @@ export const removeByAppId = mutation({
     assertMayWrite(existing, userId)
     await ctx.db.delete(existing._id)
     await pruneSoftLinksFor(ctx, args.appId)
+    await releaseSeatsOf(ctx, args.table === 'pilots' ? 'pilot' : 'mech', existing, existing.gameId)
   },
 })
 
