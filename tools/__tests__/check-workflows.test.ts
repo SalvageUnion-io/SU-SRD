@@ -163,6 +163,10 @@ function ctx(overrides: {
       'jobs:\n  a:\n    steps:\n      - uses: github/codeql-action/init@v4\n'
     ),
     yaml(
+      '.github/workflows/pr-title.yml',
+      'jobs:\n  pr-title:\n    steps:\n      - run: echo ok\n'
+    ),
+    yaml(
       '.github/workflows/nightly.yml',
       'jobs:\n  a:\n    steps:\n      - uses: ./.github/actions/setup-bun\n'
     ),
@@ -261,6 +265,8 @@ describe('aggregator', () => {
   test('a separately-required workflow that is gone fails', () => {
     const c = ctx({ missing: ['.github/workflows/codeql.yml'] })
     expect(checkAggregator(c).failures.join('\n')).toContain('codeql.yml is missing')
+    const title = ctx({ missing: ['.github/workflows/pr-title.yml'] })
+    expect(checkAggregator(title).failures.join('\n')).toContain('pr-title.yml is missing')
   })
 })
 

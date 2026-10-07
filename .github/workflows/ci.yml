@@ -169,6 +169,7 @@ jobs:
               - 'CLAUDE.md'
               - 'README.md'
               - 'CONTRIBUTING.md'
+              - 'SECURITY.md'
               - '.claude/**'
               - '.mcp.json'
             # What the dependency audit reads: a PR that moves neither cannot
@@ -366,40 +367,6 @@ jobs:
       - name: Bundle the Worker that actually deploys
         run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
 
-  # Squash merges make the PR title the commit subject release-please reads.
-  pr-title:
-    name: PR title is a conventional commit
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Check the title
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          set -euo pipefail
-          # types release-please understands, optional (scope), optional ! for a
-          # breaking change, then ": " and a non-empty description.
-          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .+'
-          if printf '%s' "$TITLE" | grep -qE "$pattern"; then
-            echo "ok: $TITLE"
-            exit 0
-          fi
-          {
-            echo "This PR's title is not a conventional commit, and on a squash-merge repo"
-            echo "the title IS the commit subject that release-please reads."
-            echo ""
-            echo "  got:      $TITLE"
-            echo "  expected: <type>(<optional scope>): <description>"
-            echo "  types:    feat fix docs style refactor perf test build ci chore revert"
-            echo ""
-            echo "  e.g.  fix(deploy): require same-repo push provenance on the deploy gate"
-            echo ""
-            echo "A title that does not match still merges cleanly and silently produces no"
-            echo "changelog entry and no version bump. See ADR-024."
-          } >&2
-          exit 1
-
   # The Ladle stories are component-lib's visual catalogue and the review
   # surface for the component-refresh loop. Nothing built them on a PR, so a
   # story that no longer compiled merged green and broke `bun run ladle`.
@@ -440,8 +407,8 @@ jobs:
   # ---------------------------------------------------------------------------
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
-  # tools/check-workflows.ts (aggregator) enforces it. CodeQL is required separately
-  # (ci.md, "The aggregate gate").
+  # tools/check-workflows.ts (aggregator) enforces it. CodeQL and the PR title
+  # are required separately (ci.md, "The aggregate gate").
   # ---------------------------------------------------------------------------
   quality-checks:
     name: CI Success
@@ -455,7 +422,6 @@ jobs:
       - build-discord-bot
       - build-su-assets
       - build-ladle
-      - pr-title
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

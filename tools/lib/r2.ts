@@ -62,26 +62,29 @@ export type R2Object = {
 }
 
 /**
- * Read credentials from the environment, failing with a message that names every
- * missing variable at once.
- *
- * One error listing all three beats three runs each revealing the next gap.
- */
-/**
  * The account id, from either the bare id or the S3 endpoint URL.
  *
  * Tolerant of what a person actually has on their clipboard: with or without a
  * scheme, with or without a trailing slash or path. Anything that is not an
  * endpoint is returned unchanged, so a bare id still works and a malformed
  * value still fails later with a signing error naming the host it tried.
+ *
+ * The host must END in the R2 suffix: a substring test also matched
+ * `<id>.r2.cloudflarestorage.com.example.net` (CodeQL alert #94).
  */
 export function accountIdFrom(value: string): string {
   const withoutScheme = value.replace(/^https?:\/\//, '')
   const host = withoutScheme.split('/')[0] ?? withoutScheme
   const label = host.split('.')[0] ?? host
-  return host.includes('.r2.cloudflarestorage.com') ? label : value
+  return host.endsWith('.r2.cloudflarestorage.com') ? label : value
 }
 
+/**
+ * Read credentials from the environment, failing with a message that names every
+ * missing variable at once.
+ *
+ * One error listing all three beats three runs each revealing the next gap.
+ */
 export function credentialsFromEnv(): R2Credentials {
   const accountId = process.env.R2_ACCOUNT_ID
   const accessKeyId = process.env.R2_ACCESS_KEY_ID
