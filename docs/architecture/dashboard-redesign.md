@@ -124,7 +124,9 @@ tabs define its shape, rather than guessed now.
   `rolls` query reads `by_game_field` with `field 'roll'`, newest first,
   capped like `proposals.alerts`. Nothing reads roll rows today.
 - **`games.cockpitPrefs`** (unused, `v.any()`) and `cockpitPrefsStore` lose
-  their only reason to exist when the Dial goes. The store is deleted.
+  their only reason to exist when the Dial goes. The store, its schema
+  `apps/itun/src/lib/schemas/cockpitPrefs.ts` and
+  `components/dashboard/__tests__/dialPrefs.test.ts` are deleted (layer 4).
   Dropping the Convex column is a separate one-way step and is not in this
   plan.
 
@@ -195,17 +197,24 @@ to show.
 | --- | --- | --- | --- |
 | 0 (#1050, done) | Decision | ADR-038 (§6). Status notes on ADR-015, ADR-019, ADR-029, ADR-030, ADR-034. This plan registered in `docs/README.md`. Docs only. | `doc-drift` passes; root `CLAUDE.md` stays within its size budget (§6) |
 | 1 (#1051) | Seat table | The `seats` table and indexes, `src/lib/schemas/seat.ts`, the union parity test. No functions. This is the one-way step, so it lands alone. | `convex-codegen` check; parity test |
-| 2 (#1052) | Game-only entry | Route re-keyed to the pilot, the refusal shells, the redirect from mech URLs, Play on the Game roster (only with a Mediator), chooser and `dashboardLaunch.ts` retired. Still on `playStateStore`. | Route tests for each refusal (anonymous, shelf pilot, non-member, no Mediator, Mediator removed while open); `GameRoster` test |
+| 2 (#1052) | Game-only entry | Route re-keyed to the pilot, the refusal shells, the redirect from mech URLs, Play on the Game roster (only with a Mediator), chooser and `dashboardLaunch.ts` retired. Still on `playStateStore`. A static `head` titled `pageTitle('Dashboard')` (`apps/itun/src/lib/pageTitle.ts`); loaders never read player entities, so the title carries no pilot name. | Route tests for each refusal (anonymous, shelf pilot, non-member, no Mediator, Mediator removed while open); `GameRoster` test; the `route titles` test in `routes/__tests__/routeExports.test.ts` passes with its `dashboard/` exemption removed |
 | 3 (#1053) | Seats live | `convex/seats.ts` (query, then board, dismount, eject, setRange, toggleEffect, setResolving), with cleanup in every path in §3. `useSeat` hook with optimistic updates. Mount, range and effects read from the seat. Module added to `test/convex/harness.ts`. | Convex tests: non-owner, non-member and other-player's-mech refused; cleanup on delete and move; two seats per member. `convex-callers` passes because the hook calls every function. |
-| 4 (#1054) | Slot row | `SlotRow`, Major and Minor forms of all three entities, ⤢ overlay. Dial and its config, prefs store and stories deleted. Ladle stories for each slot in each state. | Existing band rules tests ported; a test that slots follow mount and Downtime |
+| 4 (#1054) | Slot row | `SlotRow`, Major and Minor forms of all three entities, ⤢ overlay. Dial and its config, prefs store and stories deleted, with `lib/schemas/cockpitPrefs.ts` and `dialPrefs.test.ts`; `cockpitPrefsStore` leaves `apps/itun/CLAUDE.md`'s store list. Ladle stories for each slot in each state. | Existing band rules tests ported; a test that slots follow mount and Downtime; `knip` passes and `git grep -n -i cockpitPrefs -- apps/itun/src` prints nothing; the slot row uses no `listbox`/`option` roles; ⤢ opens a modal that takes focus, closes on Escape and returns focus to ⤢ (tested); checked in the preview at 1280×800 and at the width floor 794×496 (scale 0.62); axe-core in the signed-in preview reports no serious or critical violations |
 | 5 (#1055) | Board control | `BoardControl` and its menu: own, unclaimed spare ("Claim and board", with a confirm), other player's, destroyed, boarded elsewhere, no assigned mech, no crawler. | One test per disabled reason; claim-and-board writes the claim before the seat |
-| 6 (#1056) | Display tabs and Log | `DisplayTabs`, deck and resolve split, rolls written to the Game log and read by `LogTab`, resolve progress on the seat, shown live to the crew ("Rook is resolving Crush", then the roll) | Rolls round-trip test; reload mid-resolve keeps the roll; a second client sees the resolve live |
+| 6 (#1056) | Display tabs and Log | `DisplayTabs`, deck and resolve split, rolls written to the Game log and read by `LogTab`, resolve progress on the seat, shown live to the crew ("Rook is resolving Crush", then the roll) | Rolls round-trip test; reload mid-resolve keeps the roll; a second client sees the resolve live; `DisplayTabs` and the deck's timing filter (today a `role="tablist"` of buttons with no arrow keys or tabpanel) get a real tabs keyboard model (Base UI Tabs: ArrowLeft/Right, Home/End, tab-to-panel link), or the filter drops its tab roles for `aria-pressed` buttons; a test presses ArrowRight and the next tab is selected; axe-core in the signed-in preview reports no serious or critical violations |
 | 7 (#1057) | Crew tab | An experiment first: `salvageunion-reference/rules` loading in Convex. Then the crew query derives maxima and status on the server (§8 A3), and `CrewTab` reads it with the seats. The ▲ and red outlines come from the derived status (D6). The two "should not grow" comments are updated. | The server's derived maxima and status equal the client's for shared fixtures; no Mediator-only data in the payload |
 | 8 (#1058) | Downtime | `DowntimeWizard` on `downtime.state`, the step track, Crawler Major during Downtime, Mediator controls on the Dashboard. The crawler becomes Mediator-only on the server (D11): `assertMayEditCrawler` in a Game and `downtime.spendUpkeep` require the Mediator, and the crawler sheet goes read-only for players in a Game. `playStateStore` deleted. | Two-client test: the Mediator advances and both clients follow; a player's crawler write is refused and the Mediator's succeeds |
-| 9 (#1059) | Docs | Rewrite `dashboard.md` (keep section numbers, since code comments cite them) and the statements listed in §7. Delete this plan, or mark it done. | `doc-drift` |
+| 9 (#1059) | Docs | Rewrite `dashboard.md` (keep section numbers, since code comments cite them) and the statements listed in §7. `dashboard.md` §7 states what a landscape phone gets until #1063 (the width-only guard passes 852×393, so the canvas renders at about 0.49 scale); §10.2 claims only roles the code backs with a keyboard model. Delete this plan, or mark it done. | `doc-drift` |
 
 Issue numbers are on SalvageUnion-io/SU-SRD. Layers 4–8 touch disjoint components after layer 3, but they share
 `Dashboard.tsx`. Keep them in order rather than in parallel.
+
+The 2026-10-06 repository audit's Dashboard findings are folded into rows 2, 4,
+6 and 9 and into #1063 (§9). Two were moot: the Dial's `listbox` with no
+keyboard model (layer 4 deletes the Dial; the rule that a role comes with its
+keyboard model carries to layers 4 and 6), and a stacked phone Dashboard built
+from `ActiveItemBand` and `DialCell` (layer 4 deletes both; the phone layout
+is #1063, after layer 9, §8 A7).
 
 ## 6. The ADR (layer 0)
 
@@ -231,11 +240,6 @@ Dashboard Is a Game Surface with Shared Play State", written in layer 0. It:
   This is per-player seats that the crew can see, not several players on one
   screen.
 
-Housekeeping: the ADR count in `docs/README.md` ("37 ADRs") and root
-`CLAUDE.md` ("37 of them", plus its supersession list). Root `CLAUDE.md` is at
-its exact `doc-drift` size budget, so any words added there must be cut from
-the same file in the same change.
-
 ## 7. Statements this plan makes false
 
 Layer 9 fixes these. Each layer fixes the ones it makes false sooner, if it
@@ -260,6 +264,9 @@ can.
   `docs/architecture/play-cockpit.md`, which does not exist.
 - `DashboardChooser.tsx`'s header is already stale (it says stand-ins and
   `mech-to-crawler` aren't written). It goes with the file.
+- `apps/itun/CLAUDE.md`'s store list names `cockpitPrefsStore` (layer 4).
+- `DashboardCanvas.tsx`'s `MIN_SCALE` comment says a stacked fallback
+  replaces the canvas; it is a notice (#1063).
 
 ## 8. Answers
 
@@ -311,7 +318,18 @@ seat (D12).
 - **Mediator Dashboard** (#1062). Its own wireframes and plan, built on the seats and
   Game log this plan adds.
 - **Phone layout** (#1063). Two Minors stacked above the Major, as in the round 2
-  wireframes.
+  wireframes. Its acceptance criteria:
+  - The switch accounts for height: an 852×393 host gets the phone layout,
+    with a `DashboardCanvas` test. Today the guard is width-only, so that
+    host gets the canvas at about 0.49 scale.
+  - The short, wide desktop window that #449 kept on the canvas is decided
+    explicitly, not reversed silently.
+  - The reflow copy drops "rotate to landscape".
+  - A signed-in 390×844 e2e, in a Game with a Mediator, shows activation and
+    Heat Check visible and usable.
+  - `dashboard.md` §10.3's zoom-as-reflow question is decided.
+  - [ADR-015](../ARCHITECTURE.md#adr-015) Decision 5 and `dashboard.md` §7
+    are updated.
 - **Claiming as association** (#1064). Revisit what `ownership.claim` means for crew
   assets in a Game. This would be an ADR-030 amendment, not part of this plan.
 - **`games.cockpitPrefs`** (#1065). Drop the unused column. That's a one-way schema
