@@ -14,9 +14,9 @@ import { expect, test } from './fixtures'
  *
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet
- * ([ADR-032](../../../docs/adrs/ADR-032-public-read-only-sheets.md)), which is
+ * ([ADR-032](../../../docs/ARCHITECTURE.md#adr-032)), which is
  * the only way to share now that frozen snapshots are retired
- * ([ADR-036](../../../docs/adrs/ADR-036-retire-snapshot-shares.md)). This file
+ * ([ADR-036](../../../docs/ARCHITECTURE.md#adr-036)). This file
  * used to publish a snapshot and open its `/s/:id` link, behind an
  * `E2E_BASE_URL` skip because a static preview serves no snapshot API.
  *

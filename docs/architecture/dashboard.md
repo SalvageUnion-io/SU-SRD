@@ -1,6 +1,6 @@
 # Dashboard Architecture
 
-> **Changing.** [ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md)
+> **Changing.** [ADR-038](../ARCHITECTURE.md#adr-038)
 > (accepted) makes the Dashboard Game-only and saves its play state on the
 > Game, and replaces the Dial with Major and Minor slots. The plan is
 > [dashboard-redesign.md](dashboard-redesign.md). This doc describes what is
@@ -12,7 +12,7 @@ a button. It is built — components in `apps/itun/src/components/dashboard/`,
 stylesheets in `packages/component-lib/src/styles/dashboard/`, route
 `/dashboard/$id` (`apps/itun/src/routes/dashboard/$id.tsx`).
 
-The decisions are [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)
+The decisions are [ADR-015](../ARCHITECTURE.md#adr-015)
 and its merged Dashboard decisions (formerly ADRs 016–020). The live-play state
 model it drives is [combat loop](../ARCHITECTURE.md#combat-loop). Section numbers below are
 cited from code comments; keep them stable.
@@ -151,7 +151,7 @@ canvas scale and threshold math holds.
 
 ### 10.1 CSP
 
-No `eval` or `new Function` ([ADR-013](../adrs/ADR-013-csp-zod-jitless.md)).
+No `eval` or `new Function` ([ADR-013](../ARCHITECTURE.md#adr-013)).
 
 ### 10.2 Accessibility (WCAG 2.1 AA)
 

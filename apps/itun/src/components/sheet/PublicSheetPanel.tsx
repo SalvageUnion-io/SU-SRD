@@ -1,9 +1,9 @@
 /**
  * PublicSheetPanel — turn one sheet into a public, always-current page
- * ([ADR-032](../../../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
+ * ([ADR-032](../../../../../docs/ARCHITECTURE.md#adr-032)).
  *
  * The whole of sharing now. Frozen snapshots were retired
- * ([ADR-036](../../../../../docs/adrs/ADR-036-retire-snapshot-shares.md)), so
+ * ([ADR-036](../../../../../docs/ARCHITECTURE.md#adr-036)), so
  * this live, read-only page is the only account-free way to hand somebody a
  * sheet: a toggle, the `/p/:kind/:appId` link, a copy button and a QR of it.
  *

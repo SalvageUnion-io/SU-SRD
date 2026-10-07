@@ -253,7 +253,7 @@ It has since been **deleted**, along with `make-parity-baseline.ts` and its
 tests. Its baseline was a ~56 MB Astro-era `dist` that was gitignored, absent
 from every checkout, and regenerable only by installing ~2,200 Astro-era
 packages — so in practice the gate had stopped being runnable at all, while the
-docs still told people to run it. [ADR-031](../../../docs/adrs/ADR-031-srd-vite-ssg.md)
+docs still told people to run it. [ADR-031](../../../docs/ARCHITECTURE.md#adr-031)
 called this shelf life in the original decision.
 
 ## Verification

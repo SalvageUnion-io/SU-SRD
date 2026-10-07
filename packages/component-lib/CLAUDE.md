@@ -4,8 +4,8 @@ Shared React component library consumed by both `srd` and `itun`.
 
 ## Key Facts
 
-- **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/adrs/ADR-011-component-lib-source-no-build.md))
-- **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md))
+- **No build step** - exports TypeScript source directly via `src/index.ts` barrel ([ADR-011](../../docs/ARCHITECTURE.md#adr-011))
+- **Data-source agnostic** - no backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../docs/ARCHITECTURE.md#adr-010))
 - Vite in consuming apps handles `.ts/.tsx` compilation
 - **`sideEffects` is CSS only** (`package.json`): bundlers drop any module whose exports go unused. Never rely on an import running code; if a module truly must, add it to that list ([dependencies](../../docs/ARCHITECTURE.md#component-lib-dependencies))
 - Styling: tokens + style objects + one stylesheet, with Tailwind being removed — see [Styling](#styling)

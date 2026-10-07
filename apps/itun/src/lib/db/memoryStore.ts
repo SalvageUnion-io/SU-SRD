@@ -3,7 +3,7 @@
  * touches disk.
  *
  * This is what an **anonymous** visitor builds against under
- * [ADR-034](../../../../../docs/adrs/ADR-034-account-required-persistence.md)
+ * [ADR-034](../../../../../docs/ARCHITECTURE.md#adr-034)
  * decision 1: you can work through a wizard, roll, and see a finished sheet
  * without an account, and nothing you do is written to durable storage of any
  * kind — not Convex, and not IndexedDB. Saving is where an account is required,

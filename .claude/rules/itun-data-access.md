@@ -61,8 +61,8 @@ const members = useQuery(api.games.members, { gameId })
 ## Do not
 
 - **Persist anything only on a device.**
-  [ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) and
-  [ADR-035](../../docs/adrs/ADR-035-no-isolated-local-only-data.md) make Convex
+  [ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
+  [ADR-035](../../docs/ARCHITECTURE.md#adr-035) make Convex
   the only source of truth; a row with no Convex counterpart is a defect. If
   the schema cannot say where a record lives, **the schema moves** (#871:
   `crawlers` gained `ownerId` and a nullable `gameId`).

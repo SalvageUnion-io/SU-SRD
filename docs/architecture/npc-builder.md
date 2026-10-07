@@ -4,10 +4,10 @@
 > by the product owner; the open questions in §7 were not, and must be answered
 > before the phase that depends on them starts.
 >
-> Read alongside [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)
-> (ownership: shelves and Games), [ADR-034](../adrs/ADR-034-account-required-persistence.md)
+> Read alongside [ADR-030](../ARCHITECTURE.md#adr-030)
+> (ownership: shelves and Games), [ADR-034](../ARCHITECTURE.md#adr-034)
 > (Convex is the only source of truth: never add a store that exists only on a
-> device), [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md) and
+> device), [ADR-021](../ARCHITECTURE.md#adr-021) and
 > [rules and ITUN surfaces](../ARCHITECTURE.md#rules-and-itun-surfaces) (enforcement modes).
 
 ---
@@ -208,7 +208,7 @@ table is reversible only while it holds no rows, so it lands first and alone.
 
 ## 6. What the automation boundary says
 
-[ADR-007](../adrs/ADR-007-automation-boundary.md): bookkeeping is automatic,
+[ADR-007](../ARCHITECTURE.md#adr-007): bookkeeping is automatic,
 permanent consequences need an explicit act. For NPCs that means:
 
 - current HP is tracked and clamped automatically;

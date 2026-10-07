@@ -2,8 +2,8 @@
 
 Discord bot for rolling on Salvage Union random tables. Standalone consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
-([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)) and preloads the dataset
-at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
+([ADR-006](../../docs/ARCHITECTURE.md#adr-006)) and preloads the dataset
+at startup ([ADR-005](../../docs/ARCHITECTURE.md#adr-005)).
 
 ## Stack
 
@@ -81,7 +81,7 @@ does not exist.
 
 **Maxima are derived here, not fetched.** Convex stores entity bodies opaquely
 and cannot compute max HP/SP/Heat, so `gameEmbed.ts` derives them via
-`salvageunion-reference/rules` ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)).
+`salvageunion-reference/rules` ([ADR-006](../../docs/ARCHITECTURE.md#adr-006)).
 
 **`/su sheet` is the live sheet folded into a message.** `gameEmbed.ts` maps it
 one-to-one onto `EmbedData` — identity band → description, vitals rail → inline

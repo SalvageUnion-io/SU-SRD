@@ -4,7 +4,7 @@ import { pageTitle } from '../lib/pageTitle'
 
 /**
  * `/p/$kind/$appId` — one published sheet, readable with no account
- * ([ADR-032](../../../../docs/adrs/ADR-032-public-read-only-sheets.md)).
+ * ([ADR-032](../../../../docs/ARCHITECTURE.md#adr-032)).
  *
  * Addressed by the **app id**, not the Convex row id, so the owner can build
  * this URL with no round trip and the Discord bot can build it from the `appId`

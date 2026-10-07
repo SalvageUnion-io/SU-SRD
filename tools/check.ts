@@ -129,8 +129,9 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'doc-drift',
-    guards: 'cited paths, bun scripts and markdown links exist; agent-doc size budgets',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); cut a doc over its size budget',
+    guards:
+      'cited paths, bun scripts and markdown links exist; each ADR once in ARCHITECTURE.md; agent-doc size budgets',
+    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); keep each ADR one bare `## ADR-NNN` under # Decisions; cut a doc over its size budget',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

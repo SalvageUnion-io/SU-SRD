@@ -104,7 +104,7 @@ old standalone `/roll` and `/lookup`) deregister automatically on the next run.
 ### Deployment
 
 The bot deploys to **Cloudflare Workers**
-([ADR-033](../../docs/adrs/ADR-033-cloudflare-hosting.md)) from
+([ADR-033](../../docs/ARCHITECTURE.md#adr-033)) from
 `.github/workflows/deploy-cloudflare.yml`, using `apps/discord-bot/wrangler.jsonc`.
 It runs as an HTTP-interactions Worker, not a gateway process. Secrets
 (`DISCORD_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_CLIENT_ID`, …) are Worker

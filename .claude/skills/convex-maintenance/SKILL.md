@@ -172,7 +172,7 @@ bunx convex run maintenance:repairContainers --prod
 
 ## Repairing soft links
 
-[ADR-037](../../../docs/adrs/ADR-037-assignment-model.md) gave mechs their own
+[ADR-037](../../../docs/ARCHITECTURE.md#adr-037) gave mechs their own
 `mech-to-crawler` link and made the writers keep three invariants (cardinality,
 one container, `gameId` = that container). Rows written before it may break all
 three, and a mech that reached its bay through its pilot has no direct link.

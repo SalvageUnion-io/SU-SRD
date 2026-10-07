@@ -7,7 +7,7 @@
  *
  * ## Free Edit, so nothing is removed
  *
- * Every class stays selectable ([ADR-021](../../../../../docs/adrs/ADR-021-itun-surface-taxonomy.md):
+ * Every class stays selectable ([ADR-021](../../../../../docs/ARCHITECTURE.md#adr-021):
  * the sheet does not gate). Unreachable destinations are demoted and labelled,
  * not withheld — they are not INERT, they simply cost one extra question, which
  * is why they are dimmed rather than filtered the way an option that would do

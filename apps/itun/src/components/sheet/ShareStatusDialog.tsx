@@ -11,9 +11,9 @@
  *
  * ## One way to share
  *
- * The live public sheet ([ADR-032](../../../../../docs/adrs/ADR-032-public-read-only-sheets.md))
+ * The live public sheet ([ADR-032](../../../../../docs/ARCHITECTURE.md#adr-032))
  * is the only account-free way to share. Frozen snapshots were retired
- * ([ADR-036](../../../../../docs/adrs/ADR-036-retire-snapshot-shares.md)):
+ * ([ADR-036](../../../../../docs/ARCHITECTURE.md#adr-036)):
  * this dialog no longer mints, lists or revokes them, and an existing `/s/:id`
  * link redirects to the public sheet while its entity is public. So the dialog
  * is `PublicSheetPanel` — on/off, the link, a QR of it — and a sentence that
