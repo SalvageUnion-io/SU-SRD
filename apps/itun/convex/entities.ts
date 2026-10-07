@@ -528,10 +528,9 @@ export const createCrawler = mutation({
 /**
  * Scrap a crawler. Table runner only — the mirror of raising one.
  *
- * Communal editing does **not** extend to destruction: the crawler is the
- * crew's home and every pilot in the Game is anchored to it, so one member
- * deleting it would take the table's shared state with them. Whoever runs the
- * table decides a crawler is gone.
+ * In a Game, scrapping is the table runner's act exactly as editing is
+ * (ADR-038 §5): the crawler is the Mediator's, and the crew's home that every
+ * pilot is anchored to, so whoever runs the table decides it is gone.
  */
 export const removeCrawler = mutation({
   args: { crawlerId: v.id('crawlers') },
@@ -574,13 +573,12 @@ async function assertMayEditCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Pro
 }
 
 /**
- * Who may scrap a crawler. Stricter than editing one, on both sides.
+ * Who may scrap a crawler — the same people who may edit one
+ * (`assertMayEditCrawler`), kept separate only for its refusal message.
  *
- * In a Game, destruction is the **table runner's** act and communal editing
- * deliberately does not extend to it: the crawler is the crew's home and every
- * pilot is anchored to it, so one member deleting it would take the table's
- * shared state with them. On a shelf the owner decides, exactly as they do for
- * their own pilots and mechs.
+ * In a Game it is the **table runner's** act, as every write to the crawler is
+ * (ADR-038 §5); no other member edits or scraps it. On a shelf the owner
+ * decides, exactly as they do for their own pilots and mechs.
  */
 async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
   if (doc.gameId !== null) {
