@@ -158,7 +158,7 @@ Both React apps get the built-in a11y rule group automatically — no separate p
 Enforces: `noSvgWithoutTitle`, `useAriaPropsForRole`, `noAutofocus`, `useKeyWithClickEvents`, `noStaticElementInteractions`, and more.
 
 **Automated scanning** (`tools/a11y-scan.ts`):
-Playwright + axe-core WCAG 2.1 AA scanner. CI and the nightly run it as `bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>`, scanning exactly the baseline's pages. Ad-hoc usage:
+Playwright + axe-core WCAG 2.1 AA scanner. CI (`build-srd`) runs it as `bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>`, scanning exactly the baseline's pages. Ad-hoc usage:
 
 ```bash
 bun tools/a11y-scan.ts http://localhost:4321 / /schema/chassis/ /about/

@@ -87,8 +87,10 @@ only thing between a diff and an unbuilt merge — so:
   component-lib test. #731 added one name to `SPECIAL_THANKS.md`, CI skipped
   `build-srd`, and the next three PRs to trigger that job were red on a
   difference none of them made.
-- **`code` vs `docs`** (audit CI-11). `code` is source, tools and the Claude hook
-  scripts (the hook tests in `tools/__tests__/` exercise `.claude/hooks/**`).
+- **`code` vs `docs`** (audit CI-11). `code` is source, tools, `.github/` and
+  the Claude hook and workflow scripts (`tools/__tests__/` exercises
+  `.claude/hooks/**` and `.claude/workflows/**`, so a change to one runs the
+  suite).
   `docs` is `docs/**`, root `CLAUDE.md` / `README.md` / `CONTRIBUTING.md`,
   `.claude/**` and `.mcp.json`. A docs-only PR runs the repo-invariant checks — doc
   drift, architecture, data and the rest the `code`/`docs` areas select —
@@ -118,17 +120,19 @@ even after one fails, and the step log ends in a pass/fail table. Each check
 declares which areas make it relevant:
 
 - **Always**: Biome (`biome ci .` — lint, format *and* the organizeImports
-  assist), `workflows` (aggregate gate, path filters, bunx pinning, Bun version,
-  Convex deploy guard, deploy order, production-secret environment), `styling` (design tokens, styling ownership, srd
-  stylesheet entry) and `actionlint`.
+  assist) and `styling` (design tokens, styling ownership, srd stylesheet
+  entry).
 - **`actionlint`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
   each pinned to an exact version and verified against a recorded sha256 before
   it runs. zizmor's config is `.github/zizmor.yml`; its `unpinned-uses`
   policy SHA-pins every third-party action. Every checkout
   sets `persist-credentials: false`.
 - **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
-  drift — reference package artifacts and `routeTree.gen.ts`), typecheck and
-  knip.
+  drift — reference package artifacts and `routeTree.gen.ts`), typecheck,
+  knip, `workflows` (aggregate gate, path filters, bunx pinning, Bun version,
+  Convex deploy guard, deploy order, production-secret environment) and
+  `actionlint`. Both workflow checks read only `.github/`, the manifests and
+  `.bun-version`, which are all `code`, so a docs-only PR skips them.
 - **`deps`**: the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
   `observability`, `convex-codegen`, `convex-callers`.
@@ -162,13 +166,14 @@ All five `needs: [changes]` only (audit CI-02). They consume no artifact from
 those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
 
 - **`build-srd`** builds once, then runs `check:examples` against that `dist`.
-  The PR-blocking browser tier (smoke + bundle budget) is folded in rather than
-  a separate job, because a separate job cost a second full build. Add a spec
-  to the run line, not a job. Then the axe-core accessibility scan runs against
-  the same `dist`, over the pages in `tools/a11y-baseline.json`; it blocks on a
+  The PR-blocking browser tier is folded in rather than a separate job, because
+  a separate job cost a second full build. Its run line is srd's whole
+  Playwright suite (smoke, bundle budget, JSON API); there is no nightly srd
+  job. Add a spec to the run line, not a job. Then the axe-core accessibility
+  scan runs against the same `dist`, over the pages in `tools/a11y-baseline.json`; it blocks on a
   violation the baseline does not accept and on a stale entry. (It used to run
-  only nightly, so a regression merged green.) Full browser suites run nightly
-  (`e2e-nightly.yml`).
+  only nightly, so a regression merged green.) ITUN's full browser suite runs
+  nightly (`e2e-nightly.yml`).
 - **`build-itun`** builds, bundles the Worker with `bun --filter itun
   worker:bundle` (the build emits assets only; `wrangler.jsonc`'s `main` was
   otherwise never bundled before deploy), and runs the same browser tier.

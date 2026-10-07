@@ -165,6 +165,8 @@ export const CHECKS: readonly CheckSpec[] = [
       'CI aggregate gate, path filters, bunx pinning, Bun version, Convex deploy guard, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
+    // Reads only .github/, the manifests and .bun-version, all of them `code`.
+    areas: ['code'],
     profiles: ALL,
   },
   {
@@ -200,6 +202,8 @@ export const CHECKS: readonly CheckSpec[] = [
     guards: 'actionlint + zizmor over .github/ (pinned, hash-verified binaries)',
     fix: "fix the finding; zizmor's config is .github/zizmor.yml",
     cmd: ['tools/lint-workflows.sh'],
+    // Reads only .github/ (workflows, actions, zizmor.yml), all of it `code`.
+    areas: ['code'],
     profiles: ['full', 'ci'],
   },
 ]
