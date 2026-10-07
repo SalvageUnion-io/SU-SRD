@@ -10,12 +10,12 @@
  * act() hygiene: hydration (and delete) resolve through fake-indexeddb after
  * the initial act() block, so async store work is driven to completion with
  * settle() — repeated small act() blocks with the condition polled between
- * them — and the afterEach Zustand reset is act-wrapped (the component is
- * still mounted when it runs). State updates land inside act; no warnings.
+ * them — and afterEach unmounts before it resets the Zustand store. State
+ * updates land inside act; no warnings.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Roster } from '../Roster'
@@ -119,12 +119,11 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  // Unmount before the reset: this hook runs before the preload's cleanup, and a
+  // mounted Roster answers the reset by starting hydrations that resolve after act().
+  cleanup()
   await _clearAllStores()
-  // The Roster may still be mounted here (RTL cleanup runs after this
-  // hook), so the Zustand reset must happen inside act().
-  act(() => {
-    resetEntityStore()
-  })
+  resetEntityStore()
 })
 
 // ---------------------------------------------------------------------------
@@ -172,6 +171,23 @@ describe('Roster — section headings', () => {
 
     expect(screen.getByRole('button', { name: 'Download all' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Import…' })).toBeTruthy()
+  })
+})
+
+describe('Roster — signed out, there is no game UI at all', () => {
+  // This file renders with no Convex provider (the test build is Solo), which
+  // is exactly the build a signed-out player gets: every game control mounts
+  // its Convex hooks only once Connected, so none of them may render here.
+  test('no "+ New game", no "Showing" select, and no "Move to game…" on a row', async () => {
+    await seedEntity('pilot', 'Seed Pilot')
+    await renderRoster()
+
+    expect(screen.getByText('Seed Pilot')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
+    expect(screen.queryByLabelText('Showing')).toBeNull()
+    expect(screen.queryByLabelText(/to a game$/)).toBeNull()
+    // No Game section, no Mediator section.
+    expect(screen.queryByRole('region', { name: 'Game' })).toBeNull()
   })
 })
 
@@ -360,9 +376,9 @@ describe('Roster — delete flow', () => {
       fireEvent.click(screen.getByRole('button', { name: /Delete Mira Cole/i }))
     })
 
-    // Dialog should open with the entity name (title renders visibly in the
-    // ModalShell header plus sr-only Dialog.Title/Description)
-    expect(screen.getByRole('dialog')).toBeTruthy()
+    // The shared ConfirmDialog opens, an alert dialog naming the entity (its
+    // title renders visibly in the header plus the sr-only Dialog.Title)
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(screen.getAllByText(/Delete Mira Cole/i).length).toBeGreaterThan(0)
   })
 
@@ -409,6 +425,6 @@ describe('Roster — delete flow', () => {
     // Entity should still be present
     expect(screen.getByText('Fen Oya')).toBeTruthy()
     // Dialog should be closed
-    expect(screen.queryByRole('dialog')).toBeFalsy()
+    expect(screen.queryByRole('alertdialog')).toBeFalsy()
   })
 })

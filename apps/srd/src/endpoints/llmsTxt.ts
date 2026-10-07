@@ -1,10 +1,8 @@
 /**
  * `/llms.txt` — the site summary for LLM crawlers.
  *
- * The template literal below is exact, including its trailing newline. **Do not
- * reflow it.** `ssg/snapshot.ts`
- * digests this file's exact bytes, so reformatting the literal fails the gate
- * rather than silently changing what ships.
+ * The template literal below is exact, including its trailing newline, and ships
+ * byte for byte. **Do not reflow it.**
  */
 
 import type { EndpointModule } from '../../ssg/types'

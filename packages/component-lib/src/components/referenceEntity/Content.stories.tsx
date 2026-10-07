@@ -1,6 +1,6 @@
-import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { Story } from '../../stories/_harness'
 import { Content } from './Content'
 
 export default {

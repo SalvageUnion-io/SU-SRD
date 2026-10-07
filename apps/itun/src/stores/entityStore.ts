@@ -23,15 +23,30 @@
  * Integrity (plan 2.7): deleting a pilot/mech/crawler also prunes every
  * SoftLink whose `from` or `to` endpoint references it — no more orphaned
  * "Unknown pilot (id)" rows.
+ *
+ * Assignments (ADR-037): creating a SoftLink goes through the assignment
+ * model — it is refused across containers and REPLACES the links it conflicts
+ * with in one write — and moving an entity drops the links the move leaves
+ * straddling two containers. The rules are `lib/links/linkRules.ts`, shared
+ * with the server, which enforces the same ones.
  */
 
 import { create } from 'zustand'
-import { moveTo } from '../lib/container'
+import type { ContainerFields } from '../lib/container'
+import { containerOf, moveTo, sameContainer } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
 import { makeMemoryStore } from '../lib/db/memoryStore'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
+import { linksClearedByMove } from '../lib/links/clearedByMove'
+import { LinkRefused } from '../lib/links/linkRefused'
+import {
+  CROSS_CONTAINER_REFUSAL,
+  conflictingLinks,
+  endsMatchType,
+  sameLink,
+} from '../lib/links/linkRules'
 import type { Crawler } from '../lib/schemas/crawler'
 import { CrawlerSchema } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
@@ -362,6 +377,112 @@ function withActiveContainer<T extends EntityType>(type: T, input: CreateInput<T
   return { ...input, ...moveTo(getActiveContainer()) } as CreateInput<T>
 }
 
+/**
+ * Put one link and delete others in this browser's copy, all or nothing.
+ *
+ * One IndexedDB transaction when the backend has one, so a replace can never
+ * leave both the old assignment and the new one on disk; the anonymous Map has
+ * no transactions and no crash to survive, so it takes the writes in turn.
+ */
+async function writeLinksLocally(
+  put: SoftLink | null,
+  deleteIds: readonly string[]
+): Promise<void> {
+  if (put === null && deleteIds.length === 0) return
+  if (selectBackend() === 'memory') {
+    const links = MEMORY_STORES.softLink
+    for (const id of deleteIds) await links.delete(id)
+    if (put !== null) await links.put(put)
+    return
+  }
+  await db.atomicWrite([
+    ...deleteIds.map((id) => ({ op: 'delete' as const, storeName: STORE_NAMES.softLinks, id })),
+    ...(put === null
+      ? []
+      : [{ op: 'put' as const, storeName: STORE_NAMES.softLinks, record: put }]),
+  ])
+}
+
+/**
+ * Draw a link through the assignment model (ADR-037). `create('softLink')`.
+ *
+ * Three rules, checked here first so a refusal costs no round trip, and again
+ * on the server, which is the authority:
+ *
+ *  - the type must match its ends (`mech → crawler` is `mech-to-crawler`);
+ *  - both ends must be in the same container, when this browser holds both —
+ *    when it does not, the server decides alone;
+ *  - the link REPLACES every link it conflicts with (a pilot crews one
+ *    crawler; a pilot and a mech fly one another). The server replaces in the
+ *    same mutation that draws it, and this mirrors that in one local write.
+ *
+ * Drawing a link that already exists is not a second record: the server write
+ * is idempotent by endpoints, and the existing local record is returned.
+ */
+async function createSoftLink(
+  get: () => EntityState,
+  set: (fn: (state: EntityState) => Partial<EntityState>) => void,
+  input: CreateInput<'softLink'>
+): Promise<SoftLink> {
+  if (!endsMatchType(input)) {
+    throw new Error(`A ${input.type} link cannot join ${input.from.type} → ${input.to.type}`)
+  }
+  const state = get()
+  const fromEntity = state.get(input.from.type, input.from.id)
+  const toEntity = state.get(input.to.type, input.to.id)
+  if (
+    fromEntity !== null &&
+    toEntity !== null &&
+    !sameContainer(containerOf(fromEntity), containerOf(toEntity))
+  ) {
+    throw new LinkRefused(CROSS_CONTAINER_REFUSAL)
+  }
+
+  const record = await dbStoreFor('softLink').prepareCreate(input)
+  await commitSoftLink('upsert', record)
+
+  // Read AFTER the commit: the server may already have sent this link down
+  // (`WiringSync`) while it was in flight, and the replace must see that too.
+  const current = get().softLinks
+  const present = current.find((l) => sameLink(l, input)) ?? null
+  const replaced = conflictingLinks(current, input)
+  const replacedIds = new Set(replaced.map((l) => l.id))
+  await writeLinksLocally(present === null ? record : null, [...replacedIds])
+
+  set((s) => ({
+    softLinks: [
+      ...(present === null ? [record] : []),
+      ...s.softLinks.filter((l) => !replacedIds.has(l.id)),
+    ],
+  }))
+  publish(STORE_NAMES.softLinks)
+  return present ?? record
+}
+
+/**
+ * Drop this browser's copies of the links a move has broken.
+ *
+ * Local only: the server prunes the same links in the mutation that moved the
+ * row (`pruneLinksAcrossContainers`), so there is nothing to commit. A link
+ * whose other end this browser does not hold is dropped too — it cannot be
+ * shown to share the new container, and `WiringSync` brings it back if the
+ * server kept it.
+ */
+async function pruneLinksAfterMove(
+  get: () => EntityState,
+  set: (fn: (state: EntityState) => Partial<EntityState>) => void,
+  moved: { type: Exclude<EntityType, 'softLink'>; id: string; gameId?: string | null }
+): Promise<void> {
+  // The same read a move's confirm makes (`assignmentsClearedByMove`), so what
+  // the dialog named is what goes.
+  const broken = linksClearedByMove(get(), moved, containerOf(moved))
+  if (broken.length === 0) return
+  const brokenIds = new Set(broken.map((l) => l.id))
+  await writeLinksLocally(null, [...brokenIds])
+  set((s) => ({ softLinks: s.softLinks.filter((l) => !brokenIds.has(l.id)) }))
+  publish(STORE_NAMES.softLinks)
+}
+
 export const useEntityStore = create<EntityState>((set, get) => ({
   pilots: [],
   mechs: [],
@@ -416,6 +537,11 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // writing to a local copy that would fork against the server.
     requireWritableBackend()
 
+    // A link is an assignment, with rules of its own (ADR-037).
+    if (type === 'softLink') {
+      return (await createSoftLink(get, set, input as CreateInput<'softLink'>)) as EntityForType<T>
+    }
+
     // Build the record WITHOUT persisting it, commit it, and only then write it
     // locally. The order is the demotion: with Convex as the source of truth, a
     // record the server refused does not exist, so it must not appear on the
@@ -453,6 +579,14 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async forget(type, id) {
     const key = storeKeyFor(type)
+    if (type === 'softLink') {
+      // A link has no links of its own to cascade. `WiringSync` forgets the
+      // ones the server no longer holds through here.
+      await writeLinksLocally(null, [id])
+      set((state) => ({ softLinks: state.softLinks.filter((l) => l.id !== id) }))
+      publish(STORE_NAMES.softLinks)
+      return
+    }
     // Local only, and cascading like `delete` does: a SoftLink pointing at an
     // entity this browser no longer holds would render as a broken cross-link.
     const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
@@ -488,6 +622,18 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
     afterWrite(type)
+    // A move takes along only the links whose other end is already where it is
+    // going (ADR-037) — the server pruned the rest in the same commit.
+    if (type !== 'softLink' && before !== null) {
+      const moved = updated as ContainerFields
+      if (!sameContainer(containerOf(before as ContainerFields), containerOf(moved))) {
+        await pruneLinksAfterMove(get, set, {
+          type: type as Exclude<EntityType, 'softLink'>,
+          id,
+          gameId: moved.gameId,
+        })
+      }
+    }
     // Provenance (ADR-022): one entry per changed field, at this one chokepoint.
     // Deliberately awaited (not fire-and-forget): the ~1ms IDB append is
     // negligible for a local-first app, and awaiting guarantees the log is
@@ -689,10 +835,11 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       // by. This is the same ordering `delete()` already uses for the entity
       // itself, one line above.
       //
-      // Without this the cascade was local-only. `listMine` returns no
-      // `softLinks`, so nothing reconciled them either — a mech deleted on one
-      // device left its pilot link alive on the server forever, and a later
-      // adopt could resurrect a link to an entity that no longer exists.
+      // Without this the cascade was local-only — a mech deleted on one device
+      // left its pilot link alive on the server, and `WiringSync` would now
+      // bring that link straight back down. The server cascades its own side
+      // too (`pruneSoftLinksFor`); this keeps the two in step for the link
+      // ids only this browser holds.
       for (const link of get().list('softLink')) {
         if (link.from?.id !== id && link.to?.id !== id) continue
         await commitSoftLink('delete', link)

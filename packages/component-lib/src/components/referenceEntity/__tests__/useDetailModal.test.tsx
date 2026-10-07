@@ -17,7 +17,7 @@ import { PatternEquipmentItem } from '../pattern/PatternEquipmentItem'
 import { useDetailModal } from '../useDetailModal'
 
 const system = (name: string): SURefEntity => {
-  const match = SalvageUnionReference.Systems.all().find((s) => s.name === name)
+  const match = SalvageUnionReference.Systems.getByName(name)
   if (!match) throw new Error(`fixture missing: system ${name}`)
   return match as SURefEntity
 }

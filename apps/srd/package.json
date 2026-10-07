@@ -1,7 +1,7 @@
 {
   "name": "srd",
   "private": true,
-  "version": "2.10.1",
+  "version": "2.11.0",
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
@@ -11,9 +11,6 @@
     "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "og:install-browser": "playwright install chromium",
     "preview": "bun ssg/preview.ts --port 4321",
-    "snapshot": "bun ssg/snapshot.ts",
-    "snapshot:update": "bun ssg/snapshot.ts --update",
-    "gate": "bun ssg/build.ts && bun ssg/checkPageExamples.ts && bun ssg/snapshot.ts",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "clean": "rm -rf dist node_modules/.vite",
@@ -21,26 +18,26 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@base-ui/react": "catalog:",
-    "@fontsource/barlow": "catalog:",
-    "@fontsource/barlow-semi-condensed": "catalog:",
-    "@sentry/browser": "catalog:",
+    "@base-ui/react": "1.6.0",
+    "@fontsource/barlow": "5.3.0",
+    "@fontsource/barlow-semi-condensed": "5.3.0",
+    "@sentry/browser": "10.69.0",
     "component-lib": "workspace:*",
     "observability": "workspace:*",
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {
-    "@playwright/test": "catalog:",
-    "@sentry/vite-plugin": "catalog:",
-    "@tailwindcss/vite": "catalog:",
-    "@testing-library/react": "catalog:",
-    "@vitejs/plugin-react-swc": "catalog:",
-    "playwright": "catalog:",
-    "sharp": "0.35.4",
-    "vite": "catalog:",
+    "@playwright/test": "1.62.1",
+    "@sentry/vite-plugin": "5.4.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/react": "16.3.2",
+    "@vitejs/plugin-react-swc": "^4.3.3",
+    "playwright": "1.62.1",
+    "sharp": "0.35.5",
+    "vite": "^8.2.0",
     "workbox-build": "7.4.1",
-    "wrangler": "catalog:"
+    "wrangler": "4.147.0"
   }
 }

@@ -9,24 +9,25 @@
  * A smaller real schema is a faithful use of the same picker; an uncapturable
  * cell is not.
  */
-import { Button, EntitySearcher } from 'component-lib'
+import { Button, EntitySearcher, PICKER_MODAL_WIDTH } from 'component-lib'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../preview-lib/harness'
 
 /**
  * The shared "add an entity" body — search, Tech-Level and trait facets, and a
  * selection rail. It is a self-contained Card: title and close badge in the
- * header, search and filters in the sub-header band, the pool filling a padded
- * internally-scrolling body, and the Results box pinned floating bottom-right.
+ * header, search and filters in the sub-header band, then the pool and the
+ * rail — never over the results: a sticky band above the pool below 80rem, a
+ * scrolling column to its right from there.
  *
  * This is the one layout — the catalog-choice modal and every sheet picker use
- * it inside a bare `ModalShell`.
+ * it inside a bare `ModalShell`, at `PICKER_MODAL_WIDTH` (mirrored here).
  */
 export function MultiSelect() {
   return (
     <div className="flex flex-col gap-3 bg-paper p-4">
       <Caption>multi-select over crawler bays — nothing chosen yet</Caption>
-      <div className="mx-auto w-full max-w-5xl">
+      <div className={`mx-auto w-full ${PICKER_MODAL_WIDTH}`}>
         <EntitySearcher
           schema="crawler-bays"
           selected={[]}
@@ -41,8 +42,8 @@ export function MultiSelect() {
 }
 
 /**
- * `mode="single"` — the exactly-one picker: a `radiogroup` pool, one Chosen
- * entry in the rail, and the picker's actions pinned beneath it.
+ * `mode="single"` — the exactly-one picker: a `radiogroup` pool under a
+ * one-line Chosen bar that carries the picker's actions, at every width.
  *
  * The story names two canonical single-select flows, Change Chassis and Change
  * Crawler Type, and renders the first. This uses the second, for the same

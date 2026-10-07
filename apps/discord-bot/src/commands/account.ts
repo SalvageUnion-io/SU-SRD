@@ -5,7 +5,7 @@ import type { CommandExecuteInteraction } from './interactions.js'
 import { respondWithItun } from './itunReply.js'
 
 /**
- * The three **personal** ITUN subcommands: `/su me`, `/su games`, `/su shelf`.
+ * The three **personal** ITUN subcommands: `/su me`, `/su games`, `/su my-stuff`.
  *
  * Grouped in one module rather than three because they are one idea — "what
  * does In The Union Now know about *me*" — and each is a handful of lines. The
@@ -47,7 +47,7 @@ export const gamesCommand = {
 
 export const shelfCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('shelf').setDescription('Your pilots and mechs that are not in play')
+    return sub.setName('my-stuff').setDescription('Your pilots and mechs in My Stuff, in no game')
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {

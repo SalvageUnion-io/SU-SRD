@@ -2,12 +2,14 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation, summaryOf } from './model/entities'
+import { mutation, refreshGameSummary, summaryOf } from './model/entities'
 import {
   getMembership,
+  isTableRunner,
   NotAuthorized,
   requireMember,
   requireOrganizer,
+  requireTableRunner,
   requireUser,
 } from './model/permissions'
 
@@ -27,25 +29,34 @@ type GameSummary = {
   templateOrigin: string | undefined
   mediator: boolean
   organizer: boolean
+  /**
+   * Whether the caller runs this table — Mediator, or Organizer while there is
+   * none. The client offers crawler moves into and out of a Game by it
+   * (`moveDestinations`), so it has to be the server's answer, which depends on
+   * the other memberships too.
+   */
+  tableRunner: boolean
   memberCount: number
-  /** The communal crawler's name, or null before one exists. */
+  /** The primary crawler's name, or null before one exists. */
   crawlerName: string | null
   pilotCount: number
   mechCount: number
 }
 
 /**
- * Collapse a Game + the caller's membership into the row the Games list draws.
+ * Collapse a Game + the caller's membership into the summary every Game
+ * surface reads: its name and the caller's role (the hub's "Showing" select,
+ * the masthead's Games menu), and what the table holds.
  *
- * The crawler name and the two counts exist because a Game lists as an
- * `EntityRow` whose badges are "crawler · n pilots · n mechs" — the row has to
- * say what the table *is*, not just what it is called.
+ * The crawler name and the two counts are what the hub's "End this game"
+ * confirm states — where every pilot, mech and the crawler will land — so the
+ * reader can check the consequence against the table before ending it.
  *
  * They come from `games.summary`, which the triggers in `model/entities.ts`
  * keep current, rather than from counting here. Counting here meant collecting
  * every membership, pilot, mech and crawler of every Game the caller belongs
  * to on each run — and because this is a reactive query, reading those rows
- * subscribed the Games list to every sheet in every one of those Games.
+ * subscribed every Game list to every sheet in every one of those Games.
  */
 async function summarize(
   ctx: QueryCtx,
@@ -59,6 +70,7 @@ async function summarize(
     templateOrigin: game.templateOrigin,
     mediator: membership.mediator,
     organizer: membership.organizer,
+    tableRunner: await isTableRunner(ctx, game._id, membership),
     ...summary,
   }
 }
@@ -88,8 +100,8 @@ export const listMine = query({
  * One Game, for its own route.
  *
  * Returns `null` rather than throwing when the caller is not a member, because
- * a bookmarked `/games/<id>` for a Game you left is an ordinary thing to visit,
- * not an error to surface. `null` also covers "no such Game", deliberately: a
+ * a remembered hub selection (or a bookmarked `/games/<id>`) for a Game you
+ * left is an ordinary thing to visit, not an error to surface. `null` also covers "no such Game", deliberately: a
  * non-member must not be able to tell an existing Game from a deleted one.
  */
 export const get = query({
@@ -279,6 +291,28 @@ export const members = query({
         }
       })
     )
+  },
+})
+
+/**
+ * Name the Game's primary crawler (ADR-037). Table runner only.
+ *
+ * The primary is the crawler every pilot and mech is assigned to when it
+ * enters the Game. Changing it **moves nobody**: assignments are explicit links
+ * written on entry, so the crew already aboard another crawler stays there.
+ * The Game summary carries the primary's name, so it is recounted here —
+ * no trigger watches the `games` row itself.
+ */
+export const setPrimaryCrawler = mutation({
+  args: { gameId: v.id('games'), crawlerId: v.id('crawlers') },
+  handler: async (ctx, args): Promise<void> => {
+    await requireTableRunner(ctx, args.gameId)
+    const crawler = await ctx.db.get(args.crawlerId)
+    if (crawler === null || crawler.gameId !== args.gameId) {
+      throw new NotAuthorized('That crawler is not in this game')
+    }
+    await ctx.db.patch(args.gameId, { primaryCrawlerId: args.crawlerId })
+    await refreshGameSummary(ctx, args.gameId)
   },
 })
 

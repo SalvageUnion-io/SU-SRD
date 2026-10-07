@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+**Superseded by [ADR-036](ADR-036-retire-snapshot-shares.md)** (2026-10-06) — snapshots are retired; previously Accepted, and amended by ADR-033.
 
 ## Context
 

@@ -2,11 +2,17 @@
 
 ## Status
 
-**Proposed.** Subordinate to [ADR-021](ADR-021-itun-surface-taxonomy.md) (the
+**Accepted** and implemented — the model lives in
+`packages/salvageunion-reference/lib/rules/contributions.ts` and
+`lib/schemas/objects/contributions.ts`. Subordinate to [ADR-021](ADR-021-itun-surface-taxonomy.md) (the
 governing surface/mode taxonomy) and paired with the amendment to
 [ADR-022](ADR-022-provenance-log-and-overrides.md) that makes a cap override an
 absolute pin. Extends the "modified stats" rust language of
 [ADR-026](ADR-026-entity-card-design-rules.md) from stat cells to prose.
+
+**§4 is amended by [ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md)** (accepted, not yet built): activated
+effects resolve against the pilot's seat on the Game instead of ephemeral play
+state. They are still never persisted on the entity.
 
 ## Context
 
@@ -124,7 +130,8 @@ constraints:
 - They are **applied only by the Dashboard** (Guided Play). No other mode may
   switch one on — activating an effect is a lifecycle transaction.
 - They resolve against **ephemeral play state**, never the persisted entity, per
-  [ADR-019](ADR-019-dashboard-play-state-ephemeral.md). Time does not enter the
+  [ADR-019](ADR-019-dashboard-play-state-ephemeral.md). **Amended by ADR-038:**
+  the play state they resolve against becomes the pilot's seat on the Game. Time does not enter the
   data layer; reference data declares _that_ an effect is activated and for how
   long, and play state records _when_.
 

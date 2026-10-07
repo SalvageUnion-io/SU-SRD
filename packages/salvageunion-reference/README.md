@@ -39,8 +39,8 @@ const { Abilities, Chassis, Equipment, Systems, Modules } = SalvageUnionReferenc
 const allChassis = Chassis.all()
 console.log(`Total chassis: ${allChassis.length}`)
 
-// Find by predicate (same as Array.find)
-const atlas = Chassis.find((c) => c.name === 'Atlas')
+// Look up by name (indexed; getById / getBySlug likewise)
+const atlas = Chassis.getByName('Atlas')
 if (atlas) {
   console.log(`${atlas.name}: ${atlas.structurePoints} SP`)
 }
@@ -104,7 +104,7 @@ const suggestions = SalvageUnionReference.getSuggestions('las')
 - Case-sensitive/insensitive options
 - Result limiting for performance
 
-See [Search API Documentation](docs/SEARCH_API.md) for complete details and examples.
+[`lib/search.ts`](lib/search.ts) defines the options (`SearchOptions`) and the result shape (`SearchResult`).
 
 ### Model API
 
@@ -153,7 +153,7 @@ import type { SURefChassis, SURefEquipment, SURefSystem } from 'salvageunion-ref
 const { Chassis, Equipment } = SalvageUnionReference
 
 // Fully typed
-const atlas: SURefChassis | undefined = Chassis.find((c) => c.name === 'Atlas')
+const atlas: SURefChassis | undefined = Chassis.getByName('Atlas')
 
 // Type-safe queries
 const heavyEquipment: SURefEquipment[] = Equipment.findAll((e) => (e.techLevel ?? 0) >= 3)
@@ -196,6 +196,8 @@ Contributions are welcome! Please:
 3. Validate changes with `bun run validate`
 4. Run type checking with `bun run typecheck`
 5. Follow existing data structure patterns
+6. Copy rules text from the source word-for-word — descriptions and effects are
+   verbatim, never paraphrased
 
 ### ID Requirements
 

@@ -156,9 +156,8 @@ one most likely to be left behind "because it already works".
 
 ### P6 — The apps
 
-`apps/itun` (138 files, the Dashboard's excepted if P5 has taken them) then `apps/srd` (29). srd's output gate does **not**
-cover this — it digests `<main>` text, not markup or CSS (see `/srd-gate`) — so
-each srd PR carries a visual check of the affected pages.
+`apps/itun` (138 files, the Dashboard's excepted if P5 has taken them) then `apps/srd` (29). No srd gate
+compares markup or CSS, so each srd PR carries a visual check of the affected pages.
 
 - **Prerequisite:** the ADR recording the styling change (tokens + one
   stylesheet replacing "Base UI + Tailwind v4"), written before the first app
@@ -186,7 +185,7 @@ each srd PR carries a visual check of the affected pages.
   `.container`, `.visible`, `.table`, `.list-item`, `.shadow`, `.outline`,
   `.filter`, `.blur` and `.resize`, sourced from comments
   (`EntityCardStatic.tsx`, `ColophonIsland.tsx`, `ssg/build.ts`), an inline
-  `<style>` block in `greembeem.page.tsx`, and `ssg/output-snapshot.json`. None is a
+  `<style>` block in `greembeem.page.tsx`, and the srd output snapshot (since deleted). None is a
   class anything depends on, so a gate on the layer being empty would fail
   forever after the migration finished — and a gate that cannot pass gets
   waived. The DOM intersection ignores those rules because no element uses
@@ -213,8 +212,8 @@ each srd PR carries a visual check of the affected pages.
   re-target the `tokens` rule set from `@theme` entries to `tokens.ts`.
 - **Exit:** `grep -ri tailwind` finds only historical references; `bun run
   check` green; built CSS size recorded before and after (#802's success list).
-  None of those three notices an element that silently lost its styling — the
-  srd gate digests text, not markup — so P7 must not start until P6's
+  None of those three notices an element that silently lost its styling, so
+  P7 must not start until P6's
   DOM-intersection check has passed on the commit it branches from.
 
 ## 4. The rules every phase applies

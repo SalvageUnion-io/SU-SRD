@@ -1,8 +1,8 @@
-import type { Story } from '@ladle/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../components/base/Text'
 import { color, font, fontSize, space, tracking } from '../design/tokens'
+import type { Story } from './_harness'
 import { Caption } from './_harness'
 
 export default {

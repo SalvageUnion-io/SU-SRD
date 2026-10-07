@@ -26,11 +26,9 @@ function contentBeyondName(entity: SURefEntity): string {
 function findByName(model: string, name: string): SURefEntity {
   const found = (
     SalvageUnionReference[model as keyof typeof SalvageUnionReference] as unknown as {
-      all: () => SURefEntity[]
+      getByName: (name: string) => SURefEntity | undefined
     }
-  )
-    .all()
-    .find((entity) => entity.name === name)
+  ).getByName(name)
   if (!found) throw new Error(`fixture missing: ${model} / ${name}`)
   return found
 }
@@ -103,7 +101,7 @@ describe('catalog tiles always carry content', () => {
     expect(borrowing.container.textContent ?? '').toContain(borrowed)
     borrowing.unmount()
 
-    const chosen = SalvageUnionReference.NPCs.all().find((npc) => npc.name === 'Chimerium Chosen')
+    const chosen = SalvageUnionReference.NPCs.getByName('Chimerium Chosen')
     if (!chosen) throw new Error('Chimerium Chosen fixture missing')
     expect(chosen.content?.length ?? 0).toBeGreaterThan(0)
     // It wields the Bio-Rifle (Chimerium Chosen) action, whose prose opens the
@@ -153,9 +151,9 @@ describe('catalog tiles carry no authorship', () => {
     // thing it grants opens with that same sentence, the tile would say it
     // twice — the redundancy guard drops the duplicate.
     const ability = SalvageUnionReference.Abilities.all().find((a) => {
-      const granted = SalvageUnionReference.Equipment.all().find(
-        (e) => e.name === a.grants?.[0]?.name
-      )
+      const grantName = a.grants?.[0]?.name
+      const granted =
+        grantName === undefined ? undefined : SalvageUnionReference.Equipment.getByName(grantName)
       const lead = granted?.content?.find((block) => block?.type === 'paragraph')?.value
       return !!a.description && typeof lead === 'string' && lead.trim() === a.description.trim()
     })

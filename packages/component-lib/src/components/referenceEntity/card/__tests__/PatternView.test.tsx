@@ -19,7 +19,7 @@ import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
 const mule = () => {
-  const found = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Mule')
+  const found = SalvageUnionReference.Chassis.getByName('Mule')
   if (!found) throw new Error('Mule fixture missing')
   return found
 }
@@ -105,7 +105,7 @@ describe('full pattern view reading order', () => {
     // multiplicity still REPEATS: six copies are six badges, not one badge
     // reading "×6". A count collapses the shape of the build out of the one row
     // whose job is showing it.
-    const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Atlas')
+    const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
     if (!chassis) throw new Error('Atlas fixture missing')
     const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
     if (!pattern) throw new Error('Thunder Storm pattern fixture missing')
@@ -139,7 +139,7 @@ describe('pattern loadout badges', () => {
     }`
 
   const thunderStorm = () => {
-    const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Atlas')
+    const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
     if (!chassis) throw new Error('Atlas fixture missing')
     const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
     if (!pattern) throw new Error('Thunder Storm pattern fixture missing')
@@ -219,7 +219,7 @@ describe('pattern drone rows keep their keys', () => {
     }
     try {
       for (const name of ['Little Sestra', 'Big Brother']) {
-        const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === name)
+        const chassis = SalvageUnionReference.Chassis.getByName(name)
         if (!chassis) throw new Error(`${name} fixture missing`)
         for (const pattern of chassis.patterns ?? []) {
           render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)

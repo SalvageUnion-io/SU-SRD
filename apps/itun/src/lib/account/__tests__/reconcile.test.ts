@@ -9,17 +9,8 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { useEntityStore } from '../../../stores/entityStore'
-import type { ExportBundle } from '../../schemas/exportBundle'
 import type { LocalWork } from '../reconcile'
-import {
-  captureSessionWork,
-  combineBundles,
-  countWork,
-  reconcile,
-  strandedCount,
-  withoutIds,
-  workIds,
-} from '../reconcile'
+import { countWork, reconcile, strandedCount, withoutIds, workIds } from '../reconcile'
 
 const EMPTY: LocalWork = {
   pilots: [],
@@ -67,22 +58,12 @@ describe('countWork', () => {
     })
 
     // 2 pilots + 1 mech + 1 pattern + 1 NPC. The three soft links are wiring
-    // between things, so counting them would say "8 builds" for five.
+    // between things, so counting them would say eight for five.
     expect(n).toBe(5)
   })
 
-  test('nothing held is zero, so the banner stays away', () => {
+  test('nothing held is zero, so nothing is sent', () => {
     expect(countWork(EMPTY)).toBe(0)
-  })
-})
-
-describe('captureSessionWork', () => {
-  test('reads what the stores are holding, synchronously', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'cap-1' }))
-
-    const work = captureSessionWork()
-    expect(work.pilots).toHaveLength(1)
-    expect(Array.isArray(work.encounterNpcs)).toBe(true)
   })
 })
 
@@ -226,29 +207,5 @@ describe('strandedCount', () => {
     // The argument type has no `declined` at all: counting them would hold the
     // migration window open forever over rows that were never at risk.
     expect(strandedCount.length).toBe(1)
-  })
-})
-
-describe('combineBundles', () => {
-  const bundle = (id: string): ExportBundle =>
-    ({
-      schemaVersion: 2,
-      exportedAt: '2026-09-25T00:00:00.000Z',
-      entities: { pilots: [{ id }], mechs: [], crawlers: [] },
-      workspaces: [],
-      softLinks: [],
-      mechPatterns: [],
-      encounterNpcs: [],
-    }) as unknown as ExportBundle
-
-  test('one download carries both the session and the device', () => {
-    const combined = combineBundles(bundle('session'), bundle('device'))
-    expect(combined?.entities.pilots.map((p) => p.id)).toEqual(['session', 'device'])
-  })
-
-  test('either side alone passes through, and neither is null', () => {
-    expect(combineBundles(bundle('s'), null)?.entities.pilots).toHaveLength(1)
-    expect(combineBundles(null, bundle('d'))?.entities.pilots).toHaveLength(1)
-    expect(combineBundles(null, null)).toBeNull()
   })
 })

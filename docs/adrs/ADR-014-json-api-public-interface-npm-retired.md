@@ -3,15 +3,14 @@
 ## Status
 
 Accepted, **but partially superseded by
-[ADR-025](ADR-025-versioned-internal-releases.md)** — its CHANGELOG-freeze
+[ADR-025](ADR-025-reference-versioned-releases-surface-gate.md)** — its CHANGELOG-freeze
 clause only. ADR-014's substantive decision (the served JSON API is the public
 interface; npm publishing stays retired) is **preserved** and still governs.
 
 Recorded here as well as on ADR-025 because a supersession written on only the
 successor is a trap: this file read a plain "Accepted" for as long as ADR-025
 existed, so anyone opening it directly — or citing its changelog clause — got a
-dead rule with nothing to warn them. `tools/check-doc-drift.ts` now asserts that
-both sides of every supersession name each other.
+dead rule with nothing to warn them.
 
 ## Context
 

@@ -2,23 +2,14 @@
 
 ## Status
 
-**Accepted and delivered.** Every phase in
-[architecture/persistence-and-pwa.md](../architecture/persistence-and-pwa.md) —
-P0 through P7, P4b, and **the flip** — is marked done. Anonymous writes resolve
-to the in-memory backend and do not survive a reload, **in every build**: since
-2026-09-25 (audit AP-08) there is no `VITE_REQUIRE_ACCOUNT` flag and no `local`
-backend. The flag used to be `true` only in `apps/itun/.env.production`, which
-left CI, `bun run dev` and the e2e suite on a durable anonymous IndexedDB
-backend no player could reach; the e2e suite now signs in through
-`TestAuthBridge` instead. Where this ADR describes Solo as IndexedDB-backed, read
-it as history.
-
-This header read **"Nothing is built yet"** until 2026-09-01, months after the
-flip. That is the most expensive kind of stale line in this repo: an agent
-sent here to "keep Solo working" or "add offline write queueing" would have
-built against a world that had already shipped away, and `docs/README.md`
-repeated the same claim. Delivery status belongs in the plan document; keep
-this header pointing at it rather than restating a snapshot of it.
+**Accepted and delivered.** Anonymous writes resolve to the in-memory backend
+and do not survive a reload, **in every build**: there is no
+`VITE_REQUIRE_ACCOUNT` flag and no durable anonymous `local` backend, and the
+e2e suite signs in through `TestAuthBridge`. Where this ADR describes Solo as
+IndexedDB-backed, read it as history. The phased delivery plan was deleted once
+every phase closed (`git show c2476d1c:docs/architecture/persistence-and-pwa.md`);
+what stays true of it is in
+[architecture/data-flow.md](../architecture/data-flow.md).
 
 **Partially superseded by [ADR-035](ADR-035-no-isolated-local-only-data.md)**,
 which withdraws one consequence recorded below — *"Declining the claim is a
@@ -41,13 +32,8 @@ changes is IndexedDB's *status* — it stops being anywhere's source of truth an
 becomes a cache of Convex.
 
 **Amends [ADR-022](ADR-022-provenance-log-and-overrides.md)** for the second
-time. ADR-030 already claimed the Change Log is "now synchronized"; that claim
-was never delivered on the client side, and this ADR makes it a requirement with
-a phase behind it rather than a statement.
-
-**Interacts with [ADR-033](ADR-033-cloudflare-hosting.md)**, which is mid-flight
-at P7. See *Sequencing against the Cloudflare cutover* below — this work does
-not start on `srd` until that ADR's P7 completes.
+time. ADR-030 already claimed the Change Log is "now synchronized"; this ADR
+makes that a requirement on the client too, not only a statement.
 
 Re-affirms [ADR-032](ADR-032-public-read-only-sheets.md) without changing it: a
 public sheet stays an unauthenticated **read** of a row that an account owns.
@@ -166,12 +152,6 @@ from that. `appId` is part of the same bridge — it exists because the client
 mints ids, which it does because it used to be the source of truth — and it goes
 when the bridge does.
 
-The practical consequence for sequencing is in the plan: the *schema* work that
-makes each container model expressible is real either way and lands early, while
-the *wiring* lands once, in the final shape, at the demotion. Adding a mirror to
-`mechPatterns` and `encounterNpcs` first would mean writing a known-lossy path
-into two stores as their fix, and deleting it two phases later.
-
 **`encounterNpcs` is one table with two containers, not two concepts.** An NPC
 lives either in a Game — the Mediator's prepared opposition, `gameId` set — or on
 somebody's shelf, their own tray to prep in before a Game exists. That is the
@@ -227,8 +207,9 @@ config.
 Device preferences are exempt from decision 2, and the exemption is narrow. A
 preference qualifies only when losing it costs the user nothing but a moment's
 re-adjustment: which container is active, dashboard display preferences, the
-"you have unexported changes" nudge, the one-time claim marker, ephemeral mount
-state. These may stay in `localStorage`.
+"you have unexported changes" nudge, the one-time claim marker, ~~ephemeral mount
+state~~. These may stay in `localStorage`. **Amended by
+[ADR-038](ADR-038-dashboard-game-surface-shared-play-state.md):** mount state becomes Game data, saved on the pilot's seat.
 
 **A preference that is expensive to lose is data.** If the list ever grows to
 include something a user would be annoyed to re-create, that is the signal it
@@ -252,14 +233,9 @@ belongs in Convex, not a reason to widen the exemption.
   happens to somebody who declines.
 
 - **A build with no `VITE_CONVEX_URL` is no longer a working app**, and this is
-  the largest hidden consequence. CI, every Playwright e2e run, and a fresh
-  checkout are all permanently Solo today, and 15 of the 16 e2e specs build a
-  pilot, a mech or a crawler and expect it to persist (`bundle-budget.e2e.ts` is
-  the one that does not — it measures bundle size). Removing Solo without
-  answering this breaks nearly the whole e2e suite at once. The in-memory anonymous mode from decision 1
-  is what those tests exercise, plus a signed-in path against a test deployment
-  for anything asserting durability. This is a phase of its own and it is
-  sequenced early, because it gates the ability to verify any later phase.
+  the largest hidden consequence: CI and a fresh checkout get only the in-memory
+  anonymous mode from decision 1, so anything asserting durability runs signed
+  in against a test deployment.
 
 - **Convex becomes a hard dependency of the ITUN product**, not a feature of it.
   A Convex outage stops new saves rather than degrading to local writes. That is
@@ -305,34 +281,17 @@ belongs in Convex, not a reason to widen the exemption.
   pushed to export and then not asked again. This is the least-nagging option and
   it has a real edge: somebody who declines, does not export, and later clears
   their browser storage has genuinely lost that roster. The mitigation is that
-  the export must be *taken* rather than merely offered — see the plan's P5 gate,
-  which does not let the app stop asking until a bundle has actually been
-  produced or the user has explicitly refused that too.
+  the export must be *taken* rather than merely offered.
 
 - **Storage and bandwidth on install become a real budget.** Deciding that an
   installed app works fully offline means someone must own what "fully" costs —
   for `srd` that is on the order of a thousand pages or the JSON endpoints
-  behind them. The plan carries a measured budget and a gate; an unmeasured
-  "download everything on install" would be a worse experience than the 404 it
-  replaces.
+  behind them. An unmeasured "download everything on install" would be a worse
+  experience than the 404 it replaces.
 
 - **`srd` gains no accounts.** It has no user data and this ADR gives it none.
   Decision 1 does not apply to it; decisions 2 and 3 do, and for `srd` decision
   2 is trivially satisfied because it stores nothing.
-
-## Sequencing against the Cloudflare cutover
-
-ADR-033 is at P7: `intheunionnow.com` is live on Cloudflare, `salvageunion.io`
-is still blocked on a Netlify support ticket, and P8 has not started.
-
-**No phase of this ADR touches `srd`'s service worker until ADR-033's P7 is
-complete.** Changing caching behaviour on a site whose host is mid-move would
-make any resulting failure ambiguous between two causes, and service-worker
-faults are exactly the class where that ambiguity is most expensive — a bad
-worker persists on the client after the deploy that caused it is gone.
-
-ITUN work may begin immediately: it is already live on Cloudflare, so its host
-is settled.
 
 ## Alternatives considered
 

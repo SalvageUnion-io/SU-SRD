@@ -55,9 +55,6 @@ export const PILOT_BASE_INVENTORY_SLOTS = 6
  * healthy pilot renders at 0 HP; the bot's own comment records the same worry
  * ("would render a fresh, undamaged crew as wiped out").
  *
- * It is NOT `clampPilotCurrentStats` / `clampMechCurrentStats`, which are
- * write-time clamps that lower an over-max stored value and deliberately leave
- * `undefined` alone. This is the read-time resolution.
  *
  * @param current - The stored value, or `undefined` if never set
  * @param max - The current derived maximum
@@ -258,26 +255,6 @@ export function isPilotDead(pilot: PilotDerivationInput): boolean {
   return pilotMaxHP(pilot) <= 0
 }
 
-/**
- * Clamp current HP/AP to the derived maxima (floor 0). Run on every recompute
- * — e.g. after an injury is added or a modifier edited — and persist the
- * returned patch when non-empty.
- */
-export function clampPilotCurrentStats(
-  pilot: PilotDerivationInput & { currentHP?: number; currentAP?: number }
-): Partial<{ currentHP: number; currentAP: number }> {
-  const patch: Partial<{ currentHP: number; currentAP: number }> = {}
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
-  if (pilot.currentHP !== undefined && pilot.currentHP > maxHP) {
-    patch.currentHP = maxHP
-  }
-  if (pilot.currentAP !== undefined && pilot.currentAP > maxAP) {
-    patch.currentAP = maxAP
-  }
-  return patch
-}
-
 // ---------------------------------------------------------------------------
 // Mech
 // ---------------------------------------------------------------------------
@@ -335,9 +312,9 @@ export type PilotingContext = {
  *
  * `derived` is what the rules produce: base + installed bonuses + the player's
  * manual adjustment, floored at 0. `override` is an absolute Free-Edit pin
- * (ADR-022 amendment); when set it REPLACES the derived value rather than
- * adding to it, and `derived` is retained so the sheet can render an
- * "overridden from N" callout and revert to it.
+ * (ADR-022 amendment); when it differs from the derived value it REPLACES it
+ * rather than adding to it, and `derived` is retained so the sheet can render
+ * an "overridden from N" callout and revert to it.
  *
  * `total` is what a surface should display.
  */
@@ -365,12 +342,48 @@ export type StatBreakdown = {
   adjustment: number
   /** base + installed + adjustment, floored at 0. Always computed, even when pinned. */
   derived: number
-  /** The absolute pin, when the player set one. */
+  /** The absolute pin in effect — present exactly when `overridden` is. */
   override?: number
-  /** What to display: the pin when pinned, else `derived`. */
+  /** What to display: the pin when overridden, else `derived`. */
   total: number
-  /** True when a pin is in effect. */
+  /**
+   * True when a stored pin differs from `derived` — THE override flag (ADR-022
+   * amendment). Every override surface reads it and nothing re-derives it: the
+   * override colour, the `*` marker, the ↺ revert, the "overridden from N"
+   * caption and the ledger's Derived/Override lines. A gauge that compared two
+   * numbers instead disagreed with the ledger on exactly the case below.
+   *
+   * A pin EQUAL to `derived` is not an override: it adds +0, so it is not a
+   * modification ("If a bonus would provide +0, nullify it for the purposes of
+   * modification"). That happens when upgrades catch up with a pin. The pin
+   * stays stored — it is still the player's absolute pin, so a derivation that
+   * later moves past it makes it a modification again, flagged and revertible —
+   * but while it adds nothing it reads exactly like the derived value it equals.
+   */
   overridden: boolean
+}
+
+/**
+ * Whether a stored pin modifies the derivation at all (see
+ * `StatBreakdown.overridden`). Compared as displayed — both floored at 0 — so a
+ * pin of 0 on a stat that derives to 0 (or, for a dead pilot, below it) adds
+ * nothing either.
+ */
+function pinModifies(pin: number, derived: number): boolean {
+  return Math.max(0, pin) !== Math.max(0, derived)
+}
+
+/**
+ * What a Free-Edit write should store when the player types `next` as a
+ * maximum: the pin, or `undefined` when `next` is what the rules already derive.
+ *
+ * The write-time half of the zero-delta rule `breakdownOf` applies at read time,
+ * built on the same predicate so the two cannot drift: a pin equal to the
+ * derivation is not an override, so it is never written — typing the derived
+ * value back in is how a player deletes one.
+ */
+export function pinFor(next: number, parts: Pick<StatBreakdown, 'derived'>): number | undefined {
+  return pinModifies(next, parts.derived) ? next : undefined
 }
 
 /** Assemble a breakdown, applying the pin last so `derived` is always retained. */
@@ -382,7 +395,7 @@ function breakdownOf(
   sources: ResolvedContribution[] = []
 ): StatBreakdown {
   const derived = Math.max(0, base + installed + sumContributions(sources) + adjustment)
-  const overridden = typeof override === 'number'
+  const overridden = typeof override === 'number' && pinModifies(override, derived)
   return {
     base,
     installed,
@@ -542,30 +555,6 @@ export function mechMaxCargo(
 }
 
 /**
- * Clamp current SP/EP/Heat to the derived maxima. Run after any modifier or
- * chassis change and persist the returned patch when non-empty.
- * (Cargo is a slot count, not a current/max pair — over-capacity cargo is
- * displayed honestly, never clamped, per design §2.12.)
- */
-export function clampMechCurrentStats(
-  mech: MechDerivationInput & { currentSP?: number; currentEP?: number; currentHeat?: number },
-  chassis?: ChassisStats | null
-): Partial<{ currentSP: number; currentEP: number; currentHeat: number }> {
-  const c = resolveChassis(mech, chassis)
-  const patch: Partial<{ currentSP: number; currentEP: number; currentHeat: number }> = {}
-  if (mech.currentSP !== undefined && mech.currentSP > mechMaxSP(mech, c)) {
-    patch.currentSP = mechMaxSP(mech, c)
-  }
-  if (mech.currentEP !== undefined && mech.currentEP > mechMaxEP(mech, c)) {
-    patch.currentEP = mechMaxEP(mech, c)
-  }
-  if (mech.currentHeat !== undefined && mech.currentHeat > mechMaxHeat(mech, c)) {
-    patch.currentHeat = mechMaxHeat(mech, c)
-  }
-  return patch
-}
-
-/**
  * The unified read-time conditions vocabulary for a mech (plan 2.3): the
  * free-form `conditions[]` merged with the automation-written boolean flags
  * (shutdown → 'Shutdown', vulnerable → 'Vulnerable', destroyed → 'Destroyed'),
@@ -680,18 +669,4 @@ export function crawlerMaxSPParts(crawler: CrawlerDerivationInput): CrawlerMaxSP
 /** Derived crawler max SP — `crawlerMaxSPParts(crawler).total`. */
 export function crawlerMaxSP(crawler: CrawlerDerivationInput): number {
   return crawlerMaxSPParts(crawler).total
-}
-
-/**
- * Clamp current SP to the derived max. Persist the returned patch when
- * non-empty (e.g. after editing maxSpModifier or downgrading tech level).
- */
-export function clampCrawlerCurrentStats(
-  crawler: CrawlerDerivationInput & { currentSP?: number }
-): Partial<{ currentSP: number }> {
-  const maxSP = crawlerMaxSP(crawler)
-  if (crawler.currentSP !== undefined && crawler.currentSP > maxSP) {
-    return { currentSP: maxSP }
-  }
-  return {}
 }

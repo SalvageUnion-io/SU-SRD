@@ -1,24 +1,28 @@
-import { createFileRoute, useParams } from '@tanstack/react-router'
-import { GameScreen } from '../components/games/GameScreen'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { setActiveContainer } from '../stores/activeContainerStore'
 
 /**
- * One Game's crew — the shared-container twin of the Roster at `/`.
+ * `/games/$gameId` — open one Game on the hub.
  *
- * Separate from `/games` (the lobby: start one, join one, list the ones you are
- * in) because a crew roster is a place you work rather than a row in a list,
- * and separate from `/mediator/$gameId` because the Mediator surface adds
- * private instruments on top of this rather than replacing it.
+ * It was the Game page; the hub at `/` shows a Game's crew and panels now,
+ * whichever container its "Showing" select has picked. So this address picks
+ * that Game, then lands on `/` (replacing the history entry). It is not only a
+ * legacy URL: the Discord bot's game links (`gameUrl`) and the read-only
+ * sheet's way back to "the crew" (`SheetView`) both use it, because a plain `/`
+ * cannot say which Game to show.
  *
- * The trailing `_` on `games_` opts this route OUT of nesting under
- * `routes/games.tsx`. Without it TanStack treats `/games` as a layout and
- * expects an `<Outlet />` there — which `GamesScreen` does not render, so the
- * crew roster would resolve, match, and display nothing at all.
+ * Membership is not checked here — the hub's `games.get` answers a Game you
+ * are not in with an explanation and a way back to My Stuff.
+ *
+ * Picked only on a real navigation, never a preload, so hovering a link
+ * cannot change what the hub shows.
+ *
+ * The trailing `_` on `games_` keeps this route out of `/games`'s layout, whose
+ * `beforeLoad` would otherwise redirect first and drop the Game id.
  */
 export const Route = createFileRoute('/games_/$gameId')({
-  component: GameRoute,
+  beforeLoad: ({ params, preload }) => {
+    if (!preload) setActiveContainer({ kind: 'game', gameId: params.gameId })
+    throw redirect({ to: '/', replace: true })
+  },
 })
-
-function GameRoute() {
-  const { gameId } = useParams({ from: '/games_/$gameId' })
-  return <GameScreen gameId={gameId} />
-}

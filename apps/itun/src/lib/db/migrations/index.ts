@@ -29,6 +29,7 @@ import { migrate as migrate13WorkspaceToGameOrShelf } from './13-workspace-to-ga
 import { migrate as migrate14StarterSetSeedRef } from './14-starter-set-seed-ref'
 import { migrate as migrate15PartnerEquipmentBackfill } from './15-partner-equipment-backfill'
 import { migrate as migrate16DropPilotEquipmentLoadouts } from './16-drop-pilot-equipment-loadouts'
+import { migrate as migrate17MechToCrawlerLinks } from './17-mech-to-crawler-links'
 // Declared in the leaf `./types` so the migrations can import it without
 // importing this barrel (which imports all of them). Re-exported here so
 // existing import paths keep working.
@@ -107,6 +108,11 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     toVersion: 16,
     description: 'drop-pilot-equipment-loadouts',
     migrate: (tx) => migrate16DropPilotEquipmentLoadouts(tx),
+  },
+  {
+    toVersion: 17,
+    description: 'mech-to-crawler-links',
+    migrate: (tx) => migrate17MechToCrawlerLinks(tx),
   },
   // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
   // on-demand into each browser the first time the user opens the Starter Set

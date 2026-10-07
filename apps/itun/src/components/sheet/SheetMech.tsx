@@ -11,23 +11,30 @@
  */
 
 import { EntityRow } from 'component-lib'
-import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import {
+  mechMaxCargo,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  resolveChassisRef,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import { containerOf } from '../../lib/container'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
-import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
+import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
-import { RailCta } from './SheetRailParts'
+import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
 
 type SheetMechProps = SheetViewCommonProps & {
   mech: Mech
@@ -49,7 +56,12 @@ export function SheetMech({
   readOnly,
   store,
   storeState,
+  lookup,
+  hrefFor,
+  withheld,
 }: SheetMechProps) {
+  const withheldPilot = withheld.find((u) => u.kind === 'pilot')
+  const withheldCrawler = withheld.find((u) => u.kind === 'crawler')
   const chassis = resolveChassisRef(mech.chassisRef)
   // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
   // the same piloting context the body sheet uses or the two would disagree.
@@ -79,16 +91,32 @@ export function SheetMech({
     },
   ]
 
-  // Unassign for the mech's own direct link (mech-to-pilot) — always
-  // available on editable sheets per the unified edit language (no edit
-  // mode). The crawler chip is transitive (the pilot's crawler), nav-only.
+  // The mech's two assignments are both its OWN links (ADR-037): the pilot it
+  // carries (`mech-to-pilot`) and the crawler it docks in (`mech-to-crawler`).
+  // Neither is reached through the other, so each slot assigns, changes and
+  // unassigns on its own — always available on editable sheets per the unified
+  // edit language (no edit mode), with no confirm (reversible, ADR-007).
   const pilotLinkId = storeState.softLinks.find(
     (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
   )?.id
-  const unassignPilot =
-    editable && pilotLinkId
-      ? () => runWrite(() => storeState.delete('softLink', pilotLinkId))
-      : undefined
+  const crawlerLinkId = storeState.softLinks.find(
+    (l) => l.type === 'mech-to-crawler' && l.from.id === mech.id
+  )?.id
+  const unassign = (linkId: string | undefined) =>
+    editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
+  // Both slots pick from where the mech lives — its Game, or My Stuff.
+  const self = { type: 'mech', id: mech.id } as const
+  const container = containerOf(mech)
+
+  // The pilot's Stat Training follows the PILOT's crawler, not this mech's:
+  // the two are assigned independently, so a mech docked in one crawler can
+  // carry a pilot who crews another.
+  const pilotCrawlerId = composition.pilot
+    ? storeState.softLinks.find(
+        (l) => l.type === 'pilot-to-crawler' && l.from.id === composition.pilot?.id
+      )?.to.id
+    : undefined
+  const pilotCrawler = pilotCrawlerId ? lookup.get('crawler', pilotCrawlerId) : null
 
   // Linked Units rail content (poster R4, span 5) — built here because it
   // needs `composition` (resolved pilot/crawler), which MechSheet does not
@@ -100,17 +128,31 @@ export function SheetMech({
           entityType="pilot"
           className="flex-[1_1_0%]"
           name={composition.pilot.name}
-          sheetHref={`/sheet/pilot/${composition.pilot.id}`}
+          sheetHref={hrefFor('pilot', composition.pilot.id)}
           linkAs={AppLink}
           meta="Assigned Pilot"
           stats={rowStats(
             pilotRailItems(
               composition.pilot,
-              resolveEffectiveCrawlerLevel(composition.pilot, composition.crawler)
+              resolveEffectiveCrawlerLevel(composition.pilot, pilotCrawler)
             )
           )}
-          onDeleteClick={unassignPilot}
+          actions={
+            editable ? (
+              <AssignPicker
+                subject={self}
+                container={container}
+                pick="pilot"
+                filled
+                exclude={[composition.pilot.id]}
+                size="mini"
+              />
+            ) : undefined
+          }
+          onUnassignClick={unassign(pilotLinkId)}
         />
+      ) : withheldPilot ? (
+        <WithheldUnitRow unit={withheldPilot} label="Assigned Pilot" />
       ) : (
         <EntityRow
           empty
@@ -122,7 +164,7 @@ export function SheetMech({
             editable ? (
               <>
                 <RailCta href="/pilots/new" label="+ Create" primary />
-                <AssignPilotToMech mechId={mech.id} />
+                <AssignPicker subject={self} container={container} pick="pilot" />
               </>
             ) : undefined
           }
@@ -133,19 +175,41 @@ export function SheetMech({
           entityType="crawler"
           className="flex-[1_1_0%]"
           name={composition.crawler.name}
-          sheetHref={`/sheet/crawler/${composition.crawler.id}`}
+          sheetHref={hrefFor('crawler', composition.crawler.id)}
           linkAs={AppLink}
           meta="Home Crawler"
           stats={rowStats(crawlerRailItems(composition.crawler))}
+          actions={
+            editable ? (
+              <AssignPicker
+                subject={self}
+                container={container}
+                pick="crawler"
+                filled
+                exclude={[composition.crawler.id]}
+                size="mini"
+              />
+            ) : undefined
+          }
+          onUnassignClick={unassign(crawlerLinkId)}
         />
+      ) : withheldCrawler ? (
+        <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
         <EntityRow
           empty
           entityType="crawler"
           className="flex-[1_1_0%]"
           roleLabel="Home Crawler"
-          message="No crawler linked — the assigned pilot's home crawler appears here."
-          actions={editable ? <RailCta href="/crawlers/new" label="+ Create" primary /> : undefined}
+          message="No crawler assigned. A mech docks by its own assignment, separately from its pilot."
+          actions={
+            editable ? (
+              <>
+                <RailCta href="/crawlers/new" label="+ Create" primary />
+                <AssignPicker subject={self} container={container} pick="crawler" />
+              </>
+            ) : undefined
+          }
         />
       )}
     </>
@@ -162,7 +226,7 @@ export function SheetMech({
       actions={
         editable ? (
           <>
-            <DashboardChooser initialMechId={mech.id} activeContainer={containerOf(mech)} />
+            <DashboardChooser initialMechId={mech.id} activeContainer={container} />
             {actions}
           </>
         ) : (

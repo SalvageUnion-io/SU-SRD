@@ -12,7 +12,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import type { ScrapPool } from '../../lib/schemas/crawler'
-import type { ItemCondition, Mech } from '../../lib/schemas/mech'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
+import type { Mech } from '../../lib/schemas/mech'
 
 export type MechItem = SURefSystem | SURefModule
 
@@ -80,12 +81,6 @@ export function itemEconomy(entity: MechItem): MechItemEconomy {
  * Neither says round up, so the general rule governs: "In any situation where
  * you need to round a number, always round down unless stated otherwise"
  * (p.233), immediately followed by "Specific beats general".
- *
- * This used to round UP, which made an SV-3 item cost 2 Scrap to repair while
- * `halfSalvageScrap` (src/lib/rules/salvage.ts) — the same "half Salvage Value,
- * min 1" phrase from the same book — yielded 1 when salvaged. The asymmetry
- * read as deliberate (both directions disadvantage the player) and was not:
- * neither site cited a page, and the book has one rule for both.
  */
 export function repairScrapCost(salvageValue: number | undefined): number {
   return Math.max(1, Math.floor((salvageValue ?? 1) / 2))

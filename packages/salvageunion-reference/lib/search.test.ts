@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { resetAllForTesting, SalvageUnionReference } from './index.js'
-import { getSuggestions, invalidateSearchIndex, search, searchIn } from './search.js'
+import { invalidateSearchIndex, search, searchIn } from './search.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -193,38 +193,6 @@ describe('Search API', () => {
       const results = searchIn('systems', 'LASER')
 
       expect(results.length).toBeGreaterThan(0)
-    })
-  })
-
-  describe('getSuggestions()', () => {
-    test('should return unique entity names', () => {
-      const suggestions = getSuggestions('las')
-
-      expect(suggestions.length).toBeGreaterThan(0)
-      // Should be unique
-      const uniqueSuggestions = new Set(suggestions)
-      expect(uniqueSuggestions.size).toBe(suggestions.length)
-    })
-
-    test('should limit suggestions', () => {
-      const suggestions = getSuggestions('a', { limit: 5 })
-
-      expect(suggestions.length).toBeLessThanOrEqual(5)
-    })
-
-    test('should filter by schemas', () => {
-      const suggestions = getSuggestions('las', {
-        schemas: ['systems'],
-      })
-
-      expect(suggestions.length).toBeGreaterThan(0)
-    })
-
-    test('should return most relevant suggestions first', () => {
-      const suggestions = getSuggestions('laser')
-
-      // Should include laser-related names
-      expect(suggestions.some((s) => s.toLowerCase().includes('laser'))).toBe(true)
     })
   })
 

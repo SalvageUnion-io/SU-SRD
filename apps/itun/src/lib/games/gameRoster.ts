@@ -15,6 +15,8 @@
  * the server is right and this file is the bug.
  */
 
+import type { Container } from '../container'
+import { sameContainer } from '../container'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -45,7 +47,10 @@ export type GameMember = {
 
 /** What the viewer may do with one row. */
 export type RowCapabilities = {
-  /** The viewer may open the row's EDITABLE live sheet. Mirrors `assertMayWrite`. */
+  /**
+   * The row's sheet opens EDITABLE for the viewer. Mirrors `assertMayWrite`.
+   * Every row opens (`rosterSheetHref`); this only says whether it opens to edit.
+   */
   openSheet: boolean
   /** Free, and the viewer is in the Game: they can take it. */
   claim: boolean
@@ -53,6 +58,15 @@ export type RowCapabilities = {
   release: boolean
   /** Crawler only: the table runner may scrap it. */
   scrap: boolean
+  /** Crawler only: the table runner may make it the Game's primary (ADR-037). */
+  makePrimary: boolean
+  /**
+   * The viewer may take this row out of the Game, to My Stuff — the move rules
+   * of ADR-037 read from inside the Game: a pilot or mech by its owner, a
+   * crawler by the table runner (`entities.moveCrawler`). `moveDestinations`
+   * is the same rule read from the entity's side.
+   */
+  removeFromGame: boolean
   /**
    * The viewer may destroy this row outright. Mirrors `removeByAppId`, so:
    * the owner, and nobody else.
@@ -83,6 +97,8 @@ export type RosterRow = {
   owner: OwnerChip | null
   /** Set when this browser already holds a copy — the id a sheet route takes. */
   localId: string | null
+  /** Crawler only: the Game's primary — where new crew is assigned (ADR-037). */
+  primary: boolean
   body: Record<string, unknown>
   can: RowCapabilities
 }
@@ -94,7 +110,7 @@ export type TableCapabilities = {
   hasCrawler: boolean
   /** Raising and scrapping a crawler is the table runner's act. */
   canRaiseCrawler: boolean
-  /** Whether the viewer may add pilots and mechs to this Game right now. */
+  /** Whether the viewer may add pilots and mechs to this Game: any member may. */
   canAddCrew: boolean
   /** Why not, in the surface's own words. Null when they can. */
   addCrewBlocked: string | null
@@ -120,10 +136,9 @@ export function isTableRunner(viewerId: string | null, members: readonly GameMem
 /**
  * What the viewer may do to this Game.
  *
- * The crawler gate is the interesting one, and the wording matters as much as
- * the boolean: a player who cannot add a pilot yet is not being refused, they
- * are waiting for the table to be set up, and a surface that says "you can't"
- * without saying "yet, because —" reads as a broken button.
+ * Any member may bring pilots and mechs in, crawler or not — mirroring
+ * `assertMayAddToContainer`, which dropped its crawler gate (ADR-037): the crew
+ * gathers first, and the first crawler raised picks everyone up.
  */
 export function tableCapabilities(args: {
   viewerId: string | null
@@ -132,18 +147,105 @@ export function tableCapabilities(args: {
 }): TableCapabilities {
   const tableRunner = isTableRunner(args.viewerId, args.members)
   const hasCrawler = args.crawlerCount > 0
-  const canAddCrew = tableRunner || hasCrawler
+  const canAddCrew = args.viewerId !== null && args.members.some((m) => m.userId === args.viewerId)
 
   return {
     tableRunner,
     hasCrawler,
     canRaiseCrawler: tableRunner,
     canAddCrew,
-    addCrewBlocked: canAddCrew
-      ? null
-      : 'This game has no Union Crawler yet. The Mediator raises one first — the crew is anchored to it.',
+    addCrewBlocked: canAddCrew ? null : 'Only members of this game can bring builds into it.',
     canOfferUnclaimed: tableRunner,
   }
+}
+
+/** A Game as `games.listMine` returns it, as far as moving goes. */
+export type MoveTargetGame = { _id: string; name: string; tableRunner: boolean }
+
+/** One option in a move control: where it goes, and what it is called. */
+export type MoveDestination = { container: Container; label: string }
+
+/**
+ * Where the viewer may move one of their entities to — mirroring the server's
+ * move rules (ADR-037), so the control lists only what would be accepted.
+ *
+ *  - A **pilot or mech** may go to My Stuff or to any Game the viewer belongs
+ *    to (`upsertByAppId` + `assertMayAddToContainer`; leaving needs only
+ *    ownership, which a live sheet already implies).
+ *  - A **crawler** moves only at its table runner's hand
+ *    (`entities.moveCrawler`): from My Stuff into a Game they run, or from a
+ *    Game they run back to My Stuff — never Game to Game.
+ *
+ * The current container is always first, so a control can show where the
+ * entity is even when it may go nowhere else.
+ */
+export function moveDestinations(args: {
+  kind: RosterKind
+  current: Container
+  games: readonly MoveTargetGame[]
+}): MoveDestination[] {
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'My Stuff' }
+  const toGame = (g: MoveTargetGame): MoveDestination => ({
+    container: { kind: 'game', gameId: g._id },
+    label: g.name,
+  })
+  const { current } = args
+  const currentGame =
+    current.kind === 'game' ? args.games.find((g) => g._id === current.gameId) : undefined
+  // A record filed under a Game the viewer is not in (left, or a v13 phantom)
+  // is shown as such rather than as My Stuff, which would lie about where it is.
+  const here: MoveDestination =
+    current.kind === 'shelf'
+      ? shelf
+      : currentGame !== undefined
+        ? toGame(currentGame)
+        : { container: current, label: 'Unknown game' }
+  const others = (destinations: MoveDestination[]) =>
+    destinations.filter((d) => !sameContainer(d.container, current))
+
+  if (args.kind !== 'crawler') {
+    return [here, ...others([shelf, ...args.games.map(toGame)])]
+  }
+  if (current.kind === 'shelf') {
+    return [here, ...others(args.games.filter((g) => g.tableRunner).map(toGame))]
+  }
+  const runsThisTable = args.games.some((g) => g._id === current.gameId && g.tableRunner)
+  return runsThisTable ? [here, shelf] : [here]
+}
+
+/** One column of a Game's roster, as the hub lists it. */
+export type RosterColumnGroups = {
+  /** The viewer's own rows — listed first, under YOURS. */
+  yours: RosterRow[]
+  /** Everyone else's, unclaimed included; the primary crawler leads. */
+  others: RosterRow[]
+}
+
+/**
+ * Split a column into the viewer's own rows and everyone else's.
+ *
+ * Yours lead because they are what you came to act on; the rest of the table
+ * is context. A crawler belongs to nobody, so a crawler column is all `others`,
+ * with the primary first — it is where new crew is assigned (ADR-037), so it
+ * is the one a reader looks for. The order is otherwise the listing's.
+ */
+export function groupColumn(rows: readonly RosterRow[]): RosterColumnGroups {
+  const yours = rows.filter((row) => row.owner?.mine === true)
+  const others = rows
+    .filter((row) => row.owner?.mine !== true)
+    .sort((a, b) => Number(b.primary) - Number(a.primary))
+  return { yours, others }
+}
+
+/**
+ * The sheet a row opens: the live sheet route, one address whoever looks —
+ * `SheetView` makes it editable or read-only. Addressed by the app id every
+ * link uses; a template pre-gen has none and goes by its body id, and a row with
+ * neither by its row id, which the route also resolves.
+ */
+export function rosterSheetHref(row: RosterRow): string {
+  const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null
+  return `/sheet/${row.kind}/${row.appId ?? bodyId ?? row.serverId}`
 }
 
 /** Best-effort display name off an opaque server body. */
@@ -164,18 +266,18 @@ function bodyOf(body: unknown): Record<string, unknown> {
  * whether a row can open a sheet *without a round trip*, not whether it may —
  * see `openSheet` below.
  *
- * `openSheet` means the EDITABLE live sheet, so it mirrors `assertMayWrite`:
+ * `openSheet` means the sheet opens EDITABLE, so it mirrors `assertMayWrite`:
  * only the owner. That is not the same as "only the owner may look" — ADR-030
- * §5 allows reading a crewmate's sheet, and every row is now readable through
- * the frozen crew view (`GameEntitySheet`), which renders the server body
- * behind a store that throws on write and caches nothing locally.
+ * §5 allows reading a crewmate's sheet, and every row opens the same live
+ * sheet, which renders a crewmate's read-only from the Game's listing behind a
+ * store that throws on write and caches nothing locally (`SheetView`).
  *
  * The distinction is the whole point. What was never safe was handing a
- * non-owner ITUN's *live* sheet — an editing surface backed by local storage,
- * whose writes the server then refuses, so it would silently stop saving. A
- * read-only surface has no such failure mode, so reading needs no capability
- * flag here: membership in the Game is the only gate, and the server's own
- * listing query already enforces it.
+ * non-owner ITUN's *editable* sheet — an editing surface backed by local
+ * storage, whose writes the server then refuses, so it would silently stop
+ * saving. A read-only rendering has no such failure mode, so reading needs no
+ * capability flag here: membership in the Game is the only gate, and the
+ * server's own queries already enforce it.
  */
 export function ownableRows(args: {
   kind: 'pilot' | 'mech'
@@ -201,12 +303,15 @@ export function ownableRows(args: {
       ownerId: row.ownerId,
       owner,
       localId,
+      primary: false,
       body: bodyOf(row.body),
       can: {
         openSheet: mine,
         claim: memberOfGame && owner.unclaimed,
         release: mine,
         scrap: false,
+        makePrimary: false,
+        removeFromGame: mine,
         delete: mine,
       },
     }
@@ -224,25 +329,35 @@ export function crawlerRows(args: {
   rows: readonly ServerCrawler[]
   tableRunner: boolean
   localIds: ReadonlySet<string>
+  /** `listForGame().primaryCrawlerId` — the Game's primary, or null. */
+  primaryCrawlerId?: string | null
 }): RosterRow[] {
-  return args.rows.map((row) => ({
-    kind: 'crawler' as const,
-    serverId: row._id,
-    appId: row.appId,
-    name: nameOf(row.body, 'Union Crawler'),
-    ownerId: null,
-    owner: null,
-    localId: row.appId !== null && args.localIds.has(row.appId) ? row.appId : null,
-    body: bodyOf(row.body),
-    can: {
-      openSheet: true,
-      claim: false,
-      release: false,
-      scrap: args.tableRunner,
-      // A crawler is destroyed by scrapping it, which is the table runner's act
-      // and already has its own control. A second delete verb beside it would
-      // be the same destruction under a name the rules do not use.
-      delete: false,
-    },
-  }))
+  return args.rows.map((row) => {
+    const primary = row._id === args.primaryCrawlerId
+    return {
+      kind: 'crawler' as const,
+      serverId: row._id,
+      appId: row.appId,
+      name: nameOf(row.body, 'Union Crawler'),
+      ownerId: null,
+      owner: null,
+      localId: row.appId !== null && args.localIds.has(row.appId) ? row.appId : null,
+      primary,
+      body: bodyOf(row.body),
+      can: {
+        openSheet: true,
+        claim: false,
+        release: false,
+        scrap: args.tableRunner,
+        // Mirrors `games.setPrimaryCrawler`: the table runner's call.
+        makePrimary: args.tableRunner && !primary,
+        // Mirrors `entities.moveCrawler`: only the table runner moves a crawler.
+        removeFromGame: args.tableRunner,
+        // A crawler is destroyed by scrapping it, which is the table runner's act
+        // and already has its own control. A second delete verb beside it would
+        // be the same destruction under a name the rules do not use.
+        delete: false,
+      },
+    }
+  })
 }

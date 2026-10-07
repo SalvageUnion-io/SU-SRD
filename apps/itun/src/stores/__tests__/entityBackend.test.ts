@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { CONNECTION_MODES } from '../../lib/connection/connectionMode'
 import {
   backendForMode,
+  crawlerPatchArgs,
   requireWritableBackend,
   selectBackend,
   setEntityBackendAuthState,
@@ -160,10 +161,27 @@ describe('backendForMode — the whole rule', () => {
   test('a pre-account roster is migrated, not served', () => {
     // Stated here because this is the test somebody will read when they wonder
     // whether retiring `local` stranded existing players. It did not: the rows
-    // stay in IndexedDB, `AccountReconciler` offers sign-in-or-download while
-    // signed out, and moves them into the account on sign-in.
+    // stay in IndexedDB, and `AccountReconciler` moves them into the account on
+    // sign-in.
     // See `lib/account/__tests__/legacyMigration.test.ts`.
     expect(backendForMode('solo')).toBe('memory')
     expect(backendForMode('connected')).toBe('remote')
+  })
+})
+
+describe('a crawler field patch names the fields it clears', () => {
+  // The Convex client drops undefined object fields on the wire, so a cleared
+  // field (the ↺ revert of a pinned Max SP) has to travel as `unset` — see the
+  // server side in `test/convex/entities.test.ts`.
+  test('an undefined value becomes an unset key', () => {
+    expect(crawlerPatchArgs('c1', { maxSpOverride: undefined, scrap: 4 })).toEqual({
+      appId: 'c1',
+      patch: { maxSpOverride: undefined, scrap: 4 },
+      unset: ['maxSpOverride'],
+    })
+  })
+
+  test('a patch that clears nothing sends no unset', () => {
+    expect(crawlerPatchArgs('c1', { scrap: 4 })).toEqual({ appId: 'c1', patch: { scrap: 4 } })
   })
 })

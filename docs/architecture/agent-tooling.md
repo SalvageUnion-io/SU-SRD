@@ -43,14 +43,7 @@ something outside the file.
 | `convex`  | stdio — `bunx convex mcp start --project-dir apps/itun` | The Convex CLI's own device credentials (`~/.convex/config.json`) | The ITUN Convex deployments                |
 | `context7` | http — `https://mcp.context7.com/mcp`           | None — keyless on the free tier                                     | Version-pinned docs for this repo's dependencies |
 
-**That is the whole set — five servers, and this table is now asserted against
-`.mcp.json` by `tools/check-doc-drift.ts`.** It had drifted in both directions
-at once, which is why the assertion exists: it claimed *"Cloudflare — the actual
-host. No MCP server is declared; use `wrangler`"* while two Cloudflare servers
-WERE declared, and it carried live rows for `netlify`, `render` and `github`,
-none of which are. Commit `aaff8f0` updated `.mcp.json`, `CLAUDE.md` and
-`cloudflare-cutover.md` and did not touch this file — and because root prose
-matched no CI path filter at the time, the doc-drift check never ran on that PR.
+**That is the whole set — five servers.** `.mcp.json` is the definition.
 
 CLAUDE.md sends agents here *instead of* enumerating accounts, so a wrong row
 here is followed rather than checked. There is no declared `github` server: use
@@ -164,12 +157,12 @@ one).
 | Worker            | Serves                                        | Bindings                          |
 | ----------------- | --------------------------------------------- | --------------------------------- |
 | `su-srd`          | `salvageunion.io`, `www.` (redirect)          | none — Static Assets, no script    |
-| `su-itun`         | `intheunionnow.com`, `www.`, the snapshot API | `ASSETS`, R2 `SNAPSHOTS`, `RATE_LIMITER` |
+| `su-itun`         | `intheunionnow.com`, `www.`, `/api/snapshots/:id` (read-only), old-link unfurls | `ASSETS`, R2 `SNAPSHOTS`, `OG_METRICS` |
 | `su-assets`       | `assets.salvageunion.io`                      | R2 `LP_ASSETS`, `IMAGES`           |
 | `su-discord-bot`  | Discord HTTP interactions + a 5-minute cron   | none; secrets only                 |
 
-**R2 buckets:** `su-itun-snapshots` (shared sheets), `su-lp-assets` (licensed
-artwork). **Zones:** `salvageunion.io` and `intheunionnow.com`, both on
+**R2 buckets:** `su-itun-snapshots` (retired snapshot shares — read-only, kept
+by decision, ADR-036; never delete from it), `su-lp-assets` (licensed artwork). **Zones:** `salvageunion.io` and `intheunionnow.com`, both on
 Cloudflare nameservers since 2026-08-31.
 
 **Preview URLs** live under `alxjrvs.workers.dev` — one subdomain per account,

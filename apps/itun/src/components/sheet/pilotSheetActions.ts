@@ -7,9 +7,9 @@
  * Eleven handlers were interleaved with the derivations and the poster JSX in
  * `PilotSheet`, and each one re-spelled `storeState.update('pilot', pilot.id,
  * …, LIVE_SHEET_MANUAL)` by hand. That repetition is not cosmetic: it is the
- * reason a cross-cutting concern on the write path (the offline refusal added
- * in `sheetWrite.ts`) had to be applied at ~45 call sites across the two
- * sheets. Here there is exactly one.
+ * reason a cross-cutting concern on the write path (the offline refusal in
+ * `runWrite`) had to be applied at ~45 call sites across the two sheets. Here
+ * there is exactly one.
  *
  * ## The two write helpers, and why there are two
  *
@@ -28,27 +28,21 @@
  */
 
 import { useState } from 'react'
-import { enrichPilotSnapshot, resolvePool } from 'salvageunion-reference/rules'
-import { pilotMaxAP } from '../../lib/rules/derivedStats'
+import type { SoftWarning } from 'salvageunion-reference/rules'
+import { enrichPilotSnapshot, pilotMaxAP, resolvePool } from 'salvageunion-reference/rules'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
-import type { SoftWarning } from '../../lib/rules/types'
-import type { ItemCondition } from '../../lib/schemas/mech'
+import { runWrite } from '../../lib/runWrite'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { freshEntity } from './controlPrimitives'
+import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import type { UsedToggleKey } from './PilotIdentity'
 import { resolveAbility } from './pilotAbilities'
 import { resolveEquipment } from './pilotInventory'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
-
-/** A pin equal to the derived value is not an override — clear it instead. */
-export function pinOrUndef(next: number, derived: number): number | undefined {
-  return next === derived ? undefined : next
-}
 
 type PilotSheetActionsOptions = {
   pilot: Pilot
@@ -151,11 +145,14 @@ export function usePilotSheetActions({
     write(fields)
   }
 
-  // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
-  // max*Modifier delta; the gauge shows "overridden from N" + a revert. Tagged
-  // `override` for the Change Log.
+  // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima as an absolute
+  // `max*Override`; the gauge shows "overridden from N" + a revert. Tagged
+  // `override` for the Change Log. Callers normalise the pin with `pinFor`
+  // (a pin equal to the derivation is written as none); a commit that changes
+  // nothing — the number already shown, re-entered — is not written at all.
   const overridePilotMax = (fields: Partial<Pilot>) => {
-    write(fields, LIVE_SHEET_OVERRIDE)
+    const changed = changedFields(freshPilot(), fields)
+    if (changed) write(changed, LIVE_SHEET_OVERRIDE)
   }
 
   /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */

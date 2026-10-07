@@ -77,9 +77,8 @@ export function observabilityReady(): Promise<void> {
 
 /**
  * Reports an informational message to Sentry when enabled; otherwise a no-op.
- * Used to surface snapshot-backend outages that `probeSnapshotService`
- * already feature-detects — this does not add a new probe, it just makes an
- * existing silent feature-detect alert-worthy.
+ * For a condition the app handled but someone should be able to count — e.g.
+ * `lib/db/upgradeTelemetry.ts` reporting an old database it upgraded.
  */
 export const captureMessage = observability.captureMessage
 

@@ -3,6 +3,7 @@ import type { EntitySchemaName, SURefObjectChoice } from 'salvageunion-reference
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { EntitySearcher } from '../../shared/EntitySearcher'
 import { ModalShell } from '../../shared/ModalShell'
+import { PICKER_MODAL_WIDTH } from '../../shared/pickerModalWidth'
 
 type CatalogChoiceModalProps = {
   open: boolean
@@ -54,7 +55,7 @@ export function CatalogChoiceModal({
         if (!next) onClose()
       }}
       title={choice.name}
-      maxWidth="max-w-5xl"
+      maxWidth={PICKER_MODAL_WIDTH}
       bare
     >
       <EntitySearcher

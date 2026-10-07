@@ -19,8 +19,7 @@
 
 import type { SURefEquipment } from 'salvageunion-reference'
 import { getInventorySlots, getTraits, SalvageUnionReference } from 'salvageunion-reference'
-import { matchesRef } from 'salvageunion-reference/rules'
-import { pilotMaxInventorySlots } from '../../lib/rules/derivedStats'
+import { matchesRef, pilotMaxInventorySlots } from 'salvageunion-reference/rules'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 
 /**

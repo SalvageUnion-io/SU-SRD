@@ -11,7 +11,7 @@ import { SalvageUnionReference } from '../index.js'
 import { isWeaponSystem } from './crawlerSystems.js'
 
 function systemByName(name: string) {
-  const s = SalvageUnionReference.Systems.find((x) => x.name === name)
+  const s = SalvageUnionReference.Systems.getByName(name)
   if (!s) throw new Error(`system not found in reference data: ${name}`)
   return s
 }

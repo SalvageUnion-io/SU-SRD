@@ -17,10 +17,9 @@
  *                 ci.yml filter group gating that app's build job. `CI Success`
  *                 treats a skipped job as a pass, so an uncovered dependency
  *                 merges with its build never having run (the #731 shape).
- *   pinning       every third-party action is pinned to a full commit SHA, and
- *                 every `bunx`/`npx` tool with no manifest entry carries an
- *                 exact version. A tag is a mutable pointer, and these run in
- *                 jobs holding deploy credentials.
+ *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
+ *                 exact version: it runs in jobs holding deploy credentials.
+ *                 Action SHA pinning is zizmor's `unpinned-uses` (`actionlint`).
  *   bun-version   `.bun-version` is the one Bun: the root `bun-types` and
  *                 `packageManager` match it, no workflow pins Bun by hand
  *                 instead of using `./.github/actions/setup-bun`, and the Bun
@@ -36,6 +35,9 @@
  *                 build job, every deploy job needs every build job and the
  *                 push, the smoke job needs every deploy job, and the deploy
  *                 record needs the smoke job to have SUCCEEDED (audit CI-12).
+ *                 A build job uploads an artifact built from source; a pass
+ *                 that downloads one and re-uploads it (srd's OG render) is
+ *                 not a build, and only what ships its output waits for it.
  *                 Every one of those jobs sits downstream of a job that is
  *                 skipped by design, so each must carry an explicit status
  *                 function in its `if:` — the implicit `success()` is false
@@ -340,15 +342,6 @@ export function checkPathFilters(ctx: WorkflowContext): CheckResult {
 
 // ─── pinning ────────────────────────────────────────────────────────────────
 
-/** Published by GitHub itself; a mutable tag here is not a third-party risk. */
-const FIRST_PARTY_OWNERS = new Set(['actions', 'github'])
-const SHA_PIN = /^[0-9a-f]{40}$/
-
-export function isThirdParty(ref: string): boolean {
-  if (ref.startsWith('./') || ref.startsWith('docker://')) return false
-  return !FIRST_PARTY_OWNERS.has(ref.split('/')[0] ?? '')
-}
-
 /**
  * Tools `bunx` resolves from the lockfile: EXACT dependency names of every
  * manifest. Not the unscoped half of scoped names — that once exempted `auth`,
@@ -397,20 +390,12 @@ function executableStrings(step: Yaml): string[] {
 export function checkPinning(ctx: WorkflowContext): CheckResult {
   const failures: string[] = []
   const local = locallyResolved(ctx)
-  let actions = 0
   let tools = 0
   if (ctx.files.length < 5) {
     failures.push(`only ${ctx.files.length} workflow file(s) scanned — expected at least 5.`)
   }
   for (const f of ctx.files) {
-    const refs: { where: string; ref: string }[] = []
-    // A job-level `uses:` calls a reusable workflow — the same supply chain.
-    for (const [job, def] of Object.entries(isObject(f.doc.jobs) ? f.doc.jobs : {})) {
-      if (isObject(def) && typeof def.uses === 'string')
-        refs.push({ where: `jobs.${job}`, ref: def.uses })
-    }
     for (const { where, step } of stepsOf(f)) {
-      if (typeof step.uses === 'string') refs.push({ where, ref: step.uses })
       for (const script of executableStrings(step)) {
         for (const { runner, tool } of runnerCalls(script)) {
           if (local.has(toolName(tool))) continue
@@ -425,23 +410,9 @@ export function checkPinning(ctx: WorkflowContext): CheckResult {
         }
       }
     }
-    for (const { where, ref } of refs) {
-      if (!isThirdParty(ref)) continue
-      actions++
-      const pin = ref.lastIndexOf('@') === -1 ? '' : ref.slice(ref.lastIndexOf('@') + 1)
-      if (!SHA_PIN.test(pin)) {
-        failures.push(
-          `${f.path} ${where}: \`${ref}\` is not pinned to a full commit SHA. Resolve the tag with ` +
-            "`gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq '.object.sha'` and write " +
-            '`<owner>/<repo>@<sha> # <version>`.'
-        )
-      }
-    }
   }
   return {
-    ok:
-      `${actions} third-party action reference(s) SHA-pinned and ${tools} one-off runner ` +
-      `call(s) version-pinned across ${ctx.files.length} file(s)`,
+    ok: `${tools} one-off runner call(s) version-pinned across ${ctx.files.length} file(s)`,
     failures,
   }
 }
@@ -471,15 +442,14 @@ export function checkBunVersion(ctx: WorkflowContext): CheckResult {
         '`bun why` / `bun pm ls` exit 0 when it does.'
     )
   }
-  // `packageManager` is how a tool that installs its OWN Bun picks a version:
-  // oven-sh/setup-bun reads it when given no `bun-version`, which is exactly
-  // how the catalog-update action calls it. Unpinned, that action once
-  // rewrote bun.lock with a Bun the pinned one could not read.
+  // `packageManager` is how a tool that installs its OWN Bun picks a version
+  // (Renovate's lockfile regeneration, a bare oven-sh/setup-bun). A Bun other
+  // than the pinned one can write a bun.lock the pinned Bun cannot read.
   const packageManager = ctx.manifests.get('package.json')?.packageManager
   if (packageManager !== `bun@${expected}`) {
     failures.push(
       `root package.json packageManager = ${packageManager ?? '(absent)'}, expected bun@${expected} ` +
-        '— actions that set up their own Bun (catalog-update) read it, and fall back to `latest`.'
+        '— tools that set up their own Bun (Renovate, a bare setup-bun) read it.'
     )
   }
   const bunTypes = ctx.manifests.get('package.json')?.devDependencies?.['bun-types']
@@ -574,16 +544,19 @@ const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
 /**
  * The deploy workflow's job graph keeps its orderings (audit CI-12):
  *
- *   1. the job that pushes the Convex backend needs every job that uploads an
- *      artifact — a failed build of ANY surface stops the push, rather than
- *      leaving a new backend under the old client until the next green run;
- *   2. every job that ships (`bun run deploy`) needs every job that uploads an
- *      artifact and the push — all builds finish, and the backend is pushed,
- *      before any traffic moves;
+ *   1. the job that pushes the Convex backend needs every build job (one that
+ *      uploads an artifact and downloads none) — a failed build of ANY surface
+ *      stops the push, rather than leaving a new backend under the old client
+ *      until the next green run;
+ *   2. every job that ships (`bun run deploy`) needs every build job and the
+ *      push — all builds finish, and the backend is pushed, before any
+ *      traffic moves;
  *   3. the job that runs the smoke list needs every job that ships;
  *   4. the job holding `contents: write` (the deploy record) needs the smoke
  *      job and requires `needs.<smoke>.result == 'success'` — the record moves
- *      only once what shipped has answered.
+ *      only once what shipped has answered;
+ *   5. a job that downloads an artifact needs every job that uploads it — a
+ *      deploy cannot race the post-build pass whose output it ships.
  *
  * And every job from the push onwards whose ancestors include a job with its
  * own `if:` (other than the root gate) carries an explicit status function.
@@ -605,8 +578,11 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const jobsWhere = (pred: (step: Yaml) => boolean) =>
     [...new Set(steps.filter(({ step }) => pred(step)).map(({ where }) => jobOf(where)))].sort()
 
-  const builders = jobsWhere(
-    (step) => typeof step.uses === 'string' && step.uses.startsWith('actions/upload-artifact@')
+  const uses = (step: Yaml, action: string) =>
+    typeof step.uses === 'string' && step.uses.startsWith(`actions/${action}@`)
+  const downloaders = new Set(jobsWhere((step) => uses(step, 'download-artifact')))
+  const builders = jobsWhere((step) => uses(step, 'upload-artifact')).filter(
+    (job) => !downloaders.has(job)
   )
   const pushers = jobsWhere((step) => runs(step).includes('convex deploy'))
   const shippers = jobsWhere((step) => /\bbun run deploy\b/.test(runs(step)))
@@ -619,7 +595,8 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
     .sort()
 
   const failures: string[] = []
-  if (builders.length === 0) failures.push(`${DEPLOY} has no job that uploads a build artifact.`)
+  if (builders.length === 0)
+    failures.push(`${DEPLOY} has no job that builds an artifact from source.`)
   if (shippers.length === 0) failures.push(`${DEPLOY} has no job that runs \`bun run deploy\`.`)
   if (smokers.length === 0) failures.push(`${DEPLOY} has no job that runs ${SMOKE_SCRIPT}.`)
   if (recorders.length === 0)
@@ -639,6 +616,16 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   requireBefore(shippers, pushers, 'the backend must be pushed before any surface ships.')
   requireBefore(smokers, shippers, 'the smoke list must run after every deploy.')
   requireBefore(recorders, smokers, 'the deploy record must move only after the smoke list passed.')
+
+  const artifact = (step: Yaml) =>
+    isObject(step.with) && typeof step.with.name === 'string' ? step.with.name : ''
+  for (const { where, step } of steps.filter(({ step }) => uses(step, 'download-artifact'))) {
+    const name = artifact(step)
+    const producers = jobsWhere((s) => uses(s, 'upload-artifact') && artifact(s) === name)
+    if (producers.length === 0)
+      failures.push(`${DEPLOY} ${where} downloads \`${name}\`, which no job uploads.`)
+    requireBefore([jobOf(where)], producers, `it downloads \`${name}\`, which that job uploads.`)
+  }
 
   const ifOf = (id: string): string => {
     const job = jobs[id]
@@ -681,7 +668,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
 export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'aggregator', label: 'CI aggregate gate', run: (ctx) => checkAggregator(ctx) },
   { id: 'path-filters', label: 'path filters', run: checkPathFilters },
-  { id: 'pinning', label: 'supply-chain pinning', run: checkPinning },
+  { id: 'pinning', label: 'runner pinning', run: checkPinning },
   { id: 'bun-version', label: 'Bun version', run: checkBunVersion },
   { id: 'convex-guard', label: 'Convex deploy guard', run: checkConvexGuard },
   { id: 'deploy-order', label: 'deploy job order', run: checkDeployOrder },

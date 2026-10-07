@@ -1,142 +1,175 @@
 /**
- * GameRoster — a Game's crew, rendered as the Roster renders a shelf.
+ * GameRoster — a Game's crew, in the hub's three columns.
  *
- * ## Why this looks like the home page
+ * ## Why this looks like My Stuff
  *
- * The Roster (`components/roster/Roster.tsx`) is the app's answer to "what have
- * I got and what can I do with it": three ontology-toned columns of
- * `EntityRow`s, a create CTA at the head of each, a Dashboard launch in the
- * header. A Game asks the same question of a different container, and the first
- * cut of the Game surfaces answered it in a different vocabulary entirely — a
- * vertical stack of bordered cards listing names and numbers, with no way in to
- * a sheet and no way to make anything. Two shapes for one question is how an
- * app stops feeling like one app.
+ * `/` shows one container at a time (`Roster`): My Stuff, or a Game picked in
+ * its "Showing" select. Both ask "what have we got and what can I do with it",
+ * so both answer in the same three ontology-toned columns of `EntityRow`s
+ * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
+ * seal on every row, a way to pick up what nobody holds, and creation gated by
+ * the rules in `lib/games/gameRoster.ts`.
  *
- * So this is the same shape, with the parts a shared table adds: an owner chip
- * on every row, a way to pick up what nobody holds, and creation gated by the
- * rules in `lib/games/gameRoster.ts`.
+ * ## Yours first
  *
- * ## Creation goes through the wizards, not through a form here
+ * Each column lists **your** pilots or mechs first, in a framed YOURS group,
+ * and everybody else's below — the crewmates' (their name on the seal) and the
+ * unclaimed ones (an UNCLAIMED seal you press to pick it up). What you came to
+ * act on is at the top; the rest of the table is the context it sits in. A
+ * crawler is the crew's, owned by nobody, so its column has no YOURS group and
+ * the ★ Primary leads (`groupColumn`).
  *
- * A create CTA points this browser's **current container** at the Game and then
- * opens the ordinary wizard. Nothing about building a pilot changes because the
- * pilot is destined for a crew, and a second, thinner creation path would drift
- * from the real one immediately. The entity is stamped with the Game on write
- * (`entityStore.create`) and mirrored up from there.
+ * ## Creation goes through the wizards
  *
- * ## What a row will and will not open
+ * This renders only for the hub's ACTIVE container, so a create CTA is just a
+ * link to the ordinary wizard: `entityStore.create` stamps whatever container
+ * is current, which is this Game. Nothing about building a pilot changes
+ * because the pilot is destined for a crew, and a second, thinner creation
+ * path would drift from the real one immediately.
  *
- * Only what you own offers a sheet, and the reasoning is in
- * `lib/games/gameRoster.ts` — ITUN's sheet is a live editing surface, so
- * opening a crewmate's would hand you an editor the server then refuses. The
- * crawler is the exception because it is genuinely communal.
+ * ## What a row opens
  *
- * Rows you may open but have never held locally are **adopted on the way in**:
- * the server body is cached into IndexedDB under its own id, which is what
- * makes the sheet and the Dashboard work at all for a character built at
- * somebody else's table.
+ * Every row has one View, to the live sheet (`rosterSheetHref`). It opens
+ * editable when the row is yours to edit — your own pilots and mechs, and the
+ * communal crawler — and read-only and live when it is a crewmate's; the rule
+ * is in `lib/games/gameRoster.ts` and the rendering in `SheetView`.
+ *
+ * ## Every verb that changes who has a build asks first
+ *
+ * Pick up, Offer to the crew, Copy to My Stuff, Remove from game, Delete and
+ * Scrap each open one shared confirm (`useConfirm`) that says what will happen
+ * and whether it can be undone, and do nothing until the player confirms. The
+ * verbs and their words live outside this file — `useRowActions` and
+ * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
 import { useRouter } from '@tanstack/react-router'
-import {
-  Button,
-  buttonVariants,
-  cn,
-  EmptyState,
-  EntityRow,
-  ModalShell,
-  PageHeading,
-  Text,
-  toast,
-} from 'component-lib'
+import { Badge, Button, buttonVariants, EntityRow, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
-import { Bot, UserRound, Warehouse } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
-import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
-import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
+import {
+  crawlerRows,
+  groupColumn,
+  ownableRows,
+  rosterSheetHref,
+  tableCapabilities,
+} from '../../lib/games/gameRoster'
 import { rosterRowStats } from '../../lib/games/rosterRowStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { setActiveContainer } from '../../stores/activeContainerStore'
-import { useEntityStore } from '../../stores/entityStore'
+import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
+import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { useConfirm } from '../shared/useConfirm'
 import { OwnerSeal } from './OwnerSeal'
+import { useRowActions } from './useRowActions'
 
 type GameRosterProps = {
   gameId: string
-  /** Shown above the columns; the Game's name, when the caller knows it. */
-  gameName?: string
+  /** The Game's name, for the confirms that name it; null while unknown. */
+  gameName: string | null
+  /** The phone's one visible column — the hub's, so it survives a switch. */
+  activeSegment: SegmentKind
+  onSegmentChange: (kind: SegmentKind) => void
 }
 
 /** The three columns, in the build order the app teaches everywhere else. */
 const COLUMNS: ReadonlyArray<{
   kind: RosterKind
   title: string
-  createHref: string
-  createLabel: string
+  create: ColumnCreate
   empty: string
 }> = [
   {
     kind: 'pilot',
     title: 'Pilots',
-    createHref: '/pilots/new',
-    createLabel: 'Create Pilot',
+    create: { href: '/pilots/new', label: 'Create Pilot' },
     empty: 'No pilots in this game yet.',
   },
   {
     kind: 'mech',
     title: 'Mechs',
-    createHref: '/mechs/new',
-    createLabel: 'Create Mech',
+    create: { href: '/mechs/new', label: 'Create Mech' },
     empty: 'No mechs in this game yet.',
   },
   {
     kind: 'crawler',
     title: 'Crawlers',
-    createHref: '/crawlers/new',
-    createLabel: 'Raise a Crawler',
+    create: { href: '/crawlers/new', label: 'Raise a Crawler' },
     empty: 'No Union Crawler yet.',
   },
 ]
 
-const ICON: Record<RosterKind, typeof UserRound> = {
-  pilot: UserRound,
-  mech: Bot,
-  crawler: Warehouse,
-}
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[16],
+} satisfies CSSProperties
 
-const TONE_TEXT: Record<RosterKind, string> = {
-  pilot: 'text-sheet-pilot-deep',
-  mech: 'text-sheet-mech-deep',
-  crawler: 'text-sheet-crawler-deep',
-}
+const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
-export function GameRoster({ gameId, gameName }: GameRosterProps) {
+const ERROR = { ...HINT, color: tokens.color.rollCascade } satisfies CSSProperties
+
+const FOOTNOTE = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.xs,
+  marginTop: tokens.space[24],
+} satisfies CSSProperties
+
+/**
+ * The YOURS group: framed in ink on the warm band ground, so your own rows read
+ * as a set at a glance. Not rust — rust is the action colour, and this marks a
+ * fact, not a thing to press.
+ */
+const YOURS = {
+  backgroundColor: tokens.color.bandCream,
+  borderColor: tokens.color.ink,
+  borderRadius: tokens.radius.panel,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.pill,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[10],
+  padding: tokens.space[10],
+} satisfies CSSProperties
+
+const GROUP = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[10],
+} satisfies CSSProperties
+
+const ITEM = { listStyle: 'none' } satisfies CSSProperties
+
+/** Stamps sit at their own width, not stretched across the group. */
+const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
+
+const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
+
+export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
   // Probed rather than required, the way `AppLink` and `DashboardChooser` do:
   // component tests render these surfaces without a RouterProvider, and a hook
   // that throws on a missing context would make the whole screen untestable.
   const router = useRouter({ warn: false })
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  /** The row whose UNCLAIMED seal was pressed, awaiting confirmation. */
-  const [claimTarget, setClaimTarget] = useState<RosterRow | null>(null)
-  /** The row whose Delete was pressed, awaiting confirmation. */
-  const [deleteTarget, setDeleteTarget] = useState<RosterRow | null>(null)
+  // One confirm for every row verb; see `useRowActions`.
+  const { confirm, dialog: confirmDialog } = useConfirm()
+  const rowActions = useRowActions(confirm)
 
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
 
-  const claim = useMutation(api.ownership.claim)
-  const release = useMutation(api.ownership.release)
-  const scrapCrawler = useMutation(api.entities.removeCrawler)
-  const removeEntity = useMutation(api.entities.remove)
+  const setPrimaryCrawler = useMutation(api.games.setPrimaryCrawler)
 
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
@@ -172,54 +205,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       rows: listing?.crawlers ?? [],
       tableRunner: caps.tableRunner,
       localIds: new Set(localCrawlers.map((c) => c.id)),
+      primaryCrawlerId: listing?.primaryCrawlerId ?? null,
     }),
-  }
-
-  /**
-   * Make sure this browser holds the row, then hand back the id a sheet route
-   * takes. Adoption keeps the entity's own id, so the copy IS the entity rather
-   * than a fork of it — see `entityStore.adopt`.
-   */
-  async function ensureLocal(row: RosterRow): Promise<string | null> {
-    const id = row.body.id
-    if (typeof id !== 'string' || id.length === 0) return row.localId
-    // Adopted even when a copy is already here: the server is the source of
-    // record, and the copy may be stale — most obviously for the crawler, which
-    // the whole crew edits. Overwriting is safe because every local write
-    // mirrors up immediately, so a local copy is never legitimately ahead.
-    await useEntityStore.getState().adopt(row.kind, row.body as never)
-    return id
-  }
-
-  /**
-   * Take a copy of this row onto your own shelf.
-   *
-   * Offered on **every** row, including a crewmate's and an unclaimed pre-gen,
-   * because it is derived from what you may already read: membership of the Game
-   * grants the frozen crew view of every row, and copying what is on your screen
-   * escalates nothing. It is also the only way to keep a character when you
-   * walk away from a table — releasing a character leaves it behind, unclaimed.
-   *
-   * Deliberately no confirm. Copying destroys nothing and the result is one more
-   * build on your shelf, so a modal would be friction guarding an undo-by-delete.
-   *
-   * Crawlers are still excluded at the call site, but the reason has changed and
-   * is worth stating plainly. It used to be a **model limitation**: `crawlers`
-   * had a non-nullable `gameId`, so a shelved crawler had no server row to be.
-   * That is no longer true — a crawler shelves like anything else now, which is
-   * how deleting a Game keeps one.
-   *
-   * So the exclusion is a **product choice nobody has made yet**, not an
-   * impossibility. A crawler is the crew's shared home rather than a character
-   * somebody keeps, so "take your own copy of the table's crawler" wants a
-   * decision before it gets a button. Offering it is a small change if that
-   * decision goes the other way.
-   */
-  async function copyToShelf(row: RosterRow) {
-    const created = await useEntityStore
-      .getState()
-      .create(row.kind === 'pilot' ? 'pilot' : 'mech', copyForShelf(row.body, row.name) as never)
-    toast.success(`Copied ${created.name} to your shelf.`)
   }
 
   async function run(key: string, work: () => Promise<void>) {
@@ -234,375 +221,247 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     }
   }
 
-  async function openSheet(row: RosterRow) {
-    const localId = await ensureLocal(row)
-    if (localId === null) {
-      throw new Error('That build has not been saved anywhere this browser can open yet.')
-    }
-    await router?.navigate({ to: '/sheet/$kind/$id', params: { kind: row.kind, id: localId } })
-  }
-
   async function launchDashboard(row: RosterRow) {
-    const localId = await ensureLocal(row)
-    if (localId === null) throw new Error('That mech cannot be launched from this browser yet.')
-    await router?.navigate({ to: '/dashboard/$id', params: { id: localId } })
+    // Your own mech is in this browser already — `ShelfSync` caches everything
+    // you own — so there is nothing to fetch; a mech still on its way in has
+    // not arrived yet, and says so.
+    if (row.localId === null) throw new Error('That mech has not reached this browser yet.')
+    await router?.navigate({ to: '/dashboard/$id', params: { id: row.localId } })
   }
 
-  /**
-   * Point this browser at the Game on the way into the wizard.
-   *
-   * Rendered as a link with a side effect rather than a button that navigates:
-   * `entityStore.create` stamps whatever container is current, so the container
-   * has to change BEFORE the wizard's create call — and going through `AppLink`
-   * keeps the CTA a real anchor (middle-click, open-in-new-tab, and the
-   * router-less fallback the component tests rely on).
-   */
-  function enterGameContainer() {
-    setActiveContainer({ kind: 'game', gameId })
+  function renderRow(row: RosterRow): ReactNode {
+    return (
+      <li key={row.serverId} style={ITEM}>
+        <EntityRow
+          entityType={row.kind}
+          name={row.name}
+          stats={rosterRowStats(row)}
+          linkAs={AppLink}
+          /* Every row is a door, and there is one: View, to the live sheet —
+             editable when the row is yours to edit (`row.can.openSheet`),
+             read-only when it is a crewmate's (`SheetView`). */
+          sheetHref={rosterSheetHref(row)}
+          /* The primary crawler is where new crew is assigned (ADR-037), so
+             the roster says which one it is. */
+          meta={row.primary ? '★ Primary' : undefined}
+          seal={
+            row.owner === null ? undefined : (
+              <OwnerSeal
+                owner={row.owner}
+                claimable={row.can.claim}
+                disabled={busy !== null}
+                onClaim={() => rowActions.pickUp(row)}
+              />
+            )
+          }
+          actions={
+            <>
+              {row.kind === 'mech' && row.can.openSheet && (
+                <Button
+                  variant="primary"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => void run(`dash-${row.serverId}`, () => launchDashboard(row))}
+                >
+                  Dashboard
+                </Button>
+              )}
+              {/* Picking up is the SEAL's job, not a button's — see
+                  `OwnerSeal`. Any owner may hand back, not just the table
+                  runner: ADR-030 §4 makes ownership voluntary outward, and the
+                  pick-up confirm promises exactly this as the way back out. */}
+              {row.can.release && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.offer(row)}
+                >
+                  Offer to the crew
+                </Button>
+              )}
+              {/* Pilots and mechs only. Copying the crawler is a product choice
+                  nobody has made yet: it is the crew's shared home rather than
+                  a character somebody keeps. */}
+              {row.kind !== 'crawler' && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.copy(row)}
+                >
+                  Copy to My Stuff
+                </Button>
+              )}
+              {/* The move out (ADR-037): your own pilot or mech, or — for the
+                  table runner — a crawler. Offered once this browser holds the
+                  copy the move is made on; `ShelfSync` and `WiringSync` bring
+                  it in moments after it appears here. */}
+              {row.can.removeFromGame && row.localId !== null && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.removeFromGame(row, gameName)}
+                >
+                  Remove from game
+                </Button>
+              )}
+              {row.can.delete && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.remove(row)}
+                >
+                  Delete
+                </Button>
+              )}
+              {row.can.makePrimary && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() =>
+                    void run(`primary-${row.serverId}`, async () => {
+                      await setPrimaryCrawler({
+                        gameId: gameId as Id<'games'>,
+                        crawlerId: row.serverId as Id<'crawlers'>,
+                      })
+                    })
+                  }
+                >
+                  Make primary
+                </Button>
+              )}
+              {row.can.scrap && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={busy !== null}
+                  onClick={() => rowActions.scrap(row)}
+                >
+                  Scrap
+                </Button>
+              )}
+            </>
+          }
+        />
+      </li>
+    )
+  }
+
+  /** A column's body: your rows framed under YOURS, then everyone else's. */
+  function columnBody(kind: RosterKind, columnRows: readonly RosterRow[]): ReactNode {
+    const { yours, others } = groupColumn(columnRows)
+    const yoursId = `${kind}-yours-label`
+    const othersId = `${kind}-others-label`
+    return (
+      <div style={STACK}>
+        {yours.length > 0 && (
+          <div style={YOURS}>
+            <Badge shape="stamp" size="mini" as="h3" id={yoursId} style={LABEL}>
+              Yours
+            </Badge>
+            <RosterList labelledBy={yoursId}>{yours.map(renderRow)}</RosterList>
+          </div>
+        )}
+        {others.length > 0 &&
+          (yours.length > 0 ? (
+            <div style={GROUP}>
+              <Badge
+                shape="stamp"
+                size="mini"
+                surface="inverse"
+                as="h3"
+                id={othersId}
+                style={LABEL}
+              >
+                Everyone else
+              </Badge>
+              <RosterList labelledBy={othersId}>{others.map(renderRow)}</RosterList>
+            </div>
+          ) : (
+            <RosterList>{others.map(renderRow)}</RosterList>
+          ))}
+      </div>
+    )
   }
 
   const loading = listing === undefined || members === undefined
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
-        <div>
-          {/* An h2, so the columns' h3s sit under something. The page reads
-              h1 (Game) → h2 (the crew, the panels) → h3 (Pilots / Mechs /
-              Crawlers); as a div it skipped a level and left the columns
-              parented by nothing. */}
-          <PageHeading variant="subheading">{gameName ?? 'The crew'}</PageHeading>
-          <Text variant="hint" className="text-left">
-            {caps.tableRunner
-              ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
-              : 'Everything the crew has brought to this game. Pick up anything nobody holds.'}
-          </Text>
-        </div>
-      </div>
+    <>
+      <Text variant="hint" style={HINT}>
+        {caps.tableRunner
+          ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
+          : 'Everything the crew has brought to this game. Pick up anything nobody holds.'}
+      </Text>
 
       {error !== null && (
-        <Text variant="hint" className="text-left text-[var(--color-roll-cascade)]">
+        <Text variant="hint" role="alert" style={ERROR}>
           {error}
         </Text>
       )}
 
-      {!caps.canAddCrew && caps.addCrewBlocked !== null && (
-        <Text variant="hint" className="text-left">
+      {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
+        <Text variant="hint" style={HINT}>
           {caps.addCrewBlocked}
         </Text>
       )}
 
       {loading ? (
-        <ConvexPending label="the crew" />
-      ) : (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {COLUMNS.map((column) => {
-            const Icon = ICON[column.kind]
-            const columnRows = rows[column.kind]
-            // The crawler column answers to the table runner; the other two to
-            // the crawler gate. Both mirror `assertMayAddToContainer`.
-            const mayCreate =
-              column.kind === 'crawler'
-                ? caps.canRaiseCrawler
-                : caps.canAddCrew && viewerId !== null
-
-            return (
-              <div key={column.kind}>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <PageHeading variant="section" as="h3" className="text-rust">
-                    {column.title}
-                  </PageHeading>
-                  {mayCreate && columnRows.length > 0 && (
-                    <AppLink
-                      href={column.createHref}
-                      onClick={enterGameContainer}
-                      className={cn(
-                        buttonVariants({ variant: 'default', size: 'compact' }),
-                        'no-underline'
-                      )}
-                    >
-                      + {column.createLabel}
-                    </AppLink>
-                  )}
-                </div>
-
-                {columnRows.length === 0 ? (
-                  <EmptyState
-                    variant="quiet"
-                    body={
-                      column.kind === 'crawler' && !caps.canRaiseCrawler
-                        ? 'No Union Crawler yet — the Mediator raises one.'
-                        : column.empty
-                    }
-                    icon={<Icon className={cn('size-7', TONE_TEXT[column.kind])} />}
-                    action={
-                      mayCreate ? (
-                        <AppLink
-                          href={column.createHref}
-                          onClick={enterGameContainer}
-                          className={cn(
-                            buttonVariants({ variant: 'primary', size: 'compact' }),
-                            'no-underline'
-                          )}
-                        >
-                          {column.createLabel}
-                        </AppLink>
-                      ) : undefined
-                    }
-                  />
-                ) : (
-                  <ul className="flex flex-col gap-2.5">
-                    {columnRows.map((row) => (
-                      <li key={row.serverId} className="list-none">
-                        <EntityRow
-                          entityType={row.kind}
-                          name={row.name}
-                          stats={rosterRowStats(row)}
-                          linkAs={AppLink}
-                          /* Every row is a door now. View goes to the frozen
-                             crew sheet (`GameEntitySheet`) for EVERY row,
-                             including your own: it is a plain anchor to a
-                             read-only surface, so it needs no adoption round
-                             trip and behaves like the Roster's View. Editing
-                             is the separate, owner-only verb beside it. */
-                          sheetHref={`/games/${gameId}/view/${row.kind}/${row.serverId}`}
-                          seal={
-                            row.owner === null ? undefined : (
-                              <OwnerSeal
-                                owner={row.owner}
-                                claimable={row.can.claim}
-                                disabled={busy !== null}
-                                onClaim={() => setClaimTarget(row)}
-                              />
-                            )
-                          }
-                          actions={
-                            <>
-                              {row.can.openSheet && (
-                                <Button
-                                  variant="default"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`open-${row.serverId}`, () => openSheet(row))
-                                  }
-                                >
-                                  Edit
-                                </Button>
-                              )}
-                              {row.kind === 'mech' && row.can.openSheet && (
-                                <Button
-                                  variant="primary"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`dash-${row.serverId}`, () => launchDashboard(row))
-                                  }
-                                >
-                                  Dashboard
-                                </Button>
-                              )}
-                              {/* Picking up is the SEAL's job, not a button's —
-                                  see `OwnerSeal`. Any owner, not just the table runner: ADR-030
-                                  §4 says ownership is voluntary in the outward
-                                  direction, and the pick-up confirm promises
-                                  exactly this as the way back out. */}
-                              {row.can.release && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`offer-${row.serverId}`, async () => {
-                                      await release({
-                                        table: row.kind === 'pilot' ? 'pilots' : 'mechs',
-                                        entityId: row.serverId,
-                                      })
-                                      // It belongs to the table now, not to this
-                                      // browser: keeping a local copy would leave
-                                      // an editor whose writes the server refuses.
-                                      if (row.localId !== null) {
-                                        await useEntityStore
-                                          .getState()
-                                          .forget(row.kind, row.localId)
-                                      }
-                                    })
-                                  }
-                                >
-                                  Offer to the crew
-                                </Button>
-                              )}
-                              {row.kind !== 'crawler' && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`copy-${row.serverId}`, () => copyToShelf(row))
-                                  }
-                                >
-                                  Copy to shelf
-                                </Button>
-                              )}
-                              {row.can.delete && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() => setDeleteTarget(row)}
-                                >
-                                  Delete
-                                </Button>
-                              )}
-                              {row.can.scrap && (
-                                <Button
-                                  variant="ghost"
-                                  size="mini"
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    void run(`scrap-${row.serverId}`, async () => {
-                                      await scrapCrawler({
-                                        crawlerId: row.serverId as Id<'crawlers'>,
-                                      })
-                                      if (row.localId !== null) {
-                                        await useEntityStore
-                                          .getState()
-                                          .forget('crawler', row.localId)
-                                      }
-                                    })
-                                  }
-                                >
-                                  Scrap
-                                </Button>
-                              )}
-                            </>
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )
-          })}
+        <div style={HINT}>
+          <ConvexPending label="the crew" />
         </div>
+      ) : (
+        <>
+          <SegmentSwitch active={activeSegment} onChange={onSegmentChange} />
+          <RosterGrid>
+            {COLUMNS.map((column) => {
+              const columnRows = rows[column.kind]
+              // The crawler column answers to the table runner (`createCrawler`);
+              // the other two to membership (`assertMayAddToContainer`).
+              const mayCreate = column.kind === 'crawler' ? caps.canRaiseCrawler : caps.canAddCrew
+              return (
+                <RosterColumn
+                  key={column.kind}
+                  kind={column.kind}
+                  title={column.title}
+                  active={activeSegment === column.kind}
+                  create={mayCreate ? column.create : undefined}
+                  emptyMessage={
+                    column.kind === 'crawler' && !caps.canRaiseCrawler
+                      ? 'No Union Crawler yet — the Mediator raises one.'
+                      : column.empty
+                  }
+                  headExtra={
+                    column.kind === 'mech' ? (
+                      <AppLink
+                        href="/mechs/patterns"
+                        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+                        style={PATTERNS_LINK}
+                      >
+                        Patterns
+                      </AppLink>
+                    ) : undefined
+                  }
+                  empty={columnRows.length === 0}
+                >
+                  {columnBody(column.kind, columnRows)}
+                </RosterColumn>
+              )
+            })}
+          </RosterGrid>
+        </>
       )}
 
-      <p className="font-body text-xs text-wk-muted">
-        Sheets you open from here are cached in this browser and saved back to the game.{' '}
-        <AppLink href="/" className={cn(buttonVariants({ variant: 'ghost', size: 'mini' }))}>
-          Back to your builds
-        </AppLink>
+      <p style={FOOTNOTE}>
+        What you can edit opens to edit; a crewmate&rsquo;s pilot or mech opens read-only, as it
+        stands right now.
       </p>
 
-      {/* The destructive twin of the pick-up confirm, in the danger tone the
-          Roster's own delete uses. It names the alternative on purpose: at a
-          shared table, "I am done with this character" almost always means
-          somebody else could have them, and a player who deletes when they
-          meant to hand over cannot undo it. */}
-      <ModalShell
-        open={deleteTarget !== null}
-        onOpenChange={(next) => {
-          if (!next) setDeleteTarget(null)
-        }}
-        title={`Delete ${deleteTarget?.name ?? ''}?`}
-        tone="danger"
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
-            This cannot be undone. {deleteTarget?.name ?? 'This character'} will be removed from
-            this game for everyone, and from this browser.
-          </div>
-          <div className="font-body text-xs text-wk-muted">
-            Only leaving the table? “Offer to the crew” hands them back instead — they stay in the
-            game for somebody else to pick up.
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="compact" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              size="compact"
-              disabled={busy !== null}
-              onClick={() => {
-                const row = deleteTarget
-                if (row === null || row.kind === 'crawler') return
-                void run(`delete-${row.serverId}`, async () => {
-                  // Server first, addressed by server id: the row may never
-                  // have been in this browser, and a template pre-gen has no
-                  // appId for the mirror to address it by.
-                  await removeEntity({
-                    table: row.kind === 'pilot' ? 'pilots' : 'mechs',
-                    entityId: row.serverId,
-                  })
-                  // Then drop the cached copy, exactly as release and scrap do.
-                  // `forget`, not `delete`: the server row is already gone, so
-                  // a second mirrored destruction would be a no-op at best.
-                  if (row.localId !== null) {
-                    await useEntityStore.getState().forget(row.kind, row.localId)
-                  }
-                  setDeleteTarget(null)
-                })
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
-
-      {/* Picking a character up is constructive, not destructive, so this is an
-          `action`-toned confirm rather than the danger one the delete flows use.
-          It exists to say what happens next — it becomes yours, and it lands in
-          this browser — which the seal alone cannot. */}
-      <ModalShell
-        open={claimTarget !== null}
-        onOpenChange={(next) => {
-          if (!next) setClaimTarget(null)
-        }}
-        title={`Pick up ${claimTarget?.name ?? ''}?`}
-        tone="action"
-        maxWidth="max-w-md"
-      >
-        <div className="flex flex-col gap-4 bg-paper p-5">
-          <div className="font-body text-sm text-wk-muted">
-            {claimTarget?.name ?? 'This character'} is unclaimed — the Mediator left them for
-            somebody to take. Picking them up makes you their owner: they become yours to edit, they
-            open in this browser, and every change saves back to the game.
-          </div>
-          <div className="font-body text-xs text-wk-muted">
-            Changed your mind later? Hand them back with “Offer to the crew”.
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="compact" onClick={() => setClaimTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="compact"
-              disabled={busy !== null}
-              onClick={() => {
-                const row = claimTarget
-                if (row === null) return
-                void run(`claim-${row.serverId}`, async () => {
-                  await claim({
-                    table: row.kind === 'pilot' ? 'pilots' : 'mechs',
-                    entityId: row.serverId,
-                  })
-                  // Pull it down so it opens straight away — picking something
-                  // up and then having nowhere to open it would be half a verb.
-                  await ensureLocal(row)
-                  setClaimTarget(null)
-                })
-              }}
-            >
-              Pick up
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
-    </section>
+      {confirmDialog}
+    </>
   )
 }

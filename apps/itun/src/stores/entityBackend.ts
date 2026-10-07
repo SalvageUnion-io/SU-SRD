@@ -172,6 +172,24 @@ export class WritesBlockedOffline extends Error {
 }
 
 /**
+ * The `patchCrawlerByAppId` args for a crawler field patch.
+ *
+ * A key patched to `undefined` is a CLEAR — the ↺ revert of a pinned Max SP is
+ * `{ maxSpOverride: undefined }` — but the Convex client drops undefined object
+ * fields when it serialises the args, so on the wire that patch was `{}` and
+ * the server kept the pin. Each cleared key is named in `unset` instead.
+ */
+export function crawlerPatchArgs(
+  appId: string,
+  patch: unknown
+): { appId: string; patch: unknown; unset?: string[] } {
+  const unset = Object.entries((patch ?? {}) as Record<string, unknown>)
+    .filter(([, value]) => value === undefined)
+    .map(([key]) => key)
+  return { appId, patch, ...(unset.length > 0 ? { unset } : {}) }
+}
+
+/**
  * Write one entity to the server of record, and **fail if it does not land**.
  *
  * ## This replaced a mirror, and the difference is the whole of ADR-034
@@ -220,14 +238,26 @@ export async function commitEntityWrite(
       return
     }
     if (op.kind === 'patch') {
+      // A container change is its own mutation: it writes the row's `gameId`,
+      // the body's and `ownerId` together, and only the table runner may make
+      // it (ADR-037). The field patch below never carries one — the server
+      // strips it — which is how a "moved" crawler used to stay put.
+      const { gameId, ...fields } = (op.patch ?? {}) as Record<string, unknown>
+      if (op.patch !== null && typeof op.patch === 'object' && 'gameId' in op.patch) {
+        await convexClient.mutation(api.entities.moveCrawler, {
+          appId: op.appId,
+          gameId: (gameId ?? null) as Id<'games'> | null,
+        })
+      }
+      if (Object.keys(fields).length === 0) return
       // Still a field-level patch rather than a whole-body replace: the crawler
       // is communal and contended during Downtime, so two members editing scrap
       // and cargo in the same minute must both land (ADR-030 §5). That rule
       // survives the demotion untouched.
-      await convexClient.mutation(api.entities.patchCrawlerByAppId, {
-        appId: op.appId,
-        patch: op.patch,
-      })
+      await convexClient.mutation(
+        api.entities.patchCrawlerByAppId,
+        crawlerPatchArgs(op.appId, fields)
+      )
       return
     }
     await convexClient.mutation(api.entities.createCrawler, {

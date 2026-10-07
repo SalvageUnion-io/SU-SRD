@@ -306,8 +306,8 @@ describe('CrawlerBuilder — create mode', () => {
     const onComplete = mock(() => {})
     render(<CrawlerBuilder onComplete={onComplete} onCancel={() => {}} />)
 
-    const battle = must(SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle'))
-    const commandBay = must(SalvageUnionReference.CrawlerBays.find((b) => b.name === 'Command Bay'))
+    const battle = must(SalvageUnionReference.Crawlers.getByName('Battle'))
+    const commandBay = must(SalvageUnionReference.CrawlerBays.getByName('Command Bay'))
 
     // --- Step 1: Choose a Crawler Type ---
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))

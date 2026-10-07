@@ -19,7 +19,7 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { Roll } from '../../../lib/rules/heatCheck'
+import type { Roll } from 'salvageunion-reference/rules'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { ChangeMeta } from '../../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'

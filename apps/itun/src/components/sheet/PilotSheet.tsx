@@ -62,6 +62,7 @@ import {
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
+import { pinFor } from 'salvageunion-reference/rules'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
@@ -74,7 +75,7 @@ import {
   PilotAbilityItem,
   PilotEquipmentItem,
 } from './PilotSheetItems'
-import { pinOrUndef, usePilotSheetActions } from './pilotSheetActions'
+import { usePilotSheetActions } from './pilotSheetActions'
 import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
 import { SheetHero } from './SheetHero'
 
@@ -234,12 +235,9 @@ export function PilotSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) =>
-                      actions.overridePilotMax({
-                        maxHpOverride: pinOrUndef(next, hpParts.derived),
-                      })
+                  : (next) => actions.overridePilotMax({ maxHpOverride: pinFor(next, hpParts) })
               }
-              overriddenFrom={readOnly || !hpParts.overridden ? undefined : hpParts.derived}
+              breakdown={readOnly ? undefined : hpParts}
               provenance={model.hpLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overridePilotMax({ maxHpOverride: undefined })
@@ -254,12 +252,9 @@ export function PilotSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) =>
-                      actions.overridePilotMax({
-                        maxApOverride: pinOrUndef(next, apParts.derived),
-                      })
+                  : (next) => actions.overridePilotMax({ maxApOverride: pinFor(next, apParts) })
               }
-              overriddenFrom={readOnly || !apParts.overridden ? undefined : apParts.derived}
+              breakdown={readOnly ? undefined : apParts}
               provenance={model.apLines}
               onRevertOverride={
                 readOnly ? undefined : () => actions.overridePilotMax({ maxApOverride: undefined })
@@ -475,7 +470,6 @@ export function PilotSheet({
         open={picker === 'abilities'}
         onClose={() => setPicker(null)}
         title="Add Abilities"
-        maxWidth="max-w-5xl"
         floating
       >
         <EntitySearcher
@@ -500,7 +494,6 @@ export function PilotSheet({
         open={picker === 'equipment'}
         onClose={() => setPicker(null)}
         title="Add Equipment"
-        maxWidth="max-w-5xl"
         floating
       >
         <EntitySearcher

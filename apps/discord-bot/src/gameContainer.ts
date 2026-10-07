@@ -1,5 +1,5 @@
 /**
- * The ITUN Game surfaces — `/su sheet`, `/su crew`, `/su games`, `/su shelf`,
+ * The ITUN Game surfaces — `/su sheet`, `/su crew`, `/su games`, `/su my-stuff`,
  * `/su me` and the `/su game` group — as Components V2 containers.
  *
  * ## An adapter, for the same reason `lookupContainer.ts` is one

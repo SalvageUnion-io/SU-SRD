@@ -5,18 +5,23 @@ Every file here is run directly by Bun (`bun tools/<name>.ts`). Most are
 [`check.ts`](check.ts). `bun run check`, `bun run check:fast`, lefthook's
 pre-push and CI's `static-checks` job all run that registry with a different
 profile, so a gate cannot be in one path and missing from another. Each
-script's header docstring carries the full reasoning; this index is for the
-moment one fails and you need to know what it guards and how to fix it.
+script's header docstring carries the full reasoning.
 
 ```bash
 bun run check                 # every gate, in parallel, ending in a pass/fail table
-bun run check:fast            # the inner loop: no suite, no srd build, no network
-bun run check styling data    # just these (ids below); `bun run check --list` prints them all
+bun run check:fast            # the inner loop: no suite, no network
+bun run check styling data    # just these; `bun run check --list` prints every id, what it guards and its fix
 ```
 
-**Adding a gate:** add an entry to `CHECKS` in `check.ts` (id, command,
-profiles, and which CI areas make it relevant). Do not add a step to `ci.yml`
-or a command to `lefthook.yml` — both read the registry.
+A failing check prints its fix hint under its failure banner, then its own
+output.
+
+**Adding a gate:** first prefer what already fails the build: the typecheck, a
+Biome rule, a package `exports` map, the isolated linker. A new gate script
+cites, in its header, the incident it prevents. Register it in `CHECKS` (id,
+command, `guards`, `fix`, profiles, CI areas); do not add a step to `ci.yml` or
+a command to `lefthook.yml`, since both read the registry. A gate with no
+failure in 90 days of `gh run` history is reviewed for deletion.
 
 **Before editing a checker:** its tests live in `tools/__tests__/` (run with
 `bun run test:tools`). A gate that scans a tree must prove it scanned one —
@@ -26,26 +31,23 @@ the corpus size, not just the finding count.
 
 ## The checks in `bun run check`
 
-| Id | Script | Guards | When it fails | Baseline |
-| --- | --- | --- | --- | --- |
-| `generated` | `check-generated.ts` | Regenerates the reference package's schemas, docs, registry and API report plus ITUN's `routeTree.gen.ts`, then fails on any tracked change OR untracked file. Runs first and alone, because it writes files. | Commit the regenerated files it just wrote; never hand-edit them. | — |
-| `test` | `bun run test` | The full suite, every workspace plus `tools/`. Not in the `ci` profile — CI's `coverage` job runs the same files through `run-coverage.ts`. | Fix the test. | — |
-| `srd-output` | `bun --filter srd gate` | The built srd site against `apps/srd/ssg/output-snapshot.json`. Not in `ci` — `build-srd` runs it. | Use the `/srd-gate` skill: read the diff, then re-bless. | `output-snapshot.json` |
-| `typecheck` | `bun run typecheck` | Every workspace, plus `tools/` and `test/` via `tsconfig.tools.json`. | Fix the type error. | — |
-| `knip` | `bun run knip` | No unused files, exports or dependencies. | Use the `/knip-triage` skill. | — |
-| `biome` | `biome ci .` | Lint, format and import order. | `bun run format`, then fix what remains. | — |
-| `data` | `packages/salvageunion-reference/tools/validate.ts` | Eleven data checks over one load: ids, slugs, references, actions, action-backrefs, orphans, content-dupes, traits, parity, double-encoding, schemas. `--only=` runs a subset. | Fix the data; each diagnostic names the file and record. | — |
-| `doc-drift` | `check-doc-drift.ts` | Live docs, skills, rules, agent memory and workflow prompts stay true: exports map, workspace list, superseded ADRs, component-lib symbols, framework majors, `bun run` scripts and check ids, counts, MCP servers, ADR routing, and every cited repo path existing. | Fix the doc. If a citation is deliberately historical, mark it right beside the path ("`x.ts` (since deleted)", "`x.ts` was deleted"). | — |
-| `architecture` | `check-architecture.ts` | No `SalvageUnionReference` accessor call at module scope (it throws "Schema not loaded" before `preload()`), no inlined pool/gauge default, the component-lib function-size cap. | Move the call inside a function; use `resolvePool`; extract a seam. | — |
-| `observability` | `check-observability.ts` | Sentry can actually report: DSN-gated SDK, each app's `public/_headers` CSP allows `SENTRY_INGEST_HOST`, each Worker wraps `withObservability` and grants `nodejs_als`. `bun run check:observability:live` probes production (nightly). | Change the CSP / Sentry wiring in every source for that app together. | — |
-| `convex-codegen` | `check-convex-codegen.ts` | `apps/itun/convex/_generated/api.d.ts` registers exactly the module files on disk. | Regenerate with `bunx convex dev` (needs a deployment); never hand-edit `_generated/`. | — |
-| `convex-callers` | `check-convex-callers.ts` | Every public Convex query/mutation/action has a caller in shipped client code (tests do not count). | Delete the function, or make it `internal*` if only the server calls it. | — |
-| `catalog` | `check-catalog.ts` | `workspaces.catalog`: no package pinned by literal in 2+ manifests, no stray literal for a catalogued package, no entry with fewer than 2 consumers. | Catalogue it, use `catalog:`, or un-catalogue an orphan. See `docs/architecture/dependency-management.md`. | — |
-| `worker-env` | `check-worker-env.ts` | Each Worker's hand-written `Env` type lists exactly the bindings its `wrangler.jsonc` declares. | Rename both sides together. | — |
-| `workflows` | `check-workflows.ts` | One `Bun.YAML` parse of `.github/`, six checks: `aggregator` (`CI Success` needs every ci.yml job), `path-filters` (every app's `workspace:*` dependency is in its filter group), `pinning` (third-party actions SHA-pinned; undeclared `bunx` tools version-pinned), `bun-version` (`.bun-version` = root `bun-types` = root `packageManager` = the running Bun; no inline pins), `convex-guard` (the deploy still runs `convex deploy`, refuses a missing `CONVEX_DEPLOY_KEY`, and the pushing job needs the guard's job), `deploy-order` (every deploy job needs every build job, smoke needs every deploy, the record needs smoke). `--only=` runs a subset. | The message names the file and the fix. | — |
-| `styling` | `check-styling.ts` | Three rule sets on one engine (`lib/ruleEngine.ts`): `tokens` (`rules/designTokens.ts` — no raw colours, gradients, pure white, `su-*` shadow tokens, arbitrary tracking / border / radius / font-size), `styling` (`rules/stylingOwnership.ts` — no app `@theme`, no dead app CSS, the `.pc-*` contract, the package stylesheet import, the Tailwind-file and `.pc-*` ratchets), `srd-css` (`rules/srdCss.ts` — srd imports css only from its client entry; component-lib imports none). | Follow the rule's printed `fix`. `zero` rules have no baseline. A ratchet fails when it rises AND when it falls without the baseline being lowered: `bun tools/check-styling.ts --update-baseline`. `--report` lists every finding. | `styling-baseline.json` |
-| `audit` | `bun audit --audit-level=high` | No high-severity advisory. Network; not in `fast`. | See `docs/architecture/dependency-management.md`. | — |
-| `actionlint` | `lint-workflows.sh` | actionlint + zizmor over `.github/`, each fetched at a pinned version and sha256-verified. Network on first run; not in `fast`. | Fix the finding; zizmor's config is `.github/zizmor.yml`. To bump a tool, replace every hash for it. | — |
+| Id | Script | Baseline |
+| --- | --- | --- |
+| `generated` | `check-generated.ts` (runs first and alone: it rewrites files) | — |
+| `test` | `bun run test` | — |
+| `typecheck` | `bun run typecheck` | — |
+| `knip` | `bun run knip` | — |
+| `biome` | `biome ci .`, plus the GritQL plugins in `biome/` | — |
+| `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
+| `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET` in the script |
+| `architecture` | `check-architecture.ts` | — |
+| `observability` | `check-observability.ts` | — |
+| `convex-codegen` | `check-convex-codegen.ts` | — |
+| `convex-callers` | `check-convex-callers.ts` | — |
+| `workflows` | `check-workflows.ts` (`--only=` runs a subset) | — |
+| `styling` | `check-styling.ts` (`--report` lists every finding) | `styling-baseline.json` |
+| `audit` | `bun audit --audit-level=high` (CI: only when a manifest or `bun.lock` changed) | one `--ignore`, in `check.ts` |
+| `actionlint` | `lint-workflows.sh` (pinned, sha256-verified actionlint + zizmor) | — |
 
 ## CI-only, nightly and deploy scripts
 

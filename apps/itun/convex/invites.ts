@@ -1,9 +1,10 @@
+import { getAuthUserId } from '@convex-dev/auth/server'
 import { v } from 'convex/values'
-import { generateUniqueId } from '../src/lib/snapshot/id'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
+import { discordIdOfUser, mayRedeem, mintInvite, statusOf } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
 import { logOwnershipChange } from './ownership'
 
@@ -16,9 +17,10 @@ import { logOwnershipChange } from './ownership'
  * second generator: it is already Crockford base32 (no I/L/O/U, so a code read
  * aloud across a table cannot be mistyped), already collision-checked against a
  * caller-supplied `exists`, and already backed by `crypto.getRandomValues`.
- * Those are exactly the properties an invite code wants.
+ * Those are exactly the properties an invite code wants. Minting itself is
+ * `model/invites.ts#mintInvite`, shared with every other door that creates one.
  *
- * An invite carries three things beyond the code itself:
+ * An invite carries four things beyond the code itself:
  *
  *   - **A seat** (`role`). A Mediator invite hands over the GM chair on join,
  *     which is the Organizer pre-exercising the authority `games.setMediator`
@@ -30,25 +32,10 @@ import { logOwnershipChange } from './ownership'
  *     grants nothing until the Organizer approves it, which is what a code
  *     posted somewhere public needs, since membership confers read access to
  *     every crewmate's sheet (ADR-030 §5).
+ *   - **An address** (`target`, ADR-039). An invite addressed to a Discord
+ *     account is redeemable only by that account, is single use, and may be
+ *     declined by its addressee.
  */
-
-const DEFAULT_EXPIRY_MS = 1000 * 60 * 60 * 24 * 14 // 14 days
-
-/** What an invite is currently worth, derived rather than stored. */
-export type InviteStatus = 'active' | 'revoked' | 'expired' | 'exhausted'
-
-/**
- * Derive status from the row and the clock.
- *
- * Deliberately not a stored column: an `expired` flag would need a cron to stay
- * true, and a stale one would let a dead code through.
- */
-function statusOf(invite: Doc<'invites'>, now: number): InviteStatus {
-  if (invite.revokedAt !== undefined) return 'revoked'
-  if (invite.expiresAt !== undefined && invite.expiresAt < now) return 'expired'
-  if (invite.usesRemaining !== undefined && invite.usesRemaining <= 0) return 'exhausted'
-  return 'active'
-}
 
 /** Mint an invite for a Game. Administrative, so Organizer only. */
 export const create = mutation({
@@ -70,46 +57,20 @@ export const create = mutation({
   },
   handler: async (ctx, args): Promise<string> => {
     const membership = await requireOrganizer(ctx, args.gameId)
-
-    const code = await generateUniqueId(async (candidate) => {
-      const existing = await ctx.db
-        .query('invites')
-        .withIndex('by_code', (q) => q.eq('code', candidate))
-        .unique()
-      return existing !== null
-    })
-
-    const role = args.role ?? 'player'
-    const grants = args.grants ?? []
-
-    /*
-     * Two kinds of invite are single-use unless the Organizer says otherwise,
-     * because both are foot-guns when shared:
-     *
-     *   - A Mediator code. The schema permits several Mediators but the UI is
-     *     built for one, so an unlimited one quietly seats a second.
-     *   - A code carrying grants. Two people cannot both receive the same
-     *     pilot; the second would join and silently get nothing.
-     */
-    const defaultsToSingleUse = role === 'mediator' || grants.length > 0
-    const usesRemaining = args.usesRemaining ?? (defaultsToSingleUse ? 1 : undefined)
-
-    const now = Date.now()
-    await ctx.db.insert('invites', {
-      gameId: args.gameId,
-      code,
-      createdBy: membership.userId,
-      createdAt: now,
-      expiresAt: now + (args.expiresInMs ?? DEFAULT_EXPIRY_MS),
-      usesRemaining,
-      label: args.label,
-      role,
-      grants: grants.length > 0 ? grants : undefined,
-      requiresApproval: args.requiresApproval ?? false,
-    })
-    return code
+    const invite = await mintInvite(ctx, membership, args)
+    return invite.code
   },
 })
+
+/**
+ * Who an invite is addressed to, as the Organizer's list shows it: the handle
+ * the Organizer picked from Discord's own user picker, never the snowflake.
+ */
+function addressOf(invite: Doc<'invites'>): { kind: 'discord'; name: string | null } | null {
+  const target = invite.target
+  if (target === undefined) return null
+  return { kind: 'discord', name: target.name ?? null }
+}
 
 /** Every invite for a Game, with its derived status and who has used it. */
 export const list = query({
@@ -147,6 +108,11 @@ export const list = query({
         usesRemaining: invite.usesRemaining ?? null,
         status: statusOf(invite, now),
         redeemers,
+        target: addressOf(invite),
+        delivery:
+          invite.delivery === undefined
+            ? null
+            : { state: invite.delivery.state, detail: invite.delivery.detail ?? null },
       })
     }
 
@@ -186,6 +152,10 @@ export const revoke = mutation({
  * Unauthenticated on purpose — someone following an invite link has not signed
  * in yet, and refusing to say what the link is for until they do is how you get
  * a person signing in to find out they were sent a dead code.
+ *
+ * An addressed invite (ADR-039) says only *how* it is addressed, never to whom.
+ * For a Discord one, a signed-in viewer also learns whether it is theirs — the
+ * same fact `redeem` would tell them, offered before they press the button.
  */
 export const preview = query({
   args: { code: v.string() },
@@ -204,6 +174,12 @@ export const preview = query({
 
     const inviter = await ctx.db.get(invite.createdBy)
 
+    let forYou: boolean | null = null
+    if (invite.target?.kind === 'discord') {
+      const viewer = await getAuthUserId(ctx)
+      if (viewer !== null) forYou = await mayRedeem(ctx, invite, viewer)
+    }
+
     return {
       gameName: game.name,
       invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
@@ -211,6 +187,9 @@ export const preview = query({
       requiresApproval: invite.requiresApproval ?? false,
       grantCount: invite.grants?.length ?? 0,
       status: statusOf(invite, Date.now()),
+      expiresAt: invite.expiresAt ?? null,
+      addressed: invite.target?.kind ?? null,
+      forYou,
     }
   },
 })
@@ -292,11 +271,21 @@ async function seat(
   return granted
 }
 
+/**
+ * The refusal for a Discord-addressed invite opened by somebody else. It names
+ * nobody: who an invite was for is the Organizer's business, and saying it here
+ * would turn every leaked link into a lookup.
+ */
+const NOT_YOUR_INVITE =
+  'That invite was sent to a different Discord account. Sign in with the account it was sent to.'
+
 /** Reject a code that cannot currently be spent, with wording worth showing. */
 function assertSpendable(invite: Doc<'invites'>): void {
   switch (statusOf(invite, Date.now())) {
     case 'revoked':
       throw new NotAuthorized('That invite code has been revoked')
+    case 'declined':
+      throw new NotAuthorized('That invite was declined')
     case 'expired':
       throw new NotAuthorized('That invite code has expired')
     case 'exhausted':
@@ -341,6 +330,7 @@ export const redeem = mutation({
     if (existing !== null) return { kind: 'already', gameId: invite.gameId }
 
     assertSpendable(invite)
+    if (!(await mayRedeem(ctx, invite, userId))) throw new NotAuthorized(NOT_YOUR_INVITE)
 
     if (invite.requiresApproval === true) {
       const prior = await ctx.db
@@ -373,6 +363,84 @@ export const redeem = mutation({
 
     const granted = await seat(ctx, invite, userId)
     return { kind: 'joined', gameId: invite.gameId, granted }
+  },
+})
+
+/**
+ * Turn down an addressed invite (ADR-039).
+ *
+ * Only an addressed invite can be declined: a bearer code may be meant for a
+ * whole table, and one person saying no must not close it for the rest. The
+ * same address rule as `redeem` applies — only the addressee can decline — so
+ * nobody can decline on somebody else's behalf.
+ *
+ * Declining is terminal; asking again means asking the Organizer for a new
+ * invite. Declining twice, or after it lapsed, is a no-op rather than an error.
+ */
+export const decline = mutation({
+  args: { code: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const code = args.code.trim().toUpperCase()
+
+    const invite = await ctx.db
+      .query('invites')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .unique()
+    if (invite === null) throw new NotAuthorized('That invite code is not valid')
+    if (invite.target === undefined) {
+      throw new NotAuthorized('Only an invite sent to you can be declined')
+    }
+    if (!(await mayRedeem(ctx, invite, userId))) throw new NotAuthorized(NOT_YOUR_INVITE)
+    if (statusOf(invite, Date.now()) !== 'active') return
+
+    await ctx.db.patch(invite._id, { declinedAt: Date.now() })
+  },
+})
+
+/**
+ * Live invites addressed to the signed-in player's Discord account — the hub's
+ * Invitations card (ADR-039).
+ *
+ * This is why a failed DM is not a lost invite: whatever happened in Discord,
+ * the addressee finds it here the next time they open the app.
+ *
+ * Returns the same facts `preview` gives a link holder, plus the code to act
+ * on — nothing about the crew, as membership has not begun.
+ */
+export const forMe = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (userId === null) return []
+    const discordId = await discordIdOfUser(ctx, userId)
+    if (discordId === null) return []
+
+    const now = Date.now()
+    const invites = await ctx.db
+      .query('invites')
+      .withIndex('by_target_discord', (q) => q.eq('target.discordId', discordId))
+      .collect()
+
+    const out = []
+    for (const invite of invites) {
+      if (statusOf(invite, now) !== 'active') continue
+      // Already seated (another door, or an earlier invite): nothing to accept.
+      if ((await getMembership(ctx, invite.gameId, userId)) !== null) continue
+      const game = await ctx.db.get(invite.gameId)
+      if (game === null) continue
+      const inviter = await ctx.db.get(invite.createdBy)
+      out.push({
+        _id: invite._id,
+        code: invite.code,
+        gameName: game.name,
+        invitedBy: inviter?.displayName ?? inviter?.name ?? 'the organizer',
+        role: invite.role ?? 'player',
+        grantCount: invite.grants?.length ?? 0,
+        expiresAt: invite.expiresAt ?? null,
+      })
+    }
+    return out
   },
 })
 

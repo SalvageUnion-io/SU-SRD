@@ -26,6 +26,7 @@ import { Button } from '../chrome/Button'
 import { Glyph } from '../chrome/glyphs'
 import { FOCUS_RING } from '../chrome/interaction'
 import { ModalShell } from './ModalShell'
+import { PICKER_MODAL_WIDTH } from './pickerModalWidth'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
@@ -98,12 +99,9 @@ export function SectionManageButton({ label, onClick, className }: SectionManage
 }
 
 // ---------------------------------------------------------------------------
-// Per-card controls (redesign G4) — the ✕ remove (+ optional ⇄ swap) cluster
-// renders icon-only in the entity-card HEADER top-right via Card's card-level
-// `controls` slot (never in the foot). The `cardRemoveControls` factory that
-// builds that cluster, plus the shared editing cue it stamps onto the card,
-// live in `./editLanguage` (a components-free module). `CardRemoveButton` below
-// is the standalone button variant.
+// Per-card controls (redesign G4) — `CardRemoveButton` is the standalone ✕
+// remove button. The shared editing cue lives in `./editLanguage` (a
+// components-free module).
 // ---------------------------------------------------------------------------
 
 type CardRemoveButtonProps = {
@@ -136,7 +134,10 @@ type SheetPickerModalProps = {
   open: boolean
   onClose: () => void
   title: string
-  /** ModalShell max width; defaults to 80% of the viewport for the wide picker grid. */
+  /**
+   * ModalShell max width. Defaults to `PICKER_MODAL_WIDTH` for a `floating`
+   * searcher picker, and to 80% of the viewport for a framed picker body.
+   */
   maxWidth?: string
   /**
    * The searcher-picker layout: render a BARE ModalShell and hand the single
@@ -165,12 +166,12 @@ export function SheetPickerModal({
   open,
   onClose,
   title,
-  maxWidth = 'max-w-[80vw]',
+  maxWidth,
   floating = false,
   children,
 }: SheetPickerModalProps) {
   // Floating searcher-picker: a BARE ModalShell; the child EntitySearcher owns
-  // the whole frame (header + search + close + internal scroll + pinned rail).
+  // the whole frame (header + search + close + internal scroll + its rail).
   // Inject this modal's title/onClose onto that single child.
   if (floating) {
     const searcher = isValidElement(children)
@@ -186,7 +187,7 @@ export function SheetPickerModal({
           if (!next) onClose()
         }}
         title={title}
-        maxWidth={maxWidth}
+        maxWidth={maxWidth ?? PICKER_MODAL_WIDTH}
         bare
       >
         {searcher}
@@ -201,7 +202,7 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      maxWidth={maxWidth}
+      maxWidth={maxWidth ?? 'max-w-[80vw]'}
     >
       <div className="bg-paper p-5">{children}</div>
     </ModalShell>

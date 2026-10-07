@@ -11,7 +11,7 @@
  *            crawler-tech-levels.json; the default SRD bays are seeded).
  *
  * Reuses the app's standard dialog shell (component-lib ModalShell — the same
- * shell behind ConfirmDialog/SelectorDialog) and Field/Input chrome.
+ * shell behind component-lib's ConfirmDialog) and Field/Input chrome.
  */
 
 import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'

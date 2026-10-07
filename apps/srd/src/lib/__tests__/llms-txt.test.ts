@@ -2,10 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import type { RouteContext } from '../../../ssg/types'
 import { llmsTxtEndpoint } from '../../endpoints/llmsTxt'
 
-/**
- * These cover the endpoint's content RULES; `ssg/snapshot.ts` separately digests the
- * emitted file's exact bytes, so a reflow of the template literal fails there.
- */
+/** These cover the endpoint's content rules, not its exact bytes. */
 const render = () => llmsTxtEndpoint.body({} as RouteContext<Record<string, string>, unknown>)
 
 describe('GET /llms.txt', () => {

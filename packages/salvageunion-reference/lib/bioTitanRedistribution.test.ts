@@ -48,7 +48,7 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
   })
 
   it('places the Iron Lady in Drones with her actions and modules', () => {
-    const ironLady = getReference().Drones.find((d) => d.name === 'The Iron Lady')
+    const ironLady = getReference().Drones.getByName('The Iron Lady')
     expect(ironLady).toBeDefined()
     expect(defined(ironLady).structurePoints).toBe(87)
     expect(defined(ironLady).salvageValue).toBe(87)
@@ -61,7 +61,7 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
   })
 
   it('resolves the Iron Lady actions (including Titanic Actions) from her drone home', () => {
-    const ironLady = defined(getReference().Drones.find((d) => d.name === 'The Iron Lady'))
+    const ironLady = defined(getReference().Drones.getByName('The Iron Lady'))
     const actions = getReference().resolveActions(ironLady)
     expect(Array.isArray(actions)).toBe(true)
     expect(defined(actions).some((a) => a.name === 'Titanic Actions (The Iron Lady)')).toBe(true)

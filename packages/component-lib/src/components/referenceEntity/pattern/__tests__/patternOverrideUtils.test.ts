@@ -9,8 +9,8 @@ import { computeSvOverride, resolvePatternOverride } from '../patternOverrideUti
  * The Mule chassis (SV 7, TL 1) carries the "Hauler Pattern"; its systems and
  * modules are real, known-value fixtures used here to hand-verify the sums.
  */
-const muleFound = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
-const nonChassisFound = SalvageUnionReference.Systems.find((s) => s.name === '.50 Cal Machine Gun')
+const muleFound = SalvageUnionReference.Chassis.getByName('Mule')
+const nonChassisFound = SalvageUnionReference.Systems.getByName('.50 Cal Machine Gun')
 if (!muleFound || !nonChassisFound) throw new Error('fixture entities missing from reference data')
 const mule: SURefEntity = muleFound
 const nonChassis: SURefEntity = nonChassisFound

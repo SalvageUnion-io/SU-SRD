@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.4](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.3...salvageunion-reference-v2.13.4) (2026-10-06)
+
+
+### Bug Fixes
+
+* **itun:** a max reads as overridden only when it differs from the derivation ([#1029](https://github.com/SalvageUnion-io/SU-SRD/issues/1029)) ([24b0072](https://github.com/SalvageUnion-io/SU-SRD/commit/24b0072326e1da368f354f3c42416117f85d5a7f))
+
 ## [2.13.3](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.2...salvageunion-reference-v2.13.3) (2026-09-28)
 
 

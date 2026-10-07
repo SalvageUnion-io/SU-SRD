@@ -237,12 +237,10 @@ describe('protect-generated-files.sh', () => {
     ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
-    ['the API report', 'packages/salvageunion-reference/etc/salvageunion-reference.api.d.ts'],
     ['the router tree', 'apps/itun/src/routeTree.gen.ts'],
     ['anything under dist', 'apps/srd/dist/index.html'],
     // Unlisted before, all silently allowed.
     ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
-    ['the srd output snapshot', 'apps/srd/ssg/output-snapshot.json'],
     ['the lockfile', 'bun.lock'],
     ['the styling baseline', 'tools/styling-baseline.json'],
     ['generated editor settings', '.vscode/settings.json'],

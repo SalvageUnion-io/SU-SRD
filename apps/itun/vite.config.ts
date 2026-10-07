@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
-import { RETIRED_NAVIGATIONS } from './src/worker/retiredRoutes'
+import { WORKBOX_OPTIONS } from './src/lib/sw/workbox'
 
 // Sourcemap upload is entirely env-gated on SENTRY_AUTH_TOKEN, mirroring the
 // discipline of src/lib/observability.ts: absent locally and in CI (no token
@@ -32,13 +32,14 @@ export default defineConfig({
       // Under 'autoUpdate' the plugin FORCE-ASSIGNS `workbox.skipWaiting` and
       // `workbox.clientsClaim` to true (dist/index.js: an assignment, not a
       // default, so setting them in `workbox` below cannot override it). The
-      // emitted worker then activates the moment it finishes installing,
-      // claims the already-open page, and runs `cleanupOutdatedCaches()` —
-      // deleting the precache the live page is still reading from. That page
-      // goes on requesting hashed chunks from a build the server no longer
-      // has, and every one of them fails. Reloading is the only way out, which
-      // is precisely the symptom: a snapshot link that renders on the fifth
-      // try, once the ~1.2 MB precache install has finally finished.
+      // emitted worker then activates the moment it finishes installing and
+      // takes over the already-open page, and activating removes every
+      // precache entry the new build no longer lists — the entries the live
+      // page is still reading from. That page goes on requesting hashed chunks
+      // from a build the server no longer has, and every one of them fails.
+      // Reloading is the only way out, which is precisely the symptom: a
+      // snapshot link that renders on the fifth try, once the ~1.2 MB precache
+      // install has finally finished.
       //
       // Under 'prompt' the new worker installs and then WAITS. The running
       // page keeps the precache it booted with, so its chunks stay resolvable
@@ -46,18 +47,17 @@ export default defineConfig({
       // accepts (src/lib/sw/register.ts posts SKIP_WAITING and reloads) or
       // when every tab has closed. Nothing is yanked mid-session.
       //
-      // The cost is that a user can sit on an old build until they accept —
-      // which is why the prompt is a toast and not a silent no-op, and why
-      // chunkRecovery.ts still exists as the backstop for the tab that was
-      // already mid-flight when a deploy landed.
+      // Waiting no longer means BOOTING an old build: navigations go to the
+      // network first (src/lib/sw/workbox.ts), so every page load gets the
+      // deployed shell and the precache is only the offline fallback. What a
+      // waiting worker still delays is the precache catching up, and a tab
+      // that stays open across a deploy — which is why register.ts checks for
+      // updates while a tab is open and toasts only a tab older than the
+      // server, and why chunkRecovery.ts still exists as the backstop for the
+      // tab that was already mid-flight when a deploy landed.
       registerType: 'prompt',
       includeAssets: ['favicon.svg'],
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Retired URLs go to the network, where the Worker 301s them, instead of
-        // being answered with the precached shell — see src/worker/retiredRoutes.ts.
-        navigateFallbackDenylist: [...RETIRED_NAVIGATIONS],
-      },
+      workbox: WORKBOX_OPTIONS,
       manifest: {
         name: 'ITUN — In The Union Now',
         short_name: 'ITUN',
@@ -206,18 +206,19 @@ export default defineConfig({
     watch: {
       ignored: ['**/routeTree.gen.ts'],
     },
-    // Snapshot API dev proxy. `vite dev` serves the SPA only — the snapshot
-    // API lives in `src/worker/index.ts`, which Vite never runs — so without
-    // this, PublishButton 404s and the UI's feature-detection quietly decides
-    // publishing is unavailable.
+    // Snapshot API dev proxy. `vite dev` serves the SPA only — the one read
+    // left of the retired snapshot API (`GET /api/snapshots/:id`, which `/s/:id`
+    // uses to find the entity an old link names, ADR-036) lives in
+    // `src/worker/index.ts`, which Vite never runs. Without this, every `/s/:id`
+    // under `vite dev` shows the retired page.
     //
     // The target is `wrangler dev`, which runs that Worker with local R2:
     //
     //   bunx wrangler dev            # from apps/itun, port 8787
     //   bun run dev:itun             # alongside it
     //
-    // NO REWRITE. The Worker owns `/api/snapshots` and `/api/snapshots/:id`
-    // directly, so the path passes through untouched.
+    // NO REWRITE. The Worker owns `/api/snapshots/:id` directly, so the path
+    // passes through untouched.
     proxy: {
       '/api/snapshots': {
         target: 'http://localhost:8787',

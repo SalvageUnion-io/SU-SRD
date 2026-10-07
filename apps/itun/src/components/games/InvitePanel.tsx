@@ -10,9 +10,11 @@ import {
   Text,
 } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import type { FunctionReturnType } from 'convex/server'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { humanExpiry } from '../../lib/games/inviteExpiry'
 import { ConvexPending } from '../shared/ConvexPending'
 
 /**
@@ -33,13 +35,6 @@ import { ConvexPending } from '../shared/ConvexPending'
  *     read access to every crewmate's sheet (ADR-030 §5).
  */
 
-function humanExpiry(expiresAt: number | null): string {
-  if (expiresAt === null) return 'no expiry'
-  const days = Math.ceil((expiresAt - Date.now()) / (1000 * 60 * 60 * 24))
-  if (days <= 0) return 'expired'
-  return `${days} ${days === 1 ? 'day' : 'days'} left`
-}
-
 function humanUses(usesRemaining: number | null): string {
   if (usesRemaining === null) return 'unlimited uses'
   return `${usesRemaining} ${usesRemaining === 1 ? 'use' : 'uses'} left`
@@ -49,9 +44,35 @@ function humanUses(usesRemaining: number | null): string {
 const STATUS_TONE = {
   active: 'ok',
   revoked: 'bad',
+  declined: 'warn',
   expired: 'warn',
   exhausted: 'warn',
 } as const
+
+type InviteRow = NonNullable<FunctionReturnType<typeof api.invites.list>>[number]
+
+/**
+ * Who an addressed invite (ADR-039) went to, and whether its DM got there. A
+ * bearer code has neither, so this is empty for one.
+ */
+function addressMeta(invite: InviteRow): Array<string | null> {
+  const to =
+    invite.target === null
+      ? null
+      : `sent to ${invite.target.name === null ? 'a Discord account' : `@${invite.target.name}`}`
+  // Only while the invite is live: once it is used, declined or revoked, how
+  // the DM fared is no longer something to act on — and a DM that never went
+  // out because the invite closed first would read "sending" forever.
+  const delivery =
+    invite.delivery === null || invite.status !== 'active'
+      ? null
+      : invite.delivery.state === 'failed'
+        ? `DM not delivered${invite.delivery.detail === null ? '' : ` (${invite.delivery.detail})`}`
+        : invite.delivery.state === 'queued'
+          ? 'DM sending'
+          : null
+  return [to, delivery]
+}
 
 export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
   const invites = useQuery(api.invites.list, { gameId })
@@ -118,7 +139,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
 
       {requests !== undefined && requests.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <PageHeading variant="section" as="h3">
+          <PageHeading variant="section" as="h4">
             Asking to join
           </PageHeading>
           {requests.map((request) => (
@@ -156,7 +177,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
       )}
 
       <div className="flex flex-col gap-1.5">
-        <PageHeading variant="section" as="h3">
+        <PageHeading variant="section" as="h4">
           Codes
         </PageHeading>
         {invites === undefined && <ConvexPending />}
@@ -181,6 +202,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
             }
             meta={[
               invite.label,
+              ...addressMeta(invite),
               invite.role === 'mediator' ? 'Mediator seat' : null,
               invite.requiresApproval ? 'needs approval' : null,
               invite.grantCount > 0 ? `${invite.grantCount} handed over` : null,

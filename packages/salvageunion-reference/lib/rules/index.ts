@@ -15,31 +15,16 @@
  * crypto.randomUUID()) remain app-local in ITUN for now.
  *
  * Every name is re-exported explicitly, and only names with a consumer outside
- * the package are listed. A rules module can be live and tested without being
- * here (mediatorTables.ts has no UI surface today — see
- * docs/architecture/combat-loop.md); add its names when something imports them.
+ * the package are listed; add a name when something imports it.
  */
 
 export type { AdvancementOption } from './advancement.js'
-export {
-  advancementOptionsFor,
-  originsForHybrid,
-  resolveAdvancementTrees,
-} from './advancement.js'
-export {
-  liveAdvancementDataset,
-  offeredAbilityTrees,
-} from './advancementDataset.js'
+export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement.js'
+export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset.js'
 export { computeMechCapacity } from './capacity.js'
-export {
-  isSchemaOnlyCatalogChoice,
-  resolveCatalogChoiceEntities,
-} from './choiceCatalog.js'
-export {
-  abilityContributions,
-  sumContributions,
-} from './contributions.js'
-export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js'
+export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog.js'
+export { abilityContributions, sumContributions } from './contributions.js'
+export type { CoreRollBand, CoreRollResult } from './coreMechanic.js'
 export {
   CORE_ROLL_BANDS,
   coreRollBand,
@@ -47,17 +32,9 @@ export {
   describePushOutcome,
   performCoreRoll,
 } from './coreMechanic.js'
-export type {
-  CrawlerCapacityInput,
-  CrawlerCapacityResult,
-  CrawlerCapacityViolation,
-} from './crawlerCapacity.js'
 export { computeCrawlerCapacity } from './crawlerCapacity.js'
 export { isWeaponSystem } from './crawlerSystems.js'
-export type {
-  CrawlerMutationInput,
-  MechCreationBudget,
-} from './creation.js'
+export type { CrawlerMutationInput, MechCreationBudget } from './creation.js'
 export {
   crawlerMaxSpBonus,
   crawlerWeaponSlots,
@@ -80,17 +57,12 @@ export {
   PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
 } from './creation.js'
-export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'
+export type { ChassisStats, StatBreakdown } from './derivedStats.js'
 export {
-  clampCrawlerCurrentStats,
-  clampMechCurrentStats,
-  clampPilotCurrentStats,
   crawlerMaxSP,
   crawlerMaxSPParts,
-  injuryMaxHpPenalty,
   isPilotDead,
   mechMaxCargo,
-  mechMaxCargoParts,
   mechMaxEP,
   mechMaxEPParts,
   mechMaxHeat,
@@ -105,20 +77,14 @@ export {
   pilotMaxHP,
   pilotMaxHPParts,
   pilotMaxInventorySlots,
-  pilotMaxInventorySlotsParts,
+  pinFor,
   resolveGauge,
   resolvePool,
   resolvePoolStart,
   unifiedMechConditions,
 } from './derivedStats.js'
 export { rollDie } from './dice.js'
-export {
-  canActivateAction,
-  clampHeat,
-  performHeatCheck,
-  performPush,
-  reactorOverloadOutcome,
-} from './heatCheck.js'
+export { canActivateAction, clampHeat, performHeatCheck, performPush } from './heatCheck.js'
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export {
   matchesRef,
@@ -132,54 +98,25 @@ export {
 } from './resolveRefs.js'
 export { statesMechanicalChange } from './rulesBearing.js'
 export { scrapCostFor, tierUpgradeCost } from './scrap.js'
-export {
-  evaluateMechWarnings,
-  evaluatePilotWarnings,
-  evaluateSoftWarnings,
-} from './softWarnings.js'
+export { evaluateSoftWarnings } from './softWarnings.js'
 export type {
   CriticalDamageEffect,
   CriticalInjuryEffect,
-  DamageKind,
   MechDamageEffect,
-  MechDamageInput,
   PilotDamageEffect,
-  PilotDamageInput,
 } from './takeDamage.js'
 export {
   applyMechDamage,
   applyPilotDamage,
-  criticalDamageOutcome,
-  criticalInjuryOutcome,
-  mechEffectiveDamage,
   performCriticalDamage,
   performCriticalInjury,
-  pilotEffectiveDamage,
 } from './takeDamage.js'
 export type {
-  AbilityInput,
-  AbilityTier,
-  CapacityViolation,
-  CargoCapacityResult,
-  CargoItem,
-  CargoItemCustom,
-  CargoItemRef,
-  CargoParent,
-  CargoViolation,
-  EditSnapshot,
   HeatCheckEffect,
-  MechCapacityResult,
-  MechInput,
-  MechModuleSlot,
   MechSnapshot,
-  MechSystemSlot,
   PilotSnapshot,
-  PushResult,
   Roll,
-  ScrapableItem,
   SoftWarning,
   SoftWarningContext,
-  SoftWarningSeverity,
-  SystemSnapshot,
   TechLevel,
 } from './types.js'

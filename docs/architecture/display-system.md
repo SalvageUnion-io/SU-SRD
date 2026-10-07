@@ -157,7 +157,7 @@ otherwise** — the persistence-agnostic split of
 ephemeral mode; ITUN passes `selections` / `onSelectionChange` down from
 `ReferenceEntityCard` and wires them to its stores via
 `apps/itun/src/components/shared/useEntityChoices.ts`. `readOnly` renders the
-groups statically (snapshots).
+groups statically (read-only sheets).
 
 **Grants** resolve via `resolveGrantedEntities` (exported from
 `salvageunion-reference`) and render as nested cards carrying a `parentSeal`

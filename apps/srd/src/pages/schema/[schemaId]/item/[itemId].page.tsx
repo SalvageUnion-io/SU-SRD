@@ -1,10 +1,8 @@
 /**
  * `/schema/[schemaId]/item/[itemId]` — an entity's show page.
  *
- * The largest route family on the site (~880 of 1,039 pages), so a change here
- * reaches almost the whole SRD at once. `ssg/snapshot.ts` is what makes that
- * safe to touch: run `bun run gate` and the snapshot diff lists precisely which
- * of those pages moved.
+ * The largest route family on the site (~850 of 1,038 pages), so a change here
+ * reaches almost the whole SRD at once.
  */
 
 import { assetSrcSetFor, cardImageSizes } from 'component-lib'

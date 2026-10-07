@@ -95,9 +95,6 @@ export const SOLO_NOTICE = [
  * bot becomes a real embed here and nowhere else. Keeping it out of the
  * builders also keeps them pure `data → EmbedData`, which is what makes them
  * testable without a Discord client.
- *
- * `enforceEmbedLimits` mutates, which is safe precisely because the argument is
- * always a freshly-built literal from a `build*Embed` call.
  */
 export function toGameContainer(data: EmbedData): ContainerBuilder {
   // `toContainer` runs its own guard, which is a different budget from

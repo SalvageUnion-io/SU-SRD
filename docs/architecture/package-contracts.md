@@ -41,30 +41,9 @@ full rationale.
 
 ### Entry Points
 
-```json
-{
-  ".": {
-    "types": "./lib/index.ts",
-    "default": "./lib/index.ts"
-  },
-  "./rules": {
-    "types": "./lib/rules/index.ts",
-    "default": "./lib/rules/index.ts"
-  },
-  "./zod": {
-    "types": "./lib/zod.ts",
-    "default": "./lib/zod.ts"
-  },
-  "./schema-definitions": {
-    "types": "./lib/schemaDefinitions.ts",
-    "default": "./lib/schemaDefinitions.ts"
-  },
-  "./testing": {
-    "types": "./lib/testing.ts",
-    "default": "./lib/testing.ts"
-  }
-}
-```
+`.`, `./rules`, `./zod`, `./schema-definitions` and `./testing`, each mapping
+`types` and `default` to the same `lib/*.ts` source file; the `exports` map in
+`packages/salvageunion-reference/package.json` is the definition.
 
 Consuming apps resolve `lib/index.ts` directly — there is no `dist/` build and
 no `development`/`import` condition split. `./rules` is the pure-math rules
@@ -80,11 +59,6 @@ the main barrel — only the srd `/schema/[id].schema.json` build route imports 
 whose overrides are type-checked against that schema, and `malformed<T>(value)`
 names a deliberately invalid input. Use them instead of `as unknown as SURef*`
 in tests.
-
-`tools/check-doc-drift.ts` (`bun run check doc-drift`) fails CI if this block
-ever falls out of sync with `packages/salvageunion-reference/package.json`'s
-actual `exports` map again — the exact class of drift a prior campaign PR had
-to fix by hand.
 
 ### Public API
 
@@ -111,8 +85,7 @@ re-export every name individually, and only names with a consumer outside the
 package are listed — no `export *`. The Zod schemas are **not** on the main
 barrel — nothing outside the package imported them; the JSON Schema documents
 are `./schema-definitions`. To expose a new name, add it
-to the list; the API report (`etc/salvageunion-reference.api.d.ts`) then shows
-the addition in review.
+to the list.
 
 **Utility exports (representative — `lib/index.ts` is the source of truth):**
 `nameToSlug`, `getEntitySlug`, `findEntityBySlug`, `replaceChassisPlaceholder`, `parseContentBlockString`, `resultForTable`, `resultForColumnsTable`, `rollOnTable` (shared roll orchestration with injectable roller — consumed by the Discord bot and ITUN), `getDataMaps`, `getSchemaCatalog`, `resolveGrantedEntities`, `resolveChoiceView`
@@ -235,7 +208,7 @@ read `src/index.ts` for anything load-bearing:
 - **Types** — `ReferenceEntityControl`, `CardFootMeta`, `ChoiceSelections`, `EntityHrefBuilder`, …
 - **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
 - **Base typography** — `Text`
-- **UI primitives** — `Toaster` / `toast`, `ModalShell`
+- **UI primitives** — `Toaster` / `toast`, `ModalShell`, `ConfirmDialog`
 - **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `Conditions`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Textarea`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Sel`, `KvRow`, `Toggle`, and friends
 - **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `heatDangerFrom` (the running-text `StatLine` was
   absorbed into `Stat` as `orientation="horizontal" surface="plain"`)
@@ -263,7 +236,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 ### Dependencies
 
 - **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom` only — one instance per app
-- **Dependencies** (declared by the library itself, catalogued where shared): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
+- **Dependencies** (declared by the library itself): `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`. These used to be peers that srd never supplied (audit PK-07); see [dependency-management.md](dependency-management.md#declare-what-you-import-in-the-right-field)
 - **Stylesheets are exports, never side-effect imports**: `component-lib/styles/index.css`, `theme.css`, and `dashboard.css` (the `.pc-*` dashboard bundle, imported only by ITUN). No shipping library module imports `.css` — `bun run check styling` (its `srd-css` rule set) enforces it (audit PK-01)
 - **`"sideEffects": ["**/*.css"]`** in its `package.json`: no library module runs code at import, so a bundler may drop any module whose exports go unused. That is what keeps srd's every-page nav islands from shipping the whole library. A module that must run at import (a registration, a global patch) has to be added to that list, or production builds will silently tree-shake it away
 - **No backend/data-source dependency** — fully data-source agnostic
@@ -289,8 +262,7 @@ for rendering) + React 19 islands — see
   endpoints are `src/endpoints/*.ts` (`EndpointModule`) registered in
   `ssg/endpoints.ts`. Nothing is discovered from the filesystem.
 - `bun ssg/build.ts` builds; `bun ssg/dev.ts` serves through the same
-  `ssg/render.tsx`; `bun --filter srd gate` (`ssg/snapshot.ts`) diffs the built output
-  against a committed snapshot and runs in CI.
+  `ssg/render.tsx`.
 - **Hard rule:** no `.css` import may be reachable from an SSR module. All css is
   imported from `src/runtime/styles.entry.ts` (a client-bundle entry); all static
   assets from `src/runtime/assets.entry.ts`, addressed via
@@ -326,15 +298,16 @@ for rendering) + React 19 islands — see
 - `salvageunion-reference` (workspace:\*) — game data
 - `component-lib` (workspace:\*) — shared components + theme
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
-- `@tanstack/react-router` — routing (and the snapshot route's loader)
+- `@tanstack/react-router` — routing (and the `/s/$id` lookup's loader)
 - `zustand` — write-through entity/container stores (`src/stores/`)
 - `@base-ui/react` — headless UI primitives
 
 Server surfaces: Convex (`apps/itun/convex/`,
 [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)) for signed-in
-users, and the stateless snapshot API the itun Worker serves from R2 (see
-[ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md), amended by ADR-033).
-IndexedDB is the on-device layer.
+users and the public sheet, and the one read left of the retired snapshot API,
+which the itun Worker serves from R2 so old `/s/:id` links can resolve (see
+[ADR-036](../adrs/ADR-036-retire-snapshot-shares.md)). IndexedDB is the
+on-device layer.
 
 ### Tailwind Source Path
 
@@ -376,7 +349,7 @@ IndexedDB is the on-device layer.
 const ALL_CHASSIS = SalvageUnionReference.Chassis.all()
 
 // BAD — same problem inside a constant declaration
-const DEFAULT_OPTION = SalvageUnionReference.Equipment.find((e) => e.id === 'default')
+const DEFAULT_OPTION = SalvageUnionReference.Equipment.getById('default')
 ```
 
 **Correct patterns:**

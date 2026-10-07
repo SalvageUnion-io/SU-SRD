@@ -22,8 +22,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
   (e.g. `"salvageunion-reference": "workspace:*"`).
 - Run `bun install` from the root to install for all workspaces.
 - Add a dependency to a specific workspace by `cd`-ing into that package
-  directory first — but if two or more manifests end up needing it, it belongs
-  in `workspaces.catalog` instead. See
+  directory first. Renovate keeps every manifest current; see
   [`docs/architecture/dependency-management.md`](../../docs/architecture/dependency-management.md).
 - A `workspace:*` dependency also has to appear in that app's CI path filter, or
   a change to it silently skips the app's build job. The `workflows` check

@@ -15,7 +15,7 @@ export default {
  * stories the same way it moves the sheet.
  */
 function atlasLedger(overrideValue?: number) {
-  const atlas = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Atlas')
+  const atlas = SalvageUnionReference.Chassis.getByName('Atlas')
   const parts = mechMaxSPParts(
     {
       chassisRef: atlas?.name ?? 'Atlas',

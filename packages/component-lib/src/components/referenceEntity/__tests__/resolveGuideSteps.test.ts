@@ -3,7 +3,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { enrichForFiltering, matchesFilter, resolveGuideSteps } from '../card/resolveGuideSteps'
 
 const guideByName = (name: string) => {
-  const guide = SalvageUnionReference.Guides.find((g) => g.name === name)
+  const guide = SalvageUnionReference.Guides.getByName(name)
   if (!guide) throw new Error(`Guide "${name}" not in the reference set`)
   return guide
 }

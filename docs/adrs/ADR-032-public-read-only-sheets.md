@@ -3,9 +3,22 @@
 ## Status
 
 **Accepted.** Amends [ADR-030](ADR-030-accounts-games-server-of-record.md) §5
-(visibility) with one explicit exception, and narrows what
-[ADR-004](ADR-004-snapshot-netlify-functions.md)'s snapshots are _for_ without
+(visibility) with one explicit exception, and narrowed what
+[ADR-004](ADR-004-snapshot-netlify-functions.md)'s snapshots were _for_ without
 changing anything ADR-004 decided.
+
+**Amended by [ADR-036](ADR-036-retire-snapshot-shares.md) (2026-10-06):** snapshots
+are retired, so the public sheet is now the **only** account-free way to share.
+The consequence below that kept both surfaces ("ADR-004 is narrowed, not
+superseded") is withdrawn; an old `/s/:id` link redirects here when its entity is
+public.
+
+**Decisions 4–5 amended (2026-10-06):** `publicSheet.get` also returns the
+entity's direct assignments — a linked entity that is published itself with its
+name and body, any other by its kind alone ("Not shared" on the page; publishing
+is each owner's own opt-in, decision 2) — and the page renders the live
+`<Sheet readOnly>` over `readOnlySheetStore.ts`, the store every read-only sheet
+uses. Every other decision stands.
 
 ## Context
 
@@ -85,10 +98,12 @@ no account to open, is always current, and requires no publishing step.
    `null` — not a refusal — for an entity that is not public, so a flipped-off
    sheet is indistinguishable from one that never existed.
 
-5. **Rendered by the machinery that already exists.** `frozenSheet.ts` parses a
-   bare entity against the Zod schemas and wraps it in a store whose every write
-   throws; the snapshot page and the Game view are already its two consumers.
-   The public sheet is a third and adds no rendering code.
+5. **Rendered by the machinery that already exists.** `frozenSheet.ts` (since
+   deleted) parsed a bare entity against the Zod schemas and wrapped it in a
+   store whose every write throws; the snapshot page and the Game view were
+   already its two consumers. The public sheet was a third and added no
+   rendering code. (The snapshot page is gone since ADR-036; the store is now
+   `readOnlySheetStore.ts` — see Status.)
 
 6. **Turning it off revokes it everywhere, immediately.** There is one URL per
    entity and it is derived, not minted, so there is no set of outstanding
@@ -107,10 +122,12 @@ no account to open, is always current, and requires no publishing step.
   control, not the unguessability of an id. That is the opposite of the snapshot
   model, where the id _is_ the capability, and it is the better property: it can
   be withdrawn.
-- **ADR-004 is narrowed, not superseded.** Snapshots stop being the way to share
-  a character and become the way to keep a _frozen_ one — "this pilot, as they
-  were the night we lost the crawler". Both surfaces stay; they answer different
-  questions. Nothing about ADR-004's implementation changes.
+- **~~ADR-004 is narrowed, not superseded.~~ Withdrawn by
+  [ADR-036](ADR-036-retire-snapshot-shares.md).** This said snapshots would stop
+  being the way to share a character and become the way to keep a _frozen_ one —
+  "this pilot, as they were the night we lost the crawler" — with both surfaces
+  kept. The product owner decided frozen sheets should not exist; ADR-004 is
+  superseded and this page is the one way to share.
 - **Serving live fixes a defect the frozen path cannot.** A published mech
   snapshot must carry `context.pilotAbilities` alongside the entity, because a
   bare frozen mech cannot see the pilot flying it and computes Max SP and Cargo

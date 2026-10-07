@@ -20,6 +20,7 @@
 import { buttonVariants, cn } from 'component-lib'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
@@ -29,6 +30,7 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
+import { useConfirm } from '../shared/useConfirm'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
@@ -40,10 +42,9 @@ import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
-import type { SheetPatch } from './sheetViewProps'
-import { runWrite } from './sheetWrite'
+import type { SheetPatch, WithheldUnit } from './sheetViewProps'
 
-// Re-exported so existing consumers (PublishButton, tests) keep their import.
+// Re-exported so existing consumers (tests) keep their import.
 export type { EntityLookup } from './composition'
 
 /**
@@ -86,7 +87,8 @@ type SheetProps = {
   /** Injectable store hook (writes); the real Zustand store when omitted. */
   store?: typeof useEntityStore
   /**
-   * Hides publish + disables all stat editing (snapshot contexts).
+   * Hides Share + disables all stat editing (frozen read-only contexts: the
+   * public sheet and a crewmate's sheet in a Game).
    *
    * This is the *caller's* declaration that the sheet is a read-only rendering.
    * Connectivity read-only is resolved separately, from `useConnection()`, and
@@ -105,18 +107,36 @@ type SheetProps = {
   /**
    * Pilot ability refs to use instead of the composition's.
    *
-   * A published snapshot shares a LIVE INSTANCE but carries a private read-only
-   * store with no pilot record and no soft-links, so the composition resolves
-   * `pilot: null` — and pilot-sourced contributions (Beefcake's +3+X Max SP and
-   * +6 Cargo, ADR-029) would silently vanish, making a shared mech read lower
-   * than the same mech on its owner's sheet.
+   * A frozen read-only sheet (the public sheet, `PublicSheet.tsx`) shows a LIVE
+   * INSTANCE but carries a private read-only store with no pilot record and no
+   * soft-links, so the composition resolves `pilot: null` — and pilot-sourced
+   * contributions (Beefcake's +3+X Max SP and +6 Cargo, ADR-029) would silently
+   * vanish, making a shared mech read lower than the same mech on its owner's
+   * sheet.
    *
-   * The snapshot payload carries the refs, and this passes them in explicitly
-   * rather than fabricating a pilot record — a synthetic pilot would surface in
-   * the Linked Units rail as a unit that was never shared.
+   * The public-sheet query resolves the refs server-side, and this passes them
+   * in explicitly rather than fabricating a pilot record — a synthetic pilot
+   * would surface in the Linked Units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
+  /**
+   * Entities the viewer may read but not edit — a Game's crewmates, from
+   * `listForGame` (`readOnlySheetStore.ts`). Linked units the store does not
+   * hold resolve through it, so your crawler lists its whole crew and your
+   * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
+   * what only this holds (`holds` in `sheetViewProps.ts`).
+   */
+  others?: EntityLookup
+  /** Where a linked unit's View goes; the live sheet route when omitted. */
+  hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
+  /** Linked units to name without reading — a public sheet's private assignments. */
+  withheld?: readonly WithheldUnit[]
 }
+
+/** The live sheet route: one address per entity, editable or read-only by who is looking. */
+const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/${kind}/${id}`
+
+const NONE_WITHHELD: readonly WithheldUnit[] = []
 
 export function Sheet({
   kind,
@@ -127,10 +147,16 @@ export function Sheet({
   readOnly: readOnlyProp = false,
   back = { href: '/', label: 'Roster' },
   pilotAbilities,
+  others,
+  hrefFor = liveSheetHref,
+  withheld = NONE_WITHHELD,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  // The container move's confirm. Owned here, not by the control, because the
+  // control lives in the ⋯ menu, which unmounts on the press that answers it.
+  const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, settling } = useConnection()
 
   // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
@@ -147,18 +173,29 @@ export function Sheet({
   const writesBlocked = !canWrite && !settling
   const readOnly = readOnlyProp || writesBlocked
 
-  const lookup: EntityLookup = entityStore ?? {
+  const own: EntityLookup = entityStore ?? {
     get: (type, entityId) => storeState.get(type, entityId),
   }
+  const lookup: EntityLookup = others
+    ? { get: (type, entityId) => own.get(type, entityId) ?? others.get(type, entityId) }
+    : own
+  const holds = (type: EntityRef['type'], entityId: string) => own.get(type, entityId) !== null
   const links = softLinkStore ? softLinkStore.softLinks : storeState.softLinks
 
-  const composition = resolveSheetComposition({
+  const linked = resolveSheetComposition({
     kind,
     id,
     links,
     store: lookup,
   })
-  const resolved = resolveSheetEntity(lookup, kind, id)
+  // A crawler's Hold trades cargo with its first docked mech, so that has to be
+  // one this sheet can write — a crewmate's mech docked alongside is listed on
+  // the rail, never offered as a transfer target.
+  const composition =
+    kind === 'crawler' && others
+      ? { ...linked, mech: linked.crawlerMechs.find((m) => holds('mech', m.id)) ?? null }
+      : linked
+  const resolved = resolveSheetEntity(own, kind, id)
 
   if (!resolved) {
     // Styled not-found with an exit path — this is the most-visited surface
@@ -175,7 +212,7 @@ export function Sheet({
   const { entity } = resolved
   const wired = composition.mode === 'wired'
   // Top-bar trailing actions (app-bar right group, design source
-  // clean-pilot.html `.bar-actions`): Share (publish) stays inline; Print,
+  // clean-pilot.html `.bar-actions`): Share stays inline; Print,
   // Export and the container control tuck into the "⋯" overflow at every width — the app
   // bar's priority row is just Share + overflow.
   // NO sheet has a global Edit toggle any more — editing is section-based
@@ -199,7 +236,7 @@ export function Sheet({
   // lives on the rail chip, not here — it's contextual to the link.
   const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
   const containerControl = (
-    <MoveToContainerControl entityType={kind} entityId={id} entity={entity} />
+    <MoveToContainerControl entityType={kind} entityId={id} entity={entity} confirm={confirm} />
   )
   // The per-entity Change Log (provenance) opens from the overflow menu, never
   // inline on the sheet body (ADR-022). Its open-state lives here, on the
@@ -216,9 +253,9 @@ export function Sheet({
   )
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
-  // export, not less. Only Share goes — publishing a snapshot posts to a server
-  // this session cannot reach — and the lozenge takes its place so the gap says
-  // what happened.
+  // export, not less. Only Share goes — switching the public sheet on or off is
+  // a write to a server this session cannot reach — and the lozenge takes its
+  // place so the gap says what happened.
   //
   // Share opens a dialog OVER this sheet rather than navigating to a share
   // screen. That screen's whole left half was a preview of the sheet you were
@@ -250,32 +287,18 @@ export function Sheet({
 
   // Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — wired sheets
   // only; each present counterpart gets a segment, the viewed kind is active.
+  // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   let segments: LiveSheetSegment[] | undefined
   if (wired) {
     segments = []
-    if (composition.pilot) {
-      segments.push({
-        key: 'pilot',
-        label: 'Pilot',
-        href: `/sheet/pilot/${composition.pilot.id}`,
-        active: kind === 'pilot',
-      })
-    }
-    if (composition.mech) {
-      segments.push({
-        key: 'mech',
-        label: 'Mech',
-        href: `/sheet/mech/${composition.mech.id}`,
-        active: kind === 'mech',
-      })
-    }
-    if (composition.crawler) {
-      segments.push({
-        key: 'crawler',
-        label: 'Crawler',
-        href: `/sheet/crawler/${composition.crawler.id}`,
-        active: kind === 'crawler',
-      })
+    const counterparts = [
+      { key: 'pilot', label: 'Pilot', unit: composition.pilot },
+      { key: 'mech', label: 'Mech', unit: composition.mech },
+      { key: 'crawler', label: 'Crawler', unit: composition.crawler },
+    ] as const
+    for (const { key, label, unit } of counterparts) {
+      const href = unit ? hrefFor(key, unit.id) : undefined
+      if (href !== undefined) segments.push({ key, label, href, active: kind === key })
     }
   }
 
@@ -302,6 +325,9 @@ export function Sheet({
     store,
     storeState,
     lookup,
+    holds,
+    hrefFor,
+    withheld,
     patch,
   }
 
@@ -328,18 +354,18 @@ export function Sheet({
           />
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog
-            must outlive the control that opens it. Its network probe is gated on
-            `open` rather than on mount — see its header — so an always-mounted
-            dialog costs nothing on a sheet nobody shares.
+            must outlive the control that opens it. Its contents (and the
+            public-sheet query inside them) render only while it is open, so an
+            always-mounted dialog costs nothing on a sheet nobody shares.
           */}
           <ShareStatusDialog
             kind={kind}
             id={id}
             entity={entity}
-            pilotAbilities={kind === 'mech' ? composition.pilot?.abilities : undefined}
             open={shareOpen}
             onOpenChange={setShareOpen}
           />
+          {confirmDialog}
         </>
       )}
     </>

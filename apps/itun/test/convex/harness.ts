@@ -59,7 +59,9 @@ const modules: Record<string, () => Promise<unknown>> = {
   './shelf.ts': () => import('../../convex/shelf'),
   './templates.ts': () => import('../../convex/templates'),
   './model/bot.ts': () => import('../../convex/model/bot'),
+  './model/discordInteraction.ts': () => import('../../convex/model/discordInteraction'),
   './model/entities.ts': () => import('../../convex/model/entities'),
+  './model/invites.ts': () => import('../../convex/model/invites'),
   './model/permissions.ts': () => import('../../convex/model/permissions'),
 }
 

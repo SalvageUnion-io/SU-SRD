@@ -1,9 +1,11 @@
 /**
- * ContainerSwitcher — Game / Shelf header control (ADR-030 §2).
+ * ContainerSwitcher — the hub's "Showing" select (ADR-030 §2).
  *
- * Replaces `WorkspaceSwitcher`. There is no "Workspace" any more: an entity is
- * in a shared **Game** or on the owner's personal **Shelf**, so this picks
- * between exactly those.
+ * `/` shows one container at a time, and this picks it: **My Stuff** (the
+ * owner's personal shelf — that is the player's name for it), then every Game
+ * the player is in. Picking a Game is how you get to it; there is no Games
+ * page. The masthead's Games menu (`GamesMenu`) makes the same choice from
+ * every other route.
  *
  * ## It renders nothing in Solo
  *
@@ -62,9 +64,8 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
         value={serializeContainer(activeContainer)}
         onChange={handleChange}
         className="w-[200px] sm:min-h-9"
-        aria-label="Select container"
       >
-        <option value={SHELF_VALUE}>Shelf</option>
+        <option value={SHELF_VALUE}>My Stuff</option>
         {/* `games` is undefined while the subscription is in flight. The
             current selection must still have a matching option or the select
             would render blank, so the group is simply absent until it loads —

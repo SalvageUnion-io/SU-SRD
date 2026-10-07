@@ -30,14 +30,17 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { expandCards } from '../../__tests__/expandCards'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { PilotSheet } from '../PilotSheet'
+
+beforeAll(hydrateStores)
 
 const SNIPER_NAME = 'Custom Sniper Rifle'
 let SNIPER_ID = ''
 
 beforeAll(async () => {
-  const sniper = SalvageUnionReference.Equipment.all().find((e) => e.name === SNIPER_NAME)
+  const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
 })

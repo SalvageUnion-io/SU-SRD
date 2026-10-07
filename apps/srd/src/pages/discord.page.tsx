@@ -25,8 +25,8 @@ import { SalvageUnionReference } from '../lib/gameData'
  */
 function buildExamples() {
   const rollTableCount = SalvageUnionReference.RollTables.all().length
-  // Sorted for determinism: an unsorted `[0]` would churn the output snapshot
-  // whenever the data file's order changed.
+  // Sorted for determinism: an unsorted `[0]` would change the page whenever
+  // the data file's order changed.
   const lookupExample =
     [...SalvageUnionReference.Chassis.all()].sort((a, b) => a.name.localeCompare(b.name))[0]
       ?.name ?? 'Aegis'
@@ -236,7 +236,7 @@ function page(): PageResult {
                 that.
               */}
               , the no-account character builder &amp; game manager — sheets can be shared into
-              Discord as snapshot links.
+              Discord as live public links.
             </p>
           </section>
 

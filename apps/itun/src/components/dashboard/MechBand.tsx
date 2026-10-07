@@ -12,17 +12,20 @@
 import type { StepRule } from 'component-lib'
 import { CountStepper, RuleBrief } from 'component-lib'
 import { useEffect, useState } from 'react'
+import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
+  describePushOutcome,
+  mechMaxCargo,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
   resolveChassisRef,
   resolveGauge,
   resolvePool,
   resolvePoolStart,
   rollDie,
 } from 'salvageunion-reference/rules'
-import { describePushOutcome } from '../../lib/rules/coreMechanic'
-import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
-import type { CriticalDamageEffect } from '../../lib/rules/takeDamage'
 import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'

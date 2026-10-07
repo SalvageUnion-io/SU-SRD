@@ -35,7 +35,7 @@ the table can patch reality.
 | **Guided Creation** | Wizard (`/*/new`)                                    | A "how-to guide" for _making_ a legal entity. Enforces creation rules.                          |
 | **Free Edit**       | Live Sheet (`/sheet/:kind/:id`)                      | The manual-override console. Edits _state_, never runs _transactions_.                          |
 | **Guided Play**     | **Dashboard** (Pilot + Mech + Crawler, live)         | Every asset in-hand + enforced play. Interactive rules-layers that _teach as they enforce_.     |
-| **Frozen**          | View (`/s/:id`, `/p/:kind/:appId`)                   | Read-only published sheet — frozen snapshot or live public page.                                |
+| **Frozen**          | View (`/p/:kind/:appId`, a Game crewmate)            | Read-only sheet — the live public page, or a crewmate's sheet. (Snapshots retired, ADR-036.)    |
 | **Adjudicate**      | Encounter (`/encounter`) → future **Mediator** layer | GM tray — Mediator tables + NPCs. Surfaces rules as tooling; enforces nothing on player sheets. |
 
 `Guided Creation`, `Free Edit`, and `Guided Play` are our terms, not Salvage
@@ -150,7 +150,7 @@ resolve gray zones _here_.
 | **Procedural adjudication**                                | —                         | Manual (player applies by hand)            | Surfaced as tooling                                            | frozen         |
 
 Two notes on the columns. The **Frozen** column is uniform by definition — a
-published snapshot evaluates nothing. **Adjudicate / Encounter has no column
+read-only sheet evaluates nothing. **Adjudicate / Encounter has no column
 here** on purpose: it acts on NPC instances, not the player's own entities (see
 "[The enforcement modes](#the-enforcement-modes)"). The **procedural-adjudication
 row is not a contradiction** of that: the Adjudicate mode owns the GM _tooling_
@@ -260,8 +260,8 @@ components. A surface that bypasses the store to mutate an entity is then the
 visible anti-pattern, not a silent gap.
 
 The log is designed to be **replayable** (event-shaped, ordered) though a
-replay/time-travel surface is not built yet, and it **stays local** — a published
-snapshot remains a frozen point-in-time entity with no history. Full decision in
+replay/time-travel surface is not built yet, and it **stays local** — a public
+sheet shows the entity with no history. Full decision in
 [ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md).
 
 ---
@@ -372,8 +372,8 @@ not in code comments.
 - [ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md) — provenance log &
   stat overrides.
 - [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md) — the Dashboard as
-  the distinct Guided-Play surface (design in [dashboard.md](dashboard.md); sub-decisions
-  ADR-016–020).
+  the distinct Guided-Play surface (architecture in [dashboard.md](dashboard.md); its
+  sub-decisions, formerly ADR-016–020, are merged into it).
 - [combat-loop.md](combat-loop.md) — the current (Sheet-hosted) resource loop;
   migrates to the Dashboard under this model.
 - [data-flow.md](data-flow.md) — how state is stored and hydrated.

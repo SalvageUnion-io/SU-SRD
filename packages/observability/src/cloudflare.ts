@@ -109,9 +109,9 @@ export function withObservability<E extends ObservabilityEnv>(
       tracesSampleRate: 0,
       // No PII by default (cookies, IPs, user identity).
       sendDefaultPii: false,
-      // Do not send request bodies. The snapshot publish body is a player's
-      // sheet, and the Discord interaction body is a signed payload including
-      // user content; neither belongs in an error report.
+      // Do not send request bodies. The Discord interaction body is a signed
+      // payload including user content (and the retired snapshot publish body
+      // was a player's sheet); neither belongs in an error report.
       //
       // `sendDefaultPii: false` does NOT achieve this. The SDK's default
       // HttpServer integration captures any textual request body (up to

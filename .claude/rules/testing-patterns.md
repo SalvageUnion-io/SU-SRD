@@ -35,6 +35,7 @@ Testing patterns using Bun's test runner and Testing Library for component tests
 - Use `render()` from Testing Library
 - Query by accessible roles/labels when possible
 - Use `waitFor` for async updates
+- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in ITUN load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
 
@@ -140,11 +141,6 @@ interval, so a test that leaves timers faked and then calls `waitFor` hangs the
 whole suite. Scope `useFakeTimers()` to the helper that needs it (see
 `GlobalSearch.test.tsx`), not the whole file, when both appear in one file.
 
-A **bounded poll** — a loop that re-checks a predicate and exits as soon as it
-holds — is not this anti-pattern. `settle()` in `Roster.test.tsx` and
-`DashboardChooser.test.tsx` polls `fake-indexeddb` work to completion inside
-`act()`; it has no fixed margin to get wrong and returns early. Leave those.
-
 ### Fixtures carry one frozen timestamp
 
 Entity fixtures come from `apps/itun/src/components/__tests__/fixtures.ts`
@@ -166,7 +162,6 @@ against a live clock. Both populations now use the same factories, and
 
 ```typescript
 test('model finds item by slug', () => {
-  // Indexed lookup — never `.find((x) => x.id === …)` (see the package's CLAUDE.md).
   const item = SalvageUnionReference.Chassis.getBySlug('mule')
   expect(item).toBeDefined()
 })

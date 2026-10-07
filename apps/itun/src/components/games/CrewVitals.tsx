@@ -31,7 +31,9 @@ export function CrewVitals({ gameId }: { gameId: Id<'games'> }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <PageHeading variant="subheading">Pilots</PageHeading>
+        <PageHeading variant="subheading" as="h4">
+          Pilots
+        </PageHeading>
         {crew.pilots.length === 0 && <Text variant="hint">No pilots in this game yet.</Text>}
         {crew.pilots.map((p) => (
           <Row
@@ -48,7 +50,9 @@ export function CrewVitals({ gameId }: { gameId: Id<'games'> }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <PageHeading variant="subheading">Mechs</PageHeading>
+        <PageHeading variant="subheading" as="h4">
+          Mechs
+        </PageHeading>
         {crew.mechs.length === 0 && <Text variant="hint">No mechs in this game yet.</Text>}
         {crew.mechs.map((m) => (
           <Row

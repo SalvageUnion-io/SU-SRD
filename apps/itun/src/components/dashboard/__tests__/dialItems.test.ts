@@ -73,4 +73,29 @@ describe('dialItems', () => {
     const actions = items.find((i) => i.label === 'Actions')
     expect(actions?.statless).toBe(true)
   })
+
+  test('a pin the crawler tier caught up with is not an override on the dial', () => {
+    // Pinned 14 at Tech 1; the Tech 3 crawler now derives 14 — a +0 pin. The
+    // marker and the ledger read the same flag, so neither says "override".
+    const pinned = pilotFixture({ id: 'p3', name: 'Ora', maxHpOverride: 14 })
+    const item = dialItems({ mount: 'mech', mech, pilot: pinned, crawler }).find(
+      (i) => i.label === 'Pilot · Ora'
+    )
+    if (!item || item.statless) throw new Error('expected a statful pilot dial item')
+    const hp = item.gauges.find((g) => g.label === 'HP')
+    expect(hp?.max).toBe(14)
+    expect(hp?.breakdown?.overridden).toBe(false)
+    expect(hp?.provenance?.some((line) => line.kind === 'override')).toBe(false)
+
+    // At Tech 4 the same pin is −2 against the derivation, and both agree it is.
+    const tech4 = crawlerFixture({ id: 'c4', name: 'Bigger Hauler', techLevel: '4' })
+    const after = dialItems({ mount: 'mech', mech, pilot: pinned, crawler: tech4 }).find(
+      (i) => i.label === 'Pilot · Ora'
+    )
+    if (!after || after.statless) throw new Error('expected a statful pilot dial item')
+    const hp4 = after.gauges.find((g) => g.label === 'HP')
+    expect(hp4?.max).toBe(14)
+    expect(hp4?.breakdown?.overridden).toBe(true)
+    expect(hp4?.provenance?.some((line) => line.kind === 'override')).toBe(true)
+  })
 })

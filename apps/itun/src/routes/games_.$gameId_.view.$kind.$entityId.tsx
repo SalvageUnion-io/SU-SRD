@@ -1,45 +1,30 @@
-import { createFileRoute, useParams } from '@tanstack/react-router'
-import { GameEntitySheet, GameSheetNotice } from '../components/games/GameEntitySheet'
-import type { RosterKind } from '../lib/games/gameRoster'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 /**
- * One crewmate's build, read-only (ADR-030 §5).
+ * The retired crew view — `/games/$gameId/view/$kind/$rowId` — now the live
+ * sheet's address.
  *
- * The trailing `_` on BOTH `games_` and `$gameId_` opts this route out of
- * nesting twice over: once from `routes/games.tsx` (the lobby, which renders no
- * `<Outlet />`), and once from `games_.$gameId.tsx` (the crew roster, likewise).
- * Without the second underscore TanStack would treat the crew screen as this
- * route's layout and render the roster above every sheet — or, since it has no
- * Outlet, render nothing at all.
+ * A crewmate's sheet opened here, frozen and separate from the editable one.
+ * There is one sheet now (`/sheet/$kind/$id`, `SheetView`): editable when it is
+ * yours, read-only and live when it is not. The old URL still sits in Discord
+ * replies (the bot's `gameSheetUrl`) and bookmarks, so it redirects, replacing
+ * the history entry.
  *
- * Addressed by the Convex row id rather than the local entity id: the viewer
- * has no local copy of a crewmate's build, and the whole point of this surface
- * is that visiting it does not create one.
+ * It carries the Convex **row** id, not the app id every other link uses. The
+ * sheet route accepts either — `entities.locate` resolves a row id — and puts
+ * the canonical app id back in the bar. The Game id is not needed: a row id
+ * names one row, wherever it lives.
+ *
+ * The trailing `_` on BOTH `games_` and `$gameId_` keeps this route out of
+ * `/games` and `/games/$gameId`, whose own redirects (to the hub) would
+ * otherwise run first and drop the sheet's address.
  */
 export const Route = createFileRoute('/games_/$gameId_/view/$kind/$entityId')({
-  component: GameEntityViewRoute,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/sheet/$kind/$id',
+      params: { kind: params.kind, id: params.entityId },
+      replace: true,
+    })
+  },
 })
-
-/** The three roster ontologies, as the URL is allowed to spell them. */
-const KINDS: readonly RosterKind[] = ['pilot', 'mech', 'crawler']
-
-function isRosterKind(value: string): value is RosterKind {
-  return (KINDS as readonly string[]).includes(value)
-}
-
-function GameEntityViewRoute() {
-  const { gameId, kind, entityId } = useParams({ from: '/games_/$gameId_/view/$kind/$entityId' })
-
-  // `kind` comes off the URL and selects a Zod schema downstream, so a
-  // hand-typed or stale path is narrowed here rather than cast — it earns an
-  // explanation and a way back, not a crash inside the parser.
-  if (!isRosterKind(kind)) {
-    return (
-      <GameSheetNotice gameId={gameId}>
-        “{kind}” is not something a game holds. The crew has pilots, mechs and a crawler.
-      </GameSheetNotice>
-    )
-  }
-
-  return <GameEntitySheet gameId={gameId} kind={kind} entityId={entityId} />
-}

@@ -1,7 +1,7 @@
 /**
  * MechSheet — readOnly prop tests (#242, plan 4.5; Phase 2 poster regions)
  *
- * When readOnly is true (e.g. in SnapshotSheet), the body suppresses every
+ * When readOnly is true (e.g. in PublicSheet), the body suppresses every
  * edit affordance: no Identity/Quirk-Appearance Edit buttons, no Vitals gauge
  * segments, no Use / Repair / uses steppers, no status-badge cycling (badges
  * render as plain spans), no Stow buttons on the hold — and the store is

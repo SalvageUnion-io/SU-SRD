@@ -3,7 +3,7 @@
  *
  * Why this exists: `convex/_generated/**` is COMMITTED, and every other
  * generated artifact in this repo has a drift gate — the reference package's
- * registry/schemas/API report and `routeTree.gen.ts`, via
+ * registry/schemas and `routeTree.gen.ts`, via
  * `tools/check-generated.ts`. Convex's generated client had none, so it was
  * the one committed generated file that could silently go stale.
  *
@@ -16,7 +16,7 @@
  * Why not just run `convex codegen` and diff, the way check-generated does:
  * `convex codegen` requires a `CONVEX_DEPLOYMENT` and refuses to run without
  * one ("No CONVEX_DEPLOYMENT set"). CI has no deployment credential, and fork
- * and Dependabot PRs could never have one. A gate that cannot run in CI is not
+ * and dependency-bot PRs could never have one. A gate that cannot run in CI is not
  * a gate, so this checks the property that matters and can be verified offline:
  * **the set of modules `api.d.ts` registers must equal the set of module files
  * on disk.**

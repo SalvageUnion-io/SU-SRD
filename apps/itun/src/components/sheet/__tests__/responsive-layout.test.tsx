@@ -11,7 +11,7 @@
  *     the crawler body's 2-col macro grid (content ∥ Storage rail) splits at
  *     its container breakpoint
  *  2. Sheet — missing entity still renders without crash (guard path)
- *  3. SnapshotSheet — uses max-w-7xl container
+ *  3. (SnapshotSheet — retired with snapshots, ADR-036)
  *  4. Roster — sections wrapper uses flex flex-col (mobile) and the
  *     section container element is rendered (grid classes are on the same el)
  *  5. CrawlerSheet — stats dl uses grid-cols-1 (not grid-cols-2 with empty cell)
@@ -22,20 +22,22 @@
  *  - afterEach cleanup()
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { act, cleanup, render } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Roster } from '../../roster/Roster'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import { CrawlerSheet } from '../CrawlerSheet'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
-import { SnapshotSheet } from '../SnapshotSheet'
+
+beforeAll(hydrateStores)
 
 // ---------------------------------------------------------------------------
 // Preload reference data
@@ -193,19 +195,6 @@ describe('Sheet responsive layout — single entity', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3. SnapshotSheet — renders the LiveSheet shell (plan 4.8 port)
-// ---------------------------------------------------------------------------
-
-describe('SnapshotSheet responsive layout', () => {
-  test('SnapshotSheet pilot snapshot renders the variant shell + banner', () => {
-    const snapshot = { kind: 'pilot', entity: { ...fakePilot } }
-    const { container } = render(<SnapshotSheet snapshot={snapshot as Record<string, unknown>} />)
-    expect(container.querySelector('.sheet--pilot')).toBeTruthy()
-    expect(container.querySelector('[aria-label="Read-only snapshot"]')).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
 // 4. CrawlerSheet — body section stacks as a single column of slabs
 // ---------------------------------------------------------------------------
 
@@ -224,7 +213,11 @@ describe('CrawlerSheet responsive layout — body section', () => {
 
 describe('Roster responsive layout — sections render', () => {
   test('Roster renders with its max-w outer container', async () => {
-    const { container } = render(<Roster />)
+    // Async act: Roster flips its hydrated flag from a promise after mount.
+    let container!: HTMLElement
+    await act(async () => {
+      container = render(<Roster />).container
+    })
     const main = container.querySelector('main')
     expect(main).toBeTruthy()
   })

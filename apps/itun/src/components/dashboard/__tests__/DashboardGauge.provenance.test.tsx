@@ -33,13 +33,29 @@ describe('DashboardGauge — provenance (ADR-021 teach-as-you-enforce)', () => {
     expect(screen.queryByRole('button', { name: /how this is derived/i })).toBeNull()
   })
 
-  test('derivedMax must differ from max to read as overridden', () => {
-    // Regression: passing `max` here silently never flags — the gauge treats
-    // overriddenFrom === max as "not overridden".
-    render(<DashboardGauge label="SP" value={20} max={28} provenance={LINES} derivedMax={28} />)
+  test('the override marker follows the breakdown flag, never a comparison of numbers', () => {
+    // Regression: the gauge used to infer "overridden" from derivedMax !== max,
+    // so the marker and the ledger could disagree.
+    render(
+      <DashboardGauge
+        label="SP"
+        value={20}
+        max={28}
+        provenance={LINES}
+        breakdown={{ overridden: false, derived: 28 }}
+      />
+    )
     expect(screen.getByText('ⓘ')).toBeTruthy()
     cleanup()
-    render(<DashboardGauge label="SP" value={20} max={28} provenance={LINES} derivedMax={22} />)
+    render(
+      <DashboardGauge
+        label="SP"
+        value={20}
+        max={28}
+        provenance={LINES}
+        breakdown={{ overridden: true, derived: 22 }}
+      />
+    )
     expect(screen.getByText('*')).toBeTruthy()
   })
 })

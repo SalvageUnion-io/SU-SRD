@@ -7,11 +7,14 @@
  * - Renders the SU mark image
  * - Renders an outbound SRD link (new tab, safe rel)
  * - Renders the outbound "Buy the game" link (new tab, safe rel)
- * - Renders the search trigger only when onSearchClick is provided (P-2)
+ * - Has no search trigger: ITUN's reference search is the bottom-right FAB
+ * - Places the app's slots: `actions` after "Buy the game" in the nav,
+ *   `mobileActions` beside the hamburger, `drawerExtra` inside the drawer —
+ *   and no second (sub-header) row
  */
 
 import '@testing-library/jest-dom'
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { AppHeader } from 'component-lib'
 
@@ -55,17 +58,12 @@ describe('AppHeader', () => {
     expect(buyLink.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
-  test('renders the search trigger when onSearchClick is provided and fires it', () => {
-    const onSearchClick = mock(() => {})
-    render(<AppHeader onSearchClick={onSearchClick} />)
-    const trigger = screen.getByRole('button', { name: 'Search the SRD' })
-    fireEvent.click(trigger)
-    expect(onSearchClick).toHaveBeenCalledTimes(1)
-  })
-
-  test('omits the search trigger when onSearchClick is not provided', () => {
+  test('has no search trigger — the reference search moved to the bottom-right FAB', () => {
     render(<AppHeader />)
-    expect(screen.queryByRole('button', { name: 'Search the SRD' })).toBeFalsy()
+    const header = screen.getByRole('banner')
+    expect(within(header).queryByRole('button', { name: /search/i })).toBeFalsy()
+    expect(within(header).queryByRole('searchbox')).toBeFalsy()
+    expect(within(header).queryByRole('combobox')).toBeFalsy()
   })
 
   test('renders a hamburger trigger for the mobile nav drawer, closed by default', () => {
@@ -103,13 +101,45 @@ describe('AppHeader', () => {
     expect(within(drawer).queryByRole('link', { name: /encounter/i })).toBeFalsy()
   })
 
-  test('renders the utility row inside the masthead, below the nav', () => {
-    render(<AppHeader utilityRow={<button type="button">Sign out</button>} />)
-    const signOut = screen.getByRole('button', { name: 'Sign out' })
-    // Inside the <header> itself — the point of the slot is that these controls
-    // stopped being a separate strip stacked above the brand chrome.
-    expect(signOut.closest('header')).toBeTruthy()
-    // ...and outside the nav cluster, so it lands on its own row.
-    expect(signOut.closest('nav')).toBeFalsy()
+  test('renders the app actions in the nav, after "Buy the game"', () => {
+    render(<AppHeader actions={<button type="button">Games</button>} />)
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    const games = within(nav).getByRole('button', { name: 'Games' })
+    const buy = within(nav).getByRole('link', { name: /buy the game/i })
+    // To the right of Buy: later in the nav's document order.
+    expect(buy.compareDocumentPosition(games) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test('has no sub-header: the masthead is the brand row and nothing else', () => {
+    render(<AppHeader actions={<button type="button">Games</button>} />)
+    const header = screen.getByRole('banner')
+    expect(header.children).toHaveLength(1)
+  })
+
+  test('puts the mobile actions beside the hamburger, outside the desktop nav', () => {
+    render(<AppHeader mobileActions={<button type="button">Account menu</button>} />)
+    const account = screen.getByRole('button', { name: 'Account menu' })
+    expect(account.closest('nav')).toBeFalsy()
+    // Same cluster as the hamburger.
+    expect(account.parentElement).toBe(
+      screen.getByRole('button', { name: 'Open menu' }).parentElement
+    )
+  })
+
+  test('renders the drawer extra inside the drawer, and hands it a way to close it', () => {
+    render(
+      <AppHeader
+        drawerExtra={(close) => (
+          <button type="button" onClick={close}>
+            My Stuff
+          </button>
+        )}
+      />
+    )
+    expect(screen.queryByRole('button', { name: 'My Stuff' })).toBeFalsy()
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+    const drawer = screen.getByRole('dialog')
+    fireEvent.click(within(drawer).getByRole('button', { name: 'My Stuff' }))
+    expect(screen.queryByRole('dialog')).toBeFalsy()
   })
 })

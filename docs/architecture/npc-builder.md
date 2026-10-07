@@ -183,8 +183,8 @@ calling it done.
 ### 4.4 Games
 
 An NPC is added to a Game the same way a pilot is (`gameId` set, the
-move-to-Game path). It appears on the player `GameScreen` roster like the other
-entities. It does **not** appear in the Mediator's secret `NpcTray`; that tray
+move-to-Game path). It appears on the Game's roster on the hub (`GameRoster`)
+like the other entities. It does **not** appear in the Mediator's secret `NpcTray`; that tray
 remains the Mediator's hidden instances (§1).
 
 ---

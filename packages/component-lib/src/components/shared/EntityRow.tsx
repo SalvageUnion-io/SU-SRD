@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { Bot, Trash2, UserRound, Users, Warehouse } from 'lucide-react'
+import { Bot, Trash2, Unlink, UserRound, Users, Warehouse } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { cn } from '../../utils/cn'
@@ -25,7 +25,8 @@ import { Stat } from './Stat'
  *   │   thing IS, and how it is doing. The title follows the entity card's own
  *   │   rule (`EntityCardHeader`): paper-white text directly on the tone, no
  *   │   ink block behind it, at the size ladder's `small` rung.
- *   │ ▸ BODY — paper. Cross-links, and the trailing View / Delete controls.
+ *   │ ▸ BODY — paper. Cross-links, and the trailing View / Unassign / Delete
+ *   │   controls.
  *   │   Where you GO and what you DO.
  *   └──────────────────────────────────┘
  *
@@ -157,6 +158,16 @@ type FilledEntityRowProps = {
   /** Fired when the ghost trash Delete button is pressed. Omit to hide the
    * Delete button entirely (e.g. read-only poster surfaces). */
   onDeleteClick?: () => void
+  /**
+   * Fired when the Unassign button is pressed. Omit to hide it.
+   *
+   * For a row standing in a SLOT — a pilot's assigned mech, a crawler's crew —
+   * where the verb removes the assignment and leaves the entity alone. It is a
+   * labelled text button, not the trash glyph, because the two must not look
+   * alike: a player who learns the trash as "take this mech off my pilot" and
+   * then meets it on a roster row deletes the mech.
+   */
+  onUnassignClick?: () => void
   /**
    * Extra trailing controls, rendered before View/Delete.
    *
@@ -292,6 +303,7 @@ export function EntityRow(props: EntityRowProps) {
     seal,
     sheetHref,
     onDeleteClick,
+    onUnassignClick,
     actions,
     linkAs: Link = 'a',
   } = props
@@ -307,6 +319,7 @@ export function EntityRow(props: EntityRowProps) {
     (bodyStats?.length ?? 0) > 0 ||
     !!actions ||
     sheetHref !== undefined ||
+    !!onUnassignClick ||
     !!onDeleteClick
 
   return (
@@ -478,6 +491,19 @@ export function EntityRow(props: EntityRowProps) {
                 >
                   View
                 </Link>
+              )}
+              {onUnassignClick && (
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  // The visible text is "Unassign" on every row; the name says
+                  // which assignment it ends, as View's does (WCAG 2.4.4).
+                  aria-label={`Unassign ${name}`}
+                  onClick={onUnassignClick}
+                  glyph={<Unlink className="size-3.5" />}
+                >
+                  Unassign
+                </Button>
               )}
               {onDeleteClick && (
                 <Button

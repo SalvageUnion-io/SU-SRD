@@ -15,12 +15,14 @@ bun run dev:itun                       # vite dev server
 bun --filter itun test     # tests (bun test runner)
 ```
 
-## Snapshot publishing in dev
+## Sharing, and old snapshot links, in dev
 
-Sharing publishes read-only snapshots to **R2** through the Worker at
-`src/worker/index.ts`, which owns `/api/snapshots` and `/api/snapshots/:id`
-(ADR-004 as amended by ADR-033). `vite dev` serves the SPA only and never runs
-that Worker, so `vite.config.ts` proxies those paths to a local `wrangler dev`:
+Sharing is the live public sheet (`/p/:kind/:appId`, ADR-032): a Convex column
+and query, so it works under `bun run dev:itun` against a Convex deployment.
+Frozen snapshots are retired (ADR-036). An old `/s/:id` link asks the Worker at
+`src/worker/index.ts` which entity it names (`GET /api/snapshots/:id`) and
+redirects to that entity's public sheet if it has one. `vite dev` never runs
+that Worker, so `vite.config.ts` proxies the path to a local `wrangler dev`:
 
 ```bash
 # terminal 1 — the Worker, with local R2, on port 8787
@@ -30,8 +32,7 @@ cd apps/itun && bunx wrangler dev
 bun run dev:itun
 ```
 
-Without it, publish requests fail with a connection error and the UI's
-feature-detection treats publishing as unavailable; the rest of the app is
+Without it, every `/s/:id` shows the retired page; the rest of the app is
 unaffected.
 
 ## Data durability

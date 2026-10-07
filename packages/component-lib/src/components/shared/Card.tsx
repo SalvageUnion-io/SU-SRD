@@ -61,6 +61,13 @@ type CardProps = {
   disabled?: boolean
   /** Override default body padding (default: "p-0") */
   bodyPadding?: string
+  /**
+   * Inline style on the body band. The case it exists for: a height-capped
+   * card whose body owns its own scroll (EntitySearcher in a picker modal)
+   * passes `{ minHeight: 0 }`, so the body can shrink below its content and
+   * the scroll lands inside it instead of the card clipping its foot.
+   */
+  bodyStyle?: CSSProperties
   /** Override card wrapper className (replaces default shadow) and inline style */
   cardStyle?: { className?: string; style?: CSSProperties }
   /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
@@ -164,6 +171,7 @@ export function Card({
   controls,
   disabled = false,
   bodyPadding,
+  bodyStyle,
   cardStyle,
   headerStyle: headerStyleProp,
   borderColor: borderColorProp,
@@ -257,11 +265,15 @@ export function Card({
             // `border: var(--bw-chrome) solid var(--color-ink)` as
             // `border-width: var(--color-ink)`), so the shorthand is untestable
             // in this repo's test environment. Longhand is unambiguous in both.
+            // Widths are per side because the foot varies: React warns when a
+            // re-render changes a longhand that a shorthand in the same object covers.
             {
-              borderWidth,
               borderStyle: 'solid',
               borderColor: effectiveBorderColor,
-              ...(rendersFooter ? {} : { borderBottomWidth: `calc(${borderWidth} * 2)` }),
+              borderTopWidth: borderWidth,
+              borderRightWidth: borderWidth,
+              borderBottomWidth: rendersFooter ? borderWidth : `calc(${borderWidth} * 2)`,
+              borderLeftWidth: borderWidth,
             }
           : {}),
         ...cardStyle?.style,
@@ -356,6 +368,7 @@ export function Card({
               'w-full flex-1 isolate bg-paper flex flex-col',
               bodyPadding || defaultBodyPadding
             )}
+            style={bodyStyle}
           >
             {children}
           </div>

@@ -1,8 +1,10 @@
 name: CodeQL
 
-# Static analysis / SAST (issue #29). Scans the JavaScript/TypeScript sources on
-# every push to main, every PR into main, and weekly (to catch newly-disclosed
-# query-pack findings on code that hasn't changed).
+# SAST over the shipped JavaScript/TypeScript: every push to main, every PR, and
+# weekly for newly published queries. `Analyze (javascript-typescript)` is a
+# required status; blocking a merge on its findings is the ruleset's
+# code-scanning rule, not this file. Tests and e2e specs are not analysed, and
+# the suite is `security-extended`: quality findings are Biome's and tsc's job.
 on:
   push:
     branches: ['main']
@@ -24,8 +26,8 @@ on:
   # `main` BEFORE the ruleset is changed — same reasoning as ci.yml's.
   merge_group:
   schedule:
-    # Mondays at 05:30 UTC — same cadence as Dependabot, offset from the
-    # top of the hour to avoid the scheduling stampede.
+    # Mondays at 05:30 UTC, after Renovate's weekly window and offset from
+    # the top of the hour to avoid the scheduling stampede.
     - cron: '30 5 * * 1'
 
 # Cancel superseded runs, mirroring ci.yml. This became load-bearing when the
@@ -70,16 +72,19 @@ jobs:
           languages: javascript-typescript
           # Interpreted languages need no compilation — skip the build phase.
           build-mode: none
-          queries: security-and-quality
-          # Don't scan generated artifacts — the reference package's API-surface
-          # snapshot (a large declaration rollup), the registry codegen, and the
-          # TanStack routeTree. They are machine-emitted and drift-checked, not
-          # hand-authored source, so CodeQL findings there are noise.
+          queries: security-extended
+          # What is analysed, not when the workflow runs (the trigger must stay
+          # unfiltered, above): generated files are drift-checked machine
+          # output, and test code never ships.
           config: |
             paths-ignore:
-              - packages/salvageunion-reference/etc
               - '**/*.generated.ts'
               - '**/routeTree.gen.ts'
+              - '**/__tests__/**'
+              - '**/*.test.ts'
+              - '**/*.test.tsx'
+              - '**/e2e/**'
+              - 'test/**'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4.38.2

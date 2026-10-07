@@ -97,9 +97,17 @@ export const createGame = mutation({
     // same value the starter pilots and mechs take above, but for a different
     // reason: they are unclaimed and waiting for a taker, the crawler is the
     // crew's and never gets handed to anyone.
+    const crawlerIds: Id<'crawlers'>[] = []
     for (const crawler of STARTER_CRAWLERS) {
-      await ctx.db.insert('crawlers', { gameId, ownerId: null, body: crawler, updatedAt: now })
+      crawlerIds.push(
+        await ctx.db.insert('crawlers', { gameId, ownerId: null, body: crawler, updatedAt: now })
+      )
     }
+    // The template's crawler is the Game's primary (ADR-037) — the one its
+    // crew links below already put everybody aboard, mechs by their own
+    // `mech-to-crawler` link.
+    const [primary] = crawlerIds
+    if (primary !== undefined) await ctx.db.patch(gameId, { primaryCrawlerId: primary })
     for (const link of STARTER_SOFT_LINKS) {
       await ctx.db.insert('softLinks', {
         gameId,

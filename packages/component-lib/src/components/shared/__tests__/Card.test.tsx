@@ -149,7 +149,7 @@ describe('Card', () => {
     // is named by its border-glossary token rather than the literal, so the
     // assertion tracks the token the component actually emits.
     const wrapper = rootEl(container)
-    expect(wrapper.style.borderWidth).toBe('var(--bw-entity)')
+    expect(wrapper.style.borderTopWidth).toBe('var(--bw-entity)')
   })
 
   test('frame="chrome" draws the nested sub-panel border weight', () => {
@@ -159,7 +159,7 @@ describe('Card', () => {
       </Card>
     )
     const wrapper = rootEl(container)
-    expect(wrapper.style.borderWidth).toBe('var(--bw-chrome)')
+    expect(wrapper.style.borderTopWidth).toBe('var(--bw-chrome)')
   })
 
   test('frame weight is subtracted from the inner clip radius', () => {
@@ -222,6 +222,15 @@ describe('Card', () => {
     const body = container.querySelector('.p-4')
     expect(body).toBeTruthy()
     expect(container.querySelector('.p-0')).toBeNull()
+  })
+
+  test('bodyStyle lands on the body band', () => {
+    render(
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>} bodyStyle={{ minHeight: 0 }}>
+        <p>Body</p>
+      </Card>
+    )
+    expect(screen.getByText('Body').parentElement?.style.minHeight).toMatch(/^0(px)?$/)
   })
 
   test('cardClick control makes entire card clickable in listing mode', () => {

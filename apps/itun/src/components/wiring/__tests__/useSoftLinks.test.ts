@@ -12,13 +12,17 @@
  *     still exists (no cascade)
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
+import { resolveLinkType } from '../../../lib/links/linkRules'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { must } from '../../__tests__/must'
 import type { SoftLinkStore } from '../useSoftLinks'
-import { resolveLinkType, useSoftLinks } from '../useSoftLinks'
+import { useSoftLinks } from '../useSoftLinks'
+
+beforeAll(hydrateStores)
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -80,8 +84,13 @@ describe('resolveLinkType', () => {
     expect(resolveLinkType('pilot', 'crawler')).toBe('pilot-to-crawler')
   })
 
+  test('mech → crawler returns mech-to-crawler — a mech docks by its own link', () => {
+    expect(resolveLinkType('mech', 'crawler')).toBe('mech-to-crawler')
+  })
+
   test('unsupported pairing throws', () => {
     expect(() => resolveLinkType('pilot', 'mech')).toThrow()
+    expect(() => resolveLinkType('crawler', 'mech')).toThrow()
   })
 })
 

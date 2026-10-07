@@ -27,8 +27,7 @@ And from `apps/srd/` itself:
 | Script                  | What it does                                                  |
 | ----------------------- | ------------------------------------------------------------- |
 | `bun ssg/build.ts`      | Build the static site into `dist/`                            |
-| `bun run gate`          | **Output gate** — build, then diff `dist` against the snapshot |
-| `bun run snapshot:update` | Re-bless the snapshot after an intentional output change     |
+| `bun run check:examples` | After a build: every example the site prints resolves        |
 
 ## Tech stack
 
@@ -36,14 +35,8 @@ In-house SSG at [`ssg/`](ssg/) (static output) + React 19 islands, Vite 8 for th
 client bundle, Tailwind v4, in-memory search via `salvageunion-reference`'s
 `search()`. Deployed to Cloudflare Workers Static Assets (ADR-033).
 
-Two things worth knowing before you touch it:
+One thing worth knowing before you touch it:
 
-- **`ssg/snapshot.ts` is the output gate.** `bun run gate` builds and diffs the
-  result against `ssg/output-snapshot.json` — the emitted file set, per-page head
-  metadata and JSON-LD, a digest of every page's `<main>` text, all 899 JSON
-  endpoints and `llms.txt`. It runs in CI. When output changes on purpose, run
-  `bun run snapshot:update` and commit the snapshot: one line per page, so the
-  diff is the reviewable record of what changed.
 - **No `.css` import may be reachable from an SSR module.** The SSR pass runs under
   Bun with no Vite in the loop. All css comes from `src/runtime/styles.entry.ts`, a
   client-bundle entry.

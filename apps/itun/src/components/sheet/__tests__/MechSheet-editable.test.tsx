@@ -17,14 +17,17 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { MechSheet } from '../MechSheet'
+
+beforeAll(hydrateStores)
 
 afterEach(() => {
   cleanup()

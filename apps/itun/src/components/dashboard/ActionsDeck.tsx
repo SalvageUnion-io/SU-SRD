@@ -28,21 +28,27 @@
 import type { ReferenceCardEntity } from 'component-lib'
 import { Badge, Button, ReferenceEntityCard } from 'component-lib'
 import { useState } from 'react'
+import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
+  CORE_ROLL_BANDS,
   canActivateAction,
+  describePushOutcome,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  performCoreRoll,
+  pilotMaxAP,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
   rollDie,
 } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import type { CoreRollResult } from '../../lib/rules/coreMechanic'
-import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
-import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'
 import type { MountState } from '../../stores/playStateStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
@@ -62,7 +68,6 @@ import {
   isDestructiveOutcome,
   pilotActivationPatch,
   pushPatch,
-  RANGE_BANDS,
   reachSummary,
   TIMING_TABS,
   tabMatchesAction,

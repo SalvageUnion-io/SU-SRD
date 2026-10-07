@@ -106,13 +106,11 @@ band). Two consequences worth knowing before editing it:
 take their `--color-sheet-*` tones from `theme.css`; `CRITICAL` still wins where
 both apply. Rust remains the tone for every *non-sheet* embed.
 
-**There are two link shapes, and picking the wrong one silently breaks the
-link.** `shelfSheetUrl` builds `/sheet/<kind>/<appId>`, which resolves out of
-the **clicker's own** IndexedDB — correct only for your own shelf.
-`gameSheetUrl` builds `/games/<gameId>/view/<kind>/<convexId>`, the read-only
-Game view, which is the only route that resolves a **crewmate's** entity.
-`/su crew` and `/su sheet` both used the former and so handed every crewmate a
-link that opened an empty page; neither errored.
+**Two link shapes, one live sheet.** `shelfSheetUrl` builds
+`/sheet/<kind>/<appId>`; `gameSheetUrl` builds `/games/<gameId>/view/<kind>/<id>`,
+which redirects there. Either opens the live sheet — yours editable, a
+crewmate's read-only (ITUN's `entities.locate`). `/su crew` and `/su sheet` keep
+`gameSheetUrl`: it names the Game the row came from.
 
 **`/su sheet` is ephemeral, always — and that is a rule, not a default.** Most
 sheets are private ([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)

@@ -93,6 +93,8 @@ jobs:
     steps:
       - run: bun --filter srd build
       - uses: actions/upload-artifact@v7
+        with:
+          name: srd-dist
   build-itun:
     needs: plan
     if: needs.plan.outputs.itun == 'true'
@@ -100,6 +102,8 @@ jobs:
     steps:
       - run: bun run build
       - uses: actions/upload-artifact@v7
+        with:
+          name: itun-dist
   push-convex:
     needs: [plan, build-srd, build-itun]
     if: \${{ !cancelled() && !failure() && needs.plan.outputs.itun == 'true' }}
@@ -113,6 +117,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
+        with:
+          name: srd-dist
       - run: bun run deploy
   deploy-bot:
     needs: [plan, build-srd, build-itun, push-convex]
@@ -285,40 +291,6 @@ describe('path-filters', () => {
 })
 
 describe('pinning', () => {
-  test('a third-party action on a mutable tag fails, first-party ones do not', () => {
-    const extra = [
-      yaml(
-        '.github/workflows/x.yml',
-        'jobs:\n  a:\n    steps:\n      - uses: oven-sh/setup-bun@v2\n'
-      ),
-    ]
-    const failures = checkPinning(ctx({ extra })).failures
-    expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('oven-sh/setup-bun@v2')
-  })
-
-  test('composite actions are scanned, and a short SHA is not a pin', () => {
-    const extra = [
-      yaml(
-        '.github/actions/y/action.yml',
-        'runs:\n  using: composite\n  steps:\n    - uses: some/action@abc1234\n'
-      ),
-    ]
-    expect(checkPinning(ctx({ extra })).failures[0]).toContain('some/action@abc1234')
-  })
-
-  test('a reusable-workflow call at job level is scanned too', () => {
-    const extra = [
-      yaml(
-        '.github/workflows/z.yml',
-        'jobs:\n  a:\n    uses: org/repo/.github/workflows/w.yml@main\n'
-      ),
-    ]
-    expect(checkPinning(ctx({ extra })).failures[0]).toContain(
-      'org/repo/.github/workflows/w.yml@main'
-    )
-  })
-
   test('an undeclared bunx tool needs an exact version; a declared one does not', () => {
     const run = (cmd: string) =>
       checkPinning(
@@ -523,6 +495,57 @@ describe('deploy-order', () => {
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`deploy-bot` does not need `push-convex`'),
+    ])
+  })
+
+  /** srd's OG render: downloads the build, re-uploads what deploy-srd ships. */
+  const withPostBuildPass = DEPLOY_TEXT.replace(
+    '      - uses: actions/upload-artifact@v7\n        with:\n          name: srd-dist\n',
+    '      - uses: actions/upload-artifact@v7\n        with:\n          name: srd-build\n'
+  )
+    .replace(
+      '  push-convex:\n',
+      [
+        '  og-srd:',
+        '    needs: [plan, build-srd]',
+        '    runs-on: ubuntu-latest',
+        '    steps:',
+        '      - uses: actions/download-artifact@v8',
+        '        with:',
+        '          name: srd-build',
+        '      - uses: actions/upload-artifact@v7',
+        '        with:',
+        '          name: srd-dist',
+        '  push-convex:\n',
+      ].join('\n')
+    )
+    .replace(
+      '  deploy-srd:\n    needs: [plan, build-srd, build-itun, push-convex]',
+      '  deploy-srd:\n    needs: [plan, build-srd, build-itun, push-convex, og-srd]'
+    )
+
+  test('a post-build pass is not a build: only the job shipping its output waits for it', () => {
+    expect(withPostBuildPass).toContain('og-srd')
+    expect(checkDeployOrder(ctx({ deploy: withPostBuildPass })).failures).toEqual([])
+  })
+
+  test('a deploy that does not wait for the job uploading what it ships fails', () => {
+    const deploy = withPostBuildPass.replace(
+      'needs: [plan, build-srd, build-itun, push-convex, og-srd]',
+      'needs: [plan, build-srd, build-itun, push-convex]'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('`deploy-srd` does not need `og-srd` — it downloads `srd-dist`'),
+    ])
+  })
+
+  test('a download that no job uploads fails', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      '          name: srd-dist\n      - run: bun run deploy',
+      '          name: srd-typo\n      - run: bun run deploy'
+    )
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('downloads `srd-typo`, which no job uploads'),
     ])
   })
 

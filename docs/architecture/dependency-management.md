@@ -1,296 +1,150 @@
 # Dependency management
 
-How this repo pins, shares, audits and prunes its dependencies — and, more
-usefully, **why**, since almost every rule here exists because something went
-wrong once.
+How dependencies are updated, gated and pinned. Read this before editing
+`package.json`, `bunfig.toml`, `renovate.json` or `overrides`.
 
-Moved out of the root `CLAUDE.md` on 2026-09-01. It was ~1,490 of that file's
-~6,500 words, and the root CLAUDE.md is loaded into **every** session — so this
-was a permanent context tax on every task, most of which never touch a
-dependency. Much of it was also duplicated verbatim in places an agent can read
-on demand: `bunfig.toml` carries a comment restating the install-cooldown
-section. The per-entry `overrides` record used to be a ~200-line comment in
-`.github/workflows/ci.yml`; it moved here (see "The `overrides` block") because
-a workflow file is the wrong place for dependency history, and that comment had
-gone stale — it described two entries while the block held six.
+# Updates: Renovate
 
-Nothing here was cut. Read this file before editing `package.json`,
-`bunfig.toml`, the catalog, or `overrides`.
+The hosted Renovate app is the only updater. [`renovate.json`](../../renovate.json)
+enables three managers: `bun` (every `package.json` and `bun.lock`),
+`github-actions` (the workflows and `.github/actions/setup-bun`) and
+`bun-version` (`.bun-version`).
 
-# Audit gate (the `audit` check)
+- **Non-majors merge themselves.** Every Monday (00:00–04:00 UTC) Renovate opens
+  one PR, "all non-major dependencies", holding every minor, patch and digest
+  update. It turns on GitHub auto-merge, so the PR squash-merges once the
+  ruleset's required checks (`CI Success`, CodeQL) pass. The ruleset requires
+  an up-to-date branch, so Renovate rebases the PR whenever `main` moves.
+- **Lockfile maintenance** runs on the 1st of each month: one auto-merged PR
+  that re-resolves `bun.lock` within the existing ranges.
+- **Security fixes** come from OSV (`osvVulnerabilityAlerts`) as their own PRs,
+  outside the weekly schedule but still after the 3-day age limit.
+- **Caret ranges are bumped, not left alone** (`rangeStrategy: bump`). Renovate's
+  `bun` manager only runs `bun install` on the edited manifest, so a range that
+  still admits the new version would change nothing.
+- **Never updated automatically:** the `overrides` block (hand-curated floors,
+  below) and `typescript-classic`, which is held below 7 because
+  `tools/check-architecture.ts` needs the TypeScript 6 compiler API.
 
-`bun audit --audit-level=high` gates merges via the `static-checks` job, and
-`package.json` cannot carry comments, so the reasoning lives here.
+Writing the same version into several manifests is fine: Renovate updates every
+occurrence in the same grouped PR. There is no Bun catalog, because Renovate's
+`bun` manager does not read one.
 
-**There are no suppressed advisories.** The `audit` check carries no `--ignore`
-flags, and a bare `bun audit` reports nothing across 1,049 packages. It used to
-suppress two — `GHSA-w3rx-r6r6-pgpr` and `GHSA-5p2g-fcmc-qvqq`, both
-`image-size <=2.0.2` — behind a page of justification about which code paths
-could reach the parser. That justification is now moot rather than merely
-satisfied: `bun why image-size` reports the package is not in the lockfile at
-all. `@netlify/blobs` was still here when that was written (10.7.13, catalogued);
-it simply stopped pulling `image-size`. It has since been removed outright —
-`bun why @netlify/blobs` now reports *"No packages matching … found in
-lockfile"*. The flags and their rationale were removed together, on this
-section's own former instruction that a suppression outliving its cause is how
-a real advisory gets hidden.
+`bun audit --audit-level=high` gates every PR that changes `bun.lock` or a
+`package.json` (the `deps` area of the `static-checks` job); a PR that changes
+neither cannot change the verdict, and `audit-watch.yml` audits the unchanged
+tree weekly.
 
-**If you add an `--ignore` back, write down what would remove it.** A
-suppression with no stated exit condition is the failure mode above; the pair
-that lived here survived their cause by an unknown number of dependency bumps
-because nothing re-derived the chain.
+## What waits for approval
 
-**Re-derive the chain, don't trust this prose.** `bun why <pkg>` prints the real
-path from the lockfile, so any claim about how a package got here can be
-checked in one command instead of read:
+Two kinds of update wait on the **Dependency Dashboard** issue instead of
+opening a PR:
 
-```
-$ bun why @sentry/cloudflare
-@sentry/cloudflare@10.69.0
-  └─ observability@workspace (requires 10.69.0)
-     ├─ discord-bot@workspace (requires workspace:*)
-     ├─ itun@workspace (requires workspace:*)
-```
+- **Every major.**
+- **The Bun toolchain:** `.bun-version`, the root `packageManager` (`bun@…`) and
+  the `bun-types` devDependency move as one group. The `workflows` check
+  (`bun-version`) fails unless all three are equal, and CI installs the Bun
+  that `.bun-version` names.
 
-(It read `dev observability@workspace` until the 2026-09-25 audit, PK-07: all
-three Workers import `@sentry/cloudflare` at runtime through
-`observability/cloudflare`, so it is a `dependency`, not a devDependency.)
+To approve one, open the issue (`gh issue list --author app/renovate`), tick
+its box under "Pending Approval", and Renovate opens the PR on its next run
+(roughly hourly). These PRs do not auto-merge: fix what breaks on the branch,
+then `gh pr merge <n> --squash`.
 
-This example used to be `@netlify/blobs`, and it outlived the package —
-printing a dependency tree that no longer existed, three paragraphs under a
-heading that says not to trust this prose. Re-derived, not edited.
-
-Use it before editing an `overrides` entry too — the record below says what
-each entry holds back and via what, and a record can go stale while `bun why`
-cannot.
-
-## The `overrides` block
-
-`package.json` cannot carry comments, so this is the record. **Four entries,
-all security floors.**
-
-| Entry | Kind | Why |
-| --- | --- | --- |
-| `fast-uri: >=3.1.6 <4` | floor | ReDoS class; `ajv` asks `^3.0.1`, so a caret step-down could land an in-advisory 3.x. |
-| `filelist: >=1.0.6` | floor | `jake` asks `^1.0.4`, which a caret step-down could satisfy with a release below the floor. |
-| `nanoid: >=3.3.18` | floor | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17`, a caret that only happens to resolve high enough. |
-| `shell-quote: >=1.9.0` | floor | `concurrently` pins exactly 1.9.0 today; the floor keeps a future resolve from stepping below it. |
-
-The four floors were restored in #958 after #787 had removed them. They are
-floors rather than exact pins on purpose: `bunfig.toml`'s `minimumReleaseAge`
-makes a **caret resolve silently down** to the newest version old enough (see
-"Install cooldown"), whereas resolving below an override **errors** — a floor
-fails loudly where a caret fails silently. `brace-expansion` is on the watch
-list but cannot be floored: the tree holds two copies at incompatible majors
-(`minimatch@10` wants `^5`, the `filelist@1` → `minimatch@5` chain wants `^2`),
-and a tree-wide override would break one of them.
-
-**`@discordjs/rest` is gone too, and by its own removal condition.** It was a
-dedupe pin: `discord.js@14.27.0` → `@discordjs/ws@1.2.3` → `@discordjs/rest@2.6.1`
-held `undici` at exactly 6.24.1 (HIGH `GHSA-vxpw-j846-p89q`, `< 6.27.0`), and
-overriding `rest` to `^2.6.3` deduped that copy onto one asking `undici ^6.27.0`.
-The 2026-09-25 audit (AP-14) dropped `discord.js` from the bot altogether — it
-was a value import only in `deploy-commands.ts`, which now uses `@discordjs/rest`
-directly — so `@discordjs/ws` and its stale `rest` left the lockfile, the bot's
-own `@discordjs/rest@2.6.3` is the only copy, and `bun why undici` resolves
-`6.28.0` through it unaided. An override with nothing left to redirect is only a
-tree-wide clamp waiting to bite the next major, so it was deleted rather than
-kept "for safety".
-
-**`@opentelemetry/core` is gone, and the reason is worth keeping.** It was a
-dedupe pin for `@netlify/otel`, which held a second OTel core inside its own
-subtree and could desync `@sentry/node`'s span context — the worked example of
-a removal that audits clean and still degrades behaviour. When Netlify and the
-bot's Node gateway were deleted, `@opentelemetry/core` left the lockfile
-entirely (`bun why @opentelemetry/core` finds nothing), so the pin was holding
-nothing and was removed with no lockfile change. "The audit is still clean" is
-a necessary test for removing an entry, not a sufficient one; "the package is
-no longer in the tree" is sufficient.
-
-**How to re-derive the block**, so it can be redone rather than trusted: empty
-it, `bun install`, then `bun run check audit`. Anything that reappears earned
-its entry. Then check `bun why` for every dedupe you removed, because a
-duplicate copy is not an advisory and the audit will not see it.
-
-**Floors are ranges, never exact versions.** An exact override pins the package
-*down* as well as up, so when the next advisory is fixed one patch above it the
-override itself holds the vulnerable version in place and no `bun update` can
-clear it. `brace-expansion` was hand-bumped that way twice (#565, #673), each
-time after an exact pin had blocked every open PR. Raise a floor; never freeze
-it.
-
-**When the audit fails on a transitive dep**, the fix is `bun update <pkg>` plus
-the regenerated `bun.lock`. A floor on the vulnerable package is the *last*
-resort — first look for a parent whose own range already admits a fixed
-version, because that is a dedupe rather than a pin (which is exactly how
-`@discordjs/rest` replaced an `undici` floor).
-
-**The watch list is manual below `high`.** The `audit` check gates at
-`--audit-level=high`, so a *moderate* advisory on `nanoid`, `fast-uri`,
-`brace-expansion`, `shell-quote` or `filelist` — the ReDoS class they actually
-draw — fails nothing in `check`, CI or the pre-push hook.
-`.github/workflows/audit-watch.yml` runs the moderate band weekly and maintains
-one tracking issue. If one of them goes red, raise or restore that package's
-floor rather than hunting for a new consumer.
-
-Dead floors kept as lessons: an `astro: ^7.1.4` floor (for a second astro tree
-`@vite-pwa/astro` pulled in) went with Astro itself (ADR-031); a
-`@vitejs/plugin-react-swc: ^4.3.3` dedupe floor no longer reproduces its
-problem (Ladle's nested copy is satisfied by the vite Ladle already carries).
-Re-measure before restoring either. And do not reach for a blanket `esbuild`
-floor for a Ladle-only issue — `convex` deliberately pins esbuild below the
-advisory range; move the offending subtree, not every consumer.
-
-# Shared versions live in the catalog
-
-Any dependency used by **two or more** manifests is declared once in the root
-`package.json` under `workspaces.catalog` and referenced everywhere as
-`"react": "catalog:"`. 17 deps, 44 references (`bun run check catalog` prints the live count). Bump the catalog entry, not the
-workspace — a version literal in a workspace manifest for a catalogued package
-is a bug, and it silently un-shares that dep.
-
-Adopting it changed **zero** resolved versions (`bun install` reported
-"Checked 953 installs ... (no changes)"); it only changed where the version is
-written.
-
-Two things this interacts with, both of which have bitten:
-
-- **`overrides` beats the catalog.** An `overrides` entry forces a version
-  tree-wide, so raising a catalogued dep past the range its override allows
-  leaves the catalog stating a version that is not what resolves — the catalog
-  becomes fiction, silently. **No dependency is currently in both places**, so
-  this hazard is dormant, not active — check before assuming it applies.
-  `@vitejs/plugin-react-swc` used to be the one example (catalogued *and*
-  overridden at `^4.3.3`), which is why `.catalog-updaterc.json` ignored its
-  major updates. That override is gone, so the ignore is gone with it and its
-  majors are automated like everything else. If you ever add an override for a
-  catalogued dep, restore the ignore in the same change.
-  (`sharp` is *not* an example of this — it has never had an override. Check
-  `overrides` before assuming; `ci.yml`'s audit job asserted a `sharp` override
-  that never existed.)
-- **Dependabot cannot read `catalog:`.** It will not update catalogued deps
-  (dependabot-core #14320) and may strip the `catalog` field from a manifest it
-  rewrites (#12522) — both still open.
-  `.github/workflows/catalog-update.yml` covers updates instead, pinned to a
-  commit SHA because it is a young composite action running in this repo's
-  runner. **Delete that workflow when dependabot-core supports `catalog:`.**
-- **That action installs its own Bun.** It runs `oven-sh/setup-bun@v2` with no
-  `bun-version`, so setup-bun reads the root `packageManager` field and falls
-  back to `latest` without it — which is how a lockfile the pinned Bun could not
-  read once got written. `packageManager` is `bun@<.bun-version>`, and
-  `bun run check workflows` (bun-version) fails when the two disagree. Bump
-  them together.
-
-`.catalog-updaterc.json` sets `"audit": {"enabled": false}` deliberately — JSON
-takes no comments, so the reason lives here. That feature defaults to **on** at
-`moderate` severity and writes `overrides` entries automatically; this repo
-curates `overrides` by hand — every entry documented above under "The
-`overrides` block" — and gates at
-`--audit-level=high`. Leaving it on would open PRs editing that block for
-advisories the `audit` check deliberately ignores.
-
-`tools/check-doc-drift.ts` resolves `catalog:` one hop when it reads framework
-majors; anything else that learns a version by reading a workspace manifest
-needs the same treatment.
-
-# Renovate (trialled 2026-09-25, dropped 2026-09-28)
-
-Renovate was trialled as the single replacement for Dependabot and
-`catalog-update.yml`, scoped to the catalog behind dashboard approval. It never
-opened a PR, and it could not have closed the gap it was there for: its `bun`
-manager does not read Bun catalogs, and the JSONata custom manager standing in
-for it does not regenerate `bun.lock`, so every catalog PR would have failed
-`bun install --frozen-lockfile` until someone pushed the lockfile by hand. Its
-config is gone; Dependabot and `catalog-update.yml` keep the split above.
-
-Dependabot's own `bun` job fails too, on every run: the Bun it ships reads
-`bun.lock` up to `lockfileVersion` 1, and this repo's is 2. Watch
-dependabot-core's Bun support rather than swap bots again.
-
-# Declare what you import, in the right field
-
-Every workspace declares, in its **own** manifest, each package its shipping
-code imports — as a `dependency`, not a `devDependency` and not a peer the
-consumer is trusted to supply. The 2026-09-25 audit (PK-07) found three ways
-this had held only by accident:
-
-- `component-lib` listed `@base-ui/react`, `@randsum/roller`, `clsx`,
-  `class-variance-authority`, `lucide-react`, `salvageunion-reference`,
-  `sonner` and `tailwind-merge` as **peers**, while srd declared none of them
-  and neither app declared `sonner`. They resolved only because the library's
-  own devDependency copies happened to be installed. They are now `component-lib`
-  `dependencies`. **`react` and `react-dom` stay peers** — they must be a single
-  instance per app, so the app supplies them, and both apps do. The apps'
-  declarations that only existed to satisfy those peers (`@base-ui/react`,
-  `clsx`, `class-variance-authority`, `tailwind-merge`) were removed — knip
-  reports them unused once nothing asks for them — and with the library as
-  their only consumer those four left the catalog for direct declarations in
-  `component-lib` (a caret range for three, an exact pin for `@base-ui/react`), per the two-manifest rule above.
-- `qrcode` was a `component-lib` dependency used by one ITUN-only component.
-  `SnapshotQr` moved into `apps/itun/src/components/sheet/`, and `qrcode` (plus
-  `@types/qrcode`) moved with it.
-- `@sentry/cloudflare` was a **devDependency** of `observability`, yet all three
-  production Workers import it at runtime through `observability/cloudflare`.
-
-The test: if deleting a devDependency would break `bun run build` or a deploy,
-it was never a devDependency.
+The dashboard also lists anything Renovate could not do (a failed lockfile
+update, a config error), so it is the first place to look when updates stop.
 
 # Install cooldown (`minimumReleaseAge`)
 
-`bunfig.toml` refuses dependency versions **published less than 3 days ago**.
-Dependabot opens *grouped* minor/patch PRs weekly, so reviewing one realistically
-means glancing at a list of version numbers — three days is about how long a
-hijacked npm release lasts before it is noticed and unpublished, and this makes
-such a version unresolvable rather than trusting that glance to catch it.
+`bunfig.toml` refuses dependency versions **published less than 3 days ago**,
+and `renovate.json` sets the same `minimumReleaseAge` with
+`internalChecksFilter: strict`, so Renovate never proposes a version `bun install`
+would refuse. Three days is roughly how long a hijacked npm release lasts before
+it is noticed and unpublished, and nobody reads the tarballs in an auto-merged PR.
 
-Two behaviours, measured on the pinned Bun (`.bun-version`) — know which one you are hitting:
+Two behaviours, measured on the pinned Bun (`.bun-version`):
 
 - an **exact pin** the gate cannot satisfy is a hard, self-describing error
   (`... (blocked by minimum-release-age: N seconds)`). Most deps here are exact
   pins, so this is the usual case.
 - a **caret range silently resolves *down*** to the newest version old enough.
   No warning. So `bun update <pkg>` to clear a *fresh* advisory can look like it
-  did nothing — check the publish date before concluding the fix is broken.
-  An `overrides` floor is the loud alternative: resolving below one errors
-  instead of silently stepping down. **All four `overrides` entries are
-  such floors** (`fast-uri`, `filelist`, `nanoid`, `shell-quote`; see "The
-  `overrides` block"). `brace-expansion` is the one watched package that cannot
-  be floored, so it is the one a caret step-down can still reach silently.
+  did nothing; check the publish date before concluding the fix is broken.
 
-`bun install --frozen-lockfile` does no resolution and is **unaffected** —
-verified; CI and all four deploy targets never see this gate.
+`bun install --frozen-lockfile` does no resolution and is unaffected, so CI and
+every deploy never see this gate.
 
 The escape hatch is `minimumReleaseAgeExcludes` (currently `bun-types`, which
 must track `.bun-version` exactly), **not** lowering the number.
 
+# Audit
+
+- **Merge gate:** `bun audit --audit-level=high` (the `audit` check, in CI's
+  `static-checks` job, on any PR that changes `bun.lock` or a `package.json`).
+  If you add an `--ignore`, write down what would remove it, next to it. **One
+  is suppressed:** `braces` GHSA-vfj7-8cjw-p6xm (2026-10-06), which has no fixed
+  release; it reaches the tree only through component-lib's devDependency
+  `@ladle/react` → `globby` → `fast-glob` → `micromatch`, and Ladle globs only
+  our own story patterns. The `--ignore` in `tools/check.ts` says what removes
+  it; `audit-watch.yml` audits without it, so it stays reported weekly.
+- **Below the gate:** `.github/workflows/audit-watch.yml` runs `bun audit` at
+  every severity weekly and keeps one tracking issue open while it reports
+  anything. The watch list is `nanoid`, `fast-uri`, `brace-expansion`,
+  `shell-quote` and `filelist`, the ReDoS class the tree keeps drawing.
+- **When the audit fails on a transitive dep**, the fix is `bun update <pkg>`
+  plus the regenerated `bun.lock`. First look for a parent whose own range
+  already admits a fixed version (a dedupe); a floor in `overrides` is the last
+  resort.
+
+`bun why <pkg>` prints the real path from the lockfile, so any claim about how a
+package got into the tree can be checked in one command instead of read.
+
+# The `overrides` block
+
+`package.json` cannot carry comments, so this is the record. **Five entries,
+all security floors.**
+
+| Entry | Why |
+| --- | --- |
+| `fast-uri: >=3.1.6 <4` | ReDoS class; `ajv` asks `^3.0.1`, so a caret step-down could land an in-advisory 3.x. |
+| `filelist: >=1.0.6` | `jake` asks `^1.0.4`, which a caret step-down could satisfy with a release below the floor. |
+| `nanoid: >=3.3.18` | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17`, a caret that only happens to resolve high enough. |
+| `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w` (librsvg); `miniflare` (via `wrangler`) pins exactly 0.35.4. Delete once `bun why sharp` shows `miniflare` asking ≥0.35.5. |
+| `shell-quote: >=1.11.0` | `GHSA-pqg4-j6r4-53mv` (critical); `concurrently` pins exactly 1.9.0, so only the floor lifts it. |
+
+- **Floors, never exact versions.** Resolving below a floor errors, where a
+  caret steps down silently. An exact override also pins the package *down*,
+  so the next advisory fixed one patch above it cannot be cleared by any
+  `bun update`. Raise a floor; never freeze it.
+- **`brace-expansion` cannot be floored:** the tree holds two copies at
+  incompatible majors (`minimatch@10` wants `^5`, `filelist@1` → `minimatch@5`
+  wants `^2`), and a tree-wide override would break one of them.
+- **An override with nothing left to redirect is deleted.** The test for
+  removing one is that `bun why <pkg>` no longer finds the package, not that the
+  audit is still clean.
+- **To re-derive the block:** empty it, `bun install`, then `bun run check audit`.
+  Anything that reappears earned its entry.
+
+# Declare what you import, in the right field
+
+Every workspace declares, in its **own** manifest, each package its shipping
+code imports, as a `dependency`: not a `devDependency`, and not a peer the
+consumer is trusted to supply. The exception is `react` and `react-dom` in
+`component-lib`, which stay peers because each app must supply a single
+instance.
+
+The test: if deleting a devDependency would break `bun run build` or a deploy,
+it was never a devDependency.
+
 # Dead-code gate (knip)
 
-`bun run knip` runs with **`includeEntryExports: true`**, so it also reports unused
-exports of _entry_ files — which is where a workspace-internal package's whole
-public API lives. Without it knip stays green while an entire export surface rots
-(this is how 72 dead exports accumulated in `salvageunion-reference`).
+`bun run knip` runs with **`includeEntryExports: true`**, so it also reports
+unused exports of entry files, which is where a workspace package's public API
+lives. `srd` and `su-assets` turn it off because their entry files are
+framework contracts; `component-lib` keeps it on because its barrel is the
+library API.
 
-Two escape hatches, both configured via `tags` in `knip.json`:
-
-- **`@public`** — the export is deliberately public or is a framework contract
-  invoked rather than imported (e.g. a Cloudflare Worker's default export). Tag the export.
-- **`@knipignore`** — a genuine knip false positive. Only use this when you can
-  show the export _is_ consumed (e.g. deleting it fails typecheck), and say so in
-  the tag comment.
-
-Two workspaces whose entry files legitimately _are_ the public surface set
-`includeEntryExports: false` per-workspace: `srd` (`*.page.tsx` route + endpoint
-modules, consumed by `ssg/routes.ts` and `ssg/endpoints.ts`) and `su-assets`
-(platform handlers).
-
-**`component-lib` is NOT one of them — it sets `includeEntryExports: true`**
-(`knip.json`), deliberately and against the same intuition. Its barrel IS the
-library API, which is exactly why switching the check off there made the one
-workspace where barrel rot matters most the one workspace where it could not be
-seen: 28 dead re-exports accumulated behind it, removed in #893. This paragraph
-previously listed `component-lib` with the other two, so an agent reading it
-would have "restored" the setting that hid them.
-
-When knip flags something, the default is to **delete it** — reach for a tag only
-in the two cases above. Deleting dead code often cascades (its callees become dead
-in turn), so re-run knip after each removal.
+When knip flags something, delete it. The two escape hatches, both `tags` in
+`knip.json`, are `@public` (a deliberate public export or a framework contract)
+and `@knipignore` (a false positive you can show is consumed). The procedure is
+the `/knip-triage` skill.

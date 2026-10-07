@@ -21,7 +21,7 @@ const chassisWithPatterns = () => {
 
 /** A crawler bay carries a choice (the Armament Bay catalog listing). */
 const armamentBay = () => {
-  const bay = SalvageUnionReference.CrawlerBays.all().find((b) => b.name === 'Armament Bay')
+  const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
   if (!bay) throw new Error('Armament Bay fixture missing')
   return bay
 }
@@ -88,7 +88,7 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
     // the Holo Companion equipment. In catalog mode the granted CARD is
     // suppressed, so without the granted-lead branch the tile body would be empty.
     // Instead the tile surfaces the granted equipment's opening paragraph.
-    const holo = SalvageUnionReference.Abilities.all().find((a) => a.name === 'Holo Companion')
+    const holo = SalvageUnionReference.Abilities.getByName('Holo Companion')
     if (!holo) throw new Error('Holo Companion ability fixture missing')
     // Precondition that makes this a real probe (not the old silently-skipping
     // `content?.length > 0` selector, which no real grant ability satisfies).

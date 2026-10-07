@@ -1,10 +1,30 @@
 /**
  * MoveToContainerControl — live-sheet affordance for moving one entity between
- * its **Shelf** and a **Game** (ADR-030 §2).
+ * **My Stuff** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
- * Replaces `AssignToWorkspaceButton`. Same shape and same friction — a select,
- * not a dialog, so a move is one tap — with Workspaces swapped for the two real
- * containers.
+ * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
+ * two real containers. Moving INTO a Game is one tap unless it clears an
+ * assignment; moving OUT of one — back to My Stuff, or on to another Game —
+ * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
+ * and "Remove from game" on a Game's rows).
+ *
+ * ## When a move asks
+ *
+ * Taking a build out of a Game takes it off a roster the rest of the table was
+ * reading, which is the destructive direction, so that move always goes
+ * through a confirm (`leaveGame`). Putting a build into a Game takes nothing
+ * from the table, but it does prune every assignment that would straddle two
+ * containers (ADR-037) — a pilot loses the mech still in My Stuff it was paired
+ * with — so a move in asks (`enterGame`, naming each one) exactly when
+ * `assignmentsClearedByMove` finds something, and is one tap when it does not.
+ * The words are in `lib/games/rowActionCopy.ts`; the move only runs once the
+ * player says yes. The select is controlled by the entity's real container, so
+ * a cancelled move leaves it showing where the build still is.
+ *
+ * The confirm is the CALLER's (`confirm`, from `useConfirm`), not this
+ * control's. The sheet renders this inside its ⋯ menu, which unmounts its
+ * children on any outside pointerdown — and the dialog is portalled outside
+ * it, so a dialog owned here would be torn down by the press that answers it.
  *
  * ## A move is one field, and that is the whole design
  *
@@ -27,9 +47,17 @@
  * agreeing: if either ever starts copying, a player ends up with two of
  * themselves and no way to tell which one the table can see.
  *
+ * ## It lists only where this entity may go
+ *
+ * The options come from `moveDestinations` (`lib/games/gameRoster.ts`), the
+ * client mirror of the server's move rules (ADR-037): a pilot or mech may go to
+ * My Stuff or any Game you belong to; a crawler moves only at its table
+ * runner's hand, My Stuff → a Game they run or back. With nowhere to go the
+ * select still shows where the entity is, disabled.
+ *
  * ## Solo renders nothing
  *
- * With no account there is only the Shelf, so there is nowhere to move to —
+ * With no account there is only My Stuff, so there is nowhere to move to —
  * see `ContainerSwitcher` for the same branch and the reasoning behind it.
  */
 
@@ -38,18 +66,28 @@ import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { ContainerFields } from '../../lib/container'
-import { containerOf, moveTo } from '../../lib/container'
+import type { Container, ContainerFields } from '../../lib/container'
+import { containerOf, moveTo, sameContainer } from '../../lib/container'
+import { moveDestinations } from '../../lib/games/gameRoster'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
+import type { Confirm } from '../shared/useConfirm'
 
 type MoveToContainerControlProps = {
   entityType: AssignableType
   entityId: string
   /** The entity's current container fields (`gameId`, legacy `workspaceId`). */
-  entity: ContainerFields
+  entity: ContainerFields & { name: string }
+  /**
+   * Opens the confirm a move out of a Game — or one in that clears an
+   * assignment — goes through. Owned by an always-mounted ancestor — see "When
+   * a move asks" above.
+   */
+  confirm: Confirm
   onChanged?: () => void
   className?: string
 }
@@ -58,6 +96,7 @@ function ConnectedMoveToContainerControl({
   entityType,
   entityId,
   entity,
+  confirm,
   onChanged,
   className,
 }: MoveToContainerControlProps) {
@@ -66,19 +105,77 @@ function ConnectedMoveToContainerControl({
   const [error, setError] = useState<string | null>(null)
 
   const current = containerOf(entity)
+  const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })
+  // While the Games load, the current Game cannot be named yet — but it is not
+  // unknown either, so it is not called that.
+  const first = destinations[0]
+  if (games === undefined && first !== undefined && first.container.kind === 'game') {
+    destinations[0] = { ...first, label: '…' }
+  }
+  const shelfOptions = destinations.filter((d) => d.container.kind === 'shelf')
+  const gameOptions = destinations.filter((d) => d.container.kind === 'game')
 
-  async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const next = parseContainer(e.target.value)
+  /** A Game's name as the reader knows it, or null when it is not one of theirs. */
+  function gameName(gameId: string): string | null {
+    return games?.find((game) => game._id === gameId)?.name ?? null
+  }
+
+  async function move(next: Container) {
+    await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    onChanged?.()
+  }
+
+  async function moveNow(next: Container) {
     setPending(true)
     setError(null)
     try {
-      await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
-      onChanged?.()
+      await move(next)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to move this build.')
     } finally {
       setPending(false)
     }
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = parseContainer(e.target.value)
+    // Either confirm shows a failure on the dialog, which outlives this
+    // control, so the move it runs is bare.
+    if (current.kind === 'game' && !sameContainer(current, next)) {
+      // Out of a Game: always ask.
+      confirm({
+        ...ROW_ACTION_COPY.leaveGame({
+          name: entity.name,
+          kind: entityType,
+          from: gameName(current.gameId),
+          to: next.kind === 'shelf' ? next : { kind: 'game', name: gameName(next.gameId) },
+        }),
+        onConfirm: () => move(next),
+      })
+      return
+    }
+    // Into a Game from My Stuff: ask only when the move clears an assignment.
+    const cleared =
+      next.kind === 'game'
+        ? assignmentsClearedByMove(
+            useEntityStore.getState(),
+            { type: entityType, id: entityId },
+            next
+          )
+        : []
+    if (next.kind === 'shelf' || cleared.length === 0) {
+      void moveNow(next)
+      return
+    }
+    confirm({
+      ...ROW_ACTION_COPY.enterGame({
+        name: entity.name,
+        kind: entityType,
+        game: gameName(next.gameId),
+        cleared,
+      }),
+      onConfirm: () => move(next),
+    })
   }
 
   return (
@@ -90,30 +187,32 @@ function ConnectedMoveToContainerControl({
         <Select
           id={`container-move-${entityId}`}
           value={serializeContainer(current)}
-          onChange={(e) => void handleChange(e)}
-          disabled={pending}
+          onChange={handleChange}
+          disabled={pending || destinations.length <= 1}
           className="w-auto disabled:opacity-50 sm:min-h-9"
-          aria-label="Move to Game or Shelf"
+          aria-label="Move to a game or My Stuff"
         >
-          <option value="shelf">Shelf</option>
-          {games !== undefined && games.length > 0 && (
+          {shelfOptions.map((d) => (
+            <option key="shelf" value="shelf">
+              {d.label}
+            </option>
+          ))}
+          {/* A record left in a container that is not among the user's Games —
+              a v13 phantom id, or a Game they have since left — is named
+              "Unknown game" by `moveDestinations` rather than passed off as
+              My Stuff, which would be a lie about where it lives. */}
+          {gameOptions.length > 0 && (
             <optgroup label="Games">
-              {games.map((game) => (
-                <option key={game._id} value={`game:${game._id}`}>
-                  {game.name}
+              {gameOptions.map((d) => (
+                <option
+                  key={serializeContainer(d.container)}
+                  value={serializeContainer(d.container)}
+                >
+                  {d.label}
                 </option>
               ))}
             </optgroup>
           )}
-          {/* A record left in a container that is not among the user's Games —
-              a v13 phantom id, or a Game they have since left — would otherwise
-              select nothing and read as "on the Shelf", which is a lie about
-              where it lives. Surface it as its own option instead. */}
-          {current.kind === 'game' &&
-            games !== undefined &&
-            !games.some((game) => game._id === current.gameId) && (
-              <option value={serializeContainer(current)}>Unknown game</option>
-            )}
         </Select>
       </div>
       {error && <FieldError className="mt-1">{error}</FieldError>}

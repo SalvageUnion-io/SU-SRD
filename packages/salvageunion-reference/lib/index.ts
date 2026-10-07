@@ -161,11 +161,7 @@ export { parseTraitReferences, replaceTraitReferences } from './traitText.js'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable.js'
 
 import type { SearchOptions, SearchResult } from './search.js'
-import {
-  getSuggestions as getSuggestionsFn,
-  search as searchFn,
-  searchIn as searchInFn,
-} from './search.js'
+import { search as searchFn, searchIn as searchInFn } from './search.js'
 
 // ---------------------------------------------------------------------------
 // Lazy model registry — LazyModel is defined in ./LazyModel.js; the ~27
@@ -456,19 +452,6 @@ export class SalvageUnionReference {
     options?: { limit?: number }
   ): (T & { schemaName: SURefEnumSchemaName })[] {
     return searchInFn(schemaName, query, options)
-  }
-
-  /**
-   * Get search suggestions based on partial query
-   */
-  public static getSuggestions(
-    query: string,
-    options?: {
-      schemas?: SURefEnumSchemaName[]
-      limit?: number
-    }
-  ): string[] {
-    return getSuggestionsFn(query, options)
   }
 
   /**

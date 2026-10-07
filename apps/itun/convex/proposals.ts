@@ -57,7 +57,7 @@ async function requireProposalTarget(
   // sheet table is not a proposal target at all.
   const doc = await loadOwnable(ctx, ownableTableFor(entityType), entityId)
   if (doc.gameId === null) {
-    throw new NotAuthorized('An entity on a shelf is not part of a game and cannot be proposed to')
+    throw new NotAuthorized('A build in My Stuff is not part of a game and cannot be proposed to')
   }
   return { doc, gameId: doc.gameId }
 }

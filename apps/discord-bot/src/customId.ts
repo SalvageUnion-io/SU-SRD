@@ -7,24 +7,13 @@
  * 100 chars by Discord). We namespace every id `su:<action>:<payload>` so it
  * never collides with another bot's components, and parse it back on click.
  *
- * This is a LEAF module: it imports `@discordjs/builders` and `discord-api-types` only. Command handlers import it
- * to attach rows; the button router (`buttons.ts`) imports it to parse ids.
- * Keeping it dependency-free of the command modules avoids an import cycle.
+ * This is a LEAF module with no imports: command handlers import it to build
+ * ids; the button router (`buttons.ts`) imports it to parse them. Keeping it
+ * free of the command modules avoids an import cycle.
  */
-
-import { ActionRowBuilder, ButtonBuilder } from '@discordjs/builders'
-import { ButtonStyle } from 'discord-api-types/v10'
 
 /** Namespace prefix for every one of this bot's component ids. */
 export const CUSTOM_ID_NS = 'su'
-
-/**
- * Leading glyph on every re-roll button label. A typographic symbol (U+21BB
- * clockwise open circle arrow), NOT an emoji — it reads as "roll again / repeat"
- * and has broad font coverage across Discord clients, where a colored emoji
- * would clash with the plain-text embed styling.
- */
-const REROLL_SYMBOL = '↻'
 
 /** Discord caps a component customId at 100 characters. */
 const CUSTOM_ID_MAX = 100
@@ -70,32 +59,6 @@ export function parseCustomId(customId: string): ParsedCustomId | null {
   return { action, payload: parts.slice(2).join(':') }
 }
 
-/** A namespaced button, or null when its payload won't fit in a customId. */
-function makeButton(
-  action: ButtonAction,
-  payload: string,
-  label: string,
-  style: ButtonStyle = ButtonStyle.Secondary
-): ButtonBuilder | null {
-  const customId = makeCustomId(action, payload)
-  if (!customId) return null
-  return new ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style)
-}
-
-/**
- * A single-button action row that re-invokes `action` with `payload` on click.
- * Returns null when the payload can't fit in a customId — the caller then omits
- * the button rather than emitting an invalid component.
- */
-export function rollAgainRow(
-  action: ButtonAction,
-  payload: string,
-  label: string
-): ActionRowBuilder<ButtonBuilder> | null {
-  const button = makeButton(action, payload, `${REROLL_SYMBOL} ${label}`)
-  return button ? new ActionRowBuilder<ButtonBuilder>().addComponents(button) : null
-}
-
 /**
  * Encode a rolled result so it can be re-rendered verbatim: `<table>|<n>` for a
  * flat roll, `<table>|<column>|<entry>` for a columns table.
@@ -115,17 +78,4 @@ export function decodeRollResult(payload: string): { tableName: string; rolls: n
   const rolls = parts.slice(1).map(Number)
   if (rolls.some((n) => !Number.isInteger(n) || n < 1 || n > 20)) return null
   return { tableName, rolls }
-}
-
-/**
- * The action row on a `/su roll` result: re-roll the same table, plus a "See
- * table" button that opens the full `/su lookup` embed for it. Each button is
- * included only if its payload fits a customId; returns null if neither does.
- */
-export function rollResultRow(tableName: string): ActionRowBuilder<ButtonBuilder> | null {
-  const buttons = [
-    makeButton('roll', tableName, `${REROLL_SYMBOL} Roll again`),
-    makeButton('lookup', tableName, 'See table', ButtonStyle.Primary),
-  ].filter((button): button is ButtonBuilder => button !== null)
-  return buttons.length ? new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons) : null
 }

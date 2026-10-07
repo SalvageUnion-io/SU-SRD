@@ -40,7 +40,7 @@ import {
 } from 'component-lib'
 import { useState } from 'react'
 import type { ScrapPool } from '../../lib/schemas/crawler'
-import type { ItemCondition } from '../../lib/schemas/mech'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 

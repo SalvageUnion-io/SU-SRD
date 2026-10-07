@@ -22,11 +22,11 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   calls `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an
   e2e spec signs in through `e2e/fixtures.ts`.
 - **One local → account reconciler.** `AccountReconciler` (root-mounted, over
-  `src/lib/account/reconcile.ts`) owns the signed-out banner and download, the
-  upload of this tab's anonymous work on sign-in, the migration of a pre-account
-  roster still in IndexedDB (reconciled against `entities.listMine`), and mounts
-  `ShelfSync`. Do not add a second surface that uploads local work; there is no
-  legacy exemption, no claim card, and no offer-and-decline path.
+  `src/lib/account/reconcile.ts`) owns the upload of this tab's anonymous work
+  on sign-in, the migration of a pre-account roster still in IndexedDB
+  (reconciled against `entities.listMine`), and mounts `ShelfSync`; signed out
+  it renders nothing. Do not add a second surface that uploads local work; there
+  is no legacy exemption, no claim card, and no offer-and-decline path.
 - **A container written twice must be written together** — the row's `gameId`
   column and the body's `gameId` (`shelveBody` in `convex/claim.ts`;
   `maintenance.repairContainers` repairs old rows toward the column).
@@ -35,29 +35,29 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   SKIP; the nightly `e2e-itun` job provisions a throwaway Convex backend and
   runs them for real. See `e2e/fixtures.ts`.
 
-**Two account-free ways to share, and they are not interchangeable
-([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)):**
+**One account-free way to share: the public sheet
+([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)).** A **live**
+read-only page at `/p/:kind/:appId`, opt-in per entity via the `publicRead`
+Convex column, served by one deliberately unauthenticated query
+(`convex/publicSheet.ts`). Off by default; turning it off revokes everywhere at
+once, because the URL is derived rather than minted.
 
-- **Snapshot** ([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md))
-  — a **frozen** copy, minted per share, stored as an opaque R2 object. Its
-  id is the whole capability, including for revocation. Unchanged.
-- **Public sheet** — a **live** read-only page at `/p/:kind/:appId`, opt-in per
-  entity via the `publicRead` Convex column, addressed by app id, and served by
-  one deliberately unauthenticated query (`convex/publicSheet.ts`). Off by
-  default; turning it off revokes everywhere at once, because the URL is derived
-  rather than minted.
+**Snapshots are retired**
+([ADR-036](../../docs/adrs/ADR-036-retire-snapshot-shares.md)): nothing mints or
+revokes them, and an old `/s/:id` redirects to the public sheet if its entity is
+public, else shows a "retired" page. The R2 bucket is read-only — never delete
+from it.
 
-Both render through `frozenSheet.ts`, which the Game crew view also uses — three
-consumers, one renderer. Don't add a fourth read-only sheet renderer.
+Every read-only sheet — a crewmate's at `/sheet/:kind/:id`, the public one —
+is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 
 ## Stack
 
 - React 19 + Vite, TypeScript.
 - **TanStack Router** — file-based routes in `src/routes/`; the route tree is
   generated to `src/routeTree.gen.ts` (do not hand-edit).
-- **No TanStack Query.** It was mounted and never called, so it was removed;
-  the typed entity read hooks live in `src/hooks/entities/` (selectors over
-  the Zustand stores). See `.claude/rules/itun-data-access.md`.
+- **No TanStack Query** — entity read hooks are store selectors in
+  `src/hooks/entities/`; see `.claude/rules/itun-data-access.md`.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **Base UI** primitives from `component-lib` (`ui/`, `chrome/`, `base/`) —
   there is no app-local `src/components/ui/`. Styling is the `component-lib`
@@ -67,18 +67,17 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
   `skipWaiting` + `clientsClaim` (an assignment in the plugin, not a default, so
   the `workbox` block cannot override it), which activated a new worker under a
-  live page and ran `cleanupOutdatedCaches()` — deleting the precache that page
-  was still resolving code-split chunks against. See the header comments in
-  `vite.config.ts`, `src/lib/sw/register.ts` and `src/lib/chunkRecovery.ts`,
-  plus the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`) that stops a
-  rotated-away chunk coming back as `200 text/html`.
+  live page and dropped the precache entries it was still resolving chunks
+  against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
+  boots the deployed shell, offline the precached one. See the headers of
+  `vite.config.ts`, `src/lib/sw/`, `src/lib/chunkRecovery.ts` and the Worker's
+  `/assets/*` → 404 rule (`src/worker/index.ts`).
 
 ## Persistence (read before touching data)
 
 - Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
-  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces` (a
-  retired container — see below; the object store survives only so migrations
-  v10/v13 still run on old databases),
+  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
+  (retired; kept so migrations v10/v13 run),
   `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
   `changeLog` provenance store ([ADR-022](../../docs/adrs/ADR-022-provenance-log-and-overrides.md)) —
   the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
@@ -98,11 +97,15 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   `cockpitPrefsStore`, `patternStore`, `encounterStore`, and the ephemeral
   `playStateStore` (Dashboard mount state).
 - **Workspaces are retired.** An entity lives in exactly one **container** — a
-  shared **Game** or the owner's personal **Shelf** — encoded as one nullable
-  `gameId` and resolved through `src/lib/container.ts`, never by reading
-  `workspaceId` (deprecated, kept only as a pre-ADR-030 fallback). Filter with
-  `containerOf` + `sameContainer`, and only when `mode === 'connected'`: an
-  anonymous user has no Games, so their surfaces render the whole pile unfiltered.
+  shared **Game** or the owner's **Shelf** ("My Stuff") — encoded as one
+  nullable `gameId` and resolved through `src/lib/container.ts`, never by
+  reading `workspaceId` (a pre-ADR-030 fallback). Filter with `containerOf` +
+  `sameContainer`, and only when `mode === 'connected'`: an anonymous user has
+  no Games, so their surfaces render the whole pile unfiltered. `/` (`Roster`)
+  shows one container at a time; there are no Games pages.
+- **Assignments** ([ADR-037](../../docs/adrs/ADR-037-assignment-model.md)):
+  draw soft links only via `assignLink`; the rules are
+  `src/lib/links/linkRules.ts`, shared with `convex/`.
 - **Lazy auto-hydration:** first `list(type)` loads from the current backend
   (the IndexedDB cache signed in, the in-memory store anonymous); later reads
   are synchronous.
@@ -116,12 +119,11 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
 ## Combat / rules
 
 - Pure math lives in `salvageunion-reference` — `lib/rules/` (heat check, take
-  damage, core mechanic, …), imported via the `salvageunion-reference/rules`
-  subpath export, never the main barrel. `src/lib/rules/` is
-  ITUN's re-export + app-local layer: `heatCheck.ts` re-exports the package's
-  `performHeatCheck` / `performPush` / `clampHeat` and adds `heatCheckPatch`
-  (effect → `Partial<Mech>`); `derivedStats.ts` computes the derived maxima.
-  Every real die roll is the package's `rollDie(sides)`.
+  damage, core mechanic, derived maxima, …); import it from the
+  `salvageunion-reference/rules` subpath export, never the main barrel and
+  never through a local re-export. `src/lib/rules/` holds only ITUN's
+  app-local rules: e.g. `heatCheck.ts` adds `heatCheckPatch` (effect →
+  `Partial<Mech>`). Every real die roll is the package's `rollDie(sides)`.
 - **Play actions live on the Dashboard, not the Live Sheet.** Activation and
   heat check are assembled as patches in
   `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
@@ -136,9 +138,7 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   `src/components/sheet/MechSheet.tsx`)
   ([ADR-007](../../docs/adrs/ADR-007-automation-boundary.md),
   [ADR-009](../../docs/adrs/ADR-009-condition-model-destroyed-color.md)).
-- The sheet-side play-control panels were removed in the poster redesign; play
-  actions stay on the Dashboard. The one sheet-local control is
-  `CrawlerEconomyControl.tsx`.
+- The one sheet-local play control is `CrawlerEconomyControl.tsx`.
 - Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).
 
 ## Conventions
@@ -166,8 +166,8 @@ consumers, one renderer. Don't add a fourth read-only sheet renderer.
   and never by rendering `String(err)` from a mutation.
 - **Build every Convex mutation with `mutation` / `internalMutation` from
   `convex/model/entities.ts`, never from `_generated/server`.** Those wrap the
-  generated builders with the triggers that keep `games.summary` (the Games
-  list's counts) current; a mutation built without them writes rows the summary
+  generated builders with the triggers that keep `games.summary` (a Game's
+  counts) current; a mutation built without them writes rows the summary
   never hears about. Biome enforces it inside `convex/`. Every public
   query/mutation also needs a caller in `src/` —
   `tools/check-convex-callers.ts` fails on one nobody calls.
@@ -223,5 +223,5 @@ bun run e2e:itun          # Playwright e2e (chromium)
 bun --filter itun typecheck
 ```
 
-Deploys to Cloudflare Workers (SPA + the snapshot API in one Worker); config in
+Deploys to Cloudflare Workers (SPA + the `/s/:id` lookup in one Worker); config in
 `wrangler.jsonc`, deployed from `.github/workflows/deploy-cloudflare.yml`.

@@ -21,10 +21,10 @@
  *
  * ## The two sources still differ in one way, deliberately
  *
- * Session work was built in this tab by somebody who then pressed "sign in to
- * save this", so it is sent as-is and adopted into the local cache afterwards
- * (the backend flip would otherwise leave the screen showing nothing until the
- * next sync). Device work may already be in the account, so it is filtered
+ * Session work was built in this tab by somebody who then signed in, so it is
+ * sent as-is and adopted into the local cache afterwards (the backend flip
+ * would otherwise leave the screen showing nothing until the next sync).
+ * Device work may already be in the account, so it is filtered
  * through `selectStranded` against `entities.listMine` first, and is NOT
  * adopted — those rows are already on disk.
  */
@@ -35,7 +35,6 @@ import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { EncounterNpc } from '../schemas/encounterNpc'
-import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
 import type { ServedRoster } from './legacyMigration'
 import { servedIds } from './legacyMigration'
@@ -51,11 +50,11 @@ export type LocalWork = {
 }
 
 /**
- * How many records a selection holds. Zero means there is nothing to say.
+ * How many records a selection holds. Zero means there is nothing to send.
  *
  * Soft links are deliberately excluded from the COUNT: they are wiring between
- * things rather than things, so "3 builds" reads correctly while "5 builds"
- * (with two links) would not. They are still sent.
+ * things rather than things, so a selection holding only links holds no work.
+ * They are still sent alongside the rows they wire.
  */
 export function countWork(work: LocalWork): number {
   return (
@@ -65,27 +64,6 @@ export function countWork(work: LocalWork): number {
     work.mechPatterns.length +
     work.encounterNpcs.length
   )
-}
-
-/**
- * Read this session's work out of the in-memory caches.
- *
- * Synchronous and from `getState()` on purpose: `selectBackend()` reads live
- * auth state, so the instant a sign-in resolves it flips from `memory` to
- * `remote` and the stores start reading IndexedDB instead of the Maps. The
- * Zustand caches survive the flip; an `await` here would be a window in which
- * the first rehydrate blanks them and an empty roster gets "saved".
- */
-export function captureSessionWork(): LocalWork {
-  const entities = useEntityStore.getState()
-  return {
-    pilots: entities.list('pilot'),
-    mechs: entities.list('mech'),
-    crawlers: entities.list('crawler'),
-    softLinks: entities.list('softLink'),
-    mechPatterns: usePatternStore.getState().list(),
-    encounterNpcs: useEncounterStore.getState().list(),
-  }
 }
 
 /** A row's own id, or null for a row without one. */
@@ -259,7 +237,7 @@ export async function reconcile(
  * Put session work into the signed-in cache under its own ids.
  *
  * `adopt` keeps each record's id, so the local copy IS the entity rather than a
- * fork of it — the same reason `GameRoster.ensureLocal` uses it.
+ * fork of it — the same reason `ShelfSync` uses it.
  */
 async function adoptLocally(work: LocalWork): Promise<void> {
   const report = (kind: string, err: unknown) => {
@@ -301,28 +279,4 @@ async function adoptLocally(work: LocalWork): Promise<void> {
       report('npc', err)
     }
   }
-}
-
-/**
- * One backup holding both sources, for the single "Download all".
- *
- * Signed out there are two separate things somebody could lose — this tab's
- * work and this device's rows — and asking them to take two downloads to be
- * safe is how one of them does not get taken. The session bundle already
- * carries the envelope; the device rows are appended.
- */
-export function combineBundles(session: ExportBundle | null, device: ExportBundle | null) {
-  if (session === null) return device
-  if (device === null) return session
-  return {
-    ...session,
-    entities: {
-      pilots: [...session.entities.pilots, ...device.entities.pilots],
-      mechs: [...session.entities.mechs, ...device.entities.mechs],
-      crawlers: [...session.entities.crawlers, ...device.entities.crawlers],
-    },
-    softLinks: [...session.softLinks, ...device.softLinks],
-    mechPatterns: [...session.mechPatterns, ...device.mechPatterns],
-    encounterNpcs: [...session.encounterNpcs, ...device.encounterNpcs],
-  } satisfies ExportBundle
 }

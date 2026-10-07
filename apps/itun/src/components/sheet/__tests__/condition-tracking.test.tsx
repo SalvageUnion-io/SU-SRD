@@ -12,17 +12,20 @@
  *   5. In readOnly mode, toggling is a no-op (store.update not called).
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
+
+beforeAll(hydrateStores)
 
 // PilotSheet resolves equipment/ability slugs; MechSheet resolves
 // system/module slugs, chassis stats and cargo caps at render — load all.

@@ -7,9 +7,12 @@
  * surfaces' placeholders rather than throwing.
  */
 
-import { describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import { hydrateStores } from '../../__tests__/hydrateStores'
 import { Dashboard } from '../Dashboard'
+
+beforeAll(hydrateStores)
 
 // Convention (see sheet-smoke.test.tsx): toBeTruthy(), not toBeInTheDocument()
 // — jest-dom's matcher types aren't augmented onto bun:test's expect.

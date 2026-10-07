@@ -1,7 +1,15 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
-import type { CheckSpec } from '../check'
-import { CHECKS, formatTable, parseArgs, runChecks, selectChecks, UsageError } from '../check'
+import type { CheckResult, CheckSpec } from '../check'
+import {
+  CHECKS,
+  formatFailure,
+  formatTable,
+  parseArgs,
+  runChecks,
+  selectChecks,
+  UsageError,
+} from '../check'
 
 /**
  * `tools/check.ts` is the one list of gates that `bun run check`, pre-push and
@@ -20,9 +28,9 @@ describe('selection', () => {
     expect(CHECKS.filter((c) => c.first).map((c) => c.id)).toEqual(['generated'])
   })
 
-  test('fast skips the suite, the srd build, the network and regeneration', () => {
+  test('fast skips the suite, the network and regeneration', () => {
     const fast = ids(['--profile=fast'])
-    for (const slow of ['test', 'srd-output', 'audit', 'actionlint', 'generated']) {
+    for (const slow of ['test', 'audit', 'actionlint', 'generated']) {
       expect(fast).not.toContain(slow)
     }
     expect(fast).toContain('typecheck')
@@ -36,10 +44,9 @@ describe('selection', () => {
     expect(ids(['--profile=pre-push'])).toContain('workflows')
   })
 
-  test('ci leaves the suite and the srd build to their own jobs', () => {
+  test('ci leaves the suite to its own job', () => {
     const ci = ids(['--profile=ci'])
     expect(ci).not.toContain('test')
-    expect(ci).not.toContain('srd-output')
     expect(ci).toContain('audit')
     expect(ci).toContain('actionlint')
   })
@@ -53,6 +60,12 @@ describe('selection', () => {
     expect(docs).not.toContain('generated')
   })
 
+  test('the audit runs only when a dependency manifest or the lockfile moved', () => {
+    expect(ids(['--profile=ci', '--areas=code,docs'])).not.toContain('audit')
+    expect(ids(['--profile=ci', '--areas=deps'])).toContain('audit')
+    expect(ids([])).toContain('audit')
+  })
+
   test('with no area active only the always-on checks run', () => {
     expect(ids(['--profile=ci', '--areas='])).toEqual([
       'biome',
@@ -64,7 +77,7 @@ describe('selection', () => {
 
   test('positional ids override the profile; --skip removes', () => {
     expect(ids(['audit', 'styling'])).toEqual(['styling', 'audit'])
-    expect(ids(['--skip=test,srd-output'])).not.toContain('test')
+    expect(ids(['--skip=test,audit'])).not.toContain('test')
   })
 
   test('unknown ids, profiles, areas and flags are usage errors', () => {
@@ -78,6 +91,15 @@ describe('selection', () => {
 })
 
 describe('registry', () => {
+  test('every check carries a one-line fix hint', () => {
+    for (const c of CHECKS) {
+      expect({ id: c.id, fix: c.fix.trim().length > 0 && !c.fix.includes('\n') }).toEqual({
+        id: c.id,
+        fix: true,
+      })
+    }
+  })
+
   test('every command points at something that exists', async () => {
     const root = join(import.meta.dir, '..', '..')
     for (const c of CHECKS) {
@@ -98,6 +120,7 @@ describe('runChecks', () => {
   const spec = (id: string, code: number, extra: Partial<CheckSpec> = {}): CheckSpec => ({
     id,
     guards: id,
+    fix: `fix ${id}`,
     cmd: ['bun', '-e', `console.log('${id} says hi'); process.exit(${code})`],
     profiles: ['full'],
     ...extra,
@@ -115,6 +138,12 @@ describe('runChecks', () => {
     ])
     expect(results[0]?.output).toBe('a says hi')
     expect(formatTable(results)).toContain('2 of 3 FAILED')
+    expect(formatFailure(results[0] as CheckResult, 'fix a').split('\n')).toEqual([
+      '━━━ a failed (exit 1) ━━━',
+      'fix: fix a',
+      '',
+      'a says hi',
+    ])
   })
 
   test('a `first` check finishes before any other starts', async () => {

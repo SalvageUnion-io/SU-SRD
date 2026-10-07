@@ -1,6 +1,6 @@
-import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { Story } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { VitalGauge } from './VitalGauge'
 
@@ -81,7 +81,7 @@ export const Default: Story = () => (
         max={sp + 2}
         onChange={noop}
         onMaxChange={noop}
-        overriddenFrom={sp}
+        breakdown={{ overridden: true, derived: sp }}
         onRevertOverride={noop}
       />
     </Row>

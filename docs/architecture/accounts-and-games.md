@@ -1,284 +1,16 @@
-# Accounts, Games & the Live Game Dashboard
+# Accounts & Games — Operational Reference
 
-> **Status:** Delivery plan for [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md).
-> The ADR records _why_ and _what_; this document records _in what order_ and
-> _what breaks_. **Phases 0-6 have landed as a stack of draft PRs** (#609 through
-> #645). The server layer, data model and permission rules are complete and
-> tested; the surfaces for Phases 3-5 are wired to that data but want a design
-> pass before they are called finished.
->
-> Read alongside [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md) (the
-> enforcement modes this adds an ownership axis to),
-> [ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md) (the Change Log this
-> promotes to a sync spine), and [dashboard.md](dashboard.md).
+How to stand up, verify and debug the accounts backend: the Convex deployments,
+Discord OAuth, the bot credential, and rotating secrets. The decisions live in
+[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (identity, Games,
+ownership) and [ADR-034](../adrs/ADR-034-account-required-persistence.md)
+(persistence requires an account); how data reaches the client is
+[data-flow.md](data-flow.md); every service identifier is in
+[agent-tooling.md](agent-tooling.md).
 
----
-
-## 1. The shape of the change
-
-ITUN today is one person, one browser: entities in IndexedDB, Workspaces
-organizing builds, a single-player Dashboard, and one server surface — the
-immutable snapshot endpoint.
-
-After this work: Discord-authenticated accounts, **Games** as the shared
-container, **Shelves** as the personal one, entity ownership, a distinct Mediator
-surface, and a Dashboard that synchronizes a table.
-
-What does **not** change: snapshot sharing, `apps/srd`, the ADR-021 enforcement
-modes, and the locked Dashboard canvas. Anonymous Solo play **did** change, later:
-ADR-034 and ADR-035 retired the durable anonymous backend, so Solo now runs on
-the in-memory backend in every build and nothing it builds survives a reload
-without an account.
-
----
-
-## 2. Decisions
-
-The full decision record is [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md).
-In brief, grouped:
-
-| Area         | Decision                                                                                               |
-| ------------ | ------------------------------------------------------------------------------------------------------ |
-| Truth        | Convex is the server of record; IndexedDB becomes a cache. Offline writes are **blocked**.             |
-| Identity     | Discord OAuth only, reusing the bot's existing Discord application.                                    |
-| Containers   | **Game** (shared) and **Shelf** (personal). One entity, one container. **Move** sets `gameId`; **copy** mints a new unrelated `COPY OF …`. |
-| Roles        | Base role Player \| Mediator, plus an orthogonal **Organizer** flag. Organizer ⇒ no content authority. |
-| Cross-player | **Propose → player confirms.** Never a direct write, never force-applied.                              |
-| Ownership    | Nullable. Owners (or the Mediator) release; **players self-claim what nobody holds**. No one can place a character with a particular person today. |
-| Crawler      | Communal to edit; **the table runner raises and scraps one**. A Game may hold several.                 |
-| Joining      | A Game takes a player's pilots and mechs **once it has a crawler**. The table runner is exempt.        |
-| Visibility   | Live vitals for all; read-only sheet drill-in (decided, not built); Mediator NPCs hidden.              |
-| Surfaces     | New Mediator surface absorbs `/encounter`; a **"Crew" dial item** on the player Dashboard.             |
-| Anonymous    | Needs no account to build — but nothing anonymous persists (ADR-034; the durable `local` backend is retired). |
-
----
-
-## 3. Three storage modes
-
-Every store, hook, and surface must be legible in all three. This is the largest
-source of subtle bugs in the whole plan — check surfaces against the table, not
-against intuition.
-
-| Mode             | Who                | Truth        | Reads                 | Writes      | Games  |
-| ---------------- | ------------------ | ------------ | --------------------- | ----------- | ------ |
-| **Solo**         | not signed in      | nothing      | in-memory backend     | in-memory   | none   |
-| **Connected**    | signed in, online  | Convex       | reactive subscription | to Convex   | full   |
-| **Disconnected** | signed in, offline | Convex, gone | cache                 | **blocked** | frozen |
-
-**Solo is not Disconnected.** Someone who never signs in never has a write
-refused — but their writes live in memory only and are gone on reload
-([ADR-034](../adrs/ADR-034-account-required-persistence.md)). This row read
-"IndexedDB / local" until 2026-09-25, when the last durable anonymous backend
-(`local`, reachable only in builds without `VITE_REQUIRE_ACCOUNT`) was retired.
-
----
-
-## 4. Delivery phases
-
-Each phase's exit criterion is the next one's precondition.
-
-### Phase 0 — Decide & clear the ground ✅
-
-- ADR-030 written; ADR-001 marked superseded; ADR-022 amended by reference.
-- `lib/eldridgeCoast/` deleted — a personal home campaign does not belong in the
-  shipped bundle once real Games exist.
-- Stale tracker items closed: **#157** (invite codes, superseded by Phase 1) and
-  **#165** (assumes a Supabase service-role key and RLS policies).
-  **#152 and #156 stay open** — their remaining stories (Downtime, advancement,
-  Pushing, Crafting, Salvage) are single-player gameplay mis-filed under
-  "Multiplayer", and closing them would destroy live backlog.
-
-### Phase 1 — Accounts, Games & sync ✅
-
-Everything structural, nothing live. The Dashboard stays single-player, which is
-what de-risks the rest.
-
-- Convex project, schema, Discord OAuth ✅ (see `apps/itun/convex/`)
-- Games: create, delete, invite code, join (`games.rename` was removed on
-  2026-09-25 — see *Known gaps*)
-- `Workspace` → `Game` + `Shelf` split; nullable `gameId`. **The client cutover
-  has now landed too**: the Workspace switcher, list, and assign controls are
-  deleted, the Roster/Encounter surfaces resolve through `lib/container.ts`, the
-  Starter Set seeds onto the Shelf, and Dashboard dial prefs moved off the
-  Workspace record into `cockpitPrefsStore` (localStorage, keyed by container).
-  Solo surfaces render unfiltered — see the note in `activeContainerStore.ts`.
-- The three storage modes + the **NOT CONNECTED** banner
-- Claim-local-data flow on first sign-in
-- Move between Shelf and Game (`MoveToContainerControl` — one field, not a copy)
-- **Copy to shelf** — mints a NEW `COPY OF <name>` entity, `gameId: null`, with
-  no tie to the source or its Game (ADR-030 §2). Not built yet.
-- Starter Set re-homed as a Game template, its entities unclaimed
-- Account management: profile, My Games, export, delete
-
-**Exit:** two people sign in, one creates a Game, the other joins by code, and
-each sees their own entities scoped to it — on two machines. An account can be
-fully deleted.
-
-### Phase 2 — Roles & visibility ✅
-
-Capabilities on membership, Mediator assignment (`games.setMediator`),
-**server-side** authorization on every mutation, ownership claim/release
-(`ownership.claim` / `release`), owner chips. The Organizer flag passes on only
-when its holder deletes their account (`account.deleteAccount`).
-
-Not delivered, although this phase once listed them: a voluntary **Organizer
-transfer**, a **read-only crewmate drill-in**, and a Mediator **assign** /
-**reassign** of a character to a particular person, plus a **leave Game**. Each
-existed as a public function with no client caller and was removed on
-2026-09-25 — see *Known gaps* below. Nobody can place a character with a
-particular person today: the Mediator (or its owner) releases it, and then any
-member of the Game can claim it. `invites.create` does accept `grants`, but it
-is Organizer-only and the one client caller (`InvitePanel`) never sends them.
-
-**Exit:** the capability matrix is enforced in Convex, proven by tests that a
-Player cannot write a crewmate's pilot and that an Organizer gains nothing over
-content by holding the flag.
-
-### Phase 3 — The Mediator surface ✅ (server; screen wants a design pass)
-
-Crew roster with live vitals, the communal crawler, the NPC tray; `/encounter`
-absorbed and retired; presence.
-
-### Phase 4 — Alerts & propose/confirm ✅
-
-Proposal states on the Change Log, same-field supersession, player Apply/Decline,
-broadcast alerts, and the **Crew** dial item.
-
-### Phase 5 — Synchronized Downtime ✅
-
-Downtime phase as Game state advanced by the Mediator; per-player step completion
-visible to the table; crawler upkeep resolved once rather than six times.
-
-### Phase 6 — Discord bot as a Game client ✅ (alerts deferred)
-
-The bot authenticates as a participant rather than an admin; rolls made in
-Discord land as Change Log entries.
-
-Built end-to-end: `/su me`, `/su games`, `/su shelf`, `/su crew`, `/su sheet`,
-`/su game bind|unbind|info`, and roll attribution on `/su roll` (`/su check`
-carried it too, until that command was removed).
-The bot reaches Convex through a `/bot/*` HTTP route carrying a bearer
-credential that authenticates the **bot**, never the **actor** — every call
-still resolves its actor from a linked Discord id and runs the same
-`model/permissions.ts` checks the web does.
-
-Two things this phase closed that were not on the checklist. `recordRoll` had
-been a **public mutation with no authorization at all**; it is now an internal
-function, unreachable from any client. And there is no account-linking step to
-build: Discord is the sole auth provider, so the snowflake already sits in
-`authAccounts.providerAccountId` and is stamped at sign-in.
-
-**Deferred:** pushing Mediator alerts into the channel, which needs a reactive
-subscription rather than request/response. See
-[`discord-bot-game-client.md`](discord-bot-game-client.md) for the credential
-decision, the command surface, and the remaining phases.
-
-### Phase 7 — The crew roster, and the rules for setting a table up ✅
-
-The design pass Phase 3 deferred, plus the ownership rules it exposed as missing.
-
-- **`GameRoster`** — a Game's crew in the home Roster's own shape: three
-  ontology-toned `EntityRow` columns, create CTAs, sheet and Dashboard launches,
-  an owner chip per row, and an **UNCLAIMED** stamp seal that opens a pick-up
-  confirm. `/games/:id` for any member; `/mediator/:id` opens with it and keeps
-  the private instruments below.
-- **The table-setup rules** (ADR-030 §5a): the table runner raises and scraps
-  crawlers, a Game may hold several, and it takes a player's pilots and mechs
-  once one exists.
-- **Self-claim** (`ownership.claim`), amending ADR-030 §4.
-- **Adoption** — `entityStore.adopt` / `forget` cache a Game row into IndexedDB
-  under its own id and drop it again, which is what makes a sheet or the
-  Dashboard openable for a character built at somebody else's table.
-- **The crawler mirror** — local crawler edits reach the Game as a field merge
-  (`patchCrawlerByAppId`), so "players may edit its fields" is true end to end.
-- Two live defects found on the way: `crew.vitals` read `currentHp`/`currentSp`
-  where the Zod schemas define `currentHP`/`currentSP`, so **every vital on the
-  Mediator's crew strip was null** and rendered as an em-dash indistinguishable
-  from an undamaged crew; and `proposals.apply` wrote the merged body **without
-  parsing it**, so a proposal against a misspelled field added a key nothing
-  reads and moved no number. Both fixed, both pinned by tests that build their
-  fixtures by parsing the real schema rather than hand-writing field names.
-
-**Closed since, and worth knowing why:**
-
-- **A refused mirror used to be only a console warning** — listed here as a
-  known gap on the reasoning that the surfaces avoid offering the actions that
-  would be refused, so it was reachable mainly by going around them. That
-  reasoning was wrong, and a play session proved it: the refusal did not come
-  from a player doing something the UI discouraged, it came from **the data**.
-  Duplicate `appId` rows (see below) made `byAppId` throw on every mirrored
-  write, and because the local write had already succeeded, every surface went
-  on rendering the work as saved while nothing reached the game for the better
-  part of an hour. The feedback was "the game mechs didn't save".
-
-  The lesson is that "only reachable by misuse" is not a safety property when
-  the trigger can be a row rather than a click. `reportMirrorFailure`
-  (`entityBackend.ts`) now warns, reports to Sentry **and** toasts, throttled to
-  one message per 30s so a burst reads as one condition.
-
-- **Duplicate `appId` rows are survivable.** Prevention (`appIdTaken` before any
-  insert) and repair (`maintenance.dedupeAppIds`) close the front door and clean
-  up behind it. This is the third leg: `byAppId` / `crawlerByAppId` no longer
-  ask for `.unique()` on an index that was never a uniqueness constraint, so a
-  duplicate that reaches them resolves to the **oldest** match and logs rather
-  than throwing.
-
-  Worth stating why all three exist. A throw here is invisible — mirrored writes
-  are fire-and-forget — so it does not fail the write, it stops the write ever
-  reaching the server while every surface keeps rendering it as saved. Refusing
-  to sync is a strictly worse answer to "there are two rows" than syncing to one
-  of them and saying so. Oldest is chosen to match what `dedupeAppIds` keeps, so
-  a write landing before the repair runs is not discarded by it.
-
-- **Soft links mirror.** They were excluded as "derived", which is nearly true
-  of a shelf and not true at all of a Game — `listForGame` reads them back, so
-  the crew saw the wiring as it stood at claim time and no change after it.
-  `entities.upsertSoftLink` / `removeSoftLink` address a link by its endpoints
-  (no `appId` needed, and idempotent as a result), and `removeByAppId` /
-  `remove` now cascade link pruning the way the client always has.
-
-**Known gaps, deliberately left:**
-- **No read-only drill-in.** ADR-030 §5 permits reading a crewmate's sheet,
-  but ITUN's sheet is an editing surface, so rows for entities you do not own
-  offer vitals and an owner, but no link. A `crew.readEntity` query existed for
-  it with no consumer and was removed (2026-09-25) along with seven other
-  public functions nothing called — `entities.create` / `update`,
-  `games.rename` / `transferOrganizer`, `mediator.updateNpc`,
-  `ownership.assign` / `leaveGame`. A public function nobody calls is reachable
-  surface nothing exercises; `tools/check-convex-callers.ts` (the
-  `convex-callers` check) now fails on one. Rebuild each alongside the screen that
-  calls it.
-- **Adopted copies re-sync only on the way in.** Opening a row through the
-  roster overwrites this browser's copy from the server, so the crawler a
-  crewmate just edited is current when you open it — but a sheet already open
-  does not update underneath you.
-
----
-
-## 5. What breaks
-
-| Site                   | Hazard                                                                                                                                                                      |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entityStore`          | Write-through to IndexedDB is the single write path for the whole app; the server of record inverts it. Keep the public API identical and swap the backend beneath it.      |
-| `activeWorkspaceStore` | **Replaced** by `activeContainerStore`, which persists `shelf` \| `game:<id>`. The "exactly one current container" invariant survives; it is only consulted when Connected. |
-| `db/broadcast.ts`      | Cross-tab invalidation is superseded by Convex reactivity **only in Connected mode**. Solo does not use it — the in-memory backend is per tab and never broadcasts.         |
-| `ExportBundle`         | `schemaVersion: 1` is a literal. Adding ownership columns is breaking; bump to `2` and keep reading v1 as Solo entities.                                                    |
-| Migration v10          | The Default-workspace backfill must become a no-op for anyone who never signs in.                                                                                           |
-| Nullable `ownerId`     | Every surface reading an owner must render **Unclaimed** as a state, not a blank or a crash.                                                                                |
-| Owner chips            | Pass as a `badge` control from the app — do not teach `component-lib` about users; `apps/srd` must need no change.                                                          |
-| PWA + auth             | A token expiring mid-session should present as Disconnected, not as a crash.                                                                                                |
-| PII                    | Account deletion, export, and a privacy note are Phase 1 scope.                                                                                                             |
-| Snapshots              | None. [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md) is untouched, and becomes the only unauthenticated surface left.                                             |
-
----
-
-## 6. External services — operational reference
-
-Everything needed to stand this up, or to work out why sign-in is failing.
 Values here are **not secret**: deployment URLs and a Discord client id are
 public by design. The client _secret_ lives only on the Convex deployments.
-
-### Convex
+## Convex
 
 |                                       | Dev                                      | Production                                    |
 | ------------------------------------- | ---------------------------------------- | --------------------------------------------- |
@@ -290,7 +22,7 @@ public by design. The client _secret_ lives only on the Convex deployments.
 Project: `alex-jarvis:suref-itun` ·
 [dashboard](https://dashboard.convex.dev/t/alex-jarvis/suref-itun)
 
-### Convex error reporting — a dashboard toggle, not code
+## Convex error reporting — a dashboard toggle, not code
 
 Every other surface in this repo reports errors through a hand-written
 `observability.ts` or `observability/cloudflare` (`apps/srd`, `apps/itun`'s
@@ -354,16 +86,11 @@ missing; the Pro-plan caveat turned out not to apply.
 It forwards `ArgumentValidationError` as well as handler throws, which was an
 open question until the probe answered it.
 
-**How it was wrong for a week, because the shape recurs.** This section said
-"enabled" from 2026-08-05, recorded as a status the moment the *Sentry project*
-was created — step 1 of two. Nobody clicked step 2, and nothing about the result
-looked different: a reporting integration that reports nothing is
-indistinguishable from a healthy one with no errors. It stayed that way through
-39 failed `entities:upsertByAppId` mutations in a single evening, every one of
-which should have landed there, and the incident surfaced instead as a Discord
-message from a player. `tools/check-observability.ts` exists to close exactly
-this trap for the browser SDKs; there is no equivalent here, because "zero
-events" is also what a healthy quiet week looks like, so it cannot be asserted.
+**A reporting integration that reports nothing looks exactly like a healthy one
+with no errors.** It once sat half-configured for a week, through 39 failed
+mutations in one evening, and the incident arrived as a Discord message from a
+player. Nothing can assert it: "zero events" is also what a quiet week looks
+like.
 
 **So verify by probe, never by status line.** Force an error, then check both
 channels — the deployment log is the ground truth and Sentry is the thing being
@@ -385,7 +112,7 @@ Do not treat a quiet `itun-convex` as evidence that the backend is healthy.
 rule on this project yet, and Sentry's default is to collect silently — which
 is how an evening of 39 backend errors reached a player before it reached us.
 
-#### What reaches Sentry, and what reaches the player
+### What reaches Sentry, and what reaches the player
 
 Convex splits everything `convex/` can throw in two, at the wire, and the split
 is not configurable:
@@ -411,12 +138,12 @@ ask which one you have (`serverMessage` / `isServerRefusal`). Never string-match
 `'Server Error'` at a call site, and never render `String(err)` from a mutation —
 that string is the redacted one.
 
-#### Repairing duplicated app ids
+## Repairing duplicated app ids
 
 `convex/maintenance.ts` holds operator-only repairs, reachable through
-`bunx convex run` and not from any client: `dedupeAppIds` (below) and the
+`bunx convex run` and not from any client: `dedupeAppIds` (below), the
 one-off `repairContainers` (see "Denormalised columns" below for how a repair is
-run in production). `dedupeAppIds` undoes the damage described under "Claiming
+run in production), and `repairSoftLinks` (see "Repairing soft links" below). `dedupeAppIds` undoes the damage described under "Claiming
 twice" in `convex/claim.ts`: rows sharing an
 `appId`, which make `byAppId`'s `.unique()` throw and so break every mirrored
 write for that entity, permanently and silently.
@@ -440,15 +167,38 @@ pending Mediator proposals alike — still point at a copy it would delete. Thos
 address entities by Convex id rather than `appId`, so they do not follow the
 survivor.
 
-#### Denormalised columns
+## Repairing soft links
+
+[ADR-037](../adrs/ADR-037-assignment-model.md) gave mechs their own
+`mech-to-crawler` link and made the writers keep three invariants (cardinality,
+one container, `gameId` = that container). Rows written before it may break all
+three, and a mech that reached its bay through its pilot has no direct link.
+`repairSoftLinks` fixes both, across every account, **dry run by default**:
+
+```bash
+# report only — changes nothing
+bunx convex run maintenance:repairSoftLinks --prod
+# then, having read the report
+bunx convex run maintenance:repairSoftLinks '{"apply": true}' --prod
+```
+
+Run it once, right after the deploy that ships `mech-to-crawler`; until it has,
+those mechs show undocked. It pages, and is idempotent: a re-run resumes, and an
+applied run followed by a dry run reports nothing left (orphaned links — an end
+with no row — are only counted, never touched). It is not on the
+`convex-maintenance.yml` allowlist, which runs each task with `{}` and so could
+only ever dry-run it.
+
+## Denormalised columns
 
 Two reads were made cheap by storing something the rows already implied:
 
 - **`games.summary`** — member, pilot and mech counts and the crawler's name,
-  which the Games list shows. `games.listMine` used to derive them by
-  collecting every membership, pilot, mech and crawler of every Game you
-  belong to, and because it is reactive that subscribed the list to every
-  sheet at every one of your tables. The summary is kept current by triggers
+  which `games.listMine` and `games.get` carry (the hub's "End this game"
+  confirm states them). `games.listMine` used to derive them by collecting
+  every membership, pilot, mech and crawler of every Game you belong to, and
+  because it is reactive that subscribed the list to every sheet at every one
+  of your tables. The summary is kept current by triggers
   (`convex-helpers`) on those four tables, registered in
   `convex/model/entities.ts`; they fire only when something arrives, leaves,
   moves or — for the crawler — is renamed, so an HP tick costs nothing. **Every
@@ -473,14 +223,14 @@ cd apps/itun
 bunx convex run maintenance:repairContainers --prod
 ```
 
-### Hosting
+## Hosting
 
 Every surface is a Cloudflare Worker (ADR-033). The one accounts-relevant fact:
 **the production origin is `https://intheunionnow.com`, not a `workers.dev`
 hostname** — Convex's `SITE_URL` and the Discord OAuth redirect must both use
 it. `apps/srd` (`salvageunion.io`) has no accounts, ever.
 
-### Discord
+## Discord
 
 One application covers both the bot and web sign-in, so players meet a consent
 screen they already recognise and there is one credential to rotate. Resetting
@@ -499,7 +249,7 @@ The path is not arbitrary: `@convex-dev/auth` mounts callbacks under
 `/api/auth/callback/` and appends the provider id, which `@auth/core` declares
 as `discord`.
 
-### Required deployment variables
+## Required deployment variables
 
 **All three, or sign-in fails**, per deployment:
 
@@ -515,10 +265,8 @@ bunx convex env set SITE_URL            <frontend origin>
 opaque `Missing environment variable SITE_URL` 500 from the OAuth callback
 rather than anything pointing at configuration.
 
-**For the Discord bot** (ADR-030 Phase 6), one more on the Convex deployment and
-two on the bot's Cloudflare Worker (set with `wrangler secret put`; these were
-Render env vars until that account was deleted on 2026-09-01, and were never
-actually set there — see the P5 section of the cutover doc):
+**For the Discord bot**, one more on the Convex deployment and two on the bot's
+Cloudflare Worker, set with `wrangler secret put`:
 
 ```bash
 # Convex — enables the /bot/* route. UNSET disables the whole surface, so a
@@ -530,6 +278,20 @@ ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
 ITUN_BOT_SECRET=<the same value>
 ```
 
+**For `/su invite`** ([ADR-039](../adrs/ADR-039-targeted-invites.md)), one
+more on the Convex deployment. It is the Discord application's **public** key —
+the same value committed in `apps/discord-bot/wrangler.jsonc` — so it is not a
+secret and may be passed as an argument:
+
+```bash
+bunx convex env set DISCORD_PUBLIC_KEY <the application's public key, hex>
+```
+
+Unset, `/su invite` answers "invites from Discord are not switched on" and
+nothing else changes. Set to the wrong application's key, every `/su invite`
+fails as unverified while every other command keeps working — check this
+value first when only invites break.
+
 `ITUN_CONVEX_SITE_URL` is the **HTTP-actions** origin (`.convex.site`), not the
 client URL (`.convex.cloud`) and not the web origin. Getting it wrong presents
 as every Game command reporting the deployment unreachable — which is honest but
@@ -540,7 +302,7 @@ user who has linked an account. That is bounded (it cannot invent a membership,
 reach an unlinked account, read somebody's shelf, or see `encounterNpcs`) but it
 is real. Store it in 1Password, never in git, and rotate on any suspicion.
 
-### Verifying a deployment without signing in
+## Verifying a deployment without signing in
 
 Curl the callback. The status distinguishes all three failure modes:
 
@@ -558,7 +320,7 @@ correctly configured for Discord.
 curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/discord | grep -i location
 ```
 
-### Switching production on
+## Switching production on
 
 A build with no `VITE_CONVEX_URL` has no server of record, so every visitor is
 anonymous and gets the **in-memory backend** — nothing they build survives the
@@ -580,7 +342,7 @@ saving for every player: all writes would go to the tab's memory, and the
 account data would be unreachable until the variable came back. If Convex has
 to be taken out of the path, that is an outage to announce, not a toggle.
 
-### Secrets
+## Secrets
 
 Never commit the client secret. `.env.local` is gitignored and holds only the
 non-secret deployment URLs. When reading a value back, pipe it — do not echo it
@@ -607,7 +369,7 @@ bunx convex env list --deployment-name <name> | cut -d= -f1
 Read the **dashboard** instead when you want to confirm a variable exists — it
 masks values by default.
 
-### Rotating `JWT_PRIVATE_KEY` / `JWKS`
+## Rotating `JWT_PRIVATE_KEY` / `JWKS`
 
 Rotating the signing keypair **signs every user out**. That is inherent, not a
 bug — old sessions were signed by the key you just replaced.
@@ -644,7 +406,7 @@ curl -s https://<deployment>.convex.site/.well-known/jwks.json
 Compare `n` before and after. Unchanged means the write did not land and the old
 key is still live — which looks identical to success from the CLI's side.
 
-### Rotating `AUTH_DISCORD_SECRET`
+## Rotating `AUTH_DISCORD_SECRET`
 
 Resetting it in the Discord portal invalidates the old value **immediately**, so
 Discord sign-in is broken from that moment until Convex is updated. Have the

@@ -22,8 +22,6 @@
  * as write-through patches (ADR-021), the encounter tray edits NPCs, and
  * `useEntityChoices` persists selections. All of them can be refused for
  * exactly the same reason, so the handler is app-level rather than sheet-level.
- * `components/sheet/sheetWrite.ts` survives as a re-export shim so the sheet's
- * existing imports keep resolving.
  *
  * ## What it does NOT do
  *

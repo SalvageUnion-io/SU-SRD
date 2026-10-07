@@ -40,7 +40,7 @@
  * `ownerId` to the caller, `games.destroy` gives
  * an unclaimed row the Organizer as it shelves it, an unclaimed row cannot be
  * written (so cannot be moved out of its Game), and `ownership.release`
- * refuses a shelved build (*"A build on your shelf is already yours"*).
+ * refuses a shelved build (*"A build in your My Stuff is already yours"*).
  * Unclaimed is a thing a character can be **inside a Game**, waiting for
  * somebody to take it; a shelf is already somebody's.
  */

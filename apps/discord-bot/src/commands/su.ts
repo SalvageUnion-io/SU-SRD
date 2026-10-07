@@ -4,7 +4,7 @@
  * Namespacing fixes the collision problem for good: every dice bot on a
  * server registers /roll, so ours competed in the command picker on avatar
  * alone. Typing /su filters the picker to this bot, and every future
- * subcommand (encounter cards, snapshot lookups, …) lands collision-proof
+ * subcommand (encounter cards, …) lands collision-proof
  * with zero naming deliberation.
  *
  * The subcommand option shapes live with their handlers (roll.ts,
@@ -18,6 +18,7 @@ import { gamesCommand, meCommand, shelfCommand } from './account.js'
 import { crewCommand, sheetCommand } from './crew.js'
 import { gameCommand } from './game.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
+import { inviteCommand } from './invite.js'
 import { lookupCommand } from './lookup.js'
 import { rollCommand } from './roll.js'
 
@@ -35,6 +36,7 @@ export const suCommand = {
     .addSubcommand((sub) => shelfCommand.subcommand(sub))
     .addSubcommand((sub) => crewCommand.subcommand(sub))
     .addSubcommand((sub) => sheetCommand.subcommand(sub))
+    .addSubcommand((sub) => inviteCommand.subcommand(sub))
     .addSubcommandGroup((group) => gameCommand.group(group)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
@@ -54,12 +56,17 @@ export const suCommand = {
         return meCommand.execute(interaction)
       case 'games':
         return gamesCommand.execute(interaction)
+      case 'my-stuff':
+      // The subcommand's pre-rename name: Discord keeps serving it until the
+      // commands are re-registered (`bun run deploy-commands:global`).
       case 'shelf':
         return shelfCommand.execute(interaction)
       case 'crew':
         return crewCommand.execute(interaction)
       case 'sheet':
         return sheetCommand.execute(interaction)
+      case 'invite':
+        return inviteCommand.execute(interaction)
       default:
         // Unreachable while the builder above and this switch agree; loud
         // beats silent if they ever drift.
@@ -79,6 +86,8 @@ export const suCommand = {
         return lookupCommand.autocomplete(interaction)
       case 'sheet':
         return sheetCommand.autocomplete(interaction)
+      case 'invite':
+        return inviteCommand.autocomplete(interaction)
       default:
         await interaction.respond([])
     }

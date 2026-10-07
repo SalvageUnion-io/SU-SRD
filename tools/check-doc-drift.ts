@@ -1,95 +1,33 @@
 #!/usr/bin/env bun
-
 /**
- * Doc-drift guard (mechanical, narrow — a fixed list of checks, not a general doc-linter).
+ * Doc drift — `bun run check doc-drift`. Four checks, each asking whether
+ * something a doc tells a reader to open or run exists:
  *
- * A prior campaign PR had to hand-fix docs/architecture/package-contracts.md
- * after its "Entry Points" JSON block silently fell out of sync with
- * packages/salvageunion-reference/package.json's real `exports` map (it was
- * missing the `./rules` and `./package.json` entries that had shipped after
- * the doc was written). This script extracts a fact from source and the
- * corresponding claim from docs and asserts they match, so that exact class
- * of drift fails CI instead of sitting unnoticed until the next audit.
- *
- * Checks 4–6 were added after a repo-wide audit found the same drift class
- * running unchecked in three more places while this script sat green: docs
- * citing a superseded ADR as live authority (seven sites on the day ADR-030
- * merged), docs naming component-lib symbols that had been deleted, and
- * "Astro 5" surviving in ten files after `apps/srd` moved to Astro 7.
- *
- * Checks:
- *
- *   1. package-contracts.md's "Entry Points" ```json block for
- *      salvageunion-reference must deep-equal the package's actual
- *      `package.json#exports` map.
- *   2. Every `lib/generated/*.generated.ts` file path referenced in
- *      docs/architecture/package-contracts.md and the package's own CLAUDE.md
- *      must exist on disk — catches
- *      the registry-codegen docs drifting from the actual generated-file
- *      layout (e.g. a generated file getting renamed/split/removed without
- *      the docs following).
- *   3. The root CLAUDE.md's "Workspace structure" bullet list must name exactly
- *      the workspaces the root package.json's `apps/*` + `packages/*` globs
- *      resolve to — `apps/su-assets` was a real, deployed workspace member that
- *      no doc mentioned for months.
- *   4. No live-instruction doc may cite a superseded ADR without saying so.
- *      The superseded set is parsed out of each ADR's own `## Status` block, so
- *      marking an ADR superseded is all it takes to arm this check.
- *   5. Every backticked PascalCase symbol a live-instruction doc attributes to
- *      component-lib must still be a barrel export or a file under
- *      `packages/component-lib/src/`.
- *   6. Every "<framework> <major>" claim in the docs must match the version in
- *      the package.json that actually installs that framework.
- *   7. Every `bun run <script>` a live doc or workflow prompt names exists.
- *   8+. Counts, MCP-server parity, ADR routing, two-sided supersession, and
- *      every repo path a live doc or workflow prompt cites resolving on disk
- *      (`checkBacktickedPathsExist`).
- *
- * Checks 4 and 5 read *live-instruction* docs only (see LIVE_INSTRUCTION_DOC_DIRS
- * / HISTORICAL_DOCS / HISTORICAL_MENTION). The repo deliberately keeps bannered
- * historical documents that name dead symbols and past decisions on purpose —
- * "its previous version described `ReferenceEntityDisplay`, which no longer
- * exists" is *good* documentation, and a check that fights it would be a check
- * that gets deleted.
+ *   paths    every backticked repo path in a live-instruction doc (and every
+ *            repo path in a workflow prompt) exists, unless the words beside
+ *            it mark it as history or a proposal.
+ *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
+ *            `bun run check <id>` in a live doc, workflow prompt or Claude
+ *            hook names a real script or check id.
+ *   links    every relative markdown link in a tracked `.md` file resolves.
+ *   size     root and per-directory CLAUDE.md files stay under 8,000
+ *            characters and `.claude/rules/*.md` under 4,000. They load into
+ *            every agent session in scope, so growth costs every session.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { basename, dirname, extname, join, relative } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import { CHECK_IDS } from './check'
 import { assertScanFloor } from './lib/scanFloor'
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const repoRoot = join(import.meta.dir, '..')
 
 /** The outcome of one check: `failures` empty means it passed. */
-export type CheckResult = {
-  /** One-line summary printed after a ✓ when the check passes. */
-  ok: string
-  /** One entry per drift found; empty when the check passes. */
-  failures: string[]
-}
+export type CheckResult = { ok: string; failures: string[] }
 
-// ---------------------------------------------------------------------------
-// Shared helpers
-// ---------------------------------------------------------------------------
+const read = (root: string, relPath: string): string => readFileSync(join(root, relPath), 'utf-8')
 
-function read(root: string, relPath: string): string {
-  return readFileSync(join(root, relPath), 'utf-8')
-}
-
-/**
- * Repo-relative paths of the `.md` files at or below `dir`, sorted.
- *
- * Recursive, and that is load-bearing rather than tidy: this walked one level
- * only, while a Claude Code skill lives at `.claude/skills/<name>/SKILL.md`.
- * `.claude/skills` is listed in `LIVE_INSTRUCTION_DOC_DIRS` precisely because a
- * stale skill is worse than a stale doc — it hands an agent a wrong command to
- * RUN — and it contributed exactly zero files. All four project skills were
- * scanned by no check here.
- *
- * `.claude/skills` is the only listed directory that has subdirectories at all,
- * so this widens the corpus by those four files and by nothing else.
- */
+/** Repo-relative paths of the `.md` files at or below `dir`, sorted. */
 function markdownIn(root: string, dir: string): string[] {
   const full = join(root, dir)
   if (!existsSync(full)) return []
@@ -101,124 +39,28 @@ function markdownIn(root: string, dir: string): string[] {
   return found.sort()
 }
 
-/**
- * A markdown block: a paragraph, a single list item, a heading, or a fenced
- * block. Blocks are the unit of judgement for checks 4–6 — "is the
- * supersession/version/deleted-ness acknowledged *next to* the claim" is a
- * question about the surrounding sentence, not the whole file.
- */
-export type DocBlock = {
-  /** Repo-relative path of the doc this block came from. */
-  file: string
-  /** 1-indexed line number of the block's first line. */
-  line: number
-  /** The block's raw text. */
-  text: string
-  /** Heading trail above (and including) the block, outermost first. */
-  headings: string[]
+/** Files in `dir` with extension `ext`, sorted, repo-relative. */
+function filesIn(root: string, dir: string, ext: string): string[] {
+  const full = join(root, dir)
+  if (!existsSync(full)) return []
+  return readdirSync(full)
+    .filter((name) => name.endsWith(ext))
+    .sort()
+    .map((name) => `${dir}/${name}`)
 }
 
-const FENCE_RE = /^\s{0,3}(```|~~~)/
-const HEADING_RE = /^(#{1,6})\s+(.*)$/
-const LIST_ITEM_RE = /^\s{0,3}(?:[-*+]|\d+[.)])\s/
-/** A markdown link-reference definition — a target, not a citation. */
-const LINK_DEFINITION_RE = /^\s*\[[^\]]+\]:\s/
-
-/** 1-indexed file line of `index` within a block's text. */
-function lineOf(block: DocBlock, index: number): number {
-  return block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
+/** Every `apps/*` and `packages/*` directory. */
+function workspaceDirs(root: string): string[] {
+  return ['apps', 'packages'].flatMap((dir) => {
+    const base = join(root, dir)
+    if (!existsSync(base)) return []
+    return readdirSync(base, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `${dir}/${entry.name}`)
+  })
 }
 
-export function splitMarkdownBlocks(
-  file: string,
-  source: string,
-  options: { includeFences?: boolean } = {}
-): DocBlock[] {
-  const includeFences = options.includeFences ?? false
-  const lines = source.split('\n')
-  const blocks: DocBlock[] = []
-  const headings: string[] = []
-  let current: string[] = []
-  let currentLine = 0
-  let inFence = false
-
-  const flush = (): void => {
-    if (current.length === 0) return
-    blocks.push({
-      file,
-      line: currentLine,
-      text: current.join('\n'),
-      headings: headings.filter(Boolean),
-    })
-    current = []
-  }
-
-  const push = (line: string, lineNumber: number): void => {
-    if (current.length === 0) currentLine = lineNumber
-    current.push(line)
-  }
-
-  for (const [index, line] of lines.entries()) {
-    const lineNumber = index + 1
-
-    if (FENCE_RE.test(line)) {
-      if (inFence) {
-        if (includeFences) push(line, lineNumber)
-        flush()
-      } else {
-        flush()
-        if (includeFences) push(line, lineNumber)
-      }
-      inFence = !inFence
-      continue
-    }
-    if (inFence) {
-      if (includeFences) push(line, lineNumber)
-      continue
-    }
-    if (line.trim() === '') {
-      flush()
-      continue
-    }
-
-    const heading = line.match(HEADING_RE)
-    if (heading) {
-      flush()
-      // biome-ignore lint/style/noNonNullAssertion: both groups are unconditional in HEADING_RE
-      const level = heading[1]!.length
-      headings.length = level - 1
-      // biome-ignore lint/style/noNonNullAssertion: both groups are unconditional in HEADING_RE
-      headings[level - 1] = heading[2]!.trim()
-      blocks.push({ file, line: lineNumber, text: line, headings: headings.filter(Boolean) })
-      continue
-    }
-
-    if (LIST_ITEM_RE.test(line)) flush()
-    push(line, lineNumber)
-  }
-
-  flush()
-  return blocks
-}
-
-/**
- * Docs an agent reads as a description of the code *as it is now*. Anything not
- * in here (docs/design/, plan-docs/, docs/design-system/, the ADR bodies) is
- * allowed to describe the past.
- */
-// `.claude/skills` was the blind spot in this list, and it is where BOTH of the
-// live documentation drifts found by the 2026-08 audit sat: the /verify skill
-// instructing raw `bun test` (the one command root CLAUDE.md said never to run),
-// and the /generate skill describing a TypeScript compile step the package has
-// not had since it started shipping source. A skill is executed, not merely
-// read, so a stale one is worse than a stale doc — it hands an agent a wrong
-// command to run.
-//
-// `.claude/agent-memory` joined for the same reason: a subagent's MEMORY.md is
-// loaded into that agent's system prompt verbatim, so it is instruction, not
-// notes. The 2026-09 audit found it still citing ESLint and puppeteer (both
-// gone) and a whole topic file describing an embed surface the bot had already
-// replaced — none of which any check here could see.
+/** Docs an agent follows as a description of the code as it is now. */
 const LIVE_INSTRUCTION_DOC_DIRS = [
   '.claude/rules',
   '.claude/agents',
@@ -227,1146 +69,57 @@ const LIVE_INSTRUCTION_DOC_DIRS = [
   'docs/architecture',
 ]
 
-/**
- * Workflow scripts whose string literals are prompts handed to subagents.
- *
- * They are JavaScript, not markdown, so the block-level prose checks do not
- * apply — but the two checks that ask "does this thing the instruction names
- * actually exist" (Check 7's `bun run <script>`, and the path check) apply
- * exactly as they do to a skill. A prompt is executed, not read, and these had
- * gone stale in ways no check saw: a local-first rule ADR-030 withdrew,
- * components that no longer exist, and a Prettier hook the repo never had.
- */
-const AGENT_WORKFLOW_DIR = '.claude/workflows'
-
-export function agentWorkflowScripts(root: string): string[] {
-  const full = join(root, AGENT_WORKFLOW_DIR)
-  if (!existsSync(full)) return []
-  return readdirSync(full)
-    .filter((name) => name.endsWith('.js'))
-    .sort()
-    .map((name) => `${AGENT_WORKFLOW_DIR}/${name}`)
-}
-
-/**
- * Live-instruction docs that are deliberately historical records. They carry
- * their own "this is what we used to think / what no longer exists" banner, and
- * naming dead things is the entire point of them.
- *
- * The one entry is a PRE-REGISTRATION rather than a live exemption: that plan
- * was deleted once its workstreams shipped. Every use of this set is
- * `existsSync`-filtered, so a path that is not there costs nothing, and the
- * mechanism is worth keeping armed for the next bannered historical doc — which
- * is what `check-doc-drift.test.ts` exercises through this same path. Do not
- * read a listed path as evidence the file exists.
- *
- * A second entry, `game-invites-and-membership-plan.md`, went with that doc. It
- * had never matched anything even while the file existed: it named a
- * `docs/architecture/` path for a file that lived under `docs/design/`, which
- * `LIVE_INSTRUCTION_DOC_DIRS` does not scan.
- */
-const HISTORICAL_DOCS = new Set(['docs/architecture/dashboard-display-completion-plan.md'])
-
-/**
- * Per-workspace instruction docs and the two files a new contributor opens
- * first.
- *
- * These were outside the live set, and it showed. `README.md` twice stated the
- * reference package "must be built before the apps can resolve its types" —
- * there has been no such step since the package started shipping TypeScript
- * source — and `packages/salvageunion-reference/README.md` instructed
- * `bun run validate`, which is not a script in that manifest. Check 7 exists to
- * stop docs naming dead commands and was running green while three did.
- *
- * The per-app `CLAUDE.md` files matter more than their size suggests: each is
- * loaded into every agent session scoped to that app, so a false claim there is
- * FOLLOWED rather than read. `apps/itun/CLAUDE.md` still named a
- * `src/components/ui/` directory that does not exist.
- */
 function liveInstructionDocs(root: string): string[] {
-  const perWorkspace = ['apps', 'packages'].flatMap((dir) => {
-    // A test fixture root has neither directory; the filter below drops any
-    // path that does not exist, but `readdirSync` on a missing dir throws.
-    const base = join(root, dir)
-    if (!existsSync(base)) return []
-    return readdirSync(base, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .flatMap((entry) => [`${dir}/${entry.name}/CLAUDE.md`, `${dir}/${entry.name}/README.md`])
-  })
   return [
     'CLAUDE.md',
     'README.md',
     'CONTRIBUTING.md',
     'tools/CLAUDE.md',
-    ...perWorkspace,
+    ...workspaceDirs(root).flatMap((ws) => [`${ws}/CLAUDE.md`, `${ws}/README.md`]),
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
-  ].filter((doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc)))
-}
-
-/**
- * A block that is explicitly talking about the past. Checks 4 and 5 skip these:
- * "`StatsBar` (deleted)" and "ADR-001, superseded by ADR-030" are the repo doing
- * the right thing, and a guard that flagged them would train people to delete
- * the banners instead of the drift.
- */
-const HISTORICAL_MENTION =
-  /\b(no longer|previously|used to|formerly|former|deleted|removed|replaced|renamed|retired|deprecated|superseded|supersedes|absorbed|there is no|do(?:es)? not exist|don't exist|not exported|earlier revisions?|history|historical)\b/i
-
-// ---------------------------------------------------------------------------
-// Check 1: Entry Points exports map matches package.json
-// ---------------------------------------------------------------------------
-
-export function checkExportsMap(root: string): CheckResult {
-  const contractsDoc = 'docs/architecture/package-contracts.md'
-  const pkg = JSON.parse(read(root, 'packages/salvageunion-reference/package.json')) as {
-    exports?: unknown
-  }
-  const actualExports = pkg.exports
-
-  const doc = read(root, contractsDoc)
-  const sectionMatch = doc.match(/### Entry Points\s*\n\s*```json\n([\s\S]*?)\n```/)
-
-  const ok = 'package-contracts.md "Entry Points" matches package.json#exports.'
-
-  if (!sectionMatch) {
-    return {
-      ok,
-      failures: [
-        `Could not find the "### Entry Points" \`\`\`json block in ` +
-          `${contractsDoc} — has the section been renamed or removed?`,
-      ],
-    }
-  }
-
-  let documentedExports: unknown
-  try {
-    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
-    documentedExports = JSON.parse(sectionMatch[1]!)
-  } catch (err) {
-    return {
-      ok,
-      failures: [
-        `The "### Entry Points" \`\`\`json block in ${contractsDoc} ` +
-          `is not valid JSON: ${(err as Error).message}`,
-      ],
-    }
-  }
-
-  const actualStr = JSON.stringify(actualExports, null, 2)
-  const documentedStr = JSON.stringify(documentedExports, null, 2)
-
-  if (actualStr !== documentedStr) {
-    const indent = (s: string) =>
-      s
-        .split('\n')
-        .map((l) => `    ${l}`)
-        .join('\n')
-    return {
-      ok,
-      failures: [
-        `${contractsDoc}'s "Entry Points" block has drifted from ` +
-          `packages/salvageunion-reference/package.json's actual "exports" map.\n\n` +
-          `  package.json#exports:\n${indent(actualStr)}\n\n` +
-          `  documented:\n${indent(documentedStr)}\n\n` +
-          `  → update the doc's JSON block to match package.json exactly.`,
-      ],
-    }
-  }
-
-  return { ok, failures: [] }
-}
-
-// ---------------------------------------------------------------------------
-// Check 2: every referenced lib/generated/*.generated.ts file exists
-// ---------------------------------------------------------------------------
-
-export function checkGeneratedFileReferences(root: string): CheckResult {
-  const pkgDir = join(root, 'packages/salvageunion-reference')
-  const docsToScan = [
-    'docs/architecture/package-contracts.md',
-    'packages/salvageunion-reference/CLAUDE.md',
-  ]
-
-  const pattern = /lib\/generated\/[A-Za-z0-9_-]+\.generated\.ts/g
-  const referenced = new Set<string>()
-
-  for (const docPath of docsToScan) {
-    const fullPath = join(root, docPath)
-    if (!existsSync(fullPath)) continue
-    for (const match of readFileSync(fullPath, 'utf-8').matchAll(pattern)) {
-      referenced.add(match[0])
-    }
-  }
-
-  if (referenced.size === 0) {
-    return {
-      ok: 'All referenced lib/generated/*.generated.ts file(s) exist on disk.',
-      failures: [
-        'Expected at least one lib/generated/*.generated.ts reference across ' +
-          `${docsToScan.join(', ')} — did the registry-codegen docs get rewritten ` +
-          'to describe the generated files differently? Update this check to match.',
-      ],
-    }
-  }
-
-  const ok = `All ${referenced.size} referenced lib/generated/*.generated.ts file(s) exist on disk.`
-  const missing = [...referenced].filter((rel) => !existsSync(join(pkgDir, rel)))
-
-  if (missing.length > 0) {
-    return {
-      ok,
-      failures: [
-        `Docs reference generated file(s) that don't exist on disk (stale registry-codegen docs):\n` +
-          missing.map((m) => `    packages/salvageunion-reference/${m}`).join('\n') +
-          `\n  → run 'bun run build:package' if these should exist, or update the docs if the ` +
-          `generated-file layout changed.`,
-      ],
-    }
-  }
-
-  return { ok, failures: [] }
-}
-
-// ---------------------------------------------------------------------------
-// Check 3: root CLAUDE.md's "Workspace structure" list matches the real
-// apps/* + packages/* workspace glob expansion
-// ---------------------------------------------------------------------------
-
-export function checkWorkspaceList(root: string): CheckResult {
-  const workspaceGlobs = ['apps', 'packages']
-
-  const actual = new Set<string>()
-  for (const parent of workspaceGlobs) {
-    const parentDir = join(root, parent)
-    if (!existsSync(parentDir)) continue
-    for (const entry of readdirSync(parentDir, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue
-      if (!existsSync(join(parentDir, entry.name, 'package.json'))) continue
-      actual.add(`${parent}/${entry.name}`)
-    }
-  }
-
-  const ok = `CLAUDE.md "Workspace structure" names all ${actual.size} workspaces.`
-
-  if (actual.size === 0) {
-    return {
-      ok,
-      failures: [
-        `Found no workspace members under ${workspaceGlobs.join('/, ')}/ — is this ` +
-          'running from the monorepo root? Update this check if the layout changed.',
-      ],
-    }
-  }
-
-  const doc = read(root, 'CLAUDE.md')
-  const sectionMatch = doc.match(/\*\*Workspace structure:\*\*\s*\n([\s\S]*?)\n\s*\n\*\*/)
-
-  if (!sectionMatch) {
-    return {
-      ok,
-      failures: [
-        `Could not find the "**Workspace structure:**" bullet list in ` +
-          `CLAUDE.md — has the section been renamed or removed?`,
-      ],
-    }
-  }
-
-  const documented = new Set<string>()
-  // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
-  for (const match of sectionMatch[1]!.matchAll(/^-\s+`((?:apps|packages)\/[^/`]+)\/?`/gm)) {
-    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
-    documented.add(match[1]!)
-  }
-
-  const undocumented = [...actual].filter((w) => !documented.has(w)).sort()
-  const phantom = [...documented].filter((w) => !actual.has(w)).sort()
-
-  if (undocumented.length > 0 || phantom.length > 0) {
-    const bullets = (ws: string[]) => ws.map((w) => `    ${w}/`).join('\n')
-    const lines: string[] = []
-    if (undocumented.length > 0) {
-      lines.push(`  real workspaces missing from the doc:\n${bullets(undocumented)}`)
-    }
-    if (phantom.length > 0) {
-      lines.push(`  documented workspaces that don't exist:\n${bullets(phantom)}`)
-    }
-    return {
-      ok,
-      failures: [
-        `CLAUDE.md's "Workspace structure" list has drifted from ` +
-          `the real apps/* + packages/* workspace expansion.\n\n${lines.join('\n\n')}\n\n` +
-          `  → add or remove the bullet(s) so the list names every workspace exactly once.`,
-      ],
-    }
-  }
-
-  return { ok, failures: [] }
-}
-
-// ---------------------------------------------------------------------------
-// Check 4: no live-instruction doc cites a superseded ADR as live authority
-// ---------------------------------------------------------------------------
-
-const ADR_FILE_RE = /^ADR-(\d{3})-.*\.md$/
-const ADR_CITATION_RE = /\bADR-(\d{3})\b/g
-
-/** ADR id → the id that superseded it, parsed from each ADR's own Status block. */
-export function supersededAdrs(root: string): Map<string, string> {
-  const adrDir = join(root, 'docs/adrs')
-  const superseded = new Map<string, string>()
-  if (!existsSync(adrDir)) return superseded
-
-  for (const name of readdirSync(adrDir).sort()) {
-    const idMatch = name.match(ADR_FILE_RE)
-    if (!idMatch) continue
-    const text = readFileSync(join(adrDir, name), 'utf-8')
-    const heading = text.match(/^##\s+Status\s*$/m)
-    if (heading?.index === undefined) continue
-    const afterHeading = text.slice(heading.index + heading[0].length)
-    const nextSection = afterHeading.search(/^##\s/m)
-    const status = nextSection === -1 ? afterHeading : afterHeading.slice(0, nextSection)
-    // "Superseded by [ADR-030](...)" — the passive form only. "Supersedes
-    // [ADR-023]" and "Partially supersedes [ADR-014]" describe the *other* ADR.
-    //
-    // "PARTIALLY superseded by" is excluded for the same reason the active
-    // "Partially supersedes" is: it means one clause died and the rest still
-    // governs, so citing the ADR is legitimate. ADR-014 is the live example —
-    // ADR-025 replaced only its CHANGELOG-freeze clause, and
-    // `package-contracts.md` cites it for the JSON-API decision that stands.
-    // Without the exclusion, recording that supersession on both sides (which
-    // the two-sided check now requires) would make every honest citation fail.
-    const bySomething = status.match(/(?<!partially\s)superseded\s+by\s+\[?ADR-(\d{3})/i)
-    if (!bySomething) continue
-    // biome-ignore lint/style/noNonNullAssertion: guarded by the match above
-    superseded.set(`ADR-${idMatch[1]!}`, `ADR-${bySomething[1]!}`)
-  }
-
-  return superseded
-}
-
-export function checkSupersededAdrCitations(root: string): CheckResult {
-  const adrDir = join(root, 'docs/adrs')
-  const adrCount = existsSync(adrDir)
-    ? readdirSync(adrDir).filter((n) => ADR_FILE_RE.test(n)).length
-    : 0
-
-  if (adrCount === 0) {
-    return {
-      ok: 'No live-instruction doc cites a superseded ADR without saying so.',
-      failures: [
-        'Found no docs/adrs/ADR-NNN-*.md files to parse — has the ADR layout or ' +
-          'naming changed? Update this check to match.',
-      ],
-    }
-  }
-
-  const superseded = supersededAdrs(root)
-  const ok =
-    `No live-instruction doc cites any of the ${superseded.size} superseded ADR(s) ` +
-    'without a supersession marker.'
-  const failures: string[] = []
-
-  for (const doc of liveInstructionDocs(root)) {
-    for (const block of splitMarkdownBlocks(doc, read(root, doc))) {
-      // Link-reference definitions are link targets, not claims — blank them out
-      // rather than dropping them, so line offsets stay true.
-      const lines = block.text.split('\n')
-      const scannable = lines.map((line) => (LINK_DEFINITION_RE.test(line) ? '' : line))
-      const scannableText = scannable.join('\n')
-
-      const cited = new Set([...scannableText.matchAll(ADR_CITATION_RE)].map((m) => m[0]))
-      for (const id of cited) {
-        const superseder = superseded.get(id)
-        if (!superseder) continue
-        if (/supersed/i.test(scannableText)) continue
-        if (scannableText.includes(superseder)) continue
-        const offset = scannable.findIndex((line) => line.includes(id))
-        const citingLine = scannable[offset] ?? ''
-        failures.push(
-          `${doc}:${block.line + offset} cites ${id} as live authority, but ${id}'s own ` +
-            `Status block reads "Superseded by ${superseder}".\n` +
-            `    ${citingLine.trim()}\n` +
-            `  → cite ${superseder} instead, or mark the citation ` +
-            `(e.g. "${id}, superseded by ${superseder}").`
-        )
-      }
-    }
-  }
-
-  return { ok, failures }
-}
-
-// ---------------------------------------------------------------------------
-// Check 5: every component-lib symbol named in a live-instruction doc exists
-// ---------------------------------------------------------------------------
-
-/**
- * The docs that describe component-lib's public surface as it is now.
- *
- * The package's own CLAUDE.md and README.md are the two most drift-prone docs
- * in the set — they sit next to the code, so they read as authoritative, and
- * they are where hand-maintained component rosters accumulate. Both were
- * omitted from this list until a repo-wide audit found eight dead symbols
- * across them, including a worked import example that no longer compiled.
- */
-/**
- * Backticked PascalCase names that are NOT component-lib symbols, with why.
- *
- * The check attributes a backticked name in a component-lib block to
- * component-lib. That is the right default, but a few names in
- * `docs/design-system/` are correctly backticked as literals while belonging to
- * something else — Ladle's own API and its nav taxonomy. Un-backticking them
- * would be worse: they ARE identifiers, just not ours.
- *
- * Keep this list short. A name here is a claim that it belongs to a different
- * owner, not a way to silence a real dead symbol.
- */
-const NOT_COMPONENT_LIB_SYMBOLS = new Map<string, string>([
-  ['Story', "@ladle/react's story type, not a component"],
-  ['Foundations', 'Ladle nav namespace (a story `title:` prefix)'],
-  ['Atoms', 'Ladle nav namespace'],
-  ['Compositions', 'Ladle nav namespace'],
-  ['Containers', 'Ladle nav namespace'],
-  ['Legacy', 'Ladle nav namespace — the unrefreshed holding pen'],
-])
-
-function componentLibSymbolDocs(root: string): string[] {
-  return [
-    'CLAUDE.md',
-    ...markdownIn(root, '.claude/rules'),
-    ...markdownIn(root, '.claude/agents'),
-    'docs/architecture/package-contracts.md',
-    'packages/component-lib/CLAUDE.md',
-    'packages/component-lib/README.md',
-    // `docs/design-system/` declares itself Canon over the components — the
-    // ruleset says outright "if a component contradicts a rule here, the
-    // component is wrong, never the reverse". A canon doc naming components
-    // that do not exist is the worst version of this drift, and §5's atom
-    // roster had six such names plus a composition tree citing two deleted
-    // ones. Policed here now that §5 states its implementing symbols.
-    ...markdownIn(root, 'docs/design-system'),
   ].filter((doc) => existsSync(join(root, doc)))
 }
 
-/** Every name a TypeScript source exports, whether re-exported or declared. */
-function exportedNamesIn(source: string, into: Set<string>): Set<string> {
-  const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
+/** Workflow scripts whose string literals are prompts handed to subagents. */
+export const agentWorkflowScripts = (root: string): string[] =>
+  filesIn(root, '.claude/workflows', '.js')
 
-  for (const match of stripped.matchAll(/export\s+(?:type\s+)?\{([\s\S]*?)\}/g)) {
-    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
-    for (const entry of match[1]!.split(',')) {
-      const parts = entry
-        .trim()
-        .replace(/^type\s+/, '')
-        .split(/\s+as\s+/)
-      const name = (parts.at(-1) ?? '').trim()
-      if (name) into.add(name)
-    }
+const hookScripts = (root: string): string[] => filesIn(root, '.claude/hooks', '.sh')
+
+/** Markdown text split into blocks (blank-line separated; list items apart), fences dropped. */
+export function splitMarkdownBlocks(source: string): { line: number; text: string }[] {
+  const blocks: { line: number; text: string }[] = []
+  let current: string[] = []
+  let start = 0
+  let inFence = false
+  const flush = () => {
+    if (current.length > 0) blocks.push({ line: start, text: current.join('\n') })
+    current = []
   }
-  for (const match of stripped.matchAll(
-    /export\s+(?:declare\s+)?(?:const|let|function|class|type|interface|enum)\s+([A-Za-z0-9_$]+)/g
-  )) {
-    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
-    into.add(match[1]!)
-  }
-
-  return into
-}
-
-/** Every name a barrel file re-exports. */
-export function barrelExports(root: string, relPath: string): Set<string> {
-  const barrelPath = join(root, relPath)
-  const names = new Set<string>()
-  if (!existsSync(barrelPath)) return names
-  return exportedNamesIn(readFileSync(barrelPath, 'utf-8'), names)
-}
-
-/**
- * Every name exported by *any* `.ts`/`.tsx` under `dir` — not just the barrel.
- *
- * A doc that names an internal atom (`StepButton`, deliberately unexported) or a
- * story-harness helper (`Caption`) is describing something that genuinely
- * exists; check 5 asks "does this name exist in the package", not "is it
- * public", so the barrel alone is too narrow a set to answer it.
- */
-function exportedSymbolsUnder(root: string, dir: string): Set<string> {
-  const names = new Set<string>()
-  const full = join(root, dir)
-  if (!existsSync(full)) return names
-
-  const walk = (current: string): void => {
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
-      if (entry.name === 'node_modules') continue
-      const path = join(current, entry.name)
-      if (entry.isDirectory()) {
-        walk(path)
-        continue
-      }
-      if (!['.ts', '.tsx'].includes(extname(entry.name))) continue
-      exportedNamesIn(readFileSync(path, 'utf-8'), names)
-    }
-  }
-  walk(full)
-
-  return names
-}
-
-/** Every file/directory name under `packages/component-lib/src/`. */
-function componentLibSourceNames(root: string): Set<string> {
-  const names = new Set<string>()
-  const srcDir = join(root, 'packages/component-lib/src')
-  if (!existsSync(srcDir)) return names
-
-  const walk = (dir: string): void => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      if (entry.name === 'node_modules') continue
-      if (entry.isDirectory()) {
-        names.add(entry.name)
-        walk(join(dir, entry.name))
-        continue
-      }
-      names.add(basename(entry.name, extname(entry.name)).replace(/\.stories$/, ''))
-    }
-  }
-  walk(srcDir)
-
-  return names
-}
-
-/** Backticked PascalCase identifiers — `Card`, not `cn`, `UI` or `TECH_LEVEL_STYLES`. */
-const BACKTICKED_SYMBOL_RE = /`([A-Z][A-Za-z0-9]*)`/g
-
-export function checkComponentLibSymbolNames(root: string): CheckResult {
-  const known = new Set([
-    ...barrelExports(root, 'packages/component-lib/src/index.ts'),
-    ...exportedSymbolsUnder(root, 'packages/component-lib/src'),
-    ...componentLibSourceNames(root),
-  ])
-  // A block can name component-lib alongside its sibling packages ("all consumer
-  // packages (`component-lib`, `srd`, `itun`) … code touching
-  // `SalvageUnionReference`"). Those symbols belong to the sibling, not here.
-  const siblingExports = exportedSymbolsUnder(root, 'packages/salvageunion-reference/lib')
-  const ok = 'Every component-lib symbol named in a live-instruction doc still exists.'
-
-  if (known.size === 0) {
-    return {
-      ok,
-      failures: [
-        'Parsed zero names out of packages/component-lib/src — has the package moved? ' +
-          'Update this check to match.',
-      ],
-    }
-  }
-
-  const failures: string[] = []
-
-  for (const doc of componentLibSymbolDocs(root)) {
-    for (const block of splitMarkdownBlocks(doc, read(root, doc))) {
-      const attributed =
-        block.text.includes('component-lib') ||
-        block.headings.some((heading) => heading.includes('component-lib'))
-      if (!attributed) continue
-      // A block that is explicitly talking about what was deleted/renamed is
-      // *supposed* to name dead symbols.
-      if (HISTORICAL_MENTION.test(block.text)) continue
-
-      for (const match of block.text.matchAll(BACKTICKED_SYMBOL_RE)) {
-        // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
-        const symbol = match[1]!
-        if (symbol.length < 2 || !/[a-z]/.test(symbol)) continue
-        if (known.has(symbol) || siblingExports.has(symbol)) continue
-        if (NOT_COMPONENT_LIB_SYMBOLS.has(symbol)) continue
-        failures.push(
-          `${doc}:${lineOf(block, match.index)} attributes \`${symbol}\` to component-lib, but it is ` +
-            `neither exported from packages/component-lib/src/index.ts nor a file under ` +
-            `packages/component-lib/src/.\n` +
-            `  → remove the name, or point at what replaced it.`
-        )
-      }
-    }
-  }
-
-  return { ok, failures }
-}
-
-// ---------------------------------------------------------------------------
-// Check 6: documented framework majors match the installed ones
-// ---------------------------------------------------------------------------
-
-/** A "<framework> <major>" claim docs make, and the manifest that settles it. */
-type FrameworkFact = {
-  /** How the framework is written in prose. */
-  name: string
-  /** Repo-relative package.json that actually installs it. */
-  manifest: string
-  /** Dependency key inside that manifest. */
-  dependency: string
-  /** Matches the prose claim, capturing the major version. */
-  pattern: RegExp
-}
-
-const FRAMEWORKS: FrameworkFact[] = [
-  // Was Astro, anchored on apps/srd/package.json. srd no longer installs Astro —
-  // it builds through the in-house SSG in apps/srd/ssg, whose only framework
-  // dependency is Vite. A "Vite <major>" claim in the docs is now the drifting
-  // fact worth pinning for this app.
-  {
-    name: 'Vite',
-    manifest: 'apps/srd/package.json',
-    dependency: 'vite',
-    pattern: /\bVite\s+v?(\d+)(?:\.\d+)*/g,
-  },
-  {
-    name: 'React',
-    manifest: 'apps/itun/package.json',
-    dependency: 'react',
-    pattern: /\bReact\s+v?(\d+)(?:\.\d+)*/g,
-  },
-  {
-    name: 'Tailwind',
-    manifest: 'package.json',
-    dependency: 'tailwindcss',
-    pattern: /\bTailwind(?:\s+CSS)?\s+v?(\d+)(?:\.\d+)*/g,
-  },
-]
-
-type CatalogHost = {
-  catalog?: Record<string, string>
-  catalogs?: Record<string, Record<string, string>>
-}
-
-/**
- * Resolve a `catalog:` specifier to the version the root actually declares.
- *
- * `catalog:` uses the DEFAULT catalog; `catalog:<name>` selects a NAMED one —
- * in both cases the key inside the catalog is the package name, never the
- * suffix. Returns undefined for an unknown catalog or a missing entry.
- *
- * Both fields are read from `workspaces` AND from the top level of
- * package.json, because Bun accepts either ("If you put `catalog` or `catalogs`
- * at the top level of the package.json file, that will work too"). This repo
- * uses the `workspaces` form, but the fallback is not hypothetical tidiness:
- * dependabot-core #12522 rewrites this field, and a check that returns
- * undefined here fails `bun run check` with "has the dependency moved?" —
- * pointing at the dependency rather than at the rewrite that actually broke it.
- */
-function resolveCatalog(root: string, spec: string, dependency: string): string | undefined {
-  const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as CatalogHost & {
-    workspaces?: string[] | CatalogHost
-  }
-  const ws = rootPkg.workspaces
-  const hosts: CatalogHost[] = [...(ws && !Array.isArray(ws) ? [ws] : []), rootPkg]
-
-  const name = spec.slice('catalog:'.length).trim()
-  for (const host of hosts) {
-    const found = name === '' ? host.catalog?.[dependency] : host.catalogs?.[name]?.[dependency]
-    if (found !== undefined) return found
-  }
-  return undefined
-}
-
-function installedMajor(root: string, fact: FrameworkFact): string | null {
-  const manifestPath = join(root, fact.manifest)
-  if (!existsSync(manifestPath)) return null
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
-    dependencies?: Record<string, string>
-    devDependencies?: Record<string, string>
-  }
-  let range =
-    manifest.dependencies?.[fact.dependency] ?? manifest.devDependencies?.[fact.dependency]
-
-  // Shared deps are declared once in the root `workspaces.catalog` and referenced
-  // as `catalog:` (or `catalog:<name>`) from each workspace, so the manifest no
-  // longer carries a version to read. Resolve one hop to the catalog. Without
-  // this the check reports "has the dependency moved?" for every catalogued
-  // framework — which is exactly what it did when catalogs landed.
-  if (range?.startsWith('catalog:')) range = resolveCatalog(root, range, fact.dependency)
-
-  const major = range?.match(/(\d+)/)
-  return major?.[1] ?? null
-}
-
-/** Docs that describe the stack as it is now. */
-function frameworkVersionDocs(root: string): string[] {
-  const perWorkspace = ['apps', 'packages'].flatMap((parent) => {
-    const parentDir = join(root, parent)
-    if (!existsSync(parentDir)) return []
-    return readdirSync(parentDir, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .flatMap((entry) => [
-        `${parent}/${entry.name}/CLAUDE.md`,
-        `${parent}/${entry.name}/README.md`,
-      ])
-  })
-
-  return [
-    'CLAUDE.md',
-    'README.md',
-    ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
-    ...markdownIn(root, 'docs/adrs'),
-    ...perWorkspace,
-  ].filter((doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc)))
-}
-
-export function checkFrameworkVersions(root: string): CheckResult {
-  const majors = new Map<string, string>()
-  const failures: string[] = []
-
-  for (const fact of FRAMEWORKS) {
-    const major = installedMajor(root, fact)
-    if (major === null) {
-      failures.push(
-        `Could not read the installed "${fact.dependency}" version from ${fact.manifest} — ` +
-          'has the dependency moved? Update this check to match.'
-      )
+  for (const [index, line] of source.split('\n').entries()) {
+    if (/^\s{0,3}(```|~~~)/.test(line)) {
+      flush()
+      inFence = !inFence
       continue
     }
-    majors.set(fact.name, major)
-  }
-
-  const ok =
-    `Documented framework majors match the installed ones (` +
-    `${[...majors].map(([name, major]) => `${name} ${major}`).join(', ')}).`
-
-  if (failures.length > 0) return { ok, failures }
-
-  for (const doc of frameworkVersionDocs(root)) {
-    // Fences included: the ASCII dependency diagrams state versions too.
-    for (const block of splitMarkdownBlocks(doc, read(root, doc), { includeFences: true })) {
-      for (const fact of FRAMEWORKS) {
-        const installed = majors.get(fact.name)
-        if (!installed) continue
-        const claimed = [...block.text.matchAll(fact.pattern)]
-        if (claimed.length === 0) continue
-        // A block that also states the current major is contextualising the old
-        // one ("`srd` was on Astro 5 when this was written; it runs Astro 7 today").
-        if (claimed.some((match) => match[1] === installed)) continue
-
-        for (const match of claimed) {
-          failures.push(
-            `${doc}:${lineOf(block, match.index)} says "${match[0]}", but ${fact.manifest} installs ` +
-              `${fact.dependency} ${installed}.x.\n` +
-              `  → say "${fact.name} ${installed}", or keep the old number only alongside ` +
-              `the current one (e.g. "was on ${fact.name} ${match[1]}, runs ${fact.name} ${installed} today").`
-          )
-        }
-      }
+    if (inFence) continue
+    if (line.trim() === '' || /^#{1,6}\s/.test(line) || /^\s{0,3}(?:[-*+]|\d+[.)])\s/.test(line)) {
+      flush()
     }
+    if (line.trim() === '') continue
+    if (current.length === 0) start = index + 1
+    current.push(line)
   }
-
-  return { ok, failures }
+  flush()
+  return blocks
 }
 
-// ---------------------------------------------------------------------------
-// Check 7: every `bun run <script>` a live-instruction doc names actually exists
-// ---------------------------------------------------------------------------
+const lineOf = (block: { line: number; text: string }, index: number): number =>
+  block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
 
-/**
- * Docs and skills tell agents which commands to run. When a script is renamed
- * or removed, the prose keeps confidently naming it and the next agent runs a
- * command that does not exist — or, worse, the doc names a command that exists
- * but is the wrong one. The /verify skill spent months instructing raw
- * `bun test` because nothing compared instructions against reality.
- *
- * Scope: `bun run <name>` and `bun --filter <workspace> <name>`, which is how
- * every documented command in this repo is written — plus the check ids in
- * `bun run check <id> …`, which name entries in `tools/check.ts`'s registry
- * rather than scripts, and would otherwise rot unseen the same way.
- */
-function scriptsOf(root: string, manifest: string): Set<string> {
-  const path = join(root, manifest)
-  if (!existsSync(path)) return new Set()
-  const pkg = JSON.parse(readFileSync(path, 'utf-8')) as { scripts?: Record<string, string> }
-  return new Set(Object.keys(pkg.scripts ?? {}))
-}
+// ─── paths ──────────────────────────────────────────────────────────────────
 
-/**
- * Workspace directory by package name, for `bun --filter <name> <script>`.
- * Discovered rather than listed, so a new workspace is covered on the day it
- * lands instead of silently escaping the check.
- */
-function workspaceManifests(root: string): Record<string, string> {
-  return Object.fromEntries(
-    ['apps', 'packages'].flatMap((dir) => {
-      const base = join(root, dir)
-      if (!existsSync(base)) return []
-      return readdirSync(base, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .filter((entry) => existsSync(join(base, entry.name, 'package.json')))
-        .map((entry) => {
-          const manifest = `${dir}/${entry.name}/package.json`
-          const pkg = JSON.parse(readFileSync(join(root, manifest), 'utf-8')) as { name?: string }
-          return [pkg.name ?? entry.name, manifest] as const
-        })
-    })
-  )
-}
-
-/**
- * The workspace a doc belongs to, if any — `apps/srd/CLAUDE.md` → `apps/srd`.
- *
- * A per-workspace doc may reference that workspace's OWN scripts without
- * `--filter`, because that is how you run them from inside the directory:
- * `apps/srd/CLAUDE.md` documents `bun run gate`, which is a script in
- * `apps/srd/package.json` and deliberately not in the root's. Resolving those
- * against the root manifest alone reported four false failures the moment these
- * files entered scope.
- */
-function owningManifest(doc: string): string | undefined {
-  const m = doc.match(/^((?:apps|packages)\/[^/]+)\//)
-  return m ? `${m[1]}/package.json` : undefined
-}
-
-export function checkReferencedScripts(root: string): { ok: string; failures: string[] } {
-  const failures: string[] = []
-  const rootScripts = scriptsOf(root, 'package.json')
-  const manifests = workspaceManifests(root)
-  const workspaceScripts = new Map<string, Set<string>>()
-  for (const [name, manifest] of Object.entries(manifests)) {
-    workspaceScripts.set(name, scriptsOf(root, manifest))
-  }
-
-  let checked = 0
-  for (const doc of [...liveInstructionDocs(root), ...agentWorkflowScripts(root)]) {
-    const text = readFileSync(join(root, doc), 'utf-8')
-
-    const localScripts = (() => {
-      const manifest = owningManifest(doc)
-      return manifest ? scriptsOf(root, manifest) : new Set<string>()
-    })()
-
-    for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
-      const script = m[1]
-      if (script === undefined) continue
-      checked++
-      if (!rootScripts.has(script) && !localScripts.has(script)) {
-        failures.push(
-          `${doc} references \`bun run ${script}\`, which is not a script in the root package.json` +
-            `${owningManifest(doc) ? ` or in ${owningManifest(doc)}` : ''}.\n` +
-            `  → rename the reference to the surviving script, or drop it.`
-        )
-      }
-    }
-
-    // `bun run check data doc-drift` — the words after `check` are registry ids.
-    // Only where the command visibly ends: a closing backtick or quote, or the
-    // end of a code-block line (optionally before a `#` comment). Prose such as
-    // "bun run check before you push" is not read as ids.
-    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
-      for (const id of (m[1] ?? '').trim().split(' ')) {
-        checked++
-        if (!CHECK_IDS.includes(id)) {
-          failures.push(
-            `${doc} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
-              `tools/check.ts (known: ${CHECK_IDS.join(', ')}).\n` +
-              '  → use a registered id, or drop it.'
-          )
-        }
-      }
-    }
-
-    for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
-      const [, workspace, script] = m
-      if (workspace === undefined || script === undefined) continue
-      const known = workspaceScripts.get(workspace)
-      // An unknown workspace name is Check 3's job, not this one.
-      if (known === undefined) continue
-      checked++
-      if (!known.has(script)) {
-        failures.push(
-          `${doc} references \`bun --filter ${workspace} ${script}\`, which is not a script in ` +
-            `${manifests[workspace]}.\n  → rename the reference to the surviving script, or drop it.`
-        )
-      }
-    }
-  }
-
-  return { ok: `every documented bun script exists (${checked} references checked)`, failures }
-}
-
-// ---------------------------------------------------------------------------
-// Counts, statuses and negative assertions
-//
-// The seven checks above are all SHAPE checks — a symbol still exists, a path
-// resolves, a script name is real, a version matches. None of them has any
-// notion of a COUNT, a STATUS, or a claim that something was removed, and that
-// is precisely where this repo's documentation rots.
-//
-// The 2026-09 audit re-derived every numeric claim in CLAUDE.md and found the
-// catalog counts, the package count, the test totals and the measured Bun
-// version all wrong, alongside a `docs/README.md` that undercounted the ADRs by
-// three and silently omitted one entirely. A doc with three wrong numbers stops
-// being believed wholesale, including the parts that are right — which is the
-// real cost, since these files are agent input rather than decoration.
-// ---------------------------------------------------------------------------
-
-/** A documented number, and the command-free way to derive the real one. */
-type CountClaim = {
-  doc: string
-  /** Must capture the claimed number in group 1. */
-  pattern: RegExp
-  label: string
-  actual: (root: string) => number
-}
-
-function adrFiles(root: string): string[] {
-  const dir = join(root, 'docs/adrs')
-  if (!existsSync(dir)) return []
-  return readdirSync(dir)
-    .filter((f) => /^ADR-\d+.*\.md$/.test(f))
-    .sort()
-}
-
-function adrNumber(file: string): number {
-  return Number.parseInt(file.slice(4, 7), 10)
-}
-
-const COUNT_CLAIMS: CountClaim[] = [
-  {
-    doc: 'CLAUDE.md',
-    pattern: /\*\*(\d+) of them\*\* \(ADR-\d+ through ADR-\d+\)/,
-    label: 'ADR count in CLAUDE.md',
-    actual: (root) => adrFiles(root).length,
-  },
-  {
-    doc: 'CLAUDE.md',
-    pattern: /ADR-\d+ through ADR-(\d+)/,
-    label: 'highest ADR number in CLAUDE.md',
-    actual: (root) => Math.max(0, ...adrFiles(root).map(adrNumber)),
-  },
-  {
-    doc: 'docs/README.md',
-    pattern: /\b(\d+)\s+ADRs\b/,
-    label: 'ADR count in docs/README.md',
-    actual: (root) => adrFiles(root).length,
-  },
-  {
-    doc: 'CLAUDE.md',
-    pattern: /\b(\d+) deps, \d+ references\b/,
-    label: 'catalog entry count in CLAUDE.md',
-    actual: (root) => {
-      const pkg = JSON.parse(read(root, 'package.json')) as {
-        workspaces?: { catalog?: Record<string, string> }
-      }
-      return Object.keys(pkg.workspaces?.catalog ?? {}).length
-    },
-  },
-  {
-    doc: 'CLAUDE.md',
-    pattern: /\b\d+ deps, (\d+) references\b/,
-    label: 'catalog reference count in CLAUDE.md',
-    actual: (root) => {
-      let total = 0
-      for (const rel of ['package.json', ...Object.values(workspaceManifests(root))]) {
-        total += (read(root, rel).match(/"catalog:"/g) ?? []).length
-      }
-      return total
-    },
-  },
-]
-
-export function checkDocumentedCounts(root: string): { ok: string; failures: string[] } {
-  const failures: string[] = []
-  let checked = 0
-
-  for (const claim of COUNT_CLAIMS) {
-    if (!existsSync(join(root, claim.doc))) continue
-    const match = read(root, claim.doc).match(claim.pattern)
-    if (!match?.[1]) continue
-    checked++
-    const claimed = Number.parseInt(match[1].replace(/,/g, ''), 10)
-    const actual = claim.actual(root)
-    if (claimed !== actual) {
-      failures.push(
-        `${claim.label}: the doc says ${claimed}, the tree has ${actual}. ` +
-          `Update ${claim.doc} — a doc that miscounts something this cheap to verify ` +
-          `stops being trusted for the things that are expensive to verify.`
-      )
-    }
-  }
-
-  return { ok: `documented counts match the tree (${checked} claim(s) checked)`, failures }
-}
-
-const NEGATED =
-  /\b(no|not|never|non-existent|nonexistent|deleted|removed|gone|absent|retired|dropped|replaced|superseded|former|formerly|used to|no longer|instead of|rather than|would have|was |were |had )\b|\bdoes not\b|\bdid not\b|\bgitignore(d)?\b|\buntracked\b|→/
-
-/**
- * Docs must not describe an MCP server that `.mcp.json` does not declare.
- *
- * `docs/architecture/agent-tooling.md` is the registry CLAUDE.md explicitly
- * tells agents to read INSTEAD of enumerating accounts, and it went inverted on
- * every row that mattered: it claimed no Cloudflare MCP server was declared
- * (two are) while carrying live rows for `netlify`, `render` and `github`
- * (none are). `/triage` — a skill, so executed rather than merely read — still
- * instructed the agent to call the Netlify and Render servers at step 3.
- *
- * Two assertions, both narrow enough to avoid punishing historical prose:
- * a declared server no doc mentions, and a `<Name> MCP` phrase for a server
- * that is not declared. Saying "Netlify hosted this until P7" stays fine;
- * saying "use the Netlify MCP" does not.
- */
-export function checkMcpServerParity(root: string): { ok: string; failures: string[] } {
-  const failures: string[] = []
-  if (!existsSync(join(root, '.mcp.json'))) {
-    return { ok: 'no .mcp.json to reconcile', failures }
-  }
-
-  const declared = Object.keys(
-    (JSON.parse(read(root, '.mcp.json')) as { mcpServers?: Record<string, unknown> }).mcpServers ??
-      {}
-  )
-
-  const registry = 'docs/architecture/agent-tooling.md'
-  if (existsSync(join(root, registry))) {
-    const text = read(root, registry)
-    for (const name of declared) {
-      if (!text.includes(name)) {
-        failures.push(
-          `${registry} never mentions the \`${name}\` MCP server, which .mcp.json declares. ` +
-            `CLAUDE.md sends agents to that file as the registry, so a server missing from it ` +
-            `is a capability agents will not know they have.`
-        )
-      }
-    }
-  }
-
-  // `<Name> MCP` for something not declared. Deliberately not a bare mention:
-  // discussing Netlify or Render as former hosting is legitimate and common.
-  const MCP_PHRASE = /\b([A-Z][A-Za-z0-9-]*)\s+MCP\b/g
-  const ALLOWED_PROSE = new Set([
-    'The',
-    'A',
-    'An',
-    'This',
-    'That',
-    'One',
-    'No',
-    'Remote',
-    'Each',
-    'All',
-    'Both',
-    'Every',
-    'Its',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-  ])
-  for (const doc of liveInstructionDocs(root)) {
-    const lines = read(root, doc).split('\n')
-    for (const [index, line] of lines.entries()) {
-      for (const match of line.matchAll(MCP_PHRASE)) {
-        const name = match[1] as string
-        if (ALLOWED_PROSE.has(name)) continue
-        const key = name.toLowerCase()
-        if (declared.some((d) => d.toLowerCase().startsWith(key))) continue
-        // Same rule as the path check: a doc SAYING a server was deleted is the
-        // opposite of drift. Only an apparent instruction to USE one counts.
-        const context = `${lines[index - 1] ?? ''} ${line} ${lines[index + 1] ?? ''}`.toLowerCase()
-        if (NEGATED.test(context)) continue
-        failures.push(
-          `${doc} refers to a "${name} MCP" server, which .mcp.json does not declare ` +
-            `(declared: ${declared.join(', ')}). An instruction to call a server that is not ` +
-            `configured is unrunnable — and in a skill it is executed, not merely read.`
-        )
-      }
-    }
-  }
-
-  return {
-    ok: `MCP server references match .mcp.json (${declared.length} declared)`,
-    failures,
-  }
-}
-
-/**
- * Every ADR appears in the routing table, and every routed ADR exists.
- *
- * `docs/README.md` is the intent -> doc map an agent reads first. It claimed
- * "31 ADRs" against a corpus of 34 and omitted ADR-032 (public read-only
- * sheets) entirely — an Accepted, live ADR amending ADR-030 §5, invisible to
- * anyone working on sheet visibility.
- */
-export function checkAdrRoutingTable(root: string): { ok: string; failures: string[] } {
-  const failures: string[] = []
-  const readme = 'docs/README.md'
-  if (!existsSync(join(root, readme))) return { ok: 'no docs/README.md to reconcile', failures }
-
-  const text = read(root, readme)
-  const files = adrFiles(root)
-
-  for (const file of files) {
-    const id = file.slice(0, 7)
-    if (!new RegExp(`\\b${id}\\b`).test(text)) {
-      failures.push(
-        `${readme} never mentions ${id}, which exists at docs/adrs/${file}. ` +
-          `An ADR absent from the routing table is one an agent will not find.`
-      )
-    }
-  }
-
-  const known = new Set(files.map((f) => f.slice(0, 7)))
-  for (const match of text.matchAll(/\bADR-(\d{3})\b/g)) {
-    const id = `ADR-${match[1]}`
-    if (!known.has(id)) {
-      failures.push(`${readme} routes to ${id}, which has no file in docs/adrs/.`)
-    }
-  }
-
-  return { ok: `every ADR is routed from docs/README.md (${files.length} checked)`, failures }
-}
-
-/**
- * A supersession must be recorded on BOTH ADRs.
- *
- * Recorded on only the successor, it is a trap: an agent that opens the
- * superseded ADR reads a plain "Accepted" and follows a dead decision. Two such
- * one-sided edges existed — ADR-014 (superseded in part by ADR-025) and ADR-004
- * (amended by ADR-033, whose mechanism is deleted) — while all four chains
- * CLAUDE.md names were correctly two-sided.
- */
-export function checkTwoSidedSupersession(root: string): { ok: string; failures: string[] } {
-  const failures: string[] = []
-  const files = adrFiles(root)
-  let edges = 0
-
-  for (const file of files) {
-    const successor = file.slice(0, 7)
-    const status = statusSection(read(root, join('docs/adrs', file)))
-    for (const match of status.matchAll(/\b(?:partially\s+)?supersedes\s+\[?(ADR-\d{3})/gi)) {
-      const subject = match[1] as string
-      edges++
-      const subjectFile = files.find((f) => f.startsWith(subject))
-      if (!subjectFile) {
-        failures.push(`docs/adrs/${file} says it supersedes ${subject}, which has no file.`)
-        continue
-      }
-      const subjectStatus = statusSection(read(root, join('docs/adrs', subjectFile)))
-      if (!subjectStatus.includes(successor)) {
-        failures.push(
-          `docs/adrs/${subjectFile} does not name ${successor} in its own \`## Status\`, ` +
-            `but ${successor} says it supersedes it. Record the supersession on BOTH sides — ` +
-            `one-sided, the superseded ADR still reads as live to anyone who opens it directly.`
-        )
-      }
-    }
-  }
-
-  return { ok: `supersessions are recorded on both ADRs (${edges} edge(s))`, failures }
-}
-
-/** The `## Status` block of an ADR, up to the next heading. */
-function statusSection(source: string): string {
-  const match = source.match(/^##\s+Status\s*$([\s\S]*?)(?=^##\s)/m)
-  return match?.[1] ?? source.slice(0, 800)
-}
-
-/**
- * Top-level directories a repo-rooted citation starts with. Anything else with
- * a slash in backticks is more likely a package name (`@sentry/browser`), a ref
- * (`origin/main`) or a media type than a path, and is not judged.
- */
+/** First segments of a repo-rooted citation; any other slashed token is a package, ref or type. */
 const REPO_PATH_ROOTS = [
   '.claude',
   '.github',
@@ -1378,80 +131,41 @@ const REPO_PATH_ROOTS = [
   'patches',
 ]
 
-/**
- * Directories that only exist INSIDE a workspace. A per-app CLAUDE.md, a
- * path-scoped rule and a workflow prompt all say `src/stores/` meaning some
- * workspace's `src/stores/`, so these resolve beside the doc or under any
- * `apps/*` / `packages/*` — loose on purpose: the drift this catches is a path
- * that exists NOWHERE, which is what a rename or deletion leaves behind.
- */
+/** Directories that exist only inside a workspace: resolved under any `apps/*` / `packages/*`. */
 const WORKSPACE_PATH_ROOTS = ['src', 'ssg', 'convex', 'scripts', 'lib', 'e2e', 'public']
 
-/**
- * Dependencies whose name collides with a workspace directory, so that
- * `convex/react` reads as an import and `convex/games.ts` as a path.
- */
+/** Dependencies whose name is also a workspace directory: `convex/react` is an import. */
 const IMPORT_SPECIFIER_PACKAGES = new Set(['convex'])
 
-/**
- * Prose that proposes a path rather than asserting one: "Create
- * `test/preload-reference.ts`" names a file that is SUPPOSED not to exist yet.
- * Tested against the sentence with its backticked spans removed, so a path
- * that merely contains `new` (`routes/npcs/new.tsx`) does not excuse itself.
- *
- * Deliberately narrow. It once carried `add`, `will` and `would`, which read
- * as proposals in almost no sentence that uses them ("add a row to
- * `tools/x.ts`" is an instruction about a file that must exist), and together
- * with {@link CITATION_HISTORY}'s predecessor it skipped ~30% of all cited
- * paths while the check reported them as checked.
- */
+/** Words that offer a path as not yet built. Judged on prose with backticked spans removed. */
 const CITATION_PROPOSAL =
   /\b(planned|proposed|propose|proposes|does not exist yet|doesn't exist yet|not yet exist)\b/
 
-/**
- * "Create `x`" as an imperative, opening its sentence. Bare `create` anywhere
- * in a sentence is a noun as often as a verb here — "the create path", "Who may
- * create" — and matching it skipped a whole table of live citations.
- */
+/** "Create `x`" as an imperative opening its sentence; bare "create" is often a noun here. */
 const CITATION_IMPERATIVE_CREATE = /^[\s>*_\-+|]*(?:\d+[.)]\s+)?create\b/
 
-/**
- * Prose that marks a cited path as HISTORY. Its own list, not {@link NEGATED}:
- * that one serves claim-counting checks and includes `no`, `not`, `was `,
- * `rather than` — none of which says a path is gone, and a rule file saying
- * "do not edit `src/stores/x.ts` directly" is live instruction about a file
- * that must exist. Only words that say the path itself is gone count here.
- */
+/** Words that say the cited path itself is gone. */
 const CITATION_HISTORY =
   /\b(deleted|removed|retired|no longer|used to|formerly|never existed|does not exist|did not exist|never written|was renamed|superseded)\b/
 
-/**
- * A doc that declares itself a plan in its opening status line. Every path it
- * names is a proposal, so it is skipped whole rather than sentence by sentence.
- */
+/** A doc whose opening status line declares it a plan: every path in it is a proposal. */
 const PLAN_DOC_STATUS = /^>?\s*\*\*Status:?\*\*:?\s*(?:plan|proposed|proposal|draft)\b/im
 
 /** Root-level config files named bare, e.g. `bunfig.toml`, `lefthook.yml`. */
 const BARE_CONFIG_FILE_RE = /^[A-Za-z0-9_-]+\.(?:toml|yaml|yml)$/
 
-/**
- * The repo path a backticked token names, or null when the token is not a
- * path claim this check judges. Exported for the tests.
- */
+/** Words either side of a citation that may mark it as history or a proposal. */
+const CITATION_CONTEXT_WORDS = 6
+
+/** The repo path a backticked token names, or null when it is not a path claim. */
 export function pathCandidate(token: string): string | null {
-  // Strip a trailing `:line` / `:line:col` and an `#anchor` — `foo.ts:42` cites
-  // a file that must exist just as much as `foo.ts` does.
   const candidate = token.replace(/(?::\d+)+$/, '').replace(/#[\w-]*$/, '')
-  // Globs, placeholders, URLs, env expansions and home paths name a SET or a
-  // template, not one file.
+  // Globs, placeholders, URLs, env expansions and home paths name a set or a template.
   if (/[*<>{}$~?\s]|:\/\//.test(candidate) || candidate.includes(':')) return null
   if (candidate.endsWith('.') || candidate.startsWith('/')) return null
   if (BARE_CONFIG_FILE_RE.test(candidate)) return candidate
-  const first = candidate.split('/')[0] ?? ''
   if (!candidate.includes('/')) return null
-  // `convex/react`, `convex/values`: a package subpath import, not a file. Keyed
-  // on shape so it holds in a fixture with no node_modules — no extension, no
-  // trailing slash, and a first segment that is also a dependency's name.
+  const first = candidate.split('/')[0] ?? ''
   if (
     IMPORT_SPECIFIER_PACKAGES.has(first) &&
     !/\.\w+$/.test(candidate) &&
@@ -1464,15 +178,8 @@ export function pathCandidate(token: string): string | null {
 }
 
 /**
- * A predicate for "this path is gitignored at the repo root".
- *
- * A gitignored path (`.claude/worktrees/`, `rules/extracted/`, `.profiles/`) is
- * a legitimate thing for an instruction to name — it is where a tool writes —
- * and it is absent in CI by design, so existence proves nothing either way.
- * Handles the shapes the root `.gitignore` actually uses: an unanchored bare
- * name (matched at any depth, as git does), a path or directory, `dir/*`, and a
- * leading `**` segment before a name. Anything fancier is not matched, which
- * errs toward judging the path.
+ * "This path is gitignored at the repo root": absent in CI by design, so its
+ * existence proves nothing. Handles the rule shapes the root `.gitignore` uses.
  */
 export function gitignoredMatcher(root: string): (candidate: string) => boolean {
   const file = join(root, '.gitignore')
@@ -1484,10 +191,8 @@ export function gitignoredMatcher(root: string): (candidate: string) => boolean 
   return (candidate) =>
     rules.some((line) => {
       const rule = line.replace(/^\//, '')
-      // Git semantics: a pattern with no slash but a trailing one is unanchored
-      // and matches that name at ANY depth, so `.env.local` ignores
-      // `apps/itun/.env.local` too.
       const bare = rule.replace(/\/$/, '')
+      // An unanchored pattern with no inner slash matches that name at any depth.
       if (!line.startsWith('/') && !bare.includes('/') && !bare.includes('*')) {
         return candidate.split('/').includes(bare)
       }
@@ -1501,45 +206,21 @@ export function gitignoredMatcher(root: string): (candidate: string) => boolean 
     })
 }
 
-/** Every `apps/*` and `packages/*` directory — the workspace-relative bases. */
-function workspaceDirs(root: string): string[] {
-  return ['apps', 'packages'].flatMap((dir) => {
-    const base = join(root, dir)
-    if (!existsSync(base)) return []
-    return readdirSync(base, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => `${dir}/${entry.name}`)
-  })
-}
+/** Docs cite modules the way code imports them, without an extension. */
+const existsAsModule = (path: string): boolean =>
+  ['', '.ts', '.tsx', '/index.ts', '/index.tsx'].some((suffix) => existsSync(`${path}${suffix}`))
 
-/**
- * Import-specifier spellings of a path: docs cite `lib/db/broadcast` the way
- * the code imports it, with no extension.
- */
-const MODULE_SUFFIXES = ['', '.ts', '.tsx', '/index.ts', '/index.tsx']
-
-function existsAsModule(path: string): boolean {
-  return MODULE_SUFFIXES.some((suffix) => existsSync(`${path}${suffix}`))
-}
-
-/** Does `candidate`, cited from `doc`, name something on disk? */
 function resolvesFrom(root: string, doc: string, candidate: string, workspaces: string[]): boolean {
   if (existsAsModule(join(root, candidate))) return true
-  // Beside the doc: a package's CLAUDE.md saying `tools/generateDocs.ts` means
-  // that package's tools/, not the repo's.
   if (existsAsModule(join(root, dirname(doc), candidate))) return true
   const first = candidate.split('/')[0] ?? ''
-  // `test/` is both a repo-root directory and a per-workspace one.
   if (WORKSPACE_PATH_ROOTS.includes(first) || first === 'test') {
-    // `lib/rules/downtime.ts` in ITUN's docs means `apps/itun/src/lib/…`: the
-    // app's own import root, which is how its code and docs both spell it.
     return workspaces.some(
       (ws) =>
         existsAsModule(join(root, ws, candidate)) ||
         existsAsModule(join(root, ws, 'src', candidate))
     )
   }
-  // A bare workflow file name (`deploy-cloudflare.yml`) names a GitHub workflow.
   if (BARE_CONFIG_FILE_RE.test(candidate)) {
     return existsSync(join(root, '.github/workflows', candidate))
   }
@@ -1547,25 +228,10 @@ function resolvesFrom(root: string, doc: string, candidate: string, workspaces: 
 }
 
 /**
- * The sentence of `text` that contains offset `index` — the unit a reader uses
- * to decide whether a path is offered as live.
- *
- * A sentence ends at `.`, `!`, `?` or `;` followed by whitespace, with any
- * closing markup in between (`.**`, `.)`, `.\``): this repo's docs bold their
- * lead sentences, and a boundary that missed `.**` merged "**Workspaces are
- * retired.**" into the next sentence and hid its live path. A path ending in
- * `.` is already rejected by `pathCandidate`, so a boundary never falls inside a
- * citation.
- *
- * Every markdown table row and list item is also its own unit: a table has no
- * sentence punctuation at all, so one history word anywhere in it used to
- * excuse every row.
+ * Bounds of the sentence containing `index`. A sentence ends at `.!?;` plus
+ * any closing markup before whitespace; every table row and list item is its
+ * own unit, so one history word cannot excuse a whole table.
  */
-export function sentenceAround(text: string, index: number): string {
-  const [start, end] = sentenceBounds(text, index)
-  return text.slice(start, end)
-}
-
 function sentenceBounds(text: string, index: number): [number, number] {
   const boundary = /[.!?;][*_)\]`'"]*(?=\s)|\n\s*\n|\n(?=\s*(?:\||[-*+]\s|\d+[.)]\s))/g
   let start = 0
@@ -1581,26 +247,17 @@ function sentenceBounds(text: string, index: number): [number, number] {
   return [start, end]
 }
 
-/** Lower-cased prose with every backticked span collapsed to one placeholder word. */
-function proseOf(text: string): string {
-  return text.replace(/`[^`]*`/g, ' code ').toLowerCase()
+export function sentenceAround(text: string, index: number): string {
+  const [start, end] = sentenceBounds(text, index)
+  return text.slice(start, end)
 }
 
-/** Words either side of a citation that may mark it as history or a proposal. */
-const CITATION_CONTEXT_WORDS = 6
+const proseOf = (text: string): string => text.replace(/`[^`]*`/g, ' code ').toLowerCase()
 
 /**
- * Whether the citation at `index` (a backticked span `length` characters long)
- * is offered as history or as a proposal.
- *
- * Judged on the PROSE: backticked spans are collapsed first, so a path's own
- * spelling (`…/new.tsx`, `…/removed/`) never decides it. The marker must sit
- * within {@link CITATION_CONTEXT_WORDS} words of THIS citation, inside its
- * sentence — "`x.ts` (since deleted)", "the since-deleted `x.ts`",
- * "`x.ts` was deleted in P8". A long sentence that mentions a removal somewhere
- * else ("…, and the advisory `Banner` is removed from the create flow") no
- * longer excuses a live path twenty words away. The one sentence-wide form is
- * an imperative "Create `x`" opening the sentence.
+ * Whether the citation at `index` is offered as history or a proposal: a
+ * marker within a few words of it, inside its sentence, or a sentence that
+ * opens with an imperative "Create". The path's own spelling never decides.
  */
 export function citationReadsAsHistoryOrProposal(
   text: string,
@@ -1620,35 +277,7 @@ export function citationReadsAsHistoryOrProposal(
   return CITATION_HISTORY.test(window) || CITATION_PROPOSAL.test(window)
 }
 
-/**
- * A backticked repo path in a live doc — or any repo path in a workflow
- * prompt — must exist.
- *
- * The negative-assertion class: "X was removed" and "see `path/to/thing`" are
- * both claims about the tree that no shape check reaches. Live docs pointed at
- * `netlify.toml` files, `netlify/functions/` trees, `render.yaml` and a
- * `storageNetlify.ts` long after all of them were deleted — and one of those
- * citations was an instruction to change two files together.
- *
- * Scope was widened after the 2026-09 audit found this check green while it
- * judged only four top-level prefixes: `.claude/…`, `.github/…` and every
- * workspace-relative `src/…` citation escaped it, as did the agent-memory files
- * and the workflow prompts, which cite paths without backticks because they are
- * JavaScript strings.
- *
- * **History is allowed, but only when the words NEXT TO the citation say so.**
- * A citation marked "(since deleted)", "was deleted", "no longer exists" within
- * a few words and inside its own sentence is the repo's documented style and is
- * skipped — see {@link citationReadsAsHistoryOrProposal}. The judgement was once
- * a three-line window, then a whole sentence, then a whole heading section; each
- * let one history word excuse unrelated live paths (a whole table skipped
- * because one row said "Who may create", a live path hidden because a bold lead
- * sentence ended in `.**`).
- *
- * Globs are skipped: a path containing `*` is a legitimate way to name a set
- * of files (a per-app wrangler config, say) rather than a claim about one.
- */
-export function checkBacktickedPathsExist(root: string): { ok: string; failures: string[] } {
+export function checkBacktickedPathsExist(root: string): CheckResult {
   const failures: string[] = []
   const workspaces = workspaceDirs(root)
   const isGitignored = gitignoredMatcher(root)
@@ -1659,17 +288,15 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
     checked++
     if (resolvesFrom(root, doc, candidate, workspaces)) return
     failures.push(
-      `${doc}:${line} cites \`${candidate}\`, which does not exist. ` +
-        `If the reference is historical, say so right next to it ("\`x.ts\` (since deleted)", ` +
-        `"\`x.ts\` was deleted") — this check skips a citation marked as history within a few words — ` +
-        `and if it is an instruction, it is unfollowable as written: fix the path.`
+      `${doc}:${line} cites \`${candidate}\`, which does not exist. Fix the path, or, if the ` +
+        'citation is history, say so beside it ("`x.ts` (since deleted)").'
     )
   }
 
   for (const doc of liveInstructionDocs(root)) {
     const source = read(root, doc)
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
-    for (const block of splitMarkdownBlocks(doc, source)) {
+    for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
         const candidate = pathCandidate(match[1] as string)
         if (candidate === null) continue
@@ -1681,9 +308,7 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
     }
   }
 
-  // Workflow prompts are JS string literals: no markdown backticks to anchor on,
-  // so any repo-rooted path token counts. Only repo-ROOTED prefixes — a prompt
-  // saying `src/routes` is prose about "the app's routes", not a citation.
+  // Workflow prompts are JS strings with no backticks to anchor on: any repo-rooted path counts.
   const bareRepoPath = new RegExp(
     `(?<![\\w./@-])((?:${REPO_PATH_ROOTS.map((r) => r.replace('.', '\\.')).join('|')})/[A-Za-z0-9_./@-]*[A-Za-z0-9_/-])`,
     'g'
@@ -1699,83 +324,211 @@ export function checkBacktickedPathsExist(root: string): { ok: string; failures:
     }
   }
 
-  return {
-    ok: `repo paths cited by live docs and workflow prompts resolve (${checked} checked)`,
-    failures,
-  }
+  return { ok: `cited repo paths resolve (${checked} checked)`, failures }
 }
 
-// ---------------------------------------------------------------------------
-// Runner
-// ---------------------------------------------------------------------------
+// ─── scripts ────────────────────────────────────────────────────────────────
 
-export const CHECKS = [
-  checkExportsMap,
-  checkGeneratedFileReferences,
-  checkWorkspaceList,
-  checkSupersededAdrCitations,
-  checkComponentLibSymbolNames,
-  checkFrameworkVersions,
-  checkReferencedScripts,
-  checkDocumentedCounts,
-  checkMcpServerParity,
-  checkAdrRoutingTable,
-  checkTwoSidedSupersession,
+function scriptsOf(root: string, manifest: string): Set<string> {
+  const path = join(root, manifest)
+  if (!existsSync(path)) return new Set()
+  const pkg = JSON.parse(readFileSync(path, 'utf-8')) as { scripts?: Record<string, string> }
+  return new Set(Object.keys(pkg.scripts ?? {}))
+}
+
+/** Workspace manifest by package name, for `bun --filter <name> <script>`. */
+function workspaceManifests(root: string): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const ws of workspaceDirs(root)) {
+    const manifest = `${ws}/package.json`
+    if (!existsSync(join(root, manifest))) continue
+    const pkg = JSON.parse(read(root, manifest)) as { name?: string }
+    out.set(pkg.name ?? ws.split('/')[1] ?? ws, manifest)
+  }
+  return out
+}
+
+/** A per-workspace doc may name its own workspace's scripts without `--filter`. */
+const owningManifest = (doc: string): string | undefined =>
+  doc.match(/^((?:apps|packages)\/[^/]+)\//)?.[1]?.concat('/package.json')
+
+export function checkReferencedScripts(root: string): CheckResult {
+  const failures: string[] = []
+  const rootScripts = scriptsOf(root, 'package.json')
+  const manifests = workspaceManifests(root)
+  let checked = 0
+
+  for (const doc of [
+    ...liveInstructionDocs(root),
+    ...agentWorkflowScripts(root),
+    ...hookScripts(root),
+  ]) {
+    const text = read(root, doc)
+    const owner = owningManifest(doc)
+    const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
+
+    for (const m of text.matchAll(/\bbun run ([a-z][\w:-]*)/g)) {
+      const script = m[1] as string
+      checked++
+      if (!rootScripts.has(script) && !localScripts.has(script)) {
+        failures.push(
+          `${doc} references \`bun run ${script}\`, which is not a script in the root ` +
+            `package.json${owner ? ` or ${owner}` : ''}.`
+        )
+      }
+    }
+
+    // `bun run check data doc-drift`: the words after `check` are registry ids, but only
+    // where the command visibly ends (a closing backtick or quote, or end of line / `#`).
+    for (const m of text.matchAll(/\bbun run check((?: [a-z][a-z-]*)+)(?=[`'"]|[ \t]*(?:#|$))/gm)) {
+      for (const id of (m[1] ?? '').trim().split(' ')) {
+        checked++
+        if (!CHECK_IDS.includes(id)) {
+          failures.push(
+            `${doc} references \`bun run check ${id}\`, but \`${id}\` is not a check id in ` +
+              `tools/check.ts (known: ${CHECK_IDS.join(', ')}).`
+          )
+        }
+      }
+    }
+
+    for (const m of text.matchAll(/\bbun --filter ([\w-]+) ([a-z][\w:-]*)/g)) {
+      const [, workspace, script] = m as unknown as [string, string, string]
+      checked++
+      const manifest = manifests.get(workspace)
+      if (manifest === undefined) {
+        failures.push(`${doc} references \`bun --filter ${workspace}\`, which is no workspace.`)
+      } else if (!scriptsOf(root, manifest).has(script)) {
+        failures.push(
+          `${doc} references \`bun --filter ${workspace} ${script}\`, which is not a script in ${manifest}.`
+        )
+      }
+    }
+  }
+
+  return { ok: `documented bun scripts exist (${checked} references checked)`, failures }
+}
+
+// ─── links ──────────────────────────────────────────────────────────────────
+
+/** Every git-tracked markdown file. */
+function trackedMarkdown(root: string): string[] {
+  const out = Bun.spawnSync(['git', 'ls-files', '-z', '--', '*.md'], { cwd: root })
+  if (out.exitCode !== 0) throw new Error(`git ls-files failed: ${out.stderr.toString()}`)
+  return out.stdout.toString().split('\0').filter(Boolean)
+}
+
+/** Inline `[text](target)` and reference-definition `[label]: target` links. */
+const LINK_RE = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)|^\s*\[[^\]]+\]:\s*<?([^\s>]+)>?/gm
+
+export function checkMarkdownLinks(
+  root: string,
+  docs: string[] = trackedMarkdown(root)
+): CheckResult {
+  const failures: string[] = []
+  const isGitignored = gitignoredMatcher(root)
+  let checked = 0
+  for (const doc of docs) {
+    for (const block of splitMarkdownBlocks(read(root, doc))) {
+      // A link inside a code span is an example, not a link.
+      const text = block.text.replace(/`[^`\n]*`/g, (span) => ' '.repeat(span.length))
+      for (const m of text.matchAll(LINK_RE)) {
+        const target = (m[1] ?? m[2]) as string
+        if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('#')) continue
+        const path = decodeURIComponent(target.replace(/[#?].*$/, ''))
+        const resolved = path.startsWith('/') ? path.slice(1) : join(dirname(doc), path)
+        if (path === '' || isGitignored(resolved)) continue
+        checked++
+        if (!existsSync(join(root, resolved))) {
+          failures.push(
+            `${doc}:${lineOf(block, m.index ?? 0)} links to \`${target}\`, which does not exist.`
+          )
+        }
+      }
+    }
+  }
+  return { ok: `relative markdown links resolve (${checked} in ${docs.length} files)`, failures }
+}
+
+// ─── size ───────────────────────────────────────────────────────────────────
+
+const CLAUDE_MD_BUDGET = 8_000
+const RULE_BUDGET = 4_000
+
+/**
+ * Files over budget when the budget landed, held at that size until they are
+ * cut. Lower an entry when its file shrinks; delete it once under budget.
+ */
+const OVER_BUDGET: Record<string, number> = {
+  '.claude/rules/display-system.md': 4_752,
+  '.claude/rules/itun-data-access.md': 4_188,
+  '.claude/rules/react-components.md': 4_465,
+  '.claude/rules/testing-patterns.md': 7_812,
+  'apps/discord-bot/CLAUDE.md': 8_337,
+  'apps/itun/CLAUDE.md': 13_806,
+  'apps/srd/CLAUDE.md': 11_799,
+  'CLAUDE.md': 12_410,
+  'packages/component-lib/CLAUDE.md': 16_137,
+  'packages/salvageunion-reference/CLAUDE.md': 9_361,
+}
+
+export function checkDocSizes(
+  root: string,
+  overBudget: Record<string, number> = OVER_BUDGET
+): CheckResult {
+  const failures: string[] = []
+  const claudeMds = [
+    'CLAUDE.md',
+    'tools/CLAUDE.md',
+    ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`),
+  ].filter((doc) => existsSync(join(root, doc)))
+  const rules = markdownIn(root, '.claude/rules')
+  const budgeted = [
+    ...claudeMds.map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
+    ...rules.map((doc) => [doc, RULE_BUDGET] as const),
+  ]
+  for (const [doc, base] of budgeted) {
+    const budget = overBudget[doc] ?? base
+    const size = [...read(root, doc)].length
+    if (size > budget) {
+      failures.push(
+        `${doc} is ${size} characters, over its ${budget}-character budget. Cut it: no rosters, ` +
+          'no history, no restating what a check or --list already says.'
+      )
+    }
+  }
+  for (const doc of Object.keys(overBudget)) {
+    if (!budgeted.some(([d]) => d === doc)) {
+      failures.push(`OVER_BUDGET names ${doc}, which is not a budgeted file. Remove the entry.`)
+    }
+  }
+  return { ok: `${budgeted.length} agent docs within their size budgets`, failures }
+}
+
+// ─── runner ─────────────────────────────────────────────────────────────────
+
+const CHECKS = [
   checkBacktickedPathsExist,
+  checkReferencedScripts,
+  (root: string) => checkMarkdownLinks(root),
+  (root: string) => checkDocSizes(root),
 ] as const
 
-export function runChecks(root: string): { failures: string[]; passed: string[] } {
-  const failures: string[] = []
-  const passed: string[] = []
-  for (const check of CHECKS) {
-    const result = check(root)
-    if (result.failures.length === 0) passed.push(result.ok)
-    else failures.push(...result.failures)
-  }
-  return { failures, passed }
-}
-
 if (import.meta.main) {
-  // Prove the corpus was actually found before believing anything about it.
-  //
-  // Three of the checks below are "for every live-instruction doc, assert X",
-  // and both directory walkers return `[]` when their directory is missing —
-  // which is correct for the fixture trees the tests build, and catastrophic
-  // here. Rename a directory in `LIVE_INSTRUCTION_DOC_DIRS` and the corpus
-  // silently collapses to the three root files while this still prints
-  // `✓ No live-instruction doc cites any of the 4 superseded ADR(s)…`.
-  //
-  // The tell was missing too: `check-architecture` prints "(588 files checked)"
-  // whereas this printed counts of FINDINGS — 4 ADRs, 181 references — never of
-  // corpus, so a collapsed scan looked identical to a healthy one.
-  //
-  // This gate walks the largest tree of any in `bun run check` and was the one
-  // `tools/lib/scanFloor.ts` was not applied to when its four siblings were
-  // fixed. Floor set well below the real count: a catastrophe detector, not a
-  // coverage target.
-  //
-  // The floor was 6 against a real corpus of 40, which made it inert against
-  // the very catastrophe the paragraph above describes: if all four
-  // `LIVE_INSTRUCTION_DOC_DIRS` were renamed, the 3 root files and the 10
-  // per-workspace ones still survive — 13, comfortably over 6 — so the gate
-  // passed on exactly the collapse it was written to detect. 26 is ~65% of the
-  // corpus, the calibration `scanFloor.ts` prescribes and the one its four
-  // siblings use, and it sits clear of that 13-file residue.
+  // A collapsed corpus (a renamed doc directory) would pass every check; ~65% of today's count.
   const liveDocs = liveInstructionDocs(repoRoot)
   assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 26)
-  // Printed because this gate reported counts of FINDINGS and never of corpus,
-  // so a collapsed scan and a healthy one read identically. Printed is not
-  // asserted — the floor above is the assertion — but it is the tell that was
-  // missing when this was diagnosed.
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
-  const { failures, passed } = runChecks(repoRoot)
-  for (const message of passed) console.log(`✓ ${message}`)
+  const failures: string[] = []
+  for (const check of CHECKS) {
+    const result = check(repoRoot)
+    if (result.failures.length === 0) console.log(`✓ ${result.ok}`)
+    failures.push(...result.failures)
+  }
   for (const message of failures) console.error(`✗ ${message}`)
   if (failures.length > 0) {
-    console.error(
-      `\n${failures.length} doc-drift failure(s) in ${relative(process.cwd(), repoRoot) || '.'}`
-    )
+    console.error(`\n${failures.length} doc-drift failure(s)`)
     process.exit(1)
   }
 }

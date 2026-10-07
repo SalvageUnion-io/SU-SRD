@@ -56,7 +56,7 @@ const members = useQuery(api.games.members, { gameId })
 - **There may be no provider.** A build with no `VITE_CONVEX_URL` (CI, a fresh
   checkout) mounts no Convex context, so gate the subtree on
   `isConvexConfigured` (`src/lib/connection/convexClient.ts`) as
-  `AccountStrip.tsx` does — never call a Convex hook unconditionally.
+  `HeaderAccount.tsx` does; never call a Convex hook unconditionally.
 
 ## There is no TanStack Query
 
@@ -64,7 +64,7 @@ It was mounted in `src/routes/__root.tsx` and never called, so it was removed
 (audit AP-10). Components read entities through the typed hooks in
 `src/hooks/entities/` (`usePilots()`, `useMech()`, …), which are selectors over
 the Zustand stores — the folder used to be called `hooks/queries`, which is
-why that name still turns up in old notes. Snapshot retrieval runs in a router
+why that name still turns up in old notes. `/s/$id`'s lookup runs in a router
 loader; Connected reads use `convex/react`. Don't re-add a query cache
 speculatively, and never route player entities through one.
 

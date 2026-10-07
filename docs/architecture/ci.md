@@ -37,6 +37,30 @@ and (with the deploy diffing only `HEAD^..HEAD`) leave any surface touched only
 by that commit un-deployed while everything stayed green (audit CI-01). See
 "Deploy set" below for the other half of the fix.
 
+## Reusing the PR's run on `main`
+
+`main` requires strict status checks and merges by squash, so a merge commit's
+tree is normally byte-identical to the PR head that just passed `CI Success`.
+Re-testing it put ~85 s of CI in front of every deploy. On a `push` to `main`
+the `changes` job therefore looks up the merged PR (`GET
+/repos/{owner}/{repo}/commits/{sha}/pulls`, the PR whose `merge_commit_sha` is
+this commit), and reuses its result only when:
+
+- `HEAD^{tree}` equals the tree of the PR's head commit, and
+- every latest `CI Success` check-run from GitHub Actions on that head commit
+  concluded `success`.
+
+Then the paths filter is skipped, every area output is empty (read as false),
+`static-checks` and the build jobs skip, and `CI Success` passes within seconds,
+which fires the deploy. The deploy takes nothing from CI's jobs: it builds its
+own artifacts. A direct push, a different tree, a check that is missing, pending
+or red, or any API error runs everything. What a reused run does not repeat is
+anything time-dependent on an unchanged tree: a new advisory is
+`audit-watch.yml`'s job.
+
+The job holds `checks: read` for the check-run lookup; nothing else in it can
+write.
+
 ## Timeouts
 
 Every job declares `timeout-minutes`. GitHub's default is 360, so a hung job does
@@ -56,14 +80,13 @@ only thing between a diff and an unbuilt merge — so:
 - **`tools/check-workflows.ts` (its `path-filters` half) asserts every app's
   `workspace:*` dependency is covered by that app's group.** `packages/observability` was once missing
   from `shared`, so a change to it ran checks but skipped all three builds (and
-  with them the srd snapshot gate, the routeTree staleness check and both
-  Playwright tiers).
+  with them the routeTree staleness check and both Playwright tiers).
 - **Root prose is in `shared`.** `ABOUT_JRVS.md`, `LLM_STATEMENT.md` and
   `SPECIAL_THANKS.md` are read by srd's about page (rendered into
   `about/index.html`), imported `?raw` by ITUN, and asserted on by a
   component-lib test. #731 added one name to `SPECIAL_THANKS.md`, CI skipped
-  `build-srd`, `main` went green with a stale snapshot, and the next three PRs to
-  trigger that job were red on a difference none of them made.
+  `build-srd`, and the next three PRs to trigger that job were red on a
+  difference none of them made.
 - **`code` vs `docs`** (audit CI-11). `code` is source, tools and the Claude hook
   scripts (the hook tests in `tools/__tests__/` exercise `.claude/hooks/**`).
   `docs` is `docs/**`, root `CLAUDE.md` / `README.md` / `CONTRIBUTING.md`,
@@ -71,14 +94,20 @@ only thing between a diff and an unbuilt merge — so:
   drift, architecture, data and the rest the `code`/`docs` areas select —
   which read exactly those files, and before they were in any
   filter a CLAUDE.md-only PR could not run the CLAUDE.md guard (#942) — but not
-  the test suite, the typecheck or the audit, which nothing in those files can
+  the test suite or the typecheck, which nothing in those files can
   affect. That was ~140 runner-seconds per docs PR.
+- **`deps`** is `bun.lock` and every `package.json`, the only files that can
+  change what `bun audit` reports, so only a PR touching one runs the audit. A
+  new advisory against an unchanged tree is `audit-watch.yml`'s to report
+  (weekly), not an unrelated PR's to fail.
+- On a PR the filter lists changed files through the API, so the job checks
+  out nothing; a `push` diffs with git and checks out.
 
 ## `static-checks`
 
 Six jobs merged into one (they spent 134 s in `Setup Bun` between them to do
-23 s of work). No job-level `if:`: it is an input to `CI Success` and must always
-report.
+23 s of work). Its only job-level `if:` skips it when `changes` reused the PR's
+run (above); otherwise it always reports.
 
 It has ONE step: `bun tools/check.ts --profile=ci --areas=<code,docs>`. The
 list of checks is the registry in `tools/check.ts` — the same one `bun run
@@ -89,25 +118,23 @@ even after one fails, and the step log ends in a pass/fail table. Each check
 declares which areas make it relevant:
 
 - **Always**: Biome (`biome ci .` — lint, format *and* the organizeImports
-  assist), `workflows` (aggregate gate, path filters, SHA pinning, Bun version,
+  assist), `workflows` (aggregate gate, path filters, bunx pinning, Bun version,
   Convex deploy guard), `styling` (design tokens, styling ownership, srd
   stylesheet entry) and `actionlint`.
 - **`actionlint`** (`tools/lint-workflows.sh`) runs actionlint and zizmor,
   each pinned to an exact version and verified against a recorded sha256 before
-  it runs. zizmor's config is `.github/zizmor.yml`; its pinning policy is the
-  same first-party line `tools/check-workflows.ts` draws. Every checkout
-  sets `persist-credentials: false` except `catalog-update.yml`, whose action
-  pushes with it.
+  it runs. zizmor's config is `.github/zizmor.yml`; its `unpinned-uses`
+  policy SHA-pins every third-party action. Every checkout
+  sets `persist-credentials: false`.
 - **`code`**: `generated` (regenerate, then fail on any tracked OR untracked
-  drift — reference package artifacts and `routeTree.gen.ts`), typecheck, knip,
-  and the dependency audit.
+  drift — reference package artifacts and `routeTree.gen.ts`), typecheck and
+  knip.
+- **`deps`**: the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
-  `architecture`, `observability`, `convex-codegen`, `convex-callers`,
-  `catalog`, `worker-env`.
+  `architecture`, `observability`, `convex-codegen`, `convex-callers`.
 
-The test suite and the srd build are in the registry too (`bun run check` runs
-them) but not in the `ci` profile: they are the `coverage` and `build-srd`
-jobs.
+The test suite is in the registry too (`bun run check` runs it) but not in the
+`ci` profile: it is the `coverage` job.
 
 ## The test gate — `coverage`
 
@@ -134,9 +161,7 @@ All five `needs: [changes]` only (audit CI-02). They consume no artifact from
 `static-checks` or the tests, and `CI Success` already fails the PR if any of
 those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
 
-- **`build-srd`** builds once, then runs `check:examples` and the output
-  snapshot as separate steps (what `bun --filter srd gate` chains, split so
-  failure attribution survives and the Playwright tier serves the same `dist`).
+- **`build-srd`** builds once, then runs `check:examples` against that `dist`.
   The PR-blocking browser tier (smoke + bundle budget) is folded in rather than
   a separate job, because a separate job cost a second full build. Add a spec
   to the run line, not a job. Then the axe-core accessibility scan runs against
@@ -155,13 +180,13 @@ those fail — waiting on them just serialised ~50 s onto every PR's wall clock.
   anything `shared`) changes. Nothing built them on a PR before, so a story
   that no longer compiled merged green.
 
-wrangler is a catalogued devDependency of all four Worker apps (audit CI-09), so
+wrangler is a devDependency of all four Worker apps (audit CI-09), so
 every bundle and deploy runs the version `bun.lock` resolved — audited, behind
-the 3-day release-age gate and updated by the catalog workflow. It used to be
+the 3-day release-age gate and updated by Renovate. It used to be
 `bunx wrangler@4.108.0`, written out nine times outside the lockfile, because
 the wrangler of that era dragged `sharp` and `undici` versions with HIGH
 advisories into the tree; 4.132.0 no longer does. Keep `compatibility_date` in
-the four `wrangler.jsonc` files at or below the workerd the catalogued wrangler
+the four `wrangler.jsonc` files at or below the workerd that wrangler
 bundles.
 
 ## `pr-title`
@@ -192,7 +217,7 @@ times out reports green.
 ## Deploy set (`deploy-cloudflare.yml`)
 
 The deploy workflow's own comments carry its guard rationale (provenance check,
-credential guards, Sentry, the srd snapshot it deliberately does not re-run).
+credential guards, Sentry).
 The part that interacts with CI:
 
 - **Shape: `plan` -> `build-srd` / `build-itun` -> `push-convex` -> `deploy-*`
@@ -206,10 +231,21 @@ The part that interacts with CI:
   conditionally skipped job carries an explicit status function — the implicit
   `success()` is false whenever any ancestor was skipped, which once kept
   `record` from running on every deploy that left a surface unchanged.
+- **srd's OG images are `og-srd`'s, off every other surface's path.** The render
+  (~97 s cold) cannot fail the deploy — a page it misses keeps the default
+  og:image — so it is not a build: it downloads `build-srd`'s `dist`, renders
+  into it and uploads the artifact `deploy-srd` ships, and only `deploy-srd`
+  waits for it. `deploy-order` asserts that a job downloading an artifact needs
+  the job that uploads it. The script's content-hash cache
+  (`apps/srd/node_modules/.cache/srd-og`) persists through `actions/cache`,
+  keyed on a hash of every render input (component-lib, srd's source and
+  scripts, the reference library, `bun.lock`) and then the reference data; only
+  a cache from an identical renderer is restored, and the script re-renders the
+  entities whose data changed. Chromium is cached under ci.yml's Playwright key.
 - **The artifacts are built in the deploy, not taken from CI's run.** Neither
-  CI build is a production artifact: srd's is built with no Sentry DSN because
-  the output snapshot is blessed against that build, and itun's is a Solo
-  client with no `VITE_CONVEX_URL`. And CI path-filters per commit while the
+  CI build is a production artifact: srd's is built with no Sentry DSN, and
+  itun's is a Solo client with no `VITE_CONVEX_URL`. And CI path-filters per
+  commit while the
   deploy ships per last recorded deploy, so a surface can need deploying on a
   commit where CI skipped its build. Build once, in the deploy, and ship that.
 - **A failed `deploy-*` job does not stop the others** — they run in parallel
@@ -236,8 +272,14 @@ The part that interacts with CI:
 - **No record, a shared path, or `force_all`** deploys everything. The shared
   set includes the three root prose files for the #731 reason above — the old
   shell version omitted them, so an edit to `SPECIAL_THANKS.md` never shipped
-  srd's about page. The decision lives in `tools/deploy-surfaces.ts` and is
-  unit-tested in `tools/__tests__/deploy-surfaces.test.ts`.
+  srd's about page. It excludes what never reaches an artifact: `test/`, and
+  every `.github/` file except this workflow and `.github/actions/`. A release
+  commit ships only srd and itun, which render the reference `CHANGELOG.md`: a
+  `packages/*/package.json` whose only change is its version ships nothing,
+  because no surface embeds a package's version. A test fails if a new app
+  source reads a manifest or CHANGELOG those rules do not account for. The
+  decision lives in `tools/deploy-surfaces.ts` and is unit-tested in
+  `tools/__tests__/deploy-surfaces.test.ts`.
 - **Never backwards on a `workflow_run`.** CI on `main` runs every commit to
   completion, so an older commit's CI can finish after a newer one has already
   deployed. Diffing newer->older would ship the older tree for every surface the

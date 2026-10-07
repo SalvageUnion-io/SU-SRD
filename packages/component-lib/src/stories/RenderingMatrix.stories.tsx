@@ -1,12 +1,9 @@
-import type { Story } from '@ladle/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Badge } from '../components/chrome/Badge'
 import { RollTable } from '../components/shared/RollTable'
 import { SlotGrid } from '../components/shared/SlotGrid'
 import { Stat } from '../components/shared/Stat'
-import { BayStatus } from '../components/stat/BayStatus'
-import { ConditionSwatch } from '../components/stat/ConditionSwatch'
 import { VitalGauge } from '../components/stat/VitalGauge'
 import {
   borderWidth,
@@ -18,6 +15,7 @@ import {
   tracking,
   weight,
 } from '../design/tokens'
+import type { Story } from './_harness'
 
 export default {
   title: 'Foundations/Rendering Matrix',
@@ -28,9 +26,6 @@ export default {
 // objects and this page needs no stylesheet class of its own.
 
 const cellStyle = { padding: space[8] } satisfies CSSProperties
-
-/** `size-4` — 16px square. */
-const swatchSize = { height: space[16], width: space[16] } satisfies CSSProperties
 
 const noop = () => {}
 
@@ -73,13 +68,6 @@ const rows: MatrixRow[] = [
   },
   {
     role: 'Stat',
-    when: 'bay tally',
-    use: 'BayStatus',
-    rule: 'The crawler-bay condition tally (intact / damaged / destroyed) — its own primitive, not a Stat mode.',
-    example: <BayStatus states={['intact', 'intact', 'damaged', 'destroyed']} />,
-  },
-  {
-    role: 'Stat',
     when: 'label | value',
     use: 'Stat orientation="horizontal"',
     rule: 'The printed [label | value] readout — a Stat, never a badge (Tech level, Range, …).',
@@ -113,22 +101,6 @@ const rows: MatrixRow[] = [
     use: 'Badge (solid, the default)',
     rule: 'A single stamped keyword — the solid Badge.',
     example: <Badge>{traitLabel}</Badge>,
-  },
-  {
-    role: 'Condition',
-    when: 'glyph',
-    use: 'ConditionSwatch',
-    rule: 'Tri-state; fill-shape primary, no gradient.',
-    example: (
-      // `size-4` is 16px. ConditionSwatch keeps its `className` sizing override
-      // (that is its API, and it migrates with the Atoms layer); the call site
-      // reaches the same size through `style`, which it already accepts.
-      <div style={{ display: 'flex', gap: space[8] }}>
-        <ConditionSwatch state="intact" style={swatchSize} />
-        <ConditionSwatch state="damaged" style={swatchSize} />
-        <ConditionSwatch state="destroyed" style={swatchSize} />
-      </div>
-    ),
   },
   {
     role: 'Slots',

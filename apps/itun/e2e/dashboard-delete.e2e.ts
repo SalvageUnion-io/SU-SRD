@@ -3,8 +3,8 @@ import { expect, test } from './fixtures'
 
 /**
  * Dashboard delete flow: create a pilot, confirm the delete dialog, verify
- * the pilot disappears. Catches regressions in DeleteConfirmDialog and the
- * EntityListItem delete button cursor / focus wiring.
+ * the pilot disappears. Catches regressions in the Roster's delete confirm
+ * (component-lib `ConfirmDialog`) and the EntityRow delete button wiring.
  *
  * Pilot creation wizard steps:
  *   1. Class    — pick a class card (div[role="button"] via EntityChoiceCard)
@@ -25,7 +25,8 @@ import { expect, test } from './fixtures'
  *
  * The delete button uses aria-label="Delete <name>" on EntityListItem, so
  * getByRole('button', { name: /Delete <name>/i }) is the robust selector.
- * The confirm dialog uses role="dialog" with a "Delete" confirm button.
+ * The confirm is an alert dialog (role="alertdialog") with a "Delete" confirm
+ * button.
  */
 
 test('create then delete a pilot from the dashboard', async ({ page }) => {
@@ -49,15 +50,15 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
   await page.getByRole('button', { name: /^Delete Delete Me$/i }).click()
 
   // ── Step 3: Confirm dialog ──────────────────────────────────────────────────
-  // The ModalShell-backed ConfirmDialog renders the "Delete {name}?" title
-  // three times (visible pseudoheader span + sr-only Dialog.Title/Description),
-  // so assert containment on the dialog rather than a unique text locator.
-  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
-  await expect(page.getByRole('dialog')).toContainText('Delete Delete Me?')
+  // ConfirmDialog renders the "Delete {name}?" title twice (the visible header
+  // stamp + the sr-only Dialog.Title), so assert containment on the dialog
+  // rather than a unique text locator.
+  await expect(page.getByRole('alertdialog')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('alertdialog')).toContainText('Delete Delete Me?')
 
   // Confirm button inside the dialog.
   await page
-    .getByRole('dialog')
+    .getByRole('alertdialog')
     .getByRole('button', { name: /^Delete$/ })
     .click()
 
@@ -82,11 +83,11 @@ test('cancel delete keeps the pilot visible', async ({ page }) => {
 
   await page.getByRole('button', { name: /^Delete Keep Me$/i }).click()
 
-  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('alertdialog')).toBeVisible({ timeout: 10_000 })
 
   // ── Step 3: Cancel keeps the entity ─────────────────────────────────────────
   await page
-    .getByRole('dialog')
+    .getByRole('alertdialog')
     .getByRole('button', { name: /Cancel/ })
     .click()
   await expect(page.getByRole('region', { name: 'Pilots' }).getByText('Keep Me')).toBeVisible({

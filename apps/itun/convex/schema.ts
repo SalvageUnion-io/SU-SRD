@@ -52,8 +52,18 @@ import { v } from 'convex/values'
  */
 export const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
 
-/** Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above. */
-export const softLinkType = v.union(v.literal('mech-to-pilot'), v.literal('pilot-to-crawler'))
+/**
+ * Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). Exported: see above.
+ *
+ * `mech-to-crawler` is the newest literal (ADR-037): a mech's crawler is its
+ * own link, no longer reached through its pilot. Adding a literal is the
+ * backward-compatible direction — every existing row still validates.
+ */
+export const softLinkType = v.union(
+  v.literal('mech-to-pilot'),
+  v.literal('pilot-to-crawler'),
+  v.literal('mech-to-crawler')
+)
 
 /**
  * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus
@@ -85,6 +95,23 @@ const changeLogState = v.union(
   v.literal('proposed'),
   v.literal('declined'),
   v.literal('superseded')
+)
+
+/**
+ * Mirrors `RANGE_BANDS` (src/lib/schemas/seat.ts) — ADR-038. Exported for
+ * `test/convex/seatSchemaParity.test.ts`, which keeps the two in step.
+ */
+export const seatRange = v.union(
+  v.literal('Close'),
+  v.literal('Medium'),
+  v.literal('Long'),
+  v.literal('Far')
+)
+
+/** Mirrors `SeatMountSchema` (src/lib/schemas/seat.ts). Exported: see above. */
+export const seatMount = v.union(
+  v.object({ kind: v.literal('foot') }),
+  v.object({ kind: v.literal('boarded'), mechId: v.string() })
 )
 
 export default defineSchema({
@@ -140,7 +167,7 @@ export default defineSchema({
     /** Dashboard dial show/hide + order. Carried over from Workspace unchanged. */
     cockpitPrefs: v.optional(v.any()),
     /**
-     * What the Games list says about this table — kept current by the triggers
+     * What a Game's summary says about this table — kept current by the triggers
      * in `model/entities.ts`, never written by a mutation directly.
      *
      * Denormalised because `games.listMine` is subscribed from several screens
@@ -159,10 +186,25 @@ export default defineSchema({
         memberCount: v.number(),
         pilotCount: v.number(),
         mechCount: v.number(),
-        /** The first crawler's name, or null before one exists. */
+        /** The primary crawler's name, or null before one exists. */
         crawlerName: v.union(v.string(), v.null()),
       })
     ),
+    /**
+     * The crawler every pilot and mech is assigned to on entering this Game
+     * (ADR-037 — the primary crawler).
+     *
+     * Written by the server only: the first crawler to arrive becomes primary,
+     * a primary that is scrapped or moved out falls back to the oldest crawler
+     * left (or null), and the table runner may name another
+     * (`games.setPrimaryCrawler`). Changing it moves nobody — assignment is an
+     * explicit link written when an entity enters the Game.
+     *
+     * Optional because every Game predates it: absent means "the oldest crawler
+     * here", which is what `primaryCrawlerOf` resolves it to, and what the
+     * Game summary and the bot showed as *the* crawler before it existed.
+     */
+    primaryCrawlerId: v.optional(v.union(v.id('crawlers'), v.null())),
   }),
 
   /**
@@ -237,9 +279,45 @@ export default defineSchema({
      * Organizer tidies up.
      */
     revokedAt: v.optional(v.number()),
+
+    /**
+     * Who the invite is addressed to (ADR-039). Absent is a bearer code, as
+     * every invite was before. An addressed invite is always single use and is
+     * redeemable only by the account signed in with this Discord snowflake.
+     * `name` is the invitee's Discord handle as the bot saw it, shown to the
+     * Organizer and nobody else.
+     */
+    target: v.optional(
+      v.object({
+        kind: v.literal('discord'),
+        discordId: v.string(),
+        name: v.optional(v.string()),
+      })
+    ),
+
+    /** The addressee said no. Terminal, like a revoke, and only for a targeted invite. */
+    declinedAt: v.optional(v.number()),
+
+    /** Whether the `/su invite` DM carrying an addressed invite was delivered. */
+    delivery: v.optional(
+      v.object({
+        state: v.union(v.literal('queued'), v.literal('sent'), v.literal('failed')),
+        at: v.number(),
+        /** A short reason for a failure, worded for the Organizer. */
+        detail: v.optional(v.string()),
+      })
+    ),
+
+    /**
+     * The Discord interaction that minted this invite, when `/su invite` did.
+     * A retried interaction finds its invite here instead of minting another.
+     */
+    sourceInteractionId: v.optional(v.string()),
   })
     .index('by_code', ['code'])
-    .index('by_game', ['gameId']),
+    .index('by_game', ['gameId'])
+    .index('by_target_discord', ['target.discordId'])
+    .index('by_source_interaction', ['sourceInteractionId']),
 
   /** Who actually used which invite — the audit trail revocation alone can't give. */
   inviteRedemptions: defineTable({
@@ -432,7 +510,21 @@ export default defineSchema({
     .index('by_owner_game', ['ownerId', 'gameId'])
     .index('by_app_id', ['appId']),
 
-  /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */
+  /**
+   * An assignment: 'mech-to-pilot' | 'pilot-to-crawler' | 'mech-to-crawler'.
+   * EntityRef is NOT widened (ADR-027).
+   *
+   * Identity is the (from, to, type) triple — endpoints are app ids, so a link
+   * needs no `appId` of its own. Three invariants hold for every row, and the
+   * writers in `entities.ts` / `model/entities.ts` keep them (ADR-037):
+   *
+   *   - **cardinality** — a pilot crews ≤1 crawler and flies ≤1 mech; a mech
+   *     flies ≤1 pilot and docks in ≤1 crawler. Drawing a link replaces the
+   *     ones it conflicts with (`conflictingLinks` in `src/lib/links/linkRules.ts`).
+   *   - **one container** — both ends share a Game, or the same owner's shelf.
+   *   - **`gameId` is that container** — it moves with its ends, and a move that
+   *     would leave a link straddling two containers deletes it instead.
+   */
   softLinks: defineTable({
     gameId: v.union(v.id('games'), v.null()),
     from: v.object({ type: entityRefType, id: v.string() }),
@@ -605,6 +697,33 @@ export default defineSchema({
     /** Set once per Downtime so crawler upkeep is spent once, not per member. */
     upkeepSpent: v.boolean(),
   }).index('by_game', ['gameId']),
+
+  /**
+   * A pilot's seat at a Game: the Dashboard's play state, shared with the crew
+   * and saved on the Game (ADR-038 §2). Zod source: `src/lib/schemas/seat.ts`.
+   *
+   * One row per pilot, not per member, so a member covering for an absent
+   * player runs two. The pilot and boarded mech are app ids, like softLink
+   * ends, and mount is never a field on either record. Only someone who may
+   * write the pilot writes its seat; every member reads every seat.
+   *
+   * There is no "in Downtime" column: that is the `downtime` row above. The
+   * action being resolved joins later as an optional field, which every
+   * existing row still validates against.
+   */
+  seats: defineTable({
+    gameId: v.id('games'),
+    /** The pilot's app id. */
+    pilotId: v.string(),
+    mount: seatMount,
+    range: seatRange,
+    /** Refs of the activated contributions that are switched on (ADR-029 §4). */
+    activeEffects: v.array(v.string()),
+    updatedAt: v.number(),
+  })
+    // `gameId` alone is a prefix of this: the crew's seats in one read, and
+    // one pilot's seat by both.
+    .index('by_game_pilot', ['gameId', 'pilotId']),
 
   /** Who is at the table right now. Ephemeral — never folded into an entity. */
 })

@@ -61,8 +61,7 @@ apps/srd/
 
    The real cost is quieter. A stylesheet imported anywhere but the entry never
    reaches Vite, so its authored rules — selectors, keyframes, `@layer` blocks —
-   never ship, with a green build, a green typecheck, and an unchanged output
-   snapshot (which digests `<main>` text, not CSS). `bun run check styling`
+   never ship, with a green build and a green typecheck. `bun run check styling`
    (its `srd-css` rule set) is what enforces this rule.
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/`
    may import from `ssg/` at runtime.
@@ -234,7 +233,7 @@ ships no JS. That path must stay exactly as it is; it is 82% of entity pages.
 | `ClientRouter` (view transitions)            | cross-document `@view-transition { navigation: auto; }` in `global.css`. Deletes the router JS. Also delete the `data-astro-rerun` `.js`-class script: with real document navigations the inline script runs on every page, so re-running it is moot.                                      |
 | `prefetch: { prefetchAll, hover }`           | `<script type="speculationrules">` with `eagerness: "moderate"` — browser-native, zero JS.                                                                                                                                                                                                 |
 | `@astrojs/sitemap`                           | `ssg/sitemap.ts`. Must reproduce the same filter: exclude `/image`, `/greembeem`, `.og.png`, `/og-card`. Emit `sitemap-index.xml` + `sitemap-0.xml` as Astro did.                                                                                                                          |
-| `@vite-pwa/astro`                            | `workbox-build`'s `generateSW` in `ssg/pwa.ts`, run over the finished `dist`. Reuse the existing config verbatim: `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`, `skipWaiting`, `clientsClaim`, and the two `runtimeCaching` rules. Keep emitting `registerSW.js`. |
+| `@vite-pwa/astro`                            | `workbox-build`'s `generateSW` in `ssg/pwa.ts`, run over the finished `dist`. Reuse the existing config verbatim: `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`, `skipWaiting`, `clientsClaim`, and the two `runtimeCaching` rules. Keep emitting `registerSW.js`. (Since then the navigation rule became `NetworkFirst` — see `ssg/pwa.ts`.) |
 | `astro:transitions` import                   | gone                                                                                                                                                                                                                                                                                       |
 | `Astro.props` / `Astro.params` / `Astro.url` | `RouteContext`                                                                                                                                                                                                                                                                             |
 | `astro check`                                | `tsc --noEmit` only                                                                                                                                                                                                                                                                        |
@@ -256,27 +255,16 @@ packages — so in practice the gate had stopped being runnable at all, while th
 docs still told people to run it. [ADR-031](../../../docs/adrs/ADR-031-srd-vite-ssg.md)
 called this shelf life in the original decision.
 
-Its **analysis** half survives as `ssg/htmlDigest.ts` and is used by the gate
-below — what rotted was the baseline, not the HTML scanning.
+## Verification
 
-## Verification — `ssg/snapshot.ts` is the output gate
-
-`bun run gate` (= `bun ssg/build.ts && bun ssg/snapshot.ts`) diffs the built
-`dist` against `ssg/output-snapshot.json`, a committed digest of the site. It
-covers the emitted file set both directions, per-page head metadata and JSON-LD,
-a digest of each page's `<main>` text, all 899 JSON endpoints, and `llms.txt`.
-`bun run snapshot:update` re-blesses it; the snapshot is one line per page, so
-that diff is the reviewable record of what a change did to the site.
-
-The design inverts every property that killed parity: the baseline is **our own
-output** (always regenerable), it is a ~680 KB digest rather than a copy (so it
-is committed and present in every checkout), regenerating takes one command and
-~3s, and it **runs in CI**.
-
-The trade is explicit and worth stating: parity compared against a foreign
-**oracle**, so it could catch output that was wrong from the outset. This
-compares against what was last blessed, so a wrong output committed as the
-snapshot stays wrong. Read the diff.
+There is no whole-site output snapshot. `ssg/build.ts` refuses the silent
+failures itself: a Vite manifest with no script or stylesheet, two routes
+resolving to one file, a registry that renders zero pages, and an entity link
+that uses a UUID. `ssg/__tests__/routes.test.ts` holds the registry: every
+registered route emits at least one page, each to its own file, and the total
+stays above a floor. CI's `build-srd` job then checks the built `dist` with
+`ssg/checkPageExamples.ts` (every example the site prints resolves), the
+Playwright smoke and bundle-budget specs, and the axe-core scan.
 
 ## Build orchestration (`ssg/build.ts`)
 

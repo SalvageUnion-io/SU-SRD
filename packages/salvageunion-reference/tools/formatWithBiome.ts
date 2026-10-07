@@ -35,9 +35,8 @@ const packageDir = dirname(dirname(fileURLToPath(import.meta.url)))
 
 /**
  * Locate the Biome binary by walking up from this package until a
- * `node_modules/.bin/biome` appears. Mirrors `generateApiReport.ts`'s
- * `findTsc()` so both generators resolve their toolchain the same way, and
- * keeps this working from a bare workspace as well as the hoisted root.
+ * `node_modules/.bin/biome` appears, so this works from a bare workspace as
+ * well as the hoisted root.
  */
 function findBiome(): string {
   let dir = packageDir

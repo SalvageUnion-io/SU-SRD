@@ -2,6 +2,40 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.20.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.19.0...itun-v1.20.0) (2026-10-06)
+
+
+### Features
+
+* **bot:** /su invite [@user](https://github.com/user), verified by Discord's own signature (ADR-039, 2/2) ([#1046](https://github.com/SalvageUnion-io/SU-SRD/issues/1046)) ([ec6d255](https://github.com/SalvageUnion-io/SU-SRD/commit/ec6d255afc552218cfbcc63512e46e521c4e02a7))
+* **itun:** invites addressed to a Discord account (ADR-039, 1/2) ([#1045](https://github.com/SalvageUnion-io/SU-SRD/issues/1045)) ([d31b0ab](https://github.com/SalvageUnion-io/SU-SRD/commit/d31b0ab2af06112c51e703cf7769b5c72c8571bc))
+
+## [1.19.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.18.2...itun-v1.19.0) (2026-10-06)
+
+
+### Features
+
+* "My Stuff" everywhere, a top-level "Join game", and the bot's /su my-stuff ([#1041](https://github.com/SalvageUnion-io/SU-SRD/issues/1041)) ([4bd9c2d](https://github.com/SalvageUnion-io/SU-SRD/commit/4bd9c2db11c1928d47bfb3b0f12c769cc26bca1c))
+* a shared confirm over every destructive pilot, mech and crawler action ([#1028](https://github.com/SalvageUnion-io/SU-SRD/issues/1028)) ([c015442](https://github.com/SalvageUnion-io/SU-SRD/commit/c0154423dfa6e3b69665b692aa2ea919ff9c77fa))
+* **component-lib:** the entity picker's selection moves off the results ([#1032](https://github.com/SalvageUnion-io/SU-SRD/issues/1032)) ([23bbfb4](https://github.com/SalvageUnion-io/SU-SRD/commit/23bbfb4e381071e91294b826731f2fbe78145951))
+* **itun:** account and Games menus in the header; /account → /settings; no sub-header ([#1030](https://github.com/SalvageUnion-io/SU-SRD/issues/1030)) ([441b4af](https://github.com/SalvageUnion-io/SU-SRD/commit/441b4afb47bd335a5da0aa9535f9f118181a4f0c))
+* **itun:** assignment model with direct mech-to-crawler links, one per slot, same container (ADR-037) ([#1033](https://github.com/SalvageUnion-io/SU-SRD/issues/1033)) ([a6b3064](https://github.com/SalvageUnion-io/SU-SRD/commit/a6b30648cd8338da1610f69e2ae29f408022a4c1))
+* **itun:** confirm a move into a game when it clears an assignment ([#1042](https://github.com/SalvageUnion-io/SU-SRD/issues/1042)) ([e3221ec](https://github.com/SalvageUnion-io/SU-SRD/commit/e3221ecf157cdca8357167ee96872e91121c5807))
+* **itun:** fold the Games pages into the My stuff hub ([#1039](https://github.com/SalvageUnion-io/SU-SRD/issues/1039)) ([d42d902](https://github.com/SalvageUnion-io/SU-SRD/commit/d42d902a28fa1b867bbe8df53f6c7cd8e7d8c70c))
+* **itun:** move rules and the Game's Primary Crawler ([#1034](https://github.com/SalvageUnion-io/SU-SRD/issues/1034)) ([3d6d241](https://github.com/SalvageUnion-io/SU-SRD/commit/3d6d2418a9da943d45ae44379689c7a73b54d147))
+* **itun:** one live View for every sheet; assignments always shown ([#1038](https://github.com/SalvageUnion-io/SU-SRD/issues/1038)) ([1c62ac2](https://github.com/SalvageUnion-io/SU-SRD/commit/1c62ac2c300ba97c38d7b79423c146cc6cef4cf2))
+* **itun:** reference search moves from the header to a bottom-right FAB ([#1031](https://github.com/SalvageUnion-io/SU-SRD/issues/1031)) ([7305771](https://github.com/SalvageUnion-io/SU-SRD/commit/7305771ad3a448ffc88219518f1aa6f1fe46cb0e))
+* **itun:** remove the signed-out Local data warning banner ([#1027](https://github.com/SalvageUnion-io/SU-SRD/issues/1027)) ([b2cf10b](https://github.com/SalvageUnion-io/SU-SRD/commit/b2cf10b458b580f0ce32764486e393cd4536b3fa))
+* **itun:** retire snapshot shares; the live public sheet is the only way to share ([#1037](https://github.com/SalvageUnion-io/SU-SRD/issues/1037)) ([f932244](https://github.com/SalvageUnion-io/SU-SRD/commit/f93224426a1fe0201d77b465fe1af36127adab44))
+* **itun:** same-container assignment pickers on every sheet; Unassign is not delete ([#1036](https://github.com/SalvageUnion-io/SU-SRD/issues/1036)) ([e9ccc48](https://github.com/SalvageUnion-io/SU-SRD/commit/e9ccc48e57497d86017a1dfb4f252a7c89be3a61))
+
+
+### Bug Fixes
+
+* **deps:** clear the high and critical audit advisories ([#1044](https://github.com/SalvageUnion-io/SU-SRD/issues/1044)) ([b5607f7](https://github.com/SalvageUnion-io/SU-SRD/commit/b5607f777ce62050442e1432ea74e162a7ae5109))
+* every visit boots the deployed version (ITUN + SRD service workers) ([#1026](https://github.com/SalvageUnion-io/SU-SRD/issues/1026)) ([4e5c6eb](https://github.com/SalvageUnion-io/SU-SRD/commit/4e5c6eb8e4a7c140fdb6761da52020436636debc))
+* **itun:** a max reads as overridden only when it differs from the derivation ([#1029](https://github.com/SalvageUnion-io/SU-SRD/issues/1029)) ([24b0072](https://github.com/SalvageUnion-io/SU-SRD/commit/24b0072326e1da368f354f3c42416117f85d5a7f))
+
 ## [1.18.2](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.18.1...itun-v1.18.2) (2026-09-28)
 
 

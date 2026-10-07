@@ -11,15 +11,17 @@
  */
 
 import { linesFromBreakdown } from 'component-lib'
-import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import {
   crawlerMaxSPParts,
   mechMaxHeatParts,
   mechMaxSPParts,
   pilotMaxAPParts,
   pilotMaxHPParts,
-} from '../../lib/rules/derivedStats'
+  resolveChassisRef,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -68,7 +70,7 @@ function pilotItem(pilot: Pilot, crawler: Crawler | null): DialItem {
           installed: 'Injuries',
           installedDetail: 'rules A11',
         }),
-        ...(hpParts.overridden ? { derivedMax: hpParts.derived } : {}),
+        breakdown: hpParts,
       },
       {
         label: 'AP',
@@ -76,7 +78,7 @@ function pilotItem(pilot: Pilot, crawler: Crawler | null): DialItem {
         max: maxAP,
         tone: 'pilot',
         provenance: linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' }),
-        ...(apParts.overridden ? { derivedMax: apParts.derived } : {}),
+        breakdown: apParts,
       },
     ],
   }
@@ -111,7 +113,7 @@ function mechItem(mech: Mech, pilot: Pilot | null): DialItem {
           baseDetail: 'base',
           installed: 'Installed systems & modules',
         }),
-        ...(spParts.overridden ? { derivedMax: spParts.derived } : {}),
+        breakdown: spParts,
       },
       {
         label: 'Heat',
@@ -124,7 +126,7 @@ function mechItem(mech: Mech, pilot: Pilot | null): DialItem {
           baseDetail: 'base',
           installed: 'Installed systems & modules',
         }),
-        ...(heatParts.overridden ? { derivedMax: heatParts.derived } : {}),
+        breakdown: heatParts,
       },
     ],
   }
@@ -150,7 +152,7 @@ function crawlerItem(crawler: Crawler): DialItem {
           baseDetail: 'base',
           installed: 'Crawler type bonus',
         }),
-        ...(spParts.overridden ? { derivedMax: spParts.derived } : {}),
+        breakdown: spParts,
       },
     ],
   }

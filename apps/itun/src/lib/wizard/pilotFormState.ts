@@ -10,7 +10,7 @@
  * All functions are pure — no store, no React.
  */
 
-import { pilotMaxAP, pilotMaxHP } from '../rules/derivedStats'
+import { pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 import type { Pilot } from '../schemas/pilot'
 

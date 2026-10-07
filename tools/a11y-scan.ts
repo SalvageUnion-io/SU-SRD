@@ -24,7 +24,7 @@ import { mkdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { Page } from 'playwright'
+import type { Page, Request } from 'playwright'
 import { chromium } from 'playwright'
 
 const AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.4/axe.min.js'
@@ -81,19 +81,106 @@ type PageResult = {
   details: AxeViolation[]
 }
 
-async function scanPage(page: Page, url: string, pathname: string): Promise<PageResult> {
-  // Playwright spells puppeteer's 'networkidle2' as 'networkidle'.
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 15000 })
-  // Wait for content to settle
-  await new Promise((r) => setTimeout(r, 2000))
+const SETTLE_TIMEOUT_MS = 15_000
+
+/** The slice of the browser global the in-page functions touch; tools/ has no DOM lib. */
+type InPage = {
+  document: {
+    readyState: string
+    querySelector: (selector: string) => unknown
+    querySelectorAll: (selector: string) => Iterable<{
+      dataset: Record<string, string | undefined>
+      getClientRects: () => { length: number }
+      getBoundingClientRect: () => { top: number; bottom: number; left: number; right: number }
+    }>
+  }
+  innerHeight: number
+  innerWidth: number
+  requestAnimationFrame: (callback: () => void) => number
+}
+
+/**
+ * Why the page is not yet what a reader sees, or '' once it is: an island that
+ * mounts without interaction (a `visible` one only when rendered on screen) has
+ * not mounted, or a loading skeleton remains. Runs in the page.
+ */
+function unsettled(): string {
+  const { document, innerHeight, innerWidth } = globalThis as unknown as InPage
+  if (document.readyState !== 'complete') return 'the document is still loading'
+  const waiting: string[] = []
+  for (const el of document.querySelectorAll('[data-island]')) {
+    if (el.dataset.client === 'visible') {
+      const box = el.getBoundingClientRect()
+      const onScreen =
+        el.getClientRects().length > 0 &&
+        box.bottom >= 0 &&
+        box.top <= innerHeight &&
+        box.right >= 0 &&
+        box.left <= innerWidth
+      if (!onScreen) continue
+    }
+    // React's createRoot() marks its container with a `__reactContainer$…` key.
+    if (!Object.keys(el).some((key) => key.startsWith('__reactContainer$')))
+      waiting.push(el.dataset.island ?? '?')
+  }
+  if (waiting.length > 0) return `unmounted island(s): ${waiting.join(', ')}`
+  const skeleton = document.querySelector('[role="status"][aria-label="Loading"]')
+  return skeleton === null ? '' : 'a loading skeleton is still showing'
+}
+
+/** Resolves after two animation frames. Runs in the page. */
+function twoFrames(): Promise<void> {
+  const page = globalThis as unknown as InPage
+  return new Promise((resolve) => {
+    page.requestAnimationFrame(() => page.requestAnimationFrame(() => resolve()))
+  })
+}
+
+/**
+ * Wait until `unsettled` is empty, no request is in flight, and both still hold
+ * two frames later: a freshly mounted island starts its data fetch in an effect
+ * after it commits, and renders the result when the fetch lands.
+ */
+async function waitUntilSettled(page: Page, inFlight: ReadonlySet<Request>): Promise<void> {
+  const deadline = Date.now() + SETTLE_TIMEOUT_MS
+  const settled = `(${unsettled.toString()})() === ''`
+  try {
+    for (;;) {
+      const timeout = deadline - Date.now()
+      if (timeout <= 0) throw new Error('deadline passed')
+      await page.waitForFunction(settled, null, { timeout, polling: 50 })
+      while (inFlight.size > 0 && Date.now() < deadline) await Bun.sleep(25)
+      await page.evaluate(twoFrames)
+      if (inFlight.size === 0 && (await page.evaluate(unsettled)) === '') return
+    }
+  } catch (error) {
+    const why = (await page.evaluate(unsettled).catch(() => '')) || 'nothing pending in the DOM'
+    const requests = [...inFlight].map((r) => r.url()).join(', ') || 'none'
+    throw new Error(
+      `the page did not settle within ${SETTLE_TIMEOUT_MS} ms: ${why}; requests in flight: ${requests}`,
+      { cause: error }
+    )
+  }
+}
+
+async function scanPage(
+  page: Page,
+  inFlight: Set<Request>,
+  url: string,
+  pathname: string
+): Promise<PageResult> {
+  // The previous page's requests say nothing about this one.
+  inFlight.clear()
+  await page.goto(url, { waitUntil: 'load', timeout: SETTLE_TIMEOUT_MS })
+  await waitUntilSettled(page, inFlight)
 
   // Inject axe-core — local copy when resolvable (no network), else CDN.
+  // `addScriptTag` resolves once the script has run, so `window.axe` exists.
   if (AXE_LOCAL_PATH) {
     await page.addScriptTag({ path: AXE_LOCAL_PATH })
   } else {
     await page.addScriptTag({ url: AXE_CDN })
   }
-  await new Promise((r) => setTimeout(r, 1000))
 
   const results = await page.evaluate(async () => {
     // @ts-expect-error axe is injected via script tag
@@ -231,6 +318,14 @@ async function main() {
   // A persistent context opens with one page already; reuse it rather than
   // leaving a blank tab open (viewport is set on the context above).
   const page = context.pages()[0] ?? (await context.newPage())
+  // Only requests that can change the DOM; an image or a font still loading cannot.
+  const domInputs = new Set(['document', 'script', 'stylesheet', 'fetch', 'xhr'])
+  const inFlight = new Set<Request>()
+  page.on('request', (request) => {
+    if (domInputs.has(request.resourceType())) inFlight.add(request)
+  })
+  page.on('requestfinished', (request) => inFlight.delete(request))
+  page.on('requestfailed', (request) => inFlight.delete(request))
 
   const allResults: PageResult[] = []
 
@@ -238,7 +333,7 @@ async function main() {
     const url = `${baseUrl}${pathname}`
     console.error(`Scanning ${url}...`)
     try {
-      const result = await scanPage(page, url, pathname)
+      const result = await scanPage(page, inFlight, url, pathname)
       allResults.push(result)
     } catch (err) {
       console.error(`  Error scanning ${pathname}: ${err}`)

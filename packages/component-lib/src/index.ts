@@ -9,6 +9,8 @@ export { Changelog } from './changelog/Changelog'
 export { mergeChangelogs, parseChangelog } from './changelog/parseChangelog'
 // Base typography
 export { Text } from './components/base/Text'
+// Avatar — a person's picture in a circle, falling back to their initial
+export { Avatar } from './components/chrome/Avatar'
 export type { BadgeTone } from './components/chrome/Badge'
 // Chrome primitives (ITUN design handoff — design-spec §2)
 // Badge — the unified stamp-chip family. No named presets: the quiet keyword
@@ -110,6 +112,9 @@ export { Card } from './components/shared/Card'
 export { CatalogTile } from './components/shared/CatalogTile'
 // Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
 export { Colophon } from './components/shared/Colophon'
+// ConfirmDialog — the one "are you sure?": an alert dialog on ModalShell with a
+// pending state, an inline failure line, and focus on Cancel for destructive confirms.
+export { ConfirmDialog } from './components/shared/ConfirmDialog'
 // ControlButtons — the control strip Card's rail renders; public because
 // ITUN's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/shared/ControlButtons'
@@ -119,13 +124,23 @@ export { EntityGridRow } from './components/shared/EntityGrid'
 export type { EntityRowStat } from './components/shared/EntityRow'
 export { EntityRow } from './components/shared/EntityRow'
 export { EntitySearcher } from './components/shared/EntitySearcher'
+// Fab — the bottom-right floating button that expands into an anchored panel
+// (ITUN's reference search); content-agnostic, the caller owns `open`
+export { Fab } from './components/shared/Fab'
 export { FilterRow } from './components/shared/FilterRow'
+// HeaderMenu — the masthead's dropdown menu (Base UI Menu); rows are data, so
+// the app supplies what each one does
+export type { HeaderMenuItem } from './components/shared/HeaderMenu'
+export { HeaderMenu } from './components/shared/HeaderMenu'
 export { Inset } from './components/shared/Inset'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
 export type { NavDrawerItem } from './components/shared/NavDrawer'
 export { NavDrawer } from './components/shared/NavDrawer'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'
+// The searcher picker's modal width — for a bare ModalShell wrapping a
+// multi-select EntitySearcher (SheetPickerModal applies it itself).
+export { PICKER_MODAL_WIDTH } from './components/shared/pickerModalWidth'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
 // action) behind srd's island error boundary and itun's root error component.
 export { RecoveryPanel } from './components/shared/RecoveryPanel'
@@ -164,6 +179,7 @@ export { heatDangerFrom } from './components/stat/heatLevel'
 export { linesFromBreakdown, summarizeBreakdown } from './components/stat/provenanceLines'
 export type { ProvenanceLine } from './components/stat/StatProvenance'
 // Stat trackers (ITUN design handoff — design-spec §2.7)
+export type { VitalGaugeBreakdown } from './components/stat/VitalGauge'
 export { VitalGauge } from './components/stat/VitalGauge'
 // UI primitives
 export { Toaster, toast } from './components/ui/toaster'

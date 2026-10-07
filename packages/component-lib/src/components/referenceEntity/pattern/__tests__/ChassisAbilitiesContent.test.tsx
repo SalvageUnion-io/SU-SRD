@@ -14,7 +14,7 @@ import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-referen
 import { ChassisAbilitiesContent } from '../ChassisAbilitiesContent'
 
 const abilitiesOf = (chassisName: string): SURefMetaAction[] => {
-  const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === chassisName)
+  const chassis = SalvageUnionReference.Chassis.getByName(chassisName)
   if (!chassis) throw new Error(`fixture missing: chassis ${chassisName}`)
   const abilities = getChassisAbilities(chassis as SURefMetaEntity)
   if (!abilities || abilities.length === 0)

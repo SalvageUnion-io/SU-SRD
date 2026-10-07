@@ -150,9 +150,17 @@ export function resolveCardInteraction({
   // Selection state — the canonical rust SELECTION_RING (chrome/interaction.ts),
   // the same 3px rust border the wizard Sel/PickCard draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the 3px tone frame.
-  const frameStyle = selected
-    ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
-    : { border: `3px solid ${frameColor}` }
+  // Longhands only, widths per side: the card overrides `borderBottomWidth` on
+  // footless renders, and React warns when a shorthand covers a longhand that changes.
+  const frame: CSSProperties = {
+    borderStyle: 'solid',
+    borderColor: frameColor,
+    borderTopWidth: '3px',
+    borderRightWidth: '3px',
+    borderBottomWidth: '3px',
+    borderLeftWidth: '3px',
+  }
+  const frameStyle = selected ? { ...frame, boxShadow: '0 0 0 3px var(--color-rust)' } : frame
   return { outerClassName, outerInteraction, frameStyle }
 }
 

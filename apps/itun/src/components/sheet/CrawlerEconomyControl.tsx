@@ -39,7 +39,8 @@
 
 import { Button, FieldError, ModalShell, Select, Slab, Stat } from 'component-lib'
 import { useReducer, useState } from 'react'
-import { resolvePool, rollDie } from 'salvageunion-reference/rules'
+import type { Roll } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, resolvePool, rollDie } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
@@ -60,8 +61,6 @@ import {
   UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
-import { crawlerMaxSP } from '../../lib/rules/derivedStats'
-import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'

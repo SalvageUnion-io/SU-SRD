@@ -46,7 +46,6 @@ import {
 } from './entities.js'
 import {
   ActionTypeSchema,
-  ClassTypeSchema,
   ContentTypeSchema,
   DamageTypeSchema,
   RangeItemSchema,
@@ -188,7 +187,6 @@ const enumSchemas: Record<string, z.ZodType> = {
   RangeSchema,
   ActionTypeSchema,
   DamageTypeSchema,
-  ClassTypeSchema,
   TreeSchema,
   SchemaNameSchema,
 }

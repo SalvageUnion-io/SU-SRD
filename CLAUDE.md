@@ -5,14 +5,14 @@ the ADRs and architecture docs this file points to.
 
 ## Documentation Hub
 
-**Start at [`docs/README.md`](docs/README.md)** — it maps intent → doc.
+Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **35 of them** (ADR-001 through ADR-035). **Read an ADR's `## Status` header first**: several are superseded and the supersession is recorded only there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035). The three that govern:
-  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. What has landed: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **39 of them** (ADR-001–ADR-039). **Read an ADR's `## Status` header first**: several are superseded or merged, recorded only there (ADR-001 → ADR-030; ADR-004 → ADR-036; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035; ADR-015 §1, §4 → ADR-038). The three that govern:
+  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops reference: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
-- **Hosting is Cloudflare, everywhere** ([ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md)): `apps/srd`, `apps/itun`, `apps/su-assets` and the Discord bot are Workers, snapshots live in R2. Netlify and Render host nothing. Before touching hosting, deploy config, the snapshot backend or the bot's transport, read the ADR and [`cloudflare-cutover.md`](docs/architecture/cloudflare-cutover.md). **A failed gate halts the phase and is never worked around**, and **snapshots go to R2, not Convex**.
-- [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y, dependency management, CI).
+- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
+- [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules
@@ -37,8 +37,8 @@ bun install              # first-time setup (generated files are committed; no c
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
 bun run dev:itun         # ITUN dev server
 
-bun run check:fast       # ~12s inner loop: every gate except the suite, the srd build,
-                         # the network and regeneration
+bun run check:fast       # ~12s inner loop: every gate except the suite, the network
+                         # and regeneration
 bun run check            # THE full gate (~35s), every check in tools/check.ts in parallel,
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
@@ -47,23 +47,22 @@ bun --filter <workspace> test      # one workspace: salvageunion-reference, comp
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
 bun run build            # package + srd + ITUN (the bot has no build; wrangler bundles it)
-bun --filter srd gate    # srd build + output-snapshot diff — use the /srd-gate skill
 
 bun run reap             # list abandoned .claude/worktrees/ checkouts (--force removes them)
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
 
 - **Prefer `bun run test` over bare `bun test`.** A bare root run preloads the union of the workspace preloads and has a handful of known cross-workspace failures (a `mock.module` collision between the two `observability` suites, and one preload-set difference); every one passes in its own workspace. If `bun run test` is red, something is broken.
-- **Do not use `--parallel` or `--isolate` to speed tests up** — both are measured regressions here (spurious timeouts; ~7× slower). `--changed` is the flag that helps.
-- **A gate failed?** [`tools/CLAUDE.md`](tools/CLAUDE.md) indexes every checker in `tools/`: what it guards, how to fix a failure, and which baseline file it ratchets. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Dependencies:** read [`dependency-management.md`](docs/architecture/dependency-management.md) before touching `package.json`, `bunfig.toml`, `workspaces.catalog` or `overrides`. In short: `bun audit --audit-level=high` gates merges with no suppressions; a dependency used by two or more manifests is declared once in `workspaces.catalog`; `bunfig.toml` refuses versions under three days old, so a caret range resolves silently downward.
+- **Bare `--parallel` and `--isolate` stay banned**: both are measured regressions (ITUN `--parallel=4`, which implies `--isolate`, took 17.4 s against 16.9 s serial). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it (16.5 s → ~6 s); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
+- **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
+- **Dependencies:** read [`dependency-management.md`](docs/architecture/dependency-management.md) before touching `package.json`, `bunfig.toml`, `renovate.json` or `overrides`. In short: Renovate owns updates and auto-merges non-majors; `bun audit --audit-level=high` gates every PR that changes `bun.lock` or a `package.json` (one `--ignore`: braces); `bunfig.toml` refuses versions under three days old (a caret range resolves silently down).
 - Root dev dependency `playwright` is used by `tools/a11y-scan.ts` (WCAG scans) — not dead code.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)
 
 - **Pre-commit:** `biome check --write` on staged files only (lint + safe fixes + format in one pass). No typecheck.
-- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite, the srd build and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and `bun run test:coverage` (CI's gate: the full suite plus per-workspace coverage floors) whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs `test:coverage`.
+- **Pre-push (parallel):** `bun tools/check.ts --profile=pre-push` (every gate but the suite and the network ones) and `test`. Its `test` runs `bun test --changed=<merge-base>` for app-source-only pushes and `bun run test:coverage` (CI's gate: the full suite plus per-workspace coverage floors) whenever `packages/`, `test/`, `bunfig.toml`, root manifests or any `apps/*/package.json` moved, because `--changed` does not cross workspace boundaries. Don't "simplify" that away. CI always runs `test:coverage`.
 
 ## Repository Overview
 
@@ -96,7 +95,6 @@ Each workspace's own `CLAUDE.md` loads when you work in it; [`package-contracts.
 - Relative imports only, `type` over `interface`, no `any`, `import type`, named exports (routes and Worker entries excepted) — **all Biome rules**, so `bun run lint` is the authority ([`biome.jsonc`](biome.jsonc)).
 - **Bun** for package management — never npm/yarn.
 - Game-data types come from `salvageunion-reference` as `SURef*` (`SURefChassis`, `SURefSchemaName`, …).
-- Look entities up by index — `SalvageUnionReference.Chassis.getById(id)` / `.getBySlug(slug)` / `.getByName(name)` — never `find((e) => e.id === x)`; see the package's `CLAUDE.md`.
 - Generated files (`routeTree.gen.ts`, `schemas/*.schema.json`, `lib/generated/`) are never hand-edited.
 - When a prop must reach nested entity cards, pass it explicitly (there is no shared display context; card size is the `size` × `extent` pair in `packages/component-lib/src/components/shared/displayMode.ts`) and typecheck immediately.
 
@@ -112,7 +110,7 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 ## `.claude/`
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/srd-gate` (read the snapshot diff before re-blessing), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
+- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
 - `bun run reap` when repo-wide grep starts returning duplicates from old worktrees.
 
 ## External Integrations & MCP Servers

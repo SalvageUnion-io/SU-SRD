@@ -1,8 +1,11 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { createRootRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import { AppHeader, CopyFeedbackProvider, EntityHrefProvider, Toaster, toast } from 'component-lib'
-import { useState } from 'react'
 import { AccountReconciler } from '../components/account/AccountReconciler'
-import { AccountStrip } from '../components/account/AccountStrip'
+import {
+  HeaderActions,
+  HeaderDrawerAccount,
+  HeaderMobileActions,
+} from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
@@ -11,6 +14,7 @@ import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { itunEntityHref } from '../lib/entityHref'
+import { fabCollides } from '../lib/searchFab'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
 // the CSP needs no external font/style host and the offline PWA renders correctly.
 import '@fontsource/barlow/400.css'
@@ -34,14 +38,21 @@ function toastCopied() {
   toast.success('Copied', { id: 'clipboard-copy', duration: 1500 })
 }
 
+/**
+ * Toasts share the bottom-right corner with the search FAB, so they stack
+ * above it: the FAB's 16px gutter + its 56px button + a 16px gap. Sonner's own
+ * defaults (24px, 16px on phones) stay on the other three edges.
+ */
+const TOAST_OFFSET = { bottom: 88 }
+
 function RootComponent() {
-  const [searchOpen, setSearchOpen] = useState(false)
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   return (
     <AppConvexProvider>
       <EntityHrefProvider value={itunEntityHref}>
         {/* The shared brand header renders on EVERY route — including the live
-          sheet (/sheet/*) and snapshot (/s/*) play surfaces, which sit below
+          sheet (/sheet/*) and public sheet (/p/*) surfaces, which sit below
           it and keep their own sticky control bar. It renders ONE level above
           the game-data gate (a sibling of GameDataReady, not a child) — see
           GameDataReady.tsx's doc comment: brand chrome touches no reference
@@ -59,20 +70,22 @@ function RootComponent() {
         {/* A test seam, compiled out of production builds — see its header. */}
         <TestAuthBridge />
         <AppHeader
-          onSearchClick={() => setSearchOpen(true)}
           LinkComponent={AppLink}
-          utilityRow={<AccountStrip />}
+          actions={<HeaderActions />}
+          mobileActions={<HeaderMobileActions />}
+          drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
         />
         <CopyFeedbackProvider value={toastCopied}>
           <GameDataReady>
             <Outlet />
-            {/* Mounted on every route (inside the game-data gate, so search()
-              is always safe) so the Cmd/Ctrl+K shortcut works everywhere,
-              alongside the always-present AppHeader search trigger. */}
-            <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+            {/* The reference search FAB, on every route (inside the game-data
+              gate, so search() is always safe), so Cmd/Ctrl+K works
+              everywhere. Its button stands aside on routes whose own
+              bottom-right corner holds controls. */}
+            <GlobalSearch fabHidden={fabCollides(pathname)} />
           </GameDataReady>
         </CopyFeedbackProvider>
-        <Toaster />
+        <Toaster offset={TOAST_OFFSET} mobileOffset={TOAST_OFFSET} />
       </EntityHrefProvider>
     </AppConvexProvider>
   )

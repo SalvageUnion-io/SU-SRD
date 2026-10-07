@@ -1,0 +1,62 @@
+/**
+ * LinkQr — renders a share URL as a scannable QR code (issues #227/#259, audit
+ * item 14). Today that URL is a public sheet's `/p/:kind/:appId`; it was a
+ * snapshot's `/s/:id` until snapshots were retired (ADR-036).
+ *
+ * SVG output (not canvas): deterministic under happy-dom tests and crisp at
+ * any DPI. The tile is forced white with an encoder quiet zone — QR readers
+ * need dark-on-light regardless of app theme.
+ *
+ * Lives in ITUN, not component-lib: ITUN is its only renderer, and keeping it
+ * in the library meant the library's manifest declared `qrcode` for one app's
+ * sake (audit PK-07). Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
+ */
+
+import QRCode from 'qrcode'
+import { useEffect, useState } from 'react'
+
+type LinkQrProps = {
+  /** Absolute URL to encode. */
+  url: string
+}
+
+export function LinkQr({ url }: LinkQrProps) {
+  const [svg, setSvg] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' })
+      .then((markup) => {
+        if (!cancelled) setSvg(markup)
+      })
+      .catch((err: unknown) => {
+        // Encoding a URL cannot realistically fail; degrade to no tile.
+        console.error('[itun] QR generation failed.', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [url])
+
+  if (svg === null) {
+    return (
+      <div
+        aria-hidden="true"
+        className="h-[84px] w-[84px] shrink-0 motion-safe:animate-pulse rounded-card border-chrome border-ink bg-paper"
+      />
+    )
+  }
+
+  return (
+    <div
+      role="img"
+      aria-label="QR code linking to this sheet"
+      data-testid="share-qr"
+      className="h-[84px] w-[84px] shrink-0 rounded-card border-chrome border-ink bg-paper p-1 [&>svg]:h-full [&>svg]:w-full"
+      // Trusted markup: generated locally by the qrcode encoder from module
+      // geometry — the URL is encoded as QR modules, never interpolated as HTML.
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG string is produced locally by the qrcode encoder from module geometry; no user-controlled HTML can reach it
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  )
+}

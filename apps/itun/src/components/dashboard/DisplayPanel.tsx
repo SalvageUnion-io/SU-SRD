@@ -245,7 +245,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
       }
     }
     if (focus.key.startsWith('pilot:') && pilot) {
-      const cls = SalvageUnionReference.Classes.find((c) => c.id === pilot.classRef) ?? null
+      const cls = SalvageUnionReference.Classes.getById(pilot.classRef) ?? null
       return {
         kind: 'entity',
         data: cls,

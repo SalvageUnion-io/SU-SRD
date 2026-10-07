@@ -7,15 +7,11 @@
  *     trailing controls) — the shape the sheets' field/collection sections use.
  *   - SectionManageButton: rebuilt on HButton — icon + label,
  *     stable accessible names.
- *   - cardRemoveControls: the per-card ✕ (+ optional ⇄) icon-only cluster fed
- *     to Card's card-level `controls` slot.
  */
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Slab } from '../../chrome/Slab'
-import { ControlButtons } from '../ControlButtons'
-import { cardRemoveControls } from '../editLanguage'
 import { HButton, SectionManageButton } from '../SheetSection'
 
 describe('HButton', () => {
@@ -73,33 +69,5 @@ describe('SectionManageButton', () => {
     render(<SectionManageButton label="systems" onClick={onClick} />)
     fireEvent.click(screen.getByRole('button', { name: 'Manage systems' }))
     expect(onClick).toHaveBeenCalledTimes(1)
-  })
-})
-
-describe('cardRemoveControls', () => {
-  test('builds a single icon-only remove control by default', () => {
-    const onRemove = mock(() => {})
-    const controls = cardRemoveControls({ name: 'Charge', onRemove })
-    expect(controls).toHaveLength(1)
-    expect(controls[0]?.key).toBe('remove')
-    expect(controls[0]?.ariaLabel).toBe('Remove Charge')
-    expect(controls[0]?.label).toBeUndefined()
-
-    render(<ControlButtons controls={controls} compact />)
-    const btn = screen.getByLabelText('Remove Charge')
-    // Icon-only: no visible text, square chrome.
-    expect(btn.textContent).toBe('')
-    fireEvent.click(btn)
-    expect(onRemove).toHaveBeenCalledTimes(1)
-  })
-
-  test('prepends a swap control before remove when onSwap is given', () => {
-    const controls = cardRemoveControls({
-      name: 'Charge',
-      onRemove: () => {},
-      onSwap: () => {},
-    })
-    expect(controls.map((c) => c.key)).toEqual(['swap', 'remove'])
-    expect(controls[0]?.ariaLabel).toBe('Swap Charge')
   })
 })

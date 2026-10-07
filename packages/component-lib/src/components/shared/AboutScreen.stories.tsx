@@ -1,7 +1,7 @@
-import type { Story } from '@ladle/react'
 import aboutMd from '../../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../../LLM_STATEMENT.md?raw'
 import thanksMd from '../../../../../SPECIAL_THANKS.md?raw'
+import type { Story } from '../../stories/_harness'
 import { AboutScreen } from './AboutScreen'
 
 export default {

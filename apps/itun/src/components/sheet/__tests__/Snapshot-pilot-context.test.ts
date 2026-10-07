@@ -1,10 +1,13 @@
 /**
- * A snapshot shares a LIVE INSTANCE, so it must carry the context that
- * instance's numbers depend on (ADR-029).
+ * A frozen read-only sheet shows a LIVE INSTANCE, so it must carry the context
+ * that instance's numbers depend on (ADR-029). It began as the snapshot
+ * payload's `context.pilotAbilities`; snapshots are retired (ADR-036), and the
+ * public sheet now has the same refs resolved server-side
+ * (`convex/publicSheet.ts`).
  *
  * Beefcake is a pilot ability that raises the piloted mech's Max SP and Cargo.
- * A mech snapshot published without the pilot's ability refs would read LOWER
- * for a viewer than the same mech on its owner's sheet.
+ * A mech shown without the pilot's ability refs would read LOWER for a viewer
+ * than the same mech on its owner's sheet.
  *
  * Contrast a mech PATTERN: a stateless build template with no pilot and no live
  * instance. Patterns are shared context-free and never go through this flow.
@@ -17,7 +20,7 @@ import {
   sumContributions,
 } from 'salvageunion-reference/rules'
 
-describe('snapshot pilot context', () => {
+describe('frozen-sheet pilot context', () => {
   test('a mech derives the SAME max SP with the pilot context as on the live sheet', () => {
     const mech = { chassisRef: 'no-such-chassis' }
     const chassis = { structurePoints: 20 }

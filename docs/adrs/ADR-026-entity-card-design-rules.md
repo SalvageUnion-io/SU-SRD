@@ -8,8 +8,8 @@ Accepted.
 
 The reference-entity display was reconciled from a 57-file legacy render core
 (`ReferenceEntityDisplay/`, "RED") onto a single card. That migration
-(methodology + staged plan in
-[`docs/design/entity-card-reconciliation.md`](../design/entity-card-reconciliation.md))
+(its methodology is now the `/component-refresh` skill,
+[`.claude/skills/component-refresh/SKILL.md`](../../.claude/skills/component-refresh/SKILL.md))
 settled a set of **design rules** along the way — about how choices render, how
 stats read, how tech-level scaling looks, and which data carries a tech level.
 Those rules were decided interactively and proven in Ladle, but were only

@@ -65,15 +65,10 @@ For every step, use the first route that works and record which one you used:
    Green `deploy-*` jobs with a red `smoke` job mean the code shipped and something
    about routing, headers or a zone rule did not — that is a finding, not noise.
 
-   This step used to name the Netlify and Render MCP servers, which were deleted
-   with the hosts they reached. A skill is executed rather than read, so that
-   made step 3 unrunnable; `tools/check-doc-drift.ts` now asserts MCP names in
-   docs against `.mcp.json`.
-
 4. **Dependency and security PRs**
 
    ```bash
-   gh pr list --author app/dependabot --state open
+   gh pr list --author app/renovate --state open
    gh run list --workflow=codeql.yml --limit 3 --json conclusion
    ```
 

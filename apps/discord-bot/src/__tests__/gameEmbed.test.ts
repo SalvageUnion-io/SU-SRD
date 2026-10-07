@@ -434,7 +434,7 @@ describe('buildShelfEmbed', () => {
   test('explains an empty shelf rather than rendering a blank card', () => {
     const embed = buildShelfEmbed({ pilots: [], mechs: [] }, WEB)
     expect(embed.fields).toHaveLength(0)
-    expect(embed.description).toContain('Nothing on your shelf')
+    expect(embed.description).toContain('Nothing in My Stuff')
   })
 
   test('links each entity to its sheet', () => {

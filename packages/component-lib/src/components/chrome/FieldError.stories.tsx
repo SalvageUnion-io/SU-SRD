@@ -1,4 +1,4 @@
-import type { Story } from '@ladle/react'
+import type { Story } from '../../stories/_harness'
 import { Caption } from '../../stories/_harness'
 import { Field, Input } from './Field'
 import { FieldError } from './FieldError'

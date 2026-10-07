@@ -24,7 +24,17 @@ describe('/su command', () => {
     // The ITUN subcommands are registered UNCONDITIONALLY — a command that
     // appears or vanishes depending on deployment configuration is harder to
     // explain than one that answers "this server isn't connected".
-    expect(subs).toEqual(['crew', 'game', 'games', 'lookup', 'me', 'roll', 'sheet', 'shelf'])
+    expect(subs).toEqual([
+      'crew',
+      'game',
+      'games',
+      'invite',
+      'lookup',
+      'me',
+      'my-stuff',
+      'roll',
+      'sheet',
+    ])
 
     // Discord caps a command at 25 options, and subcommands + groups both
     // count against it. Worth pinning: overflowing fails at deploy time, in a
@@ -49,6 +59,13 @@ describe('/su command', () => {
       'info',
       'unbind',
     ])
+  })
+
+  test('the pre-rename `shelf` still reaches My Stuff until commands are re-registered', async () => {
+    // Discord keeps serving `/su shelf` until `deploy-commands:global` runs.
+    const { interaction, deferred } = fakeExecute({ subcommand: 'shelf' })
+    await suCommand.execute(interaction)
+    expect(deferred.called).toBe(true)
   })
 
   test('execute throws loudly on an unknown subcommand', async () => {

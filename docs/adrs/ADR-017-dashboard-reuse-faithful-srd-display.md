@@ -2,34 +2,7 @@
 
 ## Status
 
-Accepted — the Dashboard is **built** (realized in `apps/itun/src/components/dashboard/`, Phases 1–7, routed at `/dashboard/$id`; design in the [Dashboard design doc](../architecture/dashboard.md)). Sub-decision of
-[ADR-015](ADR-015-dashboard-distinct-play-surface.md).
+Accepted, and **merged into [ADR-015](ADR-015-dashboard-distinct-play-surface.md)** as
+its Dashboard decision 2. The number is kept because code cites it.
 
-## Context
-
-The Dashboard needs to show reference entities (systems, abilities, actions, roll
-tables) while playing. It could fork a HUD-specific renderer or reuse the app's
-existing display system.
-
-## Decision
-
-The display renders the **actual** `ReferenceEntityDisplay` + `ActionCard` /
-`NestedActionDisplay` + `ReferenceEntityActions` + `RollTable` from `component-lib` —
-the same light "workshop paperwork" reference document the rest of the app shows.
-Action economy is injected through the existing
-`Erow` / `ActionCardErow` + `Card.footActions`/`footMeta` pattern, **not** a
-new schema-specific renderer. Only the _instruments_ (gauges, bays, dial, buttons)
-are new Dashboard components.
-
-## Rationale
-
-One display system, one place to fix reference rendering, and the Dashboard's
-reference view stays byte-for-byte identical to the sheet's. The foot-meta
-vocabulary already carries action economy in the sheet; extending it avoids forking
-the display ([ADR-011](ADR-011-component-lib-source-no-build.md)).
-
-## Alternatives rejected
-
-A Dashboard-specific "action chip" display (forking the entity display) — rejected
-per the design record's explicit "reuse the display system" call. A render-prop on
-`ActionCard` for economy — unnecessary; `Erow` already solves it.
+Full text: `git show c2476d1c:docs/adrs/ADR-017-dashboard-reuse-faithful-srd-display.md`

@@ -3,15 +3,34 @@
 ## Status
 
 Accepted. Supersedes [ADR-027](ADR-027-partners-owned-by-host.md), whose
-**model** it keeps in full and whose **surface** it removes.
+**model** it keeps in full (restated below) and whose **surface** it removes.
+
+## The model (kept from ADR-027)
+
+A partner is a granted thing that uses the mech rules without being a mech —
+Auto-Turret, Survey Drone, Mecha Companion, Sestra Drone. It is a
+**`PartnerInstance` owned by its host**: an additive-optional
+`partners: PartnerInstance[]` on both `PilotSchema` and `MechSchema`.
+
+- **One shape, two grant paths.** `hostSchema: 'equipment' | 'drones'` selects
+  which reference file `hostRef` resolves against. "Survey Drone" is a record in
+  both files, so resolving without it picks the wrong one.
+- **Every instance carries its own `id`**, which is what lets Mecha Packmaster
+  field two companions and Big Brother four drones.
+- **Ownership is intrinsic, not a soft link.** Deleting a host removes its
+  partners, and they ride through snapshots and export bundles with it.
+- **Tech level is derived, never stored** (`partnerTechLevel`). Pilot-granted
+  partners take the Union Crawler's tech level (Mecha Companion floored at
+  Tech 3); mech-granted drones are fixed by their stat block.
+  `techLevelOverride` is a Free-Edit escape hatch only (ADR-021).
+- **Per-host caps are displayed, never enforced** (ADR-007).
+- **A partner is a cargo carrier.** `cargoTransfer` speaks carrier/depot rather
+  than mech/crawler; carrier→carrier handoff is not built.
+- **`EntityRef` is not widened.** A partner is never either end of a soft link.
 
 ## Context
 
-[ADR-027](ADR-027-partners-owned-by-host.md) established the right data model: a
-partner is a `PartnerInstance` owned intrinsically by its host, with `hostSchema`
-disambiguating the two grant paths. Nothing here disturbs that.
-
-What it got wrong was the surface. It gave a partner a dedicated live sheet at
+ADR-027 established the model above. What it got wrong was the surface. It gave a partner a dedicated live sheet at
 `/sheet/partner/:id`, and with it a sixth ontology hue, an `EntityRowType`, a
 `BadgeTone`, a `SheetVariant`, an id-scan (`findPartner`), and a `SheetKind` that
 had to be `EntityRef['type'] | 'partner'` because the vocabularies did not

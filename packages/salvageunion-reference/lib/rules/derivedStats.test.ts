@@ -12,9 +12,6 @@ import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
 import type { ChassisStats } from './derivedStats.js'
 import {
-  clampCrawlerCurrentStats,
-  clampMechCurrentStats,
-  clampPilotCurrentStats,
   crawlerMaxSP,
   crawlerMaxSPParts,
   injuryMaxHpPenalty,
@@ -35,6 +32,7 @@ import {
   pilotMaxHPParts,
   pilotMaxInventorySlots,
   pilotMaxInventorySlotsParts,
+  pinFor,
   unifiedMechConditions,
 } from './derivedStats.js'
 
@@ -87,21 +85,6 @@ describe('pilot derivation', () => {
     expect(pilotMaxHP(dying)).toBe(0)
     expect(isPilotDead(dying)).toBe(true)
     expect(isPilotDead({})).toBe(false)
-  })
-
-  it('clamps current HP/AP down to the derived maxima', () => {
-    const pilot = {
-      maxHpModifier: 0,
-      injuries: [{ severity: 'major' as const, note: '' }], // maxHP 8
-      currentHP: 10,
-      currentAP: 5,
-    }
-    expect(clampPilotCurrentStats(pilot)).toEqual({ currentHP: 8 })
-  })
-
-  it('returns an empty patch when nothing exceeds the maxima', () => {
-    expect(clampPilotCurrentStats({ currentHP: 3, currentAP: 2 })).toEqual({})
-    expect(clampPilotCurrentStats({})).toEqual({})
   })
 })
 
@@ -171,14 +154,6 @@ describe('pilot Stat Training follows the crawler tech level', () => {
     expect(pilotMaxHP({ injuries, crawlerTechLevel: 3 })).toBe(2)
     expect(isPilotDead({ injuries, crawlerTechLevel: 3 })).toBe(false)
   })
-
-  it('clamps current HP/AP against the tier-derived maxima', () => {
-    expect(clampPilotCurrentStats({ crawlerTechLevel: 3, currentHP: 14, currentAP: 7 })).toEqual({})
-    expect(clampPilotCurrentStats({ crawlerTechLevel: 2, currentHP: 14, currentAP: 7 })).toEqual({
-      currentHP: 12,
-      currentAP: 6,
-    })
-  })
 })
 
 // ---------------------------------------------------------------------------
@@ -226,20 +201,6 @@ describe('mech derivation', () => {
     if (!real) return
     const mech = { chassisRef: real.name, maxSpModifier: 1 }
     expect(mechMaxSP(mech)).toBe((real.structurePoints ?? 0) + 1)
-  })
-
-  it('clamps current SP/EP/Heat to derived maxima', () => {
-    const mech = {
-      ...bare,
-      maxHeatModifier: -1, // heat cap shrank to 4
-      currentSP: 12,
-      currentEP: 6,
-      currentHeat: 5,
-    }
-    expect(clampMechCurrentStats(mech, chassis)).toEqual({
-      currentSP: 10,
-      currentHeat: 4,
-    })
   })
 })
 
@@ -313,6 +274,46 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
         ],
       })
     ).toBe(true)
+  })
+
+  it('a pin equal to the derivation adds +0, so it is not an override', () => {
+    // Upgrades caught up with a pin: Tech 3 Stat Training derives 14, pinned 14.
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 3, maxHpOverride: 14 })
+    expect(hp.overridden).toBe(false)
+    expect(hp.override).toBeUndefined()
+    expect(hp.total).toBe(14)
+    expect(hp.derived).toBe(14)
+
+    const sp = mechMaxSPParts({ ...bare, maxSpOverride: 10 }, chassis)
+    expect(sp.overridden).toBe(false)
+    expect(sp.total).toBe(10)
+  })
+
+  it('the same pin flags again once the derivation moves past it', () => {
+    // Still stored, still the player's absolute pin: at Tech 4 it is −2.
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 4, maxHpOverride: 14 })
+    expect(hp.overridden).toBe(true)
+    expect(hp.total).toBe(14)
+    expect(hp.derived).toBe(16)
+  })
+
+  it('compares as displayed: a 0 pin on a dead pilot adds nothing', () => {
+    const injuries = Array.from({ length: 6 }, () => ({ severity: 'major' as const, note: '' }))
+    const hp = pilotMaxHPParts({ injuries, maxHpOverride: 0 })
+    expect(hp.overridden).toBe(false)
+    expect(isPilotDead({ injuries, maxHpOverride: 0 })).toBe(true)
+  })
+
+  it('pinFor never writes a pin equal to the derivation', () => {
+    const hp = pilotMaxHPParts({ crawlerTechLevel: 3 })
+    expect(pinFor(14, hp)).toBeUndefined()
+    expect(pinFor(15, hp)).toBe(15)
+    expect(pinFor(0, hp)).toBe(0)
+    // A dead pilot derives below 0 and displays 0: pinning 0 is no change.
+    const dead = pilotMaxHPParts({
+      injuries: Array.from({ length: 6 }, () => ({ severity: 'major' as const, note: '' })),
+    })
+    expect(pinFor(0, dead)).toBeUndefined()
   })
 
   it('a pilot HP pin overrides the injury penalty', () => {
@@ -474,7 +475,7 @@ describe('crawler derivation', () => {
   })
 
   it('the Battle type’s +5 applies AT READ from its stored max_sp_bonus mutation', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle).toBeDefined()
     const base = crawlerMaxSP({ techLevel: 'tech-1' })
     // By id AND by name (stored type refs resolve id-or-name, like bay refs).
@@ -485,7 +486,7 @@ describe('crawler derivation', () => {
   })
 
   it('type bonus stacks with the hand-edit modifier, decomposed by crawlerMaxSPParts', () => {
-    const battle = SalvageUnionReference.Crawlers.find((c) => c.name === 'Battle')
+    const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     const parts = crawlerMaxSPParts({
       techLevel: 'tech-1',
       type: battle?.id,
@@ -505,13 +506,5 @@ describe('crawler derivation', () => {
   it('unresolvable techLevel slug yields the modifier alone (≥ 0)', () => {
     expect(crawlerMaxSP({ techLevel: 'garbage' })).toBe(0)
     expect(crawlerMaxSP({ techLevel: 'garbage', maxSpModifier: 5 })).toBe(5)
-  })
-
-  it('clamps current SP to the derived max', () => {
-    const max = crawlerMaxSP({ techLevel: 'tech-1' })
-    expect(clampCrawlerCurrentStats({ techLevel: 'tech-1', currentSP: max + 10 })).toEqual({
-      currentSP: max,
-    })
-    expect(clampCrawlerCurrentStats({ techLevel: 'tech-1', currentSP: max })).toEqual({})
   })
 })

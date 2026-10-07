@@ -52,7 +52,14 @@ createRoot(rootEl, reactRootErrorHandlers).render(
 // Deliberately persistent (`duration: Infinity`) and dismissible. This fires at
 // most once per installed update, and the alternative — auto-dismiss — puts the
 // user back on a stale build with no way to ask for the new one.
+//
+// It fires only for a tab older than the server's build: navigations are
+// network-first, so a page loaded after a deploy is already the new version
+// and needs no prompt. See the header of lib/sw/register.ts.
 registerServiceWorker({
+  // This module IS the entry chunk, so its URL carries this build's content
+  // hash — which is what the server's current shell is compared against.
+  entryChunk: new URL(import.meta.url).pathname,
   onUpdateReady: (accept) => {
     toast('A new version of ITUN is ready', {
       description: 'Reload to pick it up. Your saved data is not affected.',

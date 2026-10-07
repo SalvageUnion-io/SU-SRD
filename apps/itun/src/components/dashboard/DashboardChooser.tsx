@@ -1,5 +1,5 @@
 /**
- * DashboardChooser — the launch chooser wizard for the Dashboard (plan §8, §9.8).
+ * DashboardChooser — the launch chooser wizard for the Dashboard (dashboard.md §8).
  *
  * A small three-step wizard (pilot → mech → crawler) rendered in a ModalShell.
  * On confirm it ensures the SoftLinks the Dashboard composition needs exist —
@@ -9,7 +9,7 @@
  *
  * SoftLink writes go through the Zustand entityStore (write-through to
  * IndexedDB), reusing the same `softLink` create/delete the wiring components
- * (`useSoftLinks` / AssignPilotToMech) use. Creating/repairing links is
+ * (`useSoftLinks` / `AssignPicker`) use. Creating/repairing links is
  * reversible bookkeeping and auto-applies (ADR-007); nothing destructive to a
  * pilot/mech/crawler record happens here.
  *

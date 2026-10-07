@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { gamesCommand, meCommand, shelfCommand } from '../commands/account.js'
 import { crewCommand } from '../commands/crew.js'
 import { gameCommand } from '../commands/game.js'
+import { inviteCommand } from '../commands/invite.js'
 import { itun } from '../commands/itunReply.js'
 import { rollCommand } from '../commands/roll.js'
 import { fakeExecute } from './fakeInteraction.js'
@@ -41,8 +42,9 @@ describe('with no ITUN deployment configured', () => {
   test.each([
     ['me', meCommand],
     ['games', gamesCommand],
-    ['shelf', shelfCommand],
+    ['my-stuff', shelfCommand],
     ['crew', crewCommand],
+    ['invite', inviteCommand],
   ])('/su %s explains itself instead of failing', async (name, command) => {
     const { interaction, edits, deferred } = fakeExecute({ subcommand: name })
     await command.execute(interaction)

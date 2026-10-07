@@ -83,10 +83,9 @@ export async function logOwnershipChange(
  *
  * Membership is the whole check *plus* the entity being free — see the module
  * header for why that pair is the entire rule. Note what is deliberately absent:
- * there is no crawler gate here. That gate governs a player *adding* to a Game;
- * claiming adds nothing, it only puts a name to something the table already
- * holds, and a pre-gen offered before the crawler was raised should not become
- * unclaimable because of the order the Mediator worked in.
+ * any crawler check. Claiming adds nothing to the Game — it only puts a name to
+ * something the table already holds — so it leaves the entity's assignments
+ * exactly as they were (ADR-037).
  *
  * Racing is resolved by the transaction: two players claiming the same pre-gen
  * in the same instant serialize, and the second one finds it owned and is told
@@ -97,7 +96,7 @@ export const claim = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
-      throw new NotAuthorized('That build is on somebody’s shelf, not in a game')
+      throw new NotAuthorized('That build is in somebody’s My Stuff, not in a game')
     }
 
     const membership = await requireMember(ctx, doc.gameId)
@@ -149,7 +148,7 @@ export const release = mutation({
        * it was teaching the wrong model to the person least able to check it.
        */
       throw new NotAuthorized(
-        'A build on your shelf is already yours — there is no crew here to release it to. Move it into a game first.'
+        'A build in your My Stuff is already yours — there is no crew here to release it to. Move it into a game first.'
       )
     }
     if (doc.ownerId === null) return

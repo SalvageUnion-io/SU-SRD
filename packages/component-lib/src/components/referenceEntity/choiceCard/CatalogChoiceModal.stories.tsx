@@ -1,7 +1,7 @@
-import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
+import type { Story } from '../../../stories/_harness'
 import { Caption } from '../../../stories/_harness'
 import { Button } from '../../chrome/Button'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
@@ -18,7 +18,7 @@ export default {
   title: 'Compositions/Entity/Catalog Choice Modal',
 }
 
-const bay = SalvageUnionReference.CrawlerBays.all().find((b) => b.name === 'Armament Bay')
+const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
 const choice = bay ? (getChoices(bay) ?? [])[0] : undefined
 
 /** The editable card flow: Choose… button → modal pick → the chosen entity as a real listing card. */

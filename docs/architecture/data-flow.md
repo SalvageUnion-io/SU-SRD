@@ -38,8 +38,9 @@ The mode is resolved by one pure function, `resolveConnectionMode()` in
 > ([ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)), now served by the
 > itun Worker from R2 (ADR-033).
 > ADR-030 then reintroduced a server of record — **Convex**, for accounts, Games,
-> and entity ownership — without displacing Solo. Snapshot sharing is unchanged
-> and remains the account-free way to share a build.
+> and entity ownership — without displacing Solo. Snapshots were retired by
+> [ADR-036](../adrs/ADR-036-retire-snapshot-shares.md); the account-free way to
+> share a build is now the public sheet (ADR-032).
 
 ## Static Reference Data
 
@@ -83,7 +84,7 @@ Player data is persisted to a single IndexedDB database via the [`idb`](https://
 wrapper (chosen over Dexie for size + Zod-as-schema-of-record — see the ADR
 comment at the top of `src/lib/db/index.ts`).
 
-- **Database:** `itun-v1`, current `DB_VERSION = 13`
+- **Database:** `itun-v1`, current `DB_VERSION = 17`
   (`src/lib/db/index.ts`).
 - **Object stores** (`src/lib/db/stores.ts` — the entity stores are keyed on
   `id`; `changeLog` is the one exception):
@@ -143,10 +144,11 @@ either all are removed together, or nothing changes (no orphaned links).
 **Location:** `apps/itun/convex/` (schema + 17 function modules) and
 `apps/itun/src/lib/connection/` (client wiring).
 
-For the delivery phases, permission rules, and the Convex/Discord
-operational reference, read
-[accounts-and-games.md](accounts-and-games.md) — this section covers only how
-the data reaches the client. Do not duplicate that document here.
+For the permission rules read
+[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) and
+`convex/model/permissions.ts`; for the Convex/Discord operational reference,
+[accounts-and-games.md](accounts-and-games.md). This section covers only how the
+data reaches the client.
 
 ### What lives server-side
 
@@ -196,6 +198,62 @@ surfaces (`src/components/games/`, `src/components/account/`,
 subscriptions are the Connected-mode analogue of `entityStore`'s in-memory
 cache.
 
+The cache is filled from two queries, both reconciled in
+`src/components/account/ShelfSync.tsx`: `entities.listMine` (everything the
+caller owns — `ShelfSync`) and `entities.listWiring` (every soft link they can
+see and every crawler in their Games — `WiringSync`,
+[ADR-037](../adrs/ADR-037-assignment-model.md)). Both adopt server-wins and prune
+only under the same guard (`lib/db/pruneRules.ts`). Soft links follow the
+assignment model in `src/lib/links/linkRules.ts`: drawn through `assignLink`,
+replacing what they conflict with, never across containers.
+
+### Every local store reaches Convex
+
+[ADR-034](../adrs/ADR-034-account-required-persistence.md) decision 2: Convex is
+the source of truth for every persisted record, and IndexedDB is only a cache of
+it. Every object store has a Convex table and a commit path in
+`src/stores/entityBackend.ts`:
+
+| Store                            | Commit path          | Called from          |
+| -------------------------------- | -------------------- | -------------------- |
+| `pilots`, `mechs`, `crawlers`    | `commitEntityWrite`  | `entityStore.ts`     |
+| `softLinks`                      | `commitSoftLink`     | `entityStore.ts`     |
+| `mechPatterns`                   | `commitPatternWrite` | `patternStore.ts`    |
+| `encounterNpcs`                  | `commitNpcWrite`     | `encounterStore.ts`  |
+| `changeLog`                      | `commitChangeLog`    | `entityChangeLog.ts` |
+| `workspaces`                     | none — retired; kept so migrations v10/v13 run | — |
+
+`apps/itun/test/convex/containerParity.test.ts` asserts both halves: every store
+has a table, and each store module actually calls its commit function. A new
+store needs both. The exemption list (`workspaces`) is what that test makes
+expensive to widen.
+
+- **The Change Log commit is the one fire-and-forget write**, on purpose: it is
+  provenance about a write that has already landed, and failing a player's edit
+  because its audit row did not arrive would trade the write for the record of
+  it.
+- **`encounterNpcs` is one table with two containers** — a Game's prepared
+  opposition (`gameId` set) or an owner's shelf tray — the same move the crawler
+  made in ADR-030's shelved-crawler amendment.
+- **If the schema cannot express where a record must live, the schema moves.**
+  A record never falls back to local-only.
+
+### Rules that outlived the persistence plan
+
+The phased plan that delivered ADR-034 and ADR-035 is deleted; these stay true.
+
+- **No change may leave a user's data reachable from fewer places than before
+  it ran.** A roster that exists only in IndexedDB is claimed or stays readable;
+  "it is gone" is never an acceptable outcome.
+- **A gate must assert the end state, not the mechanism.** Twice a gate passed
+  while data did not arrive: one proved a roster *could* be claimed, another
+  that a Convex *table existed*. Ask of any new gate: *if this row is not in
+  Convex, is it lost when the user opens the app on their phone?*
+- **Settled, with reasons in ADR-034:** an anonymous user's way out is export to
+  file; Discord stays the only sign-in provider; the export bundle deliberately
+  omits the Change Log.
+- **Still open:** nothing blocking.
+
 ---
 
 ## State Management (Zustand, write-through)
@@ -225,7 +283,7 @@ shared state):
 ITUN does not depend on `@tanstack/react-query`. It was mounted in
 `src/routes/__root.tsx` for months with no `useQuery`/`useMutation` caller, and
 still shipped in the entry chunk, so it was removed (audit AP-10, 2026-09-25).
-Snapshot retrieval runs in a TanStack Router loader (`src/routes/s/$id.tsx`),
+A retired snapshot link's lookup runs in a TanStack Router loader (`src/routes/s/$id.tsx`),
 the Connected surfaces use Convex's own `useQuery` from `convex/react`, and the
 typed entity read hooks in `src/hooks/entities/` (`usePilots()`, `useMech()`, …)
 are selectors over the Zustand stores. If genuinely async, non-Convex, cacheable
@@ -234,22 +292,31 @@ speculatively, and never route persistent entity state through one.
 
 ---
 
-## Snapshot Sharing (account-free share links)
+## Sharing (account-free read-only links)
 
-Read-only share links are the account-free server surface, unchanged by ADR-030.
-See [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md).
+The one account-free way to share is the **public sheet**
+([ADR-032](../adrs/ADR-032-public-read-only-sheets.md)): `/p/:kind/:appId`,
+opt-in per entity through the `publicRead` Convex column and read by the
+unauthenticated `publicSheet.get` query. The Share dialog
+(`ShareStatusDialog` → `PublicSheetPanel`) toggles it.
 
-- **Client:** `src/lib/snapshot/client.ts` — `publishSnapshot(payload)` POSTs to
-  `/api/snapshots` and returns `{ id, url }`; `retrieveSnapshot(id)` GETs
-  `/api/snapshots/:id`; `probeSnapshotService()` feature-detects the backend.
-- **Backend:** the itun Worker (`src/worker/index.ts`) routes `/api/snapshots`
-  to the handlers in `src/lib/snapshot/handlers.ts`, backed by the
-  `su-itun-snapshots` **R2** bucket. The store is unauthenticated and
-  anonymous: no PII, a 256 KB payload cap, per-IP rate limiting (Cloudflare's
-  Rate Limiting binding), and crypto-random 8-char Crockford-base32 IDs.
-- **Trust boundary:** retrieved payloads are re-validated with Zod
-  (`safeParse`) on the client before rendering, so a tampered blob cannot inject
-  unexpected shapes.
+Snapshots are retired ([ADR-036](../adrs/ADR-036-retire-snapshot-shares.md)).
+Nothing mints or revokes them; the objects stay in the `su-itun-snapshots` **R2**
+bucket, read-only, so old links can still resolve:
+
+- **Worker:** `GET /api/snapshots/:id` (`src/lib/snapshot/handlers.ts`) answers
+  only `{ kind, appId }`, read from the stored blob — never the frozen build.
+  `/api/snapshots` itself is a 404; every other method on an id is a 405.
+- **Unfurl:** links already posted keep unfurling — the Worker still injects
+  `/s/:id`'s shell metadata and renders `/og/s/:id.png` from the blob's name and
+  kind — until the og pipeline is removed with `@resvg/resvg-wasm` (ADR-036 §5).
+- **Client:** the `/s/$id` loader calls `retrieveSnapshotIdentity` in
+  `src/lib/snapshot/client.ts`; `SnapshotLinkView` asks `publicSheet.get` about
+  that entity and replaces the URL with `/p/:kind/:appId` if it is public, or
+  shows a "this share link has been retired" page.
+- **Trust boundary:** both the blob and the Worker's answer are untrusted; one
+  function (`snapshotIdentity`, `src/lib/snapshot/identity.ts`) reads either and
+  returns null for anything that is not exactly a sheet kind and an app id.
 
 ---
 
@@ -285,9 +352,9 @@ read-only rather than forking against the server of record.
 
 ## Cross-References
 
-- [accounts-and-games.md](accounts-and-games.md) — ADR-030 delivery phases + the Convex/Discord operational reference
+- [accounts-and-games.md](accounts-and-games.md) — the Convex/Discord operational reference
 - `.claude/rules/itun-data-access.md` — which domain a given read/write belongs to
 - [ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md) — IndexedDB / `idb` / Zod-as-schema persistence
 - [ADR-003](../adrs/ADR-003-zustand-hydration.md) — Zustand store hydration + write-through
-- [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md) — Snapshot backend rationale
+- [ADR-036](../adrs/ADR-036-retire-snapshot-shares.md) — snapshots retired; the public sheet is the one way to share
 - [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) — **governing** — accounts, Games, ownership, Convex as server of record

@@ -90,7 +90,7 @@ test('work built anonymously survives signing in to save it', async ({ page }, t
   await buildPilot(page, 'Saved By Signing In', 'Keeper')
   expect(await cachedPilotCount(page)).toBe(0)
 
-  // Sign in the way the banner's button would, mid-session.
+  // Sign in mid-session, with the anonymous build still in memory.
   await signInFresh(page)
 
   // The reconciler sends the tab's work on the backend flip; wait for it to

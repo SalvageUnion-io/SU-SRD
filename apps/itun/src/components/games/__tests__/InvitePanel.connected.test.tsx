@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
  * `InvitePanel` — mint, read back, revoke.
@@ -49,6 +49,8 @@ function invite(over: Record<string, unknown> = {}) {
     usesRemaining: null,
     status: 'active',
     redeemers: [],
+    target: null,
+    delivery: null,
     ...over,
   }
 }
@@ -117,13 +119,16 @@ describe('revoking', () => {
 })
 
 describe('minting', () => {
-  test('passes the note, seat and door through', () => {
+  test('passes the note, seat and door through', async () => {
     renderPanel([])
 
     fireEvent.change(screen.getByLabelText('Invite note'), { target: { value: '  for Sam  ' } })
     fireEvent.change(screen.getByLabelText('Invite seat'), { target: { value: 'mediator' } })
     fireEvent.click(screen.getByLabelText('Require approval'))
-    fireEvent.click(screen.getByText('Create invite code'))
+    // Async act: a successful mint resets the form from the mutation's promise.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Create invite code'))
+    })
 
     expect(calls[0]?.args).toMatchObject({
       gameId: 'g1',
@@ -207,6 +212,45 @@ describe('answering knocks', () => {
   test('no knocks means no section at all', () => {
     renderPanel([invite()], [])
     expect(screen.queryByText(/Asking to join/i)).toBeNull()
+  })
+})
+
+describe('an addressed invite (ADR-039)', () => {
+  test('says which Discord account it went to', () => {
+    renderPanel([
+      invite({ _id: 'i1', target: { kind: 'discord', name: 'sam' }, usesRemaining: 1 }),
+      invite({ _id: 'i2', code: 'Z9Y8X7W6', target: { kind: 'discord', name: null } }),
+    ])
+    expect(screen.getByText(/sent to @sam/)).toBeTruthy()
+    expect(screen.getByText(/sent to a Discord account/)).toBeTruthy()
+  })
+
+  test('a failed delivery says so, so the Organizer knows to pass the code on', () => {
+    renderPanel([
+      invite({
+        target: { kind: 'discord', name: 'sam' },
+        delivery: { state: 'failed', detail: 'their DMs are closed' },
+      }),
+    ])
+    expect(screen.getByText(/DM not delivered \(their DMs are closed\)/)).toBeTruthy()
+  })
+
+  test('once an invite is closed, how its delivery went is no longer shown', () => {
+    renderPanel([
+      invite({
+        target: { kind: 'discord', name: 'sam' },
+        status: 'revoked',
+        delivery: { state: 'queued', detail: null },
+      }),
+    ])
+    expect(screen.queryByText(/sending/)).toBeNull()
+    expect(screen.getByText(/sent to @sam/)).toBeTruthy()
+  })
+
+  test('a declined invite reads as declined and offers no revoke', () => {
+    renderPanel([invite({ target: { kind: 'discord', name: 'sam' }, status: 'declined' })])
+    expect(screen.getByText('declined')).toBeTruthy()
+    expect(screen.queryByText('Revoke')).toBeNull()
   })
 })
 

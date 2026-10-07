@@ -1,5 +1,7 @@
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
+import type { LinkShape } from '../../src/lib/links/linkRules'
+import { conflictingLinks, LINK_ENDS, sameLink } from '../../src/lib/links/linkRules'
 import { CrawlerSchema } from '../../src/lib/schemas/crawler'
 import { EncounterNpcSchema } from '../../src/lib/schemas/encounterNpc'
 import { MechSchema } from '../../src/lib/schemas/mech'
@@ -90,6 +92,30 @@ export function parseBody(table: ParsedTable, body: unknown): unknown {
 }
 
 /**
+ * Remove the named fields from a crawler body, refusing any name the crawler
+ * schema does not define.
+ *
+ * The other half of `patchCrawlerByAppId`'s `unset`: a field patch cannot clear
+ * a field by sending `undefined`, because the Convex client drops undefined
+ * object fields on the wire. Only names the schema knows are accepted, so this
+ * cannot be used to strip arbitrary keys; whether a removal leaves a valid body
+ * (it cannot drop a required field) is still `parseBody`'s call.
+ */
+export function unsetCrawlerFields(
+  body: Record<string, unknown>,
+  keys: readonly string[]
+): Record<string, unknown> {
+  const next = { ...body }
+  for (const key of keys) {
+    if (!Object.hasOwn(CrawlerSchema.shape, key)) {
+      throw new Error(`Invalid crawlers patch: cannot unset unknown field "${key}"`)
+    }
+    delete next[key]
+  }
+  return next
+}
+
+/**
  * Load an ownable entity from a client-supplied id string, or throw.
  *
  * See the module header for why `normalizeId` is not optional here. `table`
@@ -177,10 +203,279 @@ export async function findSoftLink(
 }
 
 /* -------------------------------------------------------------------------- */
+/* The assignment model (ADR-037)                                             */
+/* -------------------------------------------------------------------------- */
+
+/** A row that sits in a container: every table a link end can name. */
+export type ContainedRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'>
+
+/** Which table each link-end kind lives in. */
+const TABLE_FOR_END = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' } as const
+
+/**
+ * The id links use for a row: its `appId`, or — for a row seeded server-side
+ * by a template, which has none — the id inside its body, which is what the
+ * template's own links were written against.
+ */
+export function linkIdOf(row: ContainedRow): string | undefined {
+  return row.appId ?? bodyAppId(row.body)
+}
+
+/** A row's owner. Absent on a crawler that has never been shelved, which means null. */
+function ownerOfRow(row: ContainedRow): Id<'users'> | null {
+  return row.ownerId ?? null
+}
+
+/**
+ * Whether two rows are in the same container — the one assignment invariant
+ * that is about *where*, not *how many*.
+ *
+ * The same Game, or the same owner's shelf. The second clause is the one
+ * `lib/container.ts`'s `sameContainer` cannot express: every player's shelf has
+ * the same `null` game id, and "My Stuff" is a solo Game per person, not one
+ * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
+ * it shares a container with nothing.
+ */
+export function sameContainerRows(a: ContainedRow, b: ContainedRow): boolean {
+  if (a.gameId !== b.gameId) return false
+  if (a.gameId !== null) return true
+  const owner = ownerOfRow(a)
+  return owner !== null && owner === ownerOfRow(b)
+}
+
+async function rowsByAppId(
+  ctx: QueryCtx | MutationCtx,
+  type: LinkShape['from']['type'],
+  appId: string
+): Promise<ContainedRow[]> {
+  // Spelled out per table: `withIndex` cannot be typed over a union of tables.
+  if (type === 'pilot') {
+    return await ctx.db
+      .query('pilots')
+      .withIndex('by_app_id', (q) => q.eq('appId', appId))
+      .collect()
+  }
+  if (type === 'mech') {
+    return await ctx.db
+      .query('mechs')
+      .withIndex('by_app_id', (q) => q.eq('appId', appId))
+      .collect()
+  }
+  return await ctx.db
+    .query('crawlers')
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .collect()
+}
+
+/** Every row of one kind in a Game. */
+export async function rowsInGame(
+  ctx: QueryCtx | MutationCtx,
+  type: LinkShape['from']['type'],
+  gameId: Id<'games'>
+): Promise<ContainedRow[]> {
+  const table = TABLE_FOR_END[type]
+  if (table === 'pilots') {
+    return await ctx.db
+      .query('pilots')
+      .withIndex('by_game', (q) => q.eq('gameId', gameId))
+      .collect()
+  }
+  if (table === 'mechs') {
+    return await ctx.db
+      .query('mechs')
+      .withIndex('by_game', (q) => q.eq('gameId', gameId))
+      .collect()
+  }
+  return await ctx.db
+    .query('crawlers')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .collect()
+}
+
+/**
+ * The row a link end names, or null when there is none.
+ *
+ * Addressed by `appId`, resolving a duplicate to the oldest row exactly as
+ * `byAppId` does in `entities.ts`. When nothing carries that app id and a Game
+ * is named, the Game's own rows are searched for one with **no** `appId` whose
+ * body id matches: a template seeds its crew without app ids, and its links
+ * point at body ids, so without this a template's crawler could never be
+ * assigned to. Scoped to one Game because template body ids repeat across
+ * every Game seeded from the same template.
+ */
+export async function resolveLinkEnd(
+  ctx: QueryCtx | MutationCtx,
+  ref: { type: LinkShape['from']['type']; id: string },
+  gameHint: Id<'games'> | null
+): Promise<ContainedRow | null> {
+  const matches = await rowsByAppId(ctx, ref.type, ref.id)
+  if (matches.length > 0) {
+    return matches.reduce((oldest, row) =>
+      row._creationTime < oldest._creationTime ? row : oldest
+    )
+  }
+  if (gameHint === null) return null
+  const seeded = await rowsInGame(ctx, ref.type, gameHint)
+  return seeded.find((row) => row.appId === undefined && bodyAppId(row.body) === ref.id) ?? null
+}
+
+/** Every link with this id on either end. */
+export async function linksTouching(
+  ctx: QueryCtx | MutationCtx,
+  id: string
+): Promise<Doc<'softLinks'>[]> {
+  const [outgoing, incoming] = await Promise.all([
+    ctx.db
+      .query('softLinks')
+      .withIndex('by_from', (q) => q.eq('from.id', id))
+      .collect(),
+    ctx.db
+      .query('softLinks')
+      .withIndex('by_to', (q) => q.eq('to.id', id))
+      .collect(),
+  ])
+  const seen = new Set<string>()
+  return [...outgoing, ...incoming].filter((l) => {
+    if (seen.has(l._id)) return false
+    seen.add(l._id)
+    return true
+  })
+}
+
+/**
+ * Draw a link, replacing every link it conflicts with, in this one mutation.
+ *
+ * The cardinality invariant's single server-side writer: `upsertSoftLink`, the
+ * claim, and the primary-crawler auto-assignment all draw through here, so
+ * "a pilot crews one crawler" cannot hold on one path and not another. The
+ * rule itself is `conflictingLinks` (`src/lib/links/linkRules.ts`), shared with
+ * the client.
+ *
+ * The caller has already decided the link is allowed — who may draw it, and
+ * that both ends share `gameId`'s container. `mayReplace` is asked about each
+ * conflicting link before anything is written, so a refusal there leaves the
+ * table exactly as it was; omit it for a server-internal write.
+ *
+ * ## Which neighbours count
+ *
+ * Conflicts on the `to` end (a pilot flies one mech) are looked for only among
+ * links filed in the same container, and so are the `from` end's when
+ * `fromScope` is `'container'`. Both exist for template-seeded rows: they carry
+ * no `appId`, their links name body ids, and those ids repeat across every
+ * Game seeded from the same template — a pilot in another Game is not this
+ * pilot. A `from` end found by `appId` is unique, so its links count wherever
+ * they are filed (`'any'`, the default), which also catches a link a pre-ADR-037
+ * move left filed under the wrong container.
+ */
+export async function writeSoftLink(
+  ctx: MutationCtx,
+  link: LinkShape,
+  gameId: Id<'games'> | null,
+  options: {
+    fromScope?: 'any' | 'container'
+    mayReplace?: (conflict: Doc<'softLinks'>) => Promise<void>
+  } = {}
+): Promise<'inserted' | 'present'> {
+  const [allFrom, toSide] = await Promise.all([
+    ctx.db
+      .query('softLinks')
+      .withIndex('by_from', (q) => q.eq('from.id', link.from.id))
+      .collect(),
+    LINK_ENDS[link.type].exclusiveTo
+      ? ctx.db
+          .query('softLinks')
+          .withIndex('by_to', (q) => q.eq('to.id', link.to.id))
+          .collect()
+      : Promise.resolve([]),
+  ])
+  const fromSide =
+    options.fromScope === 'container' ? allFrom.filter((l) => l.gameId === gameId) : allFrom
+  const mayReplace = options.mayReplace
+  const candidates = [...fromSide, ...toSide.filter((l) => l.gameId === gameId)]
+  const seen = new Set<string>()
+  const conflicts = conflictingLinks(candidates, link).filter((l) => {
+    if (seen.has(l._id)) return false
+    seen.add(l._id)
+    return true
+  })
+
+  if (mayReplace !== undefined) {
+    for (const conflict of conflicts) await mayReplace(conflict)
+  }
+  for (const conflict of conflicts) await ctx.db.delete(conflict._id)
+
+  const existing = fromSide.find((l) => sameLink(l, link))
+  if (existing !== undefined) {
+    // Already drawn; only its container can have drifted, and it follows its ends.
+    if (existing.gameId !== gameId) await ctx.db.patch(existing._id, { gameId })
+    return 'present'
+  }
+  await ctx.db.insert('softLinks', {
+    gameId,
+    from: { type: link.from.type, id: link.from.id },
+    to: { type: link.to.type, id: link.to.id },
+    type: link.type,
+  })
+  return 'inserted'
+}
+
+/**
+ * Delete every link touching a row that is being destroyed.
+ *
+ * Scoped to the row's own Game when it is template-seeded (no `appId`), for
+ * the reason `writeSoftLink` gives: its body id is shared with its twin in
+ * every other Game seeded from the same template, whose links are not this
+ * row's to delete.
+ */
+export async function pruneLinksOfRow(ctx: MutationCtx, row: ContainedRow): Promise<void> {
+  const id = linkIdOf(row)
+  if (id === undefined) return
+  for (const link of await linksTouching(ctx, id)) {
+    if (row.appId === undefined && link.gameId !== row.gameId) continue
+    await ctx.db.delete(link._id)
+  }
+}
+
+/**
+ * After a row changes container, drop every link that now straddles two, and
+ * re-file the ones that came along.
+ *
+ * A link survives only when its other end is in the row's NEW container; one
+ * whose other end is elsewhere, or no longer exists, is deleted. Called from
+ * every move path (`upsertByAppId`, the crawler move) so that "both ends share
+ * a container" survives the move as well as the draw. The client mirrors it in
+ * `entityStore.update` through `linksBrokenByMove`.
+ *
+ * `previousGameId` scopes a template-seeded row (no `appId`) to the links
+ * filed where it came from, because its body id is shared with its twin in
+ * every other Game seeded from the same template (see `writeSoftLink`).
+ */
+export async function pruneLinksAcrossContainers(
+  ctx: MutationCtx,
+  row: ContainedRow,
+  previousGameId: Id<'games'> | null
+): Promise<void> {
+  const id = linkIdOf(row)
+  if (id === undefined) return
+  const touching = await linksTouching(ctx, id)
+  const own =
+    row.appId === undefined ? touching.filter((l) => l.gameId === previousGameId) : touching
+  for (const link of own) {
+    const other = link.from.id === id ? link.to : link.from
+    const otherRow = await resolveLinkEnd(ctx, other, row.gameId)
+    if (otherRow === null || !sameContainerRows(row, otherRow)) {
+      await ctx.db.delete(link._id)
+    } else if (link.gameId !== row.gameId) {
+      await ctx.db.patch(link._id, { gameId: row.gameId })
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Game summaries                                                             */
 /* -------------------------------------------------------------------------- */
 
-/** What the Games list shows for a table. Stored on `games.summary`. */
+/** What a table holds, as the hub states it. Stored on `games.summary`. */
 export type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
 
 /**
@@ -220,10 +515,9 @@ export async function computeGameSummary(
       .query('mechs')
       .withIndex('by_game', (q) => q.eq('gameId', gameId))
       .collect(),
-    ctx.db
-      .query('crawlers')
-      .withIndex('by_game', (q) => q.eq('gameId', gameId))
-      .first(),
+    // The PRIMARY crawler's name: it is the one the table is anchored to, and
+    // with several crawlers "the first" was whichever the index met first.
+    primaryCrawlerOf(ctx, gameId),
   ])
   return {
     memberCount: members.length,
@@ -231,6 +525,162 @@ export async function computeGameSummary(
     mechCount: mechs.length,
     crawlerName: crawler === null ? null : crawlerNameOf(crawler.body),
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* The primary crawler (ADR-037)                                              */
+/* -------------------------------------------------------------------------- */
+
+/** Every crawler in a Game, oldest first. */
+async function crawlersIn(ctx: QueryCtx | MutationCtx, gameId: Id<'games'>) {
+  const rows = await ctx.db
+    .query('crawlers')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .collect()
+  return rows.sort((a, b) => a._creationTime - b._creationTime)
+}
+
+/**
+ * Which of a Game's crawlers is primary: the stored one while it is still in
+ * the Game, else the oldest crawler there, else none.
+ *
+ * Pure, so the fallback is one rule wherever it is read. "Else the oldest" is
+ * what a Game that predates the column gets, and also what a stale pointer
+ * gets — a crawler deleted or moved without the bookkeeping below (a dashboard
+ * edit) still leaves the Game a sensible primary.
+ */
+export function effectivePrimary(
+  stored: Id<'crawlers'> | null | undefined,
+  oldestFirst: readonly Doc<'crawlers'>[]
+): Doc<'crawlers'> | null {
+  return oldestFirst.find((c) => c._id === stored) ?? oldestFirst[0] ?? null
+}
+
+/** A Game's primary crawler, or null when it has none (or no longer exists). */
+export async function primaryCrawlerOf(
+  ctx: QueryCtx | MutationCtx,
+  gameId: Id<'games'>
+): Promise<Doc<'crawlers'> | null> {
+  const [game, crawlers] = await Promise.all([ctx.db.get(gameId), crawlersIn(ctx, gameId)])
+  if (game === null) return null
+  return effectivePrimary(game.primaryCrawlerId, crawlers)
+}
+
+/**
+ * Assign a pilot or mech that just entered a Game to the Game's primary
+ * crawler — the explicit link written on entry (ADR-037).
+ *
+ * A server write, not the caller's: it is part of creating the entity in the
+ * Game or moving it there, so it answers to the rules of that act and not to
+ * `upsertSoftLink`'s from-owner check. It replaces any crawler link the entity
+ * still had (there is none after a move's prune, but the write keeps the
+ * invariant whatever happens). No primary, no link — the first crawler to
+ * arrive picks the crew up (`crawlerEnteredGame`).
+ */
+export async function assignToPrimary(
+  ctx: MutationCtx,
+  kind: 'pilot' | 'mech',
+  row: Doc<'pilots'> | Doc<'mechs'>
+): Promise<void> {
+  if (row.gameId === null) return
+  const primary = await primaryCrawlerOf(ctx, row.gameId)
+  if (primary === null) return
+  await linkToCrawler(ctx, kind, row, primary)
+}
+
+async function linkToCrawler(
+  ctx: MutationCtx,
+  kind: 'pilot' | 'mech',
+  row: Doc<'pilots'> | Doc<'mechs'>,
+  crawler: Doc<'crawlers'>
+): Promise<void> {
+  const from = linkIdOf(row)
+  const to = linkIdOf(crawler)
+  if (from === undefined || to === undefined) return
+  await writeSoftLink(
+    ctx,
+    {
+      from: { type: kind, id: from },
+      to: { type: 'crawler', id: to },
+      type: kind === 'pilot' ? 'pilot-to-crawler' : 'mech-to-crawler',
+    },
+    row.gameId,
+    { fromScope: row.appId === undefined ? 'container' : 'any' }
+  )
+}
+
+/**
+ * A crawler just arrived in a Game — raised there or moved in.
+ *
+ * If the Game had no crawler, this one becomes primary, and every pilot and
+ * mech already there with no crawler of their own is assigned to it: the crew
+ * that gathered before the crawler was raised gets aboard the moment it is.
+ * Otherwise nothing changes for anyone; a Game whose primary was only implied
+ * (it predates the column) has it written down, so a later arrival can never
+ * reshuffle it.
+ */
+export async function crawlerEnteredGame(
+  ctx: MutationCtx,
+  crawler: Doc<'crawlers'>
+): Promise<void> {
+  const gameId = crawler.gameId
+  if (gameId === null) return
+  const game = await ctx.db.get(gameId)
+  if (game === null) return
+
+  const others = (await crawlersIn(ctx, gameId)).filter((c) => c._id !== crawler._id)
+  const current = effectivePrimary(game.primaryCrawlerId, others)
+  if (current !== null) {
+    if (game.primaryCrawlerId !== current._id) {
+      await ctx.db.patch(gameId, { primaryCrawlerId: current._id })
+    }
+    return
+  }
+
+  await ctx.db.patch(gameId, { primaryCrawlerId: crawler._id })
+  await refreshGameSummary(ctx, gameId)
+
+  for (const [kind, table] of [
+    ['pilot', 'pilots'],
+    ['mech', 'mechs'],
+  ] as const) {
+    const rows = await ctx.db
+      .query(table)
+      .withIndex('by_game', (q) => q.eq('gameId', gameId))
+      .collect()
+    const type = kind === 'pilot' ? 'pilot-to-crawler' : 'mech-to-crawler'
+    for (const row of rows) {
+      const id = linkIdOf(row)
+      if (id === undefined) continue
+      const own = await ctx.db
+        .query('softLinks')
+        .withIndex('by_from', (q) => q.eq('from.id', id))
+        .collect()
+      const housed = own.some(
+        (l) => l.type === type && (row.appId !== undefined || l.gameId === gameId)
+      )
+      if (!housed) await linkToCrawler(ctx, kind, row, crawler)
+    }
+  }
+}
+
+/**
+ * A crawler just left a Game — scrapped or moved out.
+ *
+ * If it was primary, the oldest crawler left takes over, or none. Nobody is
+ * reassigned: the crew links to the crawler that left went with it, and
+ * changing the primary moves nobody (ADR-037).
+ */
+export async function crawlerLeftGame(
+  ctx: MutationCtx,
+  gameId: Id<'games'>,
+  crawlerId: Id<'crawlers'>
+): Promise<void> {
+  const game = await ctx.db.get(gameId)
+  if (game === null || game.primaryCrawlerId !== crawlerId) return
+  const next = (await crawlersIn(ctx, gameId)).find((c) => c._id !== crawlerId) ?? null
+  await ctx.db.patch(gameId, { primaryCrawlerId: next?._id ?? null })
+  await refreshGameSummary(ctx, gameId)
 }
 
 /**

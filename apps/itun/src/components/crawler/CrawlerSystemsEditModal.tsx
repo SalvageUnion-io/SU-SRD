@@ -8,13 +8,12 @@
  * immediately via the sheet's `patch({ systems })`.
  */
 
-import { EntitySearcher, ModalShell } from 'component-lib'
+import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
 import { useMemo } from 'react'
 import type { SURefCrawler, SURefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isWeaponSystem } from 'salvageunion-reference/rules'
+import { computeCrawlerCapacity, isWeaponSystem } from 'salvageunion-reference/rules'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
-import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import type { Crawler } from '../../lib/schemas/crawler'
 
 type CrawlerSystemsEditModalProps = {
@@ -64,7 +63,7 @@ export function CrawlerSystemsEditModal({
         if (!next) onClose()
       }}
       title="Edit Weapons Systems"
-      maxWidth="max-w-5xl"
+      maxWidth={PICKER_MODAL_WIDTH}
       bare
     >
       <EntitySearcher

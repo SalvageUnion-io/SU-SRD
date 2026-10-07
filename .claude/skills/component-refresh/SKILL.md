@@ -7,16 +7,10 @@ allowed-tools: Bash, Read, Edit, Write, Glob, Grep
 # Component Refresh
 
 Drive a component redesign through the repeatable three-level loop. This is the
-dominant kind of work in this repo, and the loop that makes it safe already
-exists as prose — it just was not invokable, so every session reconstructed it
-from a paragraph and some skipped the parts that make it safe.
-
-**The methodology lives in
-[`docs/design/entity-card-reconciliation.md`](../../../docs/design/entity-card-reconciliation.md)
-Part 1 — read it first, and treat it as the source of truth.** Do not restate it
-here or anywhere else; a second copy drifts, and the `doc-drift` check exists
-because that has already happened. This skill is the operating procedure for
-running it.
+dominant kind of work in this repo. **This skill is the methodology** — it was
+proven on the entity-card refresh, whose settled design rules are
+[ADR-026](../../../docs/adrs/ADR-026-entity-card-design-rules.md). Do not restate
+it anywhere else; a second copy drifts.
 
 ## Before starting
 
@@ -57,9 +51,15 @@ component that does not exist.
 
 ## L3 — cutover, staged and green at every step
 
-Only on explicit instruction. Follow the staged plan in the canonical doc
-(rename → barrel + compat shim → migrate consumers lowest-risk first → delete
-legacy and canonicalize stories), committing per stage.
+Only on explicit instruction. Stage it, committing per stage:
+
+1. Close the new component's parity gaps: inventory every legacy prop a
+   consumer uses and add the missing ones, additively.
+2. Rename `NEW*` to canonical, flip the barrel, and leave a compat shim under
+   the legacy name so every consumer renders through the new component.
+3. Migrate consumers, lowest-risk first.
+4. Delete the legacy component and the shim, and move its stories into their
+   canonical Ladle groups.
 
 ## Invariants — check these at every level
 

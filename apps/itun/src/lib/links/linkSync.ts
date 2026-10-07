@@ -1,0 +1,164 @@
+/**
+ * What `WiringSync` does to this browser's links and Game crawlers, as pure
+ * plans (ADR-037).
+ *
+ * `entities.listWiring` is the server's answer to "every assignment you can
+ * see, and every crawler at your tables". These functions turn one answer plus
+ * the local cache into the writes that make the cache reflect it — the same
+ * "server wins" reconcile `ShelfSync` does for owned rows. They live here, as
+ * functions, so the tests assert the rule itself rather than a copy of it
+ * (the reason `lib/db/pruneRules.ts` exists too).
+ *
+ * ## Absence means deleted only where the server spoke
+ *
+ * A link the server did not return is pruned only when it is **covered**: one
+ * of its ends is cached here in a container the answer covers — the caller's
+ * shelf (every shelf link is drawn out of one of their own entities, all of
+ * which the query reads) or a Game in `gameIds`. A link touching neither is
+ * not this answer's to judge and is left alone, and nothing is pruned at all
+ * unless `mayPrune` says absence can be trusted (`lib/db/pruneRules.ts`).
+ */
+
+import type { Container } from '../container'
+import { containerOf } from '../container'
+import type { EntityRef } from '../schemas/entity'
+import type { SoftLink } from '../schemas/softLink'
+import type { EndContainer } from './linkRules'
+import { linkKey } from './linkRules'
+
+/** A link row as `entities.listWiring` returns it. */
+export type ServedLink = {
+  _id: string
+  _creationTime: number
+  gameId: string | null
+  from: EntityRef
+  to: EntityRef
+  type: SoftLink['type']
+}
+
+/** A Game crawler as `entities.listWiring` returns it. */
+export type ServedCrawler = {
+  appId: string | null
+  gameId: string | null
+  updatedAt: number
+  body: unknown
+}
+
+/**
+ * The local record for a served link.
+ *
+ * A server link has no id of its own — its identity is the (type, from, to)
+ * triple — so the Convex row id stands in: stable, unique, and the same on
+ * every device that syncs it. A link drawn in this browser keeps the id it was
+ * minted with; the two never need to agree, because nothing addresses a link
+ * by id across the wire.
+ */
+export function softLinkFromServer(row: ServedLink): SoftLink {
+  return {
+    id: row._id,
+    from: { type: row.from.type, id: row.from.id },
+    to: { type: row.to.type, id: row.to.id },
+    type: row.type,
+    createdAt: new Date(row._creationTime).toISOString(),
+  }
+}
+
+function covers(where: Container | null, gameIds: ReadonlySet<string>): boolean {
+  if (where === null) return false
+  return where.kind === 'shelf' || gameIds.has(where.gameId)
+}
+
+/** Links to adopt from the server, and local link ids to forget. */
+export function planLinkSync(args: {
+  local: readonly SoftLink[]
+  served: readonly ServedLink[]
+  /** The Games the answer covers (`listWiring().gameIds`). */
+  gameIds: ReadonlySet<string>
+  /** Where a link end lives, from this browser's cache; null when not cached. */
+  containerOfEnd: EndContainer
+  mayPrune: boolean
+}): { adopt: SoftLink[]; prune: string[] } {
+  const servedKeys = new Set<string>()
+  const adopt: SoftLink[] = []
+  const localKeys = new Set(args.local.map(linkKey))
+  for (const row of args.served) {
+    const key = linkKey(row)
+    if (servedKeys.has(key)) continue
+    servedKeys.add(key)
+    if (!localKeys.has(key)) adopt.push(softLinkFromServer(row))
+  }
+
+  if (!args.mayPrune) return { adopt, prune: [] }
+
+  const prune: string[] = []
+  const kept = new Set<string>()
+  for (const link of args.local) {
+    const key = linkKey(link)
+    const covered =
+      covers(args.containerOfEnd(link.from), args.gameIds) ||
+      covers(args.containerOfEnd(link.to), args.gameIds)
+    if (!covered) continue
+    // One record per link: a second copy of a link the server holds is the
+    // residue of a race between a local draw and a sync, and goes too.
+    if (servedKeys.has(key) && !kept.has(key)) {
+      kept.add(key)
+      continue
+    }
+    prune.push(link.id)
+  }
+  return { adopt, prune }
+}
+
+/** The id a crawler body carries, or null. */
+function bodyId(body: unknown): string | null {
+  const id = (body as { id?: unknown } | null)?.id
+  return typeof id === 'string' && id.length > 0 ? id : null
+}
+
+/**
+ * Game crawlers to adopt, and local crawler ids to forget.
+ *
+ * A crawler is adopted when this browser lacks it or the server row has moved
+ * on since it was last adopted (`adoptedAt`, keyed by id, holds the row's
+ * `updatedAt` at that adoption) — the crawler is communal, so a crewmate's edit
+ * has to reach this cache too. The body is stamped with the ROW's container,
+ * because the column is the authority (`maintenance.repairContainers`) and a
+ * template-seeded body names no Game at all.
+ *
+ * A local crawler filed in a covered Game that the server no longer returns
+ * was scrapped or moved out, and is forgotten — when `mayPrune` allows.
+ */
+export function planCrawlerSync(args: {
+  local: readonly { id: string; gameId?: string | null; workspaceId?: string }[]
+  served: readonly ServedCrawler[]
+  gameIds: ReadonlySet<string>
+  adoptedAt: ReadonlyMap<string, number>
+  mayPrune: boolean
+}): {
+  adopt: Array<{ id: string; updatedAt: number; body: Record<string, unknown> }>
+  prune: string[]
+} {
+  const localIds = new Set(args.local.map((c) => c.id))
+  const servedIds = new Set<string>()
+  const adopt: Array<{ id: string; updatedAt: number; body: Record<string, unknown> }> = []
+  for (const row of args.served) {
+    const id = bodyId(row.body)
+    if (id === null || servedIds.has(id)) continue
+    servedIds.add(id)
+    if (localIds.has(id) && args.adoptedAt.get(id) === row.updatedAt) continue
+    adopt.push({
+      id,
+      updatedAt: row.updatedAt,
+      body: { ...(row.body as Record<string, unknown>), gameId: row.gameId },
+    })
+  }
+
+  if (!args.mayPrune) return { adopt, prune: [] }
+  const prune = args.local
+    .filter((c) => {
+      const where = containerOf(c)
+      return where.kind === 'game' && args.gameIds.has(where.gameId) && !servedIds.has(c.id)
+    })
+    .map((c) => c.id)
+  return { adopt, prune }
+}

@@ -2,8 +2,7 @@
 
 > **Status:** Canon. This is the authoritative, comprehensive ruleset for the
 > SU-SRD UI — the governing laws every primitive and every surface obeys. It is
-> the _rules_; the [migration plan](./canonical-primitive-language.md) is the
-> _build order_; the visual codex is the _rendered proof_:
+> the _rules_; the visual codex is the _rendered proof_:
 > <https://claude.ai/code/artifact/21df6224-cb0d-4520-a411-10f5646b4cf7>.
 >
 > If a component contradicts a rule here, the component is wrong — never the
@@ -152,8 +151,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
    Sanctioned patterns today: the `Slab` dashed leader, the **srd catalog tile
    ramps** (`CatalogTile`/`catalogColors` — tech-level and ability-tier bands
-   as a wayfinding cue) and its story, and the snapshot QR placeholder
-   checkerboard. Each is still listed in `tools/rules/designTokens.ts`'s
+   as a wayfinding cue) and its story. Each is still listed in `tools/rules/designTokens.ts`'s
    `EXEMPTIONS` table with a written reason, because the checker matches the
    CSS function and cannot itself tell a hard stop from a blend.
 

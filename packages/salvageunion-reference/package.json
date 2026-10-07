@@ -1,6 +1,6 @@
 {
   "name": "salvageunion-reference",
-  "version": "2.13.3",
+  "version": "2.13.4",
   "private": true,
   "description": "Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG",
   "type": "module",
@@ -32,13 +32,12 @@
     "./lib/zod.ts"
   ],
   "scripts": {
-    "build": "bun run generate:registry && bun run generate:json-schemas && bun run docs && bun run generate:api-report",
+    "build": "bun run generate:registry && bun run generate:json-schemas && bun run docs",
     "fix:ids": "bun tools/generateMissingIds.ts",
     "scaffold:entity": "bun tools/scaffold-entity.ts",
     "docs": "bun tools/generateDocs.ts",
     "generate:registry": "bun tools/generateRegistry.ts",
     "generate:json-schemas": "bun tools/generateJsonSchemas.ts",
-    "generate:api-report": "bun tools/generateApiReport.ts",
     "validate": "bun tools/validate.ts",
     "edit-data": "bun tools/edit-data.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",

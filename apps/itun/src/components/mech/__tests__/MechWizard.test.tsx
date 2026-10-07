@@ -65,19 +65,19 @@ afterEach(async () => {
 // ---------------------------------------------------------------------------
 
 function mule() {
-  const chassis = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
+  const chassis = SalvageUnionReference.Chassis.getByName('Mule')
   if (!chassis) throw new Error('Mule chassis not found')
   return chassis
 }
 
 function systemByName(name: string) {
-  const system = SalvageUnionReference.Systems.find((s) => s.name === name)
+  const system = SalvageUnionReference.Systems.getByName(name)
   if (!system) throw new Error(`system "${name}" not found`)
   return system
 }
 
 function moduleByName(name: string) {
-  const module = SalvageUnionReference.Modules.find((m) => m.name === name)
+  const module = SalvageUnionReference.Modules.getByName(name)
   if (!module) throw new Error(`module "${name}" not found`)
   return module
 }
@@ -273,7 +273,7 @@ describe('MechWizard — hard creation enforcement', () => {
       fireEvent.click(screen.getByRole('button', { name: /Craft your Chassis/i }))
     })
     await pickRadio('Scrapper')
-    const scrapper = SalvageUnionReference.Chassis.find((c) => c.name === 'Scrapper')
+    const scrapper = SalvageUnionReference.Chassis.getByName('Scrapper')
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
       `${MECH_CREATION_SCRAP_CAP - must(scrapper).salvageValue} /`
     )
