@@ -1,8 +1,8 @@
 /**
  * The GritQL plugins in `tools/biome/` and the component-lib function-size cap
  * are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
- * A bad glob, or a Biome update that changes how plugins match (Renovate merges
- * minors unattended), would make a rule check nothing while `bun run check`
+ * A bad glob, or a Biome update that changes how plugins match, would make a
+ * rule check nothing while `bun run check`
  * stays green. These lint fixture files and assert each rule still fires.
  *
  * The fixtures go in a throwaway copy of the repo's layout: biome.jsonc and the

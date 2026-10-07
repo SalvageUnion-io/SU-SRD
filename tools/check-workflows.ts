@@ -451,13 +451,13 @@ export function checkBunVersion(ctx: WorkflowContext): CheckResult {
     )
   }
   // `packageManager` is how a tool that installs its OWN Bun picks a version
-  // (Renovate's lockfile regeneration, a bare oven-sh/setup-bun). A Bun other
+  // (a bare oven-sh/setup-bun). A Bun other
   // than the pinned one can write a bun.lock the pinned Bun cannot read.
   const packageManager = ctx.manifests.get('package.json')?.packageManager
   if (packageManager !== `bun@${expected}`) {
     failures.push(
       `root package.json packageManager = ${packageManager ?? '(absent)'}, expected bun@${expected} ` +
-        '— tools that set up their own Bun (Renovate, a bare setup-bun) read it.'
+        '— tools that set up their own Bun (a bare setup-bun) read it.'
     )
   }
   const bunTypes = ctx.manifests.get('package.json')?.devDependencies?.['bun-types']

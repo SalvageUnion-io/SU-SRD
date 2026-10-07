@@ -29,8 +29,8 @@ name: Audit Watch
 
 on:
   schedule:
-    # Mondays, ahead of the Dependabot and catalog-update batches, so an
-    # advisory is on the board before the PRs that might resolve it arrive.
+    # Mondays. No bot opens a PR for a vulnerable Bun dependency, so this
+    # issue is the weekly signal to fix one by hand.
     - cron: '0 5 * * 1'
   workflow_dispatch:
 
