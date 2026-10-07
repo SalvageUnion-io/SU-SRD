@@ -10,7 +10,7 @@ import { SalvageUnionReference } from '../lib/gameData'
 /**
  * Both values are DERIVED, and both are built inside `page()`.
  *
- * the `architecture` check forbids a module-scope `SalvageUnionReference` call —
+ * the `noModuleScopeReferenceCall` Biome plugin forbids a module-scope `SalvageUnionReference` call —
  * it would run at import time, before the build's `preload()` bootstrap, and
  * throw "Schema not loaded".
  *

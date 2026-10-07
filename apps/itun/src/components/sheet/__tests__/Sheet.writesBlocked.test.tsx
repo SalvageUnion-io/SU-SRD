@@ -10,8 +10,8 @@
  * Uses toBeTruthy() not toBeInTheDocument() (Wave 4 workaround).
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -21,10 +21,6 @@ import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/moc
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-afterEach(() => {
-  cleanup()
-})
 
 const fakePilot: Pilot = {
   id: 'pilot-1',

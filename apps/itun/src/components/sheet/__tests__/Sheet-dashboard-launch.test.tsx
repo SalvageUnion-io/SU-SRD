@@ -4,8 +4,8 @@
  * frozen (read-only) sheet does not.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, test } from 'bun:test'
+import { render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
@@ -38,10 +38,6 @@ beforeEach(async () => {
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 describe('Live Sheet — Launch Dashboard entry (P4.4)', () => {

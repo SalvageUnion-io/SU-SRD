@@ -12,8 +12,8 @@
  * Manual print-review checklist: see cycle-2.md in the cycle records.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -25,14 +25,6 @@ import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-// ---------------------------------------------------------------------------
-// Preload chassis data so MechSheet can resolve chassisRef
-// ---------------------------------------------------------------------------
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Minimal fake entities

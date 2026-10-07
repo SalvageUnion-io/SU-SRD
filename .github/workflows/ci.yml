@@ -162,7 +162,7 @@ jobs:
               # the hook scripts are exercised by tools/__tests__/claude-hooks.test.ts
               - '.claude/hooks/**'
             # Prose and agent config. Runs the repo-invariant checks (doc
-            # drift, architecture) but not the test suite or the typecheck —
+            # drift, observability) but not the test suite or the typecheck —
             # nothing compiles or tests these files (audit CI-11).
             docs:
               - 'docs/**'

@@ -22,6 +22,12 @@ everything below about parity in the past tense.
 no regression and needed 17 re-blesses. srd's output is now held by targeted
 checks; see "Verification" in [`ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
 
+**Amended 2026-10-06 — the `typescript-classic` alias is gone.** Its one
+consumer, the AST-walking architecture check, became three GritQL plugins in
+[`tools/biome/`](../../tools/biome/) and a Biome function-size rule, so nothing
+needs the TypeScript 6 compiler API. The "Carried over unchanged" bullet about
+the alias is history.
+
 ## Context
 
 ADR-012 chose "**Astro, static, React islands**", and explicitly treated the
@@ -192,7 +198,7 @@ left, and no available version fixed it.
 ### Carried over unchanged
 
 - **The root `typescript-classic` alias (`npm:typescript@6.0.3`) stays.** It is
-  not Astro residue: `tools/check-architecture.ts` imports it for the
+  not Astro residue: `tools/check-architecture.ts` (since deleted) imports it for the
   TypeScript 6 compiler API, because TS 7's replacement `typescript/unstable/*`
   API has no single-file `createSourceFile`/`forEachChild` to walk. The alias
   goes when that API stabilises, not in an "Astro leftovers" sweep.

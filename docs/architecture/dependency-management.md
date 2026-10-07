@@ -25,8 +25,7 @@ pin, kept equal to `apps/itun/package.json`'s by
   `bun` manager only runs `bun install` on the edited manifest, so a range that
   still admits the new version would change nothing.
 - **Never updated automatically:** the `overrides` block (hand-curated floors,
-  below) and `typescript-classic`, which is held below 7 because
-  `tools/check-architecture.ts` needs the TypeScript 6 compiler API.
+  below).
 
 Writing the same version into several manifests is fine: Renovate updates every
 occurrence in the same grouped PR. There is no Bun catalog, because Renovate's

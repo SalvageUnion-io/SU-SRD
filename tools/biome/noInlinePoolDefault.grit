@@ -1,0 +1,20 @@
+// "An unset pool means FULL" is owned by `resolvePool` / `resolveGauge`
+// (salvageunion-reference/lib/rules/derivedStats.ts). Both take the raw
+// `current*` value, so a correct call site has no `??` on one at all. Written
+// out per site, `pilot.currentDamage ?? max` is one keystroke from rendering a
+// healthy pilot at 0 HP, or a cold mech at its Heat Capacity (Heat is a gauge
+// and defaults to EMPTY), and nothing fails when two surfaces disagree.
+//
+// A string or template fallback (`?? '—'`) is a display decision, not the pool
+// rule, so it passes.
+language js(typescript, jsx)
+
+`$value ?? $fallback` as $expr where {
+  $value <: JsStaticMemberExpression(member=$field),
+  $field <: r"current[A-Z]\w*",
+  $fallback <: not or {
+    JsStringLiteralExpression(),
+    JsTemplateExpression()
+  },
+  register_diagnostic(span=$expr, message="This inlines the unset-pool default. Use resolvePool(entity.currentX, maxX) from 'salvageunion-reference/rules', or resolveGauge for Heat, which defaults to empty.", severity="error")
+}

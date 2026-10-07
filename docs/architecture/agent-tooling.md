@@ -113,9 +113,9 @@ a worktree made with plain `git worktree add` needs the copy by hand.
 ### `context7` is advisory, and that is the whole point
 
 It answers "what is the API in **this** version", which is the failure this repo
-keeps paying for — TypeScript 7 alongside a load-bearing `typescript-classic` 6
-alias, Vite 8, Tailwind 4.3, Convex 1.43, TanStack Router 1.170, Biome 2.5, knip
-6.29. Most of that is newer than any model's training data.
+keeps paying for — TypeScript 7, Vite 8, Tailwind 4.3, Convex 1.43, TanStack
+Router 1.170, Biome 2.5, knip 6.29. Most of that is newer than any model's
+training data.
 
 Two caveats, neither disqualifying: what it returns is **condensed
 documentation, not the source** — verify anything load-bearing against

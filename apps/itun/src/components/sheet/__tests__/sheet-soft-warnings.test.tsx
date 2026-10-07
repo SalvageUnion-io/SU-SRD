@@ -17,8 +17,8 @@
  * (L3), so dropping L1 while L2 is held trips ABILITY_TREE_ORDER.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
@@ -26,10 +26,6 @@ import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
-
-afterEach(() => {
-  cleanup()
-})
 
 const ABILITY_L1 = 'Engineering Expertise'
 const ABILITY_L2 = 'Talk Shop'

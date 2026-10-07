@@ -22,8 +22,8 @@
  * - Dep-injection for entityStore and softLinkStore
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { InlineEditField } from 'component-lib'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -37,14 +37,6 @@ import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-// ---------------------------------------------------------------------------
-// Preload salvageunion-reference so MechSheet.chassis resolution doesn't throw
-// ---------------------------------------------------------------------------
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Shared fixtures (mirrors Sheet.test.tsx)

@@ -131,7 +131,7 @@ declares which areas make it relevant:
   knip.
 - **`deps`**: the dependency audit.
 - **`code` or `docs`**: the repo invariants — `data`, `doc-drift`,
-  `architecture`, `observability`, `convex-codegen`, `convex-callers`.
+  `observability`, `convex-codegen`, `convex-callers`.
 
 The test suite is in the registry too (`bun run check` runs it) but not in the
 `ci` profile: it is the `coverage` job.

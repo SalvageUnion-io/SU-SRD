@@ -17,8 +17,8 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
@@ -28,10 +28,6 @@ import { must } from '../../__tests__/must'
 import { MechSheet } from '../MechSheet'
 
 beforeAll(hydrateStores)
-
-afterEach(() => {
-  cleanup()
-})
 
 const fakeChassis = {
   name: 'Iron Mongrel',

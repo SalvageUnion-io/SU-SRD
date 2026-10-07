@@ -92,7 +92,7 @@ is strictly worse than the hook that already runs: it is not wrapped in
 the "not wrapped in act(...)" warnings the preload exists to avoid. It also
 buys nothing — the preload's hook runs for that file regardless.
 
-`packages/component-lib/src/test-hygiene.test.ts` enforces this.
+`tools/biome/noBareCleanupHook.grit` enforces this.
 
 Two things that _are_ still your job:
 

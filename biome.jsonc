@@ -24,7 +24,49 @@
   "root": true,
   // Rules Biome has no built-in for, written in GritQL. Each file states what
   // it matches and why.
-  "plugins": ["./tools/biome/noModelFindByKey.grit"],
+  "plugins": [
+    "./tools/biome/noModelFindByKey.grit",
+    // Shipped source in every workspace: `apps/*/src` and `packages/*/src`
+    // match a new workspace without anyone listing it. Tests, stories and
+    // test bootstraps run after a preload, so module-scope access is safe there.
+    // A plugin's `includes` is matched against the file's absolute path (unlike
+    // `files.includes`), so every positive glob needs its leading `**/`: a bare
+    // `apps/*/src/**` matches nothing and the rule silently checks no file.
+    {
+      "path": "./tools/biome/noModuleScopeReferenceCall.grit",
+      "includes": [
+        "**/apps/*/src/**",
+        "**/packages/*/src/**",
+        "**/packages/salvageunion-reference/lib/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.stories.tsx",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/e2e/**",
+        "!**/generated/**"
+      ]
+    },
+    {
+      "path": "./tools/biome/noInlinePoolDefault.grit",
+      "includes": [
+        "**/apps/*/src/**",
+        "**/packages/*/src/**",
+        "**/packages/salvageunion-reference/lib/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.stories.tsx",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/e2e/**",
+        "!**/generated/**"
+      ]
+    },
+    {
+      "path": "./tools/biome/noBareCleanupHook.grit",
+      "includes": ["**/*.test.ts", "**/*.test.tsx"]
+    }
+  ],
   "files": {
     "ignoreUnknown": true,
     "includes": [
@@ -316,6 +358,27 @@
   },
   "overrides": [
     {
+      // Function-size ratchet for component-lib. `ReferenceEntityCardInner` was
+      // once a ~1,870-line body that six workstreams edited at once; audit PK-08
+      // decomposed it, and the cap sits at what is left, so one more line in the
+      // largest body fails. Biome counts the whole function without comment
+      // lines, which is why this reads lower than the 856-line body the old
+      // AST check measured. Lower it when a seam lands; never raise it.
+      "includes": [
+        "packages/component-lib/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.stories.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 742 } }
+          }
+        }
+      }
+    },
+    {
       // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
       // point in a test or a story, so `noEmptyBlockStatements` — which exists
       // to catch swallowed errors in shipped code — is off here.
@@ -563,15 +626,10 @@
       }
     },
     // -------------------------------------------------------------------
-    // Architecture invariants (previously prose-only): the 3 of the 4 rules
-    // that map onto Biome's existing configurable rules. See the PR
-    // description for the full writeup, including why the 4th rule (no
-    // module-scope SalvageUnionReference accessor calls,
-    // docs/architecture/package-contracts.md's "Module-Scope ORM Call Risk")
-    // is enforced by tools/check-architecture.ts instead — Biome's GritQL
-    // plugin system couldn't be made to match the required two-level member
-    // chain or reliably scope-exclude function-nested matches in this
-    // version (2.5.3).
+    // Architecture invariants (previously prose-only) that map onto Biome's
+    // configurable rules. The ones it has no rule for (no module-scope
+    // SalvageUnionReference call, no inlined pool default) are the GritQL
+    // plugins declared at the top of this file.
     // -------------------------------------------------------------------
     {
       // ADR-013: no app/package outside the canonical module may import zod

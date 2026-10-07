@@ -40,7 +40,6 @@ the corpus size, not just the finding count.
 | `biome` | `biome ci .`, plus the GritQL plugins in `biome/` | — |
 | `data` | `packages/salvageunion-reference/tools/validate.ts` (`--only=` runs a subset) | — |
 | `doc-drift` | `check-doc-drift.ts` | `OVER_BUDGET` in the script |
-| `architecture` | `check-architecture.ts` | — |
 | `observability` | `check-observability.ts` | — |
 | `convex-codegen` | `check-convex-codegen.ts` | — |
 | `convex-callers` | `check-convex-callers.ts` | — |

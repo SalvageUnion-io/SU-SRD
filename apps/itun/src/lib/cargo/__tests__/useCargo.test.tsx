@@ -5,8 +5,8 @@
  * cargoTransfer.test.ts.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, renderHook } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { renderHook } from '@testing-library/react'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { useEntityStore } from '../../../stores/entityStore'
@@ -15,10 +15,6 @@ import { makeScrapLot } from '../../schemas/cargoLot'
 import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import { useCargo } from '../useCargo'
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Fixtures — chassisRef intentionally does not resolve, so the mech cargo cap
