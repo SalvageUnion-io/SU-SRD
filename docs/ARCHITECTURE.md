@@ -5298,8 +5298,8 @@ with its mechs docked.
 ### Status
 
 **Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
-are decision 2's seat and decision 4's tabs and Log. The plan
-that delivers the rest, layer by layer, is
+are decision 2's seat and decision 4 (tabs, Log and Crew with server-derived
+status). The plan that delivers the rest, layer by layer, is
 [dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
 land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
 and [dashboard.md](architecture/dashboard.md) describe.
@@ -5342,8 +5342,7 @@ role, a shared Downtime row, crew vitals, proposals and alerts, and Convex as
 the only persistence (ADR-034). The product owner wants the Dashboard to be a
 curated, live game experience: an in-game sheet that puts every tool in reach,
 reads at a glance and, eventually, syncs Mediator and player actions such as
-Downtime steps. Wireframes for this were reviewed on 2026-10-06; the plan links
-them.
+Downtime steps.
 
 ### Decision
 
@@ -5365,9 +5364,10 @@ There is one **seat** per pilot in a Game, held in Convex. It records:
 - **mount:** on foot, or boarded and in which mech;
 - the **range band**;
 - the **activated effects**;
-- the **action being resolved**, so a reload mid-roll keeps it.
+- the **action being resolved**, so a reload mid-roll keeps it;
+- whether the pilot **ejected**, until the next Board or Dismount.
 
-The rules for a seat:
+Its rules:
 
 - **It is keyed on the pilot, not the member.** ADR-030 §4 lets one member
   cover for an absent player, so one member can run two seats.

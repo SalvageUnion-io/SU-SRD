@@ -48,9 +48,10 @@ import { getMembership, NotAuthorized, requireOrganizerAs } from './model/permis
  *
  * ## Why these return bodies rather than a projection
  *
- * `crew.vitals` deliberately serves the web a four-number projection, because
- * the crew strip re-renders on every point of damage and pushing whole sheets
- * down that path would be absurd. The bot is not that path: `/su crew` is one
+ * `crew.vitals` deliberately serves the web a narrow projection — the numbers
+ * and status the Crew tab draws, never the sheets they come from — because the
+ * crew strip re-renders on every point of damage and pushing whole sheets down
+ * that path would be absurd. The bot is not that path: `/su crew` is one
  * request, typed by a person, a few times a session.
  *
  * The bot still derives max HP, max SP and max Heat itself: it depends on
