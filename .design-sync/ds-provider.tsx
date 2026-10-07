@@ -22,7 +22,8 @@
  * purpose: it is bundled into the design-system artifact via
  * `cfg.extraEntries`, which keeps the package's own public API unchanged.
  */
-import { type ReactNode, Suspense, use } from 'react'
+import type { ReactNode } from 'react'
+import { Suspense, use } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 // One promise for the whole page — `use()` re-reads it on every render, and a

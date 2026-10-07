@@ -15,8 +15,8 @@ const header = <Badge shape="stamp">Card Title</Badge>
 const body = (
   <div className="p-3">
     <Text as="p" className="text-sm text-wk-muted">
-      This is the card&apos;s body — the main reading surface for descriptive content, notes, or
-      any other prose the container needs to hold.
+      This is the card&apos;s body — the main reading surface for descriptive content, notes, or any
+      other prose the container needs to hold.
     </Text>
   </div>
 )

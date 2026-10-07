@@ -56,7 +56,6 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 - **Bare `--parallel` and `--isolate` stay banned**: both are measured regressions (ITUN `--parallel=4`, which implies `--isolate`, took 17.4 s against 16.9 s serial). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it (16.5 s → ~6 s); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
 - **Dependencies:** read [`dependency-management.md`](docs/architecture/dependency-management.md) before touching `package.json`, `bunfig.toml`, `renovate.json` or `overrides`. In short: Renovate owns updates and auto-merges non-majors; `bun audit --audit-level=high` gates every PR that changes `bun.lock` or a `package.json` (one `--ignore`: braces); `bunfig.toml` refuses versions under three days old (a caret range resolves silently down).
-- Root dev dependency `playwright` is used by `tools/a11y-scan.ts` (WCAG scans) — not dead code.
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)
@@ -77,6 +76,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
 - `packages/observability/` - Sentry wiring: `/cloudflare` for the three Workers, `/browser` for the two browser apps' shared helper.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `bun run build:package` only regenerates schemas and registries — commit the result (CI fails on drift).
+- `tools/` - The repo's gates and scripts: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
 **Dependency graph:**
 

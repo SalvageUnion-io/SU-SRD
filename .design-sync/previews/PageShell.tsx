@@ -36,14 +36,10 @@ export function Unstacked() {
       <PageHeading>Saved Builds</PageHeading>
       <div className="mt-6 grid grid-cols-2 gap-3">
         <Panel soft>
-          <div className="p-4 font-body text-caption text-wk-muted">
-            Screen owns its own layout
-          </div>
+          <div className="p-4 font-body text-caption text-wk-muted">Screen owns its own layout</div>
         </Panel>
         <Panel soft>
-          <div className="p-4 font-body text-caption text-wk-muted">
-            — here, a two-column grid
-          </div>
+          <div className="p-4 font-body text-caption text-wk-muted">— here, a two-column grid</div>
         </Panel>
       </div>
     </PageShell>

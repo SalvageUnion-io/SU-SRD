@@ -103,9 +103,9 @@ pipeline lives in `.design-sync/` at the **repo root**, not in this package:
 `config.json` drives the converter, `conventions.md` becomes the published
 README, and `previews/` holds hand-ported previews (the Ladle stories cannot be
 loaded there because they read reference data at module top level). Read
-`.design-sync/NOTES.md` before changing any of it. A new public component does
-not need a preview to pass any gate here, but a renamed or deleted one leaves a
-stale preview behind — grep `.design-sync/previews/` when you rename.
+`.design-sync/NOTES.md` before changing any of it. A new public component needs
+no preview, but renaming or deleting one fails `bun run typecheck`
+(`.design-sync/tsconfig.json`).
 
 ## Testing
 

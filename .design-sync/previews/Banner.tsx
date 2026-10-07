@@ -5,9 +5,12 @@ import { Group, Stack } from '../preview-lib/harness'
 // Real Salvage Union soft-warnings: an illegal starting pattern, a pilot out of
 // Energy Points, and the autosave notice — the advisory copy ITUN actually
 // raises on the mech sheet.
-const LEGAL_PATTERN = { severity: 'info', message: 'This pattern is not a legal starting pattern.' }
-const NO_EP = { severity: 'warn', message: '0 EP — some actions unavailable.' }
-const AUTOSAVE = { severity: 'info', message: 'Auto-saved to this device.' }
+const LEGAL_PATTERN = {
+  severity: 'info',
+  message: 'This pattern is not a legal starting pattern.',
+} as const
+const NO_EP = { severity: 'warn', message: '0 EP — some actions unavailable.' } as const
+const AUTOSAVE = { severity: 'info', message: 'Auto-saved to this device.' } as const
 
 /**
  * The advisory strip. Every row is informational — a Banner never blocks, it

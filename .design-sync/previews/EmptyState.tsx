@@ -1,5 +1,5 @@
 /* Ported from packages/component-lib/src/components/chrome/EmptyState.stories.tsx. */
-import { Button, EmptyState, Glyph } from 'component-lib'
+import { Button, EmptyState } from 'component-lib'
 
 /** headline + body + action — stamp voice, dashed = fillable, one rust action. */
 export function WithAction() {
@@ -36,7 +36,21 @@ export function Quiet() {
     <div className="max-w-sm bg-paper p-4">
       <EmptyState
         variant="quiet"
-        icon={<Glyph name="gear" className="size-7 text-wk-muted" />}
+        icon={
+          // `Glyph` is internal to component-lib, so the preview draws its own
+          // decorative plus rather than reaching past the public API.
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3}
+            strokeLinecap="round"
+            aria-hidden="true"
+            className="size-7 text-wk-muted"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        }
         body="No systems installed yet."
         action={
           <Button variant="primary" size="compact">

@@ -50,15 +50,16 @@ function filesIn(root: string, dir: string, ext: string): string[] {
     .map((name) => `${dir}/${name}`)
 }
 
-/** Every `apps/*` and `packages/*` directory. */
+/** Every workspace directory: each `apps/*` and `packages/*`, and `tools/`. */
 function workspaceDirs(root: string): string[] {
-  return ['apps', 'packages'].flatMap((dir) => {
+  const nested = ['apps', 'packages'].flatMap((dir) => {
     const base = join(root, dir)
     if (!existsSync(base)) return []
     return readdirSync(base, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => `${dir}/${entry.name}`)
   })
+  return existsSync(join(root, 'tools')) ? [...nested, 'tools'] : nested
 }
 
 /** Docs an agent follows as a description of the code as it is now. */
@@ -75,7 +76,6 @@ function liveInstructionDocs(root: string): string[] {
     'CLAUDE.md',
     'README.md',
     'CONTRIBUTING.md',
-    'tools/CLAUDE.md',
     ...workspaceDirs(root).flatMap((ws) => [`${ws}/CLAUDE.md`, `${ws}/README.md`]),
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
   ].filter((doc) => existsSync(join(root, doc)))
@@ -473,11 +473,9 @@ export function checkDocSizes(
   overBudget: Record<string, number> = OVER_BUDGET
 ): CheckResult {
   const failures: string[] = []
-  const claudeMds = [
-    'CLAUDE.md',
-    'tools/CLAUDE.md',
-    ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`),
-  ].filter((doc) => existsSync(join(root, doc)))
+  const claudeMds = ['CLAUDE.md', ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`)].filter(
+    (doc) => existsSync(join(root, doc))
+  )
   const rules = markdownIn(root, '.claude/rules')
   const budgeted = [
     ...claudeMds.map((doc) => [doc, CLAUDE_MD_BUDGET] as const),

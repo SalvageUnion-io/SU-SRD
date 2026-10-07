@@ -4,7 +4,7 @@
  * story file of its own. Shown standalone here plus in its real slot.
  */
 import { WizShell, WizTracker } from 'component-lib'
-import { Group, Row, Stack } from '../preview-lib/harness'
+import { Group, Row } from '../preview-lib/harness'
 
 /** The budget readout a wizard step puts in the shell's tracker slot. */
 export function Readouts() {

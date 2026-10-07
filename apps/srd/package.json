@@ -12,7 +12,6 @@
     "og:install-browser": "playwright install chromium",
     "preview": "bun ssg/preview.ts --port 4321",
     "test": "bun test",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "clean": "rm -rf dist node_modules/.vite",
     "check:examples": "bun ssg/checkPageExamples.ts",
     "deploy": "wrangler deploy"

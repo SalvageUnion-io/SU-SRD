@@ -42,7 +42,6 @@
     "edit-data": "bun tools/edit-data.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "license": "SEE LICENSE IN LICENCE",

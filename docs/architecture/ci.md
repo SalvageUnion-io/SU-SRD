@@ -143,7 +143,7 @@ The test suite is in the registry too (`bun run check` runs it) but not in the
 ## The test gate — `coverage`
 
 There is one test run per PR: `bun run test:coverage` (`tools/run-coverage.ts`)
-runs every workspace instrumented and the `tools/` suite, all concurrently, and
+runs every workspace instrumented (`tools/` is one), all concurrently, and
 fails a workspace whose line coverage is under its floor (`FLOORS` in the
 script). Each workspace's own run stays serial, since a parallel Bun coverage
 run counts lines differently; output is buffered per workspace, so a failure

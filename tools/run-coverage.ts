@@ -1,6 +1,6 @@
 /**
- * The CI test gate: every workspace's `test:coverage` plus the `tools/` suite,
- * run concurrently, each workspace held to a line-coverage floor.
+ * The CI test gate: every workspace's suite under `bun test --coverage`, run
+ * concurrently, each workspace held to a line-coverage floor.
  *
  * The floor applies to the workspace's line-weighted total, LH / LF summed over
  * its lcov (workspace bunfigs ignore `../**`, so the lcov holds only that
@@ -32,7 +32,16 @@ const FLOORS: Readonly<Record<string, number>> = {
   'apps/discord-bot': 94.5,
   'apps/su-assets': 80.5,
   'packages/observability': 99.5,
+  tools: 82.5,
 }
+
+/** One instrumented run, the same in every workspace, so no manifest repeats it. */
+const COVERAGE = [
+  '--coverage',
+  '--coverage-reporter=text',
+  '--coverage-reporter=lcov',
+  '--coverage-dir=coverage',
+]
 
 assertCoversWorkspaces('coverage floors', Object.keys(FLOORS))
 
@@ -49,13 +58,18 @@ function lineCoverage(lcov: string): number | undefined {
 
 type Result = { name: string; ok: boolean; verdict: string }
 
-async function runJob(name: string, command: $.ShellPromise, floor?: number): Promise<Result> {
+async function runJob(name: string, floor: number): Promise<Result> {
+  // A stale lcov from an earlier run must not stand in for this one.
+  rmSync(join(root, name, 'coverage'), { recursive: true, force: true })
   const started = performance.now()
-  const { exitCode, stdout } = await command.nothrow().quiet()
+  const { exitCode, stdout } = await $`bun test ${COVERAGE} 2>&1`
+    .cwd(join(root, name))
+    .nothrow()
+    .quiet()
   const took = `${((performance.now() - started) / 1000).toFixed(1)} s`
   let ok = exitCode === 0
   let verdict = ok ? `tests passed in ${took}` : `TESTS FAILED (exit ${exitCode}) in ${took}`
-  if (ok && floor !== undefined) {
+  if (ok) {
     const lcovPath = join(root, name, 'coverage', 'lcov.info')
     const pct = existsSync(lcovPath) ? lineCoverage(readFileSync(lcovPath, 'utf-8')) : undefined
     ok = pct !== undefined && pct >= floor
@@ -68,14 +82,7 @@ async function runJob(name: string, command: $.ShellPromise, floor?: number): Pr
   return { name, ok, verdict }
 }
 
-const results = await Promise.all([
-  ...Object.entries(FLOORS).map(([dir, floor]) => {
-    // A stale lcov from an earlier run must not stand in for this one.
-    rmSync(join(root, dir, 'coverage'), { recursive: true, force: true })
-    return runJob(dir, $`bun run test:coverage 2>&1`.cwd(join(root, dir)), floor)
-  }),
-  runJob('tools', $`bun run test:tools 2>&1`.cwd(root)),
-])
+const results = await Promise.all(Object.entries(FLOORS).map(([dir, floor]) => runJob(dir, floor)))
 
 const width = Math.max(...results.map((r) => r.name.length))
 const summary = results.map((r) => `${r.ok ? '✓' : '✗'} ${r.name.padEnd(width)}  ${r.verdict}`)

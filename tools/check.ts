@@ -90,14 +90,14 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'test',
-    guards: 'the full test suite, every workspace plus tools/',
+    guards: 'the full test suite, every workspace (tools/ is one)',
     fix: 'fix the test; `bun --filter <workspace> test` reruns one workspace',
     cmd: ['bun', 'run', 'test'],
     profiles: ['full'],
   },
   {
     id: 'typecheck',
-    guards: 'TypeScript across every workspace and tools/',
+    guards: 'TypeScript across every workspace, test/ and the .design-sync/ previews',
     fix: 'fix the type error',
     cmd: ['bun', 'run', 'typecheck'],
     areas: ['code'],

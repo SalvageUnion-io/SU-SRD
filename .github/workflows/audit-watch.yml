@@ -91,7 +91,7 @@ jobs:
               'is the entire reason this job exists.',
               '',
               'Watch list, per `docs/architecture/dependency-management.md`: `nanoid`,',
-              '`fast-uri`, `brace-expansion`, `shell-quote`, `filelist`. Four are floored in',
+              '`fast-uri`, `brace-expansion`, `filelist`. Three are floored in',
               '`overrides`; `brace-expansion` cannot be, because the tree holds two copies at',
               'incompatible majors and a tree-wide override would break the v2 consumer.',
               '',

@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "test": "bun test --parallel=4 --no-isolate",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "clean": "rm -rf dist .vite node_modules/.vite",
     "deploy": "wrangler deploy",
     "worker:bundle": "wrangler deploy --dry-run"

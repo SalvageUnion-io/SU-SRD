@@ -90,8 +90,8 @@ must track `.bun-version` exactly), **not** lowering the number.
   it; `audit-watch.yml` audits without it, so it stays reported weekly.
 - **Below the gate:** `.github/workflows/audit-watch.yml` runs `bun audit` at
   every severity weekly and keeps one tracking issue open while it reports
-  anything. The watch list is `nanoid`, `fast-uri`, `brace-expansion`,
-  `shell-quote` and `filelist`, the ReDoS class the tree keeps drawing.
+  anything. The watch list is `nanoid`, `fast-uri`, `brace-expansion` and
+  `filelist`, the ReDoS class the tree keeps drawing.
 - **When the audit fails on a transitive dep**, the fix is `bun update <pkg>`
   plus the regenerated `bun.lock`. First look for a parent whose own range
   already admits a fixed version (a dedupe); a floor in `overrides` is the last
@@ -102,7 +102,7 @@ package got into the tree can be checked in one command instead of read.
 
 # The `overrides` block
 
-`package.json` cannot carry comments, so this is the record. **Five entries,
+`package.json` cannot carry comments, so this is the record. **Four entries,
 all security floors.**
 
 | Entry | Why |
@@ -111,7 +111,6 @@ all security floors.**
 | `filelist: >=1.0.6` | `jake` asks `^1.0.4`, which a caret step-down could satisfy with a release below the floor. |
 | `nanoid: >=3.3.18` | `GHSA-2v37-7h3g-55p8`; `postcss` asks `^3.3.17`, a caret that only happens to resolve high enough. |
 | `sharp: >=0.35.5` | `GHSA-wq5f-xc86-pv6w` (librsvg); `miniflare` (via `wrangler`) pins exactly 0.35.4. Delete once `bun why sharp` shows `miniflare` asking ≥0.35.5. |
-| `shell-quote: >=1.11.0` | `GHSA-pqg4-j6r4-53mv` (critical); `concurrently` pins exactly 1.9.0, so only the floor lifts it. |
 
 - **Floors, never exact versions.** Resolving below a floor errors, where a
   caret steps down silently. An exact override also pins the package *down*,

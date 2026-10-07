@@ -26,12 +26,7 @@ export function Bounds() {
             <span className="font-cond text-label uppercase tracking-caps text-wk-muted">
               {label}
             </span>
-            <CountStepper
-              subject={subject}
-              count={count as number}
-              onChange={() => {}}
-              max={3}
-            />
+            <CountStepper subject={subject} count={count as number} onChange={() => {}} max={3} />
           </div>
         ))}
       </div>
