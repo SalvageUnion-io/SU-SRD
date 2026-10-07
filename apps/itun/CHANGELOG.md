@@ -2,6 +2,15 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.21.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.21.0...itun-v1.21.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **a11y:** pick card-band text by contrast; scan ITUN and phones with axe [audit-3 P12] ([#1082](https://github.com/SalvageUnion-io/SU-SRD/issues/1082)) ([70e88af](https://github.com/SalvageUnion-io/SU-SRD/commit/70e88af5e9b7bb64af0c2b5e778089a5cca324e8))
+* **ci:** one ITUN CSP source; production environment for deploy secrets [audit-3 P2] ([#1072](https://github.com/SalvageUnion-io/SU-SRD/issues/1072)) ([5e8f1c2](https://github.com/SalvageUnion-io/SU-SRD/commit/5e8f1c2826264622fc65b12c532322c55d31471d))
+* **itun:** tab titles, intent preload, digit keypad, true manifest [audit-3 P13] ([#1083](https://github.com/SalvageUnion-io/SU-SRD/issues/1083)) ([73ba90f](https://github.com/SalvageUnion-io/SU-SRD/commit/73ba90f6319c06d6d37b1f677753031eb9df2760))
+
 ## [1.21.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.20.0...itun-v1.21.0) (2026-10-06)
 
 
