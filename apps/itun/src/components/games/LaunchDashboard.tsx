@@ -12,13 +12,20 @@
  *
  * The dialog lists the Game's pilots in the roster's own order — yours first
  * (`groupColumn`), then the crew's — and pre-selects the first one you own. A
- * viewer who owns none (a Mediator, say) gets no pre-selection and picks one.
+ * viewer who owns none of those listed gets no pre-selection and picks one.
  * Nothing else is asked: the mech and the crawler follow from the pilot's own
  * assignments once the Dashboard opens.
  *
- * A crewmate's pilot is offered too. Whether it may open is `DashboardGate`'s
- * question, asked live on arrival, and the server refuses every write the
- * viewer may not make, whatever this lists.
+ * ## Only pilots this browser holds
+ *
+ * It lists only the Game's pilots this browser holds a copy of, because those
+ * are the only ones the Dashboard can open: `DashboardGate` and `Dashboard`
+ * read the pilot from the local store, which never holds a crewmate's pilot
+ * (`SheetView`'s header says why). Offering a crewmate's pilot, or a pre-gen
+ * this browser never made, would send every such choice to the gate's "Pilot
+ * not found". Those stay on the roster, where their read-only sheets open. A
+ * viewer who holds none of the Game's pilots — a Mediator who plays nobody,
+ * say — gets a line saying so instead of a choice.
  *
  * Connected only: `GameHub` mounts it, and `Roster` mounts the hub only when
  * the mode is Connected, so every hook below has a provider.
@@ -31,13 +38,9 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { useHydrateEntities, usePilots } from '../../hooks/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
-import {
-  gameHasMediator,
-  groupColumn,
-  ownableRows,
-  rosterEntityId,
-} from '../../lib/games/gameRoster'
+import { gameHasMediator, groupColumn, ownableRows } from '../../lib/games/gameRoster'
 
 const BAR = {
   alignItems: 'center',
@@ -99,6 +102,9 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  // What this browser holds decides what may be offered: see the header.
+  useHydrateEntities(['pilot'])
+  const localPilots = usePilots()
 
   // Nothing until the crew is known: a button that appears and then vanishes
   // when the members answer would be worse than a beat of nothing.
@@ -119,10 +125,8 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
       rows: listing?.pilots ?? [],
       viewerId: me?._id ?? null,
       members,
-      // Not asked: the dialog opens nothing itself, so whether this browser
-      // holds a copy yet is the Dashboard's concern, not the picker's.
-      localIds: new Set(),
-    })
+      localIds: new Set(localPilots.map((p) => p.id)),
+    }).filter((row) => row.localId !== null)
   )
   const pilots = [...yours, ...others]
   const chosen = pilots.find((row) => row.serverId === selected) ?? null
@@ -133,12 +137,10 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   }
 
   function launch() {
-    if (chosen === null) return
+    if (chosen?.localId == null) return
     setOpen(false)
-    void router?.navigate({
-      to: '/dashboard/$pilotId',
-      params: { pilotId: rosterEntityId(chosen) },
-    })
+    // The local id: the one `DashboardGate` looks the pilot up by.
+    void router?.navigate({ to: '/dashboard/$pilotId', params: { pilotId: chosen.localId } })
   }
 
   return (
@@ -155,7 +157,8 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
         <div style={BODY}>
           {pilots.length === 0 ? (
             <Text variant="hint" style={HINT}>
-              No pilots in this game yet. Create one from the roster, then launch.
+              None of this Game's pilots is saved in this browser. Create or claim one from the
+              roster, then launch.
             </Text>
           ) : (
             <fieldset style={FIELDSET}>

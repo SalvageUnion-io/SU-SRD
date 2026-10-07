@@ -17,7 +17,10 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  *
  * And the one way into the Dashboard (ADR-038 §1): Launch Dashboard at the top
  * of the hub, for players and the Mediator alike, only while the Game has a
- * Mediator, asking only which pilot — yours pre-selected when you have one.
+ * Mediator, asking only which pilot — yours pre-selected when you have one —
+ * and offering only pilots this browser holds, since those are all the gate
+ * can open. That last is checked end to end: each offered pilot is handed to
+ * the real `DashboardGate`, with the Dashboard itself stubbed.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
@@ -27,6 +30,7 @@ import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { pilotFixture } from '../../__tests__/fixtures'
 
 const mutations: { name: string; args: unknown }[] = []
 /** Every `router.navigate(opts)` the hub made. */
@@ -55,11 +59,21 @@ const convexMocks = await installConvexMocks({
         },
       }),
     }),
+    // Relative to `convexMock.ts`, not this file. Whether the gate opens it,
+    // and for which pilot, is all the launch tests need of the Dashboard.
+    '../dashboard/Dashboard': () => ({
+      Dashboard: ({ pilotId }: { pilotId: string }) =>
+        createElement('p', null, `Dashboard for ${pilotId}`),
+    }),
   },
 })
 
 const { GameHub } = await import('../GameHub')
+const { DashboardGate } = await import('../../dashboard/DashboardGate')
+const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { useEntityStore } = await import('../../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { getActiveContainer, setActiveContainer } = await import(
   '../../../stores/activeContainerStore'
 )
@@ -308,18 +322,53 @@ describe('Launch Dashboard', () => {
     { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true },
     { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false },
   ]
+  /** Beefcake's: listed, but never in Ash's browser. */
+  const THEIRS = {
+    _id: 'p-theirs',
+    appId: 'a-theirs',
+    ownerId: 'u2',
+    body: { id: 'a-theirs', name: 'Roach-Boy' },
+  }
+  /** Unclaimed, and held here: the browser that made it keeps its copy. */
+  const PREGEN = {
+    _id: 'p-pregen',
+    appId: 'hub-pregen',
+    ownerId: null,
+    body: { id: 'hub-pregen', name: 'Pre-gen' },
+  }
   // Listed crewmate-first, so "yours first" is the picker's doing.
   const PILOTS = [
+    THEIRS,
+    { _id: 'p-mine', appId: 'hub-mine', ownerId: 'u1', body: { id: 'hub-mine', name: 'Vex Arlo' } },
     {
-      _id: 'p-theirs',
-      appId: 'a-theirs',
-      ownerId: 'u2',
-      body: { id: 'a-theirs', name: 'Roach-Boy' },
+      _id: 'p-mine-2',
+      appId: 'hub-mine-2',
+      ownerId: 'u1',
+      body: { id: 'hub-mine-2', name: 'Mira' },
     },
-    { _id: 'p-mine', appId: 'a-mine', ownerId: 'u1', body: { id: 'a-mine', name: 'Vex Arlo' } },
-    { _id: 'p-mine-2', appId: 'a-mine-2', ownerId: 'u1', body: { id: 'a-mine-2', name: 'Mira' } },
   ]
+  /** The Game's pilots this browser holds. */
+  const HELD = [
+    ['hub-mine', 'Vex Arlo'],
+    ['hub-mine-2', 'Mira'],
+    ['hub-pregen', 'Pre-gen'],
+  ] as const
   const listing = (pilots: unknown[]) => ({ pilots, mechs: [], crawlers: [], softLinks: [] })
+
+  beforeAll(async () => {
+    // Filling the cache only; the in-memory backend keeps it to this process.
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    const store = useEntityStore.getState()
+    for (const [id, name] of HELD) {
+      await store.adopt('pilot', pilotFixture({ id, name, gameId: 'g1' }))
+    }
+  })
+
+  afterAll(async () => {
+    // Leave the shared store as this file found it.
+    const store = useEntityStore.getState()
+    for (const [id] of HELD) await store.forget('pilot', id)
+  })
 
   const launcher = () => screen.queryByRole('button', { name: 'Launch Dashboard' })
 
@@ -328,6 +377,29 @@ describe('Launch Dashboard', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Launch Dashboard' }))
     })
     return screen.getByRole('dialog')
+  }
+
+  /** The pilots on offer, as their labels read: name, then whose. */
+  const offered = (dialog: HTMLElement) =>
+    within(dialog)
+      .queryAllByRole('radio')
+      .map((r) => r.closest('label')?.textContent)
+
+  /** The body of `/dashboard/<id>`, signed in and connected. */
+  async function openGate(id: string): Promise<void> {
+    const connected = {
+      mode: 'connected' as const,
+      canWrite: true,
+      showDisconnectedWarning: false,
+      settling: false,
+    }
+    await act(async () => {
+      render(
+        <ConnectionContext.Provider value={connected}>
+          <DashboardGate id={id} />
+        </ConnectionContext.Provider>
+      )
+    })
   }
 
   test('a player gets it at the top of the hub, above the roster', async () => {
@@ -366,20 +438,16 @@ describe('Launch Dashboard', () => {
     await renderHub({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) })
     const dialog = await openPicker()
 
-    // The pilot is the only choice on offer.
+    // The pilot is the only choice on offer, and a crewmate's is not one.
     const radios = within(dialog).getAllByRole('radio') as HTMLInputElement[]
     expect(within(dialog).queryAllByRole('combobox')).toHaveLength(0)
-    expect(radios.map((r) => r.closest('label')?.textContent)).toEqual([
-      'Vex ArloYou',
-      'MiraYou',
-      'Roach-BoyBeefcake',
-    ])
-    expect(radios.map((r) => r.checked)).toEqual([true, false, false])
+    expect(offered(dialog)).toEqual(['Vex ArloYou', 'MiraYou'])
+    expect(radios.map((r) => r.checked)).toEqual([true, false])
 
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Launch' }))
     })
-    expect(navigations).toEqual([{ to: '/dashboard/$pilotId', params: { pilotId: 'a-mine' } }])
+    expect(navigations).toEqual([{ to: '/dashboard/$pilotId', params: { pilotId: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -388,11 +456,13 @@ describe('Launch Dashboard', () => {
       'games:get': { ...GAME, mediator: true, organizer: true },
       'games:members': ASH_MEDIATES,
       'mediator:amMediator': true,
-      'entities:listForGame': listing([PILOTS[0]]),
+      'entities:listForGame': listing([THEIRS, PREGEN]),
     })
     const dialog = await openPicker()
 
-    const radio = within(dialog).getByRole('radio', { name: /Roach-Boy/ }) as HTMLInputElement
+    // Beefcake's pilot is not in this browser, so the gate could not open it.
+    expect(offered(dialog)).toHaveLength(1)
+    const radio = within(dialog).getByRole('radio', { name: /Pre-gen/ }) as HTMLInputElement
     expect(radio.checked).toBe(false)
     const launch = within(dialog).getByRole('button', { name: 'Launch' })
     expect(launch.hasAttribute('disabled')).toBe(true)
@@ -402,8 +472,55 @@ describe('Launch Dashboard', () => {
     await act(async () => {
       fireEvent.click(launch)
     })
-    // A crewmate's pilot opens as the gate allows; the server refuses writes.
-    expect(navigations).toEqual([{ to: '/dashboard/$pilotId', params: { pilotId: 'a-theirs' } }])
+    expect(navigations).toEqual([{ to: '/dashboard/$pilotId', params: { pilotId: 'hub-pregen' } }])
+  })
+
+  test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
+    await renderHub({
+      'games:get': { ...GAME, mediator: true, organizer: true },
+      'games:members': ASH_MEDIATES,
+      'mediator:amMediator': true,
+      'entities:listForGame': listing([THEIRS]),
+    })
+    const dialog = await openPicker()
+
+    expect(offered(dialog)).toEqual([])
+    expect(
+      within(dialog).getByText(/None of this Game's pilots is saved in this browser/)
+    ).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Launch' }).hasAttribute('disabled')).toBe(
+      true
+    )
+  })
+
+  test('every pilot it offers opens the Dashboard at the gate, not "Pilot not found"', async () => {
+    await renderHub({
+      'games:members': MEDIATED,
+      'entities:listForGame': listing([...PILOTS, PREGEN]),
+    })
+    let dialog = await openPicker()
+    const count = within(dialog).getAllByRole('radio').length
+    const ids: string[] = []
+    for (let i = 0; i < count; i++) {
+      fireEvent.click(within(dialog).getAllByRole('radio')[i] as HTMLElement)
+      navigations.length = 0
+      await act(async () => {
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Launch' }))
+      })
+      ids.push((navigations[0] as { params: { pilotId: string } }).params.pilotId)
+      dialog = await openPicker()
+    }
+    expect(ids).toEqual(['hub-mine', 'hub-mine-2', 'hub-pregen'])
+
+    for (const id of ids) {
+      await openGate(id)
+      expect(screen.getByText(`Dashboard for ${id}`)).toBeTruthy()
+    }
+    expect(screen.queryByRole('heading', { name: 'Pilot not found' })).toBeNull()
+
+    // The one it leaves out is exactly the one the gate would refuse.
+    await openGate('a-theirs')
+    expect(screen.getByRole('heading', { name: 'Pilot not found' })).toBeTruthy()
   })
 
   test('the dialog takes focus, and Escape closes it without launching', async () => {
