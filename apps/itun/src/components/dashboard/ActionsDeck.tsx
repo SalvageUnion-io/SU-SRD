@@ -435,7 +435,8 @@ export function ActionsDeckFrame({ view }: { view: ActionsDeckModel }) {
 }
 
 type ActionsDeckProps = {
-  mech: Mech
+  /** The boarded mech; on foot, the assigned one or null with none. */
+  mech: Mech | null
   /** The on-foot pilot; when `mount === 'pilot'` the deck lists their actions. */
   pilot?: Pilot | null
   /** The pilot's crawler — its tier drives Stat Training (max AP). */
@@ -470,11 +471,11 @@ export function ActionsDeck({
   // equipment in the cockpit).
   const onFoot = mount === 'pilot'
   const pilotDeck = pilot ? buildPilotActions(pilot) : []
-  const deck = onFoot ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]
+  const deck = onFoot || !mech ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]
 
   // Heat context for reach + heat-lock (pilots carry no heat).
   const heatCtx = (() => {
-    if (onFoot) return { currentHeat: 0, heatCap: HUGE_HEAT_CAP }
+    if (onFoot || !mech) return { currentHeat: 0, heatCap: HUGE_HEAT_CAP }
     const fresh = s.get('mech', mech.id) ?? mech
     const chassis = resolveChassisRef(mech.chassisRef)
     return { currentHeat: resolveGauge(fresh.currentHeat), heatCap: mechMaxHeat(fresh, chassis) }
@@ -546,6 +547,8 @@ export function ActionsDeck({
       setActivated(true)
       return
     }
+    // EP is the mech's: only a boarded deck offers it.
+    if (!mech) return
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const heatCap = mechMaxHeat(fresh, chassis)
@@ -586,6 +589,8 @@ export function ActionsDeck({
   }
 
   function doPush() {
+    // Push is the mech reactor's move: only a boarded deck offers it.
+    if (!mech) return
     const chassis = resolveChassisRef(mech.chassisRef)
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)

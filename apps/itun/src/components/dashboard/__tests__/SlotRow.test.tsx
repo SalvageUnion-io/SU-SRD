@@ -113,10 +113,10 @@ describe('the Major sends mount changes to the seat', () => {
     expect(calls).toEqual([{ write: 'dismount', args: [] }])
   })
 
-  test('on foot, Board boards the mech it was given', () => {
+  test('on foot, Board boards the assigned mech', () => {
     const { handle, calls } = fakeSeat()
     renderRow({ mount: 'pilot', seat: handle })
-    fireEvent.click(screen.getByText('▶ Board Mech'))
+    fireEvent.click(screen.getByText('▶ Board Iron Mongrel'))
     expect(calls).toEqual([{ write: 'board', args: ['m1'] }])
   })
 })

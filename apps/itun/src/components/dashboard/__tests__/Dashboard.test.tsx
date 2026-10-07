@@ -1,9 +1,10 @@
 /**
  * Smoke test for the Dashboard shell, keyed on the pilot (ADR-038 §1).
  *
- * Renders the two placeholder paths: no pilot in the store, and a pilot with
- * no assigned mech. Both exercise Dashboard + DashboardCanvas without router
- * context and confirm the shell mounts rather than throwing. Who may open the
+ * Renders the placeholder for a pilot not in the store, and a pilot with no
+ * assigned mech, who plays on foot and boards one from the Board menu (plan
+ * D4). Both exercise Dashboard + DashboardCanvas without router context and
+ * confirm the shell mounts rather than throwing. Who may open the
  * Dashboard at all is `DashboardGate`'s, tested in `DashboardGate.test.tsx`.
  */
 
@@ -30,13 +31,14 @@ describe('Dashboard shell', () => {
     expect(screen.getByText(/No pilot with id/)).toBeTruthy()
   })
 
-  test('a pilot with no assigned mech is told to assign one', async () => {
+  test('a pilot with no assigned mech plays on foot, offered "Board a mech ▾"', async () => {
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
     await useEntityStore
       .getState()
       .adopt('pilot', pilotFixture({ id: 'dash-lone-pilot', name: 'Rook' }))
     render(<Dashboard pilotId="dash-lone-pilot" />)
     expect(screen.getByText('Pilot · Rook')).toBeTruthy()
-    expect(screen.getByText(/Rook has no assigned mech/)).toBeTruthy()
+    expect(screen.getByText('On Foot')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Board a mech ▾' })).toBeTruthy()
   })
 })

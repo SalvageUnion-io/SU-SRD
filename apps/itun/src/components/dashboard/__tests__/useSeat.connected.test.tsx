@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
@@ -27,12 +27,15 @@ type LocalStore = {
 const sent: Sent[] = []
 const updaters = new Map<string, Updater>()
 let refusal: unknown = null
+/** Refusals for one mutation only, by name. */
+const refusedBy = new Map<string, unknown>()
 
 function useMutationMock(ref: unknown) {
   const name = getFunctionName(ref as FunctionReference<'mutation'>)
   const send = async (args: Record<string, unknown>) => {
     sent.push({ name, args })
     if (refusal !== null) throw refusal
+    if (refusedBy.has(name)) throw refusedBy.get(name)
   }
   return Object.assign(send, {
     withOptimisticUpdate: (update: Updater) => {
@@ -99,6 +102,7 @@ beforeEach(() => {
   sent.length = 0
   updaters.clear()
   refusal = null
+  refusedBy.clear()
 })
 
 function connection(mode: ConnectionMode) {
@@ -226,6 +230,82 @@ describe('useSeat writes', () => {
   })
 })
 
+describe('claim and board (plan §8 A4)', () => {
+  const spare = { mechId: 'seat-spare', serverId: 'row-spare' }
+
+  test('writes the claim before the seat', async () => {
+    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    const seat = await renderProbe()
+    await act(async () => {
+      seat.claimAndBoard(spare)
+    })
+    expect(sent).toEqual([
+      { name: 'ownership:claim', args: { table: 'mechs', entityId: 'row-spare' } },
+      {
+        name: 'seats:board',
+        args: { gameId: GAME_ID, pilotId: 'seat-rook', mechId: 'seat-spare' },
+      },
+    ])
+  })
+
+  test('a refused claim leaves the seat untouched, and says why', async () => {
+    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    refusedBy.set(
+      'ownership:claim',
+      new ConvexError('A crewmate already holds that — it has to be released first')
+    )
+    const seat = await renderProbe()
+    await act(async () => {
+      seat.claimAndBoard(spare)
+    })
+    expect(sent.map((s) => s.name)).toEqual(['ownership:claim'])
+    expect(await screen.findByText(/A crewmate already holds that/)).toBeTruthy()
+  })
+
+  test('offline, neither is sent', async () => {
+    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    const seat = await renderProbe('disconnected')
+    await act(async () => {
+      seat.claimAndBoard(spare)
+    })
+    expect(sent).toEqual([])
+  })
+})
+
+/** What the Board menu reads: the Game's mechs, links and the viewer. */
+function gameAnswers(seats: unknown[]) {
+  const mech = (appId: string, name: string, ownerId: string | null) => ({
+    _id: `row-${appId.replace('seat-', '')}`,
+    appId,
+    ownerId,
+    body: { id: appId, name },
+  })
+  const toHen = (from: string) => ({
+    type: 'mech-to-crawler',
+    from: { type: 'mech', id: from },
+    to: { type: 'crawler', id: 'hen' },
+  })
+  return {
+    'seats:forGame': seats,
+    'account:me': { _id: 'user-me', displayName: 'Me', avatarUrl: null, email: null },
+    'entities:listForGame': {
+      pilots: [{ _id: 'row-rook', appId: 'seat-rook', ownerId: 'user-me', body: { name: 'Rook' } }],
+      mechs: [mech('seat-own', 'Thresher', 'user-me'), mech('seat-spare', 'Spare', null)],
+      crawlers: [],
+      softLinks: [
+        {
+          type: 'pilot-to-crawler',
+          from: { type: 'pilot', id: 'seat-rook' },
+          to: { type: 'crawler', id: 'hen' },
+        },
+        toHen('seat-own'),
+        toHen('seat-spare'),
+      ],
+      primaryCrawlerId: null,
+    },
+  }
+}
+
 describe('the Dashboard reads mount from the seat', () => {
   async function renderDashboard() {
     await act(async () => {
@@ -238,29 +318,53 @@ describe('the Dashboard reads mount from the seat', () => {
   }
 
   test('on foot: the pilot runs it', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    setQueryAnswers(gameAnswers([seatRow('seat-rook')]))
     await renderDashboard()
     expect(screen.getByText('Pilot · Rook')).toBeTruthy()
     expect(screen.getByText('On Foot')).toBeTruthy()
   })
 
   test('boarded: the mech the seat names, not the assigned one', async () => {
-    setQueryAnswers({
-      'seats:forGame': [seatRow('seat-rook', { mount: { kind: 'boarded', mechId: 'seat-spare' } })],
-    })
+    setQueryAnswers(
+      gameAnswers([seatRow('seat-rook', { mount: { kind: 'boarded', mechId: 'seat-spare' } })])
+    )
     await renderDashboard()
     expect(screen.getByText('Mech · Spare')).toBeTruthy()
     expect(screen.getByText('Boarded')).toBeTruthy()
   })
 
   test('Board on foot boards the assigned mech', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    setQueryAnswers(gameAnswers([seatRow('seat-rook')]))
     await renderDashboard()
     await act(async () => {
-      screen.getByText('▶ Board Mech').click()
+      screen.getByText('▶ Board Thresher').click()
     })
     expect(sent).toEqual([
       { name: 'seats:board', args: { gameId: GAME_ID, pilotId: 'seat-rook', mechId: 'seat-own' } },
+    ])
+  })
+
+  test("the Board menu lists the crawler's spare, and claims it before boarding", async () => {
+    setQueryAnswers(gameAnswers([seatRow('seat-rook')]))
+    await renderDashboard()
+    await act(async () => {
+      screen.getByRole('button', { name: 'Choose a mech to board' }).click()
+    })
+    await act(async () => {
+      screen.getByRole('button', { name: 'Claim and board Spare' }).click()
+    })
+    // The confirm step sends nothing.
+    expect(sent).toEqual([])
+    const confirm = screen.getByRole('dialog', { name: 'Claim and board' })
+    await act(async () => {
+      within(confirm).getByRole('button', { name: 'Claim and board Spare' }).click()
+    })
+    expect(sent).toEqual([
+      { name: 'ownership:claim', args: { table: 'mechs', entityId: 'row-spare' } },
+      {
+        name: 'seats:board',
+        args: { gameId: GAME_ID, pilotId: 'seat-rook', mechId: 'seat-spare' },
+      },
     ])
   })
 })

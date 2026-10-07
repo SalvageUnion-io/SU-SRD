@@ -204,7 +204,8 @@ export type DisplayFocus = 'actions' | 'pilot' | 'mech' | 'crawler' | 'tables' |
 
 type DisplayPanelProps = {
   focus: DisplayFocus
-  mech: Mech
+  /** The boarded or assigned mech; null for a pilot on foot with none. */
+  mech: Mech | null
   pilot: Pilot | null
   crawler: Crawler | null
   /** Which entity runs the Dashboard, derived from the seat and Downtime. */
@@ -236,7 +237,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
     }
 
     // An entity focus → its reference card + entity-level foot actions.
-    if (focus === 'mech') {
+    if (focus === 'mech' && mech) {
       const chassis = resolveChassisRef(mech.chassisRef)
       const controls: ReferenceEntityControl[] = []
       if (mount === 'pilot') {
