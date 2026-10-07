@@ -88,7 +88,9 @@ export function resolveColor(css: string): Rgb | undefined {
   const value = css.trim()
   const keyword = KEYWORDS[value]
   if (keyword) return keyword
-  const rgb = value.match(/^rgb\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(\/\s*[\d.]+)?\s*\)$/)
+  const rgb = value.match(
+    /^rgb\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:(\/)\s*[\d.]+\s*)?\)$/
+  )
   if (rgb) return rgb[4] ? undefined : [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])]
   const hex = value.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
   if (hex)
