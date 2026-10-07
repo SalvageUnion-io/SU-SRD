@@ -122,7 +122,7 @@ export function CrewTab({ crew }: { crew: CrewLine[] }) {
                 <span style={WHERE}>{c.where}</span>
               </span>
               <span style={TEXT}>{c.vitals}</span>
-              {c.mech ? <span style={TEXT}>{c.mech}</span> : null}
+              {c.mech ? <span style={c.mechAttention ? PROBLEM : TEXT}>{c.mech}</span> : null}
               {c.problems.length > 0 ? <span style={PROBLEM}>{c.problems.join(' · ')}</span> : null}
             </AppLink>
             <span role="status" style={TEXT}>

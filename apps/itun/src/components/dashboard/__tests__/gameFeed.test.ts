@@ -6,6 +6,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import type { MechStatus } from '../../../lib/rules/crewStatus'
 import type { BoardSources } from '../boardMenu'
 import { rollLogEntry } from '../dashboardRolls'
 import type { CrewVitals } from '../useGameFeed'
@@ -65,6 +66,7 @@ describe('crewLines', () => {
         ...pilot,
         _id: 'r1' as Id<'pilots'>,
         appId: 'vex',
+        linkId: 'vex',
         name: 'Vex',
         currentHP: 3,
         boarded: true,
@@ -76,6 +78,7 @@ describe('crewLines', () => {
         ...pilot,
         _id: 'r2' as Id<'pilots'>,
         appId: 'rook',
+        linkId: 'rook',
         name: 'Rook',
         boarded: false,
         mechId: 'kettle',
@@ -84,20 +87,12 @@ describe('crewLines', () => {
         ...pilot,
         _id: 'r4' as Id<'pilots'>,
         appId: 'wren',
+        linkId: 'wren',
         name: 'Wren',
         boarded: false,
         mechId: null,
         status: { ...calm, ejected: true },
         attention: true,
-      },
-      // A template pre-gen nobody has picked up has no app id: no row.
-      {
-        ...pilot,
-        _id: 'r5' as Id<'pilots'>,
-        appId: null,
-        name: 'Pre-gen',
-        boarded: false,
-        mechId: null,
       },
     ],
     mechs: [
@@ -105,6 +100,7 @@ describe('crewLines', () => {
         ...mech,
         _id: 'r3' as Id<'mechs'>,
         appId: 'magpie',
+        linkId: 'magpie',
         name: 'Magpie',
         currentHeat: 4,
         status: { ...sound, overheating: true, destroyedSystems: ['Heat Sink'] },
@@ -114,6 +110,7 @@ describe('crewLines', () => {
         ...mech,
         _id: 'r6' as Id<'mechs'>,
         appId: 'kettle',
+        linkId: 'kettle',
         name: 'Kettle',
         status: { ...sound, destroyed: true },
         attention: true,
@@ -137,6 +134,7 @@ describe('crewLines', () => {
         // Parked: one line, and its own trouble does not take the row's SP
         // and Heat with it.
         mech: 'Kettle parked, destroyed',
+        mechAttention: true,
         problems: [],
         attention: true,
         resolving: null,
@@ -149,6 +147,8 @@ describe('crewLines', () => {
         where: 'In Magpie',
         vitals: 'HP 3/10 · AP 5/5',
         mech: 'Magpie · SP 12/12 · Heat 4/4',
+        // Boarded, its trouble is the row's problems, not its line.
+        mechAttention: false,
         problems: ['Injured', 'Overheating', 'Heat Sink destroyed'],
         attention: true,
         resolving: 'Vex is resolving Crush',
@@ -161,6 +161,7 @@ describe('crewLines', () => {
         where: 'On foot',
         vitals: 'HP 10/10 · AP 5/5',
         mech: null,
+        mechAttention: false,
         problems: ['Ejected'],
         attention: true,
         resolving: null,
@@ -176,6 +177,7 @@ describe('crewLines', () => {
           ...pilot,
           _id: 'r1' as Id<'pilots'>,
           appId: 'rook',
+          linkId: 'rook',
           name: 'Rook',
           currentHP: 7,
           maxHP: null,
@@ -186,6 +188,115 @@ describe('crewLines', () => {
       ],
     }
     expect(crewLines(blind, [], 'rook')[0]?.vitals).toBe('HP 7 · AP —')
+  })
+
+  test('a parked mech that draws the outline says why', () => {
+    const parked = (status: Partial<MechStatus>): CrewVitals => ({
+      ...crew,
+      pilots: [
+        {
+          ...pilot,
+          _id: 'r2' as Id<'pilots'>,
+          appId: 'rook',
+          linkId: 'rook',
+          name: 'Rook',
+          boarded: false,
+          mechId: 'kettle',
+        },
+      ],
+      mechs: [
+        {
+          ...mech,
+          _id: 'r6' as Id<'mechs'>,
+          appId: 'kettle',
+          linkId: 'kettle',
+          name: 'Kettle',
+          status: { ...sound, ...status },
+          attention: true,
+        },
+      ],
+    })
+    const line = (status: Partial<MechStatus>) => crewLines(parked(status), [], 'rook')[0]
+
+    const systems = line({ destroyedSystems: ['Heat Sink'] })
+    expect(systems?.mech).toBe('Kettle parked, 1 system destroyed')
+    expect(systems?.mechAttention).toBe(true)
+    expect(systems?.attention).toBe(true)
+    expect(line({ overheating: true })?.mech).toBe('Kettle parked, overheating')
+    expect(line({ destroyedModules: ['Cargo Bay', 'Drill'] })?.mech).toBe(
+      'Kettle parked, 2 modules destroyed'
+    )
+  })
+
+  test('a template pre-gen, with no app id, is keyed by its link id', () => {
+    // Starter Set rows (`templates.createGame`) carry only a body id; the
+    // seats and `mechId` name them by it, and `/sheet/$kind/$id` resolves it.
+    const template: CrewVitals = {
+      ...crew,
+      pilots: [
+        {
+          ...pilot,
+          _id: 'r7' as Id<'pilots'>,
+          appId: null,
+          linkId: 'pregen-pilot',
+          name: 'Pre-gen',
+          currentHP: 6,
+          boarded: true,
+          mechId: 'pregen-mech',
+        },
+        {
+          ...pilot,
+          _id: 'r9' as Id<'pilots'>,
+          appId: null,
+          linkId: 'pregen-walker',
+          name: 'Walker',
+          boarded: false,
+          mechId: 'pregen-spare',
+        },
+      ],
+      mechs: [
+        {
+          ...mech,
+          _id: 'r8' as Id<'mechs'>,
+          appId: null,
+          linkId: 'pregen-mech',
+          name: 'Starter',
+          currentSP: 9,
+          currentHeat: 1,
+        },
+        {
+          ...mech,
+          _id: 'r10' as Id<'mechs'>,
+          appId: null,
+          linkId: 'pregen-spare',
+          name: 'Spare',
+        },
+      ],
+    }
+    const templateSeats: BoardSources['seats'] = [
+      {
+        pilotId: 'pregen-pilot',
+        mount: { kind: 'boarded', mechId: 'pregen-mech' },
+        resolving: crush,
+      },
+    ]
+    const [boarded, onFoot] = crewLines(template, templateSeats, 'pregen-pilot')
+    expect(boarded).toMatchObject({
+      pilotId: 'pregen-pilot',
+      self: true,
+      href: '/sheet/pilot/pregen-pilot',
+      where: 'In Starter',
+      vitals: 'HP 6/10 · AP 5/5',
+      mech: 'Starter · SP 9/12 · Heat 1/4',
+      resolving: 'Pre-gen is resolving Crush',
+    })
+    expect(onFoot).toMatchObject({
+      pilotId: 'pregen-walker',
+      where: 'On foot',
+      vitals: 'HP 10/10 · AP 5/5',
+      mech: 'Spare parked',
+      mechAttention: false,
+    })
   })
 
   test('nothing before the crew arrives', () => {

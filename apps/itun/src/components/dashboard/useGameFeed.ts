@@ -53,9 +53,12 @@ export type CrewLine = {
   vitals: string
   /**
    * Their mech: its SP and Heat while their seat has them aboard, else one
-   * line for the mech assigned to them, parked. Null with neither.
+   * line for the mech assigned to them, parked, with what is wrong with it.
+   * Null with neither.
    */
   mech: string | null
+  /** The parked mech is what draws the outline: its line reads as a problem. */
+  mechAttention: boolean
   /** What needs looking at, in words ("Injured", "Overheating"). */
   problems: string[]
   /** The ▲ and red outline: the server's verdict on the pilot or their mech. */
@@ -150,6 +153,19 @@ function mechProblems(status: CrewMech['status']): string[] {
   ]
 }
 
+/** What is wrong with a parked mech, as the tail of its one line. */
+function parkedProblems(status: CrewMech['status']): string[] {
+  if (status === null) return []
+  const count = (n: number, noun: string) =>
+    n === 0 ? [] : [`${n} ${noun}${n === 1 ? '' : 's'} destroyed`]
+  return [
+    ...(status.destroyed ? ['destroyed'] : []),
+    ...(status.overheating ? ['overheating'] : []),
+    ...count(status.destroyedSystems.length, 'system'),
+    ...count(status.destroyedModules.length, 'module'),
+  ]
+}
+
 /**
  * One line per pilot in the Game, from the server's crew status
  * (`crew.vitals`) and the seats (what each is resolving). The pilot this
@@ -157,8 +173,13 @@ function mechProblems(status: CrewMech['status']): string[] {
  *
  * A boarded pilot's line carries their mech's SP and Heat and what is wrong
  * with it; a pilot on foot gets one line naming the mech assigned to them,
- * parked (plan D6). The ▲ and red outline are the server's `attention`, so
- * every client flags the same crewmates.
+ * parked (plan D6), and what is wrong with it when that is what draws the
+ * outline. The ▲ and red outline are the server's `attention`, so every
+ * client flags the same crewmates.
+ *
+ * Pilots, mechs and seats are keyed by the server's `linkId`, never `appId`:
+ * a template pre-gen (Starter Set) has no app id, only its body id, and the
+ * seats and `mechId` name it by that.
  */
 export function crewLines(
   crew: CrewVitals | null,
@@ -167,28 +188,30 @@ export function crewLines(
 ): CrewLine[] {
   if (crew === null) return []
   const mechs = new Map<string, CrewMech>()
-  for (const m of crew.mechs) if (m.appId !== null) mechs.set(m.appId, m)
+  for (const m of crew.mechs) if (m.linkId !== null) mechs.set(m.linkId, m)
   const resolvingOf = new Map(seats.map((s) => [s.pilotId, s.resolving ?? null]))
 
   const lines: CrewLine[] = []
   for (const p of crew.pilots) {
-    if (p.appId === null) continue
+    const id = p.linkId
+    if (id === null) continue
     const mech = p.mechId === null ? undefined : mechs.get(p.mechId)
     let mechLine: string | null = null
     if (mech !== undefined) {
       mechLine = p.boarded
         ? `${mech.name} · SP ${pool(mech.currentSP, mech.maxSP)} · Heat ${pool(mech.currentHeat, mech.maxHeat, true)}`
-        : `${mech.name} parked${mech.status?.destroyed ? ', destroyed' : ''}`
+        : [`${mech.name} parked`, ...parkedProblems(mech.status)].join(', ')
     }
-    const resolving = resolvingOf.get(p.appId) ?? null
+    const resolving = resolvingOf.get(id) ?? null
     lines.push({
-      pilotId: p.appId,
+      pilotId: id,
       name: p.name,
-      self: p.appId === pilotId,
-      href: `/sheet/pilot/${p.appId}`,
+      self: id === pilotId,
+      href: `/sheet/pilot/${id}`,
       where: p.boarded ? `In ${mech?.name ?? 'a mech'}` : 'On foot',
       vitals: `HP ${pool(p.currentHP, p.maxHP)} · AP ${pool(p.currentAP, p.maxAP)}`,
       mech: mechLine,
+      mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [
         ...(p.status.dead ? ['Dead'] : p.status.injured ? ['Injured'] : []),
         ...(p.status.ejected ? ['Ejected'] : []),
