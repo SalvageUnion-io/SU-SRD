@@ -72,7 +72,9 @@ const ASIDE: CSSProperties = {
   fontFamily: 'var(--font-cond)',
   fontWeight: 600,
   fontSize: 'var(--text-note)',
-  color: 'var(--color-ink-50)',
+  // ink-75, not ink-50: on band-cream ink-50 measures 3.04:1, under the 4.5:1
+  // AA floor for text this small; ink-75 measures about 6.5:1.
+  color: 'var(--color-ink-75)',
 }
 
 const TEXT: CSSProperties = {
@@ -86,9 +88,18 @@ const TEXT: CSSProperties = {
 
 const PROBLEM: CSSProperties = { ...TEXT, color: 'var(--color-status-bad)', fontWeight: 600 }
 
-const STATUS: CSSProperties = { ...TEXT, marginTop: 'auto', color: 'var(--color-ink-50)' }
+const STATUS: CSSProperties = { ...TEXT, marginTop: 'auto', color: 'var(--color-ink-75)' }
 
-const EXPAND: CSSProperties = { flex: '0 0 auto', marginLeft: 'auto' }
+// The mini rung renders ⤢ just under the WCAG 2.5.8 24×24px target minimum,
+// and the canvas scales everything down a little more. 28px holds 24 down to
+// a canvas scale of 0.86; the negative block margin keeps the head row's
+// height where the mini rung left it.
+const EXPAND: CSSProperties = {
+  flex: '0 0 auto',
+  minWidth: '28px',
+  minHeight: '28px',
+  margin: '-2px 0 -2px auto',
+}
 
 /**
  * A Minor slot. `slot` names the entity kind for the ⤢ label ("Open the Mech

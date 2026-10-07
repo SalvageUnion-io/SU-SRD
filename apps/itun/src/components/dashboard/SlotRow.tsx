@@ -71,7 +71,8 @@ const EMPTY: CSSProperties = {
   borderRadius: 'var(--radius-panel)',
   fontFamily: 'var(--font-body)',
   fontSize: 'var(--text-note)',
-  color: 'var(--color-ink-50)',
+  // ink-75: ink-50 on band-cream fails AA contrast for small text (3.04:1).
+  color: 'var(--color-ink-75)',
 }
 
 /** A slot whose entity the pilot doesn't have (no crawler yet). */
