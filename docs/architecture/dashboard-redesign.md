@@ -200,7 +200,7 @@ to show.
 | 4 (#1054) | Slot row | `SlotRow`, Major and Minor forms of all three entities, ⤢ overlay. Dial and its config, prefs store and stories deleted. Ladle stories for each slot in each state. | Existing band rules tests ported; a test that slots follow mount and Downtime |
 | 5 (#1055) | Board control | `BoardControl` and its menu: own, unclaimed spare ("Claim and board", with a confirm), other player's, destroyed, boarded elsewhere, no assigned mech, no crawler. | One test per disabled reason; claim-and-board writes the claim before the seat |
 | 6 (#1056) | Display tabs and Log | `DisplayTabs`, deck and resolve split, rolls written to the Game log and read by `LogTab`, resolve progress on the seat, shown live to the crew ("Rook is resolving Crush", then the roll) | Rolls round-trip test; reload mid-resolve keeps the roll; a second client sees the resolve live |
-| 7 (#1057) | Crew tab | `CrewTab` from seats and `crew.vitals`, extended to return maxima computed on the server with the same `salvageunion-reference` rules the client uses (§8 A3). Attention rules from D6. | Visibility test: no Mediator-only data in the payload; server maxima match the client's derived maxima for the same record |
+| 7 (#1057) | Crew tab | An experiment first: `salvageunion-reference/rules` loading in Convex. Then the crew query derives maxima and status on the server (§8 A3), and `CrewTab` reads it with the seats. The ▲ and red outlines come from the derived status (D6). The two "should not grow" comments are updated. | The server's derived maxima and status equal the client's for shared fixtures; no Mediator-only data in the payload |
 | 8 (#1058) | Downtime | `DowntimeWizard` on `downtime.state`, the step track, Crawler Major during Downtime, Mediator controls on the Dashboard. The crawler becomes Mediator-only on the server (D11): `assertMayEditCrawler` in a Game and `downtime.spendUpkeep` require the Mediator, and the crawler sheet goes read-only for players in a Game. `playStateStore` deleted. | Two-client test: the Mediator advances and both clients follow; a player's crawler write is refused and the Mediator's succeeds |
 | 9 (#1059) | Docs | Rewrite `dashboard.md` (keep section numbers, since code comments cite them) and the statements listed in §7. Delete this plan, or mark it done. | `doc-drift` |
 
@@ -274,8 +274,16 @@ A2. **The Mediator's Dashboard.** The Mediator gets a Dashboard of their own,
 planned separately once seats exist (§9). This plan's Dashboard is for pilots
 (D10).
 
-A3. **Crew tab maxima.** `crew.vitals` is extended to return maxima computed on
-the server from the same rules package, so Crew rows show gauges (layer 7).
+A3. **Crew status is derived on the server.** The crew query imports
+`salvageunion-reference/rules` and derives every crewmate's maxima (HP, AP, SP,
+EP, Heat cap) and status (dead or injured, shut down, overheating, destroyed
+systems and modules, ejected) from their stored records. Nothing extra is
+stored. That lifts a convention, recorded only in comments in
+`convex/downtime.ts` and `convex/botClient.ts`, that Convex should not have the
+rules package. ADR-006 itself doesn't say so. Layer 7 starts with an experiment
+proving the package's lazy data loading works in Convex; if it doesn't, the
+needed data files are imported directly. The Discord bot moves onto the same
+values in a follow-up (#1068).
 
 A4. **Spare mechs.** The Board menu offers "Claim and board" for an unclaimed
 spare, with a confirm step (layer 5). Claiming may need rethinking: it reads
@@ -308,6 +316,8 @@ seat (D12).
   assets in a Game. This would be an ADR-030 amendment, not part of this plan.
 - **`games.cockpitPrefs`** (#1065). Drop the unused column. That's a one-way schema
   step of its own.
+- **The bot reads server-derived crew status** (#1068), retiring its own copy
+  of the derivation.
 - **Player requests to the Mediator.** Proposals only go from the Mediator to a
   player today. With the crawler Mediator-only (D11), players have no in-app way
   to ask for a crawler change. They ask at the table.
