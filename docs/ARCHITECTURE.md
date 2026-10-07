@@ -495,7 +495,7 @@ applyMechDamage({ currentSP, amount, kind, vulnerable })
 `heatCheckPatch(effect, currentHeat?)`: the package owns math, the app owns
 patches. The roller is the package's `rollDie(sides)`.
 
-**Activation:** the Dashboard's `ActionsDeck.tsx` over `activationPatch()` in
+**Activation:** the Dashboard's `useActionsDeck.ts` over `activationPatch()` in
 `apps/itun/src/components/dashboard/dashboardRules.ts`; cost from `itemEconomy()`
 (`sheet/mechItemRules.ts`) per action via `economyForActivation()`. Boarded,
 the deck is the mech's chassis, systems and modules plus the pilot's abilities
@@ -510,7 +510,7 @@ and returns `meltdown: true` to confirm; Critical rolls and Eject are explicit
 steps. An item marked Destroyed applies at once with an Undo toast
 (`sheet/destroyedUndoToast.ts`).
 
-**Heat:** `MechSlot.tsx` and `ActionsDeck.tsx` call `heatCheckOncePatch()` /
+**Heat:** `MechSlot.tsx` and `useActionsDeck.ts` call `heatCheckOncePatch()` /
 `pushPatch()` and record `lastHeatCheck`. Auto: a pass, `20`, and `11–19`
 (`shutdown` + `vulnerable`, SP damage equal to heat). Player-driven: `6–10` /
 `2–5` set `requiresPlayerChoice` and the player marks the item's `StatusBadge`
@@ -5298,7 +5298,7 @@ with its mechs docked.
 ### Status
 
 **Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
-is decision 2's seat, except the action being resolved. The plan
+are decision 2's seat and decision 4's tabs and Log. The plan
 that delivers the rest, layer by layer, is
 [dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
 land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
