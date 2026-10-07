@@ -15,10 +15,11 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { DashboardGate } from '../../components/dashboard/DashboardGate'
+import { pageTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
 
 export const Route = createFileRoute('/dashboard/$pilotId')({
-  head: () => ({ meta: [{ title: 'Dashboard — In The Union Now' }] }),
+  head: () => ({ meta: [{ title: pageTitle('Dashboard') }] }),
   loader: async () => {
     const store = useEntityStore.getState()
     await Promise.all([

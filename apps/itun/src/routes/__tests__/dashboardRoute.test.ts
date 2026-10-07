@@ -12,6 +12,6 @@ import { Route } from '../dashboard/$pilotId'
 describe('the Dashboard route', () => {
   test('has a page title', async () => {
     const head = await Route.options.head?.({} as never)
-    expect(head?.meta).toEqual([{ title: 'Dashboard — In The Union Now' }])
+    expect(head?.meta).toEqual([{ title: 'Dashboard · In The Union Now' }])
   })
 })
