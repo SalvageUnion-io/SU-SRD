@@ -23,7 +23,8 @@
  * tab, and its progress is saved on the seat (`useActionsDeck`). A strip along
  * the bottom carries the Mediator's latest alert and the proposal count, and
  * the rail says whether play is being saved. What the rest of the table is
- * doing — the Game's rolls, alerts and the crew's seats — is `useGameFeed`'s.
+ * doing — the Game's rolls, alerts and the crew's derived status — is
+ * `useGameFeed`'s.
  * Only the screen's arrangement stays on the device (D7): the open tab, the
  * Reference tab's entity, the deck's filters and the ⤢ overlay.
  */
@@ -164,7 +165,7 @@ function DashboardView({
   seat: SeatHandle
   /** What the Board menu and the Crew tab read from the Game (`useBoardSources`). */
   sources: BoardSources
-  /** The rest of the table: rolls, alerts, the inbox (`useGameFeed`). */
+  /** The rest of the table: rolls, alerts, the inbox, the crew (`useGameFeed`). */
   feed: GameFeed
   mediator: boolean
 }) {
@@ -249,6 +250,8 @@ function DashboardView({
   const shownRef: ReferenceFocus =
     reference !== null && referable.some((r) => r.focus === reference) ? reference : majorRef
   const panel = { mech, pilot, crawler, mount, seat }
+  // The Crew tab's rows, and its ▲ when any of them needs looking at (D6).
+  const crew = crewLines(feed.crew, sources.seats, pilotId)
   // Choosing an action from the deck opens it in the Resolve tab.
   const { list } = deck
   const deckList =
@@ -315,6 +318,7 @@ function DashboardView({
                 <DisplayTabs
                   tab={tab}
                   onTab={setTab}
+                  crewAttention={crew.some((c) => c.attention)}
                   panels={{
                     resolve: <ResolvePanel view={deck.resolve} />,
                     reference: (
@@ -332,7 +336,7 @@ function DashboardView({
                     tables: <DisplayPanel focus="tables" {...panel} />,
                     srd: <DisplayPanel focus="srd" {...panel} />,
                     log: <LogTab rolls={feed.rolls} alerts={feed.alerts} />,
-                    crew: <CrewTab crew={crewLines(sources, pilotId)} />,
+                    crew: <CrewTab crew={crew} />,
                   }}
                 />
               </div>
