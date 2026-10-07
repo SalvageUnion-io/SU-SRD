@@ -3288,9 +3288,9 @@ one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
 
-**§6 is amended by [ADR-038](#adr-038)** (built): crew status
-reaches the player Dashboard as a Crew tab, not a dial item, and the Dashboard
-is Game-only.
+**§5 and §6 are amended by [ADR-038](#adr-038)** (built): only the table runner
+edits a Game's crawler, and crew status reaches the Game-only Dashboard as a
+Crew tab.
 
 ### Context
 
@@ -5311,8 +5311,8 @@ consequence fell short: Tailwind-removal P5 (below).
 - Decisions 2, 3 and 5 are unchanged.
 
 **Also amends:**
-- [ADR-030](#adr-030) §6: crew status
-  reaches the Dashboard as a Crew tab, not a dial item.
+- [ADR-030](#adr-030) §5: the table runner alone edits a Game's crawler.
+  §6: crew status reaches the Dashboard as a Crew tab, not a dial item.
 - [ADR-029](#adr-029) §4: activated
   effects resolve against the seat, not ephemeral play state.
 - [ADR-034](#adr-034)'s "What is not data": mount

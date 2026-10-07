@@ -60,8 +60,11 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
   `DisplayPicker`), Tables, SRD, then Log (the Game's rolls and the
   Mediator's alerts, `LogTab`) and Crew (`CrewTab`: one row per crewmate,
   pilot first, with HP and AP, their mech's SP and Heat while boarded, and
-  the action they are resolving; a row opens that crewmate's live sheet). A
-  red outline marks a crewmate who is dead, injured, ejected, overheating or
+  the action they are resolving; a row opens that crewmate's live sheet).
+  Rows are keyed by link id, the id seats and soft links use, so a template
+  pre-gen with no app id (the Starter Set's) gets a row too. A parked mech is
+  one line, which names what is wrong when it draws the outline. A red
+  outline marks a crewmate who is dead, injured, ejected, overheating or
   destroyed, and a ▲ on the tab says someone is. A strip along the bottom
   (`DashboardStrip`) carries the latest alert, the proposal count and the
   link to the Game, where proposals are answered.
@@ -107,17 +110,20 @@ rather than a description. Do not fork the display for the Dashboard.
 
 Mount state must never reach the pilot/mech schema or a shared sheet: there is no
 "pilot in mech" field, only a `mech-to-pilot` soft link and the seat, its own row
-that points at both by app id. Every member reads the crew's seats; only whoever
-may write the pilot writes its seat, and boarding also needs the mech
+that points at both by link id (the app id, or a template pre-gen's body id).
+Every member reads the crew's seats; only whoever may write the pilot writes its
+seat, and boarding also needs the mech
 ([ADR-038](../ARCHITECTURE.md#adr-038) §2).
 
 ### 4.2 Persistence
 
 Live-play writes to the pilot, mech and crawler go through `entityStore.update`,
 exactly the sheet's path ([data flow](../ARCHITECTURE.md#data-flow)). In a Game
-the crawler is the Mediator's: the server refuses a player's crawler write
-(`assertMayEditCrawler`), so the Crawler slot's verbs and the crawler sheet are
-read-only for players. The Dashboard's own server surface is the seat:
+the crawler is the table runner's ([ADR-038](../ARCHITECTURE.md#adr-038) §5):
+the Mediator, or the Organizer while the Game has none, raises, edits and
+scraps it. The server refuses anyone else's crawler write
+(`assertMayEditCrawler`), so the crawler sheet is read-only for players, and
+the Crawler slot's verbs show to the Mediator only. The Dashboard's own server surface is the seat:
 `convex/seats.ts`, written through `useSeat`'s mutations with optimistic
 updates, and refused here while Disconnected rather than queued. An Eject also
 marks the seat `ejected` until the pilot next boards or dismounts. The Crew tab
@@ -283,5 +289,5 @@ The Dashboard ships its own `DashboardGauge` beside `component-lib`'s
 - **Contrast** of the pilot-orange ground and the Heat redline in both themes
   still wants a real screenshot check.
 - **Players cannot ask for a crawler change in the app.** Proposals run from
-  the Mediator to a player only; with the crawler the Mediator's, players ask
-  at the table.
+  the Mediator to a player only; with the crawler the table runner's, players
+  ask at the table.

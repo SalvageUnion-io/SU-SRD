@@ -12,9 +12,9 @@ import { testConvex } from './harness'
  * Three rules, and each one is only worth anything because it is enforced HERE
  * rather than by hiding a button:
  *
- *  1. **The table runner raises the crawler.** Every member may then edit its
- *     fields — that is what communal means — but creating and scrapping one is
- *     the act of whoever runs the table.
+ *  1. **The table runner raises the crawler.** Raising, editing and scrapping
+ *     it are all the act of whoever runs the table (ADR-038 §5); communal
+ *     means only that it has no owner, and every member reads it.
  *  2. **A Game takes any member's pilots and mechs.** It used to wait for a
  *     crawler; since ADR-037 the crew may gather first, and the first crawler
  *     raised becomes primary and takes them aboard.
