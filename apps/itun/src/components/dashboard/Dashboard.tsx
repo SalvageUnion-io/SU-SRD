@@ -48,6 +48,7 @@ import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { isUpkeepStep } from '../../lib/rules/downtime'
 import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
@@ -258,7 +259,11 @@ function DashboardView({
     board: boardMenu({ pilotId, assigned: composition.mech, sources }),
     mediator,
     upkeep: inDowntime
-      ? { spent: downtime.downtime.upkeepSpent, spend: downtime.spendUpkeep }
+      ? {
+          spent: downtime.downtime.upkeepSpent,
+          payable: isUpkeepStep(downtime.downtime.stepIndex),
+          spend: downtime.spendUpkeep,
+        }
       : null,
     store: storeState,
   }

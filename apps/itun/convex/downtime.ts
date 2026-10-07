@@ -1,5 +1,6 @@
 import { v } from 'convex/values'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { isUpkeepStep, UPKEEP_STEP_NAME } from '../src/lib/rules/downtime'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -23,6 +24,10 @@ import { loadReferenceData } from './model/referenceData'
  * unworkable. Since the crawler became the Mediator's (ADR-038 §5) only the
  * Mediator pays it, and the flag still guards a second tab or a second press.
  * The flag resets when a new Downtime starts, never when a step advances.
+ *
+ * Upkeep is a step of the procedure ("Upkeep & Upgrade", p.227), so the Game's
+ * Upkeep is paid in that step and refused in every other. The crawler sheet is
+ * not gated: it stays editable at any time.
  *
  * ## Completion is per step, not cumulative
  *
@@ -184,7 +189,8 @@ export const markStepDone = mutation({
 
 /**
  * Record that the crew has paid crawler upkeep this Downtime. Mediator only:
- * the crawler is theirs (ADR-038 §5, `assertMayEditCrawler`).
+ * the crawler is theirs (ADR-038 §5, `assertMayEditCrawler`). Only in the
+ * Upkeep & Upgrade step: any other step refuses it (see the module header).
  *
  * Returns false when it was already spent rather than throwing: a second press,
  * or the hub and the Dashboard open side by side, is an ordinary race, not an
@@ -198,6 +204,10 @@ export const spendUpkeep = mutation({
     const row = await readState(ctx, args.gameId)
     if (row === null || row.stepIndex === null) {
       throw new NotAuthorized('Downtime is not running')
+    }
+    loadReferenceData()
+    if (!isUpkeepStep(row.stepIndex)) {
+      throw new NotAuthorized(`Upkeep is paid in the ${UPKEEP_STEP_NAME} step`)
     }
     if (row.upkeepSpent) return false
 

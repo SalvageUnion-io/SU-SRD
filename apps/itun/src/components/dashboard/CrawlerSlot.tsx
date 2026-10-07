@@ -34,6 +34,7 @@ import {
   UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
+import { UPKEEP_STEP_NAME } from '../../lib/rules/downtime'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -152,9 +153,10 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
 
 /**
  * This Downtime's Upkeep, as the Crawler Major pays it: whether the Game's row
- * says it is paid, and the idempotent claim (`useDowntime().spendUpkeep`).
+ * says it is paid, whether the table is on the Upkeep step (the only step it
+ * can be paid in), and the idempotent claim (`useDowntime().spendUpkeep`).
  */
-export type CrawlerUpkeep = { spent: boolean; spend: () => Promise<boolean> }
+export type CrawlerUpkeep = { spent: boolean; payable: boolean; spend: () => Promise<boolean> }
 
 /** Downtime economy prompts the crawler band can raise. */
 type EconPrompt =
@@ -367,7 +369,7 @@ export function CrawlerMajor({
   }
   // The side column: what this Downtime costs, how close the next Tech Level
   // is, and the one destructive verb.
-  // Paid once per Downtime, by the Mediator, while one is running.
+  // Paid once per Downtime, by the Mediator, in the Upkeep & Upgrade step.
   const upkeepBay: BandBay = {
     label: 'Upkeep',
     side: true,
@@ -378,10 +380,20 @@ export function CrawlerMajor({
             ? `${UPKEEP_SCRAP} Scrap per Downtime`
             : `${UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
       },
-      ...(upkeep === null ? [] : [{ text: upkeep.spent ? 'Paid this Downtime' : 'Outstanding' }]),
+      ...(upkeep === null
+        ? []
+        : [
+            {
+              text: upkeep.spent
+                ? 'Paid this Downtime'
+                : upkeep.payable
+                  ? 'Outstanding'
+                  : `Outstanding · paid in the ${UPKEEP_STEP_NAME} step`,
+            },
+          ]),
     ],
     buttons:
-      mediator && upkeep !== null && !upkeep.spent
+      mediator && upkeep !== null && !upkeep.spent && upkeep.payable
         ? [
             {
               label: 'Pay Upkeep',
