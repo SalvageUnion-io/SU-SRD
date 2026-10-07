@@ -1,6 +1,6 @@
 # Dashboard redesign: the Flight Deck
 
-> **Status:** Plan, dated 2026-10-06. Layers 1 to 7 are built; the rest is
+> **Status:** Plan, dated 2026-10-06. Layers 1 to 8 are built; the rest is
 > not. The product decisions in §2 and the answers in §8 were made by the
 > product owner. The decision is recorded in
 > [ADR-038](../ARCHITECTURE.md#adr-038). The

@@ -3472,9 +3472,9 @@ Game — solo play and covering for an absent player both need it.
 
 Inside a Game, every member sees every crewmate's **vitals live** and may drill
 into a crewmate's full sheet **read-only**. The Mediator's prepared opposition
-(`encounterNpcs`) is the one thing that stays hidden. The **crawler is communal** —
-any member may edit it — with conflicting writes resolved by field-level merge,
-because the scrap pool and cargo lots are genuinely contended during Downtime.
+(`encounterNpcs`) is the one thing that stays hidden. The **crawler is communal**:
+no owner, read by every member, edited only by the table runner
+([ADR-038](#adr-038) §5), with writes merged per field.
 
 #### 5a. Setting the table up: who raises the crawler, and when a Game takes crew
 
@@ -5298,8 +5298,8 @@ with its mechs docked.
 ### Status
 
 **Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
-are decision 2's seat and decision 4 (tabs, Log and Crew with server-derived
-status). The plan that delivers the rest, layer by layer, is
+are decision 2's seat, decision 4 (tabs, Log and Crew with server-derived
+status) and decision 5 (Game Downtime, the Mediator's crawler). The plan that delivers the rest, layer by layer, is
 [dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
 land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
 and [dashboard.md](architecture/dashboard.md) describe.
@@ -5429,8 +5429,8 @@ step done. The Dashboard no longer keeps a Downtime step of its own.
 **A Game's crawler is the Mediator's.** Only the Mediator changes it, in
 Downtime and out. That covers Salvage, Craft, Trade, Upkeep, Upgrade, damage
 and Scrap a mech. Players see the crawler read-only and ask at the table. The
-server enforces it. Today `assertMayEditCrawler` (`convex/entities.ts`) lets
-any member edit a Game's communal crawler; it tightens to the Mediator.
+server enforces it (`assertMayEditCrawler`, `downtime.spendUpkeep`); with no
+Mediator, the Organizer keeps it (`requireTableRunner`).
 
 **Boarding never assigns.** Boarding a mech, a spare included, changes only the
 seat, never the pilot's `mech-to-pilot` link.

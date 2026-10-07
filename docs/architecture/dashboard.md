@@ -60,7 +60,11 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
 
 **Mount state** is `pilot | mech | downtime`: Board takes the pilot into a
 mech, Dismount or Eject (confirm-twice) takes them out, and Downtime is
-crawler-dominant, with `DowntimeWizard` in place of the display. On foot or
+crawler-dominant, with `DowntimeWizard` in place of the deck and tabs.
+Downtime is the Game's `downtime` row (`useDowntime`): the Mediator starts and
+ends it from the rail and moves it on with Next step, every member's Dashboard
+follows, and each player marks their own step done (the wizard's step track
+and ready pips). When it ends, each player is back where their seat says. On foot or
 boarded, and in which mech, is the pilot's **seat** on the Game (§4.1); a
 boarded pilot runs the mech the seat names, which need not be their assigned
 one. Board is a split button in the Mount bay (`BoardControl`, over
@@ -90,8 +94,8 @@ rather than a description. Do not fork the display for the Dashboard.
 | maxima, and the crew's status                             | derived (`lib/rules/derivedStats.ts`, `src/lib/rules/crewStatus.ts`), never stored |
 | on foot or boarded (and in which mech), range band, activated effects, the action being resolved | the pilot's seat on the Game (`convex/seats.ts`, `useSeat`) |
 | rolls                                                     | the Game's change log (`dashboardRolls.ts`, `changeLog.rolls`) |
-| in Downtime, Downtime wizard step                         | `playStateStore` — ephemeral, resets on reload          |
-| open tab, Reference entity, overlays, deck filters, a Hot X | component state                                       |
+| in Downtime, its step, who is done, Upkeep paid           | the Game's `downtime` row (`convex/downtime.ts`, `useDowntime`) |
+| open tab, Reference entity, overlays, deck filters, a Hot X, the deck's Take Damage hand-off | component state |
 
 Mount state must never reach the pilot/mech schema or a shared sheet: there is no
 "pilot in mech" field, only a `mech-to-pilot` soft link and the seat, its own row
@@ -191,7 +195,9 @@ Test the wiring, not the rules math: destructive outcomes surface a confirm and
 never auto-write a condition, mount state never reaches `entityStore`, and the
 canvas scale and threshold math holds. A roll round-trips through the log
 (`test/convex/rolls.test.ts`), and the resolve survives a reload and reaches a
-second client (`useSeat.connected.test.tsx`).
+second client (`useSeat.connected.test.tsx`). Two clients follow one Downtime: the
+Mediator's advance moves both, and a player's "I'm done" reaches the other
+(`Downtime.connected.test.tsx`).
 
 ## 10. Accessibility, risks & open questions
 
