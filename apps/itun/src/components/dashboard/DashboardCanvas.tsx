@@ -1,18 +1,18 @@
 /**
  * DashboardCanvas — the fixed 1280×800 design canvas, scaled to fit its host with
- * a single `transform: scale(...)`, letterboxed, never scrolling (proposed
- * ADR-020). It scales linearly to fill the available space: the host is sized to
- * the viewport height below its own top offset (nothing on the ancestor chain
- * establishes a height, so `h-full` alone would collapse to the canvas's fixed
- * 800px layout box and leave dead space below), then the canvas grows uniformly
- * to fill whichever axis binds first. Below the width floor the fixed canvas is
- * abandoned for a stacked fallback (Phase 1 renders a placeholder message there;
- * the real phone reflow is a later phase).
+ * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-020,
+ * merged into ADR-015). It scales linearly to fill the available space: the
+ * host is sized to the viewport height below its own top offset (nothing on the
+ * ancestor chain establishes a height, so `h-full` alone would collapse to the
+ * canvas's fixed 800px layout box and leave dead space below), then the canvas
+ * grows uniformly to fill whichever axis binds first. Below the width floor the
+ * canvas is replaced by a rotate-to-landscape notice; there is no phone layout
+ * yet (issue 1063; docs/architecture/dashboard.md §7).
  *
- * The dashboard layout shell — promoted out of ITUN as a legacy-tier component.
- * It owns the `.pc-root` scope (see DashboardCanvas.css) that every dashboard
- * surface inherits, and paints the dark ground the instruments sit on; the grid
- * regions and instruments fill `children`.
+ * The dashboard layout shell. It owns the `.pc-root` scope (see
+ * DashboardCanvas.css) that every dashboard surface inherits, and paints the
+ * dark ground the instruments sit on; the grid regions and instruments fill
+ * `children`.
  *
  * It imports NO stylesheet. The `.pc-*` rules ship as the package export
  * `component-lib/styles/dashboard.css`, which the rendering app imports — a
@@ -26,7 +26,8 @@ import { useEffect, useRef, useState } from 'react'
 const CANVAS_W = 1280
 const CANVAS_H = 800
 // Width floor for the landscape HUD: below this the viewport is treated as the
-// wrong form factor (phone) and the stacked fallback replaces the canvas.
+// wrong form factor (a portrait phone) and the notice replaces the canvas. A
+// landscape phone passes it and gets the canvas scaled down (dashboard.md §7).
 const MIN_SCALE = 0.62
 // Uniform upscale cap — generous enough to fill a 4K display's height while
 // still guarding against an absurdly large render on giant panels (beyond which

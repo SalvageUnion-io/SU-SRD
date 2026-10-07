@@ -2,7 +2,7 @@
  * DisplayPanel — what the display's Reference, Tables and SRD tabs show
  * (`DisplayTabs`): the ONE surface that reads "forward".
  *
- * `DisplayPanel` resolves the chosen `DisplayFocus` (+ play-state store /
+ * `DisplayPanel` resolves the chosen `DisplayFocus` (+ the seat and the
  * rules) into a discriminated `DisplayContent`; `DisplayPanelFrame` renders it — the faithful
  * light SRD reference document (reused ReferenceEntityCard / RollTable), the
  * Tables picker or the SRD Explorer. Entity focuses resolve the entity's

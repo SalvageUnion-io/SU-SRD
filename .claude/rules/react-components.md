@@ -48,6 +48,9 @@ hand-written inventory. App-only components live in that app's
   fine and is used (`ConnectionProvider`, `EntityHrefProvider`) — prefer props
   where props suffice, not as an absolute ban.
 - Validation via Zod schemas in `src/lib/schemas/`
+- The Dashboard (`src/components/dashboard/`, `docs/architecture/dashboard.md`):
+  new UI is style objects; its `.pc-*` stylesheet is closed
+  (`pc-class-contract`), and `pc-class-defined` fails any new `.pc-*` class
 
 **component-lib** (shared components):
 
