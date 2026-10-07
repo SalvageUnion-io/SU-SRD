@@ -10,11 +10,11 @@
 import { PageHeading, Panel, Slab } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
 import { getEntitySchemas, SalvageUnionReference } from '../lib/gameData'
 
-const TITLE = 'API Reference - Salvage Union System Reference Document'
+const TITLE = `API Reference${TITLE_SUFFIX}`
 const DESCRIPTION =
   'Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.'
 

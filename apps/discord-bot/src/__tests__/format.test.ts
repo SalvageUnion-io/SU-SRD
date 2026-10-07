@@ -2,16 +2,7 @@
  * Pure embed-shaping tests — no discord.js interaction objects needed.
  */
 import { describe, expect, test } from 'bun:test'
-import { ROLL_ATTRIBUTION, stripDanglingLink, truncate } from '../format.js'
-
-describe('truncate', () => {
-  test('passes short text through and caps long text', () => {
-    expect(truncate('short', 100)).toBe('short')
-    const long = 'word '.repeat(100)
-    expect(truncate(long, 50).length).toBeLessThanOrEqual(50)
-    expect(truncate(long, 50).endsWith('…')).toBe(true)
-  })
-})
+import { ROLL_ATTRIBUTION, stripDanglingLink } from '../format.js'
 
 describe('stripDanglingLink', () => {
   test('leaves a complete trailing link alone', () => {

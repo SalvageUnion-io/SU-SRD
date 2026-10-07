@@ -24,7 +24,7 @@ import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { Island } from '../runtime/Island'
 
 /** Repo root, relative to this module — `apps/srd/src/pages` -> four levels up. */
@@ -37,7 +37,7 @@ const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 
-const TITLE = 'About - Salvage Union System Reference Document'
+const TITLE = `About${TITLE_SUFFIX}`
 const DESCRIPTION =
   'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press. Community-built reference tool.'
 

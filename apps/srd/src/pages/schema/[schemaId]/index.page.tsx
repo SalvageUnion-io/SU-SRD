@@ -11,7 +11,7 @@
 import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
-import { SITE_URL } from '../../../lib/constants'
+import { SITE_URL, TITLE_SUFFIX } from '../../../lib/constants'
 import { schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
@@ -37,7 +37,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: `${schemaName} - Salvage Union System Reference Document`,
+      title: `${schemaName}${TITLE_SUFFIX}`,
       description,
       canonical: canonicalUrl,
       structuredData: {

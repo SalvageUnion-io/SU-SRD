@@ -15,7 +15,7 @@ import type { ReactNode } from 'react'
 import type { DocumentMeta } from '../../ssg/types'
 import { Footer } from '../components/Footer'
 import { TopNavigation } from '../components/TopNavigation'
-import { DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
+import { DEFAULT_OG_IMAGE, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
@@ -82,6 +82,7 @@ export function BaseLayout({ meta, pathname, children }: BaseLayoutProps) {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content={THEME_COLOR} />
         {/* Service-worker registration emitted by ssg/pwa.ts. */}
         <script defer src="/registerSW.js" />
 
