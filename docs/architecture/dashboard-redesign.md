@@ -3,7 +3,7 @@
 > **Status:** Plan, dated 2026-10-06. Nothing here is built. The product
 > decisions in §2 and the answers in §8 were made by the product owner. The
 > decision is recorded in
-> [ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md). The
+> [ADR-038](../ARCHITECTURE.md#adr-038). The
 > work is tracked in the [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7), with one issue
 > per layer in §5.
 >
@@ -12,11 +12,11 @@
 > concepts: <https://claude.ai/artifact/J8KCRx3byHFSqodscw4Rzg>.
 >
 > Read alongside [dashboard.md](dashboard.md) (what is built today),
-> [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md) (the decisions
-> this plan amends), [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)
+> [ADR-015](../ARCHITECTURE.md#adr-015) (the decisions
+> this plan amends), [ADR-030](../ARCHITECTURE.md#adr-030)
 > (Games, roles, "propose, never impose"),
-> [ADR-037](../adrs/ADR-037-assignment-model.md) (the links the Board menu
-> reads), [ADR-007](../adrs/ADR-007-automation-boundary.md) (unchanged by this
+> [ADR-037](../ARCHITECTURE.md#adr-037) (the links the Board menu
+> reads), [ADR-007](../ARCHITECTURE.md#adr-007) (unchanged by this
 > plan) and [tailwind-removal.md](../design-system/tailwind-removal.md) §P5
 > (this plan absorbs it for the Dashboard).
 
@@ -209,7 +209,7 @@ Issue numbers are on SalvageUnion-io/SU-SRD. Layers 4–8 touch disjoint compone
 
 ## 6. The ADR (layer 0)
 
-[ADR-038](../adrs/ADR-038-dashboard-game-surface-shared-play-state.md), "The
+[ADR-038](../ARCHITECTURE.md#adr-038), "The
 Dashboard Is a Game Surface with Shared Play State", written in layer 0. It:
 
 - **Records the gate** (D9): the Dashboard needs a pilot in a Game that has a

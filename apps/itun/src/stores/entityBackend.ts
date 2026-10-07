@@ -36,7 +36,7 @@ import type { SoftLink } from '../lib/schemas/softLink'
  *
  * A browser still holding a pre-account roster does not get a durable
  * anonymous backend either
- * ([ADR-035](../../../../docs/adrs/ADR-035-no-isolated-local-only-data.md)):
+ * ([ADR-035](../../../../docs/ARCHITECTURE.md#adr-035)):
  * its rows stay in IndexedDB untouched and are **migrated** into the account
  * on sign-in by `AccountReconciler`.
  *
@@ -115,7 +115,7 @@ function currentMode(): ConnectionMode {
  * and every mode can be driven here without a Convex client.
  *
  * Anonymous (`solo`) is `memory` unconditionally
- * ([ADR-034](../../../../docs/adrs/ADR-034-account-required-persistence.md)
+ * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034)
  * decision 1). There is no build flag and no exemption for a browser that
  * already holds a roster (ADR-035): those rows stay on disk and are migrated on
  * sign-in rather than loaded into the anonymous session — loading them would

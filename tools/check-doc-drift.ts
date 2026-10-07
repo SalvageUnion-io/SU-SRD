@@ -1,14 +1,18 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Four checks, each asking whether
+ * Doc drift — `bun run check doc-drift`. Five checks, each asking whether
  * something a doc tells a reader to open or run exists:
  *
  *   paths    every backticked repo path in a live-instruction doc (and every
  *            repo path in a workflow prompt) exists, unless the words beside
- *            it mark it as history or a proposal.
+ *            it mark it as history or a proposal. A doc's `# Decisions`
+ *            section is the record of past decisions, so it is not scanned.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
- *            `bun run check <id>` in a live doc, workflow prompt or Claude
- *            hook names a real script or check id.
+ *            `bun run check <id>` in a live doc (`# Decisions` aside),
+ *            workflow prompt or Claude hook names a real script or check id.
+ *   decisions every ADR is one bare `## ADR-NNN` heading under `# Decisions`
+ *            in docs/ARCHITECTURE.md, none missing or repeated, and
+ *            docs/adrs/ stays gone.
  *   links    every relative markdown link in a tracked `.md` file resolves,
  *            and its `#fragment`, into a `.md` file or the same file, names a
  *            heading there.
@@ -121,6 +125,19 @@ export function splitMarkdownBlocks(source: string): { line: number; text: strin
 
 const lineOf = (block: { line: number; text: string }, index: number): number =>
   block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
+
+/** The heading that opens the architecture decision records. */
+const DECISIONS_HEADING = /^# Decisions$/m
+
+/**
+ * A markdown doc up to its `# Decisions` heading: the part that describes the
+ * code as it is now. Each ADR records a decision as it was made, so the paths
+ * and scripts it names are history; its links are still checked.
+ */
+export function liveTextOf(source: string): string {
+  const at = source.search(DECISIONS_HEADING)
+  return at === -1 ? source : source.slice(0, at)
+}
 
 // ─── paths ──────────────────────────────────────────────────────────────────
 
@@ -299,7 +316,7 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
   }
 
   for (const doc of liveInstructionDocs(root)) {
-    const source = read(root, doc)
+    const source = liveTextOf(read(root, doc))
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
@@ -368,7 +385,7 @@ export function checkReferencedScripts(root: string): CheckResult {
     ...agentWorkflowScripts(root),
     ...hookScripts(root),
   ]) {
-    const text = read(root, doc)
+    const text = doc.endsWith('.md') ? liveTextOf(read(root, doc)) : read(root, doc)
     const owner = owningManifest(doc)
     const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
 
@@ -512,6 +529,65 @@ export function checkMarkdownLinks(
   }
 }
 
+// ─── decisions ──────────────────────────────────────────────────────────────
+
+/** The one file the ADRs live in, under its `# Decisions` heading. */
+const DECISIONS_DOC = 'docs/ARCHITECTURE.md'
+
+/** The ADR count when docs/adrs/ was folded into DECISIONS_DOC: none may go missing. */
+const ADR_FLOOR = 39
+
+const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
+
+export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
+  const failures: string[] = []
+  if (existsSync(join(root, 'docs/adrs'))) {
+    failures.push(
+      `docs/adrs/ exists again. An ADR is a \`## ADR-NNN\` section under \`# Decisions\` in ${DECISIONS_DOC}: move it there.`
+    )
+  }
+  if (!existsSync(join(root, DECISIONS_DOC))) {
+    failures.push(`${DECISIONS_DOC}, which holds the ADRs, does not exist.`)
+    return { ok: '', failures }
+  }
+  const count = new Map<number, number>()
+  let inFence = false
+  let inDecisions = false
+  for (const [index, line] of read(root, DECISIONS_DOC).split('\n').entries()) {
+    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
+    if (inFence) continue
+    if (DECISIONS_HEADING.test(line)) inDecisions = true
+    const adr = line.match(/^##\s+ADR-(\d+)/)
+    if (!adr) continue
+    const at = `${DECISIONS_DOC}:${index + 1}`
+    if (!/^## ADR-\d{3}$/.test(line)) {
+      failures.push(
+        `${at} heads an ADR "${line}". The heading is bare (\`## ADR-NNN\`); the title goes on the line below.`
+      )
+    } else if (!inDecisions) {
+      failures.push(`${at} is an ADR above \`# Decisions\`. Move it into that section.`)
+    }
+    const n = Number(adr[1])
+    count.set(n, (count.get(n) ?? 0) + 1)
+  }
+  const highest = Math.max(floor, ...count.keys())
+  for (let n = 1; n <= highest; n++) {
+    const seen = count.get(n) ?? 0
+    if (seen === 0)
+      failures.push(
+        `${DECISIONS_DOC} has no \`## ${adrId(n)}\`. ADRs are never deleted or renumbered: restore it.`
+      )
+    if (seen > 1)
+      failures.push(
+        `${DECISIONS_DOC} heads \`## ${adrId(n)}\` ${seen} times. Give the new decision the next number.`
+      )
+  }
+  return {
+    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under # Decisions in ${DECISIONS_DOC}`,
+    failures,
+  }
+}
+
 // ─── size ───────────────────────────────────────────────────────────────────
 
 const CLAUDE_MD_BUDGET = 8_000
@@ -522,11 +598,11 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_722,
-  'apps/srd/CLAUDE.md': 11_799,
-  'CLAUDE.md': 12_102,
-  'packages/component-lib/CLAUDE.md': 15_997,
-  'packages/salvageunion-reference/CLAUDE.md': 9_361,
+  'apps/itun/CLAUDE.md': 13_486,
+  'apps/srd/CLAUDE.md': 11_748,
+  'CLAUDE.md': 12_065,
+  'packages/component-lib/CLAUDE.md': 15_948,
+  'packages/salvageunion-reference/CLAUDE.md': 9_333,
 }
 
 /**
@@ -534,7 +610,8 @@ const OVER_BUDGET: Record<string, number> = {
  * Raise one only on purpose, saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  'docs/ARCHITECTURE.md': 60_000,
+  // ~60K of architecture plus the 39 ADRs folded in from docs/adrs/, as measured.
+  'docs/ARCHITECTURE.md': 297_035,
 }
 
 export function checkDocSizes(
@@ -580,6 +657,7 @@ const CHECKS = [
   checkBacktickedPathsExist,
   checkReferencedScripts,
   (root: string) => checkMarkdownLinks(root),
+  (root: string) => checkDecisions(root),
   (root: string) => checkDocSizes(root),
 ] as const
 

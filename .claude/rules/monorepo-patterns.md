@@ -15,7 +15,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 - Root `package.json` is `"private": true` to prevent accidental publishing. So
   is every workspace — nothing here is published to npm
-  ([ADR-014](../../docs/adrs/ADR-014-json-api-public-interface-npm-retired.md):
+  ([ADR-014](../../docs/ARCHITECTURE.md#adr-014):
   the dataset's public interface is the served JSON API).
 - Each package is self-contained with its own dependencies.
 - Workspace dependencies use the `workspace:*` protocol

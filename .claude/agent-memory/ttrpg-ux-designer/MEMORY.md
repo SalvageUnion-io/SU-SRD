@@ -82,7 +82,7 @@ the over-capacity red idiom, heat escalation, roll colour scope.
 
 Games make crawlers genuinely multi-user (ownership, claim/release, proposals,
 live crew vitals), so shared-space crawler UX is now a real requirement rather
-than a hypothetical. See ADR-030 (`docs/adrs/ADR-030-accounts-games-server-of-record.md`).
+than a hypothetical. See ADR-030 (`docs/ARCHITECTURE.md#adr-030`).
 
 ## Theme & Colour Notes
 

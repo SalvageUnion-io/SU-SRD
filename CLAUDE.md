@@ -7,11 +7,11 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records. **Read an ADR's `## Status` header first**: a superseded or merged ADR says so only there, and [`docs/README.md`](docs/README.md) tabulates them. The three that govern:
-  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
-  - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
-  - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
-- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
+- [ADRs](docs/ARCHITECTURE.md#decisions) — one `## ADR-NNN` each, closing `docs/ARCHITECTURE.md`. **Read an ADR's Status first**: a superseded or merged ADR says so only there, and [`docs/README.md`](docs/README.md) tabulates them. The three that govern:
+  - [ADR-030](docs/ARCHITECTURE.md#adr-030) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
+  - [ADR-021](docs/ARCHITECTURE.md#adr-021) — the surface/mode taxonomy for **where a rule is enforced**.
+  - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
+- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md#adr-033).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — cross-cutting architecture, one section per area: `grep -n '^##'` it, then Read with an offset; never the whole file.
 - **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
 

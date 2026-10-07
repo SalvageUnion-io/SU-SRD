@@ -2,7 +2,7 @@ import { z } from 'salvageunion-reference/zod'
 
 /**
  * Change Log (provenance) — the per-entity, append-only audit trail
- * ([ADR-022](../../../../../docs/adrs/ADR-022-provenance-log-and-overrides.md)).
+ * ([ADR-022](../../../../../docs/ARCHITECTURE.md#adr-022)).
  *
  * Every mutation to a player entity, on every surface, appends a Change Log
  * entry — _all_ changes, not just overrides. Each entry is tagged with its

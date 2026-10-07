@@ -1,6 +1,6 @@
 /**
  * Change Log (provenance) store accessor — the per-entity, append-only audit
- * trail ([ADR-022](../../../../../docs/adrs/ADR-022-provenance-log-and-overrides.md)).
+ * trail ([ADR-022](../../../../../docs/ARCHITECTURE.md#adr-022)).
  *
  * Unlike the entity stores (`makeStore` in ./crud.ts, keyed by `id` and
  * merge-patched in place), the Change Log is **append-only**: entries are never

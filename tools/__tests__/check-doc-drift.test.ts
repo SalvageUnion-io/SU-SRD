@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path'
 import {
   agentWorkflowScripts,
   checkBacktickedPathsExist,
+  checkDecisions,
   checkDocSizes,
   checkMarkdownLinks,
   checkReferencedScripts,
@@ -215,6 +216,17 @@ describe('checkBacktickedPathsExist', () => {
     expect(failures[0]).toContain('docs/ARCHITECTURE.md:3 cites `apps/itun/src/stores/gone.ts`')
   })
 
+  it('does not scan the ADRs under # Decisions: their paths and scripts are history', () => {
+    const root = fixture({
+      'package.json': JSON.stringify({ scripts: {} }),
+      'docs/ARCHITECTURE.md':
+        '## Data flow\n\nWrites go through `apps/itun/src/stores/gone.ts`.\n\n# Decisions\n\n' +
+        '## ADR-001\n\nWe kept `apps/itun/netlify/functions/` and ran `bun run netlify`.\n',
+    })
+    expect(checkBacktickedPathsExist(root).failures).toHaveLength(1)
+    expect(checkReferencedScripts(root).failures).toEqual([])
+  })
+
   it('does not let a negation in a NEIGHBOURING sentence excuse a stale path', () => {
     const root = fixture({
       'docs/architecture/x.md':
@@ -407,6 +419,32 @@ describe('headingSlug', () => {
       'rotating-jwt_private_key--jwks'
     )
     expect(headingSlug('See [the doc](x.md) **now**')).toBe('see-the-doc-now')
+  })
+})
+
+describe('checkDecisions', () => {
+  const doc = (adrs: string): string => `# Architecture\n\n# Decisions\n\n${adrs}`
+
+  it('passes ADR-001 to the floor, each one bare heading under # Decisions', () => {
+    const root = fixture({
+      'docs/ARCHITECTURE.md': doc('## ADR-001\n\n**One**\n\n### Status\n\n## ADR-002\n\n**Two**\n'),
+    })
+    expect(checkDecisions(root, 2).failures).toEqual([])
+  })
+
+  it('fails a missing, repeated, titled or misplaced ADR, and docs/adrs/ coming back', () => {
+    const root = fixture({
+      'docs/adrs/ADR-005.md': '# ADR-005\n',
+      'docs/ARCHITECTURE.md':
+        '## ADR-001\n\n# Decisions\n\n## ADR-002: Titled\n\n## ADR-002\n\n```md\n## ADR-003\n```\n',
+    })
+    const failures = checkDecisions(root, 4).failures.join('\n')
+    expect(failures).toContain('docs/adrs/ exists again')
+    expect(failures).toContain('docs/ARCHITECTURE.md:1 is an ADR above `# Decisions`')
+    expect(failures).toContain('docs/ARCHITECTURE.md:5 heads an ADR "## ADR-002: Titled"')
+    expect(failures).toContain('heads `## ADR-002` 2 times')
+    expect(failures).toContain('has no `## ADR-003`')
+    expect(failures).toContain('has no `## ADR-004`')
   })
 })
 

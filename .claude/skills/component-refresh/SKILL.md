@@ -9,7 +9,7 @@ allowed-tools: Bash, Read, Edit, Write, Glob, Grep
 Drive a component redesign through the repeatable three-level loop. This is the
 dominant kind of work in this repo. **This skill is the methodology** — it was
 proven on the entity-card refresh, whose settled design rules are
-[ADR-026](../../../docs/adrs/ADR-026-entity-card-design-rules.md). Do not restate
+[ADR-026](../../../docs/ARCHITECTURE.md#adr-026). Do not restate
 it anywhere else; a second copy drifts.
 
 ## Before starting
