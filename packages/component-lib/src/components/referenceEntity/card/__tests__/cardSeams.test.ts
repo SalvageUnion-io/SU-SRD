@@ -156,7 +156,20 @@ describe('bodyBlocks', () => {
 describe('cardChrome', () => {
   const tone = { domain: 'gear' as const, bg: 'bg-x', bgColor: 'red' }
 
-  test('a solid card reads paper on its own tone; ghosted and damaged ones read ink', () => {
+  test('each band reads ink or paper by its own contrast', () => {
+    // TL1 is light: ink on its header, paper on its deep shade below.
+    const tl1 = { domain: 'gear' as const, bg: 'bg-tl-1', bgColor: undefined }
+    expect(
+      resolveCardColors({ tone: tl1, isDown: false, isGhosted: false, hostTone: undefined })
+    ).toMatchObject({ onBandText: 'text-ink', onDarkText: 'text-paper' })
+    // The damaged grey is light on top and dark below, like any tone.
+    const tl6 = { domain: 'gear' as const, bg: 'bg-tl-6', bgColor: undefined }
+    expect(
+      resolveCardColors({ tone: tl6, isDown: true, isGhosted: false, hostTone: undefined })
+    ).toMatchObject({ onBandText: 'text-ink', onDarkText: 'text-paper' })
+  })
+
+  test('a band it cannot resolve reads paper when solid; ghosted and damaged ones read ink', () => {
     expect(
       resolveCardColors({ tone, isDown: false, isGhosted: false, hostTone: undefined })
     ).toMatchObject({ onBandText: 'text-paper', headerBg: 'bg-x', headerBgColor: 'red' })

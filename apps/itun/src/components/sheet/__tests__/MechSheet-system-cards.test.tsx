@@ -15,8 +15,8 @@
  * dep-injected store.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -24,11 +24,6 @@ import { expandCards } from '../../__tests__/expandCards'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
-
-// MechSheet resolves system/module slugs against the reference data at render.
-afterEach(() => {
-  cleanup()
-})
 
 // A real, choice-free system. ".50 Cal Machine Gun" is TL1 and renders with a
 // recognisable name + a "Tech Level" stat.

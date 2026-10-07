@@ -48,9 +48,8 @@ the player needed to see.
 Inert without a positive max (so SRD reference cards stay neutral).
 
 `heatLevel` / `HeatLevel` / `HEAT_HIGH_RATIO` were removed from the barrel; only
-`heatDangerFrom` survives. The `--animate-heat-pulse` keyframe exists in
-`theme.css` but **no component applies it** — the colour escalation shipped, the
-pulse did not.
+`heatDangerFrom` survives. The `--animate-heat-pulse` keyframe is deleted
+(`theme.css` records why); only the colour escalation shipped.
 
 ## Roll-result colour — scope it
 

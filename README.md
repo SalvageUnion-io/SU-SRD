@@ -39,6 +39,7 @@ in `apps/discord-bot` (the Discord bot's Worker).
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset
 │   ├── component-lib/          # Shared React component library
 │   └── observability/          # Sentry wiring shared by the Node surfaces
+├── tools/                      # Repo gates and scripts (a workspace)
 ├── docs/                       # Architecture docs + ADRs (see docs/README.md)
 ├── package.json                # Root workspace configuration
 ├── biome.jsonc                 # Shared Biome (lint + format) config
@@ -119,10 +120,10 @@ and contradicted the "no build step" paragraph two sections above.)
   (config in each app's `wrangler.jsonc`), deployed from
   `.github/workflows/deploy-cloudflare.yml`. ITUN's Worker also keeps the one
   read left of the retired snapshot shares, so old `/s/:id` links can redirect
-  to a public sheet — see [ADR-036](docs/adrs/ADR-036-retire-snapshot-shares.md).
+  to a public sheet — see [ADR-036](docs/ARCHITECTURE.md#adr-036).
 - Storage is **R2**: `su-itun-snapshots` for the retired snapshot shares
   (read-only), `su-lp-assets` for licensed artwork. See
-  [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
+  [ADR-033](docs/ARCHITECTURE.md#adr-033).
 
 ## Monorepo Conventions
 

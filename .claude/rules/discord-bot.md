@@ -46,7 +46,8 @@ Learned by shipping it and looking — each cost a PR (#976, #977):
 
 - Denials and errors are **always** ephemeral (`src/commands/itunReply.ts`):
   a public channel is the wrong place to say who lacks an account.
-- `/su sheet` is always ephemeral, even when the sheet is public (ADR-032);
+- `/su sheet` is always ephemeral, even when the sheet is public (ADR-032), and
+  shows the Share field only when the server reports `publicRead: true`;
   posting to the channel is the owner's act. `sheetVisibility.test.ts` holds it.
 - A private roll re-renders publicly only from the result encoded in its
   button — never by re-rolling.
@@ -65,8 +66,9 @@ retired `su:<action>` name for something new.
   `themeLockstep.test.ts` fails when they diverge.
 - `soloMode.test.ts` — the reference bot must keep working with no ITUN
   credentials. Do not let it regress.
-- Handlers take the narrow types in `src/commands/interactions.ts`; extend the
-  shared fakes in `src/__tests__/fakeInteraction.ts` rather than casting.
+- Handlers take the narrow types in `src/commands/interactions.ts` (add a member
+  only when a handler reads it); extend the shared fakes in
+  `src/__tests__/fakeInteraction.ts` rather than casting.
 
 Run `bun --filter discord-bot test`. To see a reply rendered, deploy to the test
 guild (`bun run deploy-commands`) and exercise the Worker with

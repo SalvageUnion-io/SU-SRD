@@ -81,5 +81,5 @@ pre-push:
           echo "          (bun test --changed does not cross workspace boundaries)"
           bun run test:coverage
         else
-          bun --filter "*" test --changed="$base" && bun test ./tools --changed="$base"
+          bun --filter "*" test --changed="$base"
         fi

@@ -80,6 +80,7 @@ export function CrawlerIdentityStep({
                 <Input
                   id={id}
                   type="number"
+                  numeric
                   min={0}
                   value={scrapPool[bucket]}
                   onChange={(e) =>

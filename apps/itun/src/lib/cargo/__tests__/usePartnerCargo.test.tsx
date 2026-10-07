@@ -11,8 +11,8 @@
  * Reducer semantics themselves are covered in cargoTransfer.test.ts.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, renderHook } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { renderHook } from '@testing-library/react'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { useEntityStore } from '../../../stores/entityStore'
@@ -21,10 +21,6 @@ import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import type { PartnerInstance } from '../../schemas/partner'
 import { usePartnerCargo } from '../usePartnerCargo'
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Fixtures — hostRef intentionally does not resolve, so every derived stat is

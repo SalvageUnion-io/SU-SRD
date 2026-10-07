@@ -23,14 +23,16 @@
  *   - afterEach cleanup()
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { Crawler } from '../../../lib/schemas/crawler'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import {
+  crawlerFixture,
+  mechFixture,
+  pilotFixture,
+  softLinkFixture,
+} from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
@@ -38,8 +40,6 @@ import {
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 // ---------------------------------------------------------------------------
@@ -48,17 +48,12 @@ import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
 
-afterEach(() => {
-  cleanup()
-})
-
 // ---------------------------------------------------------------------------
 // Shared fake entities
 // ---------------------------------------------------------------------------
 
-const fakePilot: Pilot = {
+const fakePilot = pilotFixture({
   id: 'pilot-smoke-1',
-  schemaVersion: 1,
   name: 'Riko Vane',
   callsign: 'Spark',
   classRef: 'mechanic',
@@ -67,60 +62,28 @@ const fakePilot: Pilot = {
   motto: 'Fix it fast.',
   keepsake: 'Worn goggles.',
   appearance: 'Compact, oil-stained.',
-  background: '',
-  conditions: [],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeMech: Mech = {
+const fakeMech = mechFixture({
   id: 'mech-smoke-1',
-  schemaVersion: 1,
   name: 'Steel Coffin',
   chassisRef: 'iron-mongrel',
   systems: ['rail-gun'],
   modules: ['shield-cell'],
-  cargoLots: [],
-  conditions: [],
   currentHP: 8,
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
-const fakeCrawler: Crawler = {
+const fakeCrawler = crawlerFixture({
   id: 'crawler-smoke-1',
-  schemaVersion: 1,
   name: 'Rust Colossus',
   techLevel: 'tech-2',
   crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
   systems: ['hull-repair'],
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
 // ---------------------------------------------------------------------------
-// Store / SoftLink factories (reused across tests)
+// Store factory (reused across tests)
 // ---------------------------------------------------------------------------
-
-type AnyEntity = Pilot | Mech | Crawler
-
-function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return makeEntityLookupMock(entities)
-}
-
-function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  return makeSoftLinkStoreMock(links)
-}
-
-function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
-  return {
-    id: `link-${mechId}-${pilotId}`,
-    from: { type: 'mech', id: mechId },
-    to: { type: 'pilot', id: pilotId },
-    type: 'mech-to-pilot',
-    createdAt: FIXTURE_NOW,
-  }
-}
 
 /**
  * Build a minimal Zustand-shaped store stub for MechSheet's `store` prop.
@@ -158,8 +121,8 @@ describe('Smoke — pilot-only sheet', () => {
       <Sheet
         kind="pilot"
         id="pilot-smoke-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getAllByText(/Riko Vane/).length).toBeGreaterThan(0)
@@ -170,8 +133,8 @@ describe('Smoke — pilot-only sheet', () => {
       <Sheet
         kind="pilot"
         id="pilot-smoke-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getAllByText(/mechanic/i).length).toBeGreaterThan(0)
@@ -188,8 +151,8 @@ describe('Smoke — mech-only sheet', () => {
       <Sheet
         kind="mech"
         id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getAllByText(/Steel Coffin/).length).toBeGreaterThan(0)
@@ -200,8 +163,8 @@ describe('Smoke — mech-only sheet', () => {
       <Sheet
         kind="mech"
         id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getByText('rail-gun')).toBeTruthy()
@@ -218,8 +181,8 @@ describe('Smoke — crawler-only sheet', () => {
       <Sheet
         kind="crawler"
         id="crawler-smoke-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
@@ -230,8 +193,8 @@ describe('Smoke — crawler-only sheet', () => {
       <Sheet
         kind="crawler"
         id="crawler-smoke-1"
-        entityStore={makeEntityStore([fakeCrawler])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     // Tech Level reads in IDENTITY beside the crawler type now, not in the
@@ -247,15 +210,15 @@ describe('Smoke — crawler-only sheet', () => {
 // ---------------------------------------------------------------------------
 
 describe('Smoke — wired composition (mech→pilot)', () => {
-  const link = makeMechToPilotLink('mech-smoke-1', 'pilot-smoke-1')
+  const link = softLinkFixture('mech-to-pilot', 'mech-smoke-1', 'pilot-smoke-1')
 
   test('both PilotSheet and MechSheet content visible', () => {
     render(
       <Sheet
         kind="mech"
         id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
     // Pilot name — PilotSheet renders it
@@ -269,8 +232,8 @@ describe('Smoke — wired composition (mech→pilot)', () => {
       <Sheet
         kind="mech"
         id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStore([link])}
+        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([link])}
       />
     )
     expect(screen.queryByLabelText('No pilot assigned')).toBeNull()
@@ -287,8 +250,8 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
       <Sheet
         kind="mech"
         id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getByText(/No pilot assigned/)).toBeTruthy()
@@ -299,8 +262,8 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
       <Sheet
         kind="mech"
         id="mech-smoke-1"
-        entityStore={makeEntityStore([fakeMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakeMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     // Pilot name should not appear
@@ -332,8 +295,8 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
       <Sheet
         kind="mech"
         id="mech-smoke-stat"
-        entityStore={makeEntityStore([statMech])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([statMech])}
+        softLinkStore={makeSoftLinkStoreMock([])}
         store={store}
       />
     )
@@ -366,8 +329,8 @@ describe('Smoke — the top-bar Share control opens the share dialog', () => {
       <Sheet
         kind="pilot"
         id="pilot-smoke-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
 
@@ -393,8 +356,8 @@ describe('Smoke — readOnly mode', () => {
       <Sheet
         kind="pilot"
         id="pilot-smoke-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
         readOnly={true}
       />
     )
@@ -406,8 +369,8 @@ describe('Smoke — readOnly mode', () => {
       <Sheet
         kind="pilot"
         id="pilot-smoke-1"
-        entityStore={makeEntityStore([fakePilot])}
-        softLinkStore={makeSoftLinkStore([])}
+        entityStore={makeEntityLookupMock([fakePilot])}
+        softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
     expect(screen.getByRole('button', { name: /share this pilot/i })).toBeTruthy()

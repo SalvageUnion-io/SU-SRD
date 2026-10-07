@@ -7,7 +7,7 @@
  * wrapper here instead, which is what the header does.
  */
 import { SearchField } from 'component-lib'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 /**
  * The shared search box. Two call-sites ship: the header's compact

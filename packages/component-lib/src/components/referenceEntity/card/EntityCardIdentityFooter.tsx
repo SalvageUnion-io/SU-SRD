@@ -7,6 +7,13 @@ import { formatProvenance } from './provenance'
 type EntityCardIdentityFooterProps = {
   /** Darker shade of the domain/tech-level tone (a raw CSS colour). */
   bgColor: string
+  /**
+   * Foreground for `bgColor`, chosen by contrast (`onToneText`). Every line
+   * prints in it at full strength: this is 12px text, so it owes 4.5:1, and the
+   * muted `paper/70` it used to wear measured 3.99:1 on mech's deep shade.
+   * Hierarchy comes from weight and case, not from a fade.
+   */
+  onBandText: string
   /** Entity TYPE (e.g. "Chassis") — plain muted text on the LEFT of the row. */
   typeLabel: string | undefined
   source: string | undefined
@@ -50,6 +57,7 @@ type EntityCardIdentityFooterProps = {
  */
 export function EntityCardIdentityFooter({
   bgColor,
+  onBandText,
   typeLabel,
   source,
   booklet,
@@ -69,7 +77,7 @@ export function EntityCardIdentityFooter({
 
   if (!typeLabel && !primary && reprints.length === 0 && !hasFootExtras) return null
 
-  const textClass = 'truncate font-body text-xs font-normal normal-case text-paper/70'
+  const textClass = cn('truncate font-body text-xs font-normal normal-case', onBandText)
 
   return (
     <div
@@ -91,10 +99,14 @@ export function EntityCardIdentityFooter({
           {footMeta?.map(({ label, value }, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list; index disambiguates repeated labels
             <span key={`${label}-${i}`} className="inline-flex shrink-0 items-baseline gap-1">
-              <span className="font-cond text-xs font-bold uppercase leading-none text-paper/70">
+              <span
+                className={cn('font-cond text-xs font-bold uppercase leading-none', onBandText)}
+              >
                 {label}
               </span>
-              <span className="font-body text-xs font-bold leading-none text-paper">{value}</span>
+              <span className={cn('font-body text-xs font-bold leading-none', onBandText)}>
+                {value}
+              </span>
             </span>
           ))}
           {primary && <span className={textClass}>{primary}</span>}
@@ -106,10 +118,10 @@ export function EntityCardIdentityFooter({
           printing is a whole book title and a clipped one names nothing. */}
       {reprints.length > 0 && (
         <div className="flex w-full flex-wrap items-baseline justify-end gap-x-2 gap-y-0.5">
-          <span className="font-cond text-xs font-bold uppercase leading-none text-paper/70">
+          <span className={cn('font-cond text-xs font-bold uppercase leading-none', onBandText)}>
             Also in
           </span>
-          <span className="font-body text-xs font-normal normal-case text-paper/70">
+          <span className={cn('font-body text-xs font-normal normal-case', onBandText)}>
             {reprints.join(', ')}
           </span>
         </div>

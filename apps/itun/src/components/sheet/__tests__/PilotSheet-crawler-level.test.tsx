@@ -22,8 +22,8 @@
  * the same stub.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -43,10 +43,6 @@ beforeAll(async () => {
   const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 // ---------------------------------------------------------------------------

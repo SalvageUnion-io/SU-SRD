@@ -1,31 +1,42 @@
 /**
  * Accessibility audit script using axe-core + Playwright.
- * Scans pages of a running dev server and reports WCAG 2.1 AA violations.
+ * Scans pages of a running server and reports WCAG 2.2 AA violations.
  *
  * Usage:
  *   bun tools/a11y-scan.ts <base-url> <page1> <page2> ...
  *   bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json <base-url>
+ *   bun tools/a11y-scan.ts --device 'Pixel 7' --baseline … <base-url>
+ *   bun tools/a11y-scan.ts --ready '<css selector>' --baseline … <base-url>
  *
  * With `--baseline` and no pages, the pages scanned are exactly the baseline's
- * keys. That is how both callers run it — the PR-blocking step in CI's
- * `build-srd` job and the nightly — so the page list lives in ONE place (the
- * baseline) rather than being restated in each workflow, and cannot drift from
+ * keys. That is how CI runs it, so the page list lives in ONE place (the
+ * baseline) rather than being restated in a workflow, and cannot drift from
  * it: a page in the baseline but not scanned would otherwise be reported stale.
+ *
+ * Every page is scanned at a 1280×900 desktop, then once more per `--device`
+ * (repeatable), emulating that Playwright device descriptor: viewport, scale,
+ * touch, mobile user agent. A phone lays the apps out differently — a drawer
+ * for the nav, stacked cards, narrow scroll regions — and those layouts were
+ * never scanned. `--ready` names an element the page must contain before it
+ * counts as settled, for an app (ITUN) whose loading state is not one of the
+ * signals `unsettled` knows.
  *
  * Uses Playwright rather than puppeteer-core so the repo has ONE browser
  * automation stack. puppeteer-core ships no browser, so this script previously
- * had to borrow the Chromium that Playwright installs for the e2e suites — the
- * nightly workflow ran a dedicated step that booted Node just to print
- * `chromium.executablePath()` into the environment. Playwright resolves its own
+ * had to borrow the Chromium that Playwright installs for the e2e suites — a
+ * workflow step booted Node just to print `chromium.executablePath()` into the
+ * environment. Playwright resolves its own
  * browser, so that step is gone and there is no second stack to keep in sync.
  */
 
-import { mkdirSync, readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { Page, Request } from 'playwright'
-import { chromium } from 'playwright'
+import type { BrowserContextOptions, Page, Request } from 'playwright'
+import { chromium, devices as playwrightDevices } from 'playwright'
+import type { Baseline } from './lib/a11yBaseline'
+import { diffAgainstBaseline, serializeBaseline } from './lib/a11yBaseline'
 
 const AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.4/axe.min.js'
 
@@ -75,6 +86,8 @@ type AxeViolation = {
 
 type PageResult = {
   page: string
+  /** `desktop`, or the Playwright device the page was emulated as. */
+  device: string
   violations: number
   passes: number
   incomplete: number
@@ -141,10 +154,15 @@ function twoFrames(): Promise<void> {
  * two frames later: a freshly mounted island starts its data fetch in an effect
  * after it commits, and renders the result when the fetch lands.
  */
-async function waitUntilSettled(page: Page, inFlight: ReadonlySet<Request>): Promise<void> {
+async function waitUntilSettled(
+  page: Page,
+  inFlight: ReadonlySet<Request>,
+  ready: string | null
+): Promise<void> {
   const deadline = Date.now() + SETTLE_TIMEOUT_MS
   const settled = `(${unsettled.toString()})() === ''`
   try {
+    if (ready) await page.waitForSelector(ready, { state: 'attached', timeout: SETTLE_TIMEOUT_MS })
     for (;;) {
       const timeout = deadline - Date.now()
       if (timeout <= 0) throw new Error('deadline passed')
@@ -167,12 +185,14 @@ async function scanPage(
   page: Page,
   inFlight: Set<Request>,
   url: string,
-  pathname: string
+  pathname: string,
+  device: string,
+  ready: string | null
 ): Promise<PageResult> {
   // The previous page's requests say nothing about this one.
   inFlight.clear()
   await page.goto(url, { waitUntil: 'load', timeout: SETTLE_TIMEOUT_MS })
-  await waitUntilSettled(page, inFlight)
+  await waitUntilSettled(page, inFlight, ready)
 
   // Inject axe-core — local copy when resolvable (no network), else CDN.
   // `addScriptTag` resolves once the script has run, so `window.axe` exists.
@@ -185,7 +205,9 @@ async function scanPage(
   const results = await page.evaluate(async () => {
     // @ts-expect-error axe is injected via script tag
     const res = await window.axe.run(document, {
-      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'],
+      // `wcag22aa` adds 2.2's new AA criteria — target size (2.5.8) among
+      // them, which is the one a phone layout most readily fails.
+      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
     })
     return {
       violations: res.violations.length,
@@ -213,92 +235,64 @@ async function scanPage(
     }
   })
 
-  return { page: pathname, ...results }
+  return { page: pathname, device, ...results }
 }
 
-/**
- * The accepted-violation baseline: page path -> the axe rule ids tolerated there.
- *
- * A rule id in this file is DEBT, deliberately accepted with a reason recorded
- * beside it. A rule id NOT in this file is a regression, and the run exits
- * non-zero on it.
- *
- * The point of the shape is that it only ever gets easier to satisfy: adding a
- * page or a rule requires editing this file, which is a reviewable act, while
- * fixing something and deleting its entry needs no ceremony at all.
- */
-type Baseline = {
-  /** Free-text, per key, explaining why each id is tolerated. Not read by code. */
-  $rationale?: Record<string, string>
-  pages: Record<string, string[]>
-}
-
-/**
- * Compare a run against the baseline.
- *
- * Reports two things, and the second is the one that keeps the file honest:
- * NEW ids (a regression) and STALE entries (an id that no longer fires, or a
- * page that is no longer scanned). A baseline nobody prunes drifts into a
- * blanket exemption, so a stale entry is a failure too.
- */
-function diffAgainstBaseline(
-  results: PageResult[],
-  baseline: Baseline
-): { regressions: string[]; stale: string[] } {
-  const regressions: string[] = []
-  const stale: string[] = []
-  const scanned = new Set(results.map((r) => r.page))
-
-  for (const result of results) {
-    // A crashed scan is -1. It must never read as "no violations".
-    if (result.violations < 0) {
-      regressions.push(`${result.page}: the scan itself failed`)
-      continue
-    }
-    const accepted = new Set(baseline.pages[result.page] ?? [])
-    const seen = new Set(result.details.map((v) => v.id))
-    for (const id of seen) {
-      if (!accepted.has(id)) regressions.push(`${result.page}: ${id}`)
-    }
-    for (const id of accepted) {
-      if (!seen.has(id)) stale.push(`${result.page}: ${id} no longer fires — remove it`)
-    }
+/** The arguments. `--device` may repeat; `--baseline` and `--ready` take one value. */
+function parseArgs(argv: string[]): {
+  baselinePath: string | null
+  devices: string[]
+  ready: string | null
+  update: boolean
+  positional: string[]
+} {
+  let baselinePath: string | null = null
+  let ready: string | null = null
+  let update = false
+  const devices: string[] = []
+  const positional: string[] = []
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i] ?? ''
+    if (arg === '--baseline') baselinePath = argv[++i] ?? null
+    else if (arg === '--device') devices.push(argv[++i] ?? '')
+    else if (arg === '--ready') ready = argv[++i] ?? null
+    else if (arg === '--update-baseline') update = true
+    else positional.push(arg)
   }
-
-  for (const page of Object.keys(baseline.pages)) {
-    if (!scanned.has(page)) stale.push(`${page} is in the baseline but was not scanned`)
-  }
-
-  return { regressions, stale }
+  return { baselinePath, devices, ready, update, positional }
 }
 
-async function main() {
-  const argv = process.argv.slice(2)
-  const baselineFlag = argv.indexOf('--baseline')
-  const baselinePath = baselineFlag === -1 ? null : argv[baselineFlag + 1]
-  const positional =
-    baselineFlag === -1 ? argv : [...argv.slice(0, baselineFlag), ...argv.slice(baselineFlag + 2)]
+/** Every run scans this viewport first; `--device` adds to it. */
+const DESKTOP = 'desktop'
 
-  const [baseUrl, ...listed] = positional
-  const baseline = baselinePath
-    ? (JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline)
-    : null
-  const pages = listed.length > 0 ? listed : Object.keys(baseline?.pages ?? {})
-  if (!baseUrl || pages.length === 0) {
-    console.error(
-      'Usage: bun tools/a11y-scan.ts [--baseline <file>] <base-url> <page1> <page2> ...'
-    )
+/** Context options for the desktop viewport or a Playwright device descriptor. */
+function emulationFor(device: string): BrowserContextOptions {
+  if (device === DESKTOP) return { viewport: { width: 1280, height: 900 } }
+  const descriptor = playwrightDevices[device]
+  if (!descriptor) {
+    console.error(`Unknown --device '${device}'. Use a name from Playwright's device list.`)
     process.exit(1)
   }
+  // A persistent context takes the descriptor's options, bar the browser it names.
+  const { defaultBrowserType: _browser, ...emulation } = descriptor
+  return emulation
+}
 
+async function scanAs(
+  device: string,
+  baseUrl: string,
+  pages: string[],
+  ready: string | null
+): Promise<PageResult[]> {
   // `launchPersistentContext` rather than `launch` so the profile directory
   // stays explicit: the sandbox workaround above depends on Chrome writing its
   // profile and singleton socket under CHROME_TMP, and plain `launch()` would
-  // pick a temp dir the sandbox denies.
+  // pick a temp dir the sandbox denies. One context per device, in turn: they
+  // share that profile directory, so two cannot be open at once.
   const context = await chromium.launchPersistentContext(join(CHROME_TMP, 'profile'), {
     executablePath: CHROME_EXECUTABLE,
     headless: true,
-    viewport: { width: 1280, height: 900 },
+    ...emulationFor(device),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -316,7 +310,7 @@ async function main() {
   })
 
   // A persistent context opens with one page already; reuse it rather than
-  // leaving a blank tab open (viewport is set on the context above).
+  // leaving a blank tab open (the viewport is set on the context above).
   const page = context.pages()[0] ?? (await context.newPage())
   // Only requests that can change the DOM; an image or a font still loading cannot.
   const domInputs = new Set(['document', 'script', 'stylesheet', 'fetch', 'xhr'])
@@ -327,18 +321,17 @@ async function main() {
   page.on('requestfinished', (request) => inFlight.delete(request))
   page.on('requestfailed', (request) => inFlight.delete(request))
 
-  const allResults: PageResult[] = []
-
+  const results: PageResult[] = []
   for (const pathname of pages) {
     const url = `${baseUrl}${pathname}`
-    console.error(`Scanning ${url}...`)
+    console.error(`Scanning ${url} (${device})...`)
     try {
-      const result = await scanPage(page, inFlight, url, pathname)
-      allResults.push(result)
+      results.push(await scanPage(page, inFlight, url, pathname, device, ready))
     } catch (err) {
       console.error(`  Error scanning ${pathname}: ${err}`)
-      allResults.push({
+      results.push({
         page: pathname,
+        device,
         violations: -1,
         passes: 0,
         incomplete: 0,
@@ -348,24 +341,53 @@ async function main() {
   }
 
   await context.close()
+  return results
+}
+
+async function main() {
+  const { baselinePath, devices, ready, update, positional } = parseArgs(process.argv.slice(2))
+  const [baseUrl, ...listed] = positional
+  const baseline = baselinePath
+    ? (JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline)
+    : null
+  const pages = listed.length > 0 ? listed : Object.keys(baseline?.pages ?? {})
+  if (!baseUrl || pages.length === 0) {
+    console.error(
+      'Usage: bun tools/a11y-scan.ts [--baseline <file> [--update-baseline]] [--device <name>]… [--ready <selector>] <base-url> [<page> ...]'
+    )
+    process.exit(1)
+  }
+
+  const allResults: PageResult[] = []
+  for (const device of [DESKTOP, ...devices]) {
+    allResults.push(...(await scanAs(device, baseUrl, pages, ready)))
+  }
 
   // Output JSON results
   console.log(JSON.stringify(allResults, null, 2))
 
   if (!baseline) return
 
-  const { regressions, stale } = diffAgainstBaseline(allResults, baseline)
+  const { regressions, stale, pruned } = diffAgainstBaseline(allResults, baseline)
+  const pruning = update && baselinePath !== null && stale.length > 0
+  if (pruning) writeFileSync(baselinePath, serializeBaseline(pruned))
 
   for (const line of regressions) console.error(`NEW VIOLATION  ${line}`)
-  for (const line of stale) console.error(`STALE BASELINE ${line}`)
+  for (const line of stale) console.error(`${pruning ? 'PRUNED' : 'STALE BASELINE'} ${line}`)
+  const unresolvedStale = pruning ? [] : stale
 
-  if (regressions.length > 0 || stale.length > 0) {
+  if (regressions.length > 0 || unresolvedStale.length > 0) {
     console.error(
-      `\n${regressions.length} new violation(s), ${stale.length} stale baseline entr(y/ies).`
+      `\n${regressions.length} new violation(s), ${unresolvedStale.length} stale baseline entr(y/ies).`
     )
     console.error(
-      'A new id is a regression. A stale entry means something was fixed — delete the line.'
+      'A new id is a regression: fix it, or accept it in the baseline with a reason beside it.'
     )
+    if (unresolvedStale.length > 0) {
+      console.error(
+        `A stale entry means something was fixed: re-run with --update-baseline to delete it.`
+      )
+    }
     process.exit(1)
   }
   console.error('a11y: no new violations, and no stale baseline entries.')

@@ -114,7 +114,7 @@ export const PAGES_CACHE = 'pages'
  */
 export const NAVIGATION_TIMEOUT_SECONDS = 3
 
-/** The two runtime rules, exported for `__tests__/pwa.test.ts`. */
+/** The runtime rules, exported for `__tests__/pwa.test.ts`. */
 export const RUNTIME_CACHING = [
   {
     // Visited pages stay available offline (table use on bad wifi), but are
@@ -127,6 +127,14 @@ export const RUNTIME_CACHING = [
   },
   {
     urlPattern: /\/schema\/.*\.json$/,
+    handler: 'StaleWhileRevalidate' as const,
+    options: { cacheName: 'data' },
+  },
+  {
+    // The search island's index: 493 KB, fetched on first search interaction.
+    // Uncached, search did nothing offline and re-downloaded the index on every
+    // visit past its HTTP max-age. One deploy stale is fine for a search index.
+    urlPattern: /\/search-index\.json$/,
     handler: 'StaleWhileRevalidate' as const,
     options: { cacheName: 'data' },
   },

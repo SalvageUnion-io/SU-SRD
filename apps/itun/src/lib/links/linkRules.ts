@@ -1,7 +1,7 @@
 /**
  * The assignment model: what a soft link may join, how many of each an entity
  * may hold, and where both ends must live
- * ([ADR-037](../../../../../docs/adrs/ADR-037-assignment-model.md)).
+ * ([ADR-037](../../../../../docs/ARCHITECTURE.md#adr-037)).
  *
  * Pure, and shared by the client store and the Convex backend on purpose. The
  * server is the authority — `convex/entities.ts` refuses what these rules

@@ -45,4 +45,11 @@ describe('accountIdFrom', () => {
     expect(accountIdFrom('not-an-endpoint.example.com')).toBe('not-an-endpoint.example.com')
     expect(accountIdFrom('')).toBe('')
   })
+
+  test('requires the R2 suffix at the end of the host, not anywhere in it', () => {
+    // CodeQL #94: a substring test took the first label of any host that merely
+    // contained the R2 domain.
+    const lookalike = `https://${ACCOUNT}.r2.cloudflarestorage.com.example.net/`
+    expect(accountIdFrom(lookalike)).toBe(lookalike)
+  })
 })

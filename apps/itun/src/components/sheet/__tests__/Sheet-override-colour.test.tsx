@@ -18,10 +18,9 @@
  * tier above 1) and HP-granting abilities (Bionic Arms / Bionic Legs, +2 each).
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import {
   act,
-  cleanup,
   configure,
   fireEvent,
   getConfig,
@@ -64,10 +63,6 @@ beforeEach(async () => {
     softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 // A failed query's default error pretty-prints its container — here the whole

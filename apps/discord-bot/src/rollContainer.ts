@@ -60,12 +60,12 @@
  */
 
 import type { RollOnTableOutcome, SURefRollTable } from 'salvageunion-reference'
-import { getEntitySlug, srdEntityUrl } from 'salvageunion-reference'
+import { getEntitySlug, srdEntityUrl, truncate } from 'salvageunion-reference'
 import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { CORE_ROLL_BANDS, coreRollBand } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container.js'
 import { deriveLabel } from './derivedLabel.js'
-import { NEUTRAL_EMBED_COLOR, ROLL_ATTRIBUTION, ROLL_COLORS, truncate } from './format.js'
+import { NEUTRAL_EMBED_COLOR, ROLL_ATTRIBUTION, ROLL_COLORS } from './format.js'
 
 /** Longest value that reads as a headline rather than as body copy. */
 const INLINE_HEADLINE_MAX = 60

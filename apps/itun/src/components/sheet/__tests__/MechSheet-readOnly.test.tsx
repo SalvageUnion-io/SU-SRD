@@ -8,8 +8,8 @@
  * never written.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { makeScrapLot } from '../../../lib/schemas/cargoLot'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -17,10 +17,6 @@ import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
-
-afterEach(() => {
-  cleanup()
-})
 
 const fakeChassis = {
   name: 'Iron Mongrel',

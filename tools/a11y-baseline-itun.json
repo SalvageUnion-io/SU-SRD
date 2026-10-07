@@ -1,0 +1,18 @@
+{
+  "$rationale": {
+    "color-contrast": "ACCEPTED DEBT — the create-mode chooser that opens each wizard prints on the domain tone: paper on pilot orange (2.4:1 for the 54px title, where large text wants 3:1) and ink on crawler pink (4.17:1 for 13px copy, where AA wants 4.5:1). Neither ink nor paper reaches 4.5:1 on crawler, so this is the same book-tone question the card headers record in `packages/component-lib/src/design/contrast.test.ts`, on a surface that does not yet pick its foreground by contrast.",
+    "why-a-baseline-at-all": "ITUN had never been scanned. These are the anonymous routes a build with no Convex backend can render — the same build the PR-blocking smoke specs run against — scanned at desktop and as a phone. The scan blocks on anything not listed here, and on an entry that stops firing."
+  },
+  "pages": {
+    "/": [],
+    "/about": [],
+    "/changelog": [],
+    "/pilots/new": ["color-contrast"],
+    "/mechs/new": [],
+    "/crawlers/new": ["color-contrast"],
+    "/mechs/patterns": [],
+    "/settings": [],
+    "/account": [],
+    "/games": []
+  }
+}

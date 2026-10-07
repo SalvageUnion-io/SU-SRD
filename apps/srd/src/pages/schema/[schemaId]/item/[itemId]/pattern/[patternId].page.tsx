@@ -9,6 +9,7 @@
 
 import { assetSrcSetFor, cardImageSizes } from 'component-lib'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { truncate } from 'salvageunion-reference'
 import type {
   PageModule,
   PageResult,
@@ -16,7 +17,7 @@ import type {
   StructuredData,
 } from '../../../../../../../ssg/types'
 import { EntityView } from '../../../../../../components/EntityView'
-import { SITE_URL } from '../../../../../../lib/constants'
+import { META_DESCRIPTION_MAX, SITE_URL, TITLE_SUFFIX } from '../../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
 import { getReferenceEntityData } from '../../../../../../lib/gameData'
 import { patternStaticSummary } from '../../../../../../lib/patternSummary'
@@ -45,11 +46,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   // prose — otherwise every pattern of a chassis ships the same meta description
   // as the chassis page and as each other.
   const firstParagraph = summary.description
-  const metaDescription = firstParagraph
-    ? firstParagraph.length > 155
-      ? `${firstParagraph.slice(0, 152)}...`
-      : firstParagraph
-    : `${patternName}: a ${chassisName} Pattern for the Salvage Union tabletop RPG.`
+  const metaDescription = truncate(
+    firstParagraph ||
+      `${patternName}: a ${chassisName} Pattern for the Salvage Union tabletop RPG.`,
+    META_DESCRIPTION_MAX
+  )
 
   const structuredData: StructuredData = {
     '@context': 'https://schema.org',
@@ -93,7 +94,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: `${patternName} - ${chassisName} Pattern - Salvage Union System Reference Document`,
+      title: `${patternName} - ${chassisName} Pattern${TITLE_SUFFIX}`,
       description: metaDescription,
       canonical: canonicalUrl,
       ogType: 'article',

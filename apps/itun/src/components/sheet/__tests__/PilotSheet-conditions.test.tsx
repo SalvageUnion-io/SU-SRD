@@ -13,50 +13,33 @@
  *   4. readOnly: chips render but no add/remove affordance, store.update unused.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
+import { pilotFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const basePilot: Pilot = {
+const basePilot = pilotFixture({
   id: 'pilot-cond-1',
-  schemaVersion: 1,
   name: 'Yara Voss',
   callsign: 'Ghost',
-  classRef: 'scavenger',
-  abilities: [],
-  equipment: [],
-  motto: '',
-  keepsake: '',
-  appearance: '',
-  background: '',
-  conditions: [],
   currentHP: 10,
   currentAP: 4,
-  createdAt: FIXTURE_NOW,
-  updatedAt: FIXTURE_NOW,
-}
+})
 
 function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   return makeEntityStoreMock({
@@ -71,21 +54,13 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
   })
 }
 
-function makeEntityStore(pilot: Pilot): EntityLookup {
-  return makeEntityLookupMock([pilot])
-}
-
-function makeSoftLinkStore(): SoftLinkStore {
-  return makeSoftLinkStoreMock()
-}
-
 function renderPilotSheet(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly = false) {
   return render(
     <Sheet
       kind="pilot"
       id={pilot.id}
-      entityStore={makeEntityStore(pilot)}
-      softLinkStore={makeSoftLinkStore()}
+      entityStore={makeEntityLookupMock([pilot])}
+      softLinkStore={makeSoftLinkStoreMock()}
       store={makeStubStore(pilot, updateSpy)}
       readOnly={readOnly}
     />

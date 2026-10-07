@@ -7,12 +7,12 @@ the ADRs and architecture docs this file points to.
 
 Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need to find a doc.
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **39 of them** (ADR-001–ADR-039). **Read an ADR's `## Status` header first**: several are superseded or merged, recorded only there (ADR-001 → ADR-030; ADR-004 → ADR-036; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028; ADR-016–020 merged into ADR-015; ADR-030 §1 → ADR-034; ADR-034's terminal-decline consequence → ADR-035; ADR-015 §1, §4 → ADR-038). The three that govern:
-  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record. Ops reference: [`accounts-and-games.md`](docs/architecture/accounts-and-games.md).
-  - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**.
-  - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
-- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/adrs/ADR-033-cloudflare-hosting.md).
-- [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
+- [ADRs](docs/ARCHITECTURE.md#decisions) — one `## ADR-NNN` each, closing `docs/ARCHITECTURE.md`. **Read an ADR's Status first**: a superseded or merged ADR says so only there, and [`docs/README.md`](docs/README.md) tabulates them. The three that govern:
+  - [ADR-030](docs/ARCHITECTURE.md#adr-030) — accounts, Games, and Convex as the server of record. Ops: [accounts](docs/ARCHITECTURE.md#accounts-and-games-operations).
+  - [ADR-021](docs/ARCHITECTURE.md#adr-021) — the surface/mode taxonomy for **where a rule is enforced**.
+  - [ADR-007](docs/ARCHITECTURE.md#adr-007) — the automation boundary. Read before building rules-driven features.
+- **Hosting:** Cloudflare Workers + R2 — see [ADR-033](docs/ARCHITECTURE.md#adr-033).
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — cross-cutting architecture, one section per area: `grep -n '^##'` it, then Read with an offset; never the whole file.
 - **Rules text:** `bun run rules:extract` (local only; the PDFs in `rules/` are gitignored), then grep `rules/extracted/*.txt`, which carries `<!-- page N -->` markers for citations. There is no curated rules digest.
 
 ## Critical Rules
@@ -23,7 +23,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md) — open it when you need
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321) and `itun` (5173) in the browser preview. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `.claude/launch.json` starts `srd` (4321), `itun` (5173) and `ladle` (61000) in the browser preview. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is migrating off Tailwind ([plan](docs/design-system/tailwind-removal.md)); `bun run check styling` fails a change that raises the count of files carrying a Tailwind utility (a heuristic scan: class-list contexts plus class strings in constants and maps — not proof of absence; the plan's P6 exit adds the built-CSS check) or adds a `.pc-*` class.
 
@@ -55,8 +55,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 - **Prefer `bun run test` over bare `bun test`.** A bare root run preloads the union of the workspace preloads and has a handful of known cross-workspace failures (a `mock.module` collision between the two `observability` suites, and one preload-set difference); every one passes in its own workspace. If `bun run test` is red, something is broken.
 - **Bare `--parallel` and `--isolate` stay banned**: both are measured regressions (ITUN `--parallel=4`, which implies `--isolate`, took 17.4 s against 16.9 s serial). `--parallel=N --no-isolate` is the measured win, and ITUN's `test` script uses it (16.5 s → ~6 s); `--changed` is the other flag that helps. Leave `test:coverage` serial: parallel coverage writes different lcov line counts.
 - **A gate failed?** Its fix prints under the failure banner; `bun run check --list` shows every check's. [`tools/CLAUDE.md`](tools/CLAUDE.md) maps checks to scripts and baselines. **Adding a gate** means adding it to the registry in `tools/check.ts` — `bun run check`, pre-push and CI all read that one list.
-- **Dependencies:** read [`dependency-management.md`](docs/architecture/dependency-management.md) before touching `package.json`, `bunfig.toml`, `renovate.json` or `overrides`. In short: Renovate owns updates and auto-merges non-majors; `bun audit --audit-level=high` gates every PR that changes `bun.lock` or a `package.json` (one `--ignore`: braces); `bunfig.toml` refuses versions under three days old (a caret range resolves silently down).
-- Root dev dependency `playwright` is used by `tools/a11y-scan.ts` (WCAG scans) — not dead code.
+- **Dependencies:** read [dependencies](docs/ARCHITECTURE.md#dependencies) before touching `package.json`, `bunfig.toml` or `overrides`. In short: Bun deps are updated by hand, Actions by Dependabot; `bun audit --audit-level=high` gates every PR that changes `bun.lock` or a `package.json` (one `--ignore`: braces); `bunfig.toml` refuses versions under three days old (a caret range resolves silently down).
 - **Profiling:** use Bun's markdown profiles into the gitignored `.profiles/` (`bun --cpu-prof --cpu-prof-md --cpu-prof-dir=.profiles <script>`, `--heap-prof-md` likewise). `bun build --metafile-md` needs `--outdir`, or it prints the bundle to stdout.
 
 ### Hooks (Lefthook)
@@ -77,6 +76,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static referenc
 - `packages/component-lib/` - Shared React component library (Base UI primitives, entity display system, typography, tokens). No build step.
 - `packages/observability/` - Sentry wiring: `/cloudflare` for the three Workers, `/browser` for the two browser apps' shared helper.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data. Ships TS source; `bun run build:package` only regenerates schemas and registries — commit the result (CI fails on drift).
+- `tools/` - The repo's gates and scripts: [`tools/CLAUDE.md`](tools/CLAUDE.md).
 
 **Dependency graph:**
 
@@ -88,7 +88,7 @@ salvageunion-reference (game data ORM)
 discord-bot (standalone, depends on salvageunion-reference)
 ```
 
-Each workspace's own `CLAUDE.md` loads when you work in it; [`package-contracts.md`](docs/architecture/package-contracts.md) has the cross-package change checklist, and [`display-system.md`](docs/architecture/display-system.md) the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
+Each workspace's own `CLAUDE.md` loads when you work in it; "Build & Validation" above is the cross-package checklist, and [display system](docs/ARCHITECTURE.md#display-system) has the two card shells (`ReferenceEntityCard` for every SRD entity, `Card` for everything else).
 
 ## Code Conventions
 
@@ -110,17 +110,16 @@ For styling bugs, check the Tailwind/stylesheet wiring (`@source` paths, the `la
 ## `.claude/`
 
 - **Rules** (`.claude/rules/`) load automatically by `paths:` when you touch matching files — testing, React components, the display system, the ITUN router and data access, the Discord bot, and workspace manifests. There is nothing to open by hand.
-- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`. There is no `/commit`; use `/ship` or the commit plugin.
-- `bun run reap` when repo-wide grep starts returning duplicates from old worktrees.
+- **Skills** (`.claude/skills/`) encode decision procedures: `/stacked-pr` (recover a stacked PR after its parent squash-merges — never plain `--force`), `/triage`, `/component-refresh`, `/knip-triage` (delete by default), `/convex-deploy-verify`, `/convex-maintenance`. There is no `/commit`; use `/ship` or the commit plugin.
 
 ## External Integrations & MCP Servers
 
-The registry — ids, deployments, dashboards, how each server authenticates — is [`docs/architecture/agent-tooling.md`](docs/architecture/agent-tooling.md). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **dev** deployment from `CONVEX_DEPLOYMENT`; run `bunx convex dev` once) and `context7` (version-pinned library docs — this repo runs ahead of training data: TypeScript 7, Vite 8, Tailwind 4.3, Convex 1.43).
+The registry — ids, deployments, dashboards, how each server authenticates — is [services](docs/ARCHITECTURE.md#services-and-agent-tooling). [`.mcp.json`](.mcp.json) declares `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (stdio, targets the **dev** deployment from `CONVEX_DEPLOYMENT`; run `bunx convex dev` once) and `context7` (version-pinned library docs — this repo runs ahead of training data: TypeScript 7, Vite 8, Tailwind 4.3, Convex 1.43).
 
 - `.mcp.json` is **secret-free by design**: no auth headers, no tokens, no `${VAR}` placeholders. Authenticate each server locally (OAuth on first connect).
-- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see "Cloud sessions" in `agent-tooling.md`.
-- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's `public/_headers` CSP against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
+- `claude mcp list` is the only way to know a server works. GitHub has no declared server: use the `gh` CLI, or in a cloud session (no `gh`, remote MCP hosts blocked by the egress proxy, possibly a pre-pin Bun) the session's `mcp__github__*` tools — see [cloud sessions](docs/ARCHITECTURE.md#cloud-sessions).
+- **Sentry fails silently.** No DSN means Vite tree-shakes the SDK out; a `connect-src` missing the ingest origin blocks every event. `tools/check-observability.ts` (the `observability` check) checks DSN gating, each app's CSP source against `SENTRY_INGEST_HOST`, and that each Worker wraps its export with `withObservability` and grants `nodejs_als`. **Change the CSP or Sentry region in every source for that app together.**
 
 ## Merging
 
-`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`); a merged PR reports `MERGED` immediately. Squash-merge plus `delete_branch_on_merge` is why stacked PRs need `/stacked-pr`.
+`main` requires linear history and status checks; there is **no merge queue**. Merge with `gh pr merge <pr> --squash` (or `--auto --squash`). The squash body is the PR body (repo setting `PR_BODY`); `git log --format='%h %s%n%b'` is the decision record. Squash-merge plus `delete_branch_on_merge` is why stacked PRs need `/stacked-pr`.

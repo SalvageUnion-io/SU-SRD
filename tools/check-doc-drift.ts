@@ -1,18 +1,26 @@
 #!/usr/bin/env bun
 /**
- * Doc drift — `bun run check doc-drift`. Four checks, each asking whether
+ * Doc drift — `bun run check doc-drift`. Five checks, each asking whether
  * something a doc tells a reader to open or run exists:
  *
  *   paths    every backticked repo path in a live-instruction doc (and every
  *            repo path in a workflow prompt) exists, unless the words beside
- *            it mark it as history or a proposal.
+ *            it mark it as history or a proposal. A doc's `# Decisions`
+ *            section is the record of past decisions, so it is not scanned.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
- *            `bun run check <id>` in a live doc, workflow prompt or Claude
- *            hook names a real script or check id.
- *   links    every relative markdown link in a tracked `.md` file resolves.
- *   size     root and per-directory CLAUDE.md files stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000. They load into
- *            every agent session in scope, so growth costs every session.
+ *            `bun run check <id>` in a live doc (`# Decisions` aside),
+ *            workflow prompt or Claude hook names a real script or check id.
+ *   decisions every ADR is one bare `## ADR-NNN` heading under `# Decisions`
+ *            in docs/ARCHITECTURE.md, none missing or repeated, and
+ *            docs/adrs/ stays gone.
+ *   links    every relative markdown link in a tracked `.md` file resolves,
+ *            and its `#fragment`, into a `.md` file or the same file, names a
+ *            heading there.
+ *   size     root and per-directory CLAUDE.md files and `.claude/agents/*.md`
+ *            stay under 8,000 characters and `.claude/rules/*.md` under 4,000.
+ *            They load into every agent session in scope, so growth costs
+ *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
+ *            budget: it replaced a folder, and terse is the point.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -49,15 +57,16 @@ function filesIn(root: string, dir: string, ext: string): string[] {
     .map((name) => `${dir}/${name}`)
 }
 
-/** Every `apps/*` and `packages/*` directory. */
+/** Every workspace directory: each `apps/*` and `packages/*`, and `tools/`. */
 function workspaceDirs(root: string): string[] {
-  return ['apps', 'packages'].flatMap((dir) => {
+  const nested = ['apps', 'packages'].flatMap((dir) => {
     const base = join(root, dir)
     if (!existsSync(base)) return []
     return readdirSync(base, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => `${dir}/${entry.name}`)
   })
+  return existsSync(join(root, 'tools')) ? [...nested, 'tools'] : nested
 }
 
 /** Docs an agent follows as a description of the code as it is now. */
@@ -74,7 +83,7 @@ function liveInstructionDocs(root: string): string[] {
     'CLAUDE.md',
     'README.md',
     'CONTRIBUTING.md',
-    'tools/CLAUDE.md',
+    'docs/ARCHITECTURE.md',
     ...workspaceDirs(root).flatMap((ws) => [`${ws}/CLAUDE.md`, `${ws}/README.md`]),
     ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
   ].filter((doc) => existsSync(join(root, doc)))
@@ -116,6 +125,19 @@ export function splitMarkdownBlocks(source: string): { line: number; text: strin
 
 const lineOf = (block: { line: number; text: string }, index: number): number =>
   block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
+
+/** The heading that opens the architecture decision records. */
+const DECISIONS_HEADING = /^# Decisions$/m
+
+/**
+ * A markdown doc up to its `# Decisions` heading: the part that describes the
+ * code as it is now. Each ADR records a decision as it was made, so the paths
+ * and scripts it names are history; its links are still checked.
+ */
+export function liveTextOf(source: string): string {
+  const at = source.search(DECISIONS_HEADING)
+  return at === -1 ? source : source.slice(0, at)
+}
 
 // ─── paths ──────────────────────────────────────────────────────────────────
 
@@ -294,7 +316,7 @@ export function checkBacktickedPathsExist(root: string): CheckResult {
   }
 
   for (const doc of liveInstructionDocs(root)) {
-    const source = read(root, doc)
+    const source = liveTextOf(read(root, doc))
     if (PLAN_DOC_STATUS.test(source.split('\n').slice(0, 20).join('\n'))) continue
     for (const block of splitMarkdownBlocks(source)) {
       for (const match of block.text.matchAll(/`([^`\n]+)`/g)) {
@@ -363,7 +385,7 @@ export function checkReferencedScripts(root: string): CheckResult {
     ...agentWorkflowScripts(root),
     ...hookScripts(root),
   ]) {
-    const text = read(root, doc)
+    const text = doc.endsWith('.md') ? liveTextOf(read(root, doc)) : read(root, doc)
     const owner = owningManifest(doc)
     const localScripts = owner ? scriptsOf(root, owner) : new Set<string>()
 
@@ -421,12 +443,58 @@ function trackedMarkdown(root: string): string[] {
 /** Inline `[text](target)` and reference-definition `[label]: target` links. */
 const LINK_RE = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)|^\s*\[[^\]]+\]:\s*<?([^\s>]+)>?/gm
 
+/**
+ * A heading's anchor as GitHub renders it: link and code markup reduced to
+ * their text, lowercased, every character but a letter, digit, space, `-` or
+ * `_` dropped, and each space turned into `-` (so "A — B" is `a--b`).
+ */
+export function headingSlug(heading: string): string {
+  return heading
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[*~]/g, '')
+    .replace(/(^|\s)_+|_+(?=\s|$)/g, '$1')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .replace(/\s/g, '-')
+}
+
+/** Every heading anchor in a markdown source, fences skipped, repeats suffixed `-1`, `-2`. */
+function headingSlugs(source: string): Set<string> {
+  const slugs = new Set<string>()
+  const seen = new Map<string, number>()
+  let inFence = false
+  for (const line of source.split('\n')) {
+    if (/^\s{0,3}(```|~~~)/.test(line)) {
+      inFence = !inFence
+      continue
+    }
+    const heading = inFence ? null : line.match(/^\s{0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
+    if (!heading) continue
+    const base = headingSlug(heading[1] as string)
+    const repeat = seen.get(base) ?? 0
+    seen.set(base, repeat + 1)
+    slugs.add(repeat === 0 ? base : `${base}-${repeat}`)
+  }
+  return slugs
+}
+
 export function checkMarkdownLinks(
   root: string,
   docs: string[] = trackedMarkdown(root)
 ): CheckResult {
   const failures: string[] = []
   const isGitignored = gitignoredMatcher(root)
+  const slugCache = new Map<string, Set<string>>()
+  const slugsOf = (file: string): Set<string> => {
+    let slugs = slugCache.get(file)
+    if (slugs === undefined) {
+      slugs = headingSlugs(read(root, file))
+      slugCache.set(file, slugs)
+    }
+    return slugs
+  }
   let checked = 0
   for (const doc of docs) {
     for (const block of splitMarkdownBlocks(read(root, doc))) {
@@ -434,20 +502,90 @@ export function checkMarkdownLinks(
       const text = block.text.replace(/`[^`\n]*`/g, (span) => ' '.repeat(span.length))
       for (const m of text.matchAll(LINK_RE)) {
         const target = (m[1] ?? m[2]) as string
-        if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('#')) continue
+        if (/^[a-z][a-z0-9+.-]*:/i.test(target)) continue
+        const at = `${doc}:${lineOf(block, m.index ?? 0)}`
         const path = decodeURIComponent(target.replace(/[#?].*$/, ''))
-        const resolved = path.startsWith('/') ? path.slice(1) : join(dirname(doc), path)
-        if (path === '' || isGitignored(resolved)) continue
+        const resolved =
+          path === '' ? doc : path.startsWith('/') ? path.slice(1) : join(dirname(doc), path)
+        if (isGitignored(resolved)) continue
         checked++
         if (!existsSync(join(root, resolved))) {
+          failures.push(`${at} links to \`${target}\`, which does not exist.`)
+          continue
+        }
+        const fragment = target.match(/#([^?]*)$/)?.[1]
+        if (fragment === undefined || fragment === '' || !resolved.endsWith('.md')) continue
+        if (!slugsOf(resolved).has(decodeURIComponent(fragment))) {
           failures.push(
-            `${doc}:${lineOf(block, m.index ?? 0)} links to \`${target}\`, which does not exist.`
+            `${at} links to \`${target}\`, whose #${fragment} is no heading in ${resolved}.`
           )
         }
       }
     }
   }
-  return { ok: `relative markdown links resolve (${checked} in ${docs.length} files)`, failures }
+  return {
+    ok: `relative markdown links and their anchors resolve (${checked} in ${docs.length} files)`,
+    failures,
+  }
+}
+
+// ─── decisions ──────────────────────────────────────────────────────────────
+
+/** The one file the ADRs live in, under its `# Decisions` heading. */
+const DECISIONS_DOC = 'docs/ARCHITECTURE.md'
+
+/** The ADR count when docs/adrs/ was folded into DECISIONS_DOC: none may go missing. */
+const ADR_FLOOR = 39
+
+const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
+
+export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
+  const failures: string[] = []
+  if (existsSync(join(root, 'docs/adrs'))) {
+    failures.push(
+      `docs/adrs/ exists again. An ADR is a \`## ADR-NNN\` section under \`# Decisions\` in ${DECISIONS_DOC}: move it there.`
+    )
+  }
+  if (!existsSync(join(root, DECISIONS_DOC))) {
+    failures.push(`${DECISIONS_DOC}, which holds the ADRs, does not exist.`)
+    return { ok: '', failures }
+  }
+  const count = new Map<number, number>()
+  let inFence = false
+  let inDecisions = false
+  for (const [index, line] of read(root, DECISIONS_DOC).split('\n').entries()) {
+    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
+    if (inFence) continue
+    if (DECISIONS_HEADING.test(line)) inDecisions = true
+    const adr = line.match(/^##\s+ADR-(\d+)/)
+    if (!adr) continue
+    const at = `${DECISIONS_DOC}:${index + 1}`
+    if (!/^## ADR-\d{3}$/.test(line)) {
+      failures.push(
+        `${at} heads an ADR "${line}". The heading is bare (\`## ADR-NNN\`); the title goes on the line below.`
+      )
+    } else if (!inDecisions) {
+      failures.push(`${at} is an ADR above \`# Decisions\`. Move it into that section.`)
+    }
+    const n = Number(adr[1])
+    count.set(n, (count.get(n) ?? 0) + 1)
+  }
+  const highest = Math.max(floor, ...count.keys())
+  for (let n = 1; n <= highest; n++) {
+    const seen = count.get(n) ?? 0
+    if (seen === 0)
+      failures.push(
+        `${DECISIONS_DOC} has no \`## ${adrId(n)}\`. ADRs are never deleted or renumbered: restore it.`
+      )
+    if (seen > 1)
+      failures.push(
+        `${DECISIONS_DOC} heads \`## ${adrId(n)}\` ${seen} times. Give the new decision the next number.`
+      )
+  }
+  return {
+    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under # Decisions in ${DECISIONS_DOC}`,
+    failures,
+  }
 }
 
 // ─── size ───────────────────────────────────────────────────────────────────
@@ -460,33 +598,41 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  '.claude/rules/display-system.md': 4_752,
-  '.claude/rules/itun-data-access.md': 4_188,
-  '.claude/rules/react-components.md': 4_465,
-  '.claude/rules/testing-patterns.md': 7_812,
-  'apps/discord-bot/CLAUDE.md': 8_337,
-  'apps/itun/CLAUDE.md': 13_806,
-  'apps/srd/CLAUDE.md': 11_799,
-  'CLAUDE.md': 12_410,
-  'packages/component-lib/CLAUDE.md': 16_137,
-  'packages/salvageunion-reference/CLAUDE.md': 9_361,
+  'apps/itun/CLAUDE.md': 13_486,
+  'apps/srd/CLAUDE.md': 11_748,
+  'CLAUDE.md': 12_065,
+  'packages/component-lib/CLAUDE.md': 15_948,
+  'packages/salvageunion-reference/CLAUDE.md': 9_333,
+}
+
+/**
+ * A doc that replaced a folder of docs, and the budget that keeps it terse.
+ * Raise one only on purpose, saying why in the PR.
+ */
+const COLLAPSED_DOCS: Record<string, number> = {
+  // ~60K of architecture plus the 39 ADRs folded in from docs/adrs/, as measured.
+  'docs/ARCHITECTURE.md': 297_245,
 }
 
 export function checkDocSizes(
   root: string,
-  overBudget: Record<string, number> = OVER_BUDGET
+  overBudget: Record<string, number> = OVER_BUDGET,
+  collapsed: Record<string, number> = COLLAPSED_DOCS
 ): CheckResult {
   const failures: string[] = []
-  const claudeMds = [
-    'CLAUDE.md',
-    'tools/CLAUDE.md',
-    ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`),
-  ].filter((doc) => existsSync(join(root, doc)))
+  const claudeMds = ['CLAUDE.md', ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`)].filter(
+    (doc) => existsSync(join(root, doc))
+  )
   const rules = markdownIn(root, '.claude/rules')
-  const budgeted = [
-    ...claudeMds.map((doc) => [doc, CLAUDE_MD_BUDGET] as const),
-    ...rules.map((doc) => [doc, RULE_BUDGET] as const),
+  const budgeted: [string, number][] = [
+    ...claudeMds.map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
+    ...rules.map((doc): [string, number] => [doc, RULE_BUDGET]),
+    ...markdownIn(root, '.claude/agents').map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
   ]
+  for (const [doc, budget] of Object.entries(collapsed)) {
+    if (existsSync(join(root, doc))) budgeted.push([doc, budget])
+    else failures.push(`COLLAPSED_DOCS names ${doc}, which does not exist. Remove the entry.`)
+  }
   for (const [doc, base] of budgeted) {
     const budget = overBudget[doc] ?? base
     const size = [...read(root, doc)].length
@@ -511,13 +657,15 @@ const CHECKS = [
   checkBacktickedPathsExist,
   checkReferencedScripts,
   (root: string) => checkMarkdownLinks(root),
+  (root: string) => checkDecisions(root),
   (root: string) => checkDocSizes(root),
 ] as const
 
 if (import.meta.main) {
-  // A collapsed corpus (a renamed doc directory) would pass every check; ~65% of today's count.
+  // A collapsed corpus (a renamed doc directory) would pass every check. The floor is
+  // floor(0.65 × N) for N = 36, the count when docs/architecture/ became docs/ARCHITECTURE.md.
   const liveDocs = liveInstructionDocs(repoRoot)
-  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 26)
+  assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 23)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
   const failures: string[] = []

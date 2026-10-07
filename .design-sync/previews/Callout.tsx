@@ -5,7 +5,7 @@
 import { Callout } from 'component-lib'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 function Body({ children }: { children: ReactNode }) {
   return <span className="block font-body text-sm text-ink">{children}</span>
@@ -14,7 +14,7 @@ function Body({ children }: { children: ReactNode }) {
 function useListItems(actionName: string) {
   const action = SalvageUnionReference.Actions.getByName(actionName)
   return ((action?.content ?? []) as { type?: string; label?: string; value?: unknown }[]).filter(
-    (b) => b?.type === 'list-item',
+    (b) => b?.type === 'list-item'
   )
 }
 

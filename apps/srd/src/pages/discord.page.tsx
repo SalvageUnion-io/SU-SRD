@@ -4,13 +4,13 @@
 
 import { buttonVariants, cn, PageHeading, Panel, Slab } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
-import { ITUN_URL, SITE_URL } from '../lib/constants'
+import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { SalvageUnionReference } from '../lib/gameData'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.
  *
- * the `architecture` check forbids a module-scope `SalvageUnionReference` call —
+ * the `noModuleScopeReferenceCall` Biome plugin forbids a module-scope `SalvageUnionReference` call —
  * it would run at import time, before the build's `preload()` bootstrap, and
  * throw "Schema not loaded".
  *
@@ -33,7 +33,7 @@ function buildExamples() {
   return { rollTableCount, lookupExample }
 }
 
-const TITLE = 'Discord Bot - Salvage Union System Reference Document'
+const TITLE = `Discord Bot${TITLE_SUFFIX}`
 const DESCRIPTION =
   'Add the SURef bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 

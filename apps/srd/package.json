@@ -12,7 +12,6 @@
     "og:install-browser": "playwright install chromium",
     "preview": "bun ssg/preview.ts --port 4321",
     "test": "bun test",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "clean": "rm -rf dist node_modules/.vite",
     "check:examples": "bun ssg/checkPageExamples.ts",
     "deploy": "wrangler deploy"
@@ -30,7 +29,6 @@
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "@sentry/vite-plugin": "5.4.0",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/react": "16.3.2",
     "@vitejs/plugin-react-swc": "^4.3.3",

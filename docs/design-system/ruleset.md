@@ -40,8 +40,8 @@ The corollaries the rest of the ruleset makes precise:
 
 Every surface is one of five contexts. The context decides the _materials and
 interactivity_ a primitive is rendered with; it never changes the primitive's
-identity. Automation semantics follow [ADR-007](../adrs/ADR-007-automation-boundary.md)
-and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md).
+identity. Automation semantics follow [ADR-007](../ARCHITECTURE.md#adr-007)
+and the surface/mode taxonomy of [ADR-021](../ARCHITECTURE.md#adr-021).
 
 | Context        | Metaphor             | Materials                                                  | Interactivity                                                                                       |
 | -------------- | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |

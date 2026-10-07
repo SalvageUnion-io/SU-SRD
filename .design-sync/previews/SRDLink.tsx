@@ -1,7 +1,7 @@
 /* Ported from packages/component-lib/src/components/shared/SRDLink.stories.tsx. */
 import { SRDLink } from 'component-lib'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 /**
  * The cross-link ITUN renders in the foot band of every full entity card. The

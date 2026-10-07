@@ -10,8 +10,8 @@
  *   4. readOnly suppresses every inventory edit affordance.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -22,10 +22,6 @@ import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -15,15 +15,15 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 
 - Root `package.json` is `"private": true` to prevent accidental publishing. So
   is every workspace — nothing here is published to npm
-  ([ADR-014](../../docs/adrs/ADR-014-json-api-public-interface-npm-retired.md):
+  ([ADR-014](../../docs/ARCHITECTURE.md#adr-014):
   the dataset's public interface is the served JSON API).
 - Each package is self-contained with its own dependencies.
 - Workspace dependencies use the `workspace:*` protocol
   (e.g. `"salvageunion-reference": "workspace:*"`).
 - Run `bun install` from the root to install for all workspaces.
 - Add a dependency to a specific workspace by `cd`-ing into that package
-  directory first. Renovate keeps every manifest current; see
-  [`docs/architecture/dependency-management.md`](../../docs/architecture/dependency-management.md).
+  directory first. No bot updates the manifests; see
+  [dependencies](../../docs/ARCHITECTURE.md#dependencies).
 - A `workspace:*` dependency also has to appear in that app's CI path filter, or
   a change to it silently skips the app's build job. The `workflows` check
   (`tools/check-workflows.ts`, its `path-filters` half) asserts this from the manifests, so you will be told rather than bitten.

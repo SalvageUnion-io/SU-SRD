@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { GENERATED_PATHS } from '../check-generated'
 
 /**
  * Behaviour tests for the two `PreToolUse` hooks in `.claude/hooks/`.
@@ -244,6 +245,8 @@ describe('protect-generated-files.sh', () => {
     ['the lockfile', 'bun.lock'],
     ['the styling baseline', 'tools/styling-baseline.json'],
     ['generated editor settings', '.vscode/settings.json'],
+    ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
+    ['a nested schema', 'packages/salvageunion-reference/schemas/shared/common.schema.json'],
   ])('blocks %s', async (_label, path) => {
     expect(await edit(path)).toBe(BLOCK)
   })
@@ -256,8 +259,37 @@ describe('protect-generated-files.sh', () => {
     ['an app component', 'apps/itun/src/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
+    ['the a11y baseline — new debt is accepted by hand, with a reason', 'tools/a11y-baseline.json'],
   ])('allows %s', async (_label, path) => {
     expect(await edit(path)).toBe(ALLOW)
+  })
+
+  // Parity with `bun run check generated`. The Record is typed over the
+  // GENERATED_PATHS union, so a new entry there fails typecheck until it is
+  // mapped here — and then this test fails until the hook covers it.
+  const REPRESENTATIVE: Record<
+    (typeof GENERATED_PATHS)[number],
+    { file: string; outcome: number }
+  > = {
+    'packages/salvageunion-reference/schemas': {
+      file: 'packages/salvageunion-reference/schemas/index.json',
+      outcome: BLOCK,
+    },
+    'packages/salvageunion-reference/lib/generated': {
+      file: 'packages/salvageunion-reference/lib/generated/schemaRegistry.generated.ts',
+      outcome: BLOCK,
+    },
+    // Only its GENERATED:BEGIN/END span is generated; the rest is hand-written.
+    'packages/salvageunion-reference/lib/index.ts': {
+      file: 'packages/salvageunion-reference/lib/index.ts',
+      outcome: ALLOW,
+    },
+    '.vscode/settings.json': { file: '.vscode/settings.json', outcome: BLOCK },
+    'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', outcome: BLOCK },
+  }
+
+  test.each([...GENERATED_PATHS])('mirrors GENERATED_PATHS entry %s', async (path) => {
+    expect(await edit(REPRESENTATIVE[path].file)).toBe(REPRESENTATIVE[path].outcome)
   })
 
   test('covers the NotebookEdit payload shape', async () => {

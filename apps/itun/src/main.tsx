@@ -17,6 +17,13 @@ const router = createRouter({
   // that route's content and leaves the header to navigate away with. The root
   // route keeps its own full-page one as the last resort. See RouteErrors.tsx.
   defaultErrorComponent: RouteErrorComponent,
+  // Every route is a lazy chunk (`autoCodeSplitting`, routeTree.config.ts), so a
+  // hover or touchstart starts the chunk and the loader before the tap lands.
+  // Loaders must therefore be safe to run early: the entity ones are idempotent
+  // hydrates, and `/s/$id`, which fetches, opts out with `preload: false`.
+  defaultPreload: 'intent',
+  // Backing out of a sheet returns the Roster to where the player left it.
+  scrollRestoration: true,
 })
 
 declare module '@tanstack/react-router' {

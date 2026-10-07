@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -10,15 +11,6 @@ import { testConvex } from './harness'
  * table hands them out. A template that pre-assigned everything to its creator
  * would just be a private roster with extra steps.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 describe('starter-set template', () => {
   test('is listed', async () => {

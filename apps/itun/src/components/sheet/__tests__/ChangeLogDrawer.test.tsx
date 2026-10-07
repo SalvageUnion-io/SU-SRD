@@ -5,8 +5,8 @@
  * the Sheet.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, test } from 'bun:test'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../../stores/surfaceProvenance'
@@ -41,10 +41,6 @@ beforeEach(async () => {
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 describe('ChangeLogDrawer', () => {

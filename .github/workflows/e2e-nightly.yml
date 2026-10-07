@@ -10,9 +10,9 @@ name: E2E (nightly)
 # failure and closed on the next green run — GitHub-native, no external
 # notification service or webhook secret.
 #
-# The `a11y-srd` job also lives here (rather than in ci.yml) because this
-# workflow already builds and serves hermetic static bundles for Playwright, so
-# the scan gets its server for free. It is ADVISORY — see the job's own notes.
+# srd has no job here. Its whole Playwright suite and the axe-core scan gate
+# every srd PR in ci.yml's `build-srd`, and srd is a hermetic static build, so
+# a nightly copy only re-ran a build `main` had already passed.
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
@@ -207,167 +207,6 @@ jobs:
           path: apps/itun/playwright-report/
           retention-days: 7
 
-  e2e-srd:
-    # srd Playwright smoke suite: builds the static bundle with the in-house
-    # SSG and serves it with `ssg/preview.ts` via Playwright's webServer.
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        # Run from the app dir so bunx resolves srd's exact Playwright
-        # version and installs the matching browser revision.
-        working-directory: apps/srd
-        run: bunx playwright install chromium
-
-      - name: Run E2E tests
-        working-directory: apps/srd
-        run: bunx playwright test
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-srd
-          path: apps/srd/playwright-report/
-          retention-days: 7
-
-  a11y-srd:
-    # WCAG 2.1 AA scan (axe-core via Playwright, `tools/a11y-scan.ts`) over a
-    # representative slice of the srd static build. `docs/architecture/
-    # seo-accessibility.md` asserts AA compliance; until this job existed that
-    # claim was verified by nothing on a schedule.
-    #
-    # BLOCKING. It was advisory — `continue-on-error: true`, and absent from the
-    # notify `needs:` — so a violation could neither redden a run nor open the
-    # tracking issue. That is how the 2026-08 audit's findings survived: a
-    # 1.42:1 focus ring, no skip link on any page, one heading per page, and 96
-    # roll tables that rendered nothing without JavaScript. Every one of them
-    # was reachable by this scan and none of them ever turned anything red.
-    #
-    # Fixing them without closing that gap only resets the clock, so steps 1-4
-    # of the promotion path this comment used to describe are now done:
-    #
-    #   1. `tools/a11y-baseline.json` records the accepted ids per page, with
-    #      the reason for each in its `$rationale` block. Exactly one id is
-    #      tolerated — `color-contrast` — and the entry says why: the entity
-    #      card's footer puts 12px light text on a book-derived entity TONE, and
-    #      even full-opacity paper fails on 6 of the 10 tones. Making it pass is
-    #      a palette decision, not a code fix.
-    #   2. `--baseline <file>` diffs a run against it. A rule id NOT in the
-    #      baseline is a regression and exits 1. So is a STALE entry — an id
-    #      that no longer fires, or a page no longer scanned — because a
-    #      baseline nobody prunes decays into a blanket exemption.
-    #   3. `continue-on-error` is gone.
-    #   4. `a11y-srd` is in the notify `needs:` below.
-    #
-    # A crashed scan reports `violations: -1` and the differ treats that as a
-    # regression, never as "no violations found".
-    #
-    # STILL NOT a PR gate: it needs a full srd build plus a browser, and it has
-    # not yet run long enough here to know its flake rate. Moving it into
-    # ci.yml behind the `web` path filter is the remaining step.
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      # The scanner drives Chromium with Playwright, which resolves its own
-      # browser — the same one the e2e jobs install and cache, so this pulls
-      # nothing extra. (A "Resolve the Chromium binary" step used to sit here,
-      # exporting CHROME_PATH for puppeteer-core, which ships no browser of its
-      # own. The scanner is on Playwright now, so it finds Chromium itself.)
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/srd
-        run: bunx playwright install chromium
-
-      # Same static-preview approach as e2e-srd's Playwright webServer: the SSG
-      # build (`ssg/build.ts` directly, not the `og:generate` script, which
-      # chains the slow OG-screenshot pass) served by `ssg/preview.ts` on 4321.
-      - name: Build srd static bundle
-        working-directory: apps/srd
-        run: bun ssg/build.ts
-
-      - name: Serve the build and run the a11y scan
-        run: |
-          set -euo pipefail
-          (cd apps/srd && bun ssg/preview.ts --port 4321) &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 60); do
-            if curl -sfo /dev/null http://localhost:4321/; then break; fi
-            sleep 2
-          done
-          curl -sfo /dev/null http://localhost:4321/
-          # The pages scanned are the baseline's own keys — one list, shared
-          # with the PR-blocking scan in ci.yml's build-srd job.
-          bun tools/a11y-scan.ts \
-            --baseline tools/a11y-baseline.json \
-            http://localhost:4321 \
-            > a11y-report.json
-
-      - name: Summarise violations
-        if: always()
-        run: |
-          set -euo pipefail
-          if [ ! -s a11y-report.json ]; then
-            {
-              echo "### Accessibility scan — srd"
-              echo ""
-              echo "The scanner produced no report; see the step log above."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          {
-            echo "### Accessibility scan — srd"
-            echo ""
-            echo "| Page | Violations | Passes | Incomplete |"
-            echo "| --- | ---: | ---: | ---: |"
-            jq -r '.[] | "| `\(.page)` | \(.violations) | \(.passes) | \(.incomplete) |"' a11y-report.json
-            echo ""
-            echo "Total violations: **$(jq '[.[].violations | select(. > 0)] | add // 0' a11y-report.json)**"
-            echo "(a \`-1\` in the table means that page failed to scan, not that it is clean.)"
-            echo ""
-            echo "Rule ids per page — full node-level detail is in the \`a11y-report-srd\` artifact:"
-            echo ""
-            echo '```json'
-            jq -c '[.[] | {page, rules: [.details[].id]}]' a11y-report.json
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload a11y report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: a11y-report-srd
-          path: a11y-report.json
-          retention-days: 7
-
   # ---------------------------------------------------------------------------
   # Notification — GitHub-native, no external service or webhook secret. On
   # any suite result that is not `success` — failed assertions OR a job that ran
@@ -375,10 +214,7 @@ jobs:
   # on) a single tracking issue labeled `nightly-e2e-failure`; on the next
   # all-green run, comment + close it. Uses
   # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
-  # nothing to provision. `a11y-srd` IS in `needs:` — it was advisory and is now
-  # blocking, so an accessibility regression opens and holds the tracking issue
-  # like any other suite. It gates on new violations only; accepted debt lives
-  # in `tools/a11y-baseline.json`.
+  # nothing to provision.
   # ---------------------------------------------------------------------------
   observability-probe:
     # The one observability check CI structurally CANNOT do on a PR: whether the
@@ -442,10 +278,11 @@ jobs:
     # observability-probe is: an alarm that rings nightly for a credential that
     # has not been provisioned is a broken window, and the failure mode is that
     # you stop reading it. Provision `CONVEX_DEPLOY_KEY` (repo → Settings →
-    # Secrets and variables → Actions → Secrets — a Convex *production* deploy
-    # key from the Convex dashboard), then set CONVEX_PARITY_PROBE = on.
+    # Environments → production → Environment secrets — a Convex *production*
+    # deploy key from the Convex dashboard), then set CONVEX_PARITY_PROBE = on.
     if: vars.CONVEX_PARITY_PROBE == 'on'
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 5
     steps:
       - name: Checkout
@@ -494,7 +331,7 @@ jobs:
   # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
   # run, which is a human action rather than a regression.
   notify:
-    needs: [e2e-itun, e2e-srd, observability-probe, convex-parity, a11y-srd, production-smoke]
+    needs: [e2e-itun, observability-probe, convex-parity, production-smoke]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
@@ -509,7 +346,7 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
-            const ALWAYS_RUNS = new Set(['e2e-itun', 'e2e-srd', 'production-smoke'])
+            const ALWAYS_RUNS = new Set(['e2e-itun', 'production-smoke'])
             const label = 'nightly-e2e-failure'
             const { owner, repo } = context.repo
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`

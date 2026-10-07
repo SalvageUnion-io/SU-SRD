@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { MechWizard } from '../../components/mech/MechWizard'
 import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
+import { pageTitle } from '../../lib/pageTitle'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { parseCreateMode } from '../../lib/wizard/createMode'
 
 export const Route = createFileRoute('/mechs/new')({
+  head: () => ({ meta: [{ title: pageTitle('New Mech') }] }),
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
   validateSearch: (search: Record<string, unknown>): { mode: CreateMode } => ({
     mode: parseCreateMode(search.mode),

@@ -38,7 +38,7 @@ export function States() {
               className="flex items-center justify-between gap-3 border-chrome border-ink bg-paper px-3 py-2"
             >
               <span className="font-body text-sm text-ink">{bay.name}</span>
-              <StatusBadge status={STATUSES[i % STATUSES.length]} subject={bay.name} />
+              <StatusBadge status={STATUSES[i % STATUSES.length] ?? 'intact'} subject={bay.name} />
             </div>
           ))}
         </div>

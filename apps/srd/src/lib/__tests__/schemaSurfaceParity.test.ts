@@ -12,7 +12,7 @@ import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
  *
  *  - three undocumented endpoints, since `api.page.tsx` — the page that documents
  *    this API — filters the meta schemas out;
- *  - `seo-accessibility.md`'s claim that every schema page has a JSON twin was
+ *  - the SEO docs' claim that every schema page has a JSON twin was
  *    true, while the reverse silently was not;
  *  - ITUN's `hasSRDPage` read the unfiltered catalog on the same reasoning and
  *    rendered "View in SRD" links that 404'd.

@@ -44,15 +44,6 @@ export const ROLL_COLORS = {
   cascade: 0xb0432b,
 } as const
 
-/** Truncate to Discord's limits without splitting mid-word when possible. */
-export function truncate(text: string, max: number): string {
-  if (max <= 0) return ''
-  if (text.length <= max) return text
-  const cut = text.slice(0, max - 1)
-  const lastSpace = cut.lastIndexOf(' ')
-  return `${cut.slice(0, lastSpace > max * 0.6 ? lastSpace : max - 1)}…`
-}
-
 /**
  * Discord's embed limits, per the API, shared by `lookupEmbed.ts` and
  * `gameEmbed.ts`. `total` is the one that bites: an embed over 6000 rendered
@@ -70,10 +61,11 @@ export const EMBED_LIMIT = {
 } as const
 
 /**
- * `truncate` cuts at a character count and knows nothing about markdown, so a
- * cut can land inside `[label](url)` and Discord then renders the broken syntax
- * literally. If the tail holds an unterminated link (a trailing `[` with no
- * complete `](url)` after it), drop back to before that `[`.
+ * `truncate` (from salvageunion-reference) cuts at a character count and knows
+ * nothing about markdown, so a cut can land inside `[label](url)` and Discord
+ * then renders the broken syntax literally. If the tail holds an unterminated
+ * link (a trailing `[` with no complete `](url)` after it), drop back to before
+ * that `[`.
  */
 export function stripDanglingLink(text: string): string {
   const lastOpen = text.lastIndexOf('[')

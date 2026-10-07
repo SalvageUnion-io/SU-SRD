@@ -24,13 +24,61 @@
   "root": true,
   // Rules Biome has no built-in for, written in GritQL. Each file states what
   // it matches and why.
-  "plugins": ["./tools/biome/noModelFindByKey.grit"],
+  "plugins": [
+    "./tools/biome/noModelFindByKey.grit",
+    // Shipped source in every workspace: `apps/*/src` and `packages/*/src`
+    // match a new workspace without anyone listing it. Tests, stories and
+    // test bootstraps run after a preload, so module-scope access is safe there.
+    // A plugin's `includes` is matched against the file's absolute path (unlike
+    // `files.includes`), so every positive glob needs its leading `**/`: a bare
+    // `apps/*/src/**` matches nothing and the rule silently checks no file.
+    {
+      "path": "./tools/biome/noModuleScopeReferenceCall.grit",
+      "includes": [
+        "**/apps/*/src/**",
+        "**/packages/*/src/**",
+        "**/packages/salvageunion-reference/lib/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.stories.tsx",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/e2e/**",
+        "!**/generated/**"
+      ]
+    },
+    {
+      "path": "./tools/biome/noInlinePoolDefault.grit",
+      "includes": [
+        "**/apps/*/src/**",
+        "**/packages/*/src/**",
+        "**/packages/salvageunion-reference/lib/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.stories.tsx",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/e2e/**",
+        "!**/generated/**"
+      ]
+    },
+    {
+      "path": "./tools/biome/noBareCleanupHook.grit",
+      "includes": ["**/*.test.ts", "**/*.test.tsx"]
+    }
+  ],
   "files": {
     "ignoreUnknown": true,
     "includes": [
       "apps/**",
       "packages/**",
       "tools/**",
+      // The claude.ai/design previews and their provider: React that ships in
+      // the design-system bundle, held to the same rules as component-lib.
+      // `.cache/` and `learnings/` are the sync's own gitignored output.
+      ".design-sync/**",
+      "!.design-sync/.cache",
+      "!.design-sync/learnings",
       // Agent worktrees are full checkouts, each carrying its own copy of THIS
       // file with `"root": true`. Biome 2.5+ hard-errors on a nested root
       // config, and that discovery walk is independent of the includes above —
@@ -316,14 +364,37 @@
   },
   "overrides": [
     {
+      // Function-size ratchet for component-lib. `ReferenceEntityCardInner` was
+      // once a ~1,870-line body that six workstreams edited at once; audit PK-08
+      // decomposed it, and the cap sits at what is left, so one more line in the
+      // largest body fails. Biome counts the whole function without comment
+      // lines, which is why this reads lower than the 856-line body the old
+      // AST check measured. Lower it when a seam lands; never raise it.
+      "includes": [
+        "packages/component-lib/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.stories.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 742 } }
+          }
+        }
+      }
+    },
+    {
       // A no-op callback (`onChange={() => {}}`, `mock(() => {})`) is the whole
-      // point in a test or a story, so `noEmptyBlockStatements` — which exists
-      // to catch swallowed errors in shipped code — is off here.
+      // point in a test or a story (and a design-sync preview, which is a ported
+      // story), so `noEmptyBlockStatements` — which exists to catch swallowed
+      // errors in shipped code — is off here.
       "includes": [
         "**/*.test.ts",
         "**/*.test.tsx",
         "**/__tests__/**",
         "**/*.stories.tsx",
+        ".design-sync/previews/**",
         "**/test/**",
         "**/e2e/**"
       ],
@@ -331,22 +402,6 @@
         "rules": {
           "suspicious": {
             "noEmptyBlockStatements": "off"
-          }
-        }
-      }
-    },
-    {
-      // `noExplicitAny` stays "error" for real source, but ESLint's per-line
-      // `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
-      // comments (~120, almost all in test-mock casts like `as any`) don't
-      // translate to Biome's ignore syntax automatically. Rather than hand-
-      // converting every comment, this consolidates the same intent (tests
-      // may use `any` for mocking) into one pattern-level override.
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "warn"
           }
         }
       }
@@ -579,22 +634,16 @@
       }
     },
     // -------------------------------------------------------------------
-    // Architecture invariants (previously prose-only): the 3 of the 4 rules
-    // that map onto Biome's existing configurable rules. See the PR
-    // description for the full writeup, including why the 4th rule (no
-    // module-scope SalvageUnionReference accessor calls,
-    // docs/architecture/package-contracts.md's "Module-Scope ORM Call Risk")
-    // is enforced by tools/check-architecture.ts instead — Biome's GritQL
-    // plugin system couldn't be made to match the required two-level member
-    // chain or reliably scope-exclude function-nested matches in this
-    // version (2.5.3).
+    // Architecture invariants (previously prose-only) that map onto Biome's
+    // configurable rules. The ones it has no rule for (no module-scope
+    // SalvageUnionReference call, no inlined pool default) are the GritQL
+    // plugins declared at the top of this file.
     // -------------------------------------------------------------------
     {
       // ADR-013: no app/package outside the canonical module may import zod
       // directly. salvageunion-reference gets an extra restriction on top:
       // it must never import from apps/* (one-way dependency rule, see
-      // docs/architecture/package-contracts.md, "One-Way Dependency:
-      // Reference Package → Apps"). Restates the root `zod` path + `@/*`
+      // docs/ARCHITECTURE.md#one-way-dependencies). Restates the root `zod` path + `@/*`
       // pattern because overrides replace (not merge into) a rule's options
       // for matched files.
       "includes": ["packages/salvageunion-reference/**"],
@@ -614,7 +663,7 @@
                   },
                   {
                     "group": ["**/apps/**"],
-                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/architecture/package-contracts.md, \"One-Way Dependency: Reference Package → Apps\")."
+                    "message": "salvageunion-reference must never import from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#one-way-dependencies)."
                   }
                 ]
               }
@@ -642,8 +691,7 @@
     {
       // ADR-010 ("the shared library never persists"): component-lib must stay
       // free of storage-layer imports. `idb` is ITUN's IndexedDB wrapper (see
-      // docs/architecture/package-contracts.md's itun "Consumes"
-      // list) — it doesn't belong in the shared component library. Zustand is
+      // docs/ARCHITECTURE.md#itun-consumes) — it doesn't belong in the shared component library. Zustand is
       // deliberately NOT blocked here: it's a state-management library, not
       // itself a storage layer (ADR-010's literal contract is "never
       // persists"), and component-lib doesn't use it today — blocking it would
@@ -673,7 +721,7 @@
                   // own consumers. Zero such imports today.
                   {
                     "group": ["**/apps/**", "itun/**", "srd/**"],
-                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/architecture/package-contracts.md)."
+                    "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#one-way-dependencies)."
                   },
                   {
                     "group": ["salvageunion-reference/lib/**"],
@@ -681,19 +729,10 @@
                   }
                 ]
               }
-            }
-          }
-        }
-      }
-    },
-    {
-      // Same ADR-010 contract, for direct global storage API usage rather
-      // than an import (e.g. `localStorage.setItem(...)` with no import
-      // statement to catch).
-      "includes": ["packages/component-lib/**"],
-      "linter": {
-        "rules": {
-          "style": {
+            },
+            // Same ADR-010 contract, for direct global storage API usage rather
+            // than an import (e.g. `localStorage.setItem(...)` with no import
+            // statement to catch).
             "noRestrictedGlobals": {
               "level": "error",
               "options": {
@@ -735,6 +774,11 @@
       }
     },
     {
+      // Test modules: two relaxations.
+      //
+      // `noExplicitAny` stays "error" for real source; tests may use `any` for
+      // mocking (`as any` casts), so it is "warn" here.
+      //
       // `useComponentExportOnlyModules` is a React Fast Refresh heuristic: it
       // wants a module to export only components so the dev server can hot-swap
       // it. Test modules are never Fast Refresh boundaries — they run under the
@@ -743,13 +787,16 @@
       // catch.
       //
       // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
-      // that sets the rule to "warn", because Biome applies overrides in array
-      // order and the later one wins. Placed with the other test carve-out near
-      // the top of this array, it was silently overridden back to "warn" —
-      // the same ordering trap documented in the not-linted section below.
+      // that sets that rule to "warn", because Biome applies overrides in array
+      // order and the later one wins. Placed near the top of this array, it was
+      // silently overridden back to "warn" — the same ordering trap documented
+      // in the not-linted section below.
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
       "linter": {
         "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn"
+          },
           "style": {
             "useComponentExportOnlyModules": "off"
           }

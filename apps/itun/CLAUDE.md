@@ -3,9 +3,9 @@
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 **Storage modes — read before touching data.** This file owns them;
-[ADR-030](../../docs/adrs/ADR-030-accounts-games-server-of-record.md),
-[ADR-034](../../docs/adrs/ADR-034-account-required-persistence.md) and
-[ADR-035](../../docs/adrs/ADR-035-no-isolated-local-only-data.md) record why.
+[ADR-030](../../docs/ARCHITECTURE.md#adr-030),
+[ADR-034](../../docs/ARCHITECTURE.md#adr-034) and
+[ADR-035](../../docs/ARCHITECTURE.md#adr-035) record why.
 
 | Mode | When | Source of truth |
 | --- | --- | --- |
@@ -36,14 +36,14 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
   runs them for real. See `e2e/fixtures.ts`.
 
 **One account-free way to share: the public sheet
-([ADR-032](../../docs/adrs/ADR-032-public-read-only-sheets.md)).** A **live**
+([ADR-032](../../docs/ARCHITECTURE.md#adr-032)).** A **live**
 read-only page at `/p/:kind/:appId`, opt-in per entity via the `publicRead`
 Convex column, served by one deliberately unauthenticated query
 (`convex/publicSheet.ts`). Off by default; turning it off revokes everywhere at
 once, because the URL is derived rather than minted.
 
 **Snapshots are retired**
-([ADR-036](../../docs/adrs/ADR-036-retire-snapshot-shares.md)): nothing mints or
+([ADR-036](../../docs/ARCHITECTURE.md#adr-036)): nothing mints or
 revokes them, and an old `/s/:id` redirects to the public sheet if its entity is
 public, else shows a "retired" page. The R2 bucket is read-only — never delete
 from it.
@@ -79,11 +79,11 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`
   (retired; kept so migrations v10/v13 run),
   `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
-  `changeLog` provenance store ([ADR-022](../../docs/adrs/ADR-022-provenance-log-and-overrides.md)) —
+  `changeLog` provenance store ([ADR-022](../../docs/ARCHITECTURE.md#adr-022)) —
   the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
   surface (`src/lib/db/changeLog.ts` exposes append/list only).
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
-  the DB layer parses on read/write ([ADR-002](../../docs/adrs/ADR-002-indexeddb-idb-zod.md)).
+  the DB layer parses on read/write ([ADR-002](../../docs/ARCHITECTURE.md#adr-002)).
 - Reads are salvage-tolerant (lenient re-parse + warning on version skew); rows
   heal on next write. See `src/lib/db/crud.ts`.
 - Schema/version changes go through `src/lib/db/migrations/` (see its README).
@@ -103,7 +103,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `sameContainer`, and only when `mode === 'connected'`: an anonymous user has
   no Games, so their surfaces render the whole pile unfiltered. `/` (`Roster`)
   shows one container at a time; there are no Games pages.
-- **Assignments** ([ADR-037](../../docs/adrs/ADR-037-assignment-model.md)):
+- **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
 - **Lazy auto-hydration:** first `list(type)` loads from the current backend
@@ -112,7 +112,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **Write-through:** `update`/`create`/`delete` commit to Convex first when
   signed in, then the backend, then in-memory state; cross-tab writes
   invalidate via broadcast (never for the anonymous backend)
-  ([ADR-003](../../docs/adrs/ADR-003-zustand-hydration.md)).
+  ([ADR-003](../../docs/ARCHITECTURE.md#adr-003)).
 - Route persistent entity state through the store, **never** through a
   separate query cache (see `.claude/rules/itun-data-access.md`).
 
@@ -130,31 +130,30 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
   `ActionsDeck.tsx` and the Active Item bands (`MechBand.tsx`,
   `PilotBand.tsx`, `CrawlerBand.tsx`) as one write-through
-  ([ADR-008](../../docs/adrs/ADR-008-sequential-mutations.md),
-  [ADR-021](../../docs/adrs/ADR-021-itun-surface-taxonomy.md)).
+  ([ADR-008](../../docs/ARCHITECTURE.md#adr-008),
+  [ADR-021](../../docs/ARCHITECTURE.md#adr-021)).
 - Non-destructive heat-check outcomes auto-apply; destructive condition changes
   stay player-driven via the card status badge (`StatusBadge` from
   `component-lib`, wired through `MechItemCard.tsx` → `cycleItemCondition` in
   `src/components/sheet/MechSheet.tsx`)
-  ([ADR-007](../../docs/adrs/ADR-007-automation-boundary.md),
-  [ADR-009](../../docs/adrs/ADR-009-condition-model-destroyed-color.md)).
+  ([ADR-007](../../docs/ARCHITECTURE.md#adr-007),
+  [ADR-009](../../docs/ARCHITECTURE.md#adr-009)).
 - The one sheet-local play control is `CrawlerEconomyControl.tsx`.
-- Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).
+- Full picture: [combat loop](../../docs/ARCHITECTURE.md#combat-loop).
 
 ## Conventions
 
 - Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
-  ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
+  ([ADR-010](../../docs/ARCHITECTURE.md#adr-010)).
 - **Do not add a Sentry SDK to `convex/`.** The browser bundle
   (`src/lib/observability.ts`) and the Worker (`src/worker/index.ts`, via
   `observability/cloudflare`) each own one; Convex uses its first-party
   Exception Reporting integration (a dashboard toggle, no code — queries and
   mutations have no `fetch`). **A quiet Sentry project is not evidence of a
   healthy backend:** re-verify by forcing an error and comparing against
-  `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook in
-  [accounts-and-games.md](../../docs/architecture/accounts-and-games.md)
-  ("Convex error reporting — a dashboard toggle, not code").
+  `bunx convex logs --deployment alex-jarvis:suref-itun:prod`. Runbook:
+  [convex-maintenance](../../.claude/skills/convex-maintenance/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
   `"[CONVEX M(fn)] […] Server Error"` before the client sees it, so a

@@ -9,7 +9,6 @@
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
     "clean": "true",
     "deploy": "wrangler deploy",
     "worker:bundle": "wrangler deploy --dry-run"

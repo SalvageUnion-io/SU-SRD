@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import type { Ctx } from './assignmentFixtures'
+import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
 
 /**
@@ -21,15 +23,6 @@ import { testConvex } from './harness'
  * than a duplicate wire), it belongs to the container its `from` end belongs
  * to, and only somebody who may write that end may draw or cut it.
  */
-
-type Ctx = ReturnType<typeof testConvex>
-
-async function makeUser(t: Ctx, name: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name })
-  )
-  return { userId, as: t.withIdentity({ subject: userId }) }
-}
 
 function pilotBody(over: Record<string, unknown> = {}) {
   return {

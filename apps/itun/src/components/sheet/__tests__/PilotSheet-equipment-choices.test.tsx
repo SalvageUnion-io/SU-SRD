@@ -13,8 +13,8 @@
  * NO mock.module().
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -38,10 +38,6 @@ beforeAll(async () => {
   const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 // ---------------------------------------------------------------------------

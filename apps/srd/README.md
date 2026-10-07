@@ -60,6 +60,6 @@ explicit, not file-based. A page not listed there is not built.
 
 - [`ssg/DESIGN.md`](ssg/DESIGN.md) — **the SSG contract.** Read this first
 - [`CLAUDE.md`](CLAUDE.md) — stack-specific conventions
-- [`/docs/architecture/seo-accessibility.md`](../../docs/architecture/seo-accessibility.md) — SEO + a11y patterns
-- [`/docs/architecture/display-system.md`](../../docs/architecture/display-system.md) — entity rendering
+- [SEO and accessibility](../../docs/ARCHITECTURE.md#seo-and-accessibility) — SEO + a11y patterns
+- [Display system](../../docs/ARCHITECTURE.md#display-system) — entity rendering
 - [`/docs/README.md`](../../docs/README.md) — docs navigation hub

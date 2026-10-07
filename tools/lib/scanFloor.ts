@@ -3,8 +3,9 @@
  *
  * ## Why this exists
  *
- * Three gates — `check-architecture` and what are now the `tokens` and
- * `styling` rule sets of `check-styling.ts` — walk a hardcoded set of
+ * Three gates — `check-architecture` (since replaced by Biome plugins) and what
+ * are now the `tokens` and `styling` rule sets of `check-styling.ts` — walked a
+ * hardcoded set of
  * directories, count violations, and exit 0 when the count is not worse than a
  * committed baseline. All three baselines were all-zero at the time, and every
  * one of their `walk()` helpers swallowed a failed `readdirSync` and returns `[]`. So a scan that

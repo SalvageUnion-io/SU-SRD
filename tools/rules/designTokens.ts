@@ -295,7 +295,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'packages/component-lib/src/components/shared/KofiButton.tsx',
     rules: ['raw-color'],
     reason:
-      "EXTERNAL BRAND colour, not ours. #72a4f2 is Ko-fi's own blue, the default fill for their button; the widget is recognisable BECAUSE it is that colour, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external value, and anything sourced to OUR design uses the canonical set. Note the prop is caller-overridable, so a consumer that wants a themed button already can.",
+      "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set. Note the prop is caller-overridable, so a consumer that wants a themed button already can.",
   },
   {
     file: 'apps/itun/src/styles/print.css',

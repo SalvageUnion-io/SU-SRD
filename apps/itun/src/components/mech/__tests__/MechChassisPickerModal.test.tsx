@@ -14,14 +14,10 @@
  * the searcher reads the ORM directly, so no DB scaffolding is needed.
  */
 
-import { afterEach, describe, expect, it } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { MechChassisPickerModal } from '../MechChassisPickerModal'
-
-afterEach(() => {
-  cleanup()
-})
 
 /** Two distinct real chassis — the current one and the one we swap to. */
 function twoChassis(): [{ name: string }, { name: string }] {

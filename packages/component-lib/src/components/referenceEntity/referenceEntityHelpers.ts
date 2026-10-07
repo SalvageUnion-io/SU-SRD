@@ -5,6 +5,8 @@ import type {
   SURefObjectBonusPerTechLevel,
 } from 'salvageunion-reference'
 import { getBlackMarket, getHybridClasses, isEntityData } from 'salvageunion-reference'
+import type { Foreground } from '../../design/contrast'
+import { foregroundOn } from '../../design/contrast'
 
 /**
  * The card's accent surface: a Tailwind bg class (or the white fallback) plus an
@@ -119,13 +121,34 @@ export function borderColorFromHeaderBg(
 }
 
 /**
- * Deeper (darker) tint of the card's accent (header) colour — the "deep" variant,
- * used for the white body box's 3px left accent border.
+ * Deeper (darker) tint of the card's accent (header) colour — the "deep" variant:
+ * the sub-header and footer bands, and the white body box's 3px left accent border.
+ *
+ * 60% tone, not the 65% it was: the footer prints 12px text on this band, which
+ * owes 4.5:1, and TL1's deep shade at 65% gave its best foreground (paper) only
+ * 4.05:1. At 60% every card tone clears 4.5:1 — `design/contrast.test.ts` holds it.
  */
 export function accentDeepColor(
   headerBg: string | undefined,
   headerBgColor?: string
 ): string | undefined {
   const base = borderColorFromHeaderBg(headerBg, headerBgColor)
-  return base ? `color-mix(in srgb, ${base} 65%, black)` : undefined
+  return base ? `color-mix(in srgb, ${base} 60%, black)` : undefined
+}
+
+/** The text-colour class for each foreground a band may print in. */
+export type OnToneText = 'text-ink' | 'text-paper'
+
+const ON_TONE_TEXT: Record<Foreground, OnToneText> = { ink: 'text-ink', paper: 'text-paper' }
+
+/**
+ * The text class for a tone band (header, sub-header, footer): ink or paper,
+ * whichever contrasts more with the band actually painted — see
+ * `design/contrast.ts`. `fallback` covers a band the arithmetic cannot resolve.
+ */
+export function onToneText(
+  band: string | undefined,
+  fallback: OnToneText = 'text-paper'
+): OnToneText {
+  return ON_TONE_TEXT[foregroundOn(band, fallback === 'text-ink' ? 'ink' : 'paper')]
 }

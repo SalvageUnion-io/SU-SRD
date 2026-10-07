@@ -25,14 +25,24 @@ import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 import { INPUT_FOCUS } from './interaction'
 
-type InputProps = ComponentPropsWithoutRef<'input'>
+type InputProps = ComponentPropsWithoutRef<'input'> & {
+  /**
+   * Integer-only field: opens the digit keypad on phones by setting
+   * `inputMode="numeric"`, `pattern="[0-9]*"` and `enterKeyHint="done"`.
+   * `pattern` is the legacy iOS keypad hint and does not validate
+   * `type="number"`; keep `type="number"` for min/max/step.
+   */
+  numeric?: boolean
+}
+
+const NUMERIC_KEYPAD = { inputMode: 'numeric', pattern: '[0-9]*', enterKeyHint: 'done' } as const
 
 /**
  * Text input (design-spec §2.5 `.input`): paper bg, 1.5px ink border, 3px
  * radius, rust focus ring (no outline).
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, ...props },
+  { className, numeric = false, ...props },
   ref
 ) {
   return (
@@ -43,6 +53,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         INPUT_FOCUS,
         className
       )}
+      // Before `props`, so an explicit inputMode/pattern/enterKeyHint wins.
+      {...(numeric ? NUMERIC_KEYPAD : {})}
       {...props}
     />
   )

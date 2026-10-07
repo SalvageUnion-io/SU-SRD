@@ -1,6 +1,6 @@
 # Changelog
 
-Maintained by release-please (see [ADR-025](../../docs/adrs/ADR-025-reference-versioned-releases-surface-gate.md)).
+Maintained by release-please (see [ADR-025](../../docs/ARCHITECTURE.md#adr-025)).
 
 All notable changes to this project will be documented in this file.
 

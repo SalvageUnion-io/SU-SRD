@@ -273,7 +273,7 @@ export const locate = query({
  *
  * That is the gap that makes "IndexedDB is a cache" untrue as a description: a
  * cache is something that can be *filled*, and until this there was nothing to
- * fill it from ([ADR-034](../../../docs/adrs/ADR-034-account-required-persistence.md)
+ * fill it from ([ADR-034](../../../docs/ARCHITECTURE.md#adr-034)
  * decision 2).
  *
  * ## Owned, not shelved

@@ -63,6 +63,15 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // The smoke spec again on a phone. Phone layouts (the nav drawer, stacked
+    // cards) are what most players see, and no browser had ever driven one.
+    // Smoke only: it proves the app boots and its core surfaces work there,
+    // without doubling the run time of every other spec.
+    {
+      name: 'mobile-chromium',
+      use: { ...devices['Pixel 7'] },
+      testMatch: /smoke\.e2e\.ts$/,
+    },
     // Enable on demand:
     // { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     // { name: 'webkit',  use: { ...devices['Desktop Safari']  } },
@@ -82,8 +91,7 @@ export default defineConfig({
         // inside `build-srd`, which has already produced `dist` — so an
         // unconditional build meant the app was built TWICE per PR, and the
         // "folding e2e into the build job reuses the build" rationale was simply
-        // false. The nightly workflow runs `playwright test` with no build step
-        // of its own, so the fallback is load-bearing: keep both halves.
+        // false. The fallback build covers a `CI`-flagged run with no `dist`.
         command: process.env.CI
           ? '[ -d dist ] || bun ssg/build.ts; bun ssg/preview.ts --port 4321'
           : 'bun run dev',

@@ -1,7 +1,7 @@
 name: CI
 
-# The reasoning behind every non-obvious choice in this file — and the
-# incidents that produced most of them — is in docs/architecture/ci.md. Read it
+# The reasoning behind every non-obvious choice in this file is in
+# docs/ARCHITECTURE.md#ci-and-deploy (the incidents behind them are in git history). Read it
 # before changing a trigger, a path filter, a `needs:` edge or the aggregate
 # gate. Comments here say WHAT a step guards; the doc says WHY.
 
@@ -9,10 +9,10 @@ on:
   push:
     branches: ['main']
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
-  # PRs no checks at all — and `CI Success` is required (ci.md, "Triggers").
+  # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci-triggers).
   pull_request:
   # Dormant: no merge queue on `main` today, but this must be live BEFORE one
-  # is enabled or the queue waits forever (ci.md, "Triggers").
+  # is enabled or the queue waits forever (ARCHITECTURE.md#ci-triggers).
   merge_group:
 
 permissions:
@@ -22,8 +22,8 @@ permissions:
 
 # PRs: a new push supersedes the in-flight run. `main`: NEVER cancel — every
 # commit gets its own group and runs to completion, because a cancelled run on
-# main never fires the deploy workflow's `workflow_run` success (ci.md,
-# "Concurrency"; audit CI-01).
+# main never fires the deploy workflow's `workflow_run` success
+# (ARCHITECTURE.md#ci-concurrency; audit CI-01).
 concurrency:
   group: ci-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.event_name != 'push' }}
@@ -32,7 +32,7 @@ concurrency:
 jobs:
   # ---------------------------------------------------------------------------
   # Which areas a change touches. `shared` affects everything; `docs` is prose
-  # and agent config only. See ci.md, "Path filters", before adding a path.
+  # and agent config only. See ARCHITECTURE.md#ci-path-filters before adding a path.
   # ---------------------------------------------------------------------------
   changes:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
 
       # A squash merge whose tree is its PR head's already passed CI as that PR:
       # every area stays empty, so `CI Success` passes at once and the deploy
-      # starts. Anything unproven runs everything (ci.md, "Reusing the PR's run").
+      # starts. Anything unproven runs everything (ARCHITECTURE.md#ci-reusing-the-prs-run).
       - name: Reuse the merged PR's green run
         id: tested
         if: github.event_name == 'push'
@@ -126,7 +126,7 @@ jobs:
               - 'bunfig.toml'
               - 'patches/**'
               # root prose rendered by srd + itun and asserted on by
-              # component-lib tests — the #731 incident (ci.md)
+              # component-lib tests — the #731 incident (ARCHITECTURE.md#ci-path-filters)
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -134,10 +134,15 @@ jobs:
               - *shared
               - 'apps/itun/**'
               - 'packages/component-lib/**'
+              # the build job's axe scan and the debt it accepts
+              - 'tools/a11y-scan.ts'
+              - 'tools/a11y-baseline-itun.json'
             web:
               - *shared
               - 'apps/srd/**'
               - 'packages/component-lib/**'
+              - 'tools/a11y-scan.ts'
+              - 'tools/a11y-baseline.json'
             bot:
               - *shared
               - 'apps/discord-bot/**'
@@ -159,16 +164,23 @@ jobs:
               - 'apps/**'
               - 'packages/**'
               - 'tools/**'
+              # the design-sync previews, type-checked by the tools workspace
+              - '.design-sync/**'
               # the hook scripts are exercised by tools/__tests__/claude-hooks.test.ts
               - '.claude/hooks/**'
+              # the agent workflow scripts, by tools/__tests__/claude-workflows.test.ts
+              - '.claude/workflows/**'
+              # read only by the actionlint check (zizmor's config)
+              - '.github/zizmor.yml'
             # Prose and agent config. Runs the repo-invariant checks (doc
-            # drift, architecture) but not the test suite or the typecheck —
+            # drift, observability) but not the test suite or the typecheck —
             # nothing compiles or tests these files (audit CI-11).
             docs:
               - 'docs/**'
               - 'CLAUDE.md'
               - 'README.md'
               - 'CONTRIBUTING.md'
+              - 'SECURITY.md'
               - '.claude/**'
               - '.mcp.json'
             # What the dependency audit reads: a PR that moves neither cannot
@@ -197,9 +209,9 @@ jobs:
       # below), from the ONE registry in tools/check.ts — the same list
       # `bun run check` and pre-push run. Add a gate THERE, never as a step
       # here. The areas decide which checks a diff needs: always-on checks
-      # (Biome, workflows, styling, actionlint/zizmor) run on every PR; repo
-      # invariants (doc drift, data, …) on code OR docs; typecheck, knip and
-      # generated-file drift on code; the audit on deps. Every check runs even
+      # (Biome, styling) run on every PR; repo invariants (doc drift, data, …)
+      # on code OR docs; typecheck, knip, generated-file drift, workflows and
+      # actionlint/zizmor on code; the audit on deps. Every check runs even
       # after one fails, and the log ends in a pass/fail table.
       - name: Run checks
         env:
@@ -213,9 +225,9 @@ jobs:
           if [ "$DEPS" = "true" ]; then areas="${areas:+$areas,}deps"; fi
           bun tools/check.ts --profile=ci --areas="$areas"
 
-  # THE test gate: every workspace instrumented and held to its line-coverage
-  # floor, plus the tools suite, concurrently (tools/run-coverage.ts). There is
-  # no second, uninstrumented run.
+  # THE test gate: every workspace (tools/ included) instrumented and held to
+  # its line-coverage floor, concurrently (tools/run-coverage.ts). There is no
+  # second, uninstrumented run.
   coverage:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
@@ -265,15 +277,17 @@ jobs:
         working-directory: apps/srd
         run: bunx playwright install chromium
 
-      # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      - name: Run smoke + bundle-budget specs
+      # The PR-blocking browser tier, and srd's whole Playwright suite: there
+      # is no nightly srd run. Add a spec to this line; do NOT add a job.
+      - name: Run smoke + bundle-budget + JSON API specs
         working-directory: apps/srd
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts
 
-      # WCAG 2.1 AA on the pages in tools/a11y-baseline.json, against the
-      # dist built above. Blocks on any violation the baseline does not accept,
-      # and on a baseline entry that no longer fires. It used to run only
-      # nightly, so a regression merged green and surfaced the next morning.
+      # WCAG 2.2 AA on the pages in tools/a11y-baseline.json, against the
+      # dist built above, at desktop and as a phone. Blocks on any violation
+      # the baseline does not accept, and on a baseline entry that no longer
+      # fires. It used to run only nightly, so a regression merged green and
+      # surfaced the next morning.
       - name: Accessibility scan (axe-core)
         run: |
           set -euo pipefail
@@ -284,8 +298,8 @@ jobs:
             if curl -sfo /dev/null http://localhost:4399/; then break; fi
             sleep 1
           done
-          bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json http://localhost:4399 \
-            > a11y-report.json
+          bun tools/a11y-scan.ts --baseline tools/a11y-baseline.json --device 'Pixel 7' \
+            http://localhost:4399 > a11y-report.json
 
       - name: Upload a11y report on failure
         if: failure()
@@ -340,6 +354,31 @@ jobs:
         working-directory: apps/itun
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
 
+      # srd's scan, for ITUN: the routes in tools/a11y-baseline-itun.json, at
+      # desktop and as a phone. `--ready main` waits out the reference-data
+      # gate, whose loading screen has no <main>.
+      - name: Accessibility scan (axe-core)
+        run: |
+          set -euo pipefail
+          bun apps/itun/scripts/preview.ts --port 4398 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do
+            if curl -sfo /dev/null http://localhost:4398/; then break; fi
+            sleep 1
+          done
+          bun tools/a11y-scan.ts --baseline tools/a11y-baseline-itun.json --device 'Pixel 7' \
+            --ready main http://localhost:4398 > a11y-report.json
+
+      - name: Upload a11y report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-report-itun
+          path: a11y-report.json
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
@@ -365,40 +404,6 @@ jobs:
       # The bot has no build script; wrangler bundles `src/http/worker.ts`.
       - name: Bundle the Worker that actually deploys
         run: bun --filter discord-bot worker:bundle --outdir /tmp/bot-worker
-
-  # Squash merges make the PR title the commit subject release-please reads.
-  pr-title:
-    name: PR title is a conventional commit
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Check the title
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          set -euo pipefail
-          # types release-please understands, optional (scope), optional ! for a
-          # breaking change, then ": " and a non-empty description.
-          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .+'
-          if printf '%s' "$TITLE" | grep -qE "$pattern"; then
-            echo "ok: $TITLE"
-            exit 0
-          fi
-          {
-            echo "This PR's title is not a conventional commit, and on a squash-merge repo"
-            echo "the title IS the commit subject that release-please reads."
-            echo ""
-            echo "  got:      $TITLE"
-            echo "  expected: <type>(<optional scope>): <description>"
-            echo "  types:    feat fix docs style refactor perf test build ci chore revert"
-            echo ""
-            echo "  e.g.  fix(deploy): require same-repo push provenance on the deploy gate"
-            echo ""
-            echo "A title that does not match still merges cleanly and silently produces no"
-            echo "changelog entry and no version bump. See ADR-024."
-          } >&2
-          exit 1
 
   # The Ladle stories are component-lib's visual catalogue and the review
   # surface for the component-refresh loop. Nothing built them on a PR, so a
@@ -440,8 +445,8 @@ jobs:
   # ---------------------------------------------------------------------------
   # The single required check. Fails if any job failed or was cancelled; a
   # path-filtered skip passes. EVERY job above must be in `needs:` —
-  # tools/check-workflows.ts (aggregator) enforces it. CodeQL is required separately
-  # (ci.md, "The aggregate gate").
+  # tools/check-workflows.ts (aggregator) enforces it. CodeQL and the PR title
+  # are required separately (ARCHITECTURE.md#ci-aggregate-gate).
   # ---------------------------------------------------------------------------
   quality-checks:
     name: CI Success
@@ -455,7 +460,6 @@ jobs:
       - build-discord-bot
       - build-su-assets
       - build-ladle
-      - pr-title
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

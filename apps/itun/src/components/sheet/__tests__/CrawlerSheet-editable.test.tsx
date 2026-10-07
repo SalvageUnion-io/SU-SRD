@@ -16,7 +16,7 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
 import type { Crawler } from '../../../lib/schemas/crawler'
@@ -26,10 +26,6 @@ import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { CrawlerSheet } from '../CrawlerSheet'
-
-afterEach(() => {
-  cleanup()
-})
 
 // ---------------------------------------------------------------------------
 // SalvageUnionReference.CrawlerBays.all patch (so bays resolve in the sheet)

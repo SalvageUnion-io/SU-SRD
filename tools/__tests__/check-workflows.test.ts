@@ -8,6 +8,7 @@ import {
   checkDeployOrder,
   checkPathFilters,
   checkPinning,
+  checkSecretsEnv,
   GUARD_STEP,
   loadContext,
   runnerCalls,
@@ -16,7 +17,7 @@ import {
 } from '../check-workflows'
 
 /**
- * `tools/check-workflows.ts` — six merge-gating invariants over `.github/`.
+ * `tools/check-workflows.ts` — seven merge-gating invariants over `.github/`.
  *
  * Every case builds its context from YAML TEXT through `Bun.YAML.parse`, the
  * same path the real run takes, so a fixture cannot pass by being shaped
@@ -162,6 +163,10 @@ function ctx(overrides: {
       'jobs:\n  a:\n    steps:\n      - uses: github/codeql-action/init@v4\n'
     ),
     yaml(
+      '.github/workflows/pr-title.yml',
+      'jobs:\n  pr-title:\n    steps:\n      - run: echo ok\n'
+    ),
+    yaml(
       '.github/workflows/nightly.yml',
       'jobs:\n  a:\n    steps:\n      - uses: ./.github/actions/setup-bun\n'
     ),
@@ -260,6 +265,8 @@ describe('aggregator', () => {
   test('a separately-required workflow that is gone fails', () => {
     const c = ctx({ missing: ['.github/workflows/codeql.yml'] })
     expect(checkAggregator(c).failures.join('\n')).toContain('codeql.yml is missing')
+    const title = ctx({ missing: ['.github/workflows/pr-title.yml'] })
+    expect(checkAggregator(title).failures.join('\n')).toContain('pr-title.yml is missing')
   })
 })
 
@@ -573,5 +580,49 @@ describe('deploy-order', () => {
     const deploy = 'on: workflow_dispatch\njobs:\n  a:\n    steps:\n      - run: echo hi\n'
     expect(checkDeployOrder(ctx({ deploy })).failures).toHaveLength(4)
     expect(checkDeployOrder(ctx({ deploy: null })).failures[0]).toContain('is missing')
+  })
+})
+
+describe('secrets-env', () => {
+  /** A workflow with one job reading `secret`; `env` is its `environment:`, if any. */
+  const job = (secret: string, env?: string) =>
+    yaml(
+      `.github/workflows/${secret.toLowerCase()}.yml`,
+      [
+        'jobs:',
+        '  release:',
+        '    runs-on: ubuntu-latest',
+        ...(env === undefined ? [] : [`    environment: ${env}`]),
+        '    steps:',
+        '      - run: ./release.sh',
+        '        env:',
+        `          TOKEN: \${{ secrets.${secret} }}`,
+        '',
+      ].join('\n')
+    )
+  const run = (...extra: WorkflowFile[]) => checkSecretsEnv(ctx({ extra })).failures
+
+  test('a job reading a production secret inside the environment passes', () => {
+    expect(run(job('CONVEX_DEPLOY_KEY', 'production'))).toEqual([])
+    expect(run(job('CONVEX_DEPLOY_KEY', '{ name: production }'))).toEqual([])
+  })
+
+  test('the same job outside the environment fails, naming the job and the secret', () => {
+    expect(run(job('CONVEX_DEPLOY_KEY'))).toEqual([
+      expect.stringContaining('job `release` reads secrets.CONVEX_DEPLOY_KEY without'),
+    ])
+  })
+
+  test('any environment other than production fails', () => {
+    expect(run(job('CLOUDFLARE_API_TOKEN', 'staging'))).toHaveLength(1)
+  })
+
+  test('a job reading only GITHUB_TOKEN needs no environment', () => {
+    expect(run(job('GITHUB_TOKEN'), job('SENTRY_AUTH_TOKEN', 'production'))).toEqual([])
+  })
+
+  test('no job reading a production secret fails rather than passing empty', () => {
+    expect(run(job('GITHUB_TOKEN'))[0]).toContain('would pass by doing nothing')
+    expect(run()[0]).toContain('would pass by doing nothing')
   })
 })

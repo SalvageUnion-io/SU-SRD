@@ -1,0 +1,19 @@
+// `test/testing-library.ts` already registers an act()-wrapped
+// `afterEach(cleanup)` in every workspace that renders components (each one
+// preloads it from its bunfig). A test file's own hook that does nothing but
+// call `cleanup()` buys nothing, and it is worse than the shared one: it is not
+// wrapped in act(), so it unmounts without flushing pending React updates.
+// A hook that also resets other state is not bare and passes; so does a
+// mid-test `cleanup()` call.
+language js(typescript, jsx)
+
+`afterEach($hook)` as $call where {
+  $hook <: or {
+    `cleanup`,
+    `() => cleanup()`,
+    `() => { cleanup() }`,
+    `async () => { cleanup() }`,
+    `function () { cleanup() }`
+  },
+  register_diagnostic(span=$call, message="Delete this hook: test/testing-library.ts already runs an act()-wrapped afterEach(cleanup) for every file (.claude/rules/testing-patterns.md).", severity="error")
+}

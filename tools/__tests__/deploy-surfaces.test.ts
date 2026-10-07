@@ -28,7 +28,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test('docs-only changes deploy nothing', () => {
-    expect(decideSurfaces(['docs/architecture/ci.md', 'CLAUDE.md'], false)).toEqual(NOTHING)
+    expect(decideSurfaces(['docs/ARCHITECTURE.md', 'CLAUDE.md'], false)).toEqual(NOTHING)
   })
 
   /**

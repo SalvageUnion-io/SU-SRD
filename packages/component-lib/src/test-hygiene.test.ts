@@ -11,18 +11,18 @@ import { join, relative, resolve } from 'node:path'
  * in one shared place, and nothing stopped test files from re-declaring the
  * same thing per-file afterwards. This test is what stops it.
  *
- * 1. `afterEach(cleanup)` — `test/testing-library.ts` already registers an
- *    `act()`-wrapped one for every preload-covered workspace. A bare re-
- *    declaration is a strictly worse duplicate: no `act()` wrap, so it unmounts
- *    without flushing pending React updates.
- * 2. `SalvageUnionReference.preload(...)` — `test/reference-preload.ts` already
+ * 1. `SalvageUnionReference.preload(...)` — `test/reference-preload.ts` already
  *    loads every schema. `ModelFactory`'s loaded-schema set is module-global and
  *    never reset, so a per-file narrow list can pass purely because a sibling
  *    file loaded everything first.
- * 3. `new Date().toISOString()` in a fixture — `FIXTURE_NOW` already pins one
+ * 2. `new Date().toISOString()` in a fixture — `FIXTURE_NOW` already pins one
  *    frozen instant. A live clock in a fixture is a free variable that makes
  *    entities built microseconds apart differ and hides real "did this write
  *    bump `updatedAt`?" bugs.
+ *
+ * The ban on a bare `afterEach(cleanup)` is a Biome plugin instead
+ * (`tools/biome/noBareCleanupHook.grit`): it matches every hook shape, where a
+ * regex here matched only two and passed 38 block-bodied hooks.
  *
  * Deliberately lives in component-lib rather than the repo root: `bun run test`
  * runs per workspace, so a root-level test file would never execute.
@@ -36,9 +36,8 @@ const PRELOADED_WORKSPACES = [
   'apps/srd',
   'packages/component-lib',
   'packages/salvageunion-reference',
-  // The bot has no DOM, so the cleanup rule is vacuous for it — but it reads
-  // reference data and had the same per-file `preload('all')` drift (8 files),
-  // so it is policed here too.
+  // The bot has no DOM, but it reads reference data and had the same per-file
+  // `preload('all')` drift (8 files), so it is policed here too.
   'apps/discord-bot',
 ] as const
 
@@ -97,21 +96,6 @@ describe('test hygiene', () => {
     // A broken glob or a moved workspace would otherwise make this file pass
     // vacuously — the exact failure mode the two rules already suffered.
     expect(testFiles.length).toBeGreaterThan(200)
-  })
-
-  test('no test file re-declares afterEach(cleanup)', () => {
-    const offenders = testFiles
-      .filter(({ source }) =>
-        /afterEach\(\s*(cleanup\s*\)|\(\)\s*=>\s*cleanup\(\)\s*\))/.test(stripComments(source))
-      )
-      .map(({ rel }) => rel)
-
-    expect(
-      offenders,
-      `${offenders.length} file(s) re-declare afterEach(cleanup). ` +
-        'test/testing-library.ts already registers an act()-wrapped one for every ' +
-        'preloaded workspace — delete the local hook. See .claude/rules/testing-patterns.md.'
-    ).toEqual([])
   })
 
   test('no test file calls SalvageUnionReference.preload()', () => {

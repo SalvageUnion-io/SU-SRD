@@ -68,3 +68,26 @@ describe('route modules', () => {
     }
   )
 })
+
+/**
+ * Every page names its browser tab. A route that renders a component sets its
+ * title in `head` (`lib/pageTitle.ts`); the redirect-only routes render
+ * nothing and keep the root's default.
+ */
+describe('route titles', () => {
+  const pages = routeFiles(routesDir).filter((file) => {
+    const name = relative(routesDir, file)
+    // The Dashboard route is owned by the redesign milestone; #1052 adds its
+    // head and removes this exemption. By directory, so a rename keeps it.
+    if (name === '__root.tsx' || name.startsWith('dashboard/')) return false
+    return readFileSync(file, 'utf8').includes('component:')
+  })
+
+  test('the scan found the pages', () => {
+    expect(pages.length).toBeGreaterThan(10)
+  })
+
+  test.each(pages.map((f) => [relative(routesDir, f), f]))('%s sets a head', (_name, file) => {
+    expect(readFileSync(file, 'utf8')).toContain('head:')
+  })
+})

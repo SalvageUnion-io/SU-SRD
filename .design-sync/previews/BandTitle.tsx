@@ -2,7 +2,7 @@
 import { Badge, BandTitle, Button } from 'component-lib'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Group, Stack } from '../preview-lib/harness'
+import { Group } from '../preview-lib/harness'
 
 function Band({ children }: { children: ReactNode }) {
   return (

@@ -427,6 +427,7 @@ function HoldAdder({
           <Input
             id={tlId}
             type="number"
+            numeric
             min={1}
             max={6}
             step={1}
@@ -446,6 +447,7 @@ function HoldAdder({
         <Input
           id={slotsId}
           type="number"
+          numeric
           min={0}
           step={1}
           value={amount}

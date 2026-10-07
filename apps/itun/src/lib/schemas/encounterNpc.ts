@@ -1,10 +1,11 @@
 import { z } from 'salvageunion-reference/zod'
+import { containerFields } from './entity'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray
- * (design-review R-5). Local-first like everything else: persisted to its own
- * IndexedDB object store (`encounterNpcs`), container-scoped via the nullable
- * `gameId` (ADR-030 §2), no backend.
+ * (design-review R-5). Persisted like every entity: the `encounterNpcs` Convex
+ * table when signed in (IndexedDB is the cache), memory only when not;
+ * container-scoped via the nullable `gameId` (ADR-030 §2).
  *
  * The record stores a SLUG reference into salvageunion-reference (data
  * conventions: slugs, never UUIDs) plus the frozen add-time stats it needs to
@@ -50,13 +51,7 @@ export const EncounterNpcSchema = z
   .object({
     id: z.string(),
     schemaVersion: z.literal(1),
-    /**
-     * Container this tracked NPC belongs to (ADR-030 §2): a Game id, `null`
-     * for the Shelf, absent for a record written before the split.
-     */
-    gameId: z.string().nullable().optional(),
-    /** @deprecated Pre-ADR-030 container. Read only as a fallback. */
-    workspaceId: z.string().optional(),
+    ...containerFields,
 
     /** Which reference schema the NPC came from. */
     refSchema: EncounterRefSchemaSchema,

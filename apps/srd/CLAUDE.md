@@ -2,10 +2,10 @@
 
 Static SRD reference site for Salvage Union game data. Read-only — choices render
 ephemerally/non-editably
-([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
+([ADR-010](../../docs/ARCHITECTURE.md#adr-010)).
 
 > **srd is not an Astro app** — it runs on an in-house static-site generator in
-> [`ssg/`](ssg/) ([ADR-031](../../docs/adrs/ADR-031-srd-vite-ssg.md), superseding
+> [`ssg/`](ssg/) ([ADR-031](../../docs/ARCHITECTURE.md#adr-031), superseding
 > ADR-012). No `.astro` files, no `astro.config.mjs`, no `client:*` directives,
 > no file-based routing. The contract is [`ssg/DESIGN.md`](ssg/DESIGN.md) —
 > **read it first.** This file is the canonical statement of this; others point here.
@@ -199,7 +199,7 @@ cwd — and merges them via the shared `parseChangelog` / `mergeChangelogs` help
 - `packages/salvageunion-reference/CHANGELOG.md` — changes to the game-data package (area badge **Data**)
 
 Both files are **maintained by release-please** from conventional-commit PR titles (see
-[ADR-024](../../docs/adrs/ADR-024-derived-release-changelogs.md)). Entries are
+[ADR-024](../../docs/ARCHITECTURE.md#adr-024)). Entries are
 merged newest-first by date across both sources.
 
 **Do NOT hand-edit `CHANGELOG.md`.** The only allowed manual touch is optionally polishing the
