@@ -21,8 +21,9 @@ const STORED = { kind: 'pilot', entity: pilotFixture({ id: 'p-worker', name: 'Ru
  * URL (#759).
  *
  * The snapshot API is down to one read (ADR-036), and the retired halves are
- * asserted as retired: no publish, no revoke, no frozen build served. The
- * unfurl of links already posted (`/s/:id` metadata, `/og/s/:id.png`) stays.
+ * asserted as retired: no publish, no revoke, no frozen build served, no
+ * rendered card. The unfurl text of links already posted (`/s/:id` metadata)
+ * stays.
  */
 
 /** A fake static-asset binding: `not_found_handling: "none"` semantics. */
@@ -332,6 +333,8 @@ describe('old snapshot links keep their unfurl metadata', () => {
     expect(res.status).toBe(200)
     expect(body).toContain('Rusty — Pilot')
     expect(body.match(/property="og:title"/g)).toHaveLength(1)
+    // The rendered card is retired (ADR-036): nothing may point an unfurl at it.
+    expect(body).not.toContain('og:image')
   })
 
   it('drops a stale Content-Length rather than truncating the document', async () => {
@@ -434,83 +437,35 @@ describe('/api/snapshots/:id — which entity, and nothing else', () => {
 })
 
 /**
- * `/og/s/:id.png` — the rendered unfurl image, kept for links already posted
- * (ADR-036) until it can go with `@resvg/resvg-wasm`.
- *
- * **What can be asserted here is the routing, not the render.** The handler
- * reaches `renderOgImage` through a lazy `await import('./ogImage')`, and that
- * module imports two TTFs and a 2.4 MB `.wasm` via wrangler's module rules —
- * under `bun test` those imports throw, the handler's catch turns that into the
- * static fallback, and a valid snapshot is therefore indistinguishable from a
- * missing one. So the success path is deliberately not asserted; it was
- * verified against `wrangler dev`, which is the only runtime that can load it.
- * The card's own layout is covered in `ogCard.test.ts`.
- *
- * What IS worth pinning down is everything around it, because each part has a
- * way of silently going wrong:
- *
- *   - the route must be matched BEFORE the asset lookup. `/og/s/X.png` ends in
- *     a dot-bearing segment, which is exactly what rule 6 turns into a 404.
- *   - every failure must end at an image, never at an error. A 404 or a 500
- *     here makes the link look broken in the channel it was pasted into, which
- *     is worse than a generic picture.
+ * `/og/s/:id.png` — the rendered unfurl image, retired (ADR-036). Nothing
+ * routes it any more: it is a missing file, and rule 6 answers that 404.
  */
-describe('/og/s/:id.png', () => {
-  it('is matched before the asset lookup, despite ending in .png', async () => {
-    // Rule 6 404s any path whose last segment contains a dot. If this route
-    // were dispatched after it, every unfurl would be a 404 and the reason
-    // would look like a CDN problem.
-    const env = envWith({ '/index.html': 'SPA' }, {})
+describe('/og/s/:id.png is retired', () => {
+  it('404s as a missing file, for a stored snapshot too', async () => {
+    const env = envWith({ '/index.html': 'SPA' }, { AAAAAAAA: STORED })
     const res = await worker.fetch(req('/og/s/AAAAAAAA.png'), env)
 
-    expect(res.status).not.toBe(404)
-    expect(env.ASSETS.asked).not.toContain('/og/s/AAAAAAAA.png')
+    expect(res.status).toBe(404)
   })
+})
 
-  it('falls back to the static icon for a malformed id', async () => {
-    const env = envWith({ '/index.html': 'SPA' }, {})
-    const res = await worker.fetch(req('/og/s/not a valid id!.png'), env)
-
-    expect(res.status).toBe(302)
-    expect(res.headers.get('location')).toBe('https://intheunionnow.com/icon-512.png')
-  })
-
-  it('falls back to the static icon when the snapshot is gone', async () => {
-    // Snapshots can no longer be revoked (ADR-036), but an id that was revoked
-    // before, or was never minted, is still the common miss.
-    const env = envWith({ '/index.html': 'SPA' }, {})
-    const res = await worker.fetch(req('/og/s/AAAAAAAA.png'), env)
-
-    expect(res.status).toBe(302)
-    expect(res.headers.get('location')).toBe('https://intheunionnow.com/icon-512.png')
-  })
-
-  it('never answers an unfurl with an error status', async () => {
-    const env = envWith({ '/index.html': 'SPA' }, {})
-    for (const path of ['/og/s/AAAAAAAA.png', '/og/s/!!.png', '/og/s/A.png']) {
-      const res = await worker.fetch(req(path), env)
-      expect(res.status).toBeLessThan(400)
-    }
-  })
-
-  // ---------------------------------------------------------------------
-  // Security headers
-  //
-  // `./securityHeaders.ts` is the app's only source of these: `public/_headers`
-  // carries Cache-Control alone, Cloudflare does not apply it to responses
-  // Worker code GENERATES, and `wrangler.jsonc` sets `run_worker_first`. These
-  // assert the wrapper covers the paths a request can actually leave by — an
-  // asset hit included, and the redirect, which is the one that cannot have its
-  // headers mutated in place and so is the likeliest to be missed by a
-  // per-return fix.
-  // ---------------------------------------------------------------------
-
+// -----------------------------------------------------------------------
+// Security headers
+//
+// `./securityHeaders.ts` is the app's only source of these: `public/_headers`
+// carries Cache-Control alone, Cloudflare does not apply it to responses
+// Worker code GENERATES, and `wrangler.jsonc` sets `run_worker_first`. These
+// assert the wrapper covers the paths a request can actually leave by — an
+// asset hit included, and the redirect, which is the one that cannot have its
+// headers mutated in place and so is the likeliest to be missed by a
+// per-return fix.
+// -----------------------------------------------------------------------
+describe('security headers', () => {
   it.each([
     ['a redirect', '/pilots/whatever'],
     ['a 400 on a malformed snapshot id', '/api/snapshots/!!!'],
     ['a 404 for an unknown snapshot id', '/api/snapshots/ABCD1234'],
     ['the retired publish endpoint', '/api/snapshots'],
-    ['an og:image fallback', '/og/s/!!.png'],
     ['the SPA shell', '/s/AAAAAAAA'],
     ['a 404 for a missing file', '/nope.txt'],
     ['an asset hit', '/assets/app.js'],
@@ -534,23 +489,5 @@ describe('/og/s/:id.png', () => {
     )
 
     expect(served).toBe(ITUN_CSP)
-  })
-
-  it('points the shell metadata at this route for a snapshot that exists', async () => {
-    // The two halves have to agree: a card nobody links to is not an unfurl.
-    const SHELL = [
-      '<!doctype html><html><head>',
-      '<!-- itun:meta:start -->',
-      '<meta property="og:title" content="In The Union Now" />',
-      '<!-- itun:meta:end -->',
-      '</head><body></body></html>',
-    ].join('\n')
-    const env = envWith(
-      { '/index.html': SHELL },
-      { AAAAAAAA: { kind: 'pilot', entity: { name: 'Rusty' } } }
-    )
-    const body = await (await worker.fetch(req('/s/AAAAAAAA'), env)).text()
-
-    expect(body).toContain('content="https://intheunionnow.com/og/s/AAAAAAAA.png"')
   })
 })
