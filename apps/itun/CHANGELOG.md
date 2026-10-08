@@ -2,6 +2,20 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.22.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.21.1...itun-v1.22.0) (2026-10-08)
+
+
+### Features
+
+* **itun:** add display tabs, the Game roll log and live resolve [flight-deck L6] ([#1098](https://github.com/SalvageUnion-io/SU-SRD/issues/1098)) ([9a08173](https://github.com/SalvageUnion-io/SU-SRD/commit/9a08173fa78554b2fe96e1b92da7ce22d447b3b5))
+* **itun:** add the Board split button and mech menu [flight-deck L5] ([#1097](https://github.com/SalvageUnion-io/SU-SRD/issues/1097)) ([2961326](https://github.com/SalvageUnion-io/SU-SRD/commit/296132679ffe02b92206b271b7697411f375eb51))
+* **itun:** derive crew maxima and status on the server [flight-deck L7] ([#1099](https://github.com/SalvageUnion-io/SU-SRD/issues/1099)) ([b6bb35d](https://github.com/SalvageUnion-io/SU-SRD/commit/b6bb35dcb56d11c5da5d0a3e194e1ffeb6349347))
+* **itun:** drive Downtime from the Game; Mediator keeps crawler [flight-deck L8] ([#1100](https://github.com/SalvageUnion-io/SU-SRD/issues/1100)) ([9bdebe1](https://github.com/SalvageUnion-io/SU-SRD/commit/9bdebe175783fae76e871e5f5bf4f7cdfafe1553))
+* **itun:** launch the Dashboard from the Game hub [flight-deck L10] ([#1104](https://github.com/SalvageUnion-io/SU-SRD/issues/1104)) ([a8b62de](https://github.com/SalvageUnion-io/SU-SRD/commit/a8b62de616a721f71446700db56c555fa25823bd))
+* **itun:** open the Dashboard only for a Game pilot with a Mediator [flight-deck L2] ([#1094](https://github.com/SalvageUnion-io/SU-SRD/issues/1094)) ([9bd5aab](https://github.com/SalvageUnion-io/SU-SRD/commit/9bd5aabb2931cc3090b0cea455cbd05254043ed9))
+* **itun:** replace the Dial with a Major/Minor slot row [flight-deck L4] ([#1096](https://github.com/SalvageUnion-io/SU-SRD/issues/1096)) ([dc7c4b4](https://github.com/SalvageUnion-io/SU-SRD/commit/dc7c4b42c8dc5219e59b8e9434adb97625f4a7e3))
+* **itun:** save Dashboard mount, range and effects on the seat [flight-deck L3] ([#1095](https://github.com/SalvageUnion-io/SU-SRD/issues/1095)) ([cf0a34e](https://github.com/SalvageUnion-io/SU-SRD/commit/cf0a34ec5314897db9ee1f58d7c80e233864707e))
+
 ## [1.21.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.21.0...itun-v1.21.1) (2026-10-07)
 
 
