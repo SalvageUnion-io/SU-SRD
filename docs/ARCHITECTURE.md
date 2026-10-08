@@ -10,9 +10,9 @@ then Read with an offset and limit for the section you need; never Read the
 whole file.
 
 Five docs stay separate: [architecture/dashboard.md](architecture/dashboard.md)
-(code milestone #7 is rewriting),
-[architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (the
-live plan its issues link), [architecture/npc-builder.md](architecture/npc-builder.md)
+(the Dashboard as built),
+[architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (its
+done plan, whose D1–D12 code cites), [architecture/npc-builder.md](architecture/npc-builder.md)
 (a plan, so its unbuilt paths are exempt from the path check),
 [design-system/ruleset.md](design-system/ruleset.md) (the design laws, cited by
 section number) and [design-system/tailwind-removal.md](design-system/tailwind-removal.md)
@@ -434,15 +434,17 @@ The closed list of real transactions on the Live Sheet:
 
 | Control | Transacts | Why here |
 | --- | --- | --- |
-| `sheet/CrawlerEconomyControl.tsx` (Upkeep / Upgrade / Trade) | Scrap-pool draw, Upgrade-Pool credit, the Deterioration d20, the Scrap swap | No crawler Dashboard; the economy hangs off the crawler hero (Core Book p.218-223) |
+| `sheet/CrawlerEconomyControl.tsx` (Upkeep / Upgrade / Trade) | Scrap-pool draw, Upgrade-Pool credit, the Deterioration d20, the Scrap swap | The Dashboard's Crawler Major pays Upkeep only in a Game's Downtime; Solo, shelf and Mediator-less play, the Deterioration roll and Trade still happen on the sheet (Core Book p.218-223) |
 | `sheet/CrawlerSheet.tsx` bay Repair | 5 Scrap of crawler TL or higher; the bay flips Intact | Reached from the bay card; the draw is advisory |
 | `sheet/MechItemCard.tsx` repair + remaining uses | Field-repair Scrap; `_used` counters | Acts on the card in front of you |
 
 Nothing blocks (a disabled button plus a visible advisory); `scrapPool` stays
 hand-editable; writes are tagged `LIVE_SHEET_TXN`, except row 3
 (`MechSheet.tsx`'s `repairItem` still writes `LIVE_SHEET_MANUAL`). The list is
-closed: a new transaction goes on the Dashboard. If the crawler gets a
-Dashboard, row 1 moves there as `DASHBOARD_TXN`.
+closed: a new transaction goes on the Dashboard. In a Game's Downtime, Upkeep
+is paid on the Dashboard in the Upkeep & Upgrade step only (`CrawlerSlot.tsx`,
+claimed once through `downtime.spendUpkeep`, as `DASHBOARD_TXN`); the sheet's
+Upkeep is editable any time.
 
 ### Destructive consequences and provenance
 
@@ -531,11 +533,13 @@ are the package's `lib/rules/derivedStats.ts`.
 Criticals (`MechSlot.tsx`, `PilotSlot.tsx`: `mechDamagePatch`,
 `critDamagePatch`, `pilotDamagePatch`, `critInjuryPatch`), the reactor,
 activation and `performCoreRoll`, Downtime (`DowntimeWizard.tsx`;
-`mechBayStatus` / `medBayStatus` from `lib/rules/downtime.ts`), and salvage,
-crafting and scrapping (`CrawlerSlot.tsx`, `dashboardEconomy.ts` →
-`lib/rules/salvage.ts`, `lib/rules/crafting.ts`, `lib/rules/scrapMech.ts`).
-The Live Sheet has the crawler economy (`lib/rules/crawlerEconomy.ts`, mounted
-by `SheetCrawler.tsx`) and
+`mechBayStatus` / `medBayStatus` from `lib/rules/downtime.ts`), and the
+crawler's Pay Upkeep, salvage, crafting and scrapping (`CrawlerSlot.tsx`,
+`dashboardEconomy.ts` → `lib/rules/crawlerEconomy.ts`, `lib/rules/salvage.ts`,
+`lib/rules/crafting.ts`, `lib/rules/scrapMech.ts`). The Live Sheet keeps the
+whole crawler economy for play outside a Game's Downtime — Upkeep, Upgrade,
+the Deterioration roll and Trade (`lib/rules/crawlerEconomy.ts`, mounted by
+`SheetCrawler.tsx`) — and
 per-card `setItemUses`, `repairItem`, `cycleItemCondition`. Gone:
 `HeatCheckControl`, `TakeDamageControl`, `PilotTakeDamageControl`,
 `SalvageControl`, `CraftingControl`, `DowntimeControl`, `ScrapMechControl`,
@@ -1828,13 +1832,12 @@ This is the play-surface instance of the governing surface taxonomy in
 ADRs 016–020 recorded this surface's sub-decisions; they are merged below as
 **Dashboard decisions**, and those five files are stubs pointing here.
 
-**Amended by [ADR-038](#adr-038)** (accepted, partly built). Decision 1, the rotary
+**Amended by [ADR-038](#adr-038)** (built). Decision 1, the rotary
 Dial, is replaced by Major and Minor slots and a tabbed display. Decision 4's
-ephemeral play state is reversed: play state becomes a per-pilot seat saved on
-the Game, and the Dashboard becomes Game-only, needing a Mediator. Decision 4's
+ephemeral play state is reversed: play state is a per-pilot seat saved on
+the Game, and the Dashboard is Game-only, needing a Mediator. Decision 4's
 other half (mount never on a pilot or mech record) and decisions 2, 3 and 5
-stand. Decisions 1 and 4 still describe the code until the plan in
-[dashboard-redesign.md](architecture/dashboard-redesign.md) lands.
+stand.
 
 ### Context
 
@@ -3046,7 +3049,7 @@ governing surface/mode taxonomy) and paired with the amendment to
 absolute pin. Extends the "modified stats" rust language of
 [ADR-026](#adr-026) from stat cells to prose.
 
-**§4 is amended by [ADR-038](#adr-038)** (accepted, not yet built): activated
+**§4 is amended by [ADR-038](#adr-038)** (built): activated
 effects resolve against the pilot's seat on the Game instead of ephemeral play
 state. They are still never persisted on the entity.
 
@@ -3285,8 +3288,9 @@ one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
 
-**§5 and §6 are amended by [ADR-038](#adr-038)**: only the table runner edits a
-Game's crawler, and crew status reaches the Game-only Dashboard as a Crew tab.
+**§5 and §6 are amended by [ADR-038](#adr-038)** (built): only the table runner
+edits a Game's crawler, and crew status reaches the Game-only Dashboard as a
+Crew tab.
 
 ### Context
 
@@ -5295,12 +5299,10 @@ with its mechs docked.
 
 ### Status
 
-**Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
-are decision 2's seat, decision 4 (tabs, Log and Crew with server-derived
-status) and decision 5 (Game Downtime, the Mediator's crawler). The plan that delivers the rest, layer by layer, is
-[dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
-land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
-and [dashboard.md](architecture/dashboard.md) describe.
+**Accepted; built.** Every decision below is in code, delivered by the plan in
+[dashboard-redesign.md](architecture/dashboard-redesign.md), now done; the
+Dashboard as built is [dashboard.md](architecture/dashboard.md). One
+consequence fell short: Tailwind-removal P5 (below).
 
 **Amends [ADR-015](#adr-015):**
 - It replaces Dashboard decision 1 (the rotary Dial).
@@ -5309,9 +5311,8 @@ and [dashboard.md](architecture/dashboard.md) describe.
 - Decisions 2, 3 and 5 are unchanged.
 
 **Also amends:**
-- [ADR-030](#adr-030) §5: the table runner
-  alone edits a Game's crawler. §6: crew status
-  reaches the Dashboard as a Crew tab, not a dial item.
+- [ADR-030](#adr-030) §5: the table runner alone edits a Game's crawler.
+  §6: crew status reaches the Dashboard as a Crew tab, not a dial item.
 - [ADR-029](#adr-029) §4: activated
   effects resolve against the seat, not ephemeral play state.
 - [ADR-034](#adr-034)'s "What is not data": mount
@@ -5461,10 +5462,8 @@ seat, never the pilot's `mech-to-pilot` link.
 ### Consequences
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
-  Games without a Mediator lose it. The Solo rows in
-  [data flow](#data-flow) and
-  [combat loop](#combat-loop) change when that layer
-  lands.
+  Games without a Mediator lose it, as [data flow](#data-flow) and
+  [combat loop](#combat-loop) say.
 - **There is new server surface.** A `seats` table and its functions are added.
   Seats are cleaned up when a Game, pilot or account is deleted and when a pilot
   or mech leaves the Game. Every toggle is a mutation, so the client uses
@@ -5475,10 +5474,10 @@ seat, never the pilot's `mech-to-pilot` link.
 - **Code is deleted.** The Dial, its settings overlay, `cockpitPrefsStore`,
   `playStateStore`, the launch chooser and stand-in mechs all go.
   `games.cockpitPrefs` stays unused until a separate change drops it.
-- **The Dashboard's Tailwind-removal phase is absorbed.** The rewrite uses
-  `.su-*` classes and style objects, which completes
-  [tailwind-removal.md](design-system/tailwind-removal.md) P5 for the
-  Dashboard.
+- **The Dashboard's Tailwind-removal phase was to be absorbed.** The new
+  components use style objects and add no `.pc-*` class, but 103 `.pc-*`
+  classes remain, so [tailwind-removal.md](design-system/tailwind-removal.md)
+  P5 is still open.
 - **Players can no longer edit a Game's crawler,** on the Dashboard or the
   sheet. Until players can send requests to the Mediator in the app, they ask
   at the table.

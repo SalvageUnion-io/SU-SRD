@@ -12,7 +12,7 @@ Read with an offset and limit, never the whole file.
 | moving styling off Tailwind | [design-system/tailwind-removal.md](design-system/tailwind-removal.md) |
 | changing how data flows or persists | [data flow](ARCHITECTURE.md#data-flow), ADR-030, ADR-034, ADR-035 |
 | deciding where a rule is enforced, or touching combat | [rules and ITUN surfaces](ARCHITECTURE.md#rules-and-itun-surfaces), [combat loop](ARCHITECTURE.md#combat-loop), ADR-021, ADR-007 |
-| working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-015, ADR-038, [architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (plan) |
+| working on the Dashboard | [architecture/dashboard.md](architecture/dashboard.md), ADR-015, ADR-038, [architecture/dashboard-redesign.md](architecture/dashboard-redesign.md) (the done plan: decisions D1–D12) |
 | sharing a sheet (public sheets; retired snapshot links) | ADR-032, ADR-036 |
 | working on accounts, Games or the Convex backend | ADR-030, [accounts and Games operations](ARCHITECTURE.md#accounts-and-games-operations) |
 | repairing data, rotating auth secrets or Convex error reporting | the [`convex-maintenance`](../.claude/skills/convex-maintenance/SKILL.md) skill |
