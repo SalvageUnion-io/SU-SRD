@@ -41,7 +41,8 @@
  * Cloudflare's `not_found_handling: "single-page-application"` reintroduces
  * exactly that, which is why this Worker sets `"none"` and decides the fallback
  * itself. An honest 404 makes the failed import surface as `vite:preloadError`,
- * which `src/lib/chunkRecovery.ts` recovers from with a single reload.
+ * which `installChunkRecovery` (`observability/browser`) recovers from with a
+ * single reload.
  *
  * ## The unfurl text stays, for links already posted
  *

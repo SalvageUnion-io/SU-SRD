@@ -112,16 +112,44 @@ describe('check-observability CSP', () => {
     expect(exitCode).toBe(0)
   })
 
-  test('fails when the CSP module no longer declares the literal', async () => {
-    // A type annotation defeats the literal match while every import still
-    // resolves — the same shape a tidy-up into a typed constant would take.
+  test('a type annotation on the CSP literal still reads as the literal', async () => {
+    // The gate reads transpiled code, so a typed constant is the same policy.
     await withFileContents(
       ITUN_CSP_MODULE,
       (s) => s.replace('export const ITUN_CSP =', 'export const ITUN_CSP: string ='),
       async () => {
+        const { exitCode } = await runCheck()
+        expect(exitCode).toBe(0)
+      }
+    )
+  })
+
+  test('fails when the CSP module no longer declares the literal', async () => {
+    // A policy built at runtime is one this gate cannot read, so it fails
+    // rather than guessing.
+    await withFileContents(
+      ITUN_CSP_MODULE,
+      (s) =>
+        s
+          .replace('export const ITUN_CSP =', 'export const ITUN_CSP = String(')
+          .replace('convex.site;"', 'convex.site;")'),
+      async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain('declares no ITUN_CSP literal')
+      }
+    )
+  })
+
+  test('a Sentry origin named only in a comment does not count', async () => {
+    await withFileContents(
+      ITUN_CSP_MODULE,
+      (s) =>
+        `${s.replace(SENTRY_HOST, 'https://example.invalid')}\n// connect-src ${SENTRY_HOST}\n`,
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('CSP connect-src does not allow')
       }
     )
   })
@@ -223,6 +251,58 @@ describe('check-observability Workers static-assets headers', () => {
           const { stderr } = await runCheck()
           expect(stderr).not.toContain('apps/itun/public/_headers does not exist')
         })
+      }
+    )
+  })
+})
+
+/**
+ * The negative control: the three edits a text match was fooled by, each
+ * leaving its old spelling in a comment. Every one must fail on its own.
+ */
+describe('check-observability reads parsed source, not prose', () => {
+  test('an init call that is commented out fails', async () => {
+    await withFileContents(
+      'apps/srd/src/runtime/islands.client.ts',
+      (s) => s.replace('void initBrowserObservability()', '// void initBrowserObservability()'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('never calls initBrowserObservability()')
+      }
+    )
+  })
+
+  test('a Worker export unwrapped from withObservability fails', async () => {
+    await withFileContents(
+      'apps/su-assets/src/worker.ts',
+      (s) =>
+        s.replace(
+          "export default withObservability('su-assets', {",
+          "// was: withObservability('su-assets', ...)\nexport default ((_: string, h: object) => h)('su-assets', {"
+        ),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain("[su-assets-worker] apps/su-assets/src/worker.ts's default export")
+      }
+    )
+  })
+
+  test('nodejs_als named only in a comment fails', async () => {
+    await withFileContents(
+      'apps/discord-bot/wrangler.jsonc',
+      (s) =>
+        s.replace(
+          '"compatibility_flags": ["nodejs_als"],',
+          '// "compatibility_flags": ["nodejs_als"],'
+        ),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain(
+          '[discord-bot-worker] apps/discord-bot/wrangler.jsonc does not grant'
+        )
       }
     )
   })

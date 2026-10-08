@@ -45,15 +45,14 @@ For every step, use the first route that works and record which one you used:
    A failure here outranks almost everything: the suite is the only automated
    check on whole user journeys, and a suite that stays red stops being read.
 
-2. **Production error tracking** — is it reporting, and what did it report?
+2. **Production error tracking** — what did it report?
 
-   ```bash
-   bun run check:observability:live   # is the SDK actually being served?
-   ```
-
-   If this fails, production is blind and that is the finding. Once a Sentry
-   DSN is provisioned, read the new issues since yesterday and treat anything
-   affecting more than one user as a candidate for today.
+   Read the new Sentry issues since yesterday (org `susrd`) and treat anything
+   affecting more than one user as a candidate for today. Whether production
+   can report at all is gated elsewhere: each deploy greps its built bundles
+   for an inlined DSN, and `tools/smoke-production.sh` (post-deploy and
+   nightly) asserts each served CSP admits the ingest host. A red run of
+   either is the "production is blind" finding.
 
 3. **Deploys** — did the last deploy succeed? All four surfaces ship from one
    workflow, `.github/workflows/deploy-cloudflare.yml`, so check that workflow's

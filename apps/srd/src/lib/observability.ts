@@ -7,8 +7,8 @@
  * statically inlines at build — an unset DSN makes the `@sentry/browser`
  * dynamic import unreachable, so it is tree-shaken out of the client bundle
  * entirely. That guard is the one part that must live here; the rest (init
- * options, idempotency, the capture verbs) is `createBrowserObservability` in
- * `observability/browser`, shared with ITUN (audit AP-12).
+ * options, idempotency, the capture verbs, chunk recovery) is
+ * `createBrowserObservability` in `observability/browser`, shared with ITUN.
  *
  * No DSN is ever committed. `deploy-cloudflare.yml` supplies it as
  * `VITE_SENTRY_DSN` from the `SRD_SENTRY_DSN` repository variable, with
@@ -89,3 +89,10 @@ export async function initBrowserObservability(): Promise<void> {
  * that a boundary caught is reportable only through this function.
  */
 export const captureException = observability.captureException
+
+/**
+ * Reloads once when an island's chunk is gone from the server: a page open
+ * across a deploy, or one served from an older `pages` cache. Installed from
+ * `islands.client.ts` before any island is scheduled.
+ */
+export const installChunkRecovery = observability.installChunkRecovery

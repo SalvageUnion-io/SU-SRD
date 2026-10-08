@@ -3,8 +3,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
-import { installChunkRecovery } from './lib/chunkRecovery'
-import { initBrowserObservability, reactRootErrorHandlers } from './lib/observability'
+import {
+  initBrowserObservability,
+  installChunkRecovery,
+  reactRootErrorHandlers,
+} from './lib/observability'
 import { registerServiceWorker } from './lib/sw/register'
 import { routeTree } from './routeTree.gen'
 
@@ -36,7 +39,7 @@ void initBrowserObservability()
 
 // Installed BEFORE render, because the failure it recovers from — a lazy chunk
 // whose build no longer exists on the server — can be thrown by the very first
-// route the router resolves. See lib/chunkRecovery.ts.
+// route the router resolves. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
 
 const rootEl = document.getElementById('root')

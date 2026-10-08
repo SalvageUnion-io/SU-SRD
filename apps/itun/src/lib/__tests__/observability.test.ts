@@ -195,17 +195,6 @@ describe('observability', () => {
     expect(sentryCalls.find((c) => c.fn === 'captureMessage')?.args[1]).toBeUndefined()
   })
 
-  test('the same error object is reported once, however many places see it', () => {
-    // A chunk failure is reported by chunkRecovery and then, when the reload
-    // cooldown holds, again by the error boundary it lands in. One failure,
-    // one event.
-    const boom = new Error('Failed to fetch dynamically imported module')
-    captureException(boom, { recovered: false }, { fingerprint: ['chunk-preload-error'] })
-    captureException(boom)
-
-    expect(sentryCalls.filter((c) => c.fn === 'captureException')).toHaveLength(1)
-  })
-
   test('a render error a boundary catches reaches Sentry, with its component stack', () => {
     // The whole point of the createRoot hooks: a caught render error never
     // reaches window.onerror, so without this it was recorded nowhere.

@@ -459,6 +459,16 @@ jobs:
           SENTRY_PROJECT: srd
         run: bun --filter srd build
 
+      # The DSN guard in `plan` proves the variable is set; this proves the
+      # bundle carries it. `import.meta.env` is inlined at build, so a bundle
+      # with no EU DSN in it had the SDK tree-shaken out and would ship blind.
+      - name: Refuse an srd bundle with no inlined Sentry DSN
+        run: |
+          if ! grep -rqE --include='*.js' 'https://[0-9a-f]{16,}@[a-z0-9.-]+\.ingest\.de\.sentry\.io/' apps/srd/dist; then
+            echo "FATAL: no EU Sentry DSN is inlined in apps/srd/dist — srd would ship with error tracking off." >&2
+            exit 1
+          fi
+
       # `include-hidden-files`: the artifact is what ships, byte for byte, so
       # it must not silently drop a dotfile the build emitted.
       - name: Upload the srd build
@@ -578,6 +588,16 @@ jobs:
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: bun run build
+
+      # The DSN guard in `plan` proves the variable is set; this proves the
+      # bundle carries it. `import.meta.env` is inlined at build, so a bundle
+      # with no EU DSN in it had the SDK tree-shaken out and would ship blind.
+      - name: Refuse an itun bundle with no inlined Sentry DSN
+        run: |
+          if ! grep -rqE --include='*.js' 'https://[0-9a-f]{16,}@[a-z0-9.-]+\.ingest\.de\.sentry\.io/' apps/itun/dist; then
+            echo "FATAL: no EU Sentry DSN is inlined in apps/itun/dist — itun would ship with error tracking off." >&2
+            exit 1
+          fi
 
       - name: Upload the itun artifact
         uses: actions/upload-artifact@v7

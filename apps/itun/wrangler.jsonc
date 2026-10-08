@@ -36,6 +36,14 @@
   // alone clears the warning, so the broad flag would buy nothing.
   "compatibility_flags": ["nodejs_als"],
 
+  // Secrets this Worker cannot run correctly without. A deploy fails while one
+  // is unset (wrangler binds each as `inherit`, and the API rejects a missing
+  // one), so Sentry can never go dark here unnoticed. Set out of band with
+  // `wrangler secret put`; the value is never in this file.
+  "secrets": {
+    "required": ["SENTRY_DSN"]
+  },
+
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

@@ -7,9 +7,8 @@
  * statically inlines at build — an unset DSN makes the `@sentry/browser`
  * dynamic import unreachable, so it is tree-shaken out of the client bundle
  * entirely. That guard is the one part that must live here; the rest (init
- * options, idempotency, the capture verbs, de-duplication) is
- * `createBrowserObservability` in `observability/browser`, shared with srd
- * (audit AP-12).
+ * options, idempotency, the capture verbs, chunk recovery) is
+ * `createBrowserObservability` in `observability/browser`, shared with srd.
  *
  * No DSN is ever committed. `deploy-cloudflare.yml` supplies it from the
  * `VITE_SENTRY_DSN` repository variable, with `VITE_COMMIT_REF` set to the
@@ -19,17 +18,7 @@
 
 import { createBrowserObservability } from 'observability/browser'
 
-/**
- * `dedupe`: error objects already sent are not sent again, so one failure seen
- * from two places is one event. It happens for real: a chunk that fails to
- * load is reported by `chunkRecovery` with its own fingerprint, and — when the
- * reload cooldown holds it back — the same error then surfaces in the error
- * boundary that `reactRootErrorHandlers` reports from. The set is global, so
- * code that reports the *same* error object twice (once per retry, say) sends
- * one event, not two; wrap or re-create the error if each attempt should be
- * its own event.
- */
-const observability = createBrowserObservability({ dedupe: true })
+const observability = createBrowserObservability()
 
 /**
  * Initializes browser Sentry when `VITE_SENTRY_DSN` is configured. Idempotent
@@ -91,6 +80,12 @@ export const captureMessage = observability.captureMessage
  * only through this function.
  */
 export const captureException = observability.captureException
+
+/**
+ * Reloads once when a lazy chunk's build is gone from the server. Installed
+ * from `main.tsx` before render: the very first route can throw it.
+ */
+export const installChunkRecovery = observability.installChunkRecovery
 
 /** What React hands an error hook alongside the error. */
 type ReactErrorInfo = { componentStack?: string | null }
