@@ -2,6 +2,14 @@
 
 Maintained by release-please (see ADR-024).
 
+## [1.22.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.22.0...itun-v1.22.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **itun:** send an absent Change Log side as null, not undefined ([#1107](https://github.com/SalvageUnion-io/SU-SRD/issues/1107)) ([b638055](https://github.com/SalvageUnion-io/SU-SRD/commit/b6380550e8c8b2f056863fd74705c04d5a5d48ec))
+* **itun:** tell the player when a mech item write is refused ([#1109](https://github.com/SalvageUnion-io/SU-SRD/issues/1109)) ([72c9b37](https://github.com/SalvageUnion-io/SU-SRD/commit/72c9b37996445d5eea6bcc2bf2230f97598bafae))
+
 ## [1.22.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v1.21.1...itun-v1.22.0) (2026-10-08)
 
 
