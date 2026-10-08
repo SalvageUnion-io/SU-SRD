@@ -65,8 +65,27 @@
       "Bash(bunx wrangler@* secret *)",
       "Bash(bunx wrangler@* r2 * delete*)",
       "Bash(bunx convex@* deploy*)",
-      "Bash(gh api * DELETE*)",
-      "Bash(gh api *=DELETE*)",
+      "Bash(gh api -X*)",
+      "Bash(gh api * -X*)",
+      "Bash(gh api --method*)",
+      "Bash(gh api * --method*)",
+      "Bash(gh api -f*)",
+      "Bash(gh api * -f*)",
+      "Bash(gh api -F*)",
+      "Bash(gh api * -F*)",
+      "Bash(gh api --field*)",
+      "Bash(gh api * --field*)",
+      "Bash(gh api --raw-field*)",
+      "Bash(gh api * --raw-field*)",
+      "Bash(gh api --input*)",
+      "Bash(gh api * --input*)",
+      "Bash(gh issue delete*)",
+      "Bash(gh run delete*)",
+      "Bash(gh repo archive*)",
+      "Bash(gh repo rename*)",
+      "mcp__convex__envSet",
+      "mcp__convex__envRemove",
+      "mcp__convex__run",
       "Bash(gh workflow run*)",
       "Bash(git switch --discard-changes*)",
       "Bash(git switch * --discard-changes*)",
@@ -79,7 +98,6 @@
       "Bash(bun *deploy-commands*)",
       "Bash(bun run wrangler *)",
       "Bash(bun x wrangler@* deploy*)",
-      "Bash(gh api *-XDELETE*)",
       "Bash(gh run rerun*)"
     ],
     "deny": [
@@ -105,10 +123,10 @@
       "Bash(git push --mirror*)",
       "Bash(git reset --hard*)",
       "Bash(git worktree remove*)",
-      "Bash(rm -rf *)",
-      "Read(./apps/srd/ssg/output-snapshot.json)"
+      "Bash(rm -rf *)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "sandbox": {
     "network": {
       "allowUnixSockets": [
@@ -124,7 +142,7 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck-scoped.sh",
-            "statusMessage": "Typechecking the edited workspace..."
+            "statusMessage": "Typechecking the repo..."
           }
         ]
       }
