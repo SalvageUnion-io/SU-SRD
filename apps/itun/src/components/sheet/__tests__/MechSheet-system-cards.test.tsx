@@ -18,6 +18,7 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from '../../../lib/schemas/mech'
+import { WritesBlockedOffline } from '../../../stores/entityBackend'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
@@ -153,5 +154,38 @@ describe('MechSheet — system/module entity cards (plan 4.5)', () => {
       },
       LIVE_SHEET_MANUAL
     )
+  })
+})
+
+describe('MechSheet — a refused item write is handled', () => {
+  test('a refused status cycle is not left as an unhandled rejection (ITUN-D)', async () => {
+    // The cycle awaits its write so the destroyed-undo toast never fires off a
+    // write that did not land. Before it ran through `runWrite`, that await's
+    // rejection — `WritesBlockedOffline` mid-handshake, or a record the backend
+    // no longer has — escaped the `void` at the call site with nothing said.
+    const mech = makeMech({ systems: [REAL_SYSTEM] })
+    const updateSpy = mock(async () => {
+      throw new WritesBlockedOffline('settling')
+    })
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason)
+    }
+    process.on('unhandledRejection', onUnhandled)
+    try {
+      render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech, updateSpy)} />)
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /status: intact/i }))
+      })
+      // One macrotask, so a rejection with no handler has been reported.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+
+      expect(updateSpy).toHaveBeenCalled()
+      expect(unhandled).toEqual([])
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+    }
   })
 })

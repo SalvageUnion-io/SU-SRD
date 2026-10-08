@@ -8,9 +8,11 @@
  * something after the write lands (the destroyed-undo toast, the scrap-pool
  * deduction that follows a repair).
  *
- * `writeAwait` deliberately does NOT catch: its callers `void` it, so a
- * rejection stays uncaught exactly as before. Catching inside would let the
- * undo toast — and the pool deduction — proceed off a write that never landed.
+ * `writeAwait` deliberately does NOT catch: catching inside would let the undo
+ * toast — and the pool deduction — proceed off a write that never landed. The
+ * rejection propagates out of the handler instead, and the sheet runs each
+ * awaited handler through `runWrite`, so a refused write is told to the player
+ * rather than left as an unhandled rejection (ITUN-D).
  *
  * Every handler reads the FRESHEST record via `freshEntity` rather than the
  * render-time prop, so rapid sequential edits do not stomp each other.
@@ -182,7 +184,7 @@ export function useMechSheetActions({
     if (next === 'destroyed') {
       const name = (kind === 'system' ? resolveSystem(slug) : resolveModule(slug))?.name ?? slug
       destroyedUndoToast(name, () => {
-        void setItemCondition(kind, slug, prevCondition)
+        runWrite(() => setItemCondition(kind, slug, prevCondition))
       })
     }
   }
