@@ -858,7 +858,8 @@ Owner-applied; no gate reads them.
 
 `CLOUDFLARE_API_TOKEN`, `CONVEX_DEPLOY_KEY`, `SENTRY_AUTH_TOKEN` and
 `RELEASE_PLEASE_TOKEN` live only in the `production` Environment; each job
-reading one declares it (`secrets-env`).
+reading one declares it (`secrets-env`; declared in `tools/environments.ts`,
+drift-checked nightly).
 
 - **Shape:** `plan` → `build-srd` / `build-itun` → `push-convex` → `deploy-*`
   → `smoke` → `record`; `og-srd` renders OG images into srd's `dist` and only
@@ -4082,9 +4083,8 @@ identifiers (Workers, buckets, zones) are in
 [services and agent tooling](#services-and-agent-tooling).
 
 **Amended 2026-10-06 — §Credentials: the deploy secrets move into a `production`
-GitHub Environment** restricted to `main`, with no reviewers, so a workflow copy
-dispatched from a branch cannot read them. Production deploys still need no
-environment approval.
+GitHub Environment** restricted to `main`, so a workflow copy
+dispatched from a branch cannot read them.
 
 Amends [ADR-004](#adr-004): snapshots keep the
 endpoint shape, the ID scheme, the payload cap and the unauthenticated contract
@@ -4312,8 +4312,8 @@ that can deploy production. The bar it is held to:
   Worker on the account (§6). Narrow the half that can be narrowed, and do not
   describe the other half as contained.
 - Stored as a secret of the `production` GitHub Environment, restricted to
-  `main`, with no reviewers. Never in a `wrangler.jsonc`, never in a `.env`
-  git can see.
+  `main`, with no reviewers. Never at repository
+  level, in a `wrangler.jsonc`, or in a `.env` git can see.
 - Every deploy is gated on CI succeeding for the same commit on `main`, so a red
   gate cannot deploy. A green gate suffices: production deploys need no
   environment approval.

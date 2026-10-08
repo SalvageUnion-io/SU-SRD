@@ -316,6 +316,44 @@ jobs:
       - name: Smoke every production surface
         run: bash tools/smoke-production.sh
 
+  environments:
+    # The live half of `secrets-env` (tools/check-workflows.ts): the GitHub
+    # Environments as configured match tools/environments.ts. #1072 declared
+    # `environment: production` on every deploy job, but the settings half was
+    # a manual step that never happened — `production` sat with no branch
+    # policy and no secrets while the deploy secrets stayed repository-wide,
+    # and every gate was green because a gate can only read YAML.
+    #
+    # GITHUB_TOKEN can read Environments and branch policies but cannot list
+    # secrets, so this job is also the SENTINEL for that half: it maps the
+    # Environment secrets while declaring NO environment, and a job outside an
+    # Environment can only read a repository- or organisation-level copy. Any
+    # non-empty value is drift; the tool never prints one. `secrets-env`
+    # exempts this job alone and fails if it ever gains an `environment:`.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      # The Environment and deployment-branch-policy endpoints read as Actions.
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Compare live Environments against tools/environments.ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          RELEASE_PLEASE_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: bun tools/environments.ts --secrets-from-env
+
   # ONE notifier, computed from `needs` rather than restated in two inverted
   # `if:` expressions. The two-job version drifted twice: convex-parity and a
   # since-merged sign-in job were each added to `needs:` and to one condition
@@ -331,7 +369,7 @@ jobs:
   # upstream. `!cancelled()` still exempts a genuine cancellation of the whole
   # run, which is a human action rather than a regression.
   notify:
-    needs: [e2e-itun, observability-probe, convex-parity, production-smoke]
+    needs: [e2e-itun, observability-probe, convex-parity, production-smoke, environments]
     if: always() && !cancelled()
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —
@@ -346,7 +384,7 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         with:
           script: |
-            const ALWAYS_RUNS = new Set(['e2e-itun', 'production-smoke'])
+            const ALWAYS_RUNS = new Set(['e2e-itun', 'production-smoke', 'environments'])
             const label = 'nightly-e2e-failure'
             const { owner, repo } = context.repo
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`

@@ -42,11 +42,14 @@
  *                 skipped by design, so each must carry an explicit status
  *                 function in its `if:` — the implicit `success()` is false
  *                 whenever any ancestor was skipped.
- *   secrets-env   every job that reads a production secret (Cloudflare, Convex,
- *                 Sentry, the release PAT) declares `environment: production`.
- *                 The secrets live only in that environment, which admits
- *                 `main` alone, so a workflow copy dispatched from a branch
- *                 cannot read one.
+ *   secrets-env   every job that reads an Environment secret declared in
+ *                 `tools/environments.ts` (today: Cloudflare, Convex, Sentry,
+ *                 the release PAT, all `production`) declares that Environment,
+ *                 and every Environment a job names is declared there. The
+ *                 secrets live only in the Environment, which admits `main`
+ *                 alone, so a workflow copy dispatched from a branch cannot
+ *                 read one. The nightly repository-secret sentinel is the one
+ *                 exemption, and it must stay outside every Environment.
  *
  * Every check refuses to pass by absence: a parse that found no jobs, no
  * filter groups or no workflow files is a failure, not a clean result.
@@ -58,6 +61,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import type { EnvironmentSpec } from './environments'
+import { ENVIRONMENTS, SECRET_SENTINEL } from './environments'
 
 type Yaml = Record<string, unknown>
 
@@ -673,20 +678,13 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
 
 // ─── secrets-env ────────────────────────────────────────────────────────────
 
-/** The secrets that can act on production. They live only in the environment. */
-export const PRODUCTION_SECRETS = [
-  'CLOUDFLARE_API_TOKEN',
-  'CONVEX_DEPLOY_KEY',
-  'SENTRY_AUTH_TOKEN',
-  'RELEASE_PLEASE_TOKEN',
-] as const
+export type SecretsDeclaration = {
+  environments: readonly EnvironmentSpec[]
+  /** The one job that maps Environment secrets with NO environment; null skips it (tests). */
+  sentinel: { file: string; job: string } | null
+}
 
-export const PRODUCTION_ENV = 'production'
-
-const PRODUCTION_SECRET_REF = new RegExp(
-  `\\$\\{\\{\\s*secrets\\.(${PRODUCTION_SECRETS.join('|')})\\b`,
-  'g'
-)
+const DECLARED: SecretsDeclaration = { environments: ENVIRONMENTS, sentinel: SECRET_SENTINEL }
 
 /** `environment: production` and `environment: { name: production }` both count. */
 function environmentOf(job: Yaml): string | undefined {
@@ -696,46 +694,95 @@ function environmentOf(job: Yaml): string | undefined {
 }
 
 /**
- * Every job that reads a production secret declares `environment: production`.
+ * Every job that reads an Environment secret declares that Environment, and
+ * every Environment a job names is declared in `tools/environments.ts`.
  *
- * The environment admits deployments from `main` only, and the secrets are
+ * Each Environment admits only its declared branches, and its secrets are
  * stored there rather than at repository level. A job outside it cannot read
  * them, so an edited copy of a workflow dispatched from a branch never holds a
  * production credential — and a job that forgets the declaration reads an empty
- * string on `main` too, which this names before a deploy finds it.
+ * string on `main` too, which this names before a deploy finds it. That the
+ * live settings match the declaration is `tools/environments.ts`, run nightly.
+ *
+ * One job is exempt and must stay outside every Environment: the nightly
+ * sentinel maps the secrets with no Environment so that any value it can read
+ * proves a repository-level copy exists.
  */
-export function checkSecretsEnv(ctx: WorkflowContext): CheckResult {
+export function checkSecretsEnv(
+  ctx: WorkflowContext,
+  decl: SecretsDeclaration = DECLARED
+): CheckResult {
   const failures: string[] = []
   const workflows = new Set<string>()
+  const owner = new Map(
+    decl.environments.flatMap((e) => e.secrets.map((s) => [s, e.name] as const))
+  )
+  const declaredEnvs = new Set(decl.environments.map((e) => e.name))
+  const secretRef = new RegExp(`\\$\\{\\{\\s*secrets\\.(${[...owner.keys()].join('|')})\\b`, 'g')
   let readers = 0
+  let sentinelSeen = false
   for (const f of workflowsOnly(ctx)) {
     const jobs = isObject(f.doc.jobs) ? f.doc.jobs : {}
     for (const [id, job] of Object.entries(jobs)) {
       if (!isObject(job)) continue
-      const names = [
-        ...new Set([...JSON.stringify(job).matchAll(PRODUCTION_SECRET_REF)].map((m) => m[1])),
-      ]
+      const env = environmentOf(job)
+      if (env !== undefined && !declaredEnvs.has(env)) {
+        failures.push(
+          `${f.path} job \`${id}\` names environment \`${env}\`, which tools/environments.ts does not ` +
+            'declare — declare it there (branches and secrets), then `bun tools/environments.ts --apply`.'
+        )
+      }
+      const names = owner.size
+        ? [...new Set([...JSON.stringify(job).matchAll(secretRef)].map((m) => m[1] as string))]
+        : []
+      if (decl.sentinel && f.path === decl.sentinel.file && id === decl.sentinel.job) {
+        sentinelSeen = true
+        const missing = [...owner.keys()].filter((s) => !names.includes(s))
+        if (env !== undefined) {
+          failures.push(
+            `${f.path} job \`${id}\` is the repository-secret sentinel and must declare no environment — ` +
+              'inside one it reads the Environment copy and proves nothing.'
+          )
+        }
+        if (missing.length) {
+          failures.push(
+            `${f.path} job \`${id}\` (the sentinel) does not map secrets.${missing.join(', secrets.')} — ` +
+              'a repository-level copy of those would go unnoticed.'
+          )
+        }
+        continue
+      }
       if (names.length === 0) continue
       readers++
       workflows.add(f.path)
-      if (environmentOf(job) === PRODUCTION_ENV) continue
-      failures.push(
-        `${f.path} job \`${id}\` reads secrets.${names.join(', secrets.')} without ` +
-          `\`environment: ${PRODUCTION_ENV}\` — the secret lives only in that environment, ` +
-          'which admits `main` alone. Add `environment: production` under its `runs-on:`.'
-      )
+      for (const name of names) {
+        const want = owner.get(name)
+        if (env === want) continue
+        failures.push(
+          `${f.path} job \`${id}\` reads secrets.${name} without \`environment: ${want}\` — ` +
+            `the secret lives only in that environment, which admits ${
+              decl.environments.find((e) => e.name === want)?.branches.join(', ') ?? '?'
+            } alone. Add \`environment: ${want}\` under its \`runs-on:\`.`
+        )
+      }
     }
   }
   if (readers === 0) {
     failures.push(
-      `no job reads ${PRODUCTION_SECRETS.join(', ')} — this would pass by doing nothing. ` +
-        'If the secrets were renamed, update PRODUCTION_SECRETS.'
+      `no job reads ${[...owner.keys()].join(', ') || 'a declared Environment secret'} — this would pass by ` +
+        'doing nothing. If the secrets were renamed, update tools/environments.ts.'
+    )
+  }
+  if (decl.sentinel && !sentinelSeen) {
+    failures.push(
+      `the repository-secret sentinel (${decl.sentinel.file} job \`${decl.sentinel.job}\`) is missing — ` +
+        'restore it or update SECRET_SENTINEL in tools/environments.ts.'
     )
   }
   return {
     ok:
-      `${readers} job(s) in ${workflows.size} workflow(s) reading a production secret ` +
-      `declare environment: ${PRODUCTION_ENV}`,
+      `${readers} job(s) in ${workflows.size} workflow(s) read an Environment secret inside its ` +
+      `declared Environment${decl.sentinel ? '; the sentinel stays outside' : ''}`,
     failures,
   }
 }
@@ -749,7 +796,7 @@ export const WORKFLOW_CHECKS: readonly WorkflowCheck[] = [
   { id: 'bun-version', label: 'Bun version', run: checkBunVersion },
   { id: 'convex-guard', label: 'Convex deploy guard', run: checkConvexGuard },
   { id: 'deploy-order', label: 'deploy job order', run: checkDeployOrder },
-  { id: 'secrets-env', label: 'production secrets env', run: checkSecretsEnv },
+  { id: 'secrets-env', label: 'Environment secrets', run: (ctx) => checkSecretsEnv(ctx) },
 ]
 
 /** Read the real repo into a context. */
