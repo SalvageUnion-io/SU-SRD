@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { chmodSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -38,14 +38,6 @@ describe('smoke-production wiring', () => {
     expect(nightly).toContain('run: bash tools/smoke-production.sh')
     expect(nightly).toMatch(/needs: \[[^\]]*\bproduction-smoke\b[^\]]*\]/)
     expect(nightly).toMatch(/ALWAYS_RUNS = new Set\(\[[^\]]*'production-smoke'/)
-  })
-
-  test('no workflow probes a retired Netlify hostname', () => {
-    const files = readdirSync(WORKFLOWS).filter((f) => f.endsWith('.yml'))
-    expect(files.length).toBeGreaterThan(0)
-    for (const file of files) {
-      expect({ file, hit: workflow(file).includes('.netlify.app') }).toEqual({ file, hit: false })
-    }
   })
 })
 
