@@ -23,9 +23,11 @@ import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as MediatorGameIdRouteImport } from './routes/mediator/$gameId'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as SIdRouteImport } from './routes/s/$id'
+import { Route as StarterIndexRouteImport } from './routes/starter.index'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as PKindAppIdRouteImport } from './routes/p.$kind.$appId'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
+import { Route as StarterKindIdRouteImport } from './routes/starter.$kind.$id'
 import { Route as GamesGameIdViewKindEntityIdRouteImport } from './routes/games_.$gameId_.view.$kind.$entityId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -98,6 +100,11 @@ const SIdRoute = SIdRouteImport.update({
   path: '/s/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StarterIndexRoute = StarterIndexRouteImport.update({
+  id: '/starter/',
+  path: '/starter/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
   id: '/mechs/patterns/',
   path: '/mechs/patterns/',
@@ -111,6 +118,11 @@ const PKindAppIdRoute = PKindAppIdRouteImport.update({
 const SheetKindIdRoute = SheetKindIdRouteImport.update({
   id: '/sheet/$kind/$id',
   path: '/sheet/$kind/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StarterKindIdRoute = StarterKindIdRouteImport.update({
+  id: '/starter/$kind/$id',
+  path: '/starter/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GamesGameIdViewKindEntityIdRoute =
@@ -135,8 +147,10 @@ export interface FileRoutesByFullPath {
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
+  '/starter/': typeof StarterIndexRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/starter/$kind/$id': typeof StarterKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
@@ -155,8 +169,10 @@ export interface FileRoutesByTo {
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
+  '/starter': typeof StarterIndexRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/starter/$kind/$id': typeof StarterKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
   '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
@@ -176,8 +192,10 @@ export interface FileRoutesById {
   '/mediator/$gameId': typeof MediatorGameIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
+  '/starter/': typeof StarterIndexRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/starter/$kind/$id': typeof StarterKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/games_/$gameId_/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
@@ -198,8 +216,10 @@ export interface FileRouteTypes {
     | '/mediator/$gameId'
     | '/pilots/new'
     | '/s/$id'
+    | '/starter/'
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
+    | '/starter/$kind/$id'
     | '/mechs/patterns/'
     | '/games/$gameId/view/$kind/$entityId'
   fileRoutesByTo: FileRoutesByTo
@@ -218,8 +238,10 @@ export interface FileRouteTypes {
     | '/mediator/$gameId'
     | '/pilots/new'
     | '/s/$id'
+    | '/starter'
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
+    | '/starter/$kind/$id'
     | '/mechs/patterns'
     | '/games/$gameId/view/$kind/$entityId'
   id:
@@ -238,8 +260,10 @@ export interface FileRouteTypes {
     | '/mediator/$gameId'
     | '/pilots/new'
     | '/s/$id'
+    | '/starter/'
     | '/p/$kind/$appId'
     | '/sheet/$kind/$id'
+    | '/starter/$kind/$id'
     | '/mechs/patterns/'
     | '/games_/$gameId_/view/$kind/$entityId'
   fileRoutesById: FileRoutesById
@@ -259,8 +283,10 @@ export interface RootRouteChildren {
   MediatorGameIdRoute: typeof MediatorGameIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
   SIdRoute: typeof SIdRoute
+  StarterIndexRoute: typeof StarterIndexRoute
   PKindAppIdRoute: typeof PKindAppIdRoute
   SheetKindIdRoute: typeof SheetKindIdRoute
+  StarterKindIdRoute: typeof StarterKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
   GamesGameIdViewKindEntityIdRoute: typeof GamesGameIdViewKindEntityIdRoute
 }
@@ -365,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/starter/': {
+      id: '/starter/'
+      path: '/starter'
+      fullPath: '/starter/'
+      preLoaderRoute: typeof StarterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mechs/patterns/': {
       id: '/mechs/patterns/'
       path: '/mechs/patterns'
@@ -384,6 +417,13 @@ declare module '@tanstack/react-router' {
       path: '/sheet/$kind/$id'
       fullPath: '/sheet/$kind/$id'
       preLoaderRoute: typeof SheetKindIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/starter/$kind/$id': {
+      id: '/starter/$kind/$id'
+      path: '/starter/$kind/$id'
+      fullPath: '/starter/$kind/$id'
+      preLoaderRoute: typeof StarterKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/games_/$gameId_/view/$kind/$entityId': {
@@ -411,8 +451,10 @@ const rootRouteChildren: RootRouteChildren = {
   MediatorGameIdRoute: MediatorGameIdRoute,
   PilotsNewRoute: PilotsNewRoute,
   SIdRoute: SIdRoute,
+  StarterIndexRoute: StarterIndexRoute,
   PKindAppIdRoute: PKindAppIdRoute,
   SheetKindIdRoute: SheetKindIdRoute,
+  StarterKindIdRoute: StarterKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
   GamesGameIdViewKindEntityIdRoute: GamesGameIdViewKindEntityIdRoute,
 }

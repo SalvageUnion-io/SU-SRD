@@ -28,24 +28,18 @@ import {
 } from 'salvageunion-reference/rules'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { SHELF } from '../../container'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
-import {
-  _clearAllStores,
-  _resetDbSingleton,
-  crawlers,
-  mechs,
-  pilots,
-  softLinks,
-} from '../../db/index'
+import { _clearAllStores, _resetDbSingleton, mechs, pilots } from '../../db/index'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
-import { copyStarterSetToRoster, isStarterSetSeeded } from '../seedStarterSet'
+import { copyStarter } from '../copyStarter'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
 
-// These assert durability — a write surviving a rehydrate or a direct read of
-// IndexedDB — and only the signed-in backend is durable. See signedInBackend.ts.
+// Copying is a write, and building needs an account: these run signed in.
 withSignedInBackend()
 
 /** True when some reference entity of `all` slugifies to `slug`. */
@@ -228,7 +222,7 @@ describe('Starter Set seed — soft link integrity', () => {
   })
 })
 
-describe('Starter Set seed — on-demand seeding', () => {
+describe('Starter Set — copying a template', () => {
   beforeEach(async () => {
     _resetDbSingleton()
     await _clearAllStores()
@@ -245,117 +239,53 @@ describe('Starter Set seed — on-demand seeding', () => {
     await _clearAllStores()
   })
 
-  test('copyStarterSetToRoster copies the full roster on first call, and it parses', async () => {
-    expect(isStarterSetSeeded()).toBe(false)
-    await copyStarterSetToRoster()
+  const [pilotTemplate] = STARTER_PILOTS
+  if (pilotTemplate === undefined) throw new Error('The Starter Set has no pilots')
 
-    const storedPilots = await pilots.list()
-    const storedMechs = await mechs.list()
-    const storedCrawlers = await crawlers.list()
-    expect(storedPilots).toHaveLength(STARTER_PILOTS.length)
-    expect(storedMechs).toHaveLength(STARTER_MECHS.length)
-    expect(storedCrawlers).toHaveLength(STARTER_CRAWLERS.length)
-    expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
+  test('lands in My Stuff as a build of the player’s own, and parses', async () => {
+    const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
-    for (const p of storedPilots) expect(() => PilotSchema.parse(p)).not.toThrow()
-    for (const m of storedMechs) expect(() => MechSchema.parse(m)).not.toThrow()
-    for (const c of storedCrawlers) expect(() => CrawlerSchema.parse(c)).not.toThrow()
-    expect(isStarterSetSeeded()).toBe(true)
+    const [stored] = await pilots.list()
+    expect(stored?.id).toBe(copied.id)
+    expect(stored?.name).toBe(pilotTemplate.name)
+    expect(stored?.gameId).toBeNull()
+    expect(() => PilotSchema.parse(stored)).not.toThrow()
   })
 
-  test('is idempotent — a second call never duplicates', async () => {
-    await copyStarterSetToRoster()
-    await copyStarterSetToRoster()
-    expect(await pilots.list()).toHaveLength(STARTER_PILOTS.length)
-    expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
+  test('lands in the Game the player chose', async () => {
+    await copyStarter('mech', STARTER_MECHS[0]?.id as string, { kind: 'game', gameId: 'g1' })
+    const [stored] = await mechs.list()
+    expect(stored?.gameId).toBe('g1')
   })
 
   /**
-   * A seeded row is a **copy of a template**, so it gets its own id.
-   *
-   * This used to write the template's fixed ids straight through, which made
-   * every player's starter roster carry the same twelve. Locally that was
-   * invisible; against the server of record those ids are the `appId` a row is
-   * addressed by — so two players who had both seeded the roster collided on
-   * all twelve the moment they claimed, and the later one's writes were refused
-   * as edits to somebody else's entity.
+   * A copy is a new thing, so it gets its own id. A template's id in an account
+   * would be the `appId` every player's copy is addressed by, and a duplicate
+   * resolves to the oldest row — the second player's writes would be refused as
+   * edits to somebody else's entity.
    */
-  test('seeded rows get fresh UUIDs, not the template ids', async () => {
-    await copyStarterSetToRoster()
+  test('gets a fresh UUID, with the template recorded as its seedRef', async () => {
+    const first = await copyStarter('pilot', pilotTemplate.id, SHELF)
+    const second = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
-    const templateIds = new Set([
-      ...STARTER_PILOTS.map((r) => r.id),
-      ...STARTER_MECHS.map((r) => r.id),
-      ...STARTER_CRAWLERS.map((r) => r.id),
-    ])
-    const stored = [...(await pilots.list()), ...(await mechs.list()), ...(await crawlers.list())]
-
-    expect(stored).toHaveLength(templateIds.size)
-    for (const row of stored) {
-      expect(templateIds.has(row.id)).toBe(false)
-      // Provenance is recorded separately — that is what makes the row
-      // recognisable as seeded without borrowing identity to do it.
-      expect(templateIds.has(row.seedRef as string)).toBe(true)
-      expect(row.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
-    }
+    expect(first.id).not.toBe(pilotTemplate.id)
+    expect(first.id).not.toBe(second.id)
+    expect(first.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
+    for (const row of await pilots.list()) expect(row.seedRef).toBe(pilotTemplate.id)
   })
 
-  test('two devices seeding the same roster produce disjoint ids', async () => {
-    await copyStarterSetToRoster()
-    const first = (await pilots.list()).map((p) => p.id).sort()
+  test('leaves the template exactly as it was', async () => {
+    const before = structuredClone(pilotTemplate)
+    const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
+    await useEntityStore
+      .getState()
+      .update('pilot', copied.id, { name: 'Renamed', currentHP: 1 }, LIVE_SHEET_MANUAL)
 
-    // A second browser is a fresh database with the same template.
-    await _clearAllStores()
-    useEntityStore.setState({
-      pilots: [],
-      mechs: [],
-      crawlers: [],
-      softLinks: [],
-      hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
-    })
-    await copyStarterSetToRoster()
-    const second = (await pilots.list()).map((p) => p.id).sort()
-
-    expect(second).toHaveLength(first.length)
-    // The whole point: no id appears in both rosters.
-    expect(first.some((id) => second.includes(id))).toBe(false)
+    expect(pilotTemplate).toEqual(before)
   })
 
-  test('soft links point at the freshly minted ids, not the template ones', async () => {
-    await copyStarterSetToRoster()
-
-    const ids = new Set([
-      ...(await pilots.list()).map((p) => p.id),
-      ...(await mechs.list()).map((m) => m.id),
-      ...(await crawlers.list()).map((c) => c.id),
-    ])
-    const links = await softLinks.list()
-
-    expect(links).toHaveLength(STARTER_SOFT_LINKS.length)
-    // A remap that missed an endpoint would leave a link pointing at an id
-    // nothing holds — worse than no link at all.
-    for (const link of links) {
-      expect(ids.has(link.from.id)).toBe(true)
-      expect(ids.has(link.to.id)).toBe(true)
-    }
-  })
-
-  test('a partially deleted roster re-seeds only what is missing', async () => {
-    await copyStarterSetToRoster()
-    const before = await pilots.list()
-    const survivor = before.find((p) => p.seedRef !== before[0]?.seedRef)
-    await pilots.delete(before[0]?.id as string)
-    // `isStarterSetSeeded` reads the store, and a db-level delete does not
-    // reach it — the roster is the evidence, so the evidence has to be current.
-    await useEntityStore.getState().rehydrate('pilot')
-
-    expect(isStarterSetSeeded()).toBe(false)
-    await copyStarterSetToRoster()
-
-    const after = await pilots.list()
-    expect(after).toHaveLength(STARTER_PILOTS.length)
-    // The rows that were never deleted keep the ids they already had — a
-    // re-seed must not re-mint the roster around them.
-    expect(after.some((p) => p.id === survivor?.id)).toBe(true)
+  test('copies nothing that is not in the Starter Set', async () => {
+    await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no Starter Set/)
+    expect(await pilots.list()).toHaveLength(0)
   })
 })

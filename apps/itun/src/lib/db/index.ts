@@ -44,7 +44,7 @@ import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
 /**
  * Current IndexedDB schema version. Bump together with a migrations/ entry.
  * (v7 is a version-only bump — it once carried an eager Starter Set seed, now
- * replaced by on-demand seeding in lib/starterSet/seedStarterSet.ts. v8 heals
+ * replaced by on-demand seeding (seedStarterSet.ts, since deleted). v8 heals
  * Battle crawlers whose maxSpModifier hand-carried the type's +5 — the bonus
  * is now derived at read from the type's mutations. v9 creates the append-only
  * `changeLog` (provenance) store — creation only, no record rewrite; ADR-022.
