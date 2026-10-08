@@ -7,8 +7,8 @@ import {
 } from './_helpers'
 import { expect, test } from './fixtures'
 
-// Anonymous on purpose: wizard panes render the same signed in or not.
-test.use({ account: 'anonymous' })
+// Signed in (the fixture's default): building needs an account, so a
+// signed-out visitor never reaches a wizard pane.
 
 /**
  * Visual / interactive contract for the WizShell Class step master-detail:

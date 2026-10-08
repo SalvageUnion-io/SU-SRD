@@ -107,6 +107,12 @@ export type InstallOptions = {
    */
   convexReact?: Record<string, unknown>
   /**
+   * Members for the stubbed `convexClient` (it is `{}` otherwise) — a
+   * `mutation` for a file whose signed-in store writes must commit, since
+   * building needs an account.
+   */
+  convexClient?: Record<string, unknown>
+  /**
    * Stub `@convex-dev/auth/react` too. Needed by anything that mounts
    * `SignInControl`, whose real provider wants a live Convex client.
    */
@@ -165,7 +171,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
   // --- install ---
   mock.module('../../lib/connection/convexClient', () => ({
     isConvexConfigured: true,
-    convexClient: {},
+    convexClient: { ...options.convexClient },
   }))
   mock.module('convex/react', () => convexReactMock(options.convexReact ?? {}))
 

@@ -9,7 +9,7 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 | Mode | When | Source of truth |
 | --- | --- | --- |
-| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: the in-memory backend; writes do not survive a reload; no Dashboard |
+| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: **read-only** — writes are refused (`signedOut`); no Dashboard |
 | **Connected** | signed in, online | Convex; IndexedDB is a cache |
 | **Disconnected** | signed in, offline | read-only — not a write queue |
 

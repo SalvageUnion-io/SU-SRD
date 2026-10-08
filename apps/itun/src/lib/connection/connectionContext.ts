@@ -34,11 +34,16 @@ export type ConnectionState = {
 }
 
 /**
- * The default is Solo, and that is load-bearing rather than arbitrary: a
- * component rendered outside any provider (a test, a story, a stray subtree)
- * should behave like an anonymous visitor (writes allowed), never like a broken
- * connected one. Defaulting to `disconnected` would make such a component
- * silently refuse writes.
+ * The default is Solo, for a component rendered outside any provider — a test,
+ * a story, a stray subtree. The app always mounts `ConnectionProvider`, which
+ * says `canWrite: false` in Solo (signed out is read-only, ADR-034 as amended).
+ *
+ * `canWrite` is true here on purpose, and only here: it lets a story or a
+ * component test exercise an editable surface without mounting the auth layer.
+ * It grants nothing — the store layer refuses an anonymous write regardless
+ * (`requireWritableBackend`), so a test that writes runs signed in
+ * (`withSignedInBackend()`). Defaulting to `connected` instead would send
+ * Connected-only surfaces to Convex hooks that have no provider.
  */
 export const SOLO_STATE: ConnectionState = {
   mode: 'solo',

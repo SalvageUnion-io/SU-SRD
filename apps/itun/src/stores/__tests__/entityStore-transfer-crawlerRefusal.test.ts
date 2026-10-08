@@ -33,6 +33,10 @@ import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { makeUnitLot } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
+import { withSignedInBackend } from './signedInBackend'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 // Captured with a SPREAD before mocking: a module namespace is a live view.
 const realBackend = { ...(await import('../entityBackend')) }

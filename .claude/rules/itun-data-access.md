@@ -19,7 +19,7 @@ The storage modes themselves (Solo / Connected / Disconnected) are owned by
 
 | Domain | Path | Truth |
 | --- | --- | --- |
-| **Player entities** — pilots, mechs, crawlers, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); nothing when anonymous (in-memory backend) |
+| **Player entities** — pilots, mechs, crawlers, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, over `src/lib/db/` | Convex when signed in (IndexedDB is its cache); nothing when anonymous (read-only) |
 | **Accounts, Games, invites, ownership, proposals, crew** | Convex `useQuery` / `useMutation` from `convex/react` | Convex, always |
 
 Resolve the connection mode with `useConnection()` or
@@ -37,11 +37,11 @@ await useEntityStore.getState().update('pilots', id, { hp: next })
 
 The store's call shape is the same in every mode. `src/stores/entityBackend.ts`
 picks the backend (`selectBackend()` → `remote | blocked | memory`): `memory` is
-any anonymous visitor, in every build (nothing persists — there is no `local`
-backend any more), `blocked` is signed-in-and-offline or mid-handshake —
-**read-only**, not a write queue, so check `canWrite` before offering the
-affordance. A unit test that asserts durability runs signed in via
-`withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
+any anonymous visitor, in every build, and is **read-only** — building needs an
+account, so its writes are refused (`signedOut`); `blocked` is
+signed-in-and-offline or mid-handshake — read-only too, not a write queue. Check
+`canWrite` before offering any edit affordance. A unit test that writes runs
+signed in via `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
 
 ## Accounts / Games / ownership — Convex hooks
 

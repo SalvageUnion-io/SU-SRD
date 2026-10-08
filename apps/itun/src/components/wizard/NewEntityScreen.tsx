@@ -6,13 +6,22 @@
  *   mode absent   → CreateModeChooser (Guided vs Blank doors)
  *   mode 'guided' → the EXISTING wizard, rendered unchanged (`wizard` slot)
  *   mode 'blank'  → the chooser with the Blank dialog open over it
+ *
+ * Signed out, none of these: building needs an account (ADR-034 as amended),
+ * so the visitor gets the sign-in panel instead of a wizard whose last step
+ * would be refused.
  */
 
-import type { ReactNode } from 'react'
+import { tokens } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
+import { useConnection } from '../../lib/connection/connectionContext'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import type { CreateMode } from '../../lib/wizard/createMode'
+import { SignInToBuild } from '../account/SignInToBuild'
 import { BlankCreateDialog } from './BlankCreateDialog'
 import { CreateModeChooser } from './CreateModeChooser'
+
+const SIGNED_OUT = { padding: `${tokens.space[20]} ${tokens.space[16]}` } satisfies CSSProperties
 
 type NewEntityScreenProps = {
   kind: BlankCreateKind
@@ -32,6 +41,16 @@ export function NewEntityScreen({
   onModeChange,
   onCreated,
 }: NewEntityScreenProps) {
+  const connection = useConnection()
+  if (connection.mode === 'solo') {
+    // Not a PageShell: the routes already wrap this screen in their `<main>`.
+    return (
+      <div style={SIGNED_OUT}>
+        <SignInToBuild title={`Sign in to build a ${kind}`} />
+      </div>
+    )
+  }
+
   if (mode === 'guided') {
     return <>{wizard}</>
   }

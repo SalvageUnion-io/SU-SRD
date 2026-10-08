@@ -2,14 +2,16 @@ import type { Page } from '@playwright/test'
 import { buildPilot, gotoStable, waitForReady } from './_helpers'
 import { expect, requireSeam, seamIsPresent, signInFresh, test } from './fixtures'
 
-// Anonymous on purpose: it is the hand-off FROM anonymous, and signs in mid-test.
+// Anonymous on purpose: it starts signed out, and signs in mid-test.
 test.use({ account: 'anonymous' })
 
 /**
- * The anonymous-build → sign-in → save hand-off (ADR-034 decision 1, P1/P3).
+ * Sign in → build → save (ADR-034 decision 1, as amended).
  *
- * This is the step most likely to lose somebody's work, and it is the entire
- * reason the test-only password provider exists. Without this spec that provider
+ * Signed out, ITUN is read-only: a visitor who opens a wizard is asked to sign
+ * in instead, so there is never unsaved anonymous work to hand off. This pins
+ * both halves — the refusal, and that what is built after signing in is
+ * durable — and it is the reason the test-only password provider exists. Without this spec that provider
  * is an auth surface with no consumer — which is the state it was in until this
  * landed, and is worth remembering if anyone is tempted to delete this file
  * rather than fix it: **deleting the spec means deleting the provider too.**
@@ -44,13 +46,8 @@ test.use({ account: 'anonymous' })
  */
 
 /**
- * How many pilots this origin's IndexedDB holds.
- *
- * The one observable sign that the save LANDED: an anonymous build lives in
- * memory, and only a successful `claimLocal` followed by the reconciler's
- * adoption puts it into the signed-in cache. Leaving the page before that is
- * exactly how a player loses the build, so the spec waits for it rather than
- * racing it.
+ * How many pilots this origin's IndexedDB holds — the signed-in cache, which a
+ * build reaches only once the server of record has taken it.
  */
 async function cachedPilotCount(page: Page): Promise<number> {
   return await page.evaluate(
@@ -76,7 +73,9 @@ async function cachedPilotCount(page: Page): Promise<number> {
   )
 }
 
-test('work built anonymously survives signing in to save it', async ({ page }, testInfo) => {
+test('a signed-out visitor is asked to sign in, and what they build then is saved', async ({
+  page,
+}, testInfo) => {
   await page.goto('/')
   await waitForReady(page)
 
@@ -86,32 +85,24 @@ test('work built anonymously survives signing in to save it', async ({ page }, t
   // spec skipped everywhere including nightly while reading as coverage.
   requireSeam(await seamIsPresent(page), testInfo)
 
-  // Build something anonymously — in memory, since nobody is signed in.
-  await buildPilot(page, 'Saved By Signing In', 'Keeper')
+  // Signed out, the wizard is a sign-in panel: nothing can be built.
+  await gotoStable(page, '/pilots/new')
+  await waitForReady(page)
+  await expect(page.getByRole('heading', { name: 'Sign in to build a pilot' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /guided/i })).toHaveCount(0)
   expect(await cachedPilotCount(page)).toBe(0)
 
-  // Sign in mid-session, with the anonymous build still in memory.
   await signInFresh(page)
-
-  // The reconciler sends the tab's work on the backend flip; wait for it to
-  // land before leaving the page.
+  await buildPilot(page, 'Saved By Signing In', 'Keeper')
   await expect.poll(() => cachedPilotCount(page), { timeout: 30_000 }).toBeGreaterThan(0)
 
-  // Reload to prove it is DURABLE rather than merely still in memory — the
-  // whole distinction ADR-034 draws.
+  // Reload to prove it is DURABLE — on the server, not merely in this tab.
   await page.reload()
   await waitForReady(page)
-  // The roster is `/` (`src/routes/index.tsx`). There is no `/roster` route:
-  // it renders "Page not found", which is why this spec failed every nightly
-  // it ran — and why the version before it, which asserted only that the
-  // first-run Welcome heading was ABSENT there, passed without proving a thing.
+  // The roster is `/` (`src/routes/index.tsx`); there is no `/roster` route.
   await gotoStable(page, '/')
   await waitForReady(page)
 
-  // On the roster (its "Saved Builds" heading renders on every roster, empty
-  // or not), and not on its first-run face: an empty roster also shows the
-  // Welcome block, so its absence is what rules that out.
   await expect(page.getByRole('heading', { name: /Saved Builds/i })).toBeVisible()
-  await expect(page.getByRole('heading', { name: /Welcome to In the Union Now/i })).toHaveCount(0)
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible()
 })

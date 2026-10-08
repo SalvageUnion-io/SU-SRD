@@ -16,11 +16,15 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import type { ExportBundle } from '../../../lib/schemas/exportBundle'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW, pilotFixture } from '../../__tests__/fixtures'
 import { ExportAllButton } from '../ExportAllButton'
 import { ExportEntityButton } from '../ExportEntityButton'
 import { ImportButton } from '../ImportButton'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 type Download = { filename: string; blob: Blob }
 let downloads: Download[] = []

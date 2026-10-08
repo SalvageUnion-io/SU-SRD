@@ -1,11 +1,9 @@
 /**
  * "Download all" for somebody who is not signed in.
  *
- * ADR-034 makes export the load-bearing way out for a visitor who will not make
- * an account, so it has to read what that visitor actually built — which lives
- * in the in-memory backend, not in IndexedDB. The bundle's pattern and NPC
- * sources used to default to the IndexedDB tables, so an anonymous backup
- * carried the builds and silently dropped every saved pattern.
+ * Signed out, ITUN is read-only (ADR-034 as amended): nothing can be built, so
+ * an anonymous backup has nothing of the session's to carry — and it must not
+ * reach into IndexedDB for rows the visitor cannot see.
  *
  * Runs on the default (anonymous) backend on purpose: no `withSignedInBackend`.
  */
@@ -33,13 +31,13 @@ beforeEach(async () => {
 })
 
 describe('an anonymous backup', () => {
-  test('carries the patterns saved this session', async () => {
+  test('saves no pattern, so carries none', async () => {
     expect(selectBackend()).toBe('memory')
-    await usePatternStore.getState().create(patternInput)
+    await expect(usePatternStore.getState().create(patternInput)).rejects.toThrow(/Sign in/)
 
     const bundle = await buildExportBundle(useEntityStore.getState())
 
-    expect(bundle.mechPatterns.map((p) => p.name)).toEqual(['Anonymous Loadout'])
+    expect(bundle.mechPatterns).toEqual([])
   })
 
   test('does not reach into IndexedDB for rows the session never built', async () => {

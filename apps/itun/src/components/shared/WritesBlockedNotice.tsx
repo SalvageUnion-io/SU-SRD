@@ -20,7 +20,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
  * which is the honest place to spend the interruption.
  */
 export function WritesBlockedNotice() {
-  const { canWrite, settling } = useConnection()
+  const { canWrite, settling, mode } = useConnection()
   if (canWrite || settling) return null
 
   // Plain class string rather than `cn()`, matching NotConnectedBanner: there is
@@ -34,7 +34,7 @@ export function WritesBlockedNotice() {
       className="inline-flex items-center gap-1.5 rounded-badge border-2 border-[var(--color-roll-failure)] px-2 py-1 text-badge font-bold uppercase text-[var(--color-roll-failure)]"
     >
       <span aria-hidden="true">◆</span>
-      <span>Read-only — not connected</span>
+      <span>{mode === 'solo' ? 'Read-only — sign in to edit' : 'Read-only — not connected'}</span>
     </span>
   )
 }
