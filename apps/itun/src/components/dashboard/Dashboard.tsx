@@ -10,6 +10,10 @@
  * (`pilot-to-crawler`). Both links resolve through the sheet's
  * `resolveSheetComposition`. Whether this pilot may be played at all is
  * `DashboardGate`'s question, asked before this renders.
+ *
+ * The top row is the `SlotRow`: one Major slot and two Minors, placed by the
+ * mount (docs/architecture/dashboard-redesign.md D1). ⤢ on a Minor opens that
+ * entity's Major over the display (`SlotOverlay`) without moving the slots.
  */
 
 import { buttonVariants } from 'component-lib'
@@ -18,68 +22,80 @@ import { buttonVariants } from 'component-lib'
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
 import 'component-lib/styles/dashboard.css'
-import { useCallback, useMemo } from 'react'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
-import { containerOf } from '../../lib/container'
-import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
-import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
-import { setCockpitPrefs, useCockpitPrefs } from '../../stores/cockpitPrefsStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
-import { ActiveItemBand } from './ActiveItemBand'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
-import { Dial } from './Dial'
-import { DialConfig } from './DialConfig'
-import { DisplayPanel } from './DisplayPanel'
+import type { DisplayFocus } from './DisplayPanel'
+import { DisplayPanel, DisplayPicker } from './DisplayPanel'
 import { DowntimeWizard } from './DowntimeWizard'
-import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { RailBar } from './RailBar'
+import { SlotOverlay } from './SlotOverlay'
+import { SlotMajor, SlotRow } from './SlotRow'
+import type { SlotKind } from './slotLayout'
 import type { MountState, SeatHandle } from './useSeat'
 import { NO_SEAT, useSeat } from './useSeat'
 
-export function Dashboard({ pilotId }: { pilotId: string }) {
+type DashboardProps = {
+  pilotId: string
+  /**
+   * The viewer is the Mediator of the pilot's Game, who alone runs the crawler
+   * (plan D11). `DashboardGate` reads it from `games.get`.
+   */
+  mediator?: boolean
+}
+
+export function Dashboard({ pilotId, mediator = false }: DashboardProps) {
   // A build with no Convex mounts no provider, so `useSeat` would throw. The
   // gate never opens the Dashboard in one, but tests and stories render it.
-  if (!isConvexConfigured) return <DashboardView pilotId={pilotId} seat={NO_SEAT} />
-  return <SeatedDashboard pilotId={pilotId} />
+  if (!isConvexConfigured) {
+    return <DashboardView pilotId={pilotId} seat={NO_SEAT} mediator={mediator} />
+  }
+  return <SeatedDashboard pilotId={pilotId} mediator={mediator} />
 }
 
-function SeatedDashboard({ pilotId }: { pilotId: string }) {
+function SeatedDashboard({ pilotId, mediator }: { pilotId: string; mediator: boolean }) {
   const pilot = useEntityStore((s) => s.get('pilot', pilotId))
-  return <DashboardView pilotId={pilotId} seat={useSeat(pilot)} />
+  return <DashboardView pilotId={pilotId} seat={useSeat(pilot)} mediator={mediator} />
 }
 
-function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle }) {
+const SLOT_LABEL: Record<SlotKind, string> = { pilot: 'Pilot', mech: 'Mech', crawler: 'Crawler' }
+
+/** The display stacks the picker over the panel; the ⤢ overlay covers both. */
+const DISPLAY: CSSProperties = {
+  position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+}
+
+const DISPLAY_BODY: CSSProperties = { flex: 1, minHeight: 0 }
+
+/** The Major a ⤢ opened, and the ⤢ to hand focus back to. */
+type Expanded = { kind: SlotKind; trigger: HTMLButtonElement }
+
+function DashboardView({
+  pilotId,
+  seat,
+  mediator,
+}: {
+  pilotId: string
+  seat: SeatHandle
+  mediator: boolean
+}) {
   const storeState = useEntityStore()
   const inDowntime = usePlayStateStore((s) => s.downtime)
-  const wheel = usePlayStateStore((s) => s.wheel)
-  const setWheel = usePlayStateStore((s) => s.setWheel)
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
+  // Screen arrangement stays on the device and resets with the page (D7).
+  const [focus, setFocus] = useState<DisplayFocus>('actions')
+  const [expanded, setExpanded] = useState<Expanded | null>(null)
   const pilot = storeState.get('pilot', pilotId)
-
-  // Persisted dial prefs are scoped to the pilot's container (ADR-030 §2) and
-  // kept in localStorage — see cockpitPrefsStore for why neither container is
-  // the right record to hang them off. Hooks run unconditionally, before the
-  // early returns, so `containerOf` is fed a stand-in when there is no pilot
-  // yet; nothing reads those prefs in that state.
-  //
-  // `containerOf` mints a fresh object every render, so it is round-tripped
-  // through its serialized form to get a value that is stable while the pilot's
-  // container is — otherwise `setPrefs` would change identity on every render
-  // and defeat every memo below it.
-  const containerKey = serializeContainer(containerOf(pilot ?? {}))
-  const container = useMemo(() => parseContainer(containerKey), [containerKey])
-  const prefs = useCockpitPrefs(container)
-  const setPrefs = useCallback(
-    (next: CockpitPrefs) => {
-      setCockpitPrefs(container, next)
-    },
-    [container]
-  )
 
   const lookup: EntityLookup = {
     get: (type, entityId) => storeState.get(type, entityId),
@@ -94,7 +110,7 @@ function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle })
   const boarded = boardedId === null ? null : storeState.get('mech', boardedId)
   const mech = boarded ?? composition.mech
   const crawler = composition.crawler
-  // The active-row entity drives the whole-canvas tint (proposed ADR-018).
+  // The Major-slot entity drives the whole-canvas tint (proposed ADR-018).
   const mount: MountState = inDowntime ? 'downtime' : boarded ? 'mech' : 'pilot'
 
   // The instruments are built around a mech; a pilot with none assigned and
@@ -112,7 +128,6 @@ function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle })
             </div>
           }
           display={<div className="pc-fill">—</div>}
-          wheel={<div className="pc-placeholder">Dial</div>}
         />
       </DashboardCanvas>
     )
@@ -120,8 +135,8 @@ function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle })
 
   const isDowntime = mount === 'downtime'
   const onFoot = mount === 'pilot'
-  // Downtime is crawler-dominant: rail, stamp, and Active Item all follow the
-  // crawler ontology (pink); otherwise the boarded mech / pilot on foot.
+  // Downtime is crawler-dominant: the rail and the Major follow the crawler
+  // ontology (pink); otherwise the boarded mech / pilot on foot.
   const fam = isDowntime ? 'crawler' : onFoot ? 'pilot' : 'mech'
   const railTitle = isDowntime
     ? crawler
@@ -131,13 +146,32 @@ function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle })
       ? `Pilot · ${pilot.name}`
       : `Mech · ${mech.name}`
 
-  // The Dial holds the non-active entities + statless views; the item in the
-  // active slot is the display's focus (focus→display sync; content is Phase 4).
-  // Persisted prefs (show/hide + order) are applied on top of the base list.
-  const items = applyDialPrefs(dialItems({ mount, mech, pilot, crawler }), prefs)
-  const cfgKinds = configurableKinds({ pilot, crawler })
-  const focus =
-    items.length > 0 ? items[((wheel % items.length) + items.length) % items.length] : undefined
+  const slots = {
+    mech,
+    pilot,
+    crawler,
+    boarded: boarded !== null,
+    seat,
+    mediator,
+    store: storeState,
+  }
+  const pickable: { focus: DisplayFocus; label: string }[] = [
+    { focus: 'actions', label: 'Actions' },
+    { focus: 'pilot', label: 'Pilot' },
+    { focus: 'mech', label: 'Mech' },
+    ...(crawler ? [{ focus: 'crawler' as const, label: 'Crawler' }] : []),
+    { focus: 'tables', label: 'Tables' },
+    { focus: 'srd', label: 'SRD' },
+  ]
+  const shown: DisplayFocus = pickable.some((p) => p.focus === focus) ? focus : 'actions'
+  const expandedName =
+    expanded === null
+      ? ''
+      : expanded.kind === 'pilot'
+        ? pilot.name
+        : expanded.kind === 'mech'
+          ? mech.name
+          : (crawler?.name ?? '')
 
   return (
     <DashboardCanvas>
@@ -163,38 +197,46 @@ function DashboardView({ pilotId, seat }: { pilotId: string; seat: SeatHandle })
           />
         }
         primary={
-          <ActiveItemBand
-            mech={mech}
-            pilot={pilot}
-            crawler={crawler}
+          <SlotRow
+            {...slots}
             mount={mount}
-            seat={seat}
-            store={storeState}
+            onExpand={(kind, trigger) => setExpanded({ kind, trigger })}
           />
         }
         display={
-          isDowntime ? (
-            <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
-          ) : (
-            <DisplayPanel
-              focus={focus}
-              mech={mech}
-              pilot={pilot}
-              crawler={crawler}
-              mount={mount}
-              seat={seat}
-            />
-          )
-        }
-        wheel={
-          <Dial
-            items={items}
-            activeIndex={wheel}
-            onActiveIndexChange={setWheel}
-            renderConfig={(close) => (
-              <DialConfig kinds={cfgKinds} prefs={prefs} onChange={setPrefs} onClose={close} />
+          <div style={DISPLAY}>
+            {isDowntime ? (
+              <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
+            ) : (
+              <>
+                <DisplayPicker focus={shown} options={pickable} onFocus={setFocus} />
+                <div style={DISPLAY_BODY}>
+                  <DisplayPanel
+                    focus={shown}
+                    mech={mech}
+                    pilot={pilot}
+                    crawler={crawler}
+                    mount={mount}
+                    seat={seat}
+                  />
+                </div>
+              </>
             )}
-          />
+            {expanded ? (
+              <SlotOverlay
+                title={`${SLOT_LABEL[expanded.kind]} · ${expandedName}`}
+                returnFocusTo={expanded.trigger}
+                onClose={() => setExpanded(null)}
+              >
+                <SlotMajor
+                  {...slots}
+                  kind={expanded.kind}
+                  mount={mount}
+                  hostsDamagePrompt={false}
+                />
+              </SlotOverlay>
+            ) : null}
+          </div>
         }
       />
     </DashboardCanvas>

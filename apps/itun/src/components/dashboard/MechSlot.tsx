@@ -1,7 +1,15 @@
 /**
- * MechBand — the Active Item while Boarded: the Reactor (Push, Heat Check,
- * Vent, Shutdown), the Chassis (Take Damage, the cargo hold), any activatable
- * effects, and Egress (Dismount, Eject).
+ * MechSlot — the mech in the slot row, in its two forms
+ * (docs/architecture/dashboard-redesign.md D2, D3):
+ *
+ *  - `MechMajor`, boarded: the Reactor (Push, Heat Check, Vent, Shutdown) and
+ *    the Chassis (Take Damage, the cargo hold) at full width, with Effects and
+ *    Egress (Dismount, Eject) in one narrow side column.
+ *  - `MechMinor`, parked or in Downtime: SP, with Heat and EP as text, and any
+ *    damaged system or module, shutdown or destruction in red.
+ *
+ * Both derive their maxima through `mechStats`, so a Minor and the Major it
+ * opens into agree.
  *
  * ADR-007 automation boundary: Push, Heat Check, Vent, Shutdown and the SP value
  * of a self-declared hit auto-apply on a single click; the Critical Damage roll
@@ -15,25 +23,17 @@ import { useEffect, useState } from 'react'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
 import {
   describePushOutcome,
-  mechMaxCargo,
-  mechMaxEP,
   mechMaxHeat,
   mechMaxSP,
-  resolveChassisRef,
   resolveGauge,
-  resolvePool,
   resolvePoolStart,
   rollDie,
 } from 'salvageunion-reference/rules'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import type { PlayStore } from './ActiveItemBand'
-import type { ActiveItemBandModel, BandButton } from './ActiveItemBandFrame'
-import { ActiveItemBandFrame, StorageBay } from './ActiveItemBandFrame'
 import { activatableEffects } from './dashboardEffects'
 import {
   critDamagePatch,
@@ -45,6 +45,33 @@ import {
   shutdownTogglePatch,
   VENT_PATCH,
 } from './dashboardRules'
+import type { BandBay, BandButton, MajorModel } from './MajorFrame'
+import { MajorFrame, StorageBay } from './MajorFrame'
+import { MinorFrame } from './MinorFrame'
+import type { PlayStore } from './SlotRow'
+import { mechMinorModel, mechStats } from './slotModels'
+
+export function MechMinor({
+  mech,
+  pilotAbilities,
+  activeEffects,
+  boarded,
+  onExpand,
+}: {
+  mech: Mech
+  pilotAbilities?: string[]
+  activeEffects: readonly string[]
+  boarded: boolean
+  onExpand: (trigger: HTMLButtonElement) => void
+}) {
+  return (
+    <MinorFrame
+      view={mechMinorModel(mech, pilotAbilities, activeEffects, boarded)}
+      slot="Mech"
+      onExpand={onExpand}
+    />
+  )
+}
 
 type MechPrompt =
   | { kind: 'reactor'; log: string; meltdown?: boolean }
@@ -67,42 +94,55 @@ const PUSH_RULE = (heat: number, cap: number): StepRule => ({
   cite: 'Quick Ref · p.233',
 })
 
-export function MechBand({
+export function MechMajor({
   mech,
   store,
-  hasPilot,
   pilotAbilities,
   activeEffects: switchedOn,
+  boarded,
   onToggleEffect,
   onDismount,
   onEject,
+  hostsDamagePrompt,
 }: {
   mech: Mech
   /** Beefcake raises the piloted MECH's Max SP and Cargo (ADR-029). */
   pilotAbilities?: string[]
   store: PlayStore
-  hasPilot: boolean
   /** Refs of the activated effects the seat has switched on (ADR-029 §4). */
   activeEffects: readonly string[]
+  /**
+   * Whether the seat has the pilot in this mech. A parked mech opened through
+   * ⤢ shows its Reactor and Chassis; Effects and Egress belong to a pilot
+   * aboard.
+   */
+  boarded: boolean
   onToggleEffect: (ref: string) => void
   onDismount: () => void
   /** The emergency exit, sent only after the player confirms it (ADR-007). */
   onEject: () => void
+  /**
+   * Whether this copy answers the deck's Take Damage hand-off. Only the slot
+   * row's Major does; the ⤢ overlay's copy must not consume it.
+   */
+  hostsDamagePrompt: boolean
 }) {
-  const chassis = resolveChassisRef(mech.chassisRef)
-  const activeEffects = Object.fromEntries(switchedOn.map((ref) => [ref, true]))
-  const piloting = { ...pilotingContext(mech, pilotAbilities), active: activeEffects }
+  const {
+    chassis,
+    active: activeEffects,
+    piloting,
+    maxSP,
+    maxEP,
+    maxHeat,
+    maxCargo,
+    sp,
+    ep,
+    heat,
+    cargo,
+  } = mechStats(mech, pilotAbilities, switchedOn)
   // What this mech/pilot could switch on (F1). Manual expiry: the table keeps
   // time, the app keeps state.
   const activatable = activatableEffects(mech, pilotAbilities)
-  const maxSP = mechMaxSP(mech, chassis, piloting)
-  const maxEP = mechMaxEP(mech, chassis)
-  const maxHeat = mechMaxHeat(mech, chassis)
-  const maxCargo = mechMaxCargo(mech, chassis, piloting)
-  const sp = resolvePool(mech.currentSP, maxSP)
-  const ep = resolvePool(mech.currentEP, maxEP)
-  const heat = resolveGauge(mech.currentHeat, maxHeat)
-  const cargo = totalLotUnits(mech.cargoLots)
 
   const [prompt, setPrompt] = useState<MechPrompt>(null)
   const [dmg, setDmg] = useState(1)
@@ -112,11 +152,11 @@ export function MechBand({
   const damagePromptArmed = usePlayStateStore((st) => st.damagePromptArmed)
   const consumeDamagePrompt = usePlayStateStore((st) => st.consumeDamagePrompt)
   useEffect(() => {
-    if (damagePromptArmed) {
+    if (hostsDamagePrompt && damagePromptArmed) {
       setPrompt({ kind: 'dmg' })
       consumeDamagePrompt()
     }
-  }, [damagePromptArmed, consumeDamagePrompt])
+  }, [hostsDamagePrompt, damagePromptArmed, consumeDamagePrompt])
 
   const fresh = () => store.get('mech', mech.id) ?? mech
 
@@ -221,7 +261,7 @@ export function MechBand({
     )
   }
 
-  const overlay = ((): ActiveItemBandModel['overlay'] => {
+  const overlay = ((): MajorModel['overlay'] => {
     if (blocked) {
       return {
         title: 'Blocked by a rule',
@@ -327,12 +367,51 @@ export function MechBand({
     }
   })()
 
-  const view: ActiveItemBandModel = {
+  const riderBays: BandBay[] = [
+    ...(activatable.length > 0
+      ? [
+          {
+            label: 'Effects',
+            side: true,
+            columns: 1,
+            buttons: activatable.map((e) => ({
+              label: `${activeEffects[e.ref] ? '\u25CF' : '\u25CB'} ${e.name}`,
+              onClick: () => onToggleEffect(e.ref),
+              title: activeEffects[e.ref]
+                ? `${e.name} is active — click to end it`
+                : `${e.name}: ${e.summary}`,
+            })),
+          },
+        ]
+      : []),
+    {
+      label: 'Egress',
+      side: true,
+      buttons: [
+        {
+          label: 'Dismount',
+          onClick: () => onDismount(),
+          variant: 'go',
+          title: 'Exit the mech (calm)',
+        },
+        {
+          label: 'Eject',
+          onClick: () => setPrompt({ kind: 'eject' }),
+          variant: 'danger',
+          title: 'Emergency exit',
+        },
+      ],
+    },
+  ]
+
+  const view: MajorModel = {
     fam: 'mech',
-    stampLabel: 'Boarded',
+    stampLabel: boarded ? 'Boarded' : 'Parked',
     bays: [
       {
         label: 'Reactor',
+        columns: 4,
+        large: true,
         gauges: [
           {
             label: 'Heat',
@@ -368,6 +447,7 @@ export function MechBand({
       },
       {
         label: 'Chassis',
+        large: true,
         gauges: [
           { label: 'SP', value: sp, max: maxSP, tone: 'mech' },
           { label: 'Cargo', value: cargo, max: maxCargo, tone: 'mech' },
@@ -388,41 +468,10 @@ export function MechBand({
           },
         ],
       },
-      ...(activatable.length > 0
-        ? [
-            {
-              label: 'Effects',
-              buttons: activatable.map((e) => ({
-                label: `${activeEffects[e.ref] ? '\u25CF' : '\u25CB'} ${e.name}`,
-                onClick: () => onToggleEffect(e.ref),
-                title: activeEffects[e.ref]
-                  ? `${e.name} is active — click to end it`
-                  : `${e.name}: ${e.summary}`,
-              })),
-            },
-          ]
-        : []),
-      {
-        label: 'Egress',
-        buttons: [
-          {
-            label: 'Dismount',
-            onClick: () => onDismount(),
-            disabled: !hasPilot,
-            variant: 'go',
-            title: hasPilot ? 'Exit the mech (calm)' : 'No pilot assigned to this mech',
-          },
-          {
-            label: 'Eject',
-            onClick: () => setPrompt({ kind: 'eject' }),
-            disabled: !hasPilot,
-            variant: 'danger',
-            title: hasPilot ? 'Emergency exit' : 'No pilot assigned to this mech',
-          },
-        ],
-      },
+      // The side column: what a pilot aboard switches on, and the ways out.
+      ...(boarded ? riderBays : []),
     ],
     overlay,
   }
-  return <ActiveItemBandFrame view={view} />
+  return <MajorFrame view={view} />
 }

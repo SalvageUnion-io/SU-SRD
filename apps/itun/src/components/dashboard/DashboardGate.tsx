@@ -151,7 +151,8 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
   // Offline with nothing cached: open read-only rather than wait for answers
   // that cannot come. See the header.
   const unanswered = game === undefined || (game !== null && members === undefined)
-  if (unanswered && offline) return <Dashboard pilotId={pilot.id} />
+  if (unanswered && offline)
+    return <Dashboard pilotId={pilot.id} mediator={game?.mediator ?? false} />
   if (unanswered) {
     return (
       <div style={PENDING}>
@@ -180,5 +181,5 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
     )
   }
 
-  return <Dashboard pilotId={pilot.id} />
+  return <Dashboard pilotId={pilot.id} mediator={game.mediator} />
 }

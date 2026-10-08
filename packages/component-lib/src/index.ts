@@ -65,7 +65,6 @@ export { Slab } from './components/chrome/Slab'
 // Every hand-assembled '-'/value/'+' cluster in the apps now renders through
 // Stat's stepper anatomy instead, so nothing outside this package needs it.
 export { StatusBadge } from './components/chrome/StatusBadge'
-export { Toggle } from './components/chrome/Toggle'
 export { Content } from './components/referenceEntity/Content'
 export {
   entityGuideToneColor,

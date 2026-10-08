@@ -23,7 +23,7 @@ afterEach(() => {
   // mounts none, so the four toasts it raises reached no subscriber and were
   // never dismissed — they simply waited.
   //
-  // `ActiveItemBand.writesBlocked.test.tsx` mounts a `<Toaster/>` and asserts on
+  // `SlotRow.writesBlocked.test.tsx` mounts a `<Toaster/>` and asserts on
   // the offline refusal copy, which is byte-identical to the one raised here.
   // It inherited this file's stale copy, found two matching elements, and —
   // because `findByText` retries a multiple-match throw rather than surfacing it

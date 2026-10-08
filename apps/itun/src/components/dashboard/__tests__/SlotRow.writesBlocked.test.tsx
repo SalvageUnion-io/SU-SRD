@@ -25,11 +25,19 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { Toaster, toast } from 'component-lib'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
-import { mechFixture } from '../../__tests__/fixtures'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import type { PlayStore } from '../ActiveItemBand'
-import { ActiveItemBand } from '../ActiveItemBand'
+import type { PlayStore } from '../SlotRow'
+import { SlotRow } from '../SlotRow'
 import { boardedSeat } from './seatFixture'
+
+/** The slot row's other inputs, which these tests don't vary. */
+const ROW = {
+  pilot: pilotFixture({ id: 'p-row', name: 'Vesh' }),
+  crawler: null,
+  mediator: false,
+  onExpand: () => {},
+}
 
 // A mounting Toaster replays every toast still active, including ones other
 // files raised without a Toaster; their timers would then fire outside act().
@@ -69,14 +77,15 @@ function blockedStore(): PlayStore {
   }).getState()
 }
 
-describe('ActiveItemBand — writes refused by connectivity', () => {
+describe('Major slot — writes refused by connectivity', () => {
   test('a refused Jettison tells the player instead of failing silently', async () => {
     render(
       <>
-        <ActiveItemBand
+        <SlotRow
+          {...ROW}
           mech={mech}
-          pilot={null}
           mount="mech"
+          boarded
           seat={boardedSeat(mech.id).handle}
           store={blockedStore()}
         />
@@ -97,10 +106,11 @@ describe('ActiveItemBand — writes refused by connectivity', () => {
     // chokepoint, not one button, so a second path pins that.
     render(
       <>
-        <ActiveItemBand
+        <SlotRow
+          {...ROW}
           mech={mech}
-          pilot={null}
           mount="mech"
+          boarded
           seat={boardedSeat(mech.id).handle}
           store={blockedStore()}
         />
@@ -124,10 +134,11 @@ describe('ActiveItemBand — writes refused by connectivity', () => {
     // write it describes. The handlers stayed synchronous.
     render(
       <>
-        <ActiveItemBand
+        <SlotRow
+          {...ROW}
           mech={mech}
-          pilot={null}
           mount="mech"
+          boarded
           seat={boardedSeat(mech.id).handle}
           store={blockedStore()}
         />

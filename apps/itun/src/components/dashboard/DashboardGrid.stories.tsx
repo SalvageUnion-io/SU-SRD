@@ -7,15 +7,13 @@ import { DashboardGrid } from './DashboardGrid'
 export default { title: 'Compositions/Dashboard/Grid' }
 
 /**
- * The four-region scaffold (rail / primary / wheel / display) inside the scaled
- * canvas. Slots stand in for the store-wired instruments (RailBar, Active Item
- * band, Dial, DisplayPanel). `data-mount='mech'` tints the rail green.
+ * The three-region scaffold (rail / primary / display) inside the scaled
+ * canvas. Slots stand in for the store-wired instruments (RailBar, the slot
+ * row, DisplayPanel). `data-mount="mech"` tints the rail green.
  */
 export const Default = () => (
   <div className="flex flex-col gap-3">
-    <Caption>
-      Four-region layout: rail (top), primary + wheel (mid), display + wheel (bottom).
-    </Caption>
+    <Caption>Three-region layout: rail (top), the slot row (mid), display (bottom).</Caption>
     <div style={{ height: 520, resize: 'both', overflow: 'hidden', border: '1px solid #ccc' }}>
       <DashboardCanvas>
         <DashboardGrid
@@ -37,9 +35,8 @@ export const Default = () => (
               Mech · Iron Mongrel
             </span>
           }
-          primary={<div className="pc-placeholder">Active Item Band</div>}
+          primary={<div className="pc-placeholder">Slot row · Major + two Minors</div>}
           display={<div className="pc-fill">Display · Actions / Tables / SRD</div>}
-          wheel={<div className="pc-placeholder">Momentum Wheel</div>}
         />
       </DashboardCanvas>
     </div>

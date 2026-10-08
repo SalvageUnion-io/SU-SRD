@@ -2,7 +2,7 @@
 
 > **Changing.** [ADR-038](../ARCHITECTURE.md#adr-038)
 > (accepted) makes the Dashboard Game-only and saves its play state on the
-> Game, and replaces the Dial with Major and Minor slots. The plan is
+> Game, and has replaced the Dial with Major and Minor slots. The plan is
 > [dashboard-redesign.md](dashboard-redesign.md). This doc describes what is
 > built until the plan's last layer rewrites it.
 
@@ -32,20 +32,22 @@ A fixed **1280×800 canvas** (`DashboardCanvas`), scaled with one
 `transform: scale()` and letterboxed. `MAX_SCALE` caps the upscale;
 `MIN_SCALE` is not a scale floor but the width ratio below which the canvas is
 abandoned for the `.pc-reflow` "rotate to landscape" notice. Overlays may
-scroll internally; the frame never does. `DashboardGrid` places four surfaces:
+scroll internally; the frame never does. `DashboardGrid` places three surfaces:
 
 - **Rail** (`RailBar`) — exit, context stamp, settings; the one hard-bordered
   frame besides the display.
-- **Active Item band** (`ActiveItemBand`) — the 2/3-width viewfinder: the active
-  entity's responsibility **bays**, each a gauge plus a button grid. Mech:
-  Reactor · Chassis · Loadout. Pilot: Vitals · Re-roll · Kit. Crawler: Stores ·
-  Upkeep · Downtime.
-- **Dial** (`Dial`) — the 260px right-edge rotary selector. The active item
-  overhangs to ~1/3 of the row; inactive items sit in the track below. Steps
-  snap to items (arrow buttons, click-to-jump, drag with inertia).
-- **Display** (`DisplayPanel`) — the only element that reads "forward". It
-  follows dial focus: the Actions deck, an entity's reference card, the tables
-  roller, or the SRD explorer; a deck action enters its resolve flow.
+- **Slot row** (`SlotRow`) — one **Major** slot and two **Minors**, placed by
+  the mount (`slotLayout.ts`). A Major (`MajorFrame`) is the entity's
+  responsibility **bays**, each gauges plus a button grid, with a narrow side
+  column. Mech: Reactor · Chassis, side Effects · Egress. Pilot: Vitals · Kit ·
+  Abilities · Mount. Crawler: Hull · Stores · Bays, side Upkeep · Upgrade ·
+  Scrap; its verbs show to the Mediator only. A Minor (`MinorFrame`) shows a
+  gauge or two and turns red on an injury, a damaged system or a damaged bay;
+  ⤢ opens that entity's Major over the display (`SlotOverlay`).
+- **Display** (`DisplayPanel`) — the only element that reads "forward". A row
+  of toggle buttons (`DisplayPicker`) points it at the Actions deck, an
+  entity's reference card, the tables roller, or the SRD explorer; a deck
+  action enters its resolve flow.
 
 **Mount state** is `pilot | mech | downtime`: Board takes the pilot into the
 mech, Dismount or Eject (confirm-twice) takes them out, and Downtime is
@@ -73,9 +75,8 @@ rather than a description. Do not fork the display for the Dashboard.
 | HP / SP / EP / Heat, conditions, item uses, cargo         | the pilot / mech records (persisted)                    |
 | maxima                                                    | derived (`lib/rules/derivedStats.ts`), never stored     |
 | on foot or boarded (and in which mech), range band, activated effects | the pilot's seat on the Game (`convex/seats.ts`, `useSeat`) |
-| in Downtime, dial focus, Downtime wizard step             | `playStateStore` — ephemeral, resets on reload          |
-| dial show/hide and order                                  | `cockpitPrefsStore` — `localStorage`, per container     |
-| overlays, filters, resolve progress                       | component state                                         |
+| in Downtime, Downtime wizard step                         | `playStateStore` — ephemeral, resets on reload          |
+| display focus, overlays, filters, resolve progress        | component state                                         |
 
 Mount state must never reach the pilot/mech schema or a shared sheet: there is no
 "pilot in mech" field, only a `mech-to-pilot` soft link and the seat, its own row
@@ -130,10 +131,10 @@ queue both. Results that destroy items are never auto-applied (§4.3).
 `apps/itun/src/components/dashboard/` is the roster — read it rather than a tree
 here. `Dashboard.tsx` resolves `{ pilot, mech, crawler }` with the sheet's own
 `resolveSheetComposition()` and renders `DashboardCanvas` → `DashboardGrid` with
-the four surfaces above. The store-wired containers (`ActiveItemBand` and its
-per-mount `MechBand` / `PilotBand` / `CrawlerBand`, `DisplayPanel`,
-`ActionsDeck`, `DowntimeWizard`, `DialConfig`) build view models their
-presentational halves render. Memoize per surface so a Heat tick does not
+the three surfaces above. The store-wired containers (`SlotRow` and its
+per-entity `PilotSlot` / `MechSlot` / `CrawlerSlot`, `DisplayPanel`,
+`ActionsDeck`, `DowntimeWizard`) build view models their presentational halves
+render. Memoize per surface so a Heat tick does not
 re-render the display's reference card.
 
 ## 7. Mobile
@@ -172,10 +173,10 @@ No `eval` or `new Function` ([ADR-013](../ARCHITECTURE.md#adr-013)).
 
 ### 10.2 Accessibility (WCAG 2.1 AA)
 
-The dial is a `role="listbox"` whose cells are `option`s with `aria-selected`.
-Its step controls and clickable cells are buttons, so it works without drag;
-arrow-key stepping on the focused listbox is not built. `prefers-reduced-motion`
-gets instant snaps. Every hue pairs with a non-colour cue.
+The slot row and the display picker are plain buttons, the picker's with
+`aria-pressed`; neither claims a composite role it has no keyboard model for.
+The ⤢ overlay is a modal dialog: it takes focus, keeps Tab inside, closes on
+Escape and returns focus to ⤢. Every hue pairs with a non-colour cue.
 
 ### 10.3 Scale-to-fit vs zoom
 

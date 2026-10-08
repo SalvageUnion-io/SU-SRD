@@ -17,7 +17,7 @@ import { crawlerFixture } from '../../__tests__/fixtures'
 import { DowntimeWizard } from '../DowntimeWizard'
 
 beforeEach(() => {
-  usePlayStateStore.setState({ downtime: true, wheel: 0, dtStep: 0, dtDone: {} })
+  usePlayStateStore.setState({ downtime: true, dtStep: 0, dtDone: {} })
 })
 
 const crawler = crawlerFixture({ id: 'c1', name: 'Hauler', techLevel: '3', crawlerBays: [] })

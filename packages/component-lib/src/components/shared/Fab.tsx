@@ -30,7 +30,7 @@ import { FOCUS_RING } from '../chrome/interaction'
  *   button clears a home indicator or a notch where the page extends under
  *   one.
  * - **`hidden`.** A route whose own bottom-right corner holds controls (the
- *   Dashboard's dial, the wizard footer) can hide the collapsed button. The
+ *   Dashboard's display, the wizard footer) can hide the collapsed button. The
  *   panel still opens — from a keyboard shortcut — and focus then returns to
  *   wherever it was before, since there is no button to return to.
  *

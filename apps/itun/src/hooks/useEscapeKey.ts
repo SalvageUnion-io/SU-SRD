@@ -3,8 +3,8 @@ import { useEffect } from 'react'
 /**
  * Call `onEscape` while `active`, when Escape is pressed.
  *
- * The dashboard's overlays — the dial config panel, the band's resolve/damage/
- * storage prompts, the table picker — each open over a region rather than in a
+ * The dashboard's overlays — the Major's resolve/damage/storage prompts, the
+ * table picker — each open over a region rather than in a
  * `<dialog>`, so none of them inherited the platform's dismiss behaviour, and
  * the cockpit directory had no keydown handling at all. Escape did nothing
  * anywhere, which is how two overlays could end up open at once.

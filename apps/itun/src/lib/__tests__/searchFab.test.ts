@@ -3,7 +3,7 @@ import { fabCollides } from '../searchFab'
 
 /**
  * The search FAB stands aside only where a route's own controls hold the
- * bottom-right corner — the Dashboard's dial bar and the three creation
+ * bottom-right corner — the Dashboard's fixed canvas and the three creation
  * wizards' footer pill — and nowhere else.
  */
 describe('fabCollides', () => {

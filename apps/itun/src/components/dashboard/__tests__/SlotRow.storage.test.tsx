@@ -1,5 +1,5 @@
 /**
- * Tests for the Phase-7 cargo-hold overlay on the mech band: the Storage button
+ * Tests for the Phase-7 cargo-hold overlay on the Mech Major: the Storage button
  * opens a hold listing the mech's cargo lots, and Jettison writes a cargoLots
  * patch with that lot removed (the explicit player-confirmed discard, ADR-007).
  */
@@ -8,11 +8,19 @@ import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import type { Mech } from '../../../lib/schemas/mech'
-import { mechFixture } from '../../__tests__/fixtures'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import type { PlayStore } from '../ActiveItemBand'
-import { ActiveItemBand } from '../ActiveItemBand'
+import type { PlayStore } from '../SlotRow'
+import { SlotRow } from '../SlotRow'
 import { boardedSeat } from './seatFixture'
+
+/** The slot row's other inputs, which these tests don't vary. */
+const ROW = {
+  pilot: pilotFixture({ id: 'p-row', name: 'Vesh' }),
+  crawler: null,
+  mediator: false,
+  onExpand: () => {},
+}
 
 const lotA: CargoLot = {
   id: 'lot-a',
@@ -57,14 +65,15 @@ function stubStore(entities: Mech[]): { store: PlayStore; calls: Call[] } {
   return { store, calls }
 }
 
-describe('ActiveItemBand cargo hold', () => {
+describe('Mech Major cargo hold', () => {
   test('Storage opens the hold listing the cargo lots', () => {
     const { store } = stubStore([mech])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={mech}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(mech.id).handle}
         store={store}
       />
@@ -78,10 +87,11 @@ describe('ActiveItemBand cargo hold', () => {
   test('Jettison writes cargoLots without the discarded lot', () => {
     const { store, calls } = stubStore([mech])
     render(
-      <ActiveItemBand
+      <SlotRow
+        {...ROW}
         mech={mech}
-        pilot={null}
         mount="mech"
+        boarded
         seat={boardedSeat(mech.id).handle}
         store={store}
       />

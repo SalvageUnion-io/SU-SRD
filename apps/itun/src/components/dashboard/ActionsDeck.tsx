@@ -15,7 +15,7 @@
  *   Roll      → the Core Mechanic d20 + its band (component state, never stored)
  *   Push      → reroll the d20, +2 Heat, forcing a Heat Check (mech deck only)
  *   Apply     → commit the rolled outcome (Cascade Failure is routed to the
- *               Active Item band, never auto-written)
+ *               Mech's Major slot, never auto-written)
  *
  * On foot (`mount === 'pilot'`) the deck is the pilot's abilities + equipment on
  * the AP economy. Boarded, it is BOTH: the mech's chassis + systems + modules on
@@ -54,7 +54,6 @@ import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
-import type { PlayStore } from './ActiveItemBand'
 import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
 import {
   actionReachable,
@@ -72,6 +71,7 @@ import {
   TIMING_TABS,
   tabMatchesAction,
 } from './dashboardRules'
+import type { PlayStore } from './SlotRow'
 import type { MountState } from './useSeat'
 
 /**
@@ -528,7 +528,7 @@ export function ActionsDeck({
       // An unrecorded live stat means UNSPENT, not empty — a pilot who has never
       // spent AP is at full AP. Defaulting to 0 here banked the spend against an
       // empty pool and wrote AP 0 on the first activation. The stored value stays
-      // authoritative when present (same rule as ActiveItemBand's damage write):
+      // authoritative when present (same rule as the Mech Major's damage write):
       // never clamp it here, since an unresolved ref makes the max 0.
       const patch = pilotActivationPatch({
         apCost: economy.epCost,
@@ -567,7 +567,7 @@ export function ActionsDeck({
   /**
    * Apply commits the rolled outcome (ADR-007). Non-destructive bands auto-commit;
    * a Cascade Failure is destructive — it is NOT auto-written; the deck ARMS the
-   * active Item band to open its Take-Damage overlay so the player confirms there.
+   * Mech's Major slot to open its Take-Damage overlay so the player confirms there.
    */
   function doApply(result: CoreRollResult) {
     if (isDestructiveOutcome(result.band)) {

@@ -30,7 +30,7 @@ export const Default = () => (
               color: 'var(--color-ink-50)',
             }}
           >
-            Dashboard grid · rail / primary / wheel / display
+            Dashboard grid · rail / primary / display
           </span>
         </div>
       </DashboardCanvas>

@@ -26,7 +26,7 @@
  *
  * Every operation is best-effort and total: reads return `null` when anything
  * goes wrong, writes report whether they landed and never throw. Persistence
- * here is a convenience — a dial layout, the current container
+ * here is a convenience — the current container, a remembered choice
  * — so a failure must degrade the preference, never the app.
  */
 
@@ -75,40 +75,10 @@ export function writeLocal(key: string, value: string): boolean {
 }
 
 /**
- * Deliberately no `removeLocal` / `isLocalStorageAvailable`: nothing needs
- * them. The caller that would have (the snapshot revoke ledger) went with
- * snapshot publishing (ADR-036), and the dead-code gate treats an export with
+ * Deliberately no `removeLocal` / `isLocalStorageAvailable`, nor the JSON
+ * helpers: nothing needs them. The callers that would have (the snapshot
+ * revoke ledger, the Dial's prefs store) went with snapshot publishing
+ * (ADR-036) and the Dial, and the dead-code gate treats an export with
  * no consumer as dead. Add them here — same `backing()` + `try` shape as above —
  * in the change that first needs them, not before.
  */
-
-/**
- * Read and `JSON.parse` a key, with `null` for anything that does not survive
- * the round trip — absent, unavailable, or malformed.
- *
- * The parse is deliberately here rather than at each call site: stored JSON is
- * untrusted input (a previous build wrote it, or the user edited it), and a
- * `SyntaxError` escaping into a store initializer would take down the app at
- * import time. Callers still have to validate the *shape* — this only promises
- * the string was JSON.
- */
-export function readLocalJson(key: string): unknown {
-  const raw = readLocal(key)
-  if (raw === null) return null
-  try {
-    return JSON.parse(raw)
-  } catch {
-    // A value this app did not write, or wrote under an older format.
-    return null
-  }
-}
-
-/** `JSON.stringify` and write. Returns whether it landed; never throws. */
-export function writeLocalJson(key: string, value: unknown): boolean {
-  try {
-    return writeLocal(key, JSON.stringify(value))
-  } catch {
-    // A value with a circular reference or a throwing toJSON.
-    return false
-  }
-}

@@ -1,5 +1,5 @@
 /**
- * DashboardGauge — the Active Item / dial instrument readout. A thin, presentational
+ * DashboardGauge — the Major and Minor slots' instrument readout. A thin, presentational
  * wrapper over `VitalGauge` at its single-row `compact` rung: the
  * segmented-bar rendering lives in the shared primitive (one gauge for the sheet AND
  * the dashboard), and this only maps the dashboard's ontology tones onto the gauge's

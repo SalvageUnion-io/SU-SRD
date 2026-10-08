@@ -28,8 +28,8 @@ import { hydrateStores } from '../../__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
 import { ActionsDeck } from '../ActionsDeck'
-import type { PlayStore } from '../ActiveItemBand'
 import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
+import type { PlayStore } from '../SlotRow'
 
 beforeAll(hydrateStores)
 
@@ -312,7 +312,7 @@ describe('ActionsDeck', () => {
     const routed = container.querySelector('.pc-deck-apply-route')
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a
-    // destructive band is routed to the Active Item band, never auto-applied).
+    // destructive band is routed to the Mech's Major slot, never auto-applied).
     expect(calls).toHaveLength(0)
   })
 
