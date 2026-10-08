@@ -332,6 +332,10 @@ jobs:
     # exempts this job alone and fails if it ever gains an `environment:`.
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      # The Environment and deployment-branch-policy endpoints read as Actions.
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v7
