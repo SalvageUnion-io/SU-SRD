@@ -55,6 +55,10 @@ const SHELL = 'index.html'
 
 export const WORKBOX_OPTIONS = {
   globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+  // Replaces a worker from before network-first navigations at once and
+  // reloads its tabs, which `prompt` would otherwise leave on the old build
+  // indefinitely. See the header of public/sw-takeover.js.
+  importScripts: ['sw-takeover.js'],
   // No precache-bound NavigationRoute. Navigations are the runtime rule below.
   navigateFallback: null,
   directoryIndex: null,
