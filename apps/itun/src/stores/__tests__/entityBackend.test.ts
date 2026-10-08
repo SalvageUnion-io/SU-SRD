@@ -4,6 +4,7 @@ import {
   backendForMode,
   changeLogEntryArgs,
   crawlerPatchArgs,
+  readableRows,
   requireWritableBackend,
   selectBackend,
   setEntityBackendAuthState,
@@ -13,53 +14,53 @@ import {
 /**
  * Backend selection (ADR-030 §1, ADR-034 decision 1).
  *
- * Two durable-or-not answers and one refusal: `memory` for anybody not signed
- * in, `remote` for a Connected session, `blocked` while Disconnected or still
+ * Three answers, two of them refusals: `signedOut` for anybody not signed
+ * in (read-only, and reads nothing), `remote` for a Connected session, `blocked` while Disconnected or still
  * settling the auth handshake. The `local` backend — durable IndexedDB for an
  * anonymous visitor in a build with the account gate off — is retired, and the
  * tests below pin that it cannot come back through any combination of inputs.
  *
  * The test build has no `VITE_CONVEX_URL`, so `convexClient` is null. That is
- * the configuration CI and a fresh checkout run in, and it is now anonymous and
- * in-memory whatever the auth state claims.
+ * the configuration CI and a fresh checkout run in, and it is now anonymous
+ * whatever the auth state claims.
  */
 
 afterEach(() => {
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
-describe('a build with no Convex URL is always anonymous, and anonymous is memory', () => {
+describe('a build with no Convex URL is always anonymous', () => {
   test('signed out', () => {
     setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('memory')
+    expect(selectBackend()).toBe('signedOut')
   })
 
   test('even when the auth state claims signed in', () => {
     // There is no client to talk to, so "signed in" cannot be true in any
     // meaningful sense. Resolving to remote here would strand every write.
     setEntityBackendAuthState({ signedIn: true, online: true })
-    expect(selectBackend()).toBe('memory')
+    expect(selectBackend()).toBe('signedOut')
   })
 
   test('even when offline', () => {
     setEntityBackendAuthState({ signedIn: true, online: false })
-    expect(selectBackend()).toBe('memory')
+    expect(selectBackend()).toBe('signedOut')
   })
 })
 
 describe('an unsettled auth handshake cannot block a build with no auth layer', () => {
-  test('still memory, refused as signed out rather than as settling', () => {
+  test('with no handshake to wait for, it is refused as signed out, not as settling', () => {
     // `authSettled: false` is what ConnectionProvider pushes for the first few
     // hundred ms of a signed-in load — but with no Convex URL there is no
     // handshake to wait for, so the refusal says "sign in", not "try again".
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
-    expect(selectBackend()).toBe('memory')
+    expect(selectBackend()).toBe('signedOut')
     expect(refusalReason()).toBe('signedOut')
   })
 
   test('an omitted authSettled is treated as settled', () => {
     setEntityBackendAuthState({ signedIn: false, online: true })
-    expect(selectBackend()).toBe('memory')
+    expect(selectBackend()).toBe('signedOut')
   })
 })
 
@@ -89,7 +90,7 @@ describe('the signed-in backend the durability tests run on', () => {
   test('a configured, settled, online, signed-in session is remote', () => {
     // What `withSignedInBackend()` pushes. If this stopped resolving to
     // `remote`, every durability test would quietly start asserting against
-    // the memory backend instead.
+    // the signed-out backend instead.
     setEntityBackendAuthState({
       signedIn: true,
       online: true,
@@ -154,7 +155,7 @@ describe('WritesBlockedOffline', () => {
 
 describe('backendForMode — the whole rule', () => {
   test('every mode maps to exactly one of the three backends', () => {
-    expect(backendForMode('solo')).toBe('memory')
+    expect(backendForMode('solo')).toBe('signedOut')
     expect(backendForMode('connected')).toBe('remote')
     expect(backendForMode('disconnected')).toBe('blocked')
     expect(backendForMode('connecting')).toBe('blocked')
@@ -167,7 +168,7 @@ describe('backendForMode — the whole rule', () => {
     // unwritten: there is no argument left to pass it through.
     expect(backendForMode.length).toBe(1)
     for (const mode of CONNECTION_MODES) {
-      expect(['remote', 'blocked', 'memory']).toContain(backendForMode(mode))
+      expect(['remote', 'blocked', 'signedOut']).toContain(backendForMode(mode))
     }
   })
 
@@ -177,8 +178,49 @@ describe('backendForMode — the whole rule', () => {
     // stay in IndexedDB, and `AccountReconciler` moves them into the account on
     // sign-in.
     // See `lib/account/__tests__/legacyMigration.test.ts`.
-    expect(backendForMode('solo')).toBe('memory')
+    expect(backendForMode('solo')).toBe('signedOut')
     expect(backendForMode('connected')).toBe('remote')
+  })
+})
+
+describe('readableRows — what a store may show', () => {
+  /** A cache that records whether it was read. */
+  function cache() {
+    const read = { count: 0 }
+    return {
+      read,
+      list: async () => {
+        read.count += 1
+        return [{ id: 'on-disk' }]
+      },
+    }
+  }
+
+  test('signed out shows nothing, and does not even read the cache', async () => {
+    // The cache may hold a pre-account roster (ADR-035: migrated on sign-in,
+    // never shown signed out) or the last account's rows.
+    const c = cache()
+    expect(await readableRows(c)).toEqual([])
+    expect(c.read.count).toBe(0)
+  })
+
+  test('signed in, or blocked, shows the cache', async () => {
+    setEntityBackendAuthState({
+      signedIn: true,
+      online: true,
+      authSettled: true,
+      convexConfigured: true,
+    })
+    expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
+    // Disconnected is read-only, not blind: what was pulled down stays open.
+    setEntityBackendAuthState({
+      signedIn: true,
+      online: false,
+      authSettled: true,
+      convexConfigured: true,
+    })
+    expect(selectBackend()).toBe('blocked')
+    expect(await readableRows(cache())).toEqual([{ id: 'on-disk' }])
   })
 })
 

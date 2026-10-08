@@ -31,14 +31,15 @@ never `navigator.onLine` or an auth flag.
 ```typescript
 // read (synchronous after lazy hydration)
 const pilots = useEntityStore((s) => s.list('pilots'))
-// write (server-first when signed in, then memory + cross-tab broadcast)
+// write (server-first, then the cache + cross-tab broadcast; refused signed out)
 await useEntityStore.getState().update('pilots', id, { hp: next })
 ```
 
 The store's call shape is the same in every mode. `src/stores/entityBackend.ts`
-picks the backend (`selectBackend()` → `remote | blocked | memory`): `memory` is
-any anonymous visitor, in every build, and is **read-only** — building needs an
-account, so its writes are refused (`signedOut`); `blocked` is
+picks the backend (`selectBackend()` → `remote | blocked | signedOut`):
+`signedOut` is any anonymous visitor, in every build, and is **read-only** —
+building needs an account, so its writes are refused — and reads nothing: every
+store goes through `readableRows`, never IndexedDB; `blocked` is
 signed-in-and-offline or mid-handshake — read-only too, not a write queue. Check
 `canWrite` before offering any edit affordance. A unit test that writes runs
 signed in via `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).

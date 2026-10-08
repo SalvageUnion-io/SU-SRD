@@ -226,9 +226,8 @@ export const claimLocal = mutation({
      * Additive: the counts are unchanged. A refused row with no string `id`
      * cannot be named, so it is simply absent here — which is why a caller
      * must treat any row whose id is not in the set AND that it cannot
-     * identify as not saved, rather than reading absence as success. The
-     * client's `withoutIds` already does, because it never excludes an
-     * id-less row.
+     * identify as not saved, rather than reading absence as success. No
+     * client reads it today: the device pass re-compares against `listMine`.
      */
     strandedIds: string[]
     byKind: Record<string, number>

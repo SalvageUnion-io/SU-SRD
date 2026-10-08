@@ -36,7 +36,6 @@ import type { ContainerFields } from '../lib/container'
 import { containerOf, moveTo, sameContainer } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
-import { makeMemoryStore } from '../lib/db/memoryStore'
 import type { StoreName } from '../lib/db/stores'
 import { STORE_NAMES } from '../lib/db/stores'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
@@ -48,19 +47,15 @@ import {
   sameLink,
 } from '../lib/links/linkRules'
 import type { Crawler } from '../lib/schemas/crawler'
-import { CrawlerSchema } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
-import { MechSchema } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
-import { PilotSchema } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
-import { SoftLinkSchema } from '../lib/schemas/softLink'
 import { getActiveContainer } from './activeContainerStore'
 import {
   commitEntityWrite,
   commitSoftLink,
+  readableRows,
   requireWritableBackend,
-  selectBackend,
 } from './entityBackend'
 import type { ChangeMeta } from './entityChangeLog'
 import { emitChangeLog } from './entityChangeLog'
@@ -86,8 +81,9 @@ export type EntityState = {
   }
 
   /**
-   * Loads all records of the given type from IndexedDB into in-memory state.
-   * Idempotent: subsequent calls when already hydrated are no-ops.
+   * Loads all records of the given type from IndexedDB into in-memory state
+   * (none signed out — see `readableRows`). Idempotent: subsequent calls when
+   * already hydrated are no-ops.
    */
   hydrate: (type: EntityType) => Promise<void>
 
@@ -233,26 +229,6 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
 }
 
 /**
- * The same four stores, backed by a Map that never touches disk — what an
- * anonymous visitor builds against under ADR-034 decision 1.
- *
- * Built once at module scope rather than per call, because these hold the rows:
- * a fresh store per `dbStoreFor()` would hand every read an empty Map and the
- * app would look like it was losing every write instantly.
- *
- * `hasUpdatedAt` mirrors `src/lib/db/index.ts`'s options for the same four
- * stores. If those diverge, an anonymous session stamps different fields from a
- * signed-in one, which is the kind of difference that only shows up much later
- * as a failed strict parse on import.
- */
-const MEMORY_STORES: { [K in EntityType]: DbStoreApi<K> } = {
-  pilot: makeMemoryStore(PilotSchema, STORE_NAMES.pilots, { hasUpdatedAt: true }),
-  mech: makeMemoryStore(MechSchema, STORE_NAMES.mechs, { hasUpdatedAt: true }),
-  crawler: makeMemoryStore(CrawlerSchema, STORE_NAMES.crawlers, { hasUpdatedAt: true }),
-  softLink: makeMemoryStore(SoftLinkSchema, STORE_NAMES.softLinks, { hasUpdatedAt: false }),
-}
-
-/**
  * Commit one record to the server of record, and throw if it refuses.
  *
  * The replacement for `mirrorEntityWrite`, and the shape change is the point:
@@ -299,48 +275,17 @@ async function commitWrite(
 }
 
 /**
- * Which persistence this write or read should use.
+ * The IndexedDB store for one entity type — the account's cache.
  *
- * The one indirection the whole store reaches persistence through, which is why
- * adding the anonymous backend needed no change to `create`, `update`,
- * `delete`, hydration, the in-memory cache, or any component.
- *
- * Resolved per call rather than captured once: `selectBackend()` reads live auth
- * state, and a module-level snapshot would pin an anonymous visitor to the
- * memory store for the rest of the session — including after they sign in.
+ * Every write reaches it only after `requireWritableBackend()` (or, for
+ * `adopt`/`forget`, from a signed-in sync), so there is no other backend to
+ * pick. Reads go through `readableRows`, which answers nothing signed out.
  */
 function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
-  const stores = selectBackend() === 'memory' ? MEMORY_STORES : DB_STORES
   // Single correlated-union assertion: TS cannot carry the runtime
   // discriminant↔record-type invariant through the map lookup for a
   // generic T (microsoft/TypeScript#30581).
-  return stores[type] as DbStoreApi<T>
-}
-
-/**
- * Whether a write should be announced to other tabs.
- *
- * False for the anonymous backend: two tabs of an anonymous session are two
- * sessions, holding two unrelated Maps. Broadcasting between them would tell tab
- * B to re-read a store that never received tab A's write, so B would blank its
- * own cache and lose the work it was holding — inventing exactly the
- * device-local shared state ADR-034 exists to remove, and losing data doing it.
- */
-function shouldBroadcast(): boolean {
-  return selectBackend() !== 'memory'
-}
-
-/**
- * Announce a store change to other tabs, unless the backend is anonymous.
- *
- * Every broadcast in this module goes through here rather than calling
- * `publishStoreChange` directly, so the anonymous case is decided once. Six
- * guarded call sites would be five chances to forget, and forgetting would not
- * fail a test — it would quietly blank another tab.
- */
-function publish(name: StoreName): void {
-  if (!shouldBroadcast()) return
-  publishStoreChange(name)
+  return DB_STORES[type] as DbStoreApi<T>
 }
 
 /** Object-store name for broadcast messages. */
@@ -358,7 +303,7 @@ function broadcastNameFor(type: EntityType): StoreName {
 }
 
 function afterWrite(type: EntityType): void {
-  publish(broadcastNameFor(type))
+  publishStoreChange(broadcastNameFor(type))
 }
 
 /**
@@ -380,23 +325,15 @@ function withActiveContainer<T extends EntityType>(type: T, input: CreateInput<T
 }
 
 /**
- * Put one link and delete others in this browser's copy, all or nothing.
- *
- * One IndexedDB transaction when the backend has one, so a replace can never
- * leave both the old assignment and the new one on disk; the anonymous Map has
- * no transactions and no crash to survive, so it takes the writes in turn.
+ * Put one link and delete others in this browser's copy, all or nothing: one
+ * IndexedDB transaction, so a replace can never leave both the old assignment
+ * and the new one on disk.
  */
 async function writeLinksLocally(
   put: SoftLink | null,
   deleteIds: readonly string[]
 ): Promise<void> {
   if (put === null && deleteIds.length === 0) return
-  if (selectBackend() === 'memory') {
-    const links = MEMORY_STORES.softLink
-    for (const id of deleteIds) await links.delete(id)
-    if (put !== null) await links.put(put)
-    return
-  }
   await db.atomicWrite([
     ...deleteIds.map((id) => ({ op: 'delete' as const, storeName: STORE_NAMES.softLinks, id })),
     ...(put === null
@@ -457,7 +394,7 @@ async function createSoftLink(
       ...s.softLinks.filter((l) => !replacedIds.has(l.id)),
     ],
   }))
-  publish(STORE_NAMES.softLinks)
+  publishStoreChange(STORE_NAMES.softLinks)
   return present ?? record
 }
 
@@ -482,7 +419,7 @@ async function pruneLinksAfterMove(
   const brokenIds = new Set(broken.map((l) => l.id))
   await writeLinksLocally(null, [...brokenIds])
   set((s) => ({ softLinks: s.softLinks.filter((l) => !brokenIds.has(l.id)) }))
-  publish(STORE_NAMES.softLinks)
+  publishStoreChange(STORE_NAMES.softLinks)
 }
 
 export const useEntityStore = create<EntityState>((set, get) => ({
@@ -505,7 +442,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async rehydrate(type) {
     const key = storeKeyFor(type)
-    const records = await dbStoreFor(type).list()
+    const records = await readableRows(dbStoreFor(type))
     set((state) => ({
       [key]: records,
       hydrated: { ...state.hydrated, [key]: true },
@@ -575,7 +512,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         [key]: exists ? list.map((e) => (e.id === cached.id ? cached : e)) : [cached, ...list],
       }
     })
-    publish(broadcastNameFor(type))
+    publishStoreChange(broadcastNameFor(type))
     return cached
   },
 
@@ -586,7 +523,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       // ones the server no longer holds through here.
       await writeLinksLocally(null, [id])
       set((state) => ({ softLinks: state.softLinks.filter((l) => l.id !== id) }))
-      publish(STORE_NAMES.softLinks)
+      publishStoreChange(STORE_NAMES.softLinks)
       return
     }
     // Local only, and cascading like `delete` does: a SoftLink pointing at an
@@ -595,12 +532,12 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     if (prunedIds.length > 0) {
       const pruned = new Set(prunedIds)
       set((state) => ({ softLinks: state.softLinks.filter((l) => !pruned.has(l.id)) }))
-      publish(STORE_NAMES.softLinks)
+      publishStoreChange(STORE_NAMES.softLinks)
     }
     set((state) => ({
       [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
     }))
-    publish(broadcastNameFor(type))
+    publishStoreChange(broadcastNameFor(type))
   },
 
   async update<T extends EntityType>(
@@ -776,7 +713,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     ])
     for (const type of touched) afterWrite(type)
     if (pruned.size > 0 && !touched.has('softLink')) {
-      publish(STORE_NAMES.softLinks)
+      publishStoreChange(STORE_NAMES.softLinks)
     }
 
     // Phase 4 — provenance (ADR-022), mirroring update()'s awaited emit. One
@@ -865,7 +802,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
         set((state) => ({
           softLinks: state.softLinks.filter((l) => !pruned.has(l.id)),
         }))
-        publish(STORE_NAMES.softLinks)
+        publishStoreChange(STORE_NAMES.softLinks)
       }
       set((state) => ({
         [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),

@@ -3,12 +3,11 @@
  *
  * ## Why this exists
  *
- * There are two places a write can land since the `local` backend was retired:
- * `memory` for an anonymous visitor, and `remote` — the IndexedDB cache in
- * front of the Convex server of record — for somebody signed in. Only the
- * second is durable, so every test that asserts a write survives a rehydrate,
- * a reset of the in-memory cache, or a direct read of `db.*` is by definition a
- * test of the signed-in path.
+ * There is one place a write can land: `remote` — the IndexedDB cache in front
+ * of the Convex server of record — for somebody signed in. An anonymous
+ * visitor (`signedOut`, the test build's default) is read-only and reads
+ * nothing, so every test that writes, rehydrates, or reads `db.*` back through
+ * a store is by definition a test of the signed-in path.
  *
  * The test build has no `VITE_CONVEX_URL`, so the real mode resolution can
  * never reach `connected`. This pushes `convexConfigured: true` alongside a

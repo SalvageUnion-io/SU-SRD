@@ -7,16 +7,15 @@ import type { ReactElement } from 'react'
  * The one local → account surface (`AccountReconciler`).
  *
  * What these pin is behaviour a player can see or lose work to: signed out it
- * renders nothing; signing in sends exactly this tab's work and nothing a
- * signed-in page load did not ask for;
- * a device roster is compared before it is sent; and a result that resolved
- * with stranded rows is shown, with a retry that actually retries.
+ * renders nothing and sends nothing; signed in, a device roster is compared
+ * before it is sent; and a result that resolved with stranded rows is shown,
+ * with a retry that actually retries.
  *
  * Queries are answered by name and mutations are recorded by name — see
  * `convexMock.ts` for the capture/restore discipline.
  */
 
-import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import { pilotFixture } from '../../__tests__/fixtures'
 
 let authed = false
@@ -26,14 +25,12 @@ type ClaimResult = {
   skipped: number
   alreadyPresent: number
   declined: number
-  strandedIds: string[]
 }
 const NOTHING_CLAIMED: ClaimResult = {
   claimed: 0,
   skipped: 0,
   alreadyPresent: 0,
   declined: 0,
-  strandedIds: [],
 }
 let claimResult: ClaimResult = { ...NOTHING_CLAIMED }
 /**
@@ -49,14 +46,12 @@ let gate: Promise<void> | null = null
 const mutations: { name: string; args: Record<string, unknown> }[] = []
 
 function serverClaim(args: Record<string, unknown>, s: NonNullable<typeof server>): ClaimResult {
-  const result: ClaimResult = { ...NOTHING_CLAIMED, strandedIds: [] }
+  const result: ClaimResult = { ...NOTHING_CLAIMED }
   for (const row of (args.pilots as { id: string }[] | undefined) ?? []) {
     if (s.owned.has(row.id)) {
       result.alreadyPresent += 1
-      result.strandedIds.push(row.id)
     } else if (s.unparseable.has(row.id)) {
       result.skipped += 1
-      result.strandedIds.push(row.id)
     } else {
       s.owned.add(row.id)
       result.claimed += 1
@@ -86,20 +81,12 @@ const db = await import('../../../lib/db/index')
 const { _resetLegacyProbe, legacyLocalDataState, probeLegacyLocalData } = await import(
   '../../../lib/db/legacyLocalData'
 )
-const { promotionState, resetPromotionStateForTesting } = await import(
-  '../../../lib/account/promotionState'
-)
 
 afterAll(() => {
   convexMocks.restore()
 })
 
-/**
- * Sign in the way a player does: after the page has settled anonymously. The
- * device probe runs at boot, long before anybody finds the sign-in button, and
- * flipping before it resolves would let it read back rows the session save has
- * just cached — a race no browser can produce.
- */
+/** Sign in the way a player does: after the page has settled anonymously. */
 async function signIn(view: { rerender: (ui: ReactElement) => void }): Promise<void> {
   await act(async () => {
     await probeLegacyLocalData()
@@ -108,13 +95,17 @@ async function signIn(view: { rerender: (ui: ReactElement) => void }): Promise<v
   view.rerender(<Tree />)
 }
 
-function claims() {
-  return mutations.filter((m) => m.name === 'claim:claimLocal')
+/** Sign out, and let the signed-out render settle. */
+async function signOut(view: { rerender: (ui: ReactElement) => void }): Promise<void> {
+  authed = false
+  view.rerender(<Tree />)
+  await act(async () => {
+    await Promise.resolve()
+  })
 }
 
-/** Renders of the signed-in half: only it reads `games.listMine`. */
-function signedInRenders() {
-  return queryCalls().filter((c) => c.name === 'games:listMine').length
+function claims() {
+  return mutations.filter((m) => m.name === 'claim:claimLocal')
 }
 
 const Tree = () => (
@@ -158,14 +149,13 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  // Both are process-global; a leaked signed-in state or a leaked `failed`
-  // would change what every later file exercises.
+  // Process-global; a leaked signed-in state would change what every later
+  // file exercises.
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  resetPromotionStateForTesting()
 })
 
 describe('signed out', () => {
-  test('nothing built and nothing on the device: nothing is rendered', async () => {
+  test('nothing on the device: nothing is rendered', async () => {
     const { container } = render(<Tree />)
     // Let the device probe resolve before asserting it found nothing.
     await act(async () => {
@@ -174,12 +164,10 @@ describe('signed out', () => {
     expect(container.textContent).toBe('')
   })
 
-  test('work in this tab and rows on the device: still nothing is rendered', async () => {
-    // The signed-out banner was removed at the product owner's request. The
-    // capture still happens (the "signing in" tests below send it); only the
-    // notice is gone.
+  test('rows on the device: nothing is rendered, and nothing is sent', async () => {
+    // A pre-account roster stays on disk, unseen, until somebody signs in
+    // (ADR-035). Signed out there is no account to send it to.
     await db.pilots.put(pilotFixture({ id: 'disk-1' }))
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
     const { container } = render(<Tree />)
     await act(async () => {
       await probeLegacyLocalData()
@@ -188,30 +176,15 @@ describe('signed out', () => {
     expect(legacyLocalDataState()).toBe('present')
     expect(container.textContent).toBe('')
     expect(screen.queryByRole('button')).toBeNull()
-    expect(screen.queryByRole('status')).toBeNull()
+    expect(claims()).toHaveLength(0)
   })
 })
 
-describe('signing in', () => {
-  test('sends this tab’s work once the backend flips, and reports nothing on success', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    claimResult = { ...NOTHING_CLAIMED, claimed: 1 }
-    const view = render(<Tree />)
-    expect(claims()).toHaveLength(0)
-
-    await signIn(view)
-
-    await waitFor(() => expect(claims()).toHaveLength(1))
-    const sent = claims()[0]?.args.pilots as { id: string }[] | undefined
-    expect(sent?.map((p) => p.id)).toEqual(['tab-1'])
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
-  })
-
-  test('a page loaded already signed in uploads nothing it was not asked to', async () => {
-    // The consent line: only work captured WHILE ANONYMOUS in this tab is sent.
+describe('signed in', () => {
+  test('a page loaded signed in with nothing on the device sends nothing', async () => {
+    // What the store holds is the account's own rows, not local work.
     authed = true
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'cached' }))
+    useEntityStore.setState({ pilots: [pilotFixture({ id: 'cached' })] })
     render(<Tree />)
 
     await act(async () => {
@@ -220,21 +193,58 @@ describe('signing in', () => {
     expect(claims()).toHaveLength(0)
   })
 
-  test('a resolved-but-partial save is shown, and Try again sends only what did not land', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
-    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
-    const view = render(<Tree />)
+  test('device rows missing from the account are sent, on the shelf', async () => {
+    await db.pilots.put(pilotFixture({ id: 'disk-1', gameId: 'phantom-workspace' }))
+    authed = true
+    render(<Tree />)
 
+    await waitFor(() => expect(claims()).toHaveLength(1))
+    const sent = claims()[0]?.args.pilots as { id: string; gameId: unknown }[]
+    expect(sent.map((p) => p.id)).toEqual(['disk-1'])
+    // A phantom Game id would upload the row into the same invisibility.
+    expect(sent[0]?.gameId).toBeNull()
+    await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
+    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull()
+  })
+
+  test('device rows the account already owns are not re-sent', async () => {
+    await db.pilots.put(pilotFixture({ id: 'owned-1' }))
+    setQueryAnswers({
+      'entities:listMine': {
+        ...EMPTY_ROSTER,
+        pilots: [{ appId: 'owned-1', body: { id: 'owned-1' } }],
+      },
+      'games:listMine': [],
+      'entities:listWiring': EMPTY_WIRING,
+    })
+    authed = true
+    render(<Tree />)
+
+    // The device pass closes the migration window once it finds nothing to send.
+    await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
+    expect(claims()).toHaveLength(0)
+  })
+
+  test('a resolved-but-partial move is shown, and Try again sends only what did not land', async () => {
+    await db.pilots.put(pilotFixture({ id: 'disk-1' }))
+    await db.pilots.put(pilotFixture({ id: 'disk-2' }))
+    server = { owned: new Set(), unparseable: new Set(['disk-2']) }
+    const view = render(<Tree />)
     await signIn(view)
 
-    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
-    // The prune must not read the un-saved row as "deleted elsewhere".
-    expect(promotionState()).toBe('failed')
+    await waitFor(() =>
+      expect(screen.getByText(/1 build could not be moved into your account/i)).toBeTruthy()
+    )
+    // The window stays open: the prune must not read the un-moved row as
+    // "deleted elsewhere".
+    expect(legacyLocalDataState()).toBe('present')
 
-    // The account now serves what the first pass saved, as `listMine` would.
+    // The account now serves what the first pass moved, as `listMine` would.
     setQueryAnswers({
-      'entities:listMine': { ...EMPTY_ROSTER, pilots: [{ appId: 'tab-1', body: { id: 'tab-1' } }] },
+      'entities:listMine': {
+        ...EMPTY_ROSTER,
+        pilots: [{ appId: 'disk-1', body: { id: 'disk-1' } }],
+      },
       'games:listMine': [],
       'entities:listWiring': EMPTY_WIRING,
     })
@@ -243,80 +253,35 @@ describe('signing in', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
     await waitFor(() => expect(claims()).toHaveLength(2))
-    // Resending tab-1 would come back `alreadyPresent` and never clear.
+    // Resending disk-1 would come back `alreadyPresent` and never clear.
     const resent = claims()[1]?.args.pilots as { id: string }[] | undefined
-    expect(resent?.map((p) => p.id)).toEqual(['tab-2'])
-    await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
-    expect(promotionState()).toBe('idle')
+    expect(resent?.map((p) => p.id)).toEqual(['disk-2'])
+    await waitFor(() => expect(screen.queryByText(/could not be moved/i)).toBeNull())
+    expect(legacyLocalDataState()).toBe('absent')
   })
 
-  test('after a partial save, Try again leaves out what landed even before the account reloads', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
-    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
+  test('a failure from one sign-in does not stop the next one from moving the rows', async () => {
+    await db.pilots.put(pilotFixture({ id: 'disk-1' }))
+    server = { owned: new Set(), unparseable: new Set(['disk-1']) }
     const view = render(<Tree />)
     await signIn(view)
-    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/1 build could not be moved/i)).toBeTruthy())
 
-    // `listMine` still answers empty: the capture itself must already know
-    // tab-1 landed, from the ids the server named as stranded.
+    // Signing out ends that sign-in's error line…
+    await signOut(view)
+    expect(screen.queryByText(/could not be moved/i)).toBeNull()
+
+    // …and the next sign-in runs its own pass rather than waiting on it.
     server.unparseable.clear()
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-
-    await waitFor(() => expect(claims()).toHaveLength(2))
-    const resent = claims()[1]?.args.pilots as { id: string }[] | undefined
-    expect(resent?.map((p) => p.id)).toEqual(['tab-2'])
-    await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
-  })
-
-  test('the rows a partial save landed are not sent to the next account', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
-    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
-    const view = render(<Tree />)
-    await signIn(view)
-    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
-
-    // Sign out: tab-1 is account A's now; only tab-2 is still this tab's work.
-    authed = false
-    view.rerender(<Tree />)
-    await waitFor(() => expect(screen.queryByText(/could not be saved/i)).toBeNull())
-
-    // Sign in to account B, which owns nothing and accepts everything.
-    server = { owned: new Set(), unparseable: new Set() }
     authed = true
     view.rerender(<Tree />)
-
     await waitFor(() => expect(claims()).toHaveLength(2))
-    const sent = claims()[1]?.args.pilots as { id: string }[] | undefined
-    expect(sent?.map((p) => p.id)).toEqual(['tab-2'])
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-    expect(screen.queryByText(/could not be saved/i)).toBeNull()
+    await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
+    expect(screen.queryByText(/could not be moved/i)).toBeNull()
   })
 
-  test('a retry that fails again reports only the rows still missing', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
-    server = { owned: new Set(), unparseable: new Set(['tab-2']) }
-    const view = render(<Tree />)
-    await signIn(view)
-    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
-
-    setQueryAnswers({
-      'entities:listMine': { ...EMPTY_ROSTER, pilots: [{ appId: 'tab-1', body: { id: 'tab-1' } }] },
-      'games:listMine': [],
-      'entities:listWiring': EMPTY_WIRING,
-    })
-    view.rerender(<Tree />)
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-
-    await waitFor(() => expect(claims()).toHaveLength(2))
-    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
-    expect(screen.queryByText(/2 builds could not be saved/i)).toBeNull()
-  })
-
-  test('a remount while the upload is in flight does not send it twice', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
+  test('a remount while the move is in flight does not send it twice', async () => {
+    await db.pilots.put(pilotFixture({ id: 'disk-1' }))
     server = { owned: new Set(), unparseable: new Set() }
     let release: () => void = () => {}
     gate = new Promise<void>((resolve) => {
@@ -339,136 +304,8 @@ describe('signing in', () => {
       await gate
     })
 
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-    expect(claims()).toHaveLength(1)
-    expect(screen.queryByText(/could not be saved/i)).toBeNull()
-  })
-
-  test('a failure from one sign-in does not stop the next one from saving', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    server = { owned: new Set(), unparseable: new Set(['tab-1']) }
-    const view = render(<Tree />)
-    await signIn(view)
-    await waitFor(() => expect(screen.getByText(/1 build could not be saved/i)).toBeTruthy())
-
-    // Sign out, build something else, sign in again (the server now accepts both).
-    authed = false
-    view.rerender(<Tree />)
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-    server.unparseable.clear()
-    await act(async () => {
-      await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-2' }))
-    })
-    authed = true
-    view.rerender(<Tree />)
-
-    // The new sign-in runs its own pass rather than waiting on the old error.
-    await waitFor(() => expect(claims()).toHaveLength(2))
-    const sent = claims()[1]?.args.pilots as { id: string }[] | undefined
-    expect(sent?.map((p) => p.id)).toContain('tab-2')
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-    expect(screen.queryByText(/could not be saved/i)).toBeNull()
-  })
-
-  test('signing out does not turn the account’s cached rows into anonymous work', async () => {
-    // A page loaded signed in, holding the account's own cached pilot.
-    authed = true
-    server = { owned: new Set(['acct-1']), unparseable: new Set() }
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'acct-1' }))
-    const view = render(<Tree />)
-    await act(async () => {
-      await probeLegacyLocalData()
-    })
-
-    // Signed out, the caches still hold it — but it is not this tab's work.
-    authed = false
-    view.rerender(<Tree />)
-    await act(async () => {
-      await Promise.resolve()
-    })
-
-    // Signing in again (to any account) sends nothing and reports nothing.
-    const before = signedInRenders()
-    authed = true
-    view.rerender(<Tree />)
-    await waitFor(() => expect(signedInRenders()).toBeGreaterThan(before))
-    expect(claims()).toHaveLength(0)
-    expect(promotionState()).toBe('idle')
-    expect(screen.queryByText(/could not be saved/i)).toBeNull()
-  })
-
-  test('after signing out, only work built since is captured', async () => {
-    authed = true
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'acct-1' }))
-    server = { owned: new Set(['acct-1']), unparseable: new Set() }
-    const view = render(<Tree />)
-    await act(async () => {
-      await probeLegacyLocalData()
-    })
-
-    authed = false
-    view.rerender(<Tree />)
-    await act(async () => {
-      await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    })
-
-    authed = true
-    view.rerender(<Tree />)
-    await waitFor(() => expect(claims()).toHaveLength(1))
-    const sent = claims()[0]?.args.pilots as { id: string }[] | undefined
-    expect(sent?.map((p) => p.id)).toEqual(['tab-1'])
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-  })
-
-  test('a build saved on one sign-in is not captured again after signing out', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'tab-1' }))
-    server = { owned: new Set(), unparseable: new Set() }
-    const view = render(<Tree />)
-    await signIn(view)
-    await waitFor(() => expect(claims()).toHaveLength(1))
-    await waitFor(() => expect(promotionState()).toBe('idle'))
-
-    authed = false
-    view.rerender(<Tree />)
-    await act(async () => {
-      await Promise.resolve()
-    })
-
-    const before = signedInRenders()
-    authed = true
-    view.rerender(<Tree />)
-    await waitFor(() => expect(signedInRenders()).toBeGreaterThan(before))
-    expect(claims()).toHaveLength(1)
-    expect(screen.queryByText(/could not be saved/i)).toBeNull()
-  })
-
-  test('device rows missing from the account are sent, on the shelf', async () => {
-    await db.pilots.put(pilotFixture({ id: 'disk-1', gameId: 'phantom-workspace' }))
-    authed = true
-    render(<Tree />)
-
-    await waitFor(() => expect(claims()).toHaveLength(1))
-    const sent = claims()[0]?.args.pilots as { id: string; gameId: unknown }[]
-    expect(sent.map((p) => p.id)).toEqual(['disk-1'])
-    // A phantom Game id would upload the row into the same invisibility.
-    expect(sent[0]?.gameId).toBeNull()
-  })
-
-  test('device rows the account already owns are not re-sent', async () => {
-    await db.pilots.put(pilotFixture({ id: 'owned-1' }))
-    setQueryAnswers({
-      'entities:listMine': {
-        ...EMPTY_ROSTER,
-        pilots: [{ appId: 'owned-1', body: { id: 'owned-1' } }],
-      },
-      'games:listMine': [],
-      'entities:listWiring': EMPTY_WIRING,
-    })
-    authed = true
-    render(<Tree />)
-
-    // The device pass closes the migration window once it finds nothing to send.
     await waitFor(() => expect(legacyLocalDataState()).toBe('absent'))
-    expect(claims()).toHaveLength(0)
+    expect(claims()).toHaveLength(1)
+    expect(screen.queryByText(/could not be moved/i)).toBeNull()
   })
 })

@@ -24,7 +24,7 @@
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import type { StoreName } from '../lib/db/stores'
 import { captureException } from '../lib/observability'
-import { requireWritableBackend } from './entityBackend'
+import { readableRows, requireWritableBackend } from './entityBackend'
 
 type DbCollection<T, CreateInput> = {
   list: () => Promise<T[]>
@@ -38,7 +38,7 @@ type DbCollection<T, CreateInput> = {
 /** The CRUD + hydration surface every collection store shares. */
 export type HydratedCollectionSlice<K extends string, T> = Record<K, T[]> & {
   hydrated: boolean
-  /** Loads the collection from IndexedDB. Idempotent. */
+  /** Loads the collection from IndexedDB (nothing signed out). Idempotent. */
   hydrate: () => Promise<void>
   /** Re-reads from IndexedDB even when already hydrated (cross-tab). */
   rehydrate: () => Promise<void>
@@ -74,31 +74,14 @@ type SliceConfig<K extends string, T, CreateInput> = {
   /** State key holding the array — preserved per store for selector compat. */
   key: K
   /**
-   * Where this collection persists, resolved **per call** rather than captured.
-   *
-   * A function rather than a value because the answer changes with auth state:
-   * an anonymous visitor writes to a Map that never touches disk (ADR-034
-   * decision 1), and a signed-in one writes to IndexedDB. Capturing the
-   * collection once at module scope would pin whichever backend happened to be
-   * current when the store file was first imported — for a page loaded signed
-   * out, that is the memory store *for the rest of the session*, including
-   * after signing in.
-   *
-   * This mirrors `entityStore`'s `dbStoreFor` for the same reason and should
-   * stay in step with it.
+   * Where this collection persists: its IndexedDB store, the account's cache.
+   * Writes reach it only through `requireWritableBackend()` (or `adopt`, from
+   * a signed-in sync); reads go through `readableRows`, which answers nothing
+   * signed out.
    */
-  db: () => DbCollection<T, CreateInput>
+  db: DbCollection<T, CreateInput>
   /** Broadcast channel name; also drives the cross-tab subscription. */
   storeName: StoreName
-  /**
-   * Whether a write should be announced to other tabs.
-   *
-   * Anonymous sessions do not broadcast: two tabs hold two unrelated Maps, so
-   * telling tab B to re-read would blank the work it is holding. Optional so
-   * a store with no anonymous mode keeps its current behaviour by saying
-   * nothing.
-   */
-  shouldBroadcast?: () => boolean
   /**
    * Mirror one write to the server of record, BEFORE it touches disk.
    *
@@ -128,10 +111,10 @@ export function makeHydratedCollectionSlice<
   T extends { id: string },
   CreateInput,
 >(config: SliceConfig<K, T, CreateInput>) {
-  const { key, db, storeName, shouldBroadcast, commit } = config
+  const { key, db, storeName, commit } = config
 
   function afterWrite(): void {
-    if (shouldBroadcast === undefined || shouldBroadcast()) publishStoreChange(storeName)
+    publishStoreChange(storeName)
   }
 
   return function slice(
@@ -153,7 +136,7 @@ export function makeHydratedCollectionSlice<
       },
 
       async rehydrate() {
-        const loaded = await db().list()
+        const loaded = await readableRows(db)
         set({ [key]: loaded, hydrated: true })
       },
 
@@ -172,7 +155,7 @@ export function makeHydratedCollectionSlice<
       },
 
       async adopt(record) {
-        const cached = await db().put(record)
+        const cached = await db.put(record)
         set({
           [key]: (() => {
             const list = records()
@@ -196,7 +179,7 @@ export function makeHydratedCollectionSlice<
         // record is built locally and committed before it is announced — the
         // ordering that matters (nothing local survives a refusal) still holds,
         // because a throw here aborts before `set`.
-        const record = await db().create(input)
+        const record = await db.create(input)
         if (commit !== undefined) {
           try {
             await commit({ kind: 'upsert', record })
@@ -206,11 +189,9 @@ export function makeHydratedCollectionSlice<
             // If the undo itself fails, that forbidden state is exactly what is
             // left behind — so it is reported, not swallowed. The commit error
             // is still what the caller sees.
-            await db()
-              .delete((record as { id: string }).id)
-              .catch((undoErr: unknown) => {
-                captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
-              })
+            await db.delete((record as { id: string }).id).catch((undoErr: unknown) => {
+              captureException(undoErr, { source: 'makeHydratedCollection.undoCreate', key })
+            })
             throw err
           }
         }
@@ -221,7 +202,7 @@ export function makeHydratedCollectionSlice<
 
       async update(id, patch) {
         requireWritableBackend()
-        const updated = await db().update(id, patch)
+        const updated = await db.update(id, patch)
         if (commit !== undefined) await commit({ kind: 'upsert', record: updated })
         set({ [key]: records().map((r) => (r.id === id ? updated : r)) })
         afterWrite()
@@ -233,7 +214,7 @@ export function makeHydratedCollectionSlice<
         // Committed BEFORE the local delete, like `entityStore.delete`: once the
         // row is gone there is nothing left to address it by.
         if (commit !== undefined) await commit({ kind: 'delete', id })
-        await db().delete(id)
+        await db.delete(id)
         set({ [key]: records().filter((r) => r.id !== id) })
         afterWrite()
       },

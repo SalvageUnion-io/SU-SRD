@@ -11,12 +11,19 @@
  * second device got their roster and an empty pattern library. It places a
  * server record into the cache WITHOUT that placement being mistaken for a user
  * write and mirrored back up.
+ *
+ * Signed in, because that is the only place `ShelfSync` runs: signed out a
+ * store reads nothing (`readableRows`), so a reload there shows no library by
+ * design.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import { usePatternStore } from '../patternStore'
+import { withSignedInBackend } from './signedInBackend'
+
+withSignedInBackend()
 
 function pattern(id: string, name = 'Mule Pattern'): MechPattern {
   return {

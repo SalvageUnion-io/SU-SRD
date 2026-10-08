@@ -16,17 +16,18 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 - Resolve the mode through `src/lib/connection/` — never `navigator.onLine` or
   an auth flag.
 - **Never introduce a store, field or flow that persists only on a device.**
-- **There is no durable anonymous backend.** `selectBackend()` is
-  `memory | remote | blocked`; the old `local` backend and its
+- **There is no anonymous backend.** `selectBackend()` is
+  `signedOut | remote | blocked`; signed out, every store reads empty
+  (`readableRows`), never IndexedDB. The old `local` backend and its
   `VITE_REQUIRE_ACCOUNT` flag are retired. A unit test that needs durability
   calls `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an
   e2e spec signs in through `e2e/fixtures.ts`.
 - **One local → account reconciler.** `AccountReconciler` (root-mounted, over
-  `src/lib/account/reconcile.ts`) owns the upload of this tab's anonymous work
-  on sign-in, the migration of a pre-account roster still in IndexedDB
-  (reconciled against `entities.listMine`), and mounts `ShelfSync`; signed out
-  it renders nothing. Do not add a second surface that uploads local work; there
-  is no legacy exemption, no claim card, and no offer-and-decline path.
+  `src/lib/account/reconcile.ts`) migrates a pre-account roster still in
+  IndexedDB on sign-in (reconciled against `entities.listMine`) and mounts
+  `ShelfSync`; signed out it renders nothing. Do not add a second surface that
+  uploads local work; there is no legacy exemption, no claim card, and no
+  offer-and-decline path.
 - **A container written twice must be written together** — the row's `gameId`
   column and the body's `gameId` (`shelveBody` in `convex/claim.ts`;
   `maintenance.repairContainers` repairs old rows toward the column).
@@ -105,12 +106,11 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
 - **Assignments** ([ADR-037](../../docs/ARCHITECTURE.md#adr-037)):
   draw soft links only via `assignLink`; the rules are
   `src/lib/links/linkRules.ts`, shared with `convex/`.
-- **Lazy auto-hydration:** first `list(type)` loads from the current backend
-  (the IndexedDB cache signed in, the in-memory store anonymous); later reads
-  are synchronous.
+- **Lazy auto-hydration:** first `list(type)` loads the IndexedDB cache (nothing
+  signed out); later reads are synchronous.
 - **Write-through:** `update`/`create`/`delete` commit to Convex first when
-  signed in, then the backend, then in-memory state; cross-tab writes
-  invalidate via broadcast (never for the anonymous backend)
+  signed in, then the IndexedDB cache, then in-memory state; cross-tab writes
+  invalidate via broadcast
   ([ADR-003](../../docs/ARCHITECTURE.md#adr-003)).
 - Route persistent entity state through the store, **never** through a
   separate query cache (see `.claude/rules/itun-data-access.md`).

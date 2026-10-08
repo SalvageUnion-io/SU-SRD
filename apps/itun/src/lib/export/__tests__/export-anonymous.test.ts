@@ -32,7 +32,7 @@ beforeEach(async () => {
 
 describe('an anonymous backup', () => {
   test('saves no pattern, so carries none', async () => {
-    expect(selectBackend()).toBe('memory')
+    expect(selectBackend()).toBe('signedOut')
     await expect(usePatternStore.getState().create(patternInput)).rejects.toThrow(/Sign in/)
 
     const bundle = await buildExportBundle(useEntityStore.getState())

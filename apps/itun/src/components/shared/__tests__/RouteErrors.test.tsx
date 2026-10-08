@@ -49,15 +49,15 @@ describe('savedWorkCopy says what an error does to the work, per backend', () =>
   test('an anonymous visitor is told the truth: there is nothing a reload could lose', () => {
     // Signed out, nothing can be built (ADR-034 as amended), so the panel's own
     // reload button costs them nothing — and nothing is "stored locally".
-    expect(savedWorkCopy('memory')).toMatch(/reloading loses nothing/i)
-    expect(savedWorkCopy('memory')).not.toMatch(/stored locally/i)
+    expect(savedWorkCopy('signedOut')).toMatch(/reloading loses nothing/i)
+    expect(savedWorkCopy('signedOut')).not.toMatch(/stored locally/i)
   })
 
   test('no backend ever claims the work is stored in this browser', () => {
     // The `local` backend (and its "stored in this browser" copy) is retired:
     // no player's work lives only on the device any more, so no panel may say
     // it does.
-    for (const backend of ['remote', 'blocked', 'memory', null] as const) {
+    for (const backend of ['remote', 'blocked', 'signedOut', null] as const) {
       expect(savedWorkCopy(backend)).not.toMatch(/in this browser/i)
     }
   })
