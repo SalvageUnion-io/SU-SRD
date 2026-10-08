@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.5...salvageunion-reference-v2.14.0) (2026-10-08)
+
+
+### Features
+
+* **itun:** derive crew maxima and status on the server [flight-deck L7] ([#1099](https://github.com/SalvageUnion-io/SU-SRD/issues/1099)) ([b6bb35d](https://github.com/SalvageUnion-io/SU-SRD/commit/b6bb35dcb56d11c5da5d0a3e194e1ffeb6349347))
+* **itun:** save Dashboard mount, range and effects on the seat [flight-deck L3] ([#1095](https://github.com/SalvageUnion-io/SU-SRD/issues/1095)) ([cf0a34e](https://github.com/SalvageUnion-io/SU-SRD/commit/cf0a34ec5314897db9ee1f58d7c80e233864707e))
+
 ## [2.13.5](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.13.4...salvageunion-reference-v2.13.5) (2026-10-07)
 
 
