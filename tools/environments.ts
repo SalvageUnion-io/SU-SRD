@@ -200,9 +200,14 @@ export function compare(
 
 // ─── live reads and writes (gh api) ─────────────────────────────────────────
 
-type GhResult = { ok: true; json: unknown } | { ok: false; status: number | null; message: string }
+export type GhResult =
+  | { ok: true; json: unknown }
+  | { ok: false; status: number | null; message: string }
 
-function gh(args: string[], input?: unknown): GhResult {
+/** `gh api <args>` with an optional JSON body; injected in tests. */
+export type GhApi = (args: string[], input?: unknown) => GhResult
+
+const gh: GhApi = (args, input) => {
   const proc = Bun.spawnSync(
     ['gh', 'api', ...args, ...(input === undefined ? [] : ['--input', '-'])],
     {
@@ -224,8 +229,8 @@ function must(res: GhResult, what: string): unknown {
 }
 
 /** A secret listing the token may not be allowed to read: 403/404 → null. */
-function secretNames(path: string): string[] | null {
-  const res = gh([`${path}?per_page=100`])
+function secretNames(api: GhApi, path: string): string[] | null {
+  const res = api([`${path}?per_page=100`])
   if (!res.ok && (res.status === 403 || res.status === 404)) return null
   const body = must(res, `GET ${path}`) as { secrets: { name: string }[] }
   return body.secrets.map((s) => s.name)
@@ -236,9 +241,9 @@ type ApiEnvironment = {
   deployment_branch_policy: { protected_branches: boolean; custom_branch_policies: boolean } | null
 }
 
-function branchPolicies(env: string): { id: number; name: string; type?: string }[] {
+function branchPolicies(api: GhApi, env: string): { id: number; name: string; type?: string }[] {
   const body = must(
-    gh([
+    api([
       `repos/${REPO}/environments/${encodeURIComponent(env)}/deployment-branch-policies?per_page=100`,
     ]),
     `GET ${env} branch policies`
@@ -246,8 +251,12 @@ function branchPolicies(env: string): { id: number; name: string; type?: string 
   return body.branch_policies
 }
 
-export function readLive(secretsFromEnv: boolean): LiveState {
-  const body = must(gh([`repos/${REPO}/environments?per_page=100`]), 'GET environments') as {
+export function readLive(
+  secretsFromEnv: boolean,
+  api: GhApi = gh,
+  env: Record<string, string | undefined> = process.env
+): LiveState {
+  const body = must(api([`repos/${REPO}/environments?per_page=100`]), 'GET environments') as {
     environments: ApiEnvironment[]
   }
   const declared = new Set(ENVIRONMENTS.map((e) => e.name))
@@ -260,48 +269,46 @@ export function readLive(secretsFromEnv: boolean): LiveState {
       policy,
       branches:
         tracked && policy === 'custom'
-          ? branchPolicies(e.name)
+          ? branchPolicies(api, e.name)
               .filter((b) => (b.type ?? 'branch') === 'branch')
               .map((b) => b.name)
           : null,
       secrets: tracked
-        ? secretNames(`repos/${REPO}/environments/${encodeURIComponent(e.name)}/secrets`)
+        ? secretNames(api, `repos/${REPO}/environments/${encodeURIComponent(e.name)}/secrets`)
         : null,
     }
   })
   const envSecrets = ENVIRONMENTS.flatMap((e) => e.secrets)
   return {
     environments,
-    repositorySecrets: secretNames(`repos/${REPO}/actions/secrets`),
-    readableOutside: secretsFromEnv
-      ? envSecrets.filter((name) => (process.env[name] ?? '') !== '')
-      : null,
+    repositorySecrets: secretNames(api, `repos/${REPO}/actions/secrets`),
+    readableOutside: secretsFromEnv ? envSecrets.filter((name) => (env[name] ?? '') !== '') : null,
   }
 }
 
 /** Create/update each declared Environment and its branch policies. Never touches secrets. */
-export function apply(): string[] {
+export function apply(api: GhApi = gh): string[] {
   const done: string[] = []
   for (const env of ENVIRONMENTS) {
     const path = `repos/${REPO}/environments/${encodeURIComponent(env.name)}`
     must(
-      gh(['-X', 'PUT', path], {
+      api(['-X', 'PUT', path], {
         deployment_branch_policy: { protected_branches: false, custom_branch_policies: true },
       }),
       `PUT ${env.name}`
     )
     done.push(`${env.name}: custom deployment branch policy`)
-    const have = branchPolicies(env.name)
+    const have = branchPolicies(api, env.name)
     for (const branch of env.branches.filter((b) => !have.some((h) => h.name === b))) {
       must(
-        gh(['-X', 'POST', `${path}/deployment-branch-policies`], { name: branch, type: 'branch' }),
+        api(['-X', 'POST', `${path}/deployment-branch-policies`], { name: branch, type: 'branch' }),
         `POST ${env.name} branch policy ${branch}`
       )
       done.push(`${env.name}: admits ${branch}`)
     }
     for (const stale of have.filter((h) => !env.branches.includes(h.name))) {
       must(
-        gh(['-X', 'DELETE', `${path}/deployment-branch-policies/${stale.id}`]),
+        api(['-X', 'DELETE', `${path}/deployment-branch-policies/${stale.id}`]),
         `DELETE ${stale.name}`
       )
       done.push(`${env.name}: no longer admits ${stale.name}`)

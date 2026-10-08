@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test'
-import type { EnvironmentSpec, LiveEnvironment, LiveState } from '../environments'
-import { compare, ENVIRONMENTS, REPOSITORY_SECRETS } from '../environments'
+import type { EnvironmentSpec, GhApi, GhResult, LiveEnvironment, LiveState } from '../environments'
+import { apply, compare, ENVIRONMENTS, REPO, REPOSITORY_SECRETS, readLive } from '../environments'
 
 /**
  * `tools/environments.ts` — the declared GitHub Environments against a live
- * snapshot. `compare` is pure, so every case is a hand-built snapshot; the
- * `gh api` reads around it are thin and exercised by the nightly job.
+ * snapshot. `compare` is pure, so its cases are hand-built snapshots; the
+ * `gh api` reads and writes take an injected runner, faked here by path.
  */
 
 const SPEC: EnvironmentSpec[] = [
@@ -141,5 +141,125 @@ describe('the declaration', () => {
 
   test('no secret is allowed at repository level', () => {
     expect(REPOSITORY_SECRETS).toEqual([])
+  })
+})
+
+/** A fake `gh api`: GET answers by path prefix; every call is recorded. */
+function fakeGh(routes: Record<string, GhResult>) {
+  const calls: { args: string[]; input?: unknown }[] = []
+  const api: GhApi = (args, input) => {
+    calls.push({ args, input })
+    const path = args.find((a) => a.startsWith('repos/')) ?? ''
+    const method = args[0] === '-X' ? args[1] : 'GET'
+    if (method !== 'GET') return { ok: true, json: null }
+    const hit = Object.entries(routes).find(([prefix]) => path.startsWith(prefix))
+    return hit ? hit[1] : { ok: false, status: 404, message: `gh: Not Found (HTTP 404) ${path}` }
+  }
+  return { api, calls }
+}
+
+const ok = (json: unknown): GhResult => ({ ok: true, json })
+const forbidden: GhResult = {
+  ok: false,
+  status: 403,
+  message: 'gh: Resource not accessible by integration (HTTP 403)',
+}
+const E = `repos/${REPO}/environments`
+
+describe('readLive', () => {
+  test('reads policy, branches and secret names of declared Environments only', () => {
+    const { api } = fakeGh({
+      [`${E}/production/deployment-branch-policies`]: ok({
+        branch_policies: [
+          { id: 1, name: 'main', type: 'branch' },
+          { id: 2, name: 'v*', type: 'tag' },
+        ],
+      }),
+      [`${E}/production/secrets`]: ok({ secrets: [{ name: 'CONVEX_DEPLOY_KEY' }] }),
+      [`${E}?`]: ok({
+        environments: [
+          {
+            name: 'production',
+            deployment_branch_policy: { protected_branches: false, custom_branch_policies: true },
+          },
+          {
+            name: 'github-pages',
+            deployment_branch_policy: { protected_branches: true, custom_branch_policies: false },
+          },
+          { name: 'old', deployment_branch_policy: null },
+        ],
+      }),
+      [`repos/${REPO}/actions/secrets`]: ok({ secrets: [{ name: 'NETLIFY_SITE_ID' }] }),
+    })
+    expect(readLive(false, api, {})).toEqual({
+      environments: [
+        {
+          name: 'production',
+          policy: 'custom',
+          branches: ['main'],
+          secrets: ['CONVEX_DEPLOY_KEY'],
+        },
+        { name: 'github-pages', policy: 'protected', branches: null, secrets: null },
+        { name: 'old', policy: 'none', branches: null, secrets: null },
+      ],
+      repositorySecrets: ['NETLIFY_SITE_ID'],
+      readableOutside: null,
+    })
+  })
+
+  test('a token that cannot list secrets yields null, and the sentinel reads only non-empty values', () => {
+    const { api } = fakeGh({
+      [`${E}/production/secrets`]: forbidden,
+      [`${E}?`]: ok({ environments: [{ name: 'production', deployment_branch_policy: null }] }),
+      [`repos/${REPO}/actions/secrets`]: forbidden,
+    })
+    const state = readLive(true, api, { CONVEX_DEPLOY_KEY: 'x', SENTRY_AUTH_TOKEN: '' })
+    expect(state.environments[0]?.secrets).toBeNull()
+    expect(state.repositorySecrets).toBeNull()
+    expect(state.readableOutside).toEqual(['CONVEX_DEPLOY_KEY'])
+  })
+
+  test('any other API failure throws rather than reading as empty', () => {
+    const { api } = fakeGh({
+      [`${E}?`]: { ok: false, status: 500, message: 'gh: boom (HTTP 500)' },
+    })
+    expect(() => readLive(false, api, {})).toThrow('GET environments: gh: boom (HTTP 500)')
+  })
+})
+
+describe('apply', () => {
+  test('sets the custom policy, adds the missing branch, removes a stale one, never touches secrets', () => {
+    const { api, calls } = fakeGh({
+      [`${E}/production/deployment-branch-policies`]: ok({
+        branch_policies: [{ id: 7, name: 'release', type: 'branch' }],
+      }),
+    })
+    expect(apply(api)).toEqual([
+      'production: custom deployment branch policy',
+      'production: admits main',
+      'production: no longer admits release',
+    ])
+    const writes = calls
+      .filter((c) => c.args[0] === '-X')
+      .map((c) => [c.args[1], c.args[2], c.input])
+    expect(writes).toEqual([
+      [
+        'PUT',
+        `${E}/production`,
+        { deployment_branch_policy: { protected_branches: false, custom_branch_policies: true } },
+      ],
+      ['POST', `${E}/production/deployment-branch-policies`, { name: 'main', type: 'branch' }],
+      ['DELETE', `${E}/production/deployment-branch-policies/7`, undefined],
+    ])
+    expect(calls.some((c) => c.args.some((a) => a.includes('secrets')))).toBe(false)
+  })
+
+  test('is idempotent: a matching Environment only re-asserts the policy', () => {
+    const { api } = fakeGh({
+      [`${E}/production/deployment-branch-policies`]: ok({
+        branch_policies: [{ id: 1, name: 'main', type: 'branch' }],
+      }),
+    })
+    expect(apply(api)).toEqual(['production: custom deployment branch policy'])
   })
 })
