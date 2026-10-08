@@ -17,6 +17,7 @@ import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { initBrowserObservability } from '../lib/observability'
 import { installChunkRecovery } from './chunkRecovery.client'
+import type { IslandComponent } from './islandRegistry'
 import { islandRegistry } from './islandRegistry'
 
 // Env-gated browser error tracking, initialised from the single client entry.
@@ -89,7 +90,14 @@ function mountIslands(): void {
 
     schedule(directive, el, () => {
       loader()
-        .then((Component) => {
+        .then((Component: IslandComponent | undefined) => {
+          // A failed chunk that chunkRecovery is reloading for resolves to
+          // `undefined`, not a rejection: its `preventDefault()` makes Vite's
+          // preload helper swallow the error, and the registry's `.then` runs
+          // inside that helper. The page is about to reload, so mount nothing —
+          // `createElement(undefined)` throws React's "Element type is invalid"
+          // before the reload lands (SRD-H).
+          if (Component === undefined) return
           // Discard any ssr:true placeholder markup BEFORE mounting, so the
           // island renders once rather than appending beside its own SSR copy.
           el.replaceChildren()
