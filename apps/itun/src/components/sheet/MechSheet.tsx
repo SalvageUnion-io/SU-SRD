@@ -69,6 +69,7 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { pinFor } from 'salvageunion-reference/rules'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
+import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
@@ -184,13 +185,13 @@ export function MechSheet({
               scrapPoolLocked={cargo.crawlerLocked}
               readOnly={readOnly}
               onStatusCycle={() => {
-                void actions.cycleItemCondition(kind, slug)
+                runWrite(() => actions.cycleItemCondition(kind, slug))
               }}
               onUsesChange={(next) => {
-                void actions.setItemUses(slug, next)
+                runWrite(() => actions.setItemUses(slug, next))
               }}
               onRepair={(deductTl, cost) => {
-                void actions.repairItem(kind, slug, deductTl, cost)
+                runWrite(() => actions.repairItem(kind, slug, deductTl, cost))
               }}
               onRemove={
                 readOnly
