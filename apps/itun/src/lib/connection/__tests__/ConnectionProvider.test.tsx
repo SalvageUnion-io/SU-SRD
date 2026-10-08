@@ -57,16 +57,16 @@ describe('ConnectionProvider reacts to connectivity', () => {
           <Probe />
         </ConnectionProvider>
       )
-      expect(screen.getByTestId('probe').textContent).toBe('solo:true')
+      // Solo is read-only: building needs an account (ADR-034 as amended).
+      expect(screen.getByTestId('probe').textContent).toBe('solo:false')
 
       setOnline(false)
-      // Still Solo, still writable. Someone who never signed in has nothing to
-      // be disconnected from, and blocking their writes would break the app
-      // for the majority of users.
-      expect(screen.getByTestId('probe').textContent).toBe('solo:true')
+      // Still Solo, not Disconnected. Someone who never signed in has nothing
+      // to be disconnected from.
+      expect(screen.getByTestId('probe').textContent).toBe('solo:false')
 
       setOnline(true)
-      expect(screen.getByTestId('probe').textContent).toBe('solo:true')
+      expect(screen.getByTestId('probe').textContent).toBe('solo:false')
     } finally {
       restoreOnLine(original)
     }

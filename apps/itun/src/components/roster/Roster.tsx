@@ -62,6 +62,7 @@ import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { SignInToBuild } from '../account/SignInToBuild'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { MoveToGameSelect } from '../container/MoveToGameSelect'
 import { ExportAllButton } from '../export/ExportAllButton'
@@ -321,6 +322,17 @@ export function Roster() {
     })
   }
 
+  // Signed out, there is nothing to list and nothing may be built: every build
+  // lives in an account (ADR-034 as amended).
+  if (mode === 'solo') {
+    return (
+      <PageShell>
+        <h1 className="sr-only">Saved Builds</h1>
+        <SignInToBuild title="Welcome to In the Union Now" />
+      </PageShell>
+    )
+  }
+
   return (
     <PageShell stack={false}>
       {/* Brand identity lives in the global AppHeader (routes/__root.tsx);
@@ -357,17 +369,13 @@ export function Roster() {
             <NewGameControl />
           </div>
         </div>
-        {/* Standing durability notice, next to the export controls. It said
-            "your data lives only in this browser" to everybody, which since
-            ADR-034 is true of nobody: a signed-in player's builds are on the
-            server, and an anonymous visitor's are not even in the browser —
-            only in this tab. */}
+        {/* Standing durability notice, next to the export controls. Only a
+            signed-in player reaches it: a signed-out visitor gets the sign-in
+            panel above instead (ADR-034 as amended). */}
         <p className="mt-2.5 font-body text-xs text-wk-muted">
-          {mode === 'solo'
-            ? 'Nothing here is kept until you sign in — download a backup to keep it yourself.'
-            : mode === 'connecting'
-              ? 'Download a backup any time to keep a copy yourself.'
-              : 'Saved to your account. A downloaded backup is still yours to keep.'}
+          {mode === 'connecting'
+            ? 'Download a backup any time to keep a copy yourself.'
+            : 'Saved to your account. A downloaded backup is still yours to keep.'}
         </p>
       </div>
 
@@ -599,10 +607,6 @@ function FirstRunWelcome() {
       >
         Build your first pilot
       </AppLink>
-      <p className="max-w-prose font-body text-xs text-wk-muted">
-        Sign in to keep what you build and share it with a Game — until then it lives only in this
-        tab.
-      </p>
     </div>
   )
 }

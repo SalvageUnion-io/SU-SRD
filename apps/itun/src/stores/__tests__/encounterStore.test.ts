@@ -11,6 +11,10 @@ import { SHELF } from '../../lib/container'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
+import { withSignedInBackend } from './signedInBackend'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 const baseNpcInput: EncounterNpcCreateInput = {
   schemaVersion: 1,

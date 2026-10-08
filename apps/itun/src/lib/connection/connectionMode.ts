@@ -11,11 +11,11 @@
  * The distinction that matters most:
  *
  *   **Solo is not Disconnected.** Somebody who never signs in is not "offline";
- *   they are anonymous. They see no NOT CONNECTED banner and no write of theirs
- *   is ever refused — those writes go to the in-memory backend and last as long
- *   as the tab (ADR-034; there is no durable anonymous backend). Only a
- *   signed-in user can end up in `disconnected`, and the read-only cost is the
- *   honest price of having chosen a server of record.
+ *   they are anonymous. They see no NOT CONNECTED banner; they are read-only
+ *   because building needs an account (ADR-034, as amended), and the surfaces
+ *   say "sign in", not "not connected". Only a signed-in user can end up in
+ *   `disconnected`, and the read-only cost is the honest price of having chosen
+ *   a server of record.
  *
  * And a fourth state that is *not* one of the three, which is why it is named:
  *
@@ -83,19 +83,22 @@ export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode 
 }
 
 /**
- * Whether writes are permitted right now.
+ * Whether writes are permitted right now: only when Connected.
  *
  * Disconnected blocks writes rather than queueing them (ADR-030 §1): an outbox
  * would reintroduce conflict resolution through the back door, which is the
- * thing choosing a server of record was meant to avoid. Solo writes are never
- * blocked — they go to the in-memory backend, which has nothing to conflict with.
+ * thing choosing a server of record was meant to avoid.
  *
  * `connecting` blocks too, for a different reason: not "the server said no" but
  * "we do not yet know which store this belongs in". A write let through in that
  * window lands locally and is never mirrored.
+ *
+ * Solo blocks because building needs an account (ADR-034 decision 1, as
+ * amended): signed out, ITUN is read-only, so no work exists that a reload
+ * could lose.
  */
 export function writesAllowed(mode: ConnectionMode): boolean {
-  return mode !== 'disconnected' && mode !== 'connecting'
+  return mode === 'connected'
 }
 
 /**

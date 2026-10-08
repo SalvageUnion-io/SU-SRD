@@ -101,10 +101,11 @@ describe('the unsettled auth handshake is its own mode, not Solo', () => {
 describe('Solo is not Disconnected', () => {
   test('a signed-out user offline is Solo, never Disconnected', () => {
     // The whole point: someone who never signed in is not "offline", they are
-    // using the app exactly as it worked before accounts existed.
+    // anonymous — read-only because building needs an account, not because a
+    // connection failed, so no NOT CONNECTED banner.
     const mode = resolveConnectionMode(inputs({ signedIn: false, online: false }))
     expect(mode).toBe('solo')
-    expect(writesAllowed(mode)).toBe(true)
+    expect(writesAllowed(mode)).toBe(false)
     expect(shouldWarnDisconnected(mode)).toBe(false)
   })
 
@@ -116,13 +117,13 @@ describe('Solo is not Disconnected', () => {
   test('a build with no Convex URL is permanently Solo, not broken', () => {
     // CI and a contributor who has not run `convex dev` both land here.
     expect(resolveConnectionMode(inputs({ convexConfigured: false }))).toBe('solo')
-    expect(writesAllowed('solo')).toBe(true)
   })
 })
 
 describe('writesAllowed', () => {
-  test('blocks only in disconnected', () => {
-    expect(writesAllowed('solo')).toBe(true)
+  test('allows only connected: signed out is read-only (ADR-034 as amended)', () => {
+    expect(writesAllowed('solo')).toBe(false)
+    expect(writesAllowed('connecting')).toBe(false)
     expect(writesAllowed('connected')).toBe(true)
     expect(writesAllowed('disconnected')).toBe(false)
   })

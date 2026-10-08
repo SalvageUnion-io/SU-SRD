@@ -46,10 +46,10 @@ describe('savedWorkCopy says what an error does to the work, per backend', () =>
     expect(savedWorkCopy('blocked')).not.toMatch(/your account/i)
   })
 
-  test('an anonymous visitor is told the truth: a reload loses unsaved builds', () => {
-    // The old copy promised everybody their data was "stored locally", which
-    // is exactly wrong here — and the panel's own button is a reload.
-    expect(savedWorkCopy('memory')).toMatch(/reloading loses them/i)
+  test('an anonymous visitor is told the truth: there is nothing a reload could lose', () => {
+    // Signed out, nothing can be built (ADR-034 as amended), so the panel's own
+    // reload button costs them nothing — and nothing is "stored locally".
+    expect(savedWorkCopy('memory')).toMatch(/reloading loses nothing/i)
     expect(savedWorkCopy('memory')).not.toMatch(/stored locally/i)
   })
 

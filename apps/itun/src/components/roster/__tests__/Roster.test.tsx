@@ -14,11 +14,36 @@
  * updates land inside act; no warnings.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
-import { useEntityStore } from '../../../stores/entityStore'
-import { Roster } from '../Roster'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+
+// Signed in: building needs an account (ADR-034 as amended), so the roster a
+// player builds into is a Connected one. Module scope, before the imports
+// below — `mock.module` only affects imports that resolve after it runs.
+const convexMocks = await installConvexMocks({
+  convexClient: { mutation: async () => null },
+  // The signed-out panel's "Sign in with Discord".
+  authReact: true,
+})
+
+const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { _clearAllStores, _resetDbSingleton } = await import('../../../lib/db/index')
+const { useEntityStore } = await import('../../../stores/entityStore')
+const { Roster } = await import('../Roster')
+
+withSignedInBackend()
+
+afterAll(() => convexMocks.restore())
+
+const CONNECTED: ConnectionState = {
+  mode: 'connected',
+  canWrite: true,
+  showDisconnectedWarning: false,
+  settling: false,
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -84,7 +109,11 @@ async function settle(done: () => boolean): Promise<void> {
  */
 async function renderRoster() {
   await act(async () => {
-    render(<Roster />)
+    render(
+      <ConnectionContext.Provider value={CONNECTED}>
+        <Roster />
+      </ConnectionContext.Provider>
+    )
   })
   await settle(
     () =>
@@ -113,6 +142,8 @@ async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
+  // My Stuff, with no Games and no invitations.
+  setQueryAnswers({ 'games:listMine': [], 'invites:forMe': [] })
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
@@ -174,20 +205,22 @@ describe('Roster — section headings', () => {
   })
 })
 
-describe('Roster — signed out, there is no game UI at all', () => {
-  // This file renders with no Convex provider (the test build is Solo), which
-  // is exactly the build a signed-out player gets: every game control mounts
-  // its Convex hooks only once Connected, so none of them may render here.
-  test('no "+ New game", no "Showing" select, and no "Move to game…" on a row', async () => {
-    await seedEntity('pilot', 'Seed Pilot')
-    await renderRoster()
+describe('Roster — signed out, it is a sign-in panel and nothing else', () => {
+  // Outside any provider the connection is Solo: a signed-out visitor. Every
+  // build lives in an account (ADR-034 as amended), so there is nothing to
+  // list, nothing to create, and nothing to import into.
+  test('no roster, no create, no import, no game UI', async () => {
+    await act(async () => {
+      render(<Roster />)
+    })
 
-    expect(screen.getByText('Seed Pilot')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Welcome to In the Union Now' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Pilots' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Create Pilot|Build your first pilot/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Import…' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Load Starter Set' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New game' })).toBeNull()
-    expect(screen.queryByLabelText('Showing')).toBeNull()
-    expect(screen.queryByLabelText(/to a game$/)).toBeNull()
-    // No Game section, no Mediator section.
-    expect(screen.queryByRole('region', { name: 'Game' })).toBeNull()
   })
 })
 

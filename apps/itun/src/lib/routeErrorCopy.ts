@@ -25,8 +25,7 @@ export function isBlockedUpgrade(error: unknown): boolean {
  *
  * This used to say "Your saved data is stored locally and is not affected" to
  * everybody. Since ADR-034 that is true of nobody in production: a signed-in
- * player's builds live on the server, and an anonymous visitor's live only in
- * this tab, where a reload — the very action the panel offers — loses them.
+ * player's builds live on the server, and an anonymous visitor has none.
  */
 export function savedWorkCopy(backend: BackendKind | null): string {
   switch (backend) {
@@ -37,7 +36,9 @@ export function savedWorkCopy(backend: BackendKind | null): string {
       // this visitor is signed in — so it cannot say "your account".
       return 'Anything saved to an account is stored on the server and is not affected.'
     case 'memory':
-      return 'Builds that are not saved to an account live only in this tab, and reloading loses them.'
+      // Signed out: nothing can be built without an account, so there is no
+      // unsaved work for a reload to lose.
+      return 'Nothing is built without an account, so reloading loses nothing.'
     default:
       return 'Anything already saved is not affected.'
   }

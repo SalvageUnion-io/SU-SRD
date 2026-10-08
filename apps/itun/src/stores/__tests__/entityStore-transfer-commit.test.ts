@@ -20,6 +20,10 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
+import { withSignedInBackend } from './signedInBackend'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 // The namespace is captured with a SPREAD, before any mocking. A module
 // namespace is a live view, so holding the object itself would read as the mock

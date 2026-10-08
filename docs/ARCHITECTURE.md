@@ -169,12 +169,14 @@ Three connection modes ([ADR-030](#adr-030),
 
 | Mode | Who | Truth | Reads | Writes |
 | --- | --- | --- | --- | --- |
-| **Solo** | not signed in | nothing | in-memory backend | in-memory |
+| **Solo** | not signed in | nothing | nothing of theirs | **refused** — sign in to build |
 | **Connected** | signed in, online | Convex | reactive subscription | to Convex |
 | **Disconnected** | signed in, offline | Convex | local cache | **blocked** |
 
-Solo writes vanish on reload unless the user signs in (`AccountReconciler`
-claims them). A build with no `VITE_CONVEX_URL` is permanently Solo. Solo has
+Solo is read-only: building needs an account (ADR-034 decision 1, as
+amended), so the Roster and the `/…/new` routes show a sign-in panel and the
+store refuses an anonymous write. A build with no `VITE_CONVEX_URL` is
+permanently Solo. Solo has
 no Dashboard: it opens only for a pilot in a Game with a Mediator
 ([ADR-038](#adr-038)), so Solo play is on the live sheet. Offline,
 a signed-in user is read-only and never falls back to IndexedDB, which would
@@ -4365,10 +4367,11 @@ Schema translation to SQLite is the easy part. Three things are not:
 
 ### Status
 
-**Accepted and delivered.** Anonymous writes resolve to the in-memory backend
-and do not survive a reload, **in every build**: there is no
-`VITE_REQUIRE_ACCOUNT` flag and no durable anonymous `local` backend, and the
-e2e suite signs in through `TestAuthBridge`. Where this ADR describes Solo as
+**Accepted and delivered; decision 1 amended 2026-10-08.** Signed out, ITUN is
+**read-only, in every build**: building needs an account, and an anonymous write
+is refused (`requireWritableBackend`, reason `signedOut`) rather than kept in
+memory for the tab. There is no `VITE_REQUIRE_ACCOUNT` flag and no durable
+anonymous `local` backend, and the e2e suite signs in through `TestAuthBridge`. Where this ADR describes Solo as
 IndexedDB-backed, read it as history. The phased delivery plan was deleted once
 every phase closed (`git show c2476d1c:docs/architecture/persistence-and-pwa.md`);
 what stays true of it is in
@@ -4446,17 +4449,13 @@ the records above.
 Three decisions. They are stated separately because they are separately
 falsifiable, but they are one change: each is unenforceable without the others.
 
-#### 1. Persistence requires an account
+#### 1. Building requires an account
 
-An anonymous visitor may **build**, and what they build is **in-memory only**.
-They can open the app, work through a wizard, roll, read, and see a finished
-sheet. Nothing they do is written to durable storage of any kind — not Convex,
-and not IndexedDB.
-
-**Saving is the moment an account is required**, and it is the *only* moment.
-This is deliberately not a paywall shape or a signup wall: the ask arrives when
-the user has something worth keeping and can see what keeping it means, rather
-than in front of a product they have not tried.
+Signed out, ITUN is **read-only**: creating, editing, importing and copying
+need an account, the Roster and `/…/new` routes show a sign-in panel instead,
+and the store refuses an anonymous write. Until the amendment a visitor could
+build in memory and was asked to sign in only to save; any reload, a deploy's
+included, lost that work.
 
 Reading is unaffected. A public sheet (ADR-032) and the whole of `srd` remain
 open to anyone with no account at all.
@@ -4469,9 +4468,8 @@ with no Discord account cannot save anything, ever.** That is accepted, and it i
 accepted *because* of the escape hatch below. Without the hatch this decision
 would be indefensible.
 
-**Export to file is the escape hatch, and it is now load-bearing.** An anonymous
-user can download their in-memory work as a JSON bundle and import it after
-signing in. This is not a new mechanism — `ExportAllButton`, `buildExportBundle`
+**Export to file is the escape hatch, and it is now load-bearing.** A player
+can download their work as a JSON bundle and import it into an account. This is not a new mechanism — `ExportAllButton`, `buildExportBundle`
 and `mergeImport` already exist and already do it — but its *status* changes.
 Export stops being a backup convenience and becomes **the guarantee that hitting
 the account gate is never a data-loss event**. A file is not a source of truth
@@ -4585,8 +4583,8 @@ belongs in Convex, not a reason to widen the exemption.
   machine. That is a genuine loss of a genuine capability and should be stated
   plainly rather than presented as a cleanup. It is accepted because the
   alternative — two sources of truth forever — has already produced silent data
-  divergence in three stores, and because in-memory building keeps the app
-  usable without an account for everything except keeping the result.
+  divergence in three stores. Since decision 1's amendment, trying the
+  builders at all needs an account too.
 
 - **Existing local data is never destroyed.** Every current Solo user's
   IndexedDB stays readable, and signing in **prompts them to claim it** into the

@@ -9,13 +9,34 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { PilotSchema } from '../../../lib/schemas/pilot'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { NewEntityScreen } from '../NewEntityScreen'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
+
+const CONNECTED: ConnectionState = {
+  mode: 'connected',
+  canWrite: true,
+  showDisconnectedWarning: false,
+  settling: false,
+}
+
+function Connected({ children }: { children: ReactNode }) {
+  return <ConnectionContext.Provider value={CONNECTED}>{children}</ConnectionContext.Provider>
+}
+
+/** Every render here is signed in, unless a test renders Solo on purpose. */
+const render = (ui: ReactNode) => rtlRender(ui, { wrapper: Connected })
 
 function resetEntityStore(): void {
   useEntityStore.setState({
@@ -48,6 +69,28 @@ describe('parseCreateMode', () => {
     expect(parseCreateMode('nonsense')).toBeUndefined()
     expect(parseCreateMode(undefined)).toBeUndefined()
     expect(parseCreateMode(42)).toBeUndefined()
+  })
+})
+
+describe('NewEntityScreen — signed out', () => {
+  test('is the sign-in panel in every mode: building needs an account', () => {
+    for (const mode of [undefined, 'guided', 'blank'] as const) {
+      // Outside any provider the connection is Solo.
+      rtlRender(
+        <NewEntityScreen
+          kind="mech"
+          mode={mode}
+          wizard={<div data-testid="stub-wizard" />}
+          onModeChange={noop}
+          onCreated={noop}
+        />
+      )
+      expect(screen.getByRole('heading', { name: 'Sign in to build a mech' })).toBeTruthy()
+      expect(screen.queryByTestId('stub-wizard')).toBeNull()
+      expect(screen.queryByRole('button', { name: /guided/i })).toBeNull()
+      expect(screen.queryByRole('dialog')).toBeNull()
+      cleanup()
+    }
   })
 })
 

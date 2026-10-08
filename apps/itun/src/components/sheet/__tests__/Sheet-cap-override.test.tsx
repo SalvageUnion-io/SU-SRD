@@ -9,8 +9,12 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton, changeLog } from '../../../lib/db/index'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 const basePilotInput = {
   schemaVersion: 1 as const,

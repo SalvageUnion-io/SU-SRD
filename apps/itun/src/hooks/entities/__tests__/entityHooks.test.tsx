@@ -18,9 +18,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { useMech, usePilot, usePilots } from '../index'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 // ---------------------------------------------------------------------------
 // Helpers

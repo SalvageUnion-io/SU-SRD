@@ -48,14 +48,13 @@ describe('a build with no Convex URL is always anonymous, and anonymous is memor
 })
 
 describe('an unsettled auth handshake cannot block a build with no auth layer', () => {
-  test('still memory, and still writable', () => {
+  test('still memory, refused as signed out rather than as settling', () => {
     // `authSettled: false` is what ConnectionProvider pushes for the first few
     // hundred ms of a signed-in load — but with no Convex URL there is no
-    // handshake to wait for, and blocking here would make every anonymous
-    // write in CI throw.
+    // handshake to wait for, so the refusal says "sign in", not "try again".
     setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
     expect(selectBackend()).toBe('memory')
-    expect(requireWritableBackend()).toBe('memory')
+    expect(refusalReason()).toBe('signedOut')
   })
 
   test('an omitted authSettled is treated as settled', () => {
@@ -64,14 +63,27 @@ describe('an unsettled auth handshake cannot block a build with no auth layer', 
   })
 })
 
-describe('an anonymous write is never refused', () => {
-  test('requireWritableBackend returns memory rather than throwing, even offline', () => {
-    // Offline + signed out is Solo, not Disconnected. The account is required
-    // to KEEP work, never to do it (ADR-034 decision 1).
-    setEntityBackendAuthState({ signedIn: false, online: false, authSettled: true })
-    expect(requireWritableBackend()).toBe('memory')
+describe('an anonymous write is refused', () => {
+  test('as signed out, online or off — building needs an account (ADR-034 as amended)', () => {
+    // Offline + signed out is Solo, not Disconnected, so the refusal asks for a
+    // sign-in rather than blaming the connection.
+    for (const online of [true, false]) {
+      setEntityBackendAuthState({ signedIn: false, online, authSettled: true })
+      expect(refusalReason()).toBe('signedOut')
+    }
   })
 })
+
+/** The reason `requireWritableBackend` refuses with, or null if it allows. */
+function refusalReason(): string | null {
+  try {
+    requireWritableBackend()
+    return null
+  } catch (err) {
+    if (err instanceof WritesBlockedOffline) return err.reason
+    throw err
+  }
+}
 
 describe('the signed-in backend the durability tests run on', () => {
   test('a configured, settled, online, signed-in session is remote', () => {

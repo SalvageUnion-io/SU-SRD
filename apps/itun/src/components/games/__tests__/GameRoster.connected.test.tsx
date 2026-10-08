@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 
 /**
@@ -40,6 +40,8 @@ let mutationError: unknown = null
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
 const convexMocks = await installConvexMocks({
+  // The store's commits: copies and moves are signed-in writes now.
+  convexClient: { mutation: async () => null },
   convexReact: {
     useMutation: (ref: unknown) => async (args: unknown) => {
       if (mutationError !== null) throw mutationError
@@ -52,6 +54,8 @@ const { GameRoster } = await import('../GameRoster')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+
+const SIGNED_IN = { signedIn: true, online: true, authSettled: true, convexConfigured: true }
 
 beforeAll(hydrateStores)
 
@@ -410,10 +414,9 @@ describe('every verb that changes who has a build asks first', () => {
   })
 
   test('Copy to My Stuff says the copy is separate, and copies nothing until confirmed', async () => {
-    // Signed out, so the copy's create stays in the in-memory backend: this
-    // file's Convex client is a stub with no `mutation`, and the backend's auth
-    // state is process-global, so another file can leave it signed in.
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    // Signed in: building needs an account. The backend's auth state is
+    // process-global, so it is set here rather than assumed.
+    setEntityBackendAuthState(SIGNED_IN)
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
     const dialog = press('Copy to My Stuff')
 
@@ -422,7 +425,8 @@ describe('every verb that changes who has a build asks first', () => {
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
     await confirmWith('Make a copy')
-    expect(localPilotNames()).toContain('COPY OF Vex Arlo')
+    // A signed-in create writes the IndexedDB cache, which settles after `act`.
+    await waitFor(() => expect(localPilotNames()).toContain('COPY OF Vex Arlo'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
@@ -514,7 +518,7 @@ describe('every verb that changes who has a build asks first', () => {
 describe('remove from game', () => {
   /** This browser holds the copy a move is made on — `ShelfSync` brings it in. */
   async function holdLocally(): Promise<void> {
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    setEntityBackendAuthState(SIGNED_IN)
     await useEntityStore
       .getState()
       .adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
@@ -560,7 +564,7 @@ describe('remove from game', () => {
   })
 
   test('a crawler comes out at the table runner’s hand only', async () => {
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+    setEntityBackendAuthState(SIGNED_IN)
     await useEntityStore
       .getState()
       .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))

@@ -66,6 +66,13 @@ const DISCONNECTED: ConnectionState = {
   settling: false,
 }
 
+const SOLO: ConnectionState = {
+  mode: 'solo',
+  canWrite: false,
+  showDisconnectedWarning: false,
+  settling: false,
+}
+
 const CONNECTING: ConnectionState = {
   mode: 'connecting',
   canWrite: false,
@@ -86,6 +93,13 @@ describe('Sheet — writes blocked by connectivity', () => {
     renderSheetIn(DISCONNECTED)
     expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
     expect(screen.getByText(/Read-only — not connected/i)).toBeTruthy()
+  })
+
+  test('signed out, the refusal asks for a sign-in rather than blaming the connection', () => {
+    renderSheetIn(SOLO)
+    expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
+    expect(screen.getByText(/Read-only — sign in to edit/i)).toBeTruthy()
+    expect(screen.queryByText(/not connected/i)).toBeNull()
   })
 
   test('the settling handshake does NOT flash read-only', () => {

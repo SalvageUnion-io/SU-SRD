@@ -11,6 +11,10 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 import { _clearAllStores, _resetDbSingleton, changeLog } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { DASHBOARD_TXN, LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../surfaceProvenance'
+import { withSignedInBackend } from './signedInBackend'
+
+// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
+withSignedInBackend()
 
 const basePilotInput = {
   schemaVersion: 1 as const,

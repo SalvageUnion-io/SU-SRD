@@ -143,14 +143,21 @@ export function selectBackend(): BackendKind {
 }
 
 /**
- * Why a write was refused. Two states, two different things to say to a player:
- * one is a condition they have to wait out, the other resolves by itself in a
- * moment and only needs "try that again".
+ * Why a write was refused. Three states, three different things to say to a
+ * player: one is a condition they have to wait out, one resolves by itself in a
+ * moment and only needs "try that again", and one needs them to sign in.
  */
-export type BlockedWriteReason = 'offline' | 'settling'
+export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut'
+
+const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
+  settling: 'Still signing in — that change was not saved. Try again in a moment.',
+  offline: 'Not connected — your games are read-only until the connection returns',
+  signedOut: 'Sign in to build and edit — nothing is saved without an account.',
+}
 
 /**
- * Thrown when a write is attempted while the server of record is unreachable.
+ * Thrown when a write is attempted while the server of record is unreachable,
+ * or by a visitor who is not signed in.
  *
  * The message is user-facing copy, not a developer string: it is what the
  * refusal toast shows, so it says the consequence rather than the condition.
@@ -161,11 +168,7 @@ export class WritesBlockedOffline extends Error {
   readonly reason: BlockedWriteReason
 
   constructor(reason: BlockedWriteReason = 'offline') {
-    super(
-      reason === 'settling'
-        ? 'Still signing in — that change was not saved. Try again in a moment.'
-        : 'Not connected — your games are read-only until the connection returns'
-    )
+    super(BLOCKED_WRITE_COPY[reason])
     this.name = 'WritesBlockedOffline'
     this.reason = reason
   }
@@ -409,13 +412,14 @@ export async function commitSoftLink(
  * use; throws rather than silently degrading when the answer is "you cannot
  * write right now".
  *
- * `memory` passes: an anonymous build is a legitimate write, it just does not
- * outlive the tab. Refusing here would make the app read-only for a visitor,
- * which is the opposite of what ADR-034 decision 1 asks for — the account is
- * required to *keep* work, never to do it.
+ * `memory` is refused too: signed out, ITUN is read-only
+ * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034) decision 1, as amended).
+ * Anonymous building used to be allowed and simply not kept, which lost the
+ * work to any reload — a deploy's forced one included.
  */
-export function requireWritableBackend(): Exclude<BackendKind, 'blocked'> {
+export function requireWritableBackend(): 'remote' {
   const backend = selectBackend()
+  if (backend === 'memory') throw new WritesBlockedOffline('signedOut')
   if (backend === 'blocked') {
     throw new WritesBlockedOffline(isSettlingConnection(currentMode()) ? 'settling' : 'offline')
   }
