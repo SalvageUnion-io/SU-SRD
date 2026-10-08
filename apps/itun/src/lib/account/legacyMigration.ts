@@ -135,10 +135,9 @@ export function countStranded(work: StrandedWork): number {
     work.crawlers.length +
     work.mechPatterns.length +
     work.encounterNpcs.length
-    // Soft links are excluded from the count for the same reason
-    // `countAnonymousWork` excludes them: they are wiring between things rather
-    // than things, so "3 builds" reads correctly and "5" would not. They are
-    // still sent.
+    // Soft links are excluded from the count: they are wiring between things
+    // rather than things, so "3 builds" reads correctly and "5" would not.
+    // They are still sent.
   )
 }
 

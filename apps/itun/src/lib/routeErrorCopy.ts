@@ -35,7 +35,7 @@ export function savedWorkCopy(backend: BackendKind | null): string {
       // `blocked` is also the `connecting` state, before anyone knows whether
       // this visitor is signed in — so it cannot say "your account".
       return 'Anything saved to an account is stored on the server and is not affected.'
-    case 'memory':
+    case 'signedOut':
       // Signed out: nothing can be built without an account, so there is no
       // unsaved work for a reload to lose.
       return 'Nothing is built without an account, so reloading loses nothing.'

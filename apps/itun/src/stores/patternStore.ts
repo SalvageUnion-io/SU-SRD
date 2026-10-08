@@ -13,11 +13,9 @@
 
 import { create } from 'zustand'
 import * as db from '../lib/db/index'
-import { makeMemoryStore } from '../lib/db/memoryStore'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { MechPattern } from '../lib/schemas/pattern'
-import { MechPatternSchema } from '../lib/schemas/pattern'
-import { commitPatternWrite, selectBackend } from './entityBackend'
+import { commitPatternWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice, wireCrossTabInvalidation } from './makeHydratedCollection'
 
@@ -27,33 +25,10 @@ export type MechPatternCreateInput = Omit<MechPattern, 'id' | 'createdAt' | 'upd
 type PatternState = HydratedCollectionSlice<'mechPatterns', MechPattern> &
   HydratedCollectionActions<MechPattern, MechPatternCreateInput>
 
-/**
- * The anonymous backing for saved patterns (ADR-034 decision 1).
- *
- * Built at module scope so it HOLDS the rows: a store created per call would
- * hand every read an empty Map. Mirrors `entityStore`'s `MEMORY_STORES`.
- */
-/*
- * `hasUpdatedAt` is deliberately ABSENT, matching `db.mechPatterns`.
- *
- * `MechPatternSchema` is `.strict()` and defines `createdAt` only — patterns
- * are immutable after creation, so there is nothing for an `updatedAt` to
- * mean. With the flag on, `prepareCreate` stamped the field and the strict
- * parse then rejected the record it had just built, so every anonymous "Save
- * pattern" threw `Unrecognized key: "updatedAt"` before it could write.
- *
- * The IndexedDB store never set it, which is why signed-in saves worked and
- * the divergence went unseen — exactly the mismatch `entityStore`'s
- * `MEMORY_STORES` comment warns about, where an anonymous session stamps
- * different fields from a signed-in one.
- */
-const memoryPatterns = makeMemoryStore(MechPatternSchema, STORE_NAMES.mechPatterns)
-
 const slice = makeHydratedCollectionSlice<'mechPatterns', MechPattern, MechPatternCreateInput>({
   key: 'mechPatterns',
-  db: () => (selectBackend() === 'memory' ? memoryPatterns : db.mechPatterns),
+  db: db.mechPatterns,
   storeName: STORE_NAMES.mechPatterns,
-  shouldBroadcast: () => selectBackend() !== 'memory',
   /**
    * The per-write mirror (ADR-034 P4b).
    *

@@ -32,13 +32,12 @@ type ExportEncounterNpcStore = {
 }
 
 /**
- * Read a collection store through whichever backend is live right now.
+ * Read a collection store the way the app reads it right now.
  *
- * `rehydrate`, not the IndexedDB table: the defaults used to be
- * `db.mechPatterns` / `db.encounterNpcs`, which is the right source only for a
- * signed-in player. An anonymous visitor's patterns live in the memory backend,
- * so their "Download all" — the one way out ADR-034 promises somebody who will
- * not make an account — silently left every saved pattern behind.
+ * `rehydrate`, not the IndexedDB table: the store answers with the account's
+ * cache signed in and with nothing signed out (`readableRows`), so an anonymous
+ * backup cannot reach into IndexedDB for rows the visitor cannot see — a
+ * pre-account roster is exported by its own path (`buildLegacyExportBundle`).
  */
 function fromStore<T>(store: {
   getState: () => { rehydrate: () => Promise<void>; list: () => T[] }

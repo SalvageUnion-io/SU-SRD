@@ -13,7 +13,6 @@
  * opposite.
  */
 
-import type { PromotionState } from '../account/promotionState'
 import type { ContainerFields } from '../container'
 import { containerOf } from '../container'
 import type { LegacyProbeState } from './legacyLocalData'
@@ -21,34 +20,26 @@ import type { LegacyProbeState } from './legacyLocalData'
 /**
  * May this browser prune at all?
  *
- * Only when it has never held a pre-ADR-034 roster, AND no anonymous work is
- * waiting to reach the server.
+ * Only when it has never held a pre-ADR-034 roster.
  *
- * The scenario the legacy guard exists for: a long-standing Solo player signs
- * in for the first time and has not claimed yet. Every build they own is a
- * local shelf row the server has never heard of, so {@link rowMayBePruned}
- * would read every one of them as "deleted elsewhere" and delete the lot.
- * `absent` is the only state in which a local row can be trusted to have come
- * from a server-accepted write or from `ShelfSync` itself — which is what makes
- * absence mean deletion rather than not-yet-uploaded.
+ * The scenario this guard exists for: a long-standing Solo player signs in for
+ * the first time and their roster has not been migrated yet. Every build they
+ * own is a local shelf row the server has never heard of, so
+ * {@link rowMayBePruned} would read every one of them as "deleted elsewhere"
+ * and delete the lot. `absent` is the only state in which a local row can be
+ * trusted to have come from a server-accepted write or from `ShelfSync` itself
+ * — which is what makes absence mean deletion rather than not-yet-uploaded.
  *
- * `unknown` is refused for the same reason it keeps the local backend: the
- * probe has not answered, so "no legacy roster" is not yet known to be true.
+ * `unknown` is refused for the same reason: the probe has not answered, so "no
+ * legacy roster" is not yet known to be true.
  *
- * The PROMOTION guard closes the same hole from the other side, and it is the
- * one that was missing. A brand-new visitor who built anonymously and then
- * signed in has `legacy === 'absent'` — correctly, they have no pre-ADR-034
- * roster — so the first guard waves them through. But their builds are exactly
- * as un-uploaded as the long-standing player's, and if promotion has not
- * finished (or has FAILED, which leaves them local forever) then absence from
- * `listMine` means "never arrived", not "deleted elsewhere". Pruning there
- * deletes the work the promoter was reporting an error about.
- *
- * Both guards answer the same question — *can absence be trusted to mean
- * deletion?* — for the two different reasons it cannot.
+ * There was a second guard, for anonymous work still being uploaded after a
+ * sign-in. Signing out is read-only now, so no row can be built outside the
+ * account and that state cannot arise: every local row other than a legacy one
+ * came from the server or from a write it accepted first.
  */
-export function mayPrune(legacy: LegacyProbeState, promotion: PromotionState): boolean {
-  return legacy === 'absent' && promotion === 'idle'
+export function mayPrune(legacy: LegacyProbeState): boolean {
+  return legacy === 'absent'
 }
 
 /**

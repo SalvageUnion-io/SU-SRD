@@ -21,16 +21,20 @@ import type { SoftLink } from '../lib/schemas/softLink'
  *
  * ## There are exactly three answers, and one of them is "nowhere"
  *
- * `remote` when the app is genuinely Connected, `memory` when it is anonymous,
- * and `blocked` while it is Disconnected or still completing the auth
- * handshake. There is no fourth case.
+ * `remote` when the app is genuinely Connected, `signedOut` when it is
+ * anonymous, and `blocked` while it is Disconnected or still completing the
+ * auth handshake. There is no fourth case.
+ *
+ * `signedOut` is read-only and reads nothing: there is no anonymous store at
+ * all (`readableRows`). Signed out, ITUN shows reference and nothing of a
+ * player's own (ADR-034 decision 1, as amended).
  *
  * There used to be: `local`, the durable IndexedDB backend an anonymous visitor
  * got in any build that did not set `VITE_REQUIRE_ACCOUNT`. Production always
  * set it, so `local` only ever ran in CI, `bun run dev` and the e2e suite —
  * which meant the suite spent its effort proving a storage mode no player could
  * reach, and had to force the flag off to do it. It was retired along with the
- * flag: anonymous is in-memory everywhere, and the durable path the tests
+ * flag, and the durable path the tests
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
  *
@@ -78,7 +82,7 @@ type AuthState = {
 /**
  * Read once per write rather than subscribed — the store is not a component.
  *
- * The initial value is anonymous and settled, which resolves to `memory`: with
+ * The initial value is anonymous and settled, which resolves to `signedOut`: with
  * no Convex URL compiled in, `selectBackend` short-circuits to Solo before this
  * is consulted, and with one compiled in `ConnectionProvider` pushes the real
  * value on mount.
@@ -95,7 +99,7 @@ export function setEntityBackendAuthState(next: AuthState): void {
   authState = next
 }
 
-export type BackendKind = 'remote' | 'blocked' | 'memory'
+export type BackendKind = 'remote' | 'blocked' | 'signedOut'
 
 /** The mode the store layer currently believes it is in. */
 function currentMode(): ConnectionMode {
@@ -114,17 +118,14 @@ function currentMode(): ConnectionMode {
  * a pure function beside `useConnection`: the rule is the part worth testing,
  * and every mode can be driven here without a Convex client.
  *
- * Anonymous (`solo`) is `memory` unconditionally
+ * Anonymous (`solo`) is `signedOut` unconditionally
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034)
  * decision 1). There is no build flag and no exemption for a browser that
- * already holds a roster (ADR-035): those rows stay on disk and are migrated on
- * sign-in rather than loaded into the anonymous session — loading them would
- * make `AccountReconciler` promote the whole store without knowing what the
- * account already holds, so a sign-out/sign-in round trip would re-claim owned
- * rows and report them as builds that could not be saved.
+ * already holds a roster (ADR-035): those rows stay on disk, unseen signed out,
+ * and are migrated on sign-in by `AccountReconciler`.
  */
 export function backendForMode(mode: ConnectionMode): BackendKind {
-  if (mode === 'solo') return 'memory'
+  if (mode === 'solo') return 'signedOut'
   if (usesServerOfRecord(mode)) return 'remote'
   // `connecting` lands here alongside `disconnected`, and deliberately: writing
   // anywhere before the handshake resolves is exactly the silent fork this
@@ -412,16 +413,33 @@ export async function commitSoftLink(
  * use; throws rather than silently degrading when the answer is "you cannot
  * write right now".
  *
- * `memory` is refused too: signed out, ITUN is read-only
+ * `signedOut` is refused too: signed out, ITUN is read-only
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#adr-034) decision 1, as amended).
  * Anonymous building used to be allowed and simply not kept, which lost the
  * work to any reload — a deploy's forced one included.
  */
 export function requireWritableBackend(): 'remote' {
   const backend = selectBackend()
-  if (backend === 'memory') throw new WritesBlockedOffline('signedOut')
+  if (backend === 'signedOut') throw new WritesBlockedOffline('signedOut')
   if (backend === 'blocked') {
     throw new WritesBlockedOffline(isSettlingConnection(currentMode()) ? 'settling' : 'offline')
   }
   return backend
+}
+
+/**
+ * The rows a store may show: its IndexedDB cache signed in (or blocked, where
+ * the cache is what a Disconnected reader still opens), and **nothing** signed
+ * out.
+ *
+ * The one read rule for every player-entity store. Signed out there is no
+ * anonymous store to read — nothing can be built without an account — and the
+ * cache must not stand in for one: it may hold a pre-account roster (ADR-035,
+ * migrated on sign-in, never shown signed out) or the last account's rows.
+ * Resolved per call, like `selectBackend`, so a sign-in is seen on the next
+ * read.
+ */
+export async function readableRows<T>(cache: { list: () => Promise<T[]> }): Promise<T[]> {
+  if (selectBackend() === 'signedOut') return []
+  return cache.list()
 }

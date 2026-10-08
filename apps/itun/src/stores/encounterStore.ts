@@ -15,11 +15,9 @@ import { create } from 'zustand'
 import type { Container } from '../lib/container'
 import { containerOf, sameContainer } from '../lib/container'
 import * as db from '../lib/db/index'
-import { makeMemoryStore } from '../lib/db/memoryStore'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { EncounterNpc } from '../lib/schemas/encounterNpc'
-import { EncounterNpcSchema } from '../lib/schemas/encounterNpc'
-import { commitNpcWrite, selectBackend } from './entityBackend'
+import { commitNpcWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'
 import { makeHydratedCollectionSlice, wireCrossTabInvalidation } from './makeHydratedCollection'
 
@@ -35,16 +33,10 @@ type EncounterState = HydratedCollectionSlice<'encounterNpcs', EncounterNpc> &
     listForContainer: (container: Container | null) => EncounterNpc[]
   }
 
-/** The anonymous backing for the NPC tray — see `patternStore` for the shape. */
-const memoryNpcs = makeMemoryStore(EncounterNpcSchema, STORE_NAMES.encounterNpcs, {
-  hasUpdatedAt: true,
-})
-
 const slice = makeHydratedCollectionSlice<'encounterNpcs', EncounterNpc, EncounterNpcCreateInput>({
   key: 'encounterNpcs',
-  db: () => (selectBackend() === 'memory' ? memoryNpcs : db.encounterNpcs),
+  db: db.encounterNpcs,
   storeName: STORE_NAMES.encounterNpcs,
-  shouldBroadcast: () => selectBackend() !== 'memory',
   /** The per-write mirror (ADR-034 P4b) — see `patternStore` for why. */
   commit: commitNpcWrite,
 })

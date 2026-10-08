@@ -6,13 +6,11 @@
  * still be read for rows that did not land.
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
-import { pilotFixture } from '../../../components/__tests__/fixtures'
-import { useEntityStore } from '../../../stores/entityStore'
-import type { LocalWork } from '../reconcile'
-import { countWork, reconcile, strandedCount, withoutIds, workIds } from '../reconcile'
+import { describe, expect, test } from 'bun:test'
+import type { StrandedWork } from '../legacyMigration'
+import { reconcile, strandedCount } from '../reconcile'
 
-const EMPTY: LocalWork = {
+const EMPTY: StrandedWork = {
   pilots: [],
   mechs: [],
   crawlers: [],
@@ -23,7 +21,7 @@ const EMPTY: LocalWork = {
 
 /** A claimLocal stand-in that records what it was handed. */
 function recordingClaim(
-  result: { claimed: number; skipped: number; alreadyPresent: number; strandedIds?: string[] } = {
+  result: { claimed: number; skipped: number; alreadyPresent: number } = {
     claimed: 0,
     skipped: 0,
     alreadyPresent: 0,
@@ -37,100 +35,23 @@ function recordingClaim(
   return { fn, calls }
 }
 
-afterEach(async () => {
-  // The entity store is a module singleton; leaving rows behind would leak into
-  // the next file (see .claude/rules/testing-patterns.md on process-global state).
-  const store = useEntityStore.getState()
-  for (const type of ['pilot', 'mech', 'crawler', 'softLink'] as const) {
-    for (const row of store.list(type)) await store.forget(type, row.id)
-  }
-})
-
-describe('countWork', () => {
-  test('counts things, not wiring', () => {
-    const n = countWork({
-      pilots: [{}, {}],
-      mechs: [{}],
-      crawlers: [],
-      softLinks: [{}, {}, {}],
-      mechPatterns: [{}],
-      encounterNpcs: [{}],
-    })
-
-    // 2 pilots + 1 mech + 1 pattern + 1 NPC. The three soft links are wiring
-    // between things, so counting them would say eight for five.
-    expect(n).toBe(5)
-  })
-
-  test('nothing held is zero, so nothing is sent', () => {
-    expect(countWork(EMPTY)).toBe(0)
-  })
-})
-
 describe('reconcile', () => {
   test('hands every kind to the server, wiring and NPCs included', async () => {
     const claim = recordingClaim()
-    await reconcile(
-      claim.fn as never,
-      {
-        pilots: [{ id: 'p1' }],
-        mechs: [{ id: 'm1' }],
-        crawlers: [{ id: 'c1' }],
-        softLinks: [{ id: 'l1' }],
-        mechPatterns: [{ id: 'pat1' }],
-        encounterNpcs: [{ id: 'npc1' }],
-      },
-      { adopt: false }
-    )
+    await reconcile(claim.fn as never, {
+      pilots: [{ id: 'p1' }],
+      mechs: [{ id: 'm1' }],
+      crawlers: [{ id: 'c1' }],
+      softLinks: [{ id: 'l1' }],
+      mechPatterns: [{ id: 'pat1' }],
+      encounterNpcs: [{ id: 'npc1' }],
+    })
 
     // Excluded from the count is not excluded from the save: a roster that
     // arrives unwired, or without its patterns and tray, is a partial save
-    // presented as a complete one. NPCs used to be dropped by the anonymous path
-    // and sent by the device path — one of the drifts one reconciler removes.
+    // presented as a complete one.
     const sent = claim.calls[0]
     for (const kind of Object.keys(EMPTY)) expect(sent?.[kind]).toHaveLength(1)
-  })
-
-  test('a local cache failure does NOT fail the save', async () => {
-    const claim = recordingClaim({ claimed: 1, skipped: 0, alreadyPresent: 0 })
-
-    // `{ id: 'p1' }` does not parse as a Pilot, so adoption throws. The server
-    // write already landed, so this must still resolve: reporting a failure
-    // after a successful save is how one save becomes two.
-    const result = await reconcile(
-      claim.fn as never,
-      { ...EMPTY, pilots: [{ id: 'p1' }] },
-      { adopt: true }
-    )
-
-    expect(result).toEqual({ claimed: 1, stranded: 0, strandedIds: [] })
-  })
-
-  test('adopt: true caches session work under its own id', async () => {
-    const claim = recordingClaim({ claimed: 1, skipped: 0, alreadyPresent: 0 })
-    await reconcile(
-      claim.fn as never,
-      { ...EMPTY, pilots: [pilotFixture({ id: 'kept-id' })] },
-      { adopt: true }
-    )
-
-    expect(
-      useEntityStore
-        .getState()
-        .list('pilot')
-        .map((p) => p.id)
-    ).toEqual(['kept-id'])
-  })
-
-  test('adopt: false leaves the cache alone — device rows are already on disk', async () => {
-    const claim = recordingClaim({ claimed: 1, skipped: 0, alreadyPresent: 0 })
-    await reconcile(
-      claim.fn as never,
-      { ...EMPTY, pilots: [pilotFixture({ id: 'device-id' })] },
-      { adopt: false }
-    )
-
-    expect(useEntityStore.getState().list('pilot')).toEqual([])
   })
 
   test('a server refusal propagates rather than being swallowed', async () => {
@@ -140,50 +61,15 @@ describe('reconcile', () => {
 
     // Swallowing it would show a saved roster the server never received — the
     // exact silent divergence ADR-034 exists to end.
-    await expect(
-      reconcile(failing as never, { ...EMPTY, pilots: [{ id: 'p1' }] }, { adopt: true })
-    ).rejects.toThrow('nope')
+    await expect(reconcile(failing as never, { ...EMPTY, pilots: [{ id: 'p1' }] })).rejects.toThrow(
+      'nope'
+    )
   })
 
   test('a resolved-but-partial result reports what did not land', async () => {
-    const claim = recordingClaim({
-      claimed: 2,
-      skipped: 1,
-      alreadyPresent: 1,
-      strandedIds: ['p3', 'p4'],
-    })
-    const result = await reconcile(claim.fn as never, EMPTY, { adopt: false })
-    expect(result).toEqual({ claimed: 2, stranded: 2, strandedIds: ['p3', 'p4'] })
-  })
-
-  test('the landed rows of a partial result are the work minus its stranded ids', async () => {
-    const work = { ...EMPTY, pilots: [{ id: 'p1' }, { id: 'p2' }, { noId: true }] }
-    const claim = recordingClaim({ claimed: 1, skipped: 2, alreadyPresent: 0, strandedIds: ['p2'] })
-    const { strandedIds } = await reconcile(claim.fn as never, work, { adopt: false })
-
-    const landed = withoutIds(work, new Set(strandedIds))
-    // p1 landed and is recorded; p2 was refused. The id-less row was refused
-    // too and the server could not name it — it stays out of what gets
-    // recorded, because `workIds` cannot record a row with no id.
-    expect([...workIds(landed)]).toEqual(['p1'])
-    const stillPending = withoutIds(work, workIds(landed))
-    expect(stillPending.pilots).toEqual([{ id: 'p2' }, { noId: true }])
-  })
-
-  test('a server that does not name stranded rows leaves every row unconfirmed', async () => {
-    const work = { ...EMPTY, pilots: [{ id: 'p1' }, { id: 'p2' }] }
-    const legacy = async () => ({
-      claimed: 1,
-      skipped: 1,
-      alreadyPresent: 0,
-      declined: 0,
-      byKind: {},
-    })
-    const { strandedIds } = await reconcile(legacy as never, work, { adopt: false })
-
-    // Reading a missing field as "nothing stranded" would mark p2 as saved.
-    expect(new Set(strandedIds)).toEqual(new Set(['p1', 'p2']))
-    expect(countWork(withoutIds(work, new Set(strandedIds)))).toBe(0)
+    const claim = recordingClaim({ claimed: 2, skipped: 1, alreadyPresent: 1 })
+    const result = await reconcile(claim.fn as never, EMPTY)
+    expect(result).toEqual({ claimed: 2, stranded: 2 })
   })
 })
 

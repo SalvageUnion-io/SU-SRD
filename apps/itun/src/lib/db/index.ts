@@ -36,7 +36,6 @@ import { normalizeLegacyPilotRecord, PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import { CHANGE_LOG_ENTITY_INDEX, makeChangeLogStore } from './changeLog'
 import { makeStore } from './crud'
-import { _clearMemoryStores } from './memoryStore'
 import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
 import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
@@ -274,9 +273,6 @@ function getDb(): Promise<IDBPDatabase> {
  */
 export function _resetDbSingleton(): void {
   dbPromise = null
-  // The anonymous backend is the other half of "the stores", and the default
-  // one in the test build — reset it with the IndexedDB side.
-  _clearMemoryStores()
 }
 
 /**

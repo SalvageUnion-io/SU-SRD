@@ -20,7 +20,7 @@
  * a cache is not a user write, and a Disconnected reader must still be able to
  * open what they already pulled down.
  *
- * ## Pruning, and the three conditions that make it safe
+ * ## Pruning, and the two conditions that make it safe
  *
  * It also deletes local **shelf** rows the server did not return, which is what
  * finally makes "the cache is a reflection" literally true rather than
@@ -36,14 +36,6 @@
  * never pruned. A shelf row is different: `gameId: null` with no owner is the
  * one combination ADR-030 calls invalid, so every shelf row must be owned, and
  * every owned row is in `listMine`. Absence therefore means deleted.
- *
- * **3. Only when no anonymous work is waiting to reach the server.** A brand
- * new visitor who built anonymously and signed in has no legacy roster, so
- * guard 2 waves them through — but their builds are exactly as un-uploaded, and
- * if promotion is still running or has FAILED then absence from `listMine`
- * means "never arrived", not "deleted elsewhere". `promotionState()` carries
- * that, and it is read AFTER the adoption loop awaits so a promotion that
- * failed in the meantime is seen.
  *
  * **2. Only in a browser that never held a legacy roster.** This is the guard
  * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
@@ -70,7 +62,6 @@
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { promotionState } from '../../lib/account/promotionState'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { containerOf } from '../../lib/container'
 import { legacyLocalDataState } from '../../lib/db/legacyLocalData'
@@ -184,12 +175,7 @@ function ConnectedShelfSync() {
 
       // Prune only where absence is unambiguous — see the header. Every guard
       // matters; dropping any one turns this into a roster-deleter.
-      //
-      // `promotionState()` is read HERE, after the adoption loop above has
-      // awaited, rather than captured when the effect started. A promotion
-      // running concurrently may have failed in between, and the whole point of
-      // the guard is to see that.
-      if (!mayPrune(legacyLocalDataState(), promotionState())) return
+      if (!mayPrune(legacyLocalDataState())) return
 
       for (const [kind, rows] of kinds) {
         const served = new Set(
@@ -246,9 +232,7 @@ function ConnectedWiringSync() {
         store.hydrate('softLink'),
       ])
       const gameIds = new Set<string>(wiring.gameIds)
-      // Read once, after the hydrations above — see `ShelfSync` for why a
-      // promotion that failed in the meantime must be seen.
-      const prune = mayPrune(legacyLocalDataState(), promotionState())
+      const prune = mayPrune(legacyLocalDataState())
 
       const crawlerPlan = planCrawlerSync({
         local: useEntityStore.getState().crawlers,

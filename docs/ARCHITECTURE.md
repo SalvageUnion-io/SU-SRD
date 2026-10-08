@@ -217,7 +217,7 @@ the entity rows.
   timestamps; the Zod schemas in `apps/itun/src/lib/schemas/` own the shape, so
   **every mutation parses with Zod before persisting**.
 - `selectBackend()` (`src/stores/entityBackend.ts`) answers `'remote'`,
-  `'memory'` (anonymous or no Convex URL) or `'blocked'` (throws
+  `'signedOut'` (anonymous or no Convex URL) or `'blocked'` (throws
   `WritesBlockedOffline`; surfaces check `canWrite`). In `'remote'`,
   `commitEntityWrite()` and its siblings write by app id (`appId` column) and
   are **awaited**: a refused write did not happen.
@@ -4701,8 +4701,8 @@ request.** Signed out, `AccountReconciler` now renders nothing. Read decision 2'
 signed-out sentence ("says what is on the device and offers both doors"), the
 export "beside the sign-in prompt, on every screen", and the consequences that
 describe a count and two doors as history. The signed-in migration is unchanged.
-The Roster's "Download all" still exports this tab's work, but it reads the
-store, not IndexedDB. A signed-out visitor therefore has no way to download a
+The Roster's "Download all" reads the store, not IndexedDB, and signed out
+the store reads nothing. A signed-out visitor therefore has no way to download a
 pre-account roster still on the device. Those rows are migrated on sign-in.
 
 ### Context
@@ -4763,9 +4763,9 @@ server-backed, and still not appear anywhere.
 
 #### 1. Anonymous is anonymous. There is no exemption
 
-`backendForMode` no longer consults the legacy probe. A build that requires an
-account gives an anonymous visitor the in-memory backend, whatever that browser
-is holding.
+`backendForMode` no longer consults the legacy probe. An anonymous visitor
+gets the `signedOut` backend, whatever that browser is holding: writes are
+refused, and every store reads empty (`readableRows`), not IndexedDB.
 
 This is not a withdrawal of ADR-034's promise that existing local data is never
 destroyed — see decision 2, which is what makes it keepable. The rows stay on
@@ -4794,8 +4794,8 @@ a demonstrated data-isolation defect, the defect wins.
 **Export survives, and stays load-bearing.** It moves to where a person without
 an account will actually meet it: beside the sign-in prompt, on every screen,
 reading IndexedDB rather than the store — because for an anonymous session the
-store is the in-memory backend, and the old export button would have handed
-somebody downloading their pre-account roster an empty file.
+store reads nothing, and the old export button would have handed somebody
+downloading their pre-account roster an empty file.
 
 #### 3. A row's body must agree with the row it is stored in
 
@@ -4943,8 +4943,8 @@ the signed-out experience exactly. It also re-creates the defect in a new place:
 session work is promoted as-is, without knowing what the account already holds,
 so a sign-out/sign-in round trip would re-claim rows the account already had and
 report them as builds that "could not be saved". `AccountReconciler` keeps the
-rule this implies: session work is sent as-is, device rows only after comparing
-against `listMine`, which only the signed-in path has.
+rule this implies: device rows are sent only after comparing against
+`listMine`, which only the signed-in path has.
 
 ## ADR-036
 
