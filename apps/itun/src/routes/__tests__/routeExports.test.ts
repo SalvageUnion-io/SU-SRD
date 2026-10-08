@@ -77,9 +77,7 @@ describe('route modules', () => {
 describe('route titles', () => {
   const pages = routeFiles(routesDir).filter((file) => {
     const name = relative(routesDir, file)
-    // The Dashboard route is owned by the redesign milestone; #1052 adds its
-    // head and removes this exemption. By directory, so a rename keeps it.
-    if (name === '__root.tsx' || name.startsWith('dashboard/')) return false
+    if (name === '__root.tsx') return false
     return readFileSync(file, 'utf8').includes('component:')
   })
 

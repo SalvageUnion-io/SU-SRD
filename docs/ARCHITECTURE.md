@@ -174,7 +174,9 @@ Three connection modes ([ADR-030](#adr-030),
 | **Disconnected** | signed in, offline | Convex | local cache | **blocked** |
 
 Solo writes vanish on reload unless the user signs in (`AccountReconciler`
-claims them). A build with no `VITE_CONVEX_URL` is permanently Solo. Offline,
+claims them). A build with no `VITE_CONVEX_URL` is permanently Solo. Solo has
+no Dashboard: it opens only for a pilot in a Game with a Mediator
+([ADR-038](#adr-038)), so Solo play is on the live sheet. Offline,
 a signed-in user is read-only and never falls back to IndexedDB, which would
 fork data against the server of record. The mode comes from
 `resolveConnectionMode()` (`apps/itun/src/lib/connection/connectionMode.ts`),
@@ -458,7 +460,7 @@ overridden-stat marker shows on the Live Sheet only.
 
 **Status:** the Wizard enforces hard (`PilotWizard.tsx`, `MechWizard.tsx`,
 `CrawlerBuilder.tsx`; `Next` gated by `lib/rules/creation.ts`; exit via
-`OffRulesEscape`). The Dashboard is built at `/dashboard/$id`
+`OffRulesEscape`). The Dashboard is built at `/dashboard/$pilotId`
 ([architecture/dashboard.md](architecture/dashboard.md),
 [ADR-015](#adr-015)). The Live Sheet is
 Free Edit plus the list above, with cap overrides and revert. Place a feature
@@ -472,7 +474,9 @@ Zustand stores, with no combat RPCs, no turn enforcement and no undo (the
 `changeLog` is provenance). Each player updates their own mech. Rules math is
 pure and shared ([ADR-006](#adr-006)); bookkeeping
 auto-applies, destruction waits for the player
-([ADR-007](#adr-007)).
+([ADR-007](#adr-007)). The Dashboard opens only for a pilot in a Game with a
+Mediator ([ADR-038](#adr-038)); Solo play, and play in a Game with no
+Mediator, is on the live sheet.
 
 ```typescript
 // salvageunion-reference/rules — lib/rules/heatCheck.ts
@@ -1817,14 +1821,14 @@ salvageunion-reference`) is **out of scope for this decision** — it
 ### Status
 
 Accepted and **built** (`apps/itun/src/components/dashboard/`, routed at
-`/dashboard/$id`; architecture in [dashboard.md](architecture/dashboard.md)).
+`/dashboard/$pilotId`; architecture in [dashboard.md](architecture/dashboard.md)).
 This is the play-surface instance of the governing surface taxonomy in
 [ADR-021](#adr-021) — the **Guided Play** surface.
 
 ADRs 016–020 recorded this surface's sub-decisions; they are merged below as
 **Dashboard decisions**, and those five files are stubs pointing here.
 
-**Amended by [ADR-038](#adr-038)** (accepted, not yet built). Decision 1, the rotary
+**Amended by [ADR-038](#adr-038)** (accepted, partly built). Decision 1, the rotary
 Dial, is replaced by Major and Minor slots and a tabbed display. Decision 4's
 ephemeral play state is reversed: play state becomes a per-pilot seat saved on
 the Game, and the Dashboard becomes Game-only, needing a Mediator. Decision 4's
@@ -1842,7 +1846,7 @@ Free Edit and Guided Play — and this ADR gives Guided Play its own surface.
 
 ### Decision
 
-The **Dashboard** is a **new surface** at `/dashboard/$id`, not a mode of the live
+The **Dashboard** is a **new surface** at `/dashboard/$pilotId`, not a mode of the live
 sheet. It composes a player's **Pilot + Mech + Crawler** into one live play
 surface. Sheets edit a character; the Dashboard runs it at the table. Both read and
 mutate the **same** persisted entities through the **same** store and rules engine
@@ -1995,7 +1999,7 @@ the specific overrides are listed under [Supersession](#supersession--precedence
 
 "Accepted" records the **decision**; the code has since largely caught up (the
 Wizard enforces Guided Creation hard on the create path, the Dashboard ships at
-`/dashboard/$id`, and ADR-022's Change Log is live). The living, authoritative
+`/dashboard/$pilotId`, and ADR-022's Change Log is live). The living, authoritative
 placement table is the matrix in
 [rules and ITUN surfaces](#rules-and-itun-surfaces) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
@@ -2074,7 +2078,7 @@ the behavior.
 
 **The Dashboard is a separate, multi-entity surface — built.** It composes a
 player's Pilot + Mech + Crawler into one live play surface (distinct from the
-single-entity Live Sheet), shipped at `/dashboard/$id`
+single-entity Live Sheet), shipped at `/dashboard/$pilotId`
 (`src/components/dashboard/`). The code rename from the working title "Play
 Cockpit" has landed, and the Live Sheet's leftover play control (`QuickRollFab`)
 is gone. Detail in the architecture doc.
@@ -5293,10 +5297,11 @@ with its mechs docked.
 
 ### Status
 
-**Accepted; not yet built.** The plan that delivers it, layer by layer, is
+**Accepted; partly built.** Decision 1, the Game-only gate, is built. The plan
+that delivers the rest, layer by layer, is
 [dashboard-redesign.md](architecture/dashboard-redesign.md), tracked in the
 [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7). Until its layers
-land, the Dashboard in code is the one [ADR-015](#adr-015)
+land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
 and [dashboard.md](architecture/dashboard.md) describe.
 
 **Amends [ADR-015](#adr-015):**

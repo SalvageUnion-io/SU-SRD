@@ -26,12 +26,12 @@ import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
-import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
 import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
+import { PlayInGameHint } from './PlayInGameHint'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
@@ -226,7 +226,8 @@ export function SheetMech({
       actions={
         editable ? (
           <>
-            <DashboardChooser initialMechId={mech.id} activeContainer={container} />
+            {/* The Dashboard is Game-only and keyed on the pilot (ADR-038 §1). */}
+            {container.kind === 'shelf' && <PlayInGameHint />}
             {actions}
           </>
         ) : (

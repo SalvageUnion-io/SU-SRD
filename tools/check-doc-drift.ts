@@ -605,7 +605,7 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 13_486,
+  'apps/itun/CLAUDE.md': 13_476,
   'apps/srd/CLAUDE.md': 11_748,
   'CLAUDE.md': 12_065,
   'packages/component-lib/CLAUDE.md': 15_948,
@@ -617,8 +617,9 @@ const OVER_BUDGET: Record<string, number> = {
  * Raise one only on purpose, saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  // ~60K of architecture plus the 39 ADRs folded in from docs/adrs/, as measured.
-  'docs/ARCHITECTURE.md': 297_245,
+  // ~60K of architecture plus the 39 ADRs folded in from docs/adrs/, as measured,
+  // plus the Game-only Dashboard's Solo sentences and route (#1052).
+  'docs/ARCHITECTURE.md': 297_617,
 }
 
 export function checkDocSizes(

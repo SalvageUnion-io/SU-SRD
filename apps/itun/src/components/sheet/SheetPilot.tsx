@@ -15,12 +15,12 @@ import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from '../../lib/runWrite'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
 import { AssignPicker } from '../wiring/AssignPicker'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
+import { PlayInGameHint } from './PlayInGameHint'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
@@ -192,18 +192,9 @@ export function SheetPilot({
       actions={
         editable ? (
           <>
-            <DashboardChooser
-              initialPilotId={pilot.id}
-              // Only a mech you hold can be launched; a crewmate's flying this
-              // pilot is theirs to take into the Dashboard.
-              initialMechId={
-                composition.mech && holds('mech', composition.mech.id)
-                  ? composition.mech.id
-                  : undefined
-              }
-              initialCrawlerId={composition.crawler?.id}
-              activeContainer={container}
-            />
+            {/* The Dashboard is Game-only (ADR-038 §1): a Game pilot plays
+                from the roster's Play button, a shelf pilot is told where. */}
+            {container.kind === 'shelf' && <PlayInGameHint />}
             {actions}
           </>
         ) : (

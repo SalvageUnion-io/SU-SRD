@@ -1,7 +1,7 @@
 /**
- * P4.4 — the Dashboard is reachable from a pilot/mech Live Sheet, not just the
- * Roster. An editable sheet mounts a pre-seeded "Launch Dashboard" chooser; the
- * frozen (read-only) sheet does not.
+ * The Dashboard is Game-only (ADR-038 §1) and opens from the Game roster's
+ * Play button, so a live sheet launches nothing. An editable shelf sheet says
+ * where play happens instead; a Game sheet and the read-only sheet say nothing.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
@@ -40,20 +40,29 @@ beforeEach(async () => {
   resetEntityStore()
 })
 
-describe('Live Sheet — Launch Dashboard entry (P4.4)', () => {
-  test('an editable pilot sheet offers a Launch Dashboard button', async () => {
+describe('Live Sheet — Play in a Game hint', () => {
+  test('an editable shelf pilot sheet says to play in a Game', async () => {
     const pilot = await useEntityStore.getState().create('pilot', basePilotInput)
     render(<Sheet kind="pilot" id={pilot.id} />)
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /launch the dashboard/i })).toBeTruthy()
-    )
+    await waitFor(() => expect(screen.getByText('Play in a Game')).toBeTruthy())
+    // The retired launch chooser is gone with it.
+    expect(screen.queryByRole('button', { name: /launch the dashboard/i })).toBeNull()
   })
 
-  test('the frozen (read-only) sheet has no Launch Dashboard button', async () => {
+  test('the frozen (read-only) sheet has no hint', async () => {
     const pilot = await useEntityStore.getState().create('pilot', basePilotInput)
     render(<Sheet kind="pilot" id={pilot.id} readOnly />)
-    // Give the sheet a tick to render, then assert the launch entry is absent.
+    // Give the sheet a tick to render, then assert the hint is absent.
     await waitFor(() => expect(screen.getByRole('img', { name: /HP \d+ of \d+/ })).toBeTruthy())
-    expect(screen.queryByRole('button', { name: /launch the dashboard/i })).toBeNull()
+    expect(screen.queryByText('Play in a Game')).toBeNull()
+  })
+
+  test("a Game pilot's sheet has no hint: its roster has Play", async () => {
+    const pilot = await useEntityStore
+      .getState()
+      .create('pilot', { ...basePilotInput, gameId: 'game-a' })
+    render(<Sheet kind="pilot" id={pilot.id} />)
+    await waitFor(() => expect(screen.getAllByText('Yara Voss').length).toBeGreaterThan(0))
+    expect(screen.queryByText('Play in a Game')).toBeNull()
   })
 })

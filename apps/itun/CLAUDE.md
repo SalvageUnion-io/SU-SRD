@@ -9,7 +9,7 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 | Mode | When | Source of truth |
 | --- | --- | --- |
-| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: the in-memory backend; writes do not survive a reload |
+| **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: the in-memory backend; writes do not survive a reload; no Dashboard |
 | **Connected** | signed in, online | Convex; IndexedDB is a cache |
 | **Disconnected** | signed in, offline | read-only — not a write queue |
 
@@ -184,7 +184,7 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   (Worker), or carry a comment saying why dropping it is correct. Biome's
   `noEmptyBlockStatements` rejects a block with none of those. Reading
   reference data that may not be preloaded goes through
-  `readReference(source, read, fallback)` (`src/lib/readReference.ts`), which
+  `readReference` (`src/lib/readReference.ts`), which
   stays silent for `SchemaNotLoadedError` and reports anything else once per
   source — never a bare `try { SalvageUnionReference… } catch { return [] }`.
 - **Never insert into an `appId`-addressed table without checking first.**

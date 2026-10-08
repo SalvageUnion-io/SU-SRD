@@ -62,10 +62,8 @@ import { copyStarterSetToRoster, isStarterSetSeeded } from '../../lib/starterSet
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-import { usePatternStore } from '../../stores/patternStore'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { MoveToGameSelect } from '../container/MoveToGameSelect'
-import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { GameHub } from '../games/GameHub'
@@ -190,10 +188,6 @@ export function Roster() {
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
-  // Saved patterns are global (not container-scoped) — the Dashboard chooser
-  // offers them as stand-in mechs, so their presence also enables a launch.
-  const patterns = usePatternStore((s) => s.mechPatterns)
-  usePatternStore.getState().list()
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across container boundaries.
@@ -353,15 +347,6 @@ export function Roster() {
               >
                 {seedingStarter ? 'Loading…' : 'Load Starter Set'}
               </Button>
-            )}
-            {/* Launch the Dashboard for a chosen pilot/mech/crawler crew
-                (design-spec §8). Shown once the current view has a mech to run,
-                or any saved pattern exists to launch as a stand-in — the
-                chooser scopes saved mechs to the same container. */}
-            {(mechs.length > 0 || patterns.length > 0) && (
-              <DashboardChooser
-                activeContainer={mode === 'connected' ? activeContainer : undefined}
-              />
             )}
           </div>
           {/* What the hub shows, and how to get another table to show: the

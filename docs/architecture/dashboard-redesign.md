@@ -1,8 +1,8 @@
 # Dashboard redesign: the Flight Deck
 
-> **Status:** Plan, dated 2026-10-06. Nothing here is built. The product
-> decisions in §2 and the answers in §8 were made by the product owner. The
-> decision is recorded in
+> **Status:** Plan, dated 2026-10-06. Layers 1 and 2 are built; the rest is
+> not. The product decisions in §2 and the answers in §8 were made by the
+> product owner. The decision is recorded in
 > [ADR-038](../ARCHITECTURE.md#adr-038). The
 > work is tracked in the [Dashboard Redesign milestone](https://github.com/SalvageUnion-io/SU-SRD/milestone/7), with one issue
 > per layer in §5.
@@ -134,9 +134,9 @@ tabs define its shape, rather than guessed now.
 
 ### 4.1 Route and entry
 
-- The route keys on the pilot: `/dashboard/$pilotId` (today it keys on a mech
-  id). The Game comes from the pilot's container (`containerOf`). Old
-  mech-keyed URLs resolve through `mech-to-pilot` and redirect.
+- The route keys on the pilot: `/dashboard/$pilotId`. The Game comes from the
+  pilot's container (`containerOf`). Old mech-keyed URLs resolve through
+  `mech-to-pilot` and redirect.
 - A refusal renders a shell that says what is needed. The cases are:
   - an anonymous session;
   - a pilot that isn't in a Game ("Move Rook into a Game to play");
@@ -150,8 +150,8 @@ tabs define its shape, rather than guessed now.
 - Disconnected is not a refusal. The Dashboard stays open read-only, as
   `writesAllowed()` already does for the sheets.
 - **Entry point:** a Play button on your own pilot rows in the Game roster
-  (`GameRoster.tsx` already has a mech-row Dashboard button to replace). The
-  button appears only when the Game has a Mediator. The `DashboardChooser`
+  (`GameRoster.tsx`), replacing the mech-row Dashboard button. The button
+  appears only when the Game has a Mediator. The `DashboardChooser`
   wizard and its mounts in `Roster.tsx`, `SheetPilot.tsx` and `SheetMech.tsx`
   are retired. Shelf sheets show a "Play in a Game" hint instead.
 - `dashboardLaunch.ts` (stand-in mech from a pattern, base crawler of a Tech
@@ -248,22 +248,16 @@ can.
 - `docs/architecture/dashboard.md`: §2 layout (Dial, Active Item band,
   display following Dial focus), §4.1 table (playStateStore, cockpitPrefsStore,
   "resets on reload"), §4.2 "adds no server surface of its own", §6 component
-  list, §8 launch flow, §9 testing, §10 the Dial's `listbox` accessibility.
+  list, §9 testing, §10 the Dial's `listbox` accessibility.
 - `apps/itun/src/stores/playStateStore.ts` header (deleted with the file).
 - `apps/itun/CLAUDE.md`: the `playStateStore` mention in the store list. That
-  file is one character under its size budget, so offset any addition.
+  file is at its exact size budget, so offset any addition.
 - `docs/ARCHITECTURE.md` § Combat loop and § Rules and ITUN surfaces:
   component names (`ActionsDeck`, `MechBand`, `PilotBand`) and "composes a
   player's" wording, if they change.
-- `docs/ARCHITECTURE.md` § Data flow and § Combat loop, and `apps/itun/CLAUDE.md`'s
-  Solo rows: Solo play no longer includes the Dashboard.
 - `docs/design-system/ruleset.md` Dashboard laws, and
   `.claude/rules/react-components.md` (the `dashboard/` folder and `pc-*`
   contract).
-- `apps/itun/src/routes/dashboard/$id.tsx` cites
-  `docs/architecture/play-cockpit.md`, which does not exist.
-- `DashboardChooser.tsx`'s header is already stale (it says stand-ins and
-  `mech-to-crawler` aren't written). It goes with the file.
 - `apps/itun/CLAUDE.md`'s store list names `cockpitPrefsStore` (layer 4).
 - `DashboardCanvas.tsx`'s `MIN_SCALE` comment says a stacked fallback
   replaces the canvas; it is a notice (#1063).

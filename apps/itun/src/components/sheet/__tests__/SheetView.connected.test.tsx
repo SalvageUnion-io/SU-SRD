@@ -145,7 +145,6 @@ describe("a crewmate's sheet", () => {
 
     expect(screen.getByRole('note', { name: 'Read-only crew sheet' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Share this pilot$/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: /Launch Dashboard/i })).toBeNull()
     // No unassign on a sheet that is not yours.
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
     // Nothing was cached: reading is not owning.
