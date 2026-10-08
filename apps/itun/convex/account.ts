@@ -4,7 +4,7 @@ import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
 import { requireUser } from './model/permissions'
-import { deleteGamePlayState, releaseSeatsOf } from './model/seats'
+import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
 
 /**
  * Account management (ADR-030 §6, D33).
@@ -165,28 +165,31 @@ export const deleteAccount = mutation({
       if (membership.organizer) {
         const passedOn = await reassignOrganizer(ctx, membership.gameId, userId)
         if (!passedOn) {
-          // Last member out: the Game has nobody left to run or play it.
-          for (const table of ['crawlers', 'encounterNpcs', 'softLinks', 'invites'] as const) {
+          // Last member out: the Game has nobody left to run or play it, and
+          // what it held has nowhere to go — unclaimed entities in a Game with
+          // no members included.
+          for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs'] as const) {
             const rows = await ctx.db
               .query(table)
               .withIndex('by_game', (q) => q.eq('gameId', membership.gameId))
               .collect()
             for (const row of rows) await ctx.db.delete(row._id)
           }
-          // Unclaimed entities in a Game with no members have nowhere to go.
-          for (const table of ['pilots', 'mechs'] as const) {
-            const rows = await ctx.db
-              .query(table)
-              .withIndex('by_game', (q) => q.eq('gameId', membership.gameId))
-              .collect()
-            for (const row of rows) await ctx.db.delete(row._id)
-          }
-          await deleteGamePlayState(ctx, membership.gameId)
-          await ctx.db.delete(membership.gameId)
+          // The apparatus includes `memberships`, this one among them.
+          await deleteGameApparatus(ctx, membership.gameId)
+          continue
         }
       }
       await ctx.db.delete(membership._id)
     }
+
+    // Knocks at other Games' doors. A pending one would otherwise sit in an
+    // Organizer's queue naming somebody who no longer exists.
+    const requests = await ctx.db
+      .query('joinRequests')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect()
+    for (const row of requests) await ctx.db.delete(row._id)
 
     // Personal entities, wherever they live — in a Game or on the shelf.
     // Each index leads with `ownerId`, so reading on that prefix alone is "all

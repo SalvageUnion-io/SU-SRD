@@ -11,7 +11,7 @@ import { linkIdOf } from './entities'
  * mech by app id, the way soft-link ends do. Neither end is a foreign key, so
  * nothing in the database notices when the pilot or the mech goes away. Every
  * path that removes one from a Game calls `releaseSeatsOf`, and every path that
- * removes a whole Game calls `deleteGamePlayState`.
+ * removes a whole Game calls `deleteGameApparatus`.
  */
 
 /** The play state a seat holds, without its keys and timestamp. */
@@ -87,18 +87,51 @@ export async function releaseSeatsOf(
 }
 
 /**
- * Delete a Game's play state: its seats and its Downtime row.
+ * Every table holding a Game's own apparatus: rows that describe the table
+ * rather than anything a person built on it.
  *
- * Both describe the table, not anything a person built, so they go with the
- * Game rather than falling back to a shelf. Neither `games.destroy` nor the
- * last-member path of `account.deleteAccount` swept the Downtime row before
- * seats existed; both call this now.
+ * Each one goes with the Game. `softLinks` are the table's wiring (a
+ * pilot-to-crawler assignment stops being true when the crew disbands, so
+ * shelved entities land unwired); `invites`, `inviteRedemptions` and
+ * `joinRequests` are ways into a Game that no longer exists, and an unanswered
+ * knock at a deleted door would sit pending forever; a `channelBindings` row
+ * claims a Discord channel for the Game, and a stale one refuses every later
+ * bind of that channel; `downtime` and `seats` are its play state (ADR-038 §2).
+ *
+ * Every other table with a `gameId` column holds something somebody built, or
+ * history, and each teardown path shelves or deletes those rows itself first.
+ * `test/convex/gameTeardown.test.ts` fails when a table gains a `gameId` column
+ * without being named here or exempted there.
  */
-export async function deleteGamePlayState(ctx: MutationCtx, gameId: Id<'games'>): Promise<void> {
-  for (const seat of await seatsInGame(ctx, gameId)) await ctx.db.delete(seat._id)
-  const downtime = await ctx.db
-    .query('downtime')
-    .withIndex('by_game', (q) => q.eq('gameId', gameId))
-    .collect()
-  for (const row of downtime) await ctx.db.delete(row._id)
+export const GAME_APPARATUS_TABLES = [
+  'softLinks',
+  'invites',
+  'inviteRedemptions',
+  'joinRequests',
+  'memberships',
+  'channelBindings',
+  'downtime',
+  'seats',
+] as const
+
+/**
+ * Delete a Game: its apparatus (`GAME_APPARATUS_TABLES`), then the Game row.
+ *
+ * The one teardown for `games.destroy` and the last-member path of
+ * `account.deleteAccount`. It runs after each has shelved or deleted the
+ * Game's pilots, mechs, crawlers and encounter NPCs, which is why it is a
+ * helper both call rather than something that fires on the Game's deletion.
+ */
+export async function deleteGameApparatus(ctx: MutationCtx, gameId: Id<'games'>): Promise<void> {
+  for (const table of GAME_APPARATUS_TABLES) {
+    const rows =
+      table === 'seats'
+        ? await seatsInGame(ctx, gameId)
+        : await ctx.db
+            .query(table)
+            .withIndex('by_game', (q) => q.eq('gameId', gameId))
+            .collect()
+    for (const row of rows) await ctx.db.delete(row._id)
+  }
+  await ctx.db.delete(gameId)
 }
