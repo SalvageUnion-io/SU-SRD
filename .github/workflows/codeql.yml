@@ -14,14 +14,6 @@ on:
   # `Analyze (javascript-typescript)` is its OWN required status on main, so
   # that left those PRs permanently unmergeable rather than merely unscanned.
   pull_request:
-  # Kept DORMANT: the `main` ruleset has no merge queue
-  # (ARCHITECTURE.md#ci-repository-settings). It stays because the ORDER matters if a queue is ever enabled:
-  # the queue's temporary `gh-readonly-queue/**` branches fire NEITHER
-  # `push: [main]` NOR `pull_request`, so requiring a context that never reports
-  # on them leaves the queue waiting for a check that cannot arrive. This
-  # trigger must be live on `main` BEFORE the ruleset is changed — same
-  # reasoning as ci.yml's.
-  merge_group:
   schedule:
     # Mondays at 05:30 UTC, offset from the top of the hour to avoid the
     # scheduling stampede.

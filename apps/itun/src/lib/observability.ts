@@ -10,9 +10,8 @@
  * options, idempotency, the capture verbs, chunk recovery) is
  * `createBrowserObservability` in `observability/browser`, shared with srd.
  *
- * No DSN is ever committed. `deploy-cloudflare.yml` supplies it from the
- * `VITE_SENTRY_DSN` repository variable, with `VITE_COMMIT_REF` set to the
- * deployed SHA — the same value `vite.config.ts` names the sourcemap release
+ * `deploy-cloudflare.yml` supplies the DSN as `VITE_SENTRY_DSN` from its public
+ * `ITUN_SENTRY_DSN` constant, with `VITE_COMMIT_REF` set to the deployed SHA — the same value `vite.config.ts` names the sourcemap release
  * with, so the two must stay in step.
  */
 

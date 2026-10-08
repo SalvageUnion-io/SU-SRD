@@ -145,7 +145,7 @@ jobs:
 
 const SETUP_BUN = yaml(
   '.github/actions/setup-bun/action.yml',
-  `runs:\n  using: composite\n  steps:\n    - uses: oven-sh/setup-bun@${SHA}\n      with:\n        bun-version-file: .bun-version\n`
+  `runs:\n  using: composite\n  steps:\n    - uses: oven-sh/setup-bun@${SHA}\n      with:\n        bun-version-file: package.json\n`
 )
 
 function ctx(overrides: {
@@ -208,7 +208,6 @@ function ctx(overrides: {
   return {
     files,
     manifests,
-    bunVersion: '1.4.0',
     runningBun: overrides.running === undefined ? null : overrides.running,
     exists: (p) => !missing.has(p) && files.some((f) => f.path === p),
   }
@@ -360,18 +359,24 @@ describe('bun-version', () => {
     expect(checkBunVersion(none).failures[0]).toContain('no bun-types')
   })
 
-  test('packageManager must name the pinned Bun — actions that install their own Bun read it', () => {
-    const drift = ctx({})
-    drift.manifests.set('package.json', {
+  test('packageManager is the pin: bun-types follows it, and an absent or ranged pin fails', () => {
+    const moved = ctx({})
+    moved.manifests.set('package.json', {
       packageManager: 'bun@1.3.11',
       devDependencies: { 'bun-types': '1.4.0' },
     })
-    expect(checkBunVersion(drift).failures).toEqual([
-      expect.stringContaining('packageManager = bun@1.3.11, expected bun@1.4.0'),
+    expect(checkBunVersion(moved).failures).toEqual([
+      expect.stringContaining('bun-types = 1.4.0, expected 1.3.11'),
     ])
     const absent = ctx({})
     absent.manifests.set('package.json', { devDependencies: { 'bun-types': '1.4.0' } })
     expect(checkBunVersion(absent).failures[0]).toContain('packageManager = (absent)')
+    const ranged = ctx({})
+    ranged.manifests.set('package.json', {
+      packageManager: 'bun@^1.4.0',
+      devDependencies: { 'bun-types': '1.4.0' },
+    })
+    expect(checkBunVersion(ranged).failures[0]).toContain('packageManager = bun@^1.4.0')
   })
 
   test('a hand pin fails even when it matches today; bun-version-file does not', () => {

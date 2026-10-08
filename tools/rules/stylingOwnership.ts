@@ -327,47 +327,7 @@ function scanPcContract(c: Corpus): Finding[] {
   return out
 }
 
-// ── Rule 4: app-unbound-component (REPORT-ONLY) ───────────────────────────────
-//
-// Heuristic hunt for generic components living in an app that should live in the
-// library: a component .tsx under apps/*/src/components/** that renders JSX yet
-// imports NEITHER component-lib NOR any binding module (a store, lib/db, a schema,
-// the router, or the reference package). Something generic enough to touch none of
-// those is a candidate for the shared library.
-//
-// This is WARN-ONLY and deliberately kept out of the pass/fail ratchet. It WILL
-// false-positive (a pure presentational leaf that legitimately lives in an app,
-// a component that takes everything by prop). It graduates to a hard, baselined
-// rule only once its output is curated and trustworthy. And be honest about its
-// ceiling: SEMANTIC duplication — a component that imports Button but re-builds a
-// card out of raw <div>s — is invisible to an import-graph heuristic and stays a
-// human-review concern forever. This finds structural orphans, not design ones.
-
-const BINDING_IMPORT =
-  /from\s+['"](?:component-lib|salvageunion-reference|@tanstack\/react-router)['"]|from\s+['"][^'"]*(?:stores?\/|lib\/db|lib\/rules|\/schemas?|routeTree|\/router)[^'"]*['"]/
-
-function scanUnboundComponents(c: Corpus): Finding[] {
-  const out: Finding[] = []
-  const componentFiles = listFiles(
-    c.root,
-    APP_DIRS.map((d) => `${d}/components`),
-    ['.tsx']
-  ).filter((f) => !/\.(test|stories)\.tsx$/.test(f))
-  for (const relPath of componentFiles) {
-    const src = c.read(relPath)
-    const rendersJsx = /return\s*[(<]/.test(src) && /<[A-Za-z]/.test(src)
-    if (!rendersJsx) continue
-    if (BINDING_IMPORT.test(src)) continue
-    out.push({
-      file: relPath,
-      line: 1,
-      detail: 'component renders JSX but imports no library/binding module',
-    })
-  }
-  return out
-}
-
-// ── Rules 5 + 6: the #802 migration ratchets ──────────────────────────────────
+// ── Rules 4 + 5: the #802 migration ratchets ──────────────────────────────────
 //
 // The repo runs four styling systems at once — Tailwind utilities, the `.su-*`
 // package stylesheet, `theme.css`, and the Dashboard's `.pc-*` scope — and the
@@ -546,9 +506,6 @@ const RULES: OwnershipRule[] = [
   },
 ]
 
-/** The report-only heuristic — printed as a warning, never gated. */
-const REPORT_ONLY_ID = 'app-unbound-component'
-
 // ── preconditions ───────────────────────────────────────────────────────────
 
 function preflight(root: string): void {
@@ -597,5 +554,4 @@ export const stylingOwnership: RuleSet = {
     for (const rule of RULES) out[rule.id] = rule.scan(c)
     return out
   },
-  advisory: (root) => ({ id: REPORT_ONLY_ID, findings: scanUnboundComponents(corpus(root)) }),
 }

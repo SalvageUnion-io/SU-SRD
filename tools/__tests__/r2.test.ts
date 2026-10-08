@@ -37,8 +37,14 @@ describe('credentialsFromEnv', () => {
     }
   })
 
+  // Restores the three keys in place: reassigning `process.env` replaces the
+  // object other suites' `import.meta.env` reads through, in a shared process.
   test('returns all three when present', () => {
-    const saved = { ...process.env }
+    const saved = {
+      R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+      R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+      R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+    }
     process.env.R2_ACCOUNT_ID = 'acct'
     process.env.R2_ACCESS_KEY_ID = 'akid'
     process.env.R2_SECRET_ACCESS_KEY = 'secret'
@@ -49,7 +55,10 @@ describe('credentialsFromEnv', () => {
         secretAccessKey: 'secret',
       })
     } finally {
-      process.env = saved
+      for (const [k, v] of Object.entries(saved)) {
+        if (v === undefined) delete process.env[k]
+        else process.env[k] = v
+      }
     }
   })
 })

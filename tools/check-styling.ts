@@ -69,11 +69,6 @@ function main(argv: readonly string[]): void {
         console.log(`\n── ${set.id}/${rule.id} [${rule.mode}] (${list.length})`)
         for (const f of list) console.log(`   ${f.file}:${f.line}  ${f.detail}`)
       }
-      const advisory = set.advisory?.(ROOT)
-      if (advisory) {
-        console.log(`\n── ${set.id}/${advisory.id} [report-only] (${advisory.findings.length})`)
-        for (const f of advisory.findings) console.log(`   ${f.file}:${f.line}  ${f.detail}`)
-      }
     }
     return
   }
@@ -123,13 +118,6 @@ function main(argv: readonly string[]): void {
       failed = true
       console.error(`\n✗ ${set.label}\n`)
       for (const line of formatFailures(verdict, UPDATE)) console.error(line)
-    }
-    const advisory = set.advisory?.(ROOT)
-    if (advisory && advisory.findings.length > 0) {
-      console.log(
-        `  ⚠ ${advisory.id} [report-only, not enforced]: ${advisory.findings.length} candidate(s) — ` +
-          'see --report'
-      )
     }
   }
   if (failed) process.exit(1)

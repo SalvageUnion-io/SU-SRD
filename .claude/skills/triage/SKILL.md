@@ -68,7 +68,6 @@ For every step, use the first route that works and record which one you used:
 
    ```bash
    gh pr list --author app/dependabot --state open
-   gh issue list --label audit-watch --state open
    gh run list --workflow=codeql.yml --limit 3 --json conclusion
    ```
 

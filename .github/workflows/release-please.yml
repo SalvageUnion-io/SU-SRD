@@ -1,14 +1,9 @@
 name: release-please
 on:
+  # Every merge, a release PR's own included: when one release PR merges, the
+  # push it makes re-arms the other. workflow_dispatch is the manual kick.
   push:
     branches: [main]
-  # Self-heal without needing a push. Both open release PRs edit
-  # `.release-please-manifest.json`, so whichever merges second gets rebased —
-  # and a PR ejected from the merge queue loses its auto-merge. On push alone,
-  # that PR would sit dead until someone happened to merge something else. The
-  # daily run re-arms it on its own; workflow_dispatch is the manual kick.
-  schedule:
-    - cron: '17 6 * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -41,14 +36,11 @@ jobs:
       # self-healing: any push to main repairs a release PR that lost its
       # auto-merge (release-please force-pushes these branches on each update).
       #
-      # The PAT's stated reason was "`main` requires a merge queue, and
-      # GITHUB_TOKEN cannot add a PR to one". That is FALSE — there is no
-      # merge_queue rule on `main` (checked against the live ruleset). The PAT
-      # is still required, for a different and more ordinary reason: a workflow
-      # run authenticated with GITHUB_TOKEN does not trigger further workflow
-      # runs, so an auto-merge armed with it would sit behind checks that never
-      # re-report. GH_REPO is required because this job never checks out the
-      # repo, so `gh` has no remote to infer.
+      # The PAT, not GITHUB_TOKEN: a workflow run authenticated with
+      # GITHUB_TOKEN does not trigger further workflow runs, so an auto-merge
+      # armed with it would sit behind checks that never re-report. GH_REPO is
+      # required because this job never checks out the repo, so `gh` has no
+      # remote to infer.
       - name: Keep auto-merge armed on every open release PR
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}

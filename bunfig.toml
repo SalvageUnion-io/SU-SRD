@@ -37,7 +37,7 @@ linker = 'isolated'
 # `minimumReleaseAgeExcludes` below — not lowering this number.
 minimumReleaseAge = 259200 # 3 days, in seconds
 
-# `bun-types` must match .bun-version EXACTLY — tools/check-workflows.ts (the
+# `bun-types` must match packageManager EXACTLY — tools/check-workflows.ts (the
 # bun-version half) fails `bun run check` when they disagree, and it is an exact pin, so the gate turns a
 # routine Bun upgrade into a hard install error for three days. It carries no
 # install scripts and no runtime code (type declarations only), so the cooldown
@@ -45,21 +45,9 @@ minimumReleaseAge = 259200 # 3 days, in seconds
 minimumReleaseAgeExcludes = ["bun-types"]
 
 [test]
-# Preloads for a ROOT-level `bun test` run. Paths are relative to the repo root.
-#
-# This list is deliberately the UNION of what the workspace bunfigs preload, and
-# that is the whole point: `bun test` at the repo root does NOT inherit any
-# workspace's `bunfig.toml`, it uses this one for every file it collects. When
-# this list was only happydom + testing-library, a bare `bun test` here reported
-# 639 failures and 35 errors across 343 files against a tree that was actually
-# green — purely from the two missing preloads below. Root CLAUDE.md answered
-# that with a warning ("NEVER raw `bun test` at the root"), and the checked-in
-# /verify skill then instructed exactly that anyway.
-#
-# A documented footgun that two lines of config can remove is not worth
-# documenting. `bun run test` (per-workspace, each with its own bunfig) remains
-# the canonical command — it is what CI and pre-push run — but a bare
-# `bun test` now behaves instead of lying.
+# Preloads for a ROOT-level `bun test` run, which uses this bunfig for every
+# file it collects rather than each workspace's: the UNION of the workspace
+# preloads. Paths are relative to the repo root.
 preload = [
   # First: ITUN's `convex/auth.ts` reads the Discord client env at import, and
   # this must also precede happy-dom (see the file).

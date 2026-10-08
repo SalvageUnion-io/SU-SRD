@@ -57,8 +57,6 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'bun.lock',
     'bunfig.toml',
     'tsconfig.base.json',
-    'patches/x.patch',
-    '.bun-version',
     '.github/workflows/deploy-cloudflare.yml',
     '.github/actions/setup-bun/action.yml',
     // rendered into srd's about page and ITUN's bundle — the #731 shape
@@ -126,11 +124,11 @@ describe('deploy-surfaces — isVersionOnlyBump', () => {
 
 describe('deploy-surfaces — planDeploy', () => {
   /**
-   * The out-of-order case. A (itun, slow CI) and B (su-assets, fast CI) land
-   * on main in that order. B deploys and records first; A's CI then goes
-   * green. Diffing B->A would ship su-assets at A, reverting B in production.
+   * The out-of-order case. A (itun) and B (su-assets) land on main in that
+   * order. B deploys and records first; A's deploy is then re-run. Diffing
+   * B->A would ship su-assets at A, reverting B in production.
    */
-  test('a workflow_run for a commit older than the record deploys nothing', () => {
+  test('a push run for a commit older than the record deploys nothing', () => {
     const plan = planDeploy(['apps/su-assets/src/index.ts'], false, 'behind', false)
     expect(plan).toEqual({ stale: true, surfaces: NOTHING })
   })

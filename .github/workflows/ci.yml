@@ -6,27 +6,21 @@ name: CI
 # gate. Comments here say WHAT a step guards; the doc says WHY.
 
 on:
-  push:
-    branches: ['main']
   # No `branches:` filter: it matches the PR's BASE, so it would give stacked
   # PRs no checks at all — and `CI Success` is required (ARCHITECTURE.md#ci-triggers).
+  # CI runs on PRs only: the ruleset requires `CI Success` on a branch that is
+  # up to date with `main`, so a merged tree has already passed.
   pull_request:
-  # Dormant: no merge queue on `main` today, but this must be live BEFORE one
-  # is enabled or the queue waits forever (ARCHITECTURE.md#ci-triggers).
-  merge_group:
 
 permissions:
   contents: read
   pull-requests: read
   statuses: read
 
-# PRs: a new push supersedes the in-flight run. `main`: NEVER cancel — every
-# commit gets its own group and runs to completion, because a cancelled run on
-# main never fires the deploy workflow's `workflow_run` success
-# (ARCHITECTURE.md#ci-concurrency; audit CI-01).
+# A new push supersedes the in-flight run of the same PR.
 concurrency:
-  group: ci-${{ github.event_name == 'push' && github.sha || github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'push' }}
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 # EVERY job declares `timeout-minutes`; GitHub's default is six hours.
 jobs:
@@ -37,74 +31,18 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read # checkout, and the merged PR's head commit
-      pull-requests: read # the paths filter, and the merged-PR lookup
-      checks: read # the merged PR's `CI Success`
     outputs:
-      tested: ${{ steps.tested.outputs.tested }}
-      itun: ${{ steps.filter.outputs.itun || steps.all.outputs.all }}
-      web: ${{ steps.filter.outputs.web || steps.all.outputs.all }}
-      bot: ${{ steps.filter.outputs.bot || steps.all.outputs.all }}
-      assets: ${{ steps.filter.outputs.assets || steps.all.outputs.all }}
-      ladle: ${{ steps.filter.outputs.ladle || steps.all.outputs.all }}
-      code: ${{ steps.filter.outputs.code || steps.all.outputs.all }}
-      docs: ${{ steps.filter.outputs.docs || steps.all.outputs.all }}
-      deps: ${{ steps.filter.outputs.deps || steps.all.outputs.all }}
+      itun: ${{ steps.filter.outputs.itun }}
+      web: ${{ steps.filter.outputs.web }}
+      bot: ${{ steps.filter.outputs.bot }}
+      assets: ${{ steps.filter.outputs.assets }}
+      ladle: ${{ steps.filter.outputs.ladle }}
+      code: ${{ steps.filter.outputs.code }}
+      docs: ${{ steps.filter.outputs.docs }}
+      deps: ${{ steps.filter.outputs.deps }}
     steps:
-      # On a PR the filter lists files through the API; only a push diffs with git.
-      - name: Checkout
-        if: github.event_name == 'push'
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      # merge_group events have no diff base, and the queue is the last gate
-      # before main — so every area is forced on.
-      - name: Force-all on merge queue
-        id: all
-        if: github.event_name == 'merge_group'
-        run: echo "all=true" >> "$GITHUB_OUTPUT"
-
-      # A squash merge whose tree is its PR head's already passed CI as that PR:
-      # every area stays empty, so `CI Success` passes at once and the deploy
-      # starts. Anything unproven runs everything (ARCHITECTURE.md#ci-reusing-the-prs-run).
-      - name: Reuse the merged PR's green run
-        id: tested
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -uo pipefail
-          full() {
-            echo "tested=false" >> "$GITHUB_OUTPUT"
-            echo "Full run: $1"
-            exit 0
-          }
-          pr=$(gh api "repos/$REPO/commits/$SHA/pulls" | jq -er --arg sha "$SHA" \
-            'map(select(.merged_at != null and .merge_commit_sha == $sha)) | .[0] // empty
-             | "\(.number) \(.head.sha)"') \
-            || full "found no PR merged as $SHA (or the lookup failed)"
-          read -r number head <<< "$pr"
-          here=$(git rev-parse 'HEAD^{tree}') || full "cannot read the tree of $SHA"
-          there=$(gh api "repos/$REPO/git/commits/$head" --jq '.tree.sha') \
-            || full "cannot read #$number's head commit $head"
-          [ "$here" = "$there" ] || full "tree $here is not #$number's head tree $there"
-          conclusions=$(gh api "repos/$REPO/commits/$head/check-runs?check_name=CI%20Success&filter=latest&per_page=100" \
-            --jq '[.check_runs[] | select(.app.slug == "github-actions") | .conclusion // "pending"] | join(" ")') \
-            || full "cannot read #$number's checks"
-          [ -n "$conclusions" ] || full "#$number's head $head has no CI Success"
-          for c in $conclusions; do
-            [ "$c" = success ] || full "#$number's CI Success on $head is $c"
-          done
-          echo "tested=true" >> "$GITHUB_OUTPUT"
-          echo "::notice title=CI reused::tree $here passed CI as #$number ($head); nothing re-runs"
-
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
-        if: github.event_name != 'merge_group' && steps.tested.outputs.tested != 'true'
         with:
           filters: |
             shared: &shared
@@ -116,15 +54,13 @@ jobs:
               - 'bun.lock'
               - 'knip.json'
               - 'tsconfig*.json'
-              - '.bun-version'
               - 'biome.jsonc'
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
-              # every workspace's test preloads, linker config and patches
+              # every workspace's test preloads and linker config
               - 'test/**'
               - 'bunfig.toml'
-              - 'patches/**'
               # root prose rendered by srd + itun and asserted on by
               # component-lib tests — the #731 incident (ARCHITECTURE.md#ci-path-filters)
               - 'ABOUT_JRVS.md'
@@ -190,10 +126,8 @@ jobs:
               - '**/package.json'
 
   static-checks:
-    # Skipped only when `changes` proved this tree already passed CI; every
-    # other run reports, and each check gates itself by area.
+    # Every run reports; each check gates itself by area.
     needs: [changes]
-    if: needs.changes.outputs.tested != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
