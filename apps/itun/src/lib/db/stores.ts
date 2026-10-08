@@ -1,8 +1,8 @@
 /**
  * Object store name constants for the ITUN IndexedDB database.
  * The entity stores use `id` as the keyPath; the append-only `changeLog`
- * (provenance) store uses an autoIncrement `seq` key, and `meta` holds one row
- * under a fixed out-of-line key.
+ * (provenance) store uses an autoIncrement `seq` key, and `meta` holds one row,
+ * keyed by `id` like the entity stores, under the fixed id `cache`.
  */
 export const STORE_NAMES = {
   pilots: 'pilots',
@@ -18,7 +18,7 @@ export const STORE_NAMES = {
   // `seq` key + a `by-entity` index — NOT keyed by `id` like the entity stores.
   changeLog: 'changeLog',
   // v18: one row saying where the rows above came from and whose they are
-  // (`cacheMeta.ts`). Out-of-line key, not `id`.
+  // (`cacheMeta.ts`). Keyed by `id`; the one row's id is always `cache`.
   meta: 'meta',
 } as const
 
