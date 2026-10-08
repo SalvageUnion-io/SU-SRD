@@ -93,7 +93,7 @@ the backlog problem restated, not triage.
 Rank by this order unless there is a stated reason to depart from it:
 
 1. Production is broken or blind for real users.
-2. A merge gate is red (nightly E2E, CI on main, a failed deploy).
+2. A merge gate is red (nightly E2E, a failed deploy).
 3. Security and dependency updates.
 4. In-flight work that is one step from landing.
 5. New feature work.
