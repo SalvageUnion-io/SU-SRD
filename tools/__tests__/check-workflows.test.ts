@@ -585,12 +585,17 @@ describe('deploy-order', () => {
 
 describe('secrets-env', () => {
   /** A workflow with one job reading `secret`; `env` is its `environment:`, if any. */
-  const job = (secret: string, env?: string) =>
+  const job = (
+    secret: string,
+    env?: string,
+    path = `.github/workflows/${secret.toLowerCase()}.yml`,
+    id = 'release'
+  ) =>
     yaml(
-      `.github/workflows/${secret.toLowerCase()}.yml`,
+      path,
       [
         'jobs:',
-        '  release:',
+        `  ${id}:`,
         '    runs-on: ubuntu-latest',
         ...(env === undefined ? [] : [`    environment: ${env}`]),
         '    steps:',
@@ -600,7 +605,17 @@ describe('secrets-env', () => {
         '',
       ].join('\n')
     )
-  const run = (...extra: WorkflowFile[]) => checkSecretsEnv(ctx({ extra })).failures
+  const decl = {
+    environments: [
+      {
+        name: 'production',
+        branches: ['main'],
+        secrets: ['CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+      },
+    ],
+    sentinel: null,
+  }
+  const run = (...extra: WorkflowFile[]) => checkSecretsEnv(ctx({ extra }), decl).failures
 
   test('a job reading a production secret inside the environment passes', () => {
     expect(run(job('CONVEX_DEPLOY_KEY', 'production'))).toEqual([])
@@ -613,8 +628,13 @@ describe('secrets-env', () => {
     ])
   })
 
-  test('any environment other than production fails', () => {
-    expect(run(job('CLOUDFLARE_API_TOKEN', 'staging'))).toHaveLength(1)
+  test('an environment tools/environments.ts does not declare fails, as does reading outside production', () => {
+    expect(run(job('SENTRY_AUTH_TOKEN', 'staging'))).toEqual([
+      expect.stringContaining(
+        'names environment `staging`, which tools/environments.ts does not declare'
+      ),
+      expect.stringContaining('reads secrets.SENTRY_AUTH_TOKEN without `environment: production`'),
+    ])
   })
 
   test('a job reading only GITHUB_TOKEN needs no environment', () => {
@@ -624,5 +644,66 @@ describe('secrets-env', () => {
   test('no job reading a production secret fails rather than passing empty', () => {
     expect(run(job('GITHUB_TOKEN'))[0]).toContain('would pass by doing nothing')
     expect(run()[0]).toContain('would pass by doing nothing')
+  })
+
+  describe('the repository-secret sentinel', () => {
+    const SENTINEL = { file: '.github/workflows/nightly.yml', job: 'environments' }
+    const withSentinel = (...extra: WorkflowFile[]) =>
+      checkSecretsEnv(ctx({ extra: [job('SENTRY_AUTH_TOKEN', 'production'), ...extra] }), {
+        ...decl,
+        sentinel: SENTINEL,
+      }).failures
+    const sentinel = (env?: string, secrets = ['CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN']) =>
+      yaml(
+        SENTINEL.file,
+        [
+          'jobs:',
+          '  environments:',
+          '    runs-on: ubuntu-latest',
+          ...(env === undefined ? [] : [`    environment: ${env}`]),
+          '    steps:',
+          '      - run: bun tools/environments.ts --secrets-from-env',
+          '        env:',
+          ...secrets.map((s) => `          ${s}: \${{ secrets.${s} }}`),
+          '',
+        ].join('\n')
+      )
+
+    test('outside every environment, mapping every secret, it passes', () => {
+      expect(withSentinel(sentinel())).toEqual([])
+    })
+
+    test('missing, it fails rather than leaving repository copies unwatched', () => {
+      expect(withSentinel()).toEqual([
+        expect.stringContaining(
+          'sentinel (.github/workflows/nightly.yml job `environments`) is missing'
+        ),
+      ])
+    })
+
+    test('inside an environment it proves nothing, so it fails', () => {
+      expect(withSentinel(sentinel('production'))).toEqual([
+        expect.stringContaining('must declare no environment'),
+      ])
+    })
+
+    test('a secret it does not map is named', () => {
+      expect(withSentinel(sentinel(undefined, ['CONVEX_DEPLOY_KEY']))).toEqual([
+        expect.stringContaining('does not map secrets.SENTRY_AUTH_TOKEN'),
+      ])
+    })
+
+    test('the same job in another file gets no exemption', () => {
+      expect(
+        withSentinel(
+          sentinel(),
+          job('CONVEX_DEPLOY_KEY', undefined, '.github/workflows/other.yml', 'environments')
+        )
+      ).toEqual([
+        expect.stringContaining(
+          'other.yml job `environments` reads secrets.CONVEX_DEPLOY_KEY without'
+        ),
+      ])
+    })
   })
 })
