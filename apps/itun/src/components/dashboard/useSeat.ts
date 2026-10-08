@@ -49,6 +49,13 @@ export type SeatView = {
 export type SeatHandle = {
   seat: SeatView
   board: (mechId: string) => void
+  /**
+   * Claim an unclaimed spare (`ownership.claim`, by its Convex row id), then
+   * board it. The seat is written only once the claim has landed, so a refused
+   * claim leaves it as it was. It draws no `mech-to-pilot` link (plan D12).
+   * The caller confirms first (plan §8 A4).
+   */
+  claimAndBoard: (mech: { mechId: string; serverId: string }) => void
   dismount: () => void
   /** The emergency exit. The caller confirms it first (ADR-007). */
   eject: () => void
@@ -82,6 +89,7 @@ function ignore(): void {
 export const NO_SEAT: SeatHandle = {
   seat: DEFAULT_SEAT,
   board: ignore,
+  claimAndBoard: ignore,
   dismount: ignore,
   eject: ignore,
   setRange: ignore,
@@ -136,6 +144,7 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
       mount: { kind: 'boarded', mechId: args.mechId },
     }))
   })
+  const claim = useMutation(api.ownership.claim)
   const dismount = useMutation(api.seats.dismount).withOptimisticUpdate((store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, () => ({ mount: { kind: 'foot' } }))
   })
@@ -169,6 +178,11 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
   return {
     seat,
     board: (mechId) => send((args) => board({ ...args, mechId })),
+    claimAndBoard: ({ mechId, serverId }) =>
+      send(async (args) => {
+        await claim({ table: 'mechs', entityId: serverId })
+        await board({ ...args, mechId })
+      }),
     dismount: () => send((args) => dismount(args)),
     eject: () => send((args) => eject(args)),
     setRange: (range) => send((args) => setRange({ ...args, range })),

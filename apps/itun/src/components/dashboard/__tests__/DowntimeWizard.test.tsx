@@ -8,7 +8,7 @@
  * preload('all') runs once.
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -18,6 +18,11 @@ import { DowntimeWizard } from '../DowntimeWizard'
 
 beforeEach(() => {
   usePlayStateStore.setState({ downtime: true, dtStep: 0, dtDone: {} })
+})
+
+// Turn Downtime off for the next file in the shared process (--no-isolate).
+afterAll(() => {
+  usePlayStateStore.setState({ downtime: false, dtStep: 0, dtDone: {} })
 })
 
 const crawler = crawlerFixture({ id: 'c1', name: 'Hauler', techLevel: '3', crawlerBays: [] })

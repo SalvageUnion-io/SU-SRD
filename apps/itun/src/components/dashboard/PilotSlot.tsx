@@ -3,7 +3,8 @@
  * (docs/architecture/dashboard-redesign.md D2, D3):
  *
  *  - `PilotMajor`, on foot: Vitals (HP, AP, Take Damage with the
- *    player-confirmed Critical Injury roll, ADR-007), Kit, Abilities and Mount.
+ *    player-confirmed Critical Injury roll, ADR-007), Kit, Abilities and Mount,
+ *    whose Board split button and mech menu are `BoardControl` (D4).
  *  - `PilotMinor`, boarded or in Downtime: HP and AP, and any injury in red.
  *
  * Both read the same vitals (`pilotVitals`), so a Minor and the Major it opens
@@ -11,7 +12,7 @@
  */
 
 import { CountStepper } from 'component-lib'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
 import {
@@ -26,6 +27,8 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import { BoardControl, BoardMenuList } from './BoardControl'
+import type { BoardMenu, BoardOption } from './boardMenu'
 import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from './dashboardRules'
 import type { MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
@@ -62,6 +65,10 @@ type PilotPrompt =
   | { kind: 'log'; log: string }
   | { kind: 'dmg' }
   | { kind: 'crit'; effect: CriticalInjuryEffect | null; log: string }
+  /** The ▾ mech menu. */
+  | { kind: 'board' }
+  /** The confirm before claiming and boarding a spare (plan §8 A4). */
+  | { kind: 'claim'; option: BoardOption }
   | null
 
 export function PilotMajor({
@@ -69,7 +76,9 @@ export function PilotMajor({
   crawler,
   store,
   boardedIn,
+  board,
   onBoard,
+  onClaimAndBoard,
   hostsDamagePrompt,
 }: {
   pilot: Pilot
@@ -78,7 +87,12 @@ export function PilotMajor({
   store: PlayStore
   /** The mech the seat has the pilot in, or null on foot. */
   boardedIn: string | null
-  onBoard: () => void
+  /** What the Mount bay's Board control offers (`boardMenu.ts`). */
+  board: BoardMenu
+  /** Board one of the player's own mechs. */
+  onBoard: (mechId: string) => void
+  /** Claim a spare, then board it; called once the player has confirmed. */
+  onClaimAndBoard: (option: BoardOption) => void
   /**
    * Whether this copy answers the deck's Take Damage hand-off. Only the slot
    * row's Major does; the ⤢ overlay's copy must not consume it.
@@ -90,6 +104,8 @@ export function PilotMajor({
 
   const [prompt, setPrompt] = useState<PilotPrompt>(null)
   const [dmg, setDmg] = useState(1)
+  // The ▾ that opened the mech menu, to hand focus back to when it closes.
+  const menuTrigger = useRef<HTMLButtonElement | null>(null)
 
   // On-foot: the deck's Apply routes a destructive Cascade Failure here — open
   // the Take-HP-Damage overlay pre-armed for the player to confirm (ADR-007).
@@ -136,6 +152,48 @@ export function PilotMajor({
   const overlay = ((): MajorModel['overlay'] => {
     if (!prompt) return null
     const onClose = () => setPrompt(null)
+    if (prompt.kind === 'board') {
+      return {
+        title: 'Board a mech',
+        onClose: () => {
+          setPrompt(null)
+          menuTrigger.current?.focus()
+        },
+        body: (
+          <BoardMenuList
+            options={board.options}
+            onBoard={(mechId) => {
+              setPrompt(null)
+              onBoard(mechId)
+            }}
+            onClaim={(option) => setPrompt({ kind: 'claim', option })}
+          />
+        ),
+      }
+    }
+    if (prompt.kind === 'claim') {
+      const { option } = prompt
+      return {
+        title: 'Claim and board',
+        onClose,
+        body: (
+          <p className="pc-resolve-log">
+            {option.name} is an unclaimed spare. Claim it to make it yours in this Game, then board
+            it. Boarding doesn’t assign it to {pilot.name}.
+          </p>
+        ),
+        actions: [
+          {
+            label: `Claim and board ${option.name}`,
+            onClick: () => {
+              setPrompt(null)
+              onClaimAndBoard(option)
+            },
+            variant: 'go',
+          },
+        ],
+      }
+    }
     if (prompt.kind === 'log') {
       return { title: 'Vitals', onClose, body: <p className="pc-resolve-log">{prompt.log}</p> }
     }
@@ -217,15 +275,18 @@ export function PilotMajor({
       boardedIn === null
         ? {
             label: 'Mount',
-            buttons: [
-              {
-                label: '▶ Board Mech',
-                onClick: onBoard,
-                variant: 'go',
-                wide: true,
-                title: 'Board the mech',
-              },
-            ],
+            buttons: [],
+            control: (
+              <BoardControl
+                menu={board}
+                onBoard={onBoard}
+                onClaim={(option) => setPrompt({ kind: 'claim', option })}
+                onOpenMenu={(trigger) => {
+                  menuTrigger.current = trigger
+                  setPrompt({ kind: 'board' })
+                }}
+              />
+            ),
           }
         : // Boarded, the way out is the Mech's Egress, not a second control here.
           { label: 'Mount', lines: [{ text: `In ${boardedIn}` }], buttons: [] },

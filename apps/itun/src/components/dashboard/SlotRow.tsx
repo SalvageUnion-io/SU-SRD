@@ -26,6 +26,8 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { EntityState } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import type { BoardMenu } from './boardMenu'
+import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
 import { CrawlerMajor, CrawlerMinor } from './CrawlerSlot'
 import { MechMajor, MechMinor } from './MechSlot'
 import { PilotMajor, PilotMinor } from './PilotSlot'
@@ -38,8 +40,11 @@ export type PlayStore = Pick<EntityState, 'get' | 'update' | 'transfer'>
 
 /** What every slot reads. */
 export type SlotEntities = {
-  /** The boarded mech, or on foot the pilot's assigned one. */
-  mech: Mech
+  /**
+   * The boarded mech, or on foot the pilot's assigned one: null on foot for a
+   * pilot with no assigned mech, who boards one from the Board menu.
+   */
+  mech: Mech | null
   pilot: Pilot
   /** The pilot's crawler (`pilot-to-crawler`), if it has one. */
   crawler: Crawler | null
@@ -47,6 +52,8 @@ export type SlotEntities = {
   boarded: boolean
   /** The pilot's seat: Board, Dismount, Eject and the activated effects. */
   seat: SeatHandle
+  /** What the Pilot's Board control offers (`boardMenu.ts`, D4). */
+  board: BoardMenu
   /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
   mediator: boolean
   store: PlayStore
@@ -75,12 +82,13 @@ const EMPTY: CSSProperties = {
   color: 'var(--color-ink-75)',
 }
 
-/** A slot whose entity the pilot doesn't have (no crawler yet). */
+/** A slot whose entity the pilot doesn't have (no crawler, no mech yet). */
 function EmptySlot({ text }: { text: string }) {
   return <div style={EMPTY}>{text}</div>
 }
 
 const NO_CRAWLER = 'No crawler. Assign one on the pilot’s sheet.'
+const NO_MECH = 'No mech. Board one from the Pilot’s Mount bay.'
 
 /**
  * One entity's Major form. The slot row's copy hosts the deck's Take Damage
@@ -110,12 +118,18 @@ export function SlotMajor({
         pilot={e.pilot}
         crawler={e.crawler}
         store={e.store}
-        boardedIn={e.boarded ? e.mech.name : null}
-        onBoard={() => e.seat.board(e.mech.id)}
+        boardedIn={e.boarded ? (e.mech?.name ?? null) : null}
+        board={e.board}
+        onBoard={e.seat.board}
+        onClaimAndBoard={({ mechId, serverId }) => {
+          // A spare is only ever known from the Game's listing, which names its row.
+          if (serverId !== null) e.seat.claimAndBoard({ mechId, serverId })
+        }}
         hostsDamagePrompt={hostsDamagePrompt}
       />
     )
   }
+  if (!e.mech) return <EmptySlot text={NO_MECH} />
   return (
     <MechMajor
       mech={e.mech}
@@ -141,12 +155,13 @@ function SlotMinor({
       <PilotMinor
         pilot={e.pilot}
         crawler={e.crawler}
-        boardedIn={e.boarded ? e.mech.name : null}
+        boardedIn={e.boarded ? (e.mech?.name ?? null) : null}
         onExpand={onExpand}
       />
     )
   }
   if (kind === 'mech') {
+    if (!e.mech) return <EmptySlot text={NO_MECH} />
     return (
       <MechMinor
         mech={e.mech}
@@ -161,19 +176,30 @@ function SlotMinor({
   return <CrawlerMinor crawler={e.crawler} onExpand={onExpand} />
 }
 
-type SlotRowProps = Omit<SlotEntities, 'store'> & {
+type SlotRowProps = Omit<SlotEntities, 'store' | 'board'> & {
   /** Which entity runs the Dashboard, derived from the seat and Downtime. */
   mount: MountState
   /** ⤢ on a Minor: open that entity's Major as an overlay. */
   onExpand: (kind: SlotKind, trigger: HTMLButtonElement) => void
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
+  /**
+   * What the Board control offers. Defaults to what is known before the Game
+   * answers: the assigned mech alone.
+   */
+  board?: BoardMenu
 }
 
-export function SlotRow({ mount, onExpand, store, ...rest }: SlotRowProps) {
+export function SlotRow({ mount, onExpand, store, board, ...rest }: SlotRowProps) {
   // Unconditional hook; the prop wins when a stub is injected (tests / harness).
   const liveStore = useEntityStore()
-  const e: SlotEntities = { ...rest, store: store ?? liveStore }
+  const e: SlotEntities = {
+    ...rest,
+    store: store ?? liveStore,
+    board:
+      board ??
+      boardMenu({ pilotId: rest.pilot.id, assigned: rest.mech, sources: NO_BOARD_SOURCES }),
+  }
   const { major, minors } = slotsFor(mount)
   return (
     <div style={ROW} data-major={major}>

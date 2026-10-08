@@ -155,8 +155,8 @@ export function CrawlerMajor({
   stampLabel,
 }: {
   crawler: Crawler
-  /** The mech Scrap Mech breaks down: the pilot's own. */
-  mech: Mech
+  /** The mech Scrap Mech breaks down: the pilot's own, or null with none. */
+  mech: Mech | null
   store: PlayStore
   /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
   mediator: boolean
@@ -195,16 +195,16 @@ export function CrawlerMajor({
    * commits through `transfer` (all-or-nothing) and only after the player has
    * confirmed — ADR-007 keeps the destructive half an explicit call.
    */
-  function doScrap() {
+  function doScrap(target: Mech) {
     const c = fresh()
-    const m = store.get('mech', mech.id) ?? mech
+    const m = store.get('mech', target.id) ?? target
     const { breakdown, crawlerPatch, mechPatch } = scrapMechOutcome(m, c)
     runWrite(() =>
       store.transfer(
         {
           updates: [
             { type: 'crawler', id: crawler.id, patch: crawlerPatch },
-            { type: 'mech', id: mech.id, patch: mechPatch },
+            { type: 'mech', id: target.id, patch: mechPatch },
           ],
         },
         DASHBOARD_TXN
@@ -317,25 +317,31 @@ export function CrawlerMajor({
     ],
     buttons: [],
   }
-  const scrap: BandBay = {
-    label: 'Scrap a mech',
-    side: true,
-    columns: 1,
-    buttons: [
-      {
-        label: 'Scrap Mech',
-        onClick: doScrap,
-        variant: 'danger',
-        title: `Break ${mech.name} down into Scrap — destructive`,
-      },
-    ],
-  }
+  // Scrap needs a mech to break down; a pilot with none has nothing to offer.
+  const scrap: BandBay[] =
+    mediator && mech !== null
+      ? [
+          {
+            label: 'Scrap a mech',
+            side: true,
+            columns: 1,
+            buttons: [
+              {
+                label: 'Scrap Mech',
+                onClick: () => doScrap(mech),
+                variant: 'danger',
+                title: `Break ${mech.name} down into Scrap — destructive`,
+              },
+            ],
+          },
+        ]
+      : []
 
   const view: MajorModel = {
     fam: 'crawler',
     stampLabel,
     overlay,
-    bays: [hull, stores, bayBay, upkeep, upgradeBay, ...(mediator ? [scrap] : [])],
+    bays: [hull, stores, bayBay, upkeep, upgradeBay, ...scrap],
   }
   return <MajorFrame view={view} />
 }

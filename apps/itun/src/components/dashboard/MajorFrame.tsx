@@ -61,6 +61,11 @@ export type BandBay = {
   /** Names shown as chips (the pilot's Kit and Abilities, the crawler's bays). */
   chips?: BandText[]
   buttons: BandButton[]
+  /**
+   * A control that is more than a button, rendered in place of the button
+   * grid's floor: the Pilot's Board split button (`BoardControl`).
+   */
+  control?: ReactNode
   /** Columns in the button grid. Two unless the bay has the width for more. */
   columns?: number
   /** Stacks in the narrow side column instead of sharing the main width. */
@@ -244,6 +249,7 @@ function BayBody({ bay }: { bay: BandBay }) {
           ))}
         </ul>
       )}
+      {bay.control}
       {bay.buttons.length > 0 && (
         <div
           className="pc-btn-grid"

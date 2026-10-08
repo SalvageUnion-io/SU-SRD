@@ -7,6 +7,8 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { crawlerFixture, mechFixture, pilotFixture } from '../__tests__/fixtures'
 import { InstrumentStage } from './_dashboardStage'
+import { BoardControl } from './BoardControl'
+import type { BoardOption } from './boardMenu'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
 import type { DisplayFocus } from './DisplayPanel'
@@ -104,6 +106,14 @@ const SLOT_LABEL: Record<SlotKind, string> = { pilot: 'Pilot', mech: 'Mech', cra
 
 const btn = (label: string, variant?: 'danger' | 'go') => ({ label, onClick: noop, variant })
 
+const BOARD_SCRAPPER: BoardOption = {
+  mechId: SCRAPPER.id,
+  serverId: null,
+  name: SCRAPPER.name,
+  state: 'yours',
+  note: null,
+}
+
 function pilotMajor(pilot: Pilot, crawler: Crawler | null): MajorModel {
   return {
     fam: 'pilot',
@@ -117,7 +127,19 @@ function pilotMajor(pilot: Pilot, crawler: Crawler | null): MajorModel {
       },
       { label: 'Kit', chips: [{ text: 'Salvaging Tools' }, { text: 'Pistol' }], buttons: [] },
       { label: 'Abilities', chips: pilot.abilities.map((text) => ({ text })), buttons: [] },
-      { label: 'Mount', buttons: [{ ...btn('▶ Board Mech', 'go'), wide: true }] },
+      {
+        label: 'Mount',
+        buttons: [],
+        // Its states and menu are the Board Control stories.
+        control: (
+          <BoardControl
+            menu={{ main: BOARD_SCRAPPER, options: [BOARD_SCRAPPER] }}
+            onBoard={noop}
+            onClaim={noop}
+            onOpenMenu={noop}
+          />
+        ),
+      },
     ],
   }
 }

@@ -6,10 +6,13 @@
  * (`useSeat`) says whether they are on foot or boarded, and in which mech. A
  * boarded pilot runs the mech the seat names, which need not be the one
  * assigned to them; on foot, the mech shown is the assigned one
- * (`mech-to-pilot`), which Board climbs into. The crawler is the pilot's own
- * (`pilot-to-crawler`). Both links resolve through the sheet's
- * `resolveSheetComposition`. Whether this pilot may be played at all is
- * `DashboardGate`'s question, asked before this renders.
+ * (`mech-to-pilot`), which the main half of Board climbs into. The crawler is
+ * the pilot's own (`pilot-to-crawler`). Both links resolve through the sheet's
+ * `resolveSheetComposition`. A pilot with no assigned mech still plays on
+ * foot, and boards one from the Board menu (`BoardControl`, plan D4), which
+ * reads the rest of the Game's mechs through `useBoardSources`. Whether this
+ * pilot may be played at all is `DashboardGate`'s question, asked before this
+ * renders.
  *
  * The top row is the `SlotRow`: one Major slot and two Minors, placed by the
  * mount (docs/architecture/dashboard-redesign.md D1). ⤢ on a Minor opens that
@@ -30,6 +33,8 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
 import { resolveSheetComposition } from '../sheet/composition'
+import type { BoardSources } from './boardMenu'
+import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
 import type { DisplayFocus } from './DisplayPanel'
@@ -39,6 +44,7 @@ import { RailBar } from './RailBar'
 import { SlotOverlay } from './SlotOverlay'
 import { SlotMajor, SlotRow } from './SlotRow'
 import type { SlotKind } from './slotLayout'
+import { useBoardSources } from './useBoardSources'
 import type { MountState, SeatHandle } from './useSeat'
 import { NO_SEAT, useSeat } from './useSeat'
 
@@ -55,14 +61,28 @@ export function Dashboard({ pilotId, mediator = false }: DashboardProps) {
   // A build with no Convex mounts no provider, so `useSeat` would throw. The
   // gate never opens the Dashboard in one, but tests and stories render it.
   if (!isConvexConfigured) {
-    return <DashboardView pilotId={pilotId} seat={NO_SEAT} mediator={mediator} />
+    return (
+      <DashboardView
+        pilotId={pilotId}
+        seat={NO_SEAT}
+        sources={NO_BOARD_SOURCES}
+        mediator={mediator}
+      />
+    )
   }
   return <SeatedDashboard pilotId={pilotId} mediator={mediator} />
 }
 
 function SeatedDashboard({ pilotId, mediator }: { pilotId: string; mediator: boolean }) {
   const pilot = useEntityStore((s) => s.get('pilot', pilotId))
-  return <DashboardView pilotId={pilotId} seat={useSeat(pilot)} mediator={mediator} />
+  return (
+    <DashboardView
+      pilotId={pilotId}
+      seat={useSeat(pilot)}
+      sources={useBoardSources(pilot)}
+      mediator={mediator}
+    />
+  )
 }
 
 const SLOT_LABEL: Record<SlotKind, string> = { pilot: 'Pilot', mech: 'Mech', crawler: 'Crawler' }
@@ -83,10 +103,13 @@ type Expanded = { kind: SlotKind; trigger: HTMLButtonElement }
 function DashboardView({
   pilotId,
   seat,
+  sources,
   mediator,
 }: {
   pilotId: string
   seat: SeatHandle
+  /** What the Board menu reads from the Game (`useBoardSources`). */
+  sources: BoardSources
   mediator: boolean
 }) {
   const storeState = useEntityStore()
@@ -113,20 +136,12 @@ function DashboardView({
   // The Major-slot entity drives the whole-canvas tint (proposed ADR-018).
   const mount: MountState = inDowntime ? 'downtime' : boarded ? 'mech' : 'pilot'
 
-  // The instruments are built around a mech; a pilot with none assigned and
-  // none boarded is given one on their sheet.
-  if (!pilot || !mech) {
+  if (!pilot) {
     return (
       <DashboardCanvas>
         <DashboardGrid
-          rail={<span>{pilot ? `Pilot · ${pilot.name}` : 'Pilot not found'}</span>}
-          primary={
-            <div className="pc-placeholder">
-              {pilot
-                ? `${pilot.name} has no assigned mech. Assign one on their sheet to play.`
-                : `No pilot with id “${pilotId}”.`}
-            </div>
-          }
+          rail={<span>Pilot not found</span>}
+          primary={<div className="pc-placeholder">{`No pilot with id “${pilotId}”.`}</div>}
           display={<div className="pc-fill">—</div>}
         />
       </DashboardCanvas>
@@ -142,9 +157,9 @@ function DashboardView({
     ? crawler
       ? `Downtime · ${crawler.name}`
       : 'Downtime'
-    : onFoot
-      ? `Pilot · ${pilot.name}`
-      : `Mech · ${mech.name}`
+    : boarded
+      ? `Mech · ${boarded.name}`
+      : `Pilot · ${pilot.name}`
 
   const slots = {
     mech,
@@ -152,13 +167,14 @@ function DashboardView({
     crawler,
     boarded: boarded !== null,
     seat,
+    board: boardMenu({ pilotId, assigned: composition.mech, sources }),
     mediator,
     store: storeState,
   }
   const pickable: { focus: DisplayFocus; label: string }[] = [
     { focus: 'actions', label: 'Actions' },
     { focus: 'pilot', label: 'Pilot' },
-    { focus: 'mech', label: 'Mech' },
+    ...(mech ? [{ focus: 'mech' as const, label: 'Mech' }] : []),
     ...(crawler ? [{ focus: 'crawler' as const, label: 'Crawler' }] : []),
     { focus: 'tables', label: 'Tables' },
     { focus: 'srd', label: 'SRD' },
@@ -170,7 +186,7 @@ function DashboardView({
       : expanded.kind === 'pilot'
         ? pilot.name
         : expanded.kind === 'mech'
-          ? mech.name
+          ? (mech?.name ?? '')
           : (crawler?.name ?? '')
 
   return (
