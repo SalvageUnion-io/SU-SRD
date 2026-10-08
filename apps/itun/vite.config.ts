@@ -34,18 +34,19 @@ export default defineConfig({
       //
       // Under 'prompt' the new worker installs and then WAITS. The running
       // page keeps the precache it booted with, so its chunks stay resolvable
-      // for as long as it is open, and the swap happens only when the user
-      // accepts (src/lib/sw/register.ts posts SKIP_WAITING and reloads) or
-      // when every tab has closed. Nothing is yanked mid-session.
+      // for as long as it is open, and the swap happens only when the page
+      // asks (src/lib/sw/register.ts posts SKIP_WAITING and reloads) or when
+      // every tab has closed. Nothing is yanked from under a running page.
       //
       // Waiting no longer means BOOTING an old build: navigations go to the
       // network first (src/lib/sw/workbox.ts), so every page load gets the
       // deployed shell and the precache is only the offline fallback. What a
       // waiting worker still delays is the precache catching up, and a tab
       // that stays open across a deploy — which is why register.ts checks for
-      // updates while a tab is open and toasts only a tab older than the
-      // server, and why chunkRecovery.ts still exists as the backstop for the
-      // tab that was already mid-flight when a deploy landed.
+      // updates while a tab is open, why the backend's build floor reloads a
+      // tab older than it (src/lib/connection/buildFloor.ts), and why
+      // chunkRecovery.ts still exists as the backstop for the tab that was
+      // already mid-flight when a deploy landed.
       registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       workbox: WORKBOX_OPTIONS,

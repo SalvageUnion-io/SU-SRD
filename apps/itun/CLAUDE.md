@@ -12,16 +12,16 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 | **Solo** | not signed in — in **every** build, CI and `bun run dev` included | nothing: **read-only** — writes are refused (`signedOut`); no Dashboard |
 | **Connected** | signed in, online | Convex; IndexedDB is a cache |
 | **Disconnected** | signed in, offline | read-only — not a write queue |
+| **Outdated** | bundle below `build.floor` | read-only until it reloads |
 
-- Resolve the mode through `src/lib/connection/` — never `navigator.onLine` or
-  an auth flag.
+- Resolve the mode via `src/lib/connection/`, never `navigator.onLine` or an
+  auth flag.
 - **Never introduce a store, field or flow that persists only on a device.**
 - **There is no anonymous backend.** `selectBackend()` is
   `signedOut | remote | blocked`; signed out, every store reads empty
-  (`readableRows`), never IndexedDB. The old `local` backend and its
-  `VITE_REQUIRE_ACCOUNT` flag are retired. A unit test that needs durability
-  calls `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an
-  e2e spec signs in through `e2e/fixtures.ts`.
+  (`readableRows`), never IndexedDB. A unit test that needs durability calls
+  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`); an e2e
+  spec signs in through `e2e/fixtures.ts`.
 - **One local → account reconciler.** `AccountReconciler` (root-mounted, over
   `src/lib/account/reconcile.ts`) migrates a pre-account roster still in
   IndexedDB on sign-in (reconciled against `entities.listMine`) and mounts
@@ -66,13 +66,13 @@ is the live `<Sheet readOnly>` over `readOnlySheetStore.ts`. Don't add another.
   ([plan](../../docs/design-system/tailwind-removal.md)).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable,
   offline-capable. It is `prompt` and must stay that way: `autoUpdate` force-sets
-  `skipWaiting` + `clientsClaim` (an assignment in the plugin, not a default, so
-  the `workbox` block cannot override it), which activated a new worker under a
-  live page and dropped the precache entries it was still resolving chunks
-  against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
-  boots the deployed shell, offline the precached one. See the headers of
-  `vite.config.ts`, `src/lib/sw/`, `src/lib/chunkRecovery.ts` and the Worker's
-  `/assets/*` → 404 rule (`src/worker/index.ts`).
+  `skipWaiting` + `clientsClaim` (a plugin assignment the `workbox` block
+  cannot override), which activated a new worker under a live page and dropped
+  the precache entries it was still resolving chunks against. Navigations are **network-first** (`src/lib/sw/workbox.ts`): online
+  boots the deployed shell, offline the precached one. No update toast; the
+  build floor reloads stale tabs. See the headers of `vite.config.ts`,
+  `src/lib/sw/`, `src/lib/connection/buildFloor.ts`, `src/lib/chunkRecovery.ts`
+  and the Worker's `/assets/*` → 404 rule (`src/worker/index.ts`).
 
 ## Persistence (read before touching data)
 

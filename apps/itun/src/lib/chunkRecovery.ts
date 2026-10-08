@@ -22,16 +22,16 @@
  *   normally boots AHEAD of its worker, and the chunks it fetches later were
  *   only ever on the network. At ~3 deploys a day, a session spanning two is
  *   ordinary.
- * - **Another tab accepting the update.** `SKIP_WAITING` activates the new
+ * - **Another tab activating the update.** `SKIP_WAITING` activates the new
  *   worker for every tab, and activating drops the previous build's precache
- *   entries; only the tab that clicked reloads.
+ *   entries; only the tab that asked reloads.
  *
  * Either way the page asks for chunk names that no longer exist anywhere. The
  * fix is to notice and reload once: a reload is a navigation, which boots the
  * deployed `index.html` naming current hashes (or, offline, the precached
- * shell, which names exactly the chunks the precache holds). The update toast
- * (`src/lib/sw/register.ts`) is the polite path; this is the backstop for the
- * tab that hit the gap first. It pairs with the `/assets/*` → 404 rule
+ * shell, which names exactly the chunks the precache holds). The build floor's
+ * reload (`src/lib/connection/buildFloor.ts`) is the planned path; this is the
+ * backstop for the tab that hit the gap first. It pairs with the `/assets/*` → 404 rule
  * in `src/worker/index.ts`: without that rule a missing chunk came back as `200
  * text/html` from the SPA fallback, which fails the import on MIME type but is
  * also, thanks to the `/assets/*` header block, cached `immutable` for a year.

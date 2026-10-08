@@ -23,8 +23,9 @@ import { knownVersion, noteVersion } from './serverVersions'
  * ## There are exactly three answers, and one of them is "nowhere"
  *
  * `remote` when the app is genuinely Connected, `signedOut` when it is
- * anonymous, and `blocked` while it is Disconnected or still completing the
- * auth handshake. There is no fourth case.
+ * anonymous, and `blocked` while it is Disconnected, still completing the
+ * auth handshake, or running a build older than the backend's floor
+ * (`outdated`, `lib/connection/buildFloor.ts`). There is no fourth case.
  *
  * `signedOut` is read-only and reads nothing: there is no anonymous store at
  * all (`readableRows`). Signed out, ITUN shows reference and nothing of a
@@ -78,6 +79,13 @@ type AuthState = {
    * `src/stores/__tests__/signedInBackend.ts`, the one caller.
    */
   convexConfigured?: boolean
+  /**
+   * Whether this bundle is older than the backend's build floor (`build.floor`).
+   * An outdated tab may call a function the backend no longer has, so it is
+   * read-only until it reloads onto the new build. Optional, defaulting to
+   * false: only `ConnectionProvider`'s floor subscription ever sets it.
+   */
+  outdated?: boolean
 }
 
 /**
@@ -141,20 +149,23 @@ export function backendForMode(mode: ConnectionMode): BackendKind {
  * button that would be `blocked` should say why rather than fail on click.
  */
 export function selectBackend(): BackendKind {
-  return backendForMode(currentMode())
+  const backend = backendForMode(currentMode())
+  return backend === 'remote' && authState.outdated === true ? 'blocked' : backend
 }
 
 /**
- * Why a write was refused. Three states, three different things to say to a
+ * Why a write was refused. Four states, four different things to say to a
  * player: one is a condition they have to wait out, one resolves by itself in a
- * moment and only needs "try that again", and one needs them to sign in.
+ * moment and only needs "try that again", one needs them to sign in, and one
+ * is this tab running a build the backend has moved past — it reloads itself.
  */
-export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut'
+export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut' | 'outdated'
 
 const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
   settling: 'Still signing in — that change was not saved. Try again in a moment.',
   offline: 'Not connected — your games are read-only until the connection returns',
   signedOut: 'Sign in to build and edit — nothing is saved without an account.',
+  outdated: 'ITUN has been updated — that change was not saved. Reloading onto the new version.',
 }
 
 /**
@@ -445,6 +456,7 @@ export function requireWritableBackend(): 'remote' {
   const backend = selectBackend()
   if (backend === 'signedOut') throw new WritesBlockedOffline('signedOut')
   if (backend === 'blocked') {
+    if (authState.outdated === true) throw new WritesBlockedOffline('outdated')
     throw new WritesBlockedOffline(isSettlingConnection(currentMode()) ? 'settling' : 'offline')
   }
   return backend

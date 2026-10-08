@@ -13,6 +13,13 @@ interface ImportMetaEnv {
    * Unset in local dev — the release tag is simply omitted.
    */
   readonly VITE_COMMIT_REF?: string
+  /**
+   * The deployed commit's time in Unix seconds, set by `deploy-cloudflare.yml`
+   * beside the same value written into `convex/buildFloor.ts`. A bundle below
+   * the backend's floor is outdated and reloads (src/lib/connection/buildFloor.ts).
+   * Unset in local dev, CI and e2e builds, which are never outdated.
+   */
+  readonly VITE_BUILD_STAMP?: string
 }
 
 interface ImportMeta {
