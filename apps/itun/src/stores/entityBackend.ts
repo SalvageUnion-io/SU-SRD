@@ -322,10 +322,25 @@ export async function commitChangeLog(
 
   await convexClient.mutation(api.changeLog.appendChangeLog, {
     entries: entries.map((e) => ({
-      ...e,
+      ...changeLogEntryArgs(e),
       gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
     })),
   })
+}
+
+/**
+ * One Change Log row as `appendChangeLog` accepts it.
+ *
+ * A field set for the first time has no `before`, and a field cleared — the ↺
+ * revert of a pinned Max HP — has no `after`; both are `undefined` locally. The
+ * Convex client drops undefined object fields when it serialises the args, so
+ * the server saw the key missing, refused the whole batch, and every row in it
+ * was lost (ITUN-CONVEX-3/-4). An absent side travels as `null`.
+ */
+export function changeLogEntryArgs<E extends { before: unknown; after: unknown }>(
+  entry: E
+): Omit<E, 'before' | 'after'> & { before: unknown; after: unknown } {
+  return { ...entry, before: entry.before ?? null, after: entry.after ?? null }
 }
 
 /**
