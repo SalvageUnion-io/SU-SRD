@@ -16,7 +16,7 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 - Resolve the mode via `src/lib/connection/`, never `navigator.onLine` or an
   auth flag.
-- **Never introduce a store, field or flow that persists only on a device.**
+- **No IndexedDB store without a Convex commit seam:** `storeSeams.test.ts`.
 - **There is no anonymous backend.** `selectBackend()` is
   `signedOut | remote | blocked`; signed out, every store reads empty
   (`readableRows`), never IndexedDB. A unit test that needs durability calls
