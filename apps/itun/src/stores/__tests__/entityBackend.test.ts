@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { CONNECTION_MODES } from '../../lib/connection/connectionMode'
 import {
   backendForMode,
+  changeLogEntryArgs,
   crawlerPatchArgs,
   requireWritableBackend,
   selectBackend,
@@ -183,5 +184,36 @@ describe('a crawler field patch names the fields it clears', () => {
 
   test('a patch that clears nothing sends no unset', () => {
     expect(crawlerPatchArgs('c1', { scrap: 4 })).toEqual({ appId: 'c1', patch: { scrap: 4 } })
+  })
+})
+
+describe('a Change Log row never travels with a missing side', () => {
+  // `appendChangeLog` requires both `before` and `after`, and the Convex client
+  // drops undefined object fields — so an undefined side has to become null or
+  // the server refuses the whole batch (ITUN-CONVEX-3/-4).
+  const row = { field: 'maxHpOverride', kind: 'override' as const }
+
+  test('a cleared field sends after: null', () => {
+    expect(changeLogEntryArgs({ ...row, before: 22, after: undefined })).toEqual({
+      ...row,
+      before: 22,
+      after: null,
+    })
+  })
+
+  test('a first-time field sends before: null', () => {
+    expect(changeLogEntryArgs({ ...row, before: undefined, after: 'Aegis' })).toEqual({
+      ...row,
+      before: null,
+      after: 'Aegis',
+    })
+  })
+
+  test('falsy values that are real values are kept', () => {
+    expect(changeLogEntryArgs({ ...row, before: 0, after: false })).toEqual({
+      ...row,
+      before: 0,
+      after: false,
+    })
   })
 })
