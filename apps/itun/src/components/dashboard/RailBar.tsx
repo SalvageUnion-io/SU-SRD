@@ -1,7 +1,8 @@
 /**
  * RailBar — the Dashboard's top rail content: return-to-workspace, the active
  * entity stamp, whether play is being saved (`status`, the app's
- * `SavedIndicator`), and the settings / leave-downtime action. Presentational only —
+ * `SavedIndicator`), and the right-hand action: the Mediator's Start or End
+ * Downtime, or settings for a player. Presentational only —
  * the `.pc-rail` region wrapper (grid area + flex row + forward border) is
  * supplied by DashboardGrid's rail slot, and the app injects its own router link
  * via `returnControl` (component-lib stays routing-agnostic).
@@ -25,8 +26,11 @@ export type RailBarProps = {
   returnControl?: ReactNode
   /** Saved / offline, at the right before the action (the app's `SavedIndicator`). */
   status?: ReactNode
-  /** When set, the rail's right action becomes "Leave Downtime". */
-  onLeaveDowntime?: () => void
+  /**
+   * The Mediator's Downtime control (plan D8): Start while it is not running,
+   * End while it is. When set it takes the place of the settings button.
+   */
+  downtimeAction?: { label: string; title: string; onClick: () => void }
 }
 
 export function RailBar({
@@ -34,7 +38,7 @@ export function RailBar({
   fam = 'mech',
   returnControl,
   status,
-  onLeaveDowntime,
+  downtimeAction,
 }: RailBarProps) {
   return (
     <>
@@ -48,14 +52,14 @@ export function RailBar({
       </Badge>
       <span className="flex-1" />
       {status}
-      {onLeaveDowntime ? (
+      {downtimeAction ? (
         <Button
           variant="ghost"
           size="compact"
-          title="Return to the previous mount"
-          onClick={onLeaveDowntime}
+          title={downtimeAction.title}
+          onClick={() => downtimeAction.onClick()}
         >
-          ◄ Leave Downtime
+          {downtimeAction.label}
         </Button>
       ) : (
         <Button variant="ghost" size="compact" title="Rules & sources — planned" disabled>

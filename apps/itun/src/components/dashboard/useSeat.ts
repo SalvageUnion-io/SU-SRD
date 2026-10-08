@@ -72,7 +72,7 @@ export type SeatHandle = {
 /**
  * Which entity the Dashboard runs: the boarded mech, the pilot on foot, or the
  * crawler in Downtime. Derived, never stored: mount comes from the seat, and
- * Downtime from `playStateStore` until the Dashboard reads the Game's.
+ * Downtime from the Game's `downtime` row (`useDowntime`).
  */
 export type MountState = 'mech' | 'pilot' | 'downtime'
 
@@ -134,8 +134,11 @@ function remount(seat: SeatView, mount: SeatMount): Partial<SeatView> {
   return same ? { mount } : { mount, resolving: null }
 }
 
-/** Show a refused seat write: the server's own words when it gave some. */
-function reportSeatFailure(err: unknown): void {
+/**
+ * Show a refused Game write (a seat's, Downtime's): the server's own words
+ * when it gave some.
+ */
+export function reportRefusedWrite(err: unknown): void {
   const refusal = serverMessage(err)
   if (refusal !== null) {
     toast(refusal)
@@ -200,7 +203,7 @@ export function useSeat(pilot: Pilot | null): SeatHandle {
       reportWriteFailure(new WritesBlockedOffline(mode === 'connecting' ? 'settling' : 'offline'))
       return
     }
-    write({ gameId, pilotId }).catch(reportSeatFailure)
+    write({ gameId, pilotId }).catch(reportRefusedWrite)
   }
 
   return {

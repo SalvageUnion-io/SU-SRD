@@ -330,9 +330,8 @@ export function ownableRows(args: {
 /**
  * Build the crawler rows for a Game.
  *
- * Every row opens: the crawler is communal, so any member may read and edit its
- * fields, which is precisely the split this feature turns on — the table runner
- * decides a crawler *exists*, the crew keeps its scrap, cargo and bays.
+ * Every row opens: every member reads the crawler. Only the table runner
+ * edits it (ADR-038 §5), and `SheetView` opens it read-only for anyone else.
  */
 export function crawlerRows(args: {
   rows: readonly ServerCrawler[]

@@ -54,9 +54,15 @@ describe('entities.locate', () => {
     })
   })
 
-  test('the crew’s crawler is every member’s to edit', async () => {
-    const { player, gameId } = await seedCrew()
+  test('the crew’s crawler is the table runner’s to edit, and a player’s to read', async () => {
+    const { organizer, player, gameId } = await seedCrew()
+    // ADR-038 §5: a player reads it; the Organizer runs a table with no Mediator.
     expect(await player.as.query(api.entities.locate, { kind: 'crawler', id: 'c1' })).toEqual({
+      id: 'c1',
+      gameId,
+      mayEdit: false,
+    })
+    expect(await organizer.as.query(api.entities.locate, { kind: 'crawler', id: 'c1' })).toEqual({
       id: 'c1',
       gameId,
       mayEdit: true,

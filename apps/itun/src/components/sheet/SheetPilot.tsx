@@ -35,6 +35,7 @@ export function SheetPilot({
   segments,
   editable,
   readOnly,
+  crawlerReadOnly,
   store,
   storeState,
   holds,
@@ -202,7 +203,13 @@ export function SheetPilot({
         )
       }
       renderBody={() => (
-        <PilotSheet pilot={pilot} store={store} readOnly={readOnly} linkedUnits={rail} />
+        <PilotSheet
+          pilot={pilot}
+          store={store}
+          readOnly={readOnly}
+          crawlerReadOnly={crawlerReadOnly}
+          linkedUnits={rail}
+        />
       )}
     />
   )

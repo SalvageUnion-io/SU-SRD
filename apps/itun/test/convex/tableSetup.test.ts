@@ -12,9 +12,9 @@ import { testConvex } from './harness'
  * Three rules, and each one is only worth anything because it is enforced HERE
  * rather than by hiding a button:
  *
- *  1. **The table runner raises the crawler.** Every member may then edit its
- *     fields — that is what communal means — but creating and scrapping one is
- *     the act of whoever runs the table.
+ *  1. **The table runner raises the crawler.** Raising, editing and scrapping
+ *     it are all the act of whoever runs the table (ADR-038 §5); communal
+ *     means only that it has no owner, and every member reads it.
  *  2. **A Game takes any member's pilots and mechs.** It used to wait for a
  *     crawler; since ADR-037 the crew may gather first, and the first crawler
  *     raised becomes primary and takes them aboard.
@@ -189,17 +189,30 @@ describe('the table runner raises the crawler', () => {
     expect(rows).toHaveLength(0)
   })
 
-  test('every member may still edit its fields', async () => {
+  test('only the Mediator edits its fields; a player is refused', async () => {
     const t = testConvex()
-    const { mediator, player, gameId } = await seedTable(t)
+    const { organizer, mediator, player, gameId } = await seedTable(t)
     const crawlerId = await mediator.as.mutation(api.entities.createCrawler, {
       gameId,
       appId: 'c1',
       body: crawlerBody(),
     })
 
-    // Communal editing is the whole point of the crawler; only authorship moved.
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    // A Game's crawler is the Mediator's (ADR-038 §5): a player asks at the table.
+    await expect(
+      player.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c1',
+        patch: { techLevel: '3' },
+      })
+    ).rejects.toThrow(/only the mediator/i)
+    // Nor does the Organizer reach it once the Game has a Mediator.
+    await expect(
+      organizer.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c1',
+        patch: { techLevel: '3' },
+      })
+    ).rejects.toThrow(/only the mediator/i)
+    await mediator.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { techLevel: '2' },
     })
@@ -328,7 +341,7 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
       appId: 'c1',
       body: crawlerBody(),
     })
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+    await mediator.as.mutation(api.entities.patchCrawlerByAppId, {
       appId: 'c1',
       patch: { techLevel: '3' },
     })

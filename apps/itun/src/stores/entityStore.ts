@@ -262,8 +262,10 @@ const MEMORY_STORES: { [K in EntityType]: DbStoreApi<K> } = {
  * source of truth and the UI read it. It is not any more.
  *
  * Each type still dispatches differently, and each difference is a rule rather
- * than an implementation detail: a crawler sends its *patch* so contended
- * Downtime edits merge (ADR-030 §5), a pilot or mech sends its whole body, and
+ * than an implementation detail: a crawler sends its *patch* so a write from a
+ * stale copy merges rather than undoing a field it did not touch (ADR-030 §5,
+ * D19; only the table runner writes a Game's crawler since ADR-038 §5), a pilot
+ * or mech sends its whole body, and
  * a soft link is addressed by its endpoints because the server has no id for it.
  */
 async function commitWrite(
@@ -651,7 +653,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // Same refusal as create()/update(), and for a stronger reason: a transfer
     // moves value BETWEEN entities (cargo stow/load, a scrap hand-off), so a
     // Disconnected write here would fork not one record against the server but
-    // the balance between two — the communal crawler most of all (ADR-030 §5).
+    // the balance between two — and the crawler is usually one end of it.
     // Deliberately before the before-images, so a refused transfer touches
     // nothing at all.
     requireWritableBackend()
@@ -682,11 +684,23 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     //
     // Ordering matters more here than anywhere else. A transfer moves value
     // BETWEEN entities — cargo stow/load, a scrap hand-off — so a half-applied
-    // one is not a stale record but a wrong balance, and the communal crawler
-    // is usually one end of it. Committing first means a refusal aborts with
+    // one is not a stale record but a wrong balance, and the Game's crawler is
+    // usually one end of it. Committing first means a refusal aborts with
     // nothing changed locally, which is the same guarantee phase 1's
     // validate-everything-first already gives for Zod failures.
-    for (const pu of prepared) {
+    //
+    // The CRAWLER commits first. The server takes one mutation per record, so
+    // a refusal after an earlier record landed leaves the server half-applied:
+    // a stow would lose the lot, a load duplicate it. The crawler is the side
+    // the server refuses on role — in a Game only the table runner writes it
+    // (ADR-038 §5) — while a pilot or mech in a transfer is the caller's own.
+    // Committing the refusable side first means its refusal lands before
+    // anything else does.
+    const commitOrder = [
+      ...prepared.filter((pu) => pu.type === 'crawler'),
+      ...prepared.filter((pu) => pu.type !== 'crawler'),
+    ]
+    for (const pu of commitOrder) {
       await commitWrite(pu.type, pu.record as { id: string; gameId?: string | null }, pu.patch)
     }
 

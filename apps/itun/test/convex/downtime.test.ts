@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { Ctx } from './assignmentFixtures'
 import { makeUser } from './assignmentFixtures'
 import { testConvex } from './harness'
@@ -12,6 +13,8 @@ import { testConvex } from './harness'
  * once per member**, and **step completion that means "done with THIS step"
  * rather than "done at some point".**
  */
+
+type GameId = Id<'games'>
 
 async function seedTable(t: Ctx) {
   const gm = await makeUser(t, 'Mediator')
@@ -113,53 +116,75 @@ describe('completion is per step, not cumulative', () => {
 })
 
 describe('crawler upkeep is spent once, not per member', () => {
+  /** Begin a Downtime and advance to the Upkeep & Upgrade step (step 2). */
+  async function toUpkeepStep(gm: Awaited<ReturnType<typeof seedTable>>['gm'], gameId: GameId) {
+    await gm.as.mutation(api.downtime.begin, { gameId })
+    await gm.as.mutation(api.downtime.advance, { gameId })
+  }
+
   test('the second attempt reports already-spent rather than charging again', async () => {
     const t = testConvex()
-    const { gm, a, b, gameId } = await seedTable(t)
-    await gm.as.mutation(api.downtime.begin, { gameId })
+    const { gm, gameId } = await seedTable(t)
+    await toUpkeepStep(gm, gameId)
 
-    expect(await a.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
-    // Six members each paying is the exact double-charging that made
-    // per-player Downtime unworkable.
-    expect(await b.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(false)
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
+    // A second press, or the hub open beside the Dashboard, is not a second
+    // charge: paying per press is the double-charging per-player Downtime had.
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(false)
   })
 
-  test('two players racing is not an error anybody sees', async () => {
+  test('only the Mediator pays it: the crawler is theirs (ADR-038 §5)', async () => {
     const t = testConvex()
-    const { gm, a, b, gameId } = await seedTable(t)
+    const { gm, a, gameId } = await seedTable(t)
+    await toUpkeepStep(gm, gameId)
+
+    await expect(a.as.mutation(api.downtime.spendUpkeep, { gameId })).rejects.toThrow(/mediator/i)
+    expect((await a.as.query(api.downtime.state, { gameId })).upkeepSpent).toBe(false)
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
+  })
+
+  test('only in the Upkeep & Upgrade step: every other step refuses it', async () => {
+    const t = testConvex()
+    const { gm, a, gameId } = await seedTable(t)
     await gm.as.mutation(api.downtime.begin, { gameId })
 
-    // An ordinary race at a table, not a fault to surface.
-    const results = [
-      await a.as.mutation(api.downtime.spendUpkeep, { gameId }),
-      await b.as.mutation(api.downtime.spendUpkeep, { gameId }),
-    ]
-    expect(results.filter(Boolean)).toHaveLength(1)
+    // Step 1 is Tally Salvage.
+    await expect(gm.as.mutation(api.downtime.spendUpkeep, { gameId })).rejects.toThrow(
+      /Upkeep & Upgrade step/
+    )
+    await gm.as.mutation(api.downtime.advance, { gameId })
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
+
+    // Past it, an unpaid or paid Upkeep alike is no longer the table's to spend.
+    await gm.as.mutation(api.downtime.advance, { gameId })
+    await expect(gm.as.mutation(api.downtime.spendUpkeep, { gameId })).rejects.toThrow(
+      /Upkeep & Upgrade step/
+    )
+    expect((await a.as.query(api.downtime.state, { gameId })).upkeepSpent).toBe(true)
   })
 
   test('advancing a step does NOT reset it', async () => {
     const t = testConvex()
     const { gm, a, gameId } = await seedTable(t)
-    await gm.as.mutation(api.downtime.begin, { gameId })
-    await a.as.mutation(api.downtime.spendUpkeep, { gameId })
+    await toUpkeepStep(gm, gameId)
+    await gm.as.mutation(api.downtime.spendUpkeep, { gameId })
 
     await gm.as.mutation(api.downtime.advance, { gameId })
 
     // Resetting here would charge the crew again mid-procedure.
     expect((await a.as.query(api.downtime.state, { gameId })).upkeepSpent).toBe(true)
-    expect(await a.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(false)
   })
 
   test('a NEW downtime does reset it', async () => {
     const t = testConvex()
-    const { gm, a, gameId } = await seedTable(t)
-    await gm.as.mutation(api.downtime.begin, { gameId })
-    await a.as.mutation(api.downtime.spendUpkeep, { gameId })
+    const { gm, gameId } = await seedTable(t)
+    await toUpkeepStep(gm, gameId)
+    await gm.as.mutation(api.downtime.spendUpkeep, { gameId })
     await gm.as.mutation(api.downtime.end, { gameId })
 
-    await gm.as.mutation(api.downtime.begin, { gameId })
+    await toUpkeepStep(gm, gameId)
     // Upkeep is per Downtime, so the next one is payable again.
-    expect(await a.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
   })
 })
 

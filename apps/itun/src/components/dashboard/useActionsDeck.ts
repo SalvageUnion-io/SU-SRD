@@ -52,7 +52,6 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import type { RangeBand, SeatResolving } from '../../lib/schemas/seat'
 import { RANGE_BANDS } from '../../lib/schemas/seat'
 import { useEntityStore } from '../../stores/entityStore'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
 import type { DeckListModel, DeckRow } from './DeckList'
@@ -95,6 +94,11 @@ export type ActionsDeckProps = {
   resolving: SeatResolving | null
   /** Record the resolve on the seat; null when it is over. */
   onResolving: (resolving: SeatResolving | null) => void
+  /**
+   * Hand a destructive outcome to the Major slot, which opens its Take Damage
+   * overlay for the player to confirm (ADR-007). The Dashboard holds the flag.
+   */
+  onDamagePrompt?: () => void
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
 }
@@ -119,11 +123,11 @@ export function useActionsDeck({
   onRange,
   resolving,
   onResolving,
+  onDamagePrompt,
   store,
 }: ActionsDeckProps): ActionsDeck {
   const liveStore = useEntityStore()
   const s: PlayStore = store ?? liveStore
-  const armDamagePrompt = usePlayStateStore((st) => st.armDamagePrompt)
 
   // On foot the mech's actions are unreachable; boarded, the pilot's own actions
   // ride along with the mech's in one deck (SU pilots keep their abilities and
@@ -251,7 +255,7 @@ export function useActionsDeck({
   function doApply(current: SeatResolving, result: CoreRollResult) {
     if (isDestructiveOutcome(result.band)) {
       setApplyRouted(true)
-      armDamagePrompt()
+      onDamagePrompt?.()
       return
     }
     step(current, { applied: true })

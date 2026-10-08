@@ -25,7 +25,6 @@ import { readReference } from '../../lib/readReference'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { BoardControl, BoardMenuList } from './BoardControl'
 import type { BoardMenu, BoardOption } from './boardMenu'
@@ -34,7 +33,7 @@ import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from './dashboa
 import type { MajorModel } from './MajorFrame'
 import { MajorFrame } from './MajorFrame'
 import { MinorFrame } from './MinorFrame'
-import type { PlayStore } from './SlotRow'
+import type { DamagePrompt, PlayStore } from './SlotRow'
 import { injuryLines, pilotMinorModel, pilotVitals } from './slotModels'
 
 export function PilotMinor({
@@ -80,7 +79,7 @@ export function PilotMajor({
   board,
   onBoard,
   onClaimAndBoard,
-  hostsDamagePrompt,
+  damagePrompt,
 }: {
   pilot: Pilot
   /** The pilot's crawler — its tier drives Stat Training (max HP/AP). */
@@ -95,10 +94,11 @@ export function PilotMajor({
   /** Claim a spare, then board it; called once the player has confirmed. */
   onClaimAndBoard: (option: BoardOption) => void
   /**
-   * Whether this copy answers the deck's Take Damage hand-off. Only the slot
-   * row's Major does; the ⤢ overlay's copy must not consume it.
+   * The deck's Take Damage hand-off, which this copy answers. Only the slot
+   * row's Major gets it; the ⤢ overlay's copy passes null so it never
+   * consumes it.
    */
-  hostsDamagePrompt: boolean
+  damagePrompt: DamagePrompt | null
 }) {
   const { statInput, maxHP, gauges } = pilotVitals(pilot, crawler)
   const hp = gauges[0]?.value ?? 0
@@ -110,14 +110,14 @@ export function PilotMajor({
 
   // On-foot: the deck's Apply routes a destructive Cascade Failure here — open
   // the Take-HP-Damage overlay pre-armed for the player to confirm (ADR-007).
-  const damagePromptArmed = usePlayStateStore((st) => st.damagePromptArmed)
-  const consumeDamagePrompt = usePlayStateStore((st) => st.consumeDamagePrompt)
+  const armed = damagePrompt?.armed ?? false
+  const consume = damagePrompt?.consume
   useEffect(() => {
-    if (hostsDamagePrompt && damagePromptArmed) {
+    if (armed && consume) {
       setPrompt({ kind: 'dmg' })
-      consumeDamagePrompt()
+      consume()
     }
-  }, [hostsDamagePrompt, damagePromptArmed, consumeDamagePrompt])
+  }, [armed, consume])
 
   const fresh = () => store.get('pilot', pilot.id) ?? pilot
 

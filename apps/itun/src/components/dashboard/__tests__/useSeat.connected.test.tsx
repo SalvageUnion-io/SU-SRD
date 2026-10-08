@@ -55,7 +55,6 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { usePlayStateStore } = await import('../../../stores/playStateStore')
 const { Toaster } = await import('component-lib')
 const { SalvageUnionReference } = await import('salvageunion-reference')
 const { buildPilotActions } = await import('../dashboardRules')
@@ -100,8 +99,6 @@ afterAll(async () => {
 })
 
 beforeEach(() => {
-  // Another file may have left this device in Downtime.
-  usePlayStateStore.setState({ downtime: false })
   sent.length = 0
   updaters.clear()
   refusal = null
@@ -352,7 +349,7 @@ function crewAnswer(seats: ReturnType<typeof seatRow>[], trouble = false) {
   }
 }
 
-/** What the Dashboard reads of the Game: its mechs, links, seats, log, crew and the viewer. */
+/** What the Dashboard reads of the Game: its mechs, links, seats, log, crew, Downtime and the viewer. */
 function gameAnswers(seats: ReturnType<typeof seatRow>[], extra: Record<string, unknown> = {}) {
   const mech = (appId: string, name: string, ownerId: string | null) => ({
     _id: `row-${appId.replace('seat-', '')}`,
@@ -392,6 +389,8 @@ function gameAnswers(seats: ReturnType<typeof seatRow>[], extra: Record<string, 
     'proposals:alerts': [],
     'proposals:pending': [],
     'crew:vitals': crewAnswer(seats),
+    'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    'games:members': [],
     ...extra,
   }
 }

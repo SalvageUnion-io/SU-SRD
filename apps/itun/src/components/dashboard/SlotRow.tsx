@@ -3,8 +3,9 @@
  * (docs/architecture/dashboard-redesign.md D1–D3).
  *
  * Which entity holds the Major is the mount, and nothing else (`slotsFor` in
- * `slotLayout.ts`). The mount comes from the pilot's seat, and Downtime from `playStateStore`
- * until the Dashboard follows the Game's own Downtime (plan layer 8).
+ * `slotLayout.ts`). The mount comes from the pilot's seat, and Downtime from
+ * the Game's `downtime` row (`useDowntime`): the Crawler is Major while a step
+ * is running, for every member at once.
  *
  * Each entity's two forms live in its own file (`PilotSlot`, `MechSlot`,
  * `CrawlerSlot`); this file only places them. `SlotMajor` is also what the ⤢
@@ -28,6 +29,7 @@ import type { EntityState } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import type { BoardMenu } from './boardMenu'
 import { boardMenu, NO_BOARD_SOURCES } from './boardMenu'
+import type { CrawlerUpkeep } from './CrawlerSlot'
 import { CrawlerMajor, CrawlerMinor } from './CrawlerSlot'
 import { MechMajor, MechMinor } from './MechSlot'
 import { PilotMajor, PilotMinor } from './PilotSlot'
@@ -37,6 +39,13 @@ import type { MountState, SeatHandle } from './useSeat'
 
 /** The store surface the slots need — injectable so tests can assert patches. */
 export type PlayStore = Pick<EntityState, 'get' | 'update' | 'transfer'>
+
+/**
+ * The deck's Take Damage hand-off: its Apply step arms it on a destructive
+ * outcome, and the Major opens its Take Damage overlay for the player to
+ * confirm (ADR-007), then consumes it. Component state on the Dashboard.
+ */
+export type DamagePrompt = { armed: boolean; consume: () => void }
 
 /** What every slot reads. */
 export type SlotEntities = {
@@ -56,6 +65,8 @@ export type SlotEntities = {
   board: BoardMenu
   /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
   mediator: boolean
+  /** This Downtime's Upkeep, while one is running; null or absent otherwise. */
+  upkeep?: CrawlerUpkeep | null
   store: PlayStore
 }
 
@@ -92,14 +103,14 @@ const NO_MECH = 'No mech. Board one from the Pilot’s Mount bay.'
 
 /**
  * One entity's Major form. The slot row's copy hosts the deck's Take Damage
- * hand-off; the ⤢ overlay's copy does not, so the two never both answer it.
+ * hand-off; the ⤢ overlay's copy gets null, so the two never both answer it.
  */
 export function SlotMajor({
   kind,
   mount,
-  hostsDamagePrompt,
+  damagePrompt,
   ...e
-}: SlotEntities & { kind: SlotKind; mount: MountState; hostsDamagePrompt: boolean }) {
+}: SlotEntities & { kind: SlotKind; mount: MountState; damagePrompt: DamagePrompt | null }) {
   if (kind === 'crawler') {
     if (!e.crawler) return <EmptySlot text={NO_CRAWLER} />
     return (
@@ -108,6 +119,7 @@ export function SlotMajor({
         mech={e.mech}
         store={e.store}
         mediator={e.mediator}
+        upkeep={e.upkeep ?? null}
         stampLabel={mount === 'downtime' ? 'Downtime' : 'Crawler'}
       />
     )
@@ -125,7 +137,7 @@ export function SlotMajor({
           // A spare is only ever known from the Game's listing, which names its row.
           if (serverId !== null) e.seat.claimAndBoard({ mechId, serverId })
         }}
-        hostsDamagePrompt={hostsDamagePrompt}
+        damagePrompt={damagePrompt}
       />
     )
   }
@@ -140,7 +152,7 @@ export function SlotMajor({
       onToggleEffect={e.seat.toggleEffect}
       onDismount={e.seat.dismount}
       onEject={e.seat.eject}
-      hostsDamagePrompt={hostsDamagePrompt}
+      damagePrompt={damagePrompt}
     />
   )
 }
@@ -188,9 +200,18 @@ type SlotRowProps = Omit<SlotEntities, 'store' | 'board'> & {
    * answers: the assigned mech alone.
    */
   board?: BoardMenu
+  /** The deck's Take Damage hand-off, answered by the Major (Dashboard state). */
+  damagePrompt?: DamagePrompt | null
 }
 
-export function SlotRow({ mount, onExpand, store, board, ...rest }: SlotRowProps) {
+export function SlotRow({
+  mount,
+  onExpand,
+  store,
+  board,
+  damagePrompt = null,
+  ...rest
+}: SlotRowProps) {
   // Unconditional hook; the prop wins when a stub is injected (tests / harness).
   const liveStore = useEntityStore()
   const e: SlotEntities = {
@@ -203,7 +224,7 @@ export function SlotRow({ mount, onExpand, store, board, ...rest }: SlotRowProps
   const { major, minors } = slotsFor(mount)
   return (
     <div style={ROW} data-major={major}>
-      <SlotMajor kind={major} mount={mount} hostsDamagePrompt {...e} />
+      <SlotMajor kind={major} mount={mount} damagePrompt={damagePrompt} {...e} />
       {minors.map((kind) => (
         <SlotMinor key={kind} kind={kind} onExpand={(trigger) => onExpand(kind, trigger)} {...e} />
       ))}

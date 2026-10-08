@@ -46,8 +46,11 @@ function LotRow({ lot, children }: { lot: CargoLot; children?: ReactNode }) {
 }
 
 export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerHoldProps) {
-  const { state, usage } = cargo
+  const { state, usage, crawlerLocked } = cargo
   const editable = !readOnly
+  // Stow and Load both write the crawler; a player in a Game may not (ADR-038 §5).
+  const stowBlocked = crawlerLinked ? crawlerLocked : 'No crawler is linked.'
+  const loadBlocked = crawlerLocked ?? (usage.free <= 0 ? 'The hold is full.' : null)
 
   return (
     <div className="flex flex-col gap-4">
@@ -70,8 +73,8 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                     <Button
                       variant="ghost"
                       size="compact"
-                      disabled={!crawlerLinked}
-                      title={crawlerLinked ? undefined : 'No crawler is linked.'}
+                      disabled={stowBlocked !== null}
+                      title={stowBlocked ?? undefined}
                       onClick={() => reportCargo(cargo.stow(lot.id))}
                     >
                       Stow →
@@ -98,6 +101,9 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           <h4 className="mb-1 font-cond text-caption font-bold uppercase tracking-caps text-wk-muted">
             Storage Bay
           </h4>
+          {editable && crawlerLocked !== null && (
+            <p className="mb-1 font-body text-caption text-wk-muted">{crawlerLocked}</p>
+          )}
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body="The Storage Bay is empty." />
           ) : (
@@ -108,8 +114,8 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                     <Button
                       variant="ghost"
                       size="compact"
-                      disabled={usage.free <= 0}
-                      title={usage.free <= 0 ? 'The hold is full.' : undefined}
+                      disabled={loadBlocked !== null}
+                      title={loadBlocked ?? undefined}
                       onClick={() => reportCargo(cargo.load(lot.id))}
                     >
                       ← Load

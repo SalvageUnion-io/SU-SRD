@@ -432,10 +432,11 @@ export default defineSchema({
   mechs: containerTable(v.union(v.id('users'), v.null())),
 
   /**
-   * The crawler is communal **inside a Game** (D8) — `ownerId: null` — and any
-   * member may write it. Conflicting writes resolve by field-level merge (D19),
-   * which is enforced in the mutation rather than the schema; the contended
-   * fields in practice are the scrap pool and cargo lots during Downtime.
+   * The crawler is communal **inside a Game** (D8) — `ownerId: null` — and every
+   * member reads it, but only the table runner writes it (amended by ADR-038 §5:
+   * the Mediator keeps the crawler; `assertMayEditCrawler`). Writes resolve by
+   * field-level merge (D19), enforced in the mutation rather than the schema, so
+   * a write from a stale copy never undoes a field it did not touch.
    *
    * ## Why this now carries the same two columns as `pilots`/`mechs`
    *

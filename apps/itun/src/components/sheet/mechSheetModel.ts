@@ -53,6 +53,8 @@ type MechSheetModelOptions = {
   store: typeof useEntityStore
   readOnly: boolean
   crawler: Crawler | null
+  /** The viewer may not write `crawler` (ADR-038 §5); see `useCargo`. */
+  crawlerReadOnly?: boolean
   pilotAbilities?: string[]
 }
 
@@ -87,10 +89,11 @@ export function useMechSheetModel({
   store,
   readOnly,
   crawler,
+  crawlerReadOnly = false,
   pilotAbilities,
 }: MechSheetModelOptions): MechSheetModel {
   const chassis = resolveChassis(mech, chassisOverride)
-  const cargo = useCargo({ mech, crawler, store, readOnly, pilotAbilities })
+  const cargo = useCargo({ mech, crawler, store, readOnly, crawlerReadOnly, pilotAbilities })
 
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
   // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,

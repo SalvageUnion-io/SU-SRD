@@ -9,8 +9,13 @@
  *    with a damaged bay in red.
  *
  * A Game's crawler is the Mediator's (D11). Only the Mediator gets the verbs;
- * a player sees the numbers and the bays and asks at the table. Until the
- * server enforces it (plan layer 8) this only hides the controls.
+ * a player sees the numbers and the bays and asks at the table. The server
+ * refuses a player's crawler write too (`assertMayEditCrawler`), so hiding the
+ * verbs is a courtesy, not the boundary.
+ *
+ * Upkeep is paid once per Downtime: Pay Upkeep first claims it on the Game's
+ * row (`downtime.spendUpkeep`, idempotent), and only the call that claimed it
+ * draws the Scrap, so a second press or a second tab never charges twice.
  *
  * Rules run through `dashboardEconomy.ts`; the destructive Scrap Mech commits
  * through `transfer` as one all-or-nothing write (ADR-007).
@@ -23,7 +28,13 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollDie } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { crawlerUpgradeQuote, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
+import {
+  crawlerUpgradeQuote,
+  payUpkeep,
+  UPKEEP_SCRAP,
+  upkeepShortfall,
+} from '../../lib/rules/crawlerEconomy'
+import { UPKEEP_STEP_NAME } from '../../lib/rules/downtime'
 import { runWrite } from '../../lib/runWrite'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -140,9 +151,17 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
   )
 }
 
+/**
+ * This Downtime's Upkeep, as the Crawler Major pays it: whether the Game's row
+ * says it is paid, whether the table is on the Upkeep step (the only step it
+ * can be paid in), and the idempotent claim (`useDowntime().spendUpkeep`).
+ */
+export type CrawlerUpkeep = { spent: boolean; payable: boolean; spend: () => Promise<boolean> }
+
 /** Downtime economy prompts the crawler band can raise. */
 type EconPrompt =
   | { kind: 'salvage'; log: string }
+  | { kind: 'upkeep'; log: string }
   | { kind: 'craft' }
   | { kind: 'scrap'; total: number; skipped: number }
   | { kind: 'blocked'; rule: StepRule }
@@ -153,6 +172,7 @@ export function CrawlerMajor({
   mech,
   store,
   mediator,
+  upkeep = null,
   stampLabel,
 }: {
   crawler: Crawler
@@ -161,6 +181,8 @@ export function CrawlerMajor({
   store: PlayStore
   /** The viewer is the Game's Mediator, who alone runs the crawler (D11). */
   mediator: boolean
+  /** This Downtime's Upkeep while one is running; null outside Downtime. */
+  upkeep?: CrawlerUpkeep | null
   /** "Downtime" in the slot row; what the crawler is doing, through ⤢. */
   stampLabel: string
 }) {
@@ -192,6 +214,51 @@ export function CrawlerMajor({
       description: `${crawler.name} · Area Salvage ${log}`,
       result: { kind: 'area-salvage', roll: result.roll, outcome: result.label },
     })
+  }
+
+  /**
+   * Pay this Downtime's Upkeep (p.218): claim it on the Game's row, then draw
+   * the Scrap and credit the Upgrade Pool. The claim comes first and is
+   * idempotent, so only one press per Downtime ever draws. A pool that cannot
+   * cover it claims nothing: unpaid Upkeep is a Deterioration roll, which the
+   * crawler sheet runs.
+   */
+  async function doUpkeep(claim: CrawlerUpkeep) {
+    const tl = crawlerTl ?? 1
+    if (payUpkeep(fresh().scrapPool ?? {}, tl) === null) {
+      setPrompt({
+        kind: 'blocked',
+        rule: {
+          rule: `Upkeep is ${UPKEEP_SCRAP} Scrap of Tech ${tl} or higher, and the pool is ${upkeepShortfall(fresh().scrapPool ?? {}, tl)} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.`,
+          cite: 'Core Book · p.218',
+        },
+      })
+      return
+    }
+    if (!(await claim.spend())) {
+      setPrompt({ kind: 'upkeep', log: 'Upkeep is already paid this Downtime.' })
+      return
+    }
+    // Drawn from the freshest pool, after the claim landed.
+    const c = fresh()
+    const payment = payUpkeep(c.scrapPool ?? {}, tl)
+    if (payment === null) return
+    const upgradePool = (c.upgradePool ?? 0) + payment.upgradeCredit
+    const drawn = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
+    runWrite(
+      () =>
+        store.update(
+          'crawler',
+          crawler.id,
+          { scrapPool: payment.pool, upgradePool },
+          DASHBOARD_TXN
+        ),
+      () =>
+        setPrompt({
+          kind: 'upkeep',
+          log: `Paid ${UPKEEP_SCRAP} Scrap (${drawn}). Upgrade Pool now ${upgradePool}.`,
+        })
+    )
   }
 
   /**
@@ -231,6 +298,13 @@ export function CrawlerMajor({
     if (prompt.kind === 'salvage') {
       return {
         title: 'Area Salvage',
+        onClose,
+        body: <p className="pc-resolve-log">{prompt.log}</p>,
+      }
+    }
+    if (prompt.kind === 'upkeep') {
+      return {
+        title: 'Upkeep',
         onClose,
         body: <p className="pc-resolve-log">{prompt.log}</p>,
       }
@@ -295,7 +369,8 @@ export function CrawlerMajor({
   }
   // The side column: what this Downtime costs, how close the next Tech Level
   // is, and the one destructive verb.
-  const upkeep: BandBay = {
+  // Paid once per Downtime, by the Mediator, in the Upkeep & Upgrade step.
+  const upkeepBay: BandBay = {
     label: 'Upkeep',
     side: true,
     lines: [
@@ -305,8 +380,28 @@ export function CrawlerMajor({
             ? `${UPKEEP_SCRAP} Scrap per Downtime`
             : `${UPKEEP_SCRAP} Tech ${crawlerTl} Scrap per Downtime`,
       },
+      ...(upkeep === null
+        ? []
+        : [
+            {
+              text: upkeep.spent
+                ? 'Paid this Downtime'
+                : upkeep.payable
+                  ? 'Outstanding'
+                  : `Outstanding · paid in the ${UPKEEP_STEP_NAME} step`,
+            },
+          ]),
     ],
-    buttons: [],
+    buttons:
+      mediator && upkeep !== null && !upkeep.spent && upkeep.payable
+        ? [
+            {
+              label: 'Pay Upkeep',
+              onClick: () => void doUpkeep(upkeep),
+              title: `Pay ${UPKEEP_SCRAP} Scrap of the crawler's Tech Level, once this Downtime`,
+            },
+          ]
+        : [],
   }
   const upgradeBay: BandBay = {
     label: 'Upgrade',
@@ -345,7 +440,7 @@ export function CrawlerMajor({
     fam: 'crawler',
     stampLabel,
     overlay,
-    bays: [hull, stores, bayBay, upkeep, upgradeBay, ...scrap],
+    bays: [hull, stores, bayBay, upkeepBay, upgradeBay, ...scrap],
   }
   return <MajorFrame view={view} />
 }

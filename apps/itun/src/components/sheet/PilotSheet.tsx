@@ -132,6 +132,11 @@ type PilotSheetProps = {
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
   /**
+   * The viewer may not write the linked crawler: a player in a Game, whose
+   * crawler the Mediator keeps (ADR-038 §5). Closes the partners' Stow and Load.
+   */
+  crawlerReadOnly?: boolean
+  /**
    * The Linked Units rail content (mech + crawler rail row/RailEmpty), built
    * by SheetPilot from `composition` — PilotSheet has no composition access
    * of its own, so this is passed straight through into the R3 section.
@@ -143,6 +148,7 @@ export function PilotSheet({
   pilot,
   store = useEntityStore,
   readOnly = false,
+  crawlerReadOnly = false,
   linkedUnits,
 }: PilotSheetProps) {
   const storeState = store()
@@ -435,6 +441,7 @@ export function PilotSheet({
                 hostAbilityRefs={pilot.abilities}
                 fielded={model.fieldedByRef[partner.hostRef] ?? 1}
                 readOnly={readOnly}
+                crawlerReadOnly={crawlerReadOnly}
                 store={store}
               />
             ))}

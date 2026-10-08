@@ -8,9 +8,11 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { DowntimeWizard } from '../DowntimeWizard'
+import { downtimeHandle } from './downtimeFixture'
 
 type Call = { type: string; id: string; patch: Record<string, unknown> }
 
@@ -27,10 +29,24 @@ function stub(entities: Array<{ id: string }>) {
   return { store, calls }
 }
 
+/** The Game's Downtime, on the Restore step: where the Apply Restore control is. */
+const RESTORE_STEP = (
+  SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps ?? []
+).findIndex((s) => s.name === 'Restore your Mech & Pilot')
+const atRestore = {
+  downtime: downtimeHandle({ running: true, stepIndex: RESTORE_STEP }).handle,
+  mediator: false,
+  viewerId: 'u-me',
+}
+
 const withBays = (bays: Array<{ bayRef: string; condition: string }>) =>
   crawlerFixture({ id: 'c1', techLevel: 'tech-3', crawlerBays: bays as never })
 
 describe('Downtime Restore', () => {
+  test('the guide has a Restore step to stand on', () => {
+    expect(RESTORE_STEP).toBeGreaterThan(-1)
+  })
+
   test('an operational Mech Bay restores the damaged mech', () => {
     const mech = mechFixture({ id: 'm1', name: 'Mongrel', chassisRef: 'unknown', currentSP: 1 })
     const { store, calls } = stub([mech])
@@ -40,11 +56,10 @@ describe('Downtime Restore', () => {
         mech={mech}
         pilot={null}
         store={store}
+        {...atRestore}
       />
     )
-    const apply = screen.queryByRole('button', { name: /apply restore/i })
-    if (!apply) return // the Restore step is not the visible step in this render
-    fireEvent.click(apply)
+    fireEvent.click(screen.getByRole('button', { name: /apply restore/i }))
     expect(calls.some((c) => c.type === 'mech')).toBe(true)
   })
 
@@ -53,15 +68,14 @@ describe('Downtime Restore', () => {
     const { store, calls } = stub([mech])
     render(
       <DowntimeWizard
-        crawler={withBays([{ bayRef: 'Mech Bay', condition: 'destroyed' }])}
+        crawler={withBays([{ bayRef: 'Mech Bay', condition: 'damaged' }])}
         mech={mech}
         pilot={null}
         store={store}
+        {...atRestore}
       />
     )
-    const apply = screen.queryByRole('button', { name: /apply restore/i })
-    if (!apply) return
-    fireEvent.click(apply)
+    fireEvent.click(screen.getByRole('button', { name: /apply restore/i }))
     const spRestore = calls.find((c) => c.type === 'mech' && 'currentSP' in c.patch)
     expect(spRestore).toBeUndefined()
   })
@@ -69,7 +83,7 @@ describe('Downtime Restore', () => {
   test('no Restore control without a crawler — Downtime happens at the Crawler', () => {
     const mech = mechFixture({ id: 'm1', name: 'Mongrel', chassisRef: 'unknown' })
     const { store } = stub([mech])
-    render(<DowntimeWizard crawler={null} mech={mech} pilot={null} store={store} />)
+    render(<DowntimeWizard crawler={null} mech={mech} pilot={null} store={store} {...atRestore} />)
     expect(screen.queryByRole('button', { name: /apply restore/i })).toBeNull()
   })
 })

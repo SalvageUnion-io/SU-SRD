@@ -86,6 +86,24 @@ export function allDowntimeSteps(): DowntimeSteps {
 /** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime (rules C3). */
 export const DOWNTIME_UPKEEP_SCRAP = 5
 
+/**
+ * The Crawler Downtime step Upkeep belongs to (p.227). Inside a Game's
+ * Downtime, Upkeep is paid in this step and no other; the crawler sheet stays
+ * editable at any time.
+ */
+export const UPKEEP_STEP_NAME = 'Upkeep & Upgrade'
+
+/**
+ * Whether the Downtime step at `stepIndex` is the Upkeep step, read from the
+ * Crawler Downtime guide (the same steps `DowntimeWizard` renders). False when
+ * Downtime is not running.
+ */
+export function isUpkeepStep(stepIndex: number | null): boolean {
+  if (stepIndex === null) return false
+  const steps = SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps
+  return steps?.[stepIndex]?.name === UPKEEP_STEP_NAME
+}
+
 // ---------------------------------------------------------------------------
 // Med Bay gate (p.223)
 // ---------------------------------------------------------------------------

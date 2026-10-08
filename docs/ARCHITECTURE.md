@@ -3285,9 +3285,8 @@ one. The old URLs redirect (the two with an id pick that Game first). §6 is
 otherwise unchanged: the Mediator keeps a surface of their own, as a section
 only they see.
 
-**§6 is amended by [ADR-038](#adr-038)** (accepted, not yet built): crew status
-reaches the player Dashboard as a Crew tab, not a dial item, and the Dashboard
-is Game-only.
+**§5 and §6 are amended by [ADR-038](#adr-038)**: only the table runner edits a
+Game's crawler, and crew status reaches the Game-only Dashboard as a Crew tab.
 
 ### Context
 
@@ -3472,21 +3471,20 @@ Game — solo play and covering for an absent player both need it.
 
 Inside a Game, every member sees every crewmate's **vitals live** and may drill
 into a crewmate's full sheet **read-only**. The Mediator's prepared opposition
-(`encounterNpcs`) is the one thing that stays hidden. The **crawler is communal** —
-any member may edit it — with conflicting writes resolved by field-level merge,
-because the scrap pool and cargo lots are genuinely contended during Downtime.
+(`encounterNpcs`) is the one thing that stays hidden. The **crawler is communal**:
+no owner, read by every member, edited only by the table runner
+([ADR-038](#adr-038) §5), with writes merged per field.
 
 #### 5a. Setting the table up: who raises the crawler, and when a Game takes crew
 
-Communal-to-**edit** is not free-to-**create**, and the crawler is where the two
-come apart:
+Communal is not free-to-**create**:
 
 - **Raising and scrapping a crawler is the table runner's act** — the Mediator,
   or the Organizer while a Game has no Mediator (the same narrow fallback §3
   already grants for assignment, and for the same reason: a Game is created with
   `mediator: false` on its only membership, so a Mediator-strict rule would make
-  every new Game an unreachable state). Filling the crawler's fields stays
-  everyone's, exactly as §5 says.
+  every new Game an unreachable state). So is filling its fields (§5, as
+  amended by [ADR-038](#adr-038) §5).
 - ~~**A Game takes a player's pilots and mechs once it has a crawler.**~~
   **Amended by [ADR-037](#adr-037):** any member may bring
   their pilots and mechs into any Game they belong to, crawler or not. The
@@ -3584,9 +3582,9 @@ carries the same two container columns as `pilots` and `mechs`.
 
 **Communal is unchanged.** It is now written as `ownerId: null` on a row whose
 `gameId` is set — the same fact, stated in a column instead of by a column's
-absence. Any member may still edit the crawler, conflicting writes still resolve
-by field-level merge, and raising or scrapping one inside a Game is still the
-table runner's act under §5a.
+absence. Conflicting writes still resolve by field-level merge, and raising,
+scrapping and (since [ADR-038](#adr-038) §5) editing one inside a Game are the
+table runner's acts.
 
 What the amendment adds is the third row of §2's ownership table — `gameId:
 null` with an owner, *on the shelf* — which the crawler was the one entity
@@ -5298,8 +5296,8 @@ with its mechs docked.
 ### Status
 
 **Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
-are decision 2's seat and decision 4 (tabs, Log and Crew with server-derived
-status). The plan that delivers the rest, layer by layer, is
+are decision 2's seat, decision 4 (tabs, Log and Crew with server-derived
+status) and decision 5 (Game Downtime, the Mediator's crawler). The plan that delivers the rest, layer by layer, is
 [dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
 land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
 and [dashboard.md](architecture/dashboard.md) describe.
@@ -5311,7 +5309,8 @@ and [dashboard.md](architecture/dashboard.md) describe.
 - Decisions 2, 3 and 5 are unchanged.
 
 **Also amends:**
-- [ADR-030](#adr-030) §6: crew status
+- [ADR-030](#adr-030) §5: the table runner
+  alone edits a Game's crawler. §6: crew status
   reaches the Dashboard as a Crew tab, not a dial item.
 - [ADR-029](#adr-029) §4: activated
   effects resolve against the seat, not ephemeral play state.
@@ -5429,8 +5428,8 @@ step done. The Dashboard no longer keeps a Downtime step of its own.
 **A Game's crawler is the Mediator's.** Only the Mediator changes it, in
 Downtime and out. That covers Salvage, Craft, Trade, Upkeep, Upgrade, damage
 and Scrap a mech. Players see the crawler read-only and ask at the table. The
-server enforces it. Today `assertMayEditCrawler` (`convex/entities.ts`) lets
-any member edit a Game's communal crawler; it tightens to the Mediator.
+server enforces it (`assertMayEditCrawler`, `downtime.spendUpkeep`); with no
+Mediator, the Organizer keeps it (`requireTableRunner`).
 
 **Boarding never assigns.** Boarding a mech, a spare included, changes only the
 seat, never the pilot's `mech-to-pilot` link.

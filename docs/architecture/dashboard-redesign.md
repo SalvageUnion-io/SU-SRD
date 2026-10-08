@@ -1,6 +1,6 @@
 # Dashboard redesign: the Flight Deck
 
-> **Status:** Plan, dated 2026-10-06. Layers 1 to 7 are built; the rest is
+> **Status:** Plan, dated 2026-10-06. Layers 1 to 8 are built; the rest is
 > not. The product decisions in §2 and the answers in §8 were made by the
 > product owner. The decision is recorded in
 > [ADR-038](../ARCHITECTURE.md#adr-038). The
@@ -304,8 +304,8 @@ A7. **Phone layout.** A follow-up after layer 9. Until then, phones keep
 today's rotate-to-landscape notice (§9).
 
 A8. **The shared crawler.** Only the Mediator changes a Game's crawler (D11).
-Players see it read-only. Today any member may edit it, so this is a server
-rule change, in layer 8.
+Players see it read-only. Any member could edit it before layer 8, which made
+this a server rule (`assertMayEditCrawler`).
 
 A9. **Boarding a spare.** It doesn't assign the mech. Boarding only changes the
 seat (D12).

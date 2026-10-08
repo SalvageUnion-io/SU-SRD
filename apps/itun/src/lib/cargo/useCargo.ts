@@ -41,6 +41,13 @@ type UseCargoOptions = {
   /** When true every transfer refuses — read-only sheet contexts. */
   readOnly?: boolean
   /**
+   * The viewer may not write the crawler: a player's own mech sheet in a Game,
+   * whose crawler the Mediator keeps (ADR-038 §5). Every move that writes the
+   * crawler side refuses with `CRAWLER_KEPT_BY_MEDIATOR`; the mech hold's own
+   * Load and Unload still work.
+   */
+  crawlerReadOnly?: boolean
+  /**
    * Change Log provenance for the writes this hook commits (ADR-022).
    *
    * Defaults to the Live Sheet's manual tag because that is where cargo is
@@ -50,8 +57,20 @@ type UseCargoOptions = {
   meta?: ChangeMeta
 }
 
+/**
+ * Why a player's crawler-side cargo moves are closed. The server refuses them
+ * (`assertMayEditCrawler`); saying so on the control beats a refusal toast after
+ * the press.
+ */
+export const CRAWLER_KEPT_BY_MEDIATOR = 'The Mediator keeps the crawler. Ask at the table.'
+
 export type UseCargoResult = {
   state: CargoBoundaryState
+  /**
+   * Why the crawler side is closed to this viewer, or null when it is open.
+   * Moves across the boundary and edits to the Storage Bay need it open.
+   */
+  crawlerLocked: string | null
   /** Mech hold usage (used/cap/free/over). `over` renders honest red pips. */
   usage: CargoUsage
   /** Read a crawler scrap-pool TL bucket (absent buckets read as 0). */
@@ -98,9 +117,11 @@ export function useCargo({
   crawler,
   store = useEntityStore,
   readOnly = false,
+  crawlerReadOnly = false,
   meta = LIVE_SHEET_MANUAL,
 }: UseCargoOptions): UseCargoResult {
   const storeState = store()
+  const crawlerLocked = crawlerReadOnly ? CRAWLER_KEPT_BY_MEDIATOR : null
 
   const state: CargoBoundaryState = {
     carrierLots: mech?.cargoLots ?? [],
@@ -122,6 +143,7 @@ export function useCargo({
         reason: 'No crawler is linked — nothing to transfer to or from.',
       }
     }
+    if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 
     const result = cargoTransfer(state, action)
     if (!result.ok) return result
@@ -192,6 +214,7 @@ export function useCargo({
     if (!crawler) {
       return { ok: false, reason: 'No crawler is linked — nothing to store cargo in.' }
     }
+    if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 
     // Fresh read before reducing — see `dispatchMechLocal`. The Storage Bay's
     // per-lot Unstow has the same double-click hazard.
@@ -223,6 +246,7 @@ export function useCargo({
 
   return {
     state,
+    crawlerLocked,
     usage: carrierCargoUsage(state.carrierLots, state.carrierCargoCap),
     poolBucket: (tl) => scrapPoolBucket(state.scrapPool, tl),
     stow: (lotId) => dispatch({ type: 'stow', lotId }),

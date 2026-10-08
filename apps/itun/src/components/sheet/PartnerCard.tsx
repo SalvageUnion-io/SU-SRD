@@ -78,6 +78,11 @@ type PartnerCardProps = {
   /** How many of this same stat block the host fields, for the "2 of 2" note. */
   fielded?: number
   readOnly?: boolean
+  /**
+   * The viewer may not write `crawler` (a player in a Game, ADR-038 §5): the
+   * Hold's Stow and Load close, the partner's own hold stays open.
+   */
+  crawlerReadOnly?: boolean
   store?: typeof useEntityStore
 }
 
@@ -88,6 +93,7 @@ export function PartnerCard({
   hostAbilityRefs = [],
   fielded = 1,
   readOnly = false,
+  crawlerReadOnly = false,
   store = useEntityStore,
 }: PartnerCardProps) {
   const { partner, hostKind, host } = found
@@ -115,6 +121,7 @@ export function PartnerCard({
     crawler,
     store,
     readOnly,
+    crawlerReadOnly,
   })
 
   const sp = resolvePool(partner.currentSP, max.structurePoints)

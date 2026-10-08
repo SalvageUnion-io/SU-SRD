@@ -9,11 +9,10 @@
  * ones. With no Convex in a test build the seat is the default: on foot.
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { setEntityBackendAuthState } from '../../../stores/entityBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { usePlayStateStore } from '../../../stores/playStateStore'
 import {
   crawlerFixture,
   mechFixture,
@@ -36,11 +35,6 @@ beforeAll(async () => {
   await store.adopt('crawler', crawlerFixture({ id: CRAWLER, name: 'Mother Hen' }))
   await store.adopt('softLink', softLinkFixture('mech-to-pilot', MECH, PILOT, 'ovl-l1'))
   await store.adopt('softLink', softLinkFixture('pilot-to-crawler', PILOT, CRAWLER, 'ovl-l2'))
-})
-
-beforeEach(() => {
-  // Another file may have left this device in Downtime.
-  usePlayStateStore.setState({ downtime: false, damagePromptArmed: false })
 })
 
 afterAll(async () => {

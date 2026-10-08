@@ -19,26 +19,42 @@ const ReturnLink = (
 /**
  * The top rail across the three mount states. Presentational — the app supplies
  * the return link; the entity stamp is ontology-toned (mech green / pilot orange
- * / crawler pink), and the right action is Settings, or Leave Downtime in
- * downtime.
+ * / crawler pink), and the right action is Settings for a player, or the
+ * Mediator's Start or End Downtime.
  */
 export const Default = () => (
   <div className="flex flex-col gap-4">
-    <Caption>Top rail — mech (boarded), pilot (on foot), crawler (downtime).</Caption>
+    <Caption>
+      Top rail — mech (boarded), pilot (on foot, the Mediator's Start), crawler (downtime, the
+      Mediator's End).
+    </Caption>
     <InstrumentStage width={560}>
       <div className="flex flex-col gap-3">
         <div className="pc-rail">
           <RailBar title="Mech · Iron Mongrel" fam="mech" returnControl={ReturnLink} />
         </div>
         <div className="pc-rail">
-          <RailBar title="Pilot · Vesna Kroll" fam="pilot" returnControl={ReturnLink} />
+          <RailBar
+            title="Pilot · Vesna Kroll"
+            fam="pilot"
+            returnControl={ReturnLink}
+            downtimeAction={{
+              label: 'Start Downtime ▶',
+              title: 'Start Downtime for the whole table',
+              onClick: () => {},
+            }}
+          />
         </div>
         <div className="pc-rail">
           <RailBar
             title="Downtime · The Kettle"
             fam="crawler"
             returnControl={ReturnLink}
-            onLeaveDowntime={() => {}}
+            downtimeAction={{
+              label: '■ End Downtime',
+              title: 'End Downtime; everyone returns to their seat',
+              onClick: () => {},
+            }}
           />
         </div>
       </div>

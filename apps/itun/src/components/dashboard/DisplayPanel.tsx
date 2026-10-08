@@ -6,8 +6,9 @@
  * rules) into a discriminated `DisplayContent`; `DisplayPanelFrame` renders it — the faithful
  * light SRD reference document (reused ReferenceEntityCard / RollTable), the
  * Tables picker or the SRD Explorer. Entity focuses resolve the entity's
- * reference data and build the entity-level controls (Load Into Mech / Enter
- * Downtime / Full sheet →). Rolls on a table go to the Game's log
+ * reference data and build the entity-level controls (Load Into Mech / Full
+ * sheet →). Downtime is the Game's, started by the Mediator from the rail
+ * (`useDowntime`), so no card enters it. Rolls on a table go to the Game's log
  * (`dashboardRolls.ts`), which the Log tab reads.
  *
  * The two halves were split across component-lib and ITUN, with ITUN importing
@@ -26,7 +27,6 @@ import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import { recordRoll } from './dashboardRolls'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
@@ -177,8 +177,6 @@ type DisplayPanelProps = {
 }
 
 export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: DisplayPanelProps) {
-  const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
-
   const content = ((): DisplayContent => {
     if (focus === 'tables') {
       const owner = pilot ?? mech
@@ -232,13 +230,6 @@ export function DisplayPanel({ focus, mech, pilot, crawler, mount, seat }: Displ
         data: crawlerRef,
         note: `Crawler · ${crawler.name} — back at the Union Crawler for the Downtime loop.`,
         controls: [
-          {
-            key: 'downtime',
-            label: 'Enter Downtime ▶',
-            ariaLabel: 'Enter Downtime',
-            onClick: enterDowntime,
-            variant: 'primary',
-          },
           { key: 'sheet', href: `/sheet/crawler/${crawler.id}`, label: 'Full crawler sheet →' },
         ],
       }

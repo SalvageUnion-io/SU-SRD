@@ -250,10 +250,9 @@ export async function commitEntityWrite(
         })
       }
       if (Object.keys(fields).length === 0) return
-      // Still a field-level patch rather than a whole-body replace: the crawler
-      // is communal and contended during Downtime, so two members editing scrap
-      // and cargo in the same minute must both land (ADR-030 §5). That rule
-      // survives the demotion untouched.
+      // Still a field-level patch rather than a whole-body replace, so a write
+      // from a stale copy never undoes a field it did not touch. Only the table
+      // runner writes a Game's crawler now (ADR-038 §5); the merge stays.
       await convexClient.mutation(
         api.entities.patchCrawlerByAppId,
         crawlerPatchArgs(op.appId, fields)

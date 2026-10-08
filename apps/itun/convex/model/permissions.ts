@@ -172,17 +172,21 @@ export async function gameHasMediator(ctx: AnyCtx, gameId: Id<'games'>): Promise
  * Mediator at all, and it is re-evaluated per call rather than latched, so
  * appointing one takes the authority back the same instant.
  *
- * The acts that share this rule share it because they are the same kind of
- * act — *setting the table up* rather than editing what is on it:
+ * The acts that share this rule are *setting the table up*, and keeping the
+ * one thing on it that nobody owns:
  *
  *   - raising or scrapping a **crawler** (ADR-030 §5 amendment)
  *   - moving a crawler into or out of the Game (`entities.moveCrawler`)
  *   - naming the **primary** crawler (`games.setPrimaryCrawler`, ADR-037)
  *   - publishing the crew's **crawler** (`publicSheet.setPublic`)
+ *   - editing a Game's **crawler**: its scrap, cargo, bays and every other
+ *     field (`assertMayEditCrawler`, amended by ADR-038 §5)
  *
- * None of them edits a sheet. That is the line: a table runner arranges who
- * holds what and what the crew sails in, and still cannot change a number on
- * somebody else's pilot — for that there is a proposal (§4).
+ * The crawler is the one sheet a table runner edits, because it has no owner:
+ * it is the crew's, and the Mediator keeps it. That is the line: a table runner
+ * arranges who holds what and keeps what the crew sails in, and still cannot
+ * change a number on somebody else's pilot or mech — for that there is a
+ * proposal (§4).
  */
 export async function isTableRunner(
   ctx: AnyCtx,

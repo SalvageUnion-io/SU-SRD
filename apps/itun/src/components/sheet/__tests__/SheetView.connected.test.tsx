@@ -18,10 +18,11 @@ import { createElement } from 'react'
  *  - an address the server knows by another id (the retired crew view's row
  *    id) is replaced by the canonical one.
  *
- * Queries are answered by name (`convexMock.ts`): `entities:locate` and
- * `entities:listForGame`.
+ * Queries are answered by name (`convexMock.ts`): `entities:locate`,
+ * `entities:listForGame` and `games:get`.
  */
 
+import { makeUnitLot } from '../../../lib/schemas/cargoLot'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
@@ -109,6 +110,11 @@ function listing(over: Record<string, unknown> = {}) {
   }
 }
 
+/** The Game as `games.get` serves it; `tableRunner` is who keeps its crawler. */
+function runsTable(tableRunner: boolean) {
+  return { _id: GAME, name: 'Tenacity', mediator: tableRunner, organizer: false, tableRunner }
+}
+
 async function view(kind: 'pilot' | 'mech' | 'crawler', id: string) {
   await act(async () => {
     render(
@@ -123,6 +129,7 @@ describe("a crewmate's sheet", () => {
   test('shows its mech and crawler, read live from the Game', async () => {
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', THEIR_PILOT.id)
@@ -139,6 +146,7 @@ describe("a crewmate's sheet", () => {
   test('is read-only: the banner says why, and no edit control renders', async () => {
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', THEIR_PILOT.id)
@@ -157,6 +165,7 @@ describe("a crewmate's sheet", () => {
     useEntityStore.setState({ pilots: [THEIR_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', THEIR_PILOT.id)
@@ -171,6 +180,7 @@ describe('your own sheet', () => {
     useEntityStore.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', MY_PILOT.id)
@@ -195,6 +205,7 @@ describe('your own sheet', () => {
     })
     setQueryAnswers({
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'games:get': runsTable(false),
       'entities:listForGame': listing({ softLinks: [] }),
     })
     await view('pilot', MY_PILOT.id)
@@ -204,7 +215,7 @@ describe('your own sheet', () => {
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
   })
 
-  test("your crawler lists crewmates' pilots as read-only rows to their live view", async () => {
+  test("the Mediator's crawler lists crewmates' pilots as read-only rows to their live view", async () => {
     useEntityStore.setState({
       crawlers: [CRAWLER],
       pilots: [MY_PILOT],
@@ -234,11 +245,12 @@ describe('your own sheet', () => {
     })
     setQueryAnswers({
       'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: true },
+      'games:get': runsTable(true),
       'entities:listForGame': listing(),
     })
     await view('crawler', CRAWLER.id)
 
-    // Editable — the crawler is communal.
+    // Editable — this viewer runs the table, so the crawler is theirs (ADR-038 §5).
     expect(screen.getByRole('button', { name: /^Share this crawler$/ })).toBeTruthy()
     // The crewmate this browser does not cache is on the crew list…
     expect(screen.getByRole('link', { name: 'View Ash Vey' }).getAttribute('href')).toBe(
@@ -256,11 +268,75 @@ describe('your own sheet', () => {
   })
 })
 
+describe("a player's view of the Game's crawler", () => {
+  test('is read-only even when this browser holds it, and says whose it is', async () => {
+    // WiringSync caches every crawler in your Games, so a player holds it.
+    useEntityStore.setState({ crawlers: [CRAWLER], pilots: [MY_PILOT] })
+    setQueryAnswers({
+      'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
+      'games:get': runsTable(false),
+      'entities:listForGame': listing(),
+    })
+    await view('crawler', CRAWLER.id)
+
+    expect(screen.getByRole('note', { name: 'Read-only crew sheet' }).textContent).toContain(
+      'Only the Mediator changes it'
+    )
+    expect(screen.queryByRole('button', { name: /^Share this crawler$/ })).toBeNull()
+  })
+})
+
+describe("your own mech's hold, against the Game's crawler", () => {
+  const MY_MECH = mechFixture({
+    id: 'm-mine',
+    name: 'Rust Bucket',
+    chassisRef: 'Scrapper',
+    gameId: GAME,
+    cargoLots: [makeUnitLot('Sealed Crate')],
+  })
+
+  async function viewMyMech(tableRunner: boolean) {
+    // WiringSync caches the crawler and the link docking your mech in it.
+    useEntityStore.setState({
+      mechs: [MY_MECH],
+      crawlers: [CRAWLER],
+      softLinks: [
+        {
+          id: 'l6',
+          type: 'mech-to-crawler',
+          from: { type: 'mech', id: MY_MECH.id },
+          to: { type: 'crawler', id: CRAWLER.id },
+          createdAt: FIXTURE_NOW,
+        },
+      ],
+    })
+    setQueryAnswers({
+      'entities:locate': { id: MY_MECH.id, gameId: GAME, mayEdit: true },
+      'entities:listForGame': listing(),
+      'games:get': runsTable(tableRunner),
+    })
+    await view('mech', MY_MECH.id)
+    return screen.getByRole('button', { name: /^Stow Sealed Crate$/ }) as HTMLButtonElement
+  }
+
+  test('a player cannot stow into it, and is told the Mediator keeps it', async () => {
+    const stow = await viewMyMech(false)
+    expect(stow.disabled).toBe(true)
+    expect(stow.getAttribute('title')).toMatch(/mediator keeps the crawler/i)
+  })
+
+  test('whoever runs the table can', async () => {
+    const stow = await viewMyMech(true)
+    expect(stow.disabled).toBe(false)
+  })
+})
+
 describe('the tab title', () => {
   test('names your entity and follows a rename', async () => {
     useEntityStore.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', MY_PILOT.id)
@@ -275,6 +351,7 @@ describe('the tab title', () => {
   test("a crewmate's sheet, not held here, keeps the generic title", async () => {
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', THEIR_PILOT.id)
@@ -286,6 +363,7 @@ describe('addresses', () => {
   test('a row id (the retired crew view) is replaced by the canonical app id', async () => {
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games:get': runsTable(false),
       'entities:listForGame': listing(),
     })
     await view('pilot', 'row-theirs')
