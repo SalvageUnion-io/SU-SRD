@@ -34,6 +34,8 @@ import { MechSchema } from '../schemas/mech'
 import { MechPatternSchema } from '../schemas/pattern'
 import { normalizeLegacyPilotRecord, PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
+import type { CacheMeta } from './cacheMeta'
+import { CACHE_META_ID, cacheMetaRecord, parseCacheMeta, writeInitialCacheMeta } from './cacheMeta'
 import { CHANGE_LOG_ENTITY_INDEX, makeChangeLogStore } from './changeLog'
 import { makeStore } from './crud'
 import { runMigrations } from './migrations/index'
@@ -51,9 +53,10 @@ import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
  * pilot/mech/crawler/encounterNpc into it; v13 then maps that onto a Game or
  * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
  * it writes. v17 draws the `mech-to-crawler` link the old two-hop model implied
- * — ADR-037.)
+ * — ADR-037. v18 creates the one-row `meta` store and records whether the
+ * rows predate accounts — `cacheMeta.ts`.)
  */
-export const DB_VERSION = 17
+export const DB_VERSION = 18
 
 const DB_NAME = 'itun-v1'
 
@@ -155,6 +158,13 @@ export function openItunDatabase(
             changeLogStore.createIndex(CHANGE_LOG_ENTITY_INDEX, 'entityId')
           }
         }
+        // v18: where the rows came from and whose they are (`cacheMeta.ts`).
+        // Created here; its first row is written after the rewrites below.
+        if (oldVersion < 18) {
+          if (!db.objectStoreNames.contains(STORE_NAMES.meta)) {
+            db.createObjectStore(STORE_NAMES.meta, { keyPath: 'id' })
+          }
+        }
         // v3+: record rewrites live in migrations/ — one file per version.
         // runMigrations only awaits IDB operations on `transaction`, so the
         // versionchange transaction stays open until every rewrite lands.
@@ -166,6 +176,7 @@ export function openItunDatabase(
         // already fails the open with the failure logged below.
         try {
           await runMigrationsFn(db, transaction, oldVersion)
+          if (oldVersion < 18) await writeInitialCacheMeta(transaction, oldVersion)
           noteLegacyUpgrade(oldVersion, DB_VERSION)
         } catch (err) {
           console.error('[itun-db] Migration failed — aborting upgrade transaction.', err)
@@ -267,24 +278,43 @@ function getDb(): Promise<IDBPDatabase> {
 
 /**
  * Resets the DB singleton. Used in tests to force a new connection on next
- * operation. Call this before `_clearAllStores()` so the next getDb() opens
- * a fresh connection to the (now-empty) stores.
+ * operation. Call this before `clearCache()` so the next getDb() opens a fresh
+ * connection to the (now-empty) stores.
  * Test-only — not re-exported from the package public surface.
  */
 export function _resetDbSingleton(): void {
   dbPromise = null
 }
 
-/**
- * Clears all object stores in the database. Used in tests to isolate state
- * between test cases without needing to delete and recreate the database.
- * Requires the DB to be open; call getDb() inside to ensure it is.
- * Test-only — not re-exported from the package public surface.
- */
-export async function _clearAllStores(): Promise<void> {
+/** Where this browser's rows came from, and whose they are (`cacheMeta.ts`). */
+export async function readCacheMeta(): Promise<CacheMeta> {
   const db = await getDb()
-  const tx = db.transaction(Object.values(STORE_NAMES), 'readwrite')
-  await Promise.all(Object.values(STORE_NAMES).map((name) => tx.objectStore(name).clear()))
+  return parseCacheMeta(await db.get(STORE_NAMES.meta, CACHE_META_ID))
+}
+
+/** Record where this browser's rows came from, and whose they are. */
+export async function writeCacheMeta(meta: CacheMeta): Promise<void> {
+  const db = await getDb()
+  await db.put(STORE_NAMES.meta, cacheMetaRecord(meta))
+}
+
+/**
+ * Empty the cache and hand it to `userId` (`null`: to nobody), in one
+ * transaction.
+ *
+ * Every store goes, the Change Log and the retired `workspaces` included: the
+ * cache is one account's, and another account's history is not this one's to
+ * read. The meta row is rewritten rather than left, so the result is a `cache`
+ * origin owned by `userId`, never a `legacy` one. A caller that must not
+ * destroy an unclaimed pre-account roster checks the origin first
+ * (`lib/account/cacheOwner.ts`); this does not.
+ */
+export async function clearCache(userId: string | null = null): Promise<void> {
+  const db = await getDb()
+  const names = Object.values(STORE_NAMES)
+  const tx = db.transaction(names, 'readwrite')
+  await Promise.all(names.map((name) => tx.objectStore(name).clear()))
+  await tx.objectStore(STORE_NAMES.meta).put(cacheMetaRecord({ origin: 'cache', userId }))
   await tx.done
 }
 

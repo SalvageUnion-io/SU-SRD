@@ -8,7 +8,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { SHELF } from '../../lib/container'
-import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
 import { withSignedInBackend } from './signedInBackend'
@@ -34,12 +34,12 @@ function resetStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetStore()
 })
 
 afterEach(async () => {
-  await _clearAllStores()
+  await clearCache()
   resetStore()
 })
 

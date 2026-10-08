@@ -2,6 +2,7 @@ import { useAuthActions } from '@convex-dev/auth/react'
 import { Button } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { useSignOutAndForget } from './useSignOutAndForget'
 
 /**
  * Sign in / sign out with Discord.
@@ -38,7 +39,8 @@ type SignInControlProps = {
 }
 
 function ConvexSignIn({ onDark }: SignInControlProps) {
-  const { signIn, signOut } = useAuthActions()
+  const { signIn } = useAuthActions()
+  const signOut = useSignOutAndForget()
   const { mode } = useConnection()
 
   if (mode === 'connected') {
@@ -47,7 +49,7 @@ function ConvexSignIn({ onDark }: SignInControlProps) {
         variant="ghost"
         size="compact"
         className={onDark ? DARK_BUTTON : undefined}
-        onClick={() => void signOut()}
+        onClick={signOut}
       >
         Sign out
       </Button>

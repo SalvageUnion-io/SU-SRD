@@ -8,7 +8,13 @@ import type { Container } from '../../container'
 import { SHELF } from '../../container'
 import type { SoftLink } from '../../schemas/softLink'
 import type { ServedCrawler, ServedLink } from '../linkSync'
-import { planCrawlerSync, planLinkSync, softLinkFromServer } from '../linkSync'
+import {
+  planCrawlerSync,
+  planLinkSync,
+  planRowSync,
+  rowVersion,
+  softLinkFromServer,
+} from '../linkSync'
 
 const T0 = Date.parse('2026-01-01T00:00:00.000Z')
 
@@ -194,5 +200,53 @@ describe('planCrawlerSync', () => {
       mayPrune: false,
     })
     expect(plan.prune).toEqual([])
+  })
+})
+
+describe('planRowSync', () => {
+  const row = (id: string, updatedAt: number) => ({ updatedAt, body: { id } })
+
+  test('adopts a row this browser lacks, and one it never recorded a version for', () => {
+    const plan = planRowSync({
+      local: [{ id: 'cached' }],
+      served: [row('new', 1), row('cached', 1)],
+      adoptedAt: new Map(),
+    })
+    expect(plan.map((p) => p.id)).toEqual(['new', 'cached'])
+  })
+
+  test('same id with a newer version is adopted — an edit on another device comes down', () => {
+    // Keyed on ids, this emission changed nothing and was skipped; the next
+    // whole-body write from here then sent the old body back over the edit.
+    const plan = planRowSync({
+      local: [{ id: 'p1' }],
+      served: [row('p1', 6)],
+      adoptedAt: new Map([['p1', 5]]),
+    })
+    expect(plan.map((p) => [p.id, p.updatedAt])).toEqual([['p1', 6]])
+  })
+
+  test('an unchanged or older version is not adopted over what this browser holds', () => {
+    // Older: an emission that predates a write this browser already made.
+    const plan = planRowSync({
+      local: [{ id: 'same' }, { id: 'older' }],
+      served: [row('same', 5), row('older', 4)],
+      adoptedAt: new Map([
+        ['same', 5],
+        ['older', 5],
+      ]),
+    })
+    expect(plan).toEqual([])
+  })
+
+  test('a pattern or tray row with no version column is versioned by its own stamp', () => {
+    expect(rowVersion({ body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(
+      Date.parse('2026-01-01T00:00:01.000Z')
+    )
+    expect(rowVersion({ body: { createdAt: '2026-01-01T00:00:00.000Z' } })).toBe(
+      Date.parse('2026-01-01T00:00:00.000Z')
+    )
+    expect(rowVersion({ updatedAt: 7, body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(7)
+    expect(rowVersion({ body: {} })).toBe(0)
   })
 })

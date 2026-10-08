@@ -1,5 +1,6 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
+import { staleWriteError } from '../src/lib/connection/staleWrite'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType } from '../src/lib/links/linkRules'
 import type { SoftLink } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
@@ -326,14 +327,26 @@ export const listMine = query({
         .collect(),
     ])
 
-    // Bodies only. The caller is filling a local store whose records are keyed
-    // by the app-level id inside the body, so a Convex `_id` would be noise —
-    // and `appId` rides along separately for the rows that carry one, because
-    // that is what the mirror addresses by.
+    // Bodies, not documents. The caller is filling a local store whose records
+    // are keyed by the app-level id inside the body, so a Convex `_id` would be
+    // noise — and `appId` rides along separately for the rows that carry one,
+    // because that is what the mirror addresses by.
+    //
+    // `updatedAt` is the row's version. `ShelfSync` adopts a row only when it
+    // is newer than the one it last saw, and a pilot or mech write sends it
+    // back as the version the edit was made against (`upsertByAppId`). Keyed on
+    // ids alone, a body edited on another device never came down, and the next
+    // whole-body write from here reverted it. Patterns and the tray have no such
+    // column; `ShelfSync` reads their body's own stamp instead.
+    const versioned = (r: Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'>) => ({
+      appId: r.appId ?? null,
+      updatedAt: r.updatedAt,
+      body: r.body,
+    })
     return {
-      pilots: pilots.map((r) => ({ appId: r.appId ?? null, body: r.body })),
-      mechs: mechs.map((r) => ({ appId: r.appId ?? null, body: r.body })),
-      crawlers: crawlers.map((r) => ({ appId: r.appId ?? null, body: r.body })),
+      pilots: pilots.map(versioned),
+      mechs: mechs.map(versioned),
+      crawlers: crawlers.map(versioned),
       mechPatterns: patterns.map((r) => ({ body: r.body })),
       // Without this the shelf tray was WRITE-ONLY. `claimLocal` and
       // `games.destroy` both wrote `encounterNpcs`, and no query read them
@@ -661,6 +674,19 @@ async function byAppId(
  * cosmetic: this is the client's ordinary write path, so a player blocked from
  * adding to a Game would simply have built the pilot locally and had the
  * mirror place it there a moment later.
+ *
+ * ## A write from a stale copy is refused
+ *
+ * The body is replaced whole, so a write made against an older copy would undo
+ * whatever reached the row since — another device's edit, silently, with
+ * nobody told. `expectedUpdatedAt` is the row version the client's copy came
+ * from (`listMine`, or this mutation's own answer to its last write); when the
+ * row has moved past it, the write is refused with the row the server holds
+ * (`staleWriteError`), so the client can show it and the player can make the
+ * change again on top. Optional, so a client that saw no version — a row it
+ * never synced — writes as before.
+ *
+ * Returns the row's new version, which is what the client sends next time.
  */
 export const upsertByAppId = mutation({
   args: {
@@ -668,13 +694,15 @@ export const upsertByAppId = mutation({
     appId: v.string(),
     gameId: v.union(v.id('games'), v.null()),
     body: v.any(),
+    expectedUpdatedAt: v.optional(v.number()),
   },
-  handler: async (ctx, args): Promise<void> => {
+  handler: async (ctx, args): Promise<{ updatedAt: number }> => {
     const userId = await requireUser(ctx)
     const body = parseBody(args.table, args.body)
 
     const kind = args.table === 'pilots' ? 'pilot' : 'mech'
     const existing = await byAppId(ctx, args.table, args.appId)
+    const updatedAt = Date.now()
     if (existing === null) {
       await assertMayAddToContainer(ctx, args.gameId, userId)
       const id = await ctx.db.insert(args.table, {
@@ -682,15 +710,19 @@ export const upsertByAppId = mutation({
         ownerId: userId,
         appId: args.appId,
         body,
-        updatedAt: Date.now(),
+        updatedAt,
       })
       // Created in a Game: aboard its primary crawler from the start (ADR-037).
       const created = await ctx.db.get(id)
       if (created !== null) await assignToPrimary(ctx, kind, created)
-      return
+      return { updatedAt }
     }
 
     assertMayWrite(existing, userId)
+    // After the ownership check, so the refusal hands the row only to its owner.
+    if (args.expectedUpdatedAt !== undefined && existing.updatedAt > args.expectedUpdatedAt) {
+      throw staleWriteError(existing)
+    }
 
     /**
      * A mirrored write also re-homes the row when the client has moved it.
@@ -709,7 +741,7 @@ export const upsertByAppId = mutation({
       await ctx.db.patch(existing._id, { gameId: args.gameId })
     }
 
-    await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
+    await ctx.db.patch(existing._id, { body, updatedAt })
 
     // A link may not straddle two containers (ADR-037), so a move takes with
     // it only the links whose other end is already where it is going, and
@@ -725,6 +757,7 @@ export const upsertByAppId = mutation({
         await assignToPrimary(ctx, kind, row)
       }
     }
+    return { updatedAt }
   },
 })
 

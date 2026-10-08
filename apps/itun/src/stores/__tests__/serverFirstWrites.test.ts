@@ -30,7 +30,7 @@ afterEach(async () => {
   for (const type of ['pilot', 'mech', 'crawler'] as const) {
     for (const row of store.list(type)) await store.forget(type, row.id)
   }
-  await db._clearAllStores()
+  await db.clearCache()
 })
 
 describe('a record is built before it is persisted', () => {

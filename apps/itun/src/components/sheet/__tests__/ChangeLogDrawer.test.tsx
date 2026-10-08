@@ -7,7 +7,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../../stores/surfaceProvenance'
@@ -43,7 +43,7 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

@@ -187,11 +187,23 @@ never `navigator.onLine` or an auth flag.
 ### IndexedDB cache
 
 `apps/itun/src/lib/db/` via `idb` ([ADR-002](#adr-002)):
-database `itun-v1`, `DB_VERSION = 17` (`src/lib/db/index.ts`), stores in
+database `itun-v1`, `DB_VERSION = 18` (`src/lib/db/index.ts`), stores in
 `src/lib/db/stores.ts`: `pilots`, `mechs`, `crawlers`, `mechPatterns`
 (immutable builds), `encounterNpcs`, `softLinks`, `changeLog` (autoIncrement
-`seq`, `by-entity` index, append-only) and the retired `workspaces` (kept for
-migrations v10/v13).
+`seq`, `by-entity` index, append-only), the retired `workspaces` (kept for
+migrations v10/v13) and `meta`.
+
+- **One account's cache.** `meta` holds one row, `{ origin, userId }`
+  (`src/lib/db/cacheMeta.ts`). `origin` is `legacy` only when the v18 upgrade
+  found a roster from before v18, which may be in no account yet. Otherwise it
+  is `cache`. `userId` is the account whose rows these are. Sign-out empties
+  the cache (`clearCache`). So does a signed-in boot whose `userId` differs
+  (`src/lib/account/cacheOwner.ts`). Neither touches a `legacy` cache until
+  `AccountReconciler` has migrated it.
+- `ShelfSync` adopts a `listMine` row when its `updatedAt` is newer than the
+  version this browser last saw (`planRowSync`). A pilot or mech write sends
+  that version back, and `upsertByAppId` refuses it as stale when the row has
+  moved on.
 
 - `makeStore(getDb, schema, storeName, opts)` (`src/lib/db/crud.ts`) parses
   with Zod on write; reads use `schema.strip()` so a drifted record loses
@@ -4658,6 +4670,20 @@ The Roster's "Download all" reads the store, not IndexedDB, and signed out
 the store reads nothing. A signed-out visitor therefore has no way to download a
 pre-account roster still on the device. Those rows are migrated on sign-in.
 
+**Amended 2026-10-08: the reconciliation runs until it completes, not on every
+load (#1129).** It used to decide "pre-account roster" by counting rows at boot.
+A signed-in browser's cache is full of rows, so every load re-ran the migration.
+It then re-claimed any cached build deleted on another device, because
+`claimLocal`'s `appIdTaken` finds no row to stop it. A second account on the
+same browser was handed the first account's cache as its own work. The answer
+now lives in the v18 `meta` row (`apps/itun/src/lib/db/cacheMeta.ts`). Only an
+upgrade from before v18 that found a roster records `legacy`, and a completed
+migration records `cache` and the account. The cache belongs to one account:
+sign-out and a change of account empty it, except while it is `legacy`. Read
+decision 2's "on every load" and the consequence on idempotence with this in
+mind. The device-export helpers the earlier amendment left behind
+(`buildLegacyExportBundle`, `ExportAllButton`'s `deviceRows`) were deleted.
+
 ### Context
 
 ADR-034 was reported delivered, and its decisions were. Its *invariant* was not.
@@ -4851,15 +4877,18 @@ open forever — and `mayPrune` off with it — over rows that were never at ris
   reconcile never prunes. Pruning off is a stale cache; pruning on too early is
   deleted work.
 
-- **The reconciliation is idempotent and re-runs on every load.** It is a query,
-  a set comparison, and — in the steady state — no mutation at all. That is
-  deliberate: a migration that runs once and records that it ran is a migration
-  that cannot repair the browser it failed on, which is exactly how the
-  `localStorage` claim marker failed before it.
+- **The reconciliation re-runs on every load until it completes, then never
+  again on that browser.** Each pass is a query, a set comparison and at most
+  one `claimLocal`. A pass that strands nothing records the close in IndexedDB
+  (`meta.origin = 'cache'`), not in `localStorage` or module memory. A pass that
+  strands a row records nothing, so the next load retries and the failed browser
+  is still repaired. Re-running after the close would be wrong: the rows are
+  then the account's cache, and any of them deleted on another device would be
+  claimed back.
 
-- **`claimLocal` must be safe to repeat**, because it runs on every signed-in
-  load. Every claimed kind matches on an identity, NPCs included (the id inside
-  the body, like patterns).
+- **`claimLocal` must be safe to repeat**, because a browser retries it on every
+  signed-in load until its migration completes. Every claimed kind matches on
+  an identity, NPCs included (the id inside the body, like patterns).
 
 - **The repair is a write against the account on every signed-in load.** It is
   one indexed read of the caller's own rows and, in the steady state, zero

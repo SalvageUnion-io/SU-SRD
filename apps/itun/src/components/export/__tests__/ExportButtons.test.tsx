@@ -14,7 +14,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import type { ExportBundle } from '../../../lib/schemas/exportBundle'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
@@ -50,7 +50,7 @@ beforeEach(async () => {
   }
 
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],
@@ -84,20 +84,18 @@ describe('ExportAllButton', () => {
     expect((await downloaded()).entities.pilots.map((p) => p.name)).toEqual(['Rook'])
   })
 
-  test('onExported fires after a real download, and never after a failed one', async () => {
-    let exported = 0
+  test('a failed download says so, and a retry that lands clears it', async () => {
     failCreate = true
-    render(<ExportAllButton onExported={() => exported++} />)
+    render(<ExportAllButton />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
 
-    // "We offered" is not "they have a copy": a failure must not count.
     await waitFor(() => expect(screen.getByText('Disk full')).toBeTruthy())
-    expect(exported).toBe(0)
+    expect(downloads).toHaveLength(0)
 
     failCreate = false
     fireEvent.click(screen.getByRole('button', { name: 'Download all' }))
-    await waitFor(() => expect(exported).toBe(1))
+    await waitFor(() => expect(downloads).toHaveLength(1))
     // The retry clears the stale error rather than leaving it beside a success.
     expect(screen.queryByText('Disk full')).toBeNull()
   })

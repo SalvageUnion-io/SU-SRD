@@ -12,7 +12,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-import { _clearAllStores, _resetDbSingleton, mechPatterns, pilots } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache, mechPatterns, pilots } from '../../lib/db/index'
 import { useEncounterStore } from '../encounterStore'
 import { selectBackend } from '../entityBackend'
 import { useEntityStore } from '../entityStore'
@@ -20,7 +20,7 @@ import { usePatternStore } from '../patternStore'
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
 })
 
 describe('signed out, a roster on disk stays on disk', () => {

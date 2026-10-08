@@ -19,7 +19,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
-import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../lib/db/index'
 import { withSignedInBackend } from './signedInBackend'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -56,7 +56,7 @@ const { LIVE_SHEET_MANUAL } = await import('../surfaceProvenance')
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],

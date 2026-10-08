@@ -70,8 +70,8 @@ upgrade whose transaction aborted is not counted). The event carries
 quarter (90 days), the tail is gone. Then, in one change:
 
 1. Replace migrations v3–v12 with an export-only path: an `oldVersion < 13`
-   open reads the old stores read-only and offers them as a download (the
-   `buildLegacyExportBundle` shape) instead of rewriting them in place.
+   open reads the old stores read-only and offers them as a download (an
+   export bundle) instead of rewriting them in place.
 2. Delete `3-…` through `12-…` and their fixture tests; keep v13+ untouched.
    One export outlives its file: `partnersFromLoadouts` (v11) is also what
    `normalizeLegacyPilotRecord` uses to lift a pre-v11 import's

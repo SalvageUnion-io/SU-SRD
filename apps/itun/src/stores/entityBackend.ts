@@ -9,6 +9,7 @@ import {
 import { convexClient } from '../lib/connection/convexClient'
 import type { EntityRef } from '../lib/schemas/entity'
 import type { SoftLink } from '../lib/schemas/softLink'
+import { knownVersion, noteVersion } from './serverVersions'
 
 /**
  * Where entity writes actually go (ADR-030 §1).
@@ -176,6 +177,22 @@ export class WritesBlockedOffline extends Error {
 }
 
 /**
+ * Thrown when the server refused a pilot or mech write because the row had
+ * moved past the copy it was made against (`entities.upsertByAppId`).
+ *
+ * By the time this is thrown the store has already adopted the server's row,
+ * so the sheet shows the latest version; the message asks the player to make
+ * the change again on top of it. Like `WritesBlockedOffline`, the message is
+ * the toast (`lib/runWrite.ts`).
+ */
+export class StaleWriteRefused extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options)
+    this.name = 'StaleWriteRefused'
+  }
+}
+
+/**
  * The `patchCrawlerByAppId` args for a crawler field patch.
  *
  * A key patched to `undefined` is a CLEAR — the ↺ revert of a pinned Max SP is
@@ -276,12 +293,18 @@ export async function commitEntityWrite(
     await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
     return
   }
-  await convexClient.mutation(api.entities.upsertByAppId, {
+  // The version this browser last saw goes with the body, and the server
+  // refuses the write if its row has moved on — a whole-body write from a stale
+  // copy would undo another device's edit (`staleWrite.ts`). The answer is the
+  // row's new version, which is what the next write is made against.
+  const { updatedAt } = await convexClient.mutation(api.entities.upsertByAppId, {
     table,
     appId: op.appId,
     gameId: op.gameId === null ? null : (op.gameId as Id<'games'>),
     body: op.body,
+    expectedUpdatedAt: knownVersion(op.appId),
   })
+  noteVersion(op.appId, updatedAt)
 }
 
 /**

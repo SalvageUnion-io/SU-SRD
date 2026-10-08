@@ -19,7 +19,13 @@
  * player sees is the Roster's sign-in panel and its "Download all"
  * (`components/roster/Roster.tsx`).
  *
- * ## Signed in: reconcile, once, and say so only if it did not land
+ * ## Signed in: make the cache this account's, then reconcile
+ *
+ * Before anything syncs, the cache is checked against the signed-in account
+ * (`claimCacheFor`): rows another account left behind are dropped, never read
+ * as this account's local work. Only a browser whose cache is recorded as a
+ * `legacy` pre-account roster (`db/cacheMeta.ts`) has device rows to migrate;
+ * an ordinary cache is the account's own rows and is never sent back up.
  *
  * Device rows are compared against `entities.listMine` first and only what is
  * missing is sent (ADR-035 — no offer, no decline). A failure shows one error
@@ -38,6 +44,7 @@ import { useMutation, useQuery } from 'convex/react'
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { claimCacheFor } from '../../lib/account/cacheOwner'
 import { countStranded, selectStranded } from '../../lib/account/legacyMigration'
 import { reconcile } from '../../lib/account/reconcile'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -45,6 +52,7 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { isServerRefusal, serverMessage } from '../../lib/connection/serverError'
 import type { LegacyLocalData as DeviceRows } from '../../lib/db/legacyLocalData'
 import {
+  legacyLocalDataState,
   markLegacyLocalDataMigrated,
   probeLegacyLocalData,
   readLegacyLocalData,
@@ -127,9 +135,36 @@ function SignedInReconciler({
   device: DeviceRows | null
 }) {
   const { running, epoch, failure, setFailure } = state
+  const me = useQuery(api.account.me, {})
   const mine = useQuery(api.entities.listMine, {})
   const games = useQuery(api.games.listMine, {})
   const claimLocal = useMutation(api.claim.claimLocal)
+
+  /**
+   * The account the cache has been confirmed to belong to. Nothing syncs into
+   * the cache, and no device row is judged, until it is this one — otherwise
+   * the last account's rows would be adopted, pruned or claimed as this one's.
+   */
+  const userId = me?._id ?? null
+  const [cacheOwner, setCacheOwner] = useState<string | null>(null)
+  const cacheReady = userId !== null && cacheOwner === userId
+
+  useEffect(() => {
+    if (userId === null) return
+    let cancelled = false
+    void claimCacheFor(userId)
+      .then(() => {
+        if (!cancelled) setCacheOwner(userId)
+      })
+      .catch((err: unknown) => {
+        // Nothing syncs while the owner is unconfirmed, so a failure here
+        // leaves the cache as it was rather than mixing two accounts in it.
+        captureException(err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
 
   /** One device pass per mount: a live query re-emits, the reconciliation must not. */
   const deviceRan = useRef(false)
@@ -139,13 +174,18 @@ function SignedInReconciler({
     // Convex's in-flight value, not an empty result — running against it would
     // read every local row as stranded and re-upload the lot.
     if (device === null || mine === undefined || games === undefined) return
+    if (!cacheReady || userId === null) return
+    // `device` is read once per page load; a migration that finished since —
+    // under an earlier sign-in in this session — leaves rows that are an
+    // account's, not this browser's, and must not be sent again.
+    if (legacyLocalDataState() !== 'present') return
     if (running.current) return
 
     const work = selectStranded(device, mine, new Set(games.map((g) => g._id)))
     if (countStranded(work) === 0 && work.softLinks.length === 0) {
-      // Nothing isolated — the steady state on every load after the first, and
-      // what closes the migration window (re-enabling cache pruning).
-      markLegacyLocalDataMigrated()
+      // Nothing isolated: what closes the migration window, for good —
+      // re-enabling cache pruning and ending device passes on this browser.
+      void markLegacyLocalDataMigrated(userId).catch(captureException)
       return
     }
 
@@ -159,7 +199,7 @@ function SignedInReconciler({
           setFailure(`${builds(stranded)} could not be moved into your account. ${STILL_ON_DEVICE}`)
           return
         }
-        markLegacyLocalDataMigrated()
+        void markLegacyLocalDataMigrated(userId).catch(captureException)
         setFailure(null)
       })
       .catch((err: unknown) => {
@@ -171,7 +211,7 @@ function SignedInReconciler({
       .finally(() => {
         if (current()) running.current = false
       })
-  }, [claimLocal, device, mine, games, running, epoch, setFailure])
+  }, [claimLocal, device, mine, games, cacheReady, userId, running, epoch, setFailure])
 
   // Once per mount, through a ref rather than the dependency list: a live query
   // re-emits, and a second pass after a failure is the "Try again" button's
@@ -180,14 +220,15 @@ function SignedInReconciler({
   useEffect(() => {
     if (deviceRan.current) return
     if (device === null || mine === undefined || games === undefined) return
+    if (!cacheReady) return
     deviceRan.current = true
     if (failure !== null) return
     runDevice()
-  }, [device, mine, games, runDevice, failure])
+  }, [device, mine, games, cacheReady, runDevice, failure])
 
   return (
     <>
-      <ShelfSync />
+      {cacheReady && <ShelfSync />}
       {failure !== null && (
         <div className="flex items-center justify-between gap-3 border-b-2 border-ink bg-paper px-4 py-3">
           <Text variant="hint" className="text-left text-[var(--color-roll-cascade)]">

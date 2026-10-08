@@ -32,6 +32,7 @@
  */
 
 import { create } from 'zustand'
+import { staleWriteOf } from '../lib/connection/staleWrite'
 import type { ContainerFields } from '../lib/container'
 import { containerOf, moveTo, sameContainer } from '../lib/container'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
@@ -46,6 +47,7 @@ import {
   endsMatchType,
   sameLink,
 } from '../lib/links/linkRules'
+import { captureException } from '../lib/observability'
 import type { Crawler } from '../lib/schemas/crawler'
 import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
@@ -56,9 +58,11 @@ import {
   commitSoftLink,
   readableRows,
   requireWritableBackend,
+  StaleWriteRefused,
 } from './entityBackend'
 import type { ChangeMeta } from './entityChangeLog'
 import { emitChangeLog } from './entityChangeLog'
+import { noteVersion } from './serverVersions'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
 // Re-exported: every surface imports the provenance tag type from the store.
@@ -243,6 +247,12 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
  * D19; only the table runner writes a Game's crawler since ADR-038 §5), a pilot
  * or mech sends its whole body, and
  * a soft link is addressed by its endpoints because the server has no id for it.
+ *
+ * A pilot or mech body is refused when the server's row has moved past the
+ * copy it was made from (`entities.upsertByAppId`). The refusal carries the
+ * server's row, which is adopted here before the write fails — so the sheet
+ * shows what the other device saved, and the player re-applies their change on
+ * top of it rather than over it.
  */
 async function commitWrite(
   type: EntityType,
@@ -266,12 +276,26 @@ async function commitWrite(
     return
   }
 
-  await commitEntityWrite(type, {
-    kind: 'upsert',
-    appId: record.id,
-    gameId,
-    body: record,
-  })
+  try {
+    await commitEntityWrite(type, {
+      kind: 'upsert',
+      appId: record.id,
+      gameId,
+      body: record,
+    })
+  } catch (err) {
+    const stale = staleWriteOf(err)
+    if (stale === null) throw err
+    try {
+      await useEntityStore.getState().adopt(type, stale.body as never)
+      noteVersion(record.id, stale.updatedAt)
+    } catch (adoptErr) {
+      // The refusal still stands and is still shown; only the refresh failed,
+      // and `ShelfSync` brings the row down on its next emission regardless.
+      captureException(adoptErr)
+    }
+    throw new StaleWriteRefused(stale.message, { cause: err })
+  }
 }
 
 /**

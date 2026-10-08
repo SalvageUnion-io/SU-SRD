@@ -14,7 +14,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext } from '../../../lib/connection/connectionContext'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import { PilotSchema } from '../../../lib/schemas/pilot'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
@@ -50,13 +50,13 @@ function resetEntityStore(): void {
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 
 afterEach(async () => {
   cleanup()
-  await _clearAllStores()
+  await clearCache()
   resetEntityStore()
 })
 

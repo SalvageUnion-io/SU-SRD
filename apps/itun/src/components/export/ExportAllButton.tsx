@@ -9,33 +9,11 @@
 
 import { Button, toast } from 'component-lib'
 import { useState } from 'react'
-import { buildLegacyExportBundle, mergeExportBundles } from '../../lib/account/legacyMigration'
-import type { LegacyLocalData } from '../../lib/db/legacyLocalData'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
 
-type ExportAllButtonProps = {
-  /**
-   * Called after a bundle has actually been downloaded.
-   *
-   * Exists for the claim card, where declining is terminal and may only go
-   * quiet once a backup has genuinely been TAKEN — "we offered" is not the same
-   * fact as "they have a copy", and treating them as one is how a roster is lost
-   * by somebody who meant to deal with it later.
-   */
-  onExported?: () => void
-  /**
-   * A pre-account roster on this device, folded into the same file.
-   *
-   * Set by `UnsavedWorkBanner`, which speaks for both the tab's unsaved work and
-   * the device's older builds so they need not be two banners — and so "Download
-   * all" has to mean all of both.
-   */
-  deviceRows?: LegacyLocalData | null
-}
-
-export function ExportAllButton({ onExported, deviceRows }: ExportAllButtonProps = {}) {
+export function ExportAllButton() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,17 +21,10 @@ export function ExportAllButton({ onExported, deviceRows }: ExportAllButtonProps
     setBusy(true)
     setError(null)
     try {
-      const entityStore = useEntityStore.getState()
-      const tabBundle = await buildExportBundle(entityStore)
-      const bundle = deviceRows
-        ? mergeExportBundles(tabBundle, buildLegacyExportBundle(deviceRows))
-        : tabBundle
+      const bundle = await buildExportBundle(useEntityStore.getState())
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`itun-backup-${date}.json`, bundle)
       toast.success('Backup downloaded.')
-      // After the download, not before: a failed build must not count as a
-      // backup taken.
-      onExported?.()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Export failed.'
       setError(message)

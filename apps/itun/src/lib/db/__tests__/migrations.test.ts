@@ -20,7 +20,7 @@ import { must } from '../../../components/__tests__/must'
 import { MechSchema } from '../../schemas/mech'
 import { MechPatternSchema } from '../../schemas/pattern'
 import { PilotSchema } from '../../schemas/pilot'
-import { _clearAllStores, DB_VERSION, openItunDatabase, pilots } from '../index'
+import { clearCache, DB_VERSION, openItunDatabase, pilots } from '../index'
 import { STORE_NAMES } from '../stores'
 
 /** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
@@ -266,11 +266,11 @@ describe('v2 → current migrations (v3 cargo → cargoLots, v4 rollResults remo
 
 describe('salvage read path', () => {
   beforeEach(async () => {
-    await _clearAllStores()
+    await clearCache()
   })
 
   afterEach(async () => {
-    await _clearAllStores()
+    await clearCache()
   })
 
   test('a drifted record (unknown field) is stripped with a console warning, not a brick', async () => {

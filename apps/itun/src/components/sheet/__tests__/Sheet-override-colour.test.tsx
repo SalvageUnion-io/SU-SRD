@@ -29,7 +29,7 @@ import {
   within,
 } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
+import { _resetDbSingleton, clearCache } from '../../../lib/db/index'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
@@ -59,7 +59,7 @@ const OVERRIDE_TONE = 'text-[var(--tone-deep)]'
 
 beforeEach(async () => {
   _resetDbSingleton()
-  await _clearAllStores()
+  await clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],

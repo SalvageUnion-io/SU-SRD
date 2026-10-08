@@ -15,7 +15,8 @@ import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 // that resolve after it runs.
 const convexMocks = await installConvexMocks({
   // The store commits the copy to the server first.
-  convexClient: { mutation: async () => null },
+  // `upsertByAppId` answers with the row's new version.
+  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
@@ -44,7 +45,7 @@ beforeEach(async () => {
     ],
   })
   db._resetDbSingleton()
-  await db._clearAllStores()
+  await db.clearCache()
   useEntityStore.setState({
     pilots: [],
     mechs: [],

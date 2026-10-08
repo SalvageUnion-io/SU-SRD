@@ -41,7 +41,8 @@ let mutationError: unknown = null
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
 const convexMocks = await installConvexMocks({
   // The store's commits: copies and moves are signed-in writes now.
-  convexClient: { mutation: async () => null },
+  // `upsertByAppId` answers with the row's new version.
+  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
   convexReact: {
     useMutation: (ref: unknown) => async (args: unknown) => {
       if (mutationError !== null) throw mutationError
