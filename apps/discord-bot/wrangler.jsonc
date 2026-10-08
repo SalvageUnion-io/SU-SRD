@@ -52,17 +52,27 @@
     "DISCORD_PUBLIC_KEY": "3cda4815a9676fee399a6475c5533f7d2375d1293af87993c5cd1f4e4f2c0200"
   },
 
-  // Real secrets, set with `wrangler secret put` and never in this file:
+  // Secrets this Worker cannot run correctly without. A deploy fails while one
+  // is unset (wrangler binds each as `inherit`, and the API rejects a missing
+  // one), so Sentry can never go dark here unnoticed. Set out of band with
+  // `wrangler secret put`; the value is never in this file.
   //
+  //   SENTRY_DSN         where this Worker reports errors.
   //   DISCORD_TOKEN      bot token — a bearer credential for follow-up webhook
-  //                      calls. Required.
-  //   ITUN_BOT_SECRET    ITUN bot credential. Optional; omit it (and
-  //                      ITUN_CONVEX_SITE_URL) to run in Solo mode, which is the
-  //                      deliberate default and must keep working.
+  //                      calls.
+  //
+  // Two more secrets stay optional, so they are not listed here:
+  //
+  //   ITUN_BOT_SECRET    ITUN bot credential. Omit it (and ITUN_CONVEX_SITE_URL)
+  //                      to run in Solo mode, which is the deliberate default and
+  //                      must keep working.
   //   ITUN_CONVEX_SITE_URL  the Convex HTTP-actions origin. Not itself a secret,
   //                      but paired with the one above — set them together or
   //                      not at all, or the bot reports itself unreachable
   //                      rather than Solo.
+  "secrets": {
+    "required": ["SENTRY_DSN", "DISCORD_TOKEN"]
+  },
 
   // Cron Trigger for the liveness heartbeat.
   //

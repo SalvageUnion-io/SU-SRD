@@ -82,9 +82,9 @@ describe('observability', () => {
     // are the same object under Bun, but their TYPES differ (ImportMetaEnv vs
     // ProcessEnv), and what this file actually depends on is that a write to
     // one is visible through the other.
-    process.env.VITE_OBSERVABILITY_PROBE = 'yes'
-    expect(import.meta.env.VITE_OBSERVABILITY_PROBE).toBe('yes')
-    delete process.env.VITE_OBSERVABILITY_PROBE
+    process.env.VITE_ENV_PREMISE_CHECK = 'yes'
+    expect(import.meta.env.VITE_ENV_PREMISE_CHECK).toBe('yes')
+    delete process.env.VITE_ENV_PREMISE_CHECK
 
     expect(import.meta.env.VITE_SENTRY_DSN).toBeUndefined()
   })

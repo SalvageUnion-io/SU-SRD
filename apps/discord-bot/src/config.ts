@@ -27,7 +27,8 @@ export const config = {
   discordToken: requireEnv('DISCORD_TOKEN'),
   discordClientId: requireEnv('DISCORD_CLIENT_ID'),
   discordGuildId: optionalEnv('DISCORD_GUILD_ID'),
-  // Optional error tracking. When SENTRY_DSN is unset, observability is a no-op.
+  // Error tracking. A deploy cannot omit SENTRY_DSN (wrangler.jsonc's
+  // `secrets.required`); a local or test run without it is a no-op.
   sentryDsn: optionalEnv('SENTRY_DSN'),
   nodeEnv: optionalEnv('NODE_ENV'),
   // In The Union Now (ADR-030 Phase 6). BOTH optional and BOTH required
