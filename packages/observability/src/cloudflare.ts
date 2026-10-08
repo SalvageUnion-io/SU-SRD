@@ -50,10 +50,19 @@ import * as Sentry from '@sentry/cloudflare'
  * must not know what bindings any particular Worker has.
  */
 export type ObservabilityEnv = {
-  /** Absent means Sentry is off — the deliberate default for local dev. */
+  /**
+   * Absent means Sentry is off — the deliberate default for local dev. Read by
+   * the SDK itself, not by this module.
+   */
   SENTRY_DSN?: string
-  /** Commit SHA, used as the Sentry release. Absent means "unreleased". */
-  COMMIT_REF?: string
+  /**
+   * Commit SHA, used as the Sentry release — the same SHA the browser bundles
+   * and their sourcemaps are tagged with. The deploy workflow passes it as
+   * `wrangler deploy --var SENTRY_RELEASE:<sha>`. Read by the SDK itself: it
+   * must not be set in the options below, where even an `undefined` value
+   * overrides the SDK's own env read.
+   */
+  SENTRY_RELEASE?: string
   /** `production` unless set otherwise. */
   SENTRY_ENVIRONMENT?: string
 }
@@ -99,8 +108,6 @@ export function withObservability<E extends ObservabilityEnv>(
 ): ExportedHandler<E> {
   return Sentry.withSentry(
     (env: E) => ({
-      dsn: env.SENTRY_DSN,
-      release: env.COMMIT_REF,
       environment: env.SENTRY_ENVIRONMENT ?? 'production',
       serverName,
       // No tracing. These Workers are latency-sensitive and the question being
