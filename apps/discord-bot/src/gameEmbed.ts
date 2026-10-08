@@ -37,11 +37,13 @@ import type {
  *
  * ## Where the numbers come from
  *
- * Convex stores entity bodies opaquely and **cannot** compute a maximum: max
- * HP, SP and Heat derive from class and chassis data that lives in
- * `salvageunion-reference`, which the server does not have. The bot does — it
- * preloads the whole dataset at startup — so it derives them here (ADR-006:
- * rules math lives in the package, never re-implemented at a call site).
+ * The bot derives max HP, max SP and max Heat itself: it depends on
+ * `salvageunion-reference` and preloads the whole dataset at startup, so it
+ * runs the package's rules here (ADR-006: rules math lives in the package,
+ * never re-implemented at a call site). Convex can derive them too now —
+ * `crew.vitals` runs the same rules over the same records for the Dashboard's
+ * Crew tab (`model/referenceData.ts` loads the data) — and moving the bot onto
+ * those values is issue 1068.
  *
  * Every read off a body is defensive. The body is `v.any()` on the server by
  * design, so a missing or wrong-typed field must render as "—" rather than

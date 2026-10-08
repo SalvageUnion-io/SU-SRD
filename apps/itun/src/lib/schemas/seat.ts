@@ -63,5 +63,7 @@ export const SeatSchema = z.object({
   activeEffects: z.array(z.string()),
   /** The deck action being resolved; absent when none is. */
   resolving: SeatResolvingSchema.optional(),
+  /** Set by an Eject, cleared by the next Board or Dismount; absent when not ejected. */
+  ejected: z.boolean().optional(),
   updatedAt: z.number(),
 })

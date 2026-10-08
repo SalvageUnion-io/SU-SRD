@@ -9,24 +9,16 @@ import { linesFromBreakdown } from 'component-lib'
 import {
   crawlerMaxSPParts,
   mechMaxCargo,
-  mechMaxEP,
-  mechMaxHeat,
-  mechMaxSP,
-  mechMaxSPParts,
-  pilotMaxAPParts,
-  pilotMaxHPParts,
-  resolveChassisRef,
   resolveGauge,
   resolveModuleRef,
   resolvePool,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { mechMaxima, pilotMaxima } from '../../lib/rules/crewStatus'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -35,13 +27,12 @@ import { crawlerTechLevelOf } from './dashboardEconomy'
 import type { BandGauge } from './MajorFrame'
 import type { MinorModel } from './MinorFrame'
 
-/** HP and AP with their derived maxima. `crawler`'s tier drives Stat Training. */
-export function pilotVitals(pilot: Pilot, crawler: Crawler | null) {
-  const statInput = { ...pilot, crawlerTechLevel: resolveEffectiveCrawlerLevel(pilot, crawler) }
-  const hpParts = pilotMaxHPParts(statInput)
-  const apParts = pilotMaxAPParts(statInput)
-  const maxHP = Math.max(0, hpParts.total)
-  const maxAP = Math.max(0, apParts.total)
+/**
+ * HP and AP with their derived maxima. `crawler`'s tier drives Stat Training.
+ * The maxima are `pilotMaxima`, the derivation the server serves the crew.
+ */
+export function pilotVitals(pilot: Pilot, crawler: Pick<Crawler, 'techLevel'> | null) {
+  const { statInput, hpParts, apParts, maxHP, maxAP } = pilotMaxima(pilot, crawler)
   const gauges: BandGauge[] = [
     {
       label: 'HP',
@@ -97,24 +88,25 @@ export function pilotMinorModel(
 /**
  * The mech's pools and their maxima. Beefcake is a PILOT ability that raises
  * the piloted MECH's Max SP and Cargo (ADR-029), so the pilot's abilities and
- * the seat's switched-on effects come in too.
+ * the seat's switched-on effects come in too. SP, EP and Heat are
+ * `mechMaxima`, the derivation the server serves the crew.
  */
 export function mechStats(
   mech: Mech,
   pilotAbilities: string[] | undefined,
   switchedOn: readonly string[]
 ) {
-  const chassis = resolveChassisRef(mech.chassisRef)
-  const active = Object.fromEntries(switchedOn.map((ref) => [ref, true]))
-  const piloting = { ...pilotingContext(mech, pilotAbilities), active }
-  const maxSP = mechMaxSP(mech, chassis, piloting)
-  const maxEP = mechMaxEP(mech, chassis)
-  const maxHeat = mechMaxHeat(mech, chassis)
+  const { chassis, active, piloting, spParts, maxSP, maxEP, maxHeat } = mechMaxima(
+    mech,
+    pilotAbilities,
+    switchedOn
+  )
   const maxCargo = mechMaxCargo(mech, chassis, piloting)
   return {
     chassis,
     active,
     piloting,
+    spParts,
     maxSP,
     maxEP,
     maxHeat,
@@ -152,7 +144,7 @@ export function mechMinorModel(
   boarded: boolean
 ): MinorModel {
   const s = mechStats(mech, pilotAbilities, activeEffects)
-  const spParts = mechMaxSPParts(mech, s.chassis, s.piloting)
+  const spParts = s.spParts
   const problems = [
     ...(mech.destroyed ? ['Destroyed'] : []),
     ...(mech.shutdown ? ['Shut down'] : []),

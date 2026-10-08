@@ -125,8 +125,11 @@ All models provide a simple, consistent API with just three methods:
 
 The package's public surface is its declared entry points and nothing else:
 `salvageunion-reference`, `/rules`, `/zod`, `/schema-definitions` and
-`/testing` (test code only). The raw `data/*.json` and `schemas/*.schema.json`
-files are **not** importable subpaths — reach them through the accessors below.
+`/testing` (test code only), plus `./data/*`. That last subpath exposes the raw
+`data/*.json` files for one purpose: importing them statically to hand to
+`SalvageUnionReference.install` in a runtime without dynamic `import()` (Convex's
+default runtime). Everywhere else, and for `schemas/*.schema.json` (not an
+importable subpath), reach the data through the accessors below.
 
 ```typescript
 // Raw data, keyed by schema ID

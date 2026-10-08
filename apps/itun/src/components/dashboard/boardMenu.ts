@@ -89,14 +89,14 @@ function bodyField(body: unknown, field: string): unknown {
 }
 
 /** The id links and seats use: the app id, or a template pre-gen's body id. */
-export function linkId(row: CrewRow): string | null {
+function linkId(row: CrewRow): string | null {
   if (row.appId !== null) return row.appId
   const id = bodyField(row.body, 'id')
   return typeof id === 'string' && id.length > 0 ? id : null
 }
 
 /** A listed entity's name, from its body. */
-export function nameOf(body: unknown, fallback: string): string {
+function nameOf(body: unknown, fallback: string): string {
   const name = bodyField(body, 'name')
   return typeof name === 'string' && name.length > 0 ? name : fallback
 }

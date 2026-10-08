@@ -15,7 +15,10 @@ import { linkIdOf } from './entities'
  */
 
 /** The play state a seat holds, without its keys and timestamp. */
-export type SeatState = Pick<Doc<'seats'>, 'mount' | 'range' | 'activeEffects' | 'resolving'>
+export type SeatState = Pick<
+  Doc<'seats'>,
+  'mount' | 'range' | 'activeEffects' | 'resolving' | 'ejected'
+>
 
 /**
  * What a pilot with no seat row is: on foot, at Close range, nothing switched

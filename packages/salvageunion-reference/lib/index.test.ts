@@ -45,6 +45,7 @@ describe('SalvageUnionReference static properties', () => {
         'entityCache',
         'getAllBySchemaNames',
         'preload',
+        'install',
         'isLoaded',
       ]
       return !methodNames.includes(prop)

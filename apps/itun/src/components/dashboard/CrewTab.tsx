@@ -1,16 +1,20 @@
 /**
- * CrewTab — the display's Crew tab: one read-only row per pilot in the Game,
- * from their seats (docs/architecture/dashboard-redesign.md D6, §8 A6).
+ * CrewTab — the display's Crew tab: one read-only row per crewmate, pilot first
+ * (docs/architecture/dashboard-redesign.md D6, §8 A3, §8 A6).
  *
- * Each row says where the pilot is (on foot, or in which mech) and, live, the
- * deck action they are resolving: "Rook is resolving Crush", then the roll as
- * it lands. The row is a status, so it is announced politely as it changes.
+ * Each row shows the pilot's HP and AP, and where they are. Boarded, their
+ * mech's SP and Heat follow; on foot, the mech assigned to them is one line,
+ * parked. A crewmate who is dead, injured or ejected, or whose mech is
+ * destroyed or overheating, gets a red outline and their problems in red; the
+ * Crew tab itself carries a ▲ (`DisplayTabs`). Those verdicts are the server's
+ * (`crew.vitals`), so every client at the table flags the same people.
  *
- * Crewmates' vitals, and the ▲ and red outline for someone who needs
- * attention, arrive with the server-derived crew status (plan layer 7).
+ * Tapping a row opens that crewmate's live sheet, read-only when it is not
+ * yours. The action they are resolving ("Rook is resolving Crush", then the
+ * roll as it lands) sits under the row, announced politely as it changes.
  *
- * Presentational: `crewLines` builds the rows from what `useBoardSources`
- * already reads.
+ * Presentational: `crewLines` builds the rows from `crew.vitals` and the seats.
+ * Style objects only, no new `.pc-*` class (tailwind-removal.md §4).
  */
 
 import {
@@ -24,6 +28,7 @@ import {
   weight,
 } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { AppLink } from '../shared/AppLink'
 import type { CrewLine } from './useGameFeed'
 
 const SCROLL: CSSProperties = { height: '100%', overflowY: 'auto', padding: space[12] }
@@ -44,6 +49,25 @@ const ROW: CSSProperties = {
   padding: `${space[6]} ${space[8]}`,
   border: `${borderWidth.chrome} solid ${color.ink20}`,
   borderRadius: radius.card,
+}
+
+/**
+ * The red outline is the "look here" signal (D6), drawn as an inset ring so
+ * the row never changes size when it appears.
+ */
+const ROW_ATTENTION: CSSProperties = {
+  ...ROW,
+  borderColor: color.statusBad,
+  boxShadow: `inset 0 0 0 1px ${color.statusBad}`,
+}
+
+/** The tappable part of a row: everything but the live resolve. */
+const LINK: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[2],
+  color: 'inherit',
+  textDecoration: 'none',
 }
 
 const WHO: CSSProperties = {
@@ -68,9 +92,16 @@ const WHERE: CSSProperties = {
   color: color.ink75,
 }
 
-const LIVE: CSSProperties = { fontFamily: font.body, fontSize: fontSize.note, color: color.ink }
+const TEXT: CSSProperties = {
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+  color: color.ink,
+  fontVariantNumeric: 'tabular-nums',
+}
 
-const NOTE: CSSProperties = { ...LIVE, margin: 0, color: color.ink75 }
+const PROBLEM: CSSProperties = { ...TEXT, color: color.statusBad, fontWeight: weight.bold }
+
+const NOTE: CSSProperties = { ...TEXT, margin: 0, color: color.ink75 }
 
 export function CrewTab({ crew }: { crew: CrewLine[] }) {
   if (crew.length === 0) {
@@ -84,12 +115,17 @@ export function CrewTab({ crew }: { crew: CrewLine[] }) {
     <div style={SCROLL}>
       <ul style={LIST}>
         {crew.map((c) => (
-          <li key={c.pilotId} style={ROW}>
-            <div style={WHO}>
-              <span style={NAME}>{c.self ? `${c.name} (you)` : c.name}</span>
-              <span style={WHERE}>{c.where}</span>
-            </div>
-            <span role="status" style={LIVE}>
+          <li key={c.pilotId} style={c.attention ? ROW_ATTENTION : ROW}>
+            <AppLink href={c.href} className="su-focus-ring" style={LINK}>
+              <span style={WHO}>
+                <span style={NAME}>{c.self ? `${c.name} (you)` : c.name}</span>
+                <span style={WHERE}>{c.where}</span>
+              </span>
+              <span style={TEXT}>{c.vitals}</span>
+              {c.mech ? <span style={c.mechAttention ? PROBLEM : TEXT}>{c.mech}</span> : null}
+              {c.problems.length > 0 ? <span style={PROBLEM}>{c.problems.join(' · ')}</span> : null}
+            </AppLink>
+            <span role="status" style={TEXT}>
               {c.resolving ?? ''}
             </span>
           </li>

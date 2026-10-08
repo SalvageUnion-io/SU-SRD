@@ -55,7 +55,7 @@ JSON API: `apps/srd/src/endpoints/schemaJson.ts`, `schemaDefinitionJson.ts`,
   `./schema-definitions` (`getJsonSchemaDefinition`) keeps the ~783 KB JSON
   Schema corpus off the barrel; only srd's `/schema/[id].schema.json` endpoint
   imports it. `./testing` is test-only: `entityFixture(schema, fields)` and
-  `malformed<T>(value)`, never `as unknown as SURef*`.
+  `malformed<T>(value)`, never `as unknown as SURef*`. `./data/*` is the JSON.
 - **The barrel is an explicit list.** `lib/index.ts` and `lib/rules/index.ts`
   name each export that has an outside consumer; no `export *`, no Zod schemas.
   `lib/index.ts` is the API's source of truth: 27 model accessors, `.get` /
@@ -68,10 +68,10 @@ JSON API: `apps/srd/src/endpoints/schemaJson.ts`, `schemaDefinitionJson.ts`,
   is generated from `lib/schemas/`: edit those, then `bun run build:package`.
 - **Lazy loading.** One stable `LazyModel<T>` per schema;
   `preload('all' | ids[])` dynamic-imports in parallel and installs the backing
-  model (`_install()`); idempotent; `isLoaded(id)`. Access before load throws
-  `Schema "chassis" not loaded`; an unknown id throws `No loader found for
-  schema ID`; valid ids are `dataLoaders` in
-  `lib/generated/modelFactoryRegistry.generated.ts`. Loads are trusted: CI
+  model (`_install()`); idempotent; `isLoaded(id)`. Access before load, or an
+  id not in `dataLoaders` (`lib/generated/modelFactoryRegistry.generated.ts`),
+  throws. Convex has no dynamic `import()`, so it `install()`s imported files
+  instead. Loads are trusted: CI
   validates every file and `lib/dataCanonical.test.ts` proves the parse is the
   identity, so no runtime module imports Zod (`lib/loadPathBundle.test.ts`).
 - **Reference strings** are `"schemaId::entityId"` (ids are UUIDs except
@@ -5298,8 +5298,8 @@ with its mechs docked.
 ### Status
 
 **Accepted; partly built.** Decision 1, the Game-only gate, is built, and so
-are decision 2's seat and decision 4's tabs and Log. The plan
-that delivers the rest, layer by layer, is
+are decision 2's seat and decision 4 (tabs, Log and Crew with server-derived
+status). The plan that delivers the rest, layer by layer, is
 [dashboard-redesign.md](architecture/dashboard-redesign.md). Until its layers
 land, the rest of the Dashboard in code is the one [ADR-015](#adr-015)
 and [dashboard.md](architecture/dashboard.md) describe.
@@ -5342,8 +5342,7 @@ role, a shared Downtime row, crew vitals, proposals and alerts, and Convex as
 the only persistence (ADR-034). The product owner wants the Dashboard to be a
 curated, live game experience: an in-game sheet that puts every tool in reach,
 reads at a glance and, eventually, syncs Mediator and player actions such as
-Downtime steps. Wireframes for this were reviewed on 2026-10-06; the plan links
-them.
+Downtime steps.
 
 ### Decision
 
@@ -5365,9 +5364,10 @@ There is one **seat** per pilot in a Game, held in Convex. It records:
 - **mount:** on foot, or boarded and in which mech;
 - the **range band**;
 - the **activated effects**;
-- the **action being resolved**, so a reload mid-roll keeps it.
+- the **action being resolved**, so a reload mid-roll keeps it;
+- whether the pilot **ejected**, until the next Board or Dismount.
 
-The rules for a seat:
+Its rules:
 
 - **It is keyed on the pilot, not the member.** ADR-030 §4 lets one member
   cover for an absent player, so one member can run two seats.

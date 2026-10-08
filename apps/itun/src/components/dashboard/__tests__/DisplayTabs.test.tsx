@@ -70,4 +70,15 @@ describe('DisplayTabs', () => {
     await pressOn('Crew', 'Home')
     expect(screen.getByRole('tabpanel').textContent).toBe('the resolve')
   })
+
+  test('a ▲ on Crew, named for a screen reader, only while someone needs attention', () => {
+    const { rerender } = render(
+      <DisplayTabs tab="resolve" onTab={() => undefined} panels={PANELS} />
+    )
+    expect(screen.queryByRole('img', { name: 'needs attention' })).toBeNull()
+
+    rerender(<DisplayTabs tab="resolve" onTab={() => undefined} panels={PANELS} crewAttention />)
+    expect(screen.getByRole('tab', { name: 'Crew needs attention' })).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'needs attention' }).textContent).toBe('▲')
+  })
 })

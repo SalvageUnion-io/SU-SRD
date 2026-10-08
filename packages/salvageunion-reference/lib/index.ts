@@ -16,6 +16,7 @@ import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.genera
 import type { LazyModel } from './LazyModel.js'
 import {
   getLoadedModel,
+  installSchemas,
   isSchemaLoaded,
   loadSchemas,
   resetLoadStateForTesting,
@@ -287,25 +288,26 @@ export class SalvageUnionReference {
    */
   public static async preload(schemas: string[] | 'all'): Promise<void> {
     await loadSchemas(schemas)
+    bindLoadedModels(schemas === 'all' ? Object.keys(lazyModelsById) : schemas)
+  }
 
-    // Install backing models into all LazyModel wrappers for loaded schemas
-    const ids = schemas === 'all' ? Object.keys(lazyModelsById) : schemas
-    for (const id of ids) {
-      const lazyModel = lazyModelsById[id]
-      if (!lazyModel) continue
-      if (!isSchemaLoaded(id)) continue
-
-      try {
-        const backing = getLoadedModel(id, toPascalCase(id))
-        lazyModel._install(backing)
-      } catch {
-        // Already logged during load; skip gracefully
-      }
-    }
-
-    // Invalidate the action map and search index so they are rebuilt with fresh data
-    invalidateActionMap()
-    invalidateSearchIndex()
+  /**
+   * Load schemas from data the caller has already imported — the synchronous
+   * sibling of {@link preload}, for a runtime with no dynamic `import()`.
+   *
+   * Convex's default runtime is one: `preload` throws "dynamic module import
+   * unsupported" there. Import the committed files statically
+   * (`salvageunion-reference/data/<schema>.json`) and pass them unchanged,
+   * keyed by schema id. Idempotent, like `preload`, and cheap to repeat: a call
+   * that installs nothing new leaves the action map and search index alone.
+   *
+   * @example
+   * import chassis from 'salvageunion-reference/data/chassis.json'
+   * SalvageUnionReference.install({ chassis })
+   */
+  public static install(data: Partial<Record<EntitySchemaName, readonly unknown[]>>): void {
+    const installed = installSchemas(data)
+    if (installed.length > 0) bindLoadedModels(installed)
   }
 
   /**
@@ -486,6 +488,28 @@ export class SalvageUnionReference {
 // ---------------------------------------------------------------------------
 // Module-level helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Install each loaded schema's backing model into its LazyModel wrapper, then
+ * drop the action map and search index so they are rebuilt with the new data.
+ */
+function bindLoadedModels(ids: readonly string[]): void {
+  for (const id of ids) {
+    const lazyModel = lazyModelsById[id]
+    if (!lazyModel) continue
+    if (!isSchemaLoaded(id)) continue
+
+    try {
+      const backing = getLoadedModel(id, toPascalCase(id))
+      lazyModel._install(backing)
+    } catch {
+      // Already logged during load; skip gracefully
+    }
+  }
+
+  invalidateActionMap()
+  invalidateSearchIndex()
+}
 
 // ---------------------------------------------------------------------------
 // Testing utilities

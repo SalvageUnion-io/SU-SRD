@@ -11,6 +11,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test'
+import chassisRows from '../data/chassis.json' with { type: 'json' }
 import { BaseModel } from './BaseModel.js'
 import { resetAllForTesting, SalvageUnionReference, SchemaNotLoadedError } from './index.js'
 
@@ -263,6 +264,40 @@ describe('SalvageUnionReference.preload() with an unknown schema id', () => {
   it('fails loudly', async () => {
     resetAllForTesting()
     await expect(SalvageUnionReference.preload(['no-such-schema'])).rejects.toThrow(
+      'No loader found for schema ID: no-such-schema'
+    )
+  })
+})
+
+describe('SalvageUnionReference.install — data the caller imported', () => {
+  beforeEach(() => {
+    resetAllForTesting()
+  })
+
+  it('loads the given schemas synchronously, with no loader run', () => {
+    SalvageUnionReference.install({ chassis: chassisRows })
+    expect(SalvageUnionReference.isLoaded('chassis')).toBe(true)
+    expect(SalvageUnionReference.isLoaded('abilities')).toBe(false)
+    expect(SalvageUnionReference.Chassis.all().length).toBe(chassisRows.length)
+  })
+
+  it('reaches the same rows preload would', async () => {
+    SalvageUnionReference.install({ chassis: chassisRows })
+    const installed = SalvageUnionReference.Chassis.all().map((c) => c.id)
+    resetAllForTesting()
+    await SalvageUnionReference.preload(['chassis'])
+    expect(SalvageUnionReference.Chassis.all().map((c) => c.id)).toEqual(installed)
+  })
+
+  it('is idempotent: a loaded schema keeps its rows', () => {
+    SalvageUnionReference.install({ chassis: chassisRows })
+    SalvageUnionReference.install({ chassis: [] })
+    expect(SalvageUnionReference.Chassis.all().length).toBe(chassisRows.length)
+  })
+
+  it('fails loudly on an unknown schema id', () => {
+    const unknown: Record<string, unknown[]> = { 'no-such-schema': [] }
+    expect(() => SalvageUnionReference.install(unknown)).toThrow(
       'No loader found for schema ID: no-such-schema'
     )
   })

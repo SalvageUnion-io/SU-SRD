@@ -1,6 +1,6 @@
 # Dashboard redesign: the Flight Deck
 
-> **Status:** Plan, dated 2026-10-06. Layers 1 to 6 are built; the rest is
+> **Status:** Plan, dated 2026-10-06. Layers 1 to 7 are built; the rest is
 > not. The product decisions in §2 and the answers in §8 were made by the
 > product owner. The decision is recorded in
 > [ADR-038](../ARCHITECTURE.md#adr-038). The
@@ -92,7 +92,9 @@ seats: defineTable({
 
 Layer 1 built this (#1051). Layer 6 added `resolving`, the deck action in
 progress: its ref and name, whether it is activated or applied, and the roll.
-A change of mount clears it.
+A change of mount clears it. Layer 7 added `ejected`, set by Eject and cleared
+by the next Board or Dismount, because the crew's derived status needs to know
+who ejected and nothing else records it.
 
 - **Source of truth** is a Zod schema in `apps/itun/src/lib/schemas/seat.ts`.
   `RangeBand` moves there from `dashboardRules.ts`. A parity test in the

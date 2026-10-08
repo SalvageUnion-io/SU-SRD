@@ -51,8 +51,11 @@ scroll internally; the frame never does. `DashboardGrid` places three surfaces:
   beside the display's tabs (`DisplayTabs`): Resolve (the chosen action,
   `ResolvePanel`), Reference (the pilot's, mech's or crawler's card, picked by
   `DisplayPicker`), Tables, SRD, then Log (the Game's rolls and the
-  Mediator's alerts, `LogTab`) and Crew (each crewmate's seat and the action
-  they are resolving, `CrewTab`). A strip along the bottom
+  Mediator's alerts, `LogTab`) and Crew (`CrewTab`: one row per crewmate,
+  pilot first, with HP and AP, their mech's SP and Heat while boarded, and
+  the action they are resolving; a row opens that crewmate's live sheet). A
+  red outline marks a crewmate who is dead, injured, ejected, overheating or
+  destroyed, and a ▲ on the tab says someone is. A strip along the bottom
   (`DashboardStrip`) carries the latest alert and the proposal count.
 
 **Mount state** is `pilot | mech | downtime`: Board takes the pilot into a
@@ -84,7 +87,7 @@ rather than a description. Do not fork the display for the Dashboard.
 | State                                                     | Home                                                    |
 | --------------------------------------------------------- | ------------------------------------------------------- |
 | HP / SP / EP / Heat, conditions, item uses, cargo         | the pilot / mech records (persisted)                    |
-| maxima                                                    | derived (`lib/rules/derivedStats.ts`), never stored     |
+| maxima, and the crew's status                             | derived (`lib/rules/derivedStats.ts`, `src/lib/rules/crewStatus.ts`), never stored |
 | on foot or boarded (and in which mech), range band, activated effects, the action being resolved | the pilot's seat on the Game (`convex/seats.ts`, `useSeat`) |
 | rolls                                                     | the Game's change log (`dashboardRolls.ts`, `changeLog.rolls`) |
 | in Downtime, Downtime wizard step                         | `playStateStore` — ephemeral, resets on reload          |
@@ -102,7 +105,11 @@ Live-play writes to the pilot, mech and crawler go through `entityStore.update`,
 exactly the sheet's path ([data flow](../ARCHITECTURE.md#data-flow)). The
 Dashboard's own server surface is the seat: `convex/seats.ts`, written through
 `useSeat`'s mutations with optimistic updates, and refused here while
-Disconnected rather than queued. Each step of a resolve is a `setResolving`,
+Disconnected rather than queued. An Eject also marks the seat `ejected` until
+the pilot next boards or dismounts. The Crew tab reads `crew.vitals`, where
+the server derives each crewmate's maxima and status with the client's own
+rules (`src/lib/rules/crewStatus.ts`), so every client flags the same people.
+Each step of a resolve is a `setResolving`,
 so a reload keeps the roll and the crew watches it; a change of mount clears
 it. Every roll (core, Push, Heat Check, Criticals, tables, Area Salvage) is
 also a Game row in `changeLog` (`entityType 'game'`, `field 'roll'`,

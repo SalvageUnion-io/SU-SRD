@@ -299,8 +299,61 @@ describe('claim and board (plan §8 A4)', () => {
   })
 })
 
-/** What the Dashboard reads of the Game: its mechs, links, seats, log and the viewer. */
-function gameAnswers(seats: unknown[], extra: Record<string, unknown> = {}) {
+/**
+ * `crew.vitals` for the same table: Rook and Vex, where their seats put them,
+ * with the server's maxima and status. `trouble` marks Vex injured.
+ */
+function crewAnswer(seats: ReturnType<typeof seatRow>[], trouble = false) {
+  const calm = { dead: false, injured: false, ejected: false }
+  const pilot = (appId: string, name: string, ownerId: string, injured: boolean) => {
+    const mount = seats.find((s) => s.pilotId === appId)?.mount
+    const boarded =
+      mount && 'mechId' in mount && typeof mount.mechId === 'string' ? mount.mechId : null
+    return {
+      _id: `row-${appId.replace('seat-', '')}`,
+      appId,
+      linkId: appId,
+      ownerId,
+      ownerName: null,
+      name,
+      currentHP: injured ? 3 : null,
+      currentAP: null,
+      maxHP: 10,
+      maxAP: 5,
+      boarded: boarded !== null,
+      mechId: boarded,
+      status: { ...calm, injured },
+      attention: injured,
+    }
+  }
+  const mech = (appId: string, name: string) => ({
+    _id: `row-${appId.replace('seat-', '')}`,
+    appId,
+    linkId: appId,
+    ownerId: null,
+    ownerName: null,
+    name,
+    currentSP: null,
+    currentEP: null,
+    currentHeat: null,
+    maxSP: 12,
+    maxEP: 6,
+    maxHeat: 4,
+    status: null,
+    attention: false,
+  })
+  return {
+    viewerId: 'user-me',
+    pilots: [
+      pilot('seat-rook', 'Rook', 'user-me', false),
+      pilot('seat-vex', 'Vex', 'user-vex', trouble),
+    ],
+    mechs: [mech('seat-own', 'Thresher'), mech('seat-spare', 'Spare')],
+  }
+}
+
+/** What the Dashboard reads of the Game: its mechs, links, seats, log, crew and the viewer. */
+function gameAnswers(seats: ReturnType<typeof seatRow>[], extra: Record<string, unknown> = {}) {
   const mech = (appId: string, name: string, ownerId: string | null) => ({
     _id: `row-${appId.replace('seat-', '')}`,
     appId,
@@ -338,6 +391,7 @@ function gameAnswers(seats: unknown[], extra: Record<string, unknown> = {}) {
     'changeLog:rolls': [],
     'proposals:alerts': [],
     'proposals:pending': [],
+    'crew:vitals': crewAnswer(seats),
     ...extra,
   }
 }
@@ -493,6 +547,29 @@ describe("the Dashboard's display: the deck, the tabs and the table (plan layer 
     })
     expect(screen.getByText('Vex is resolving Crush: rolled 14, Success')).toBeTruthy()
     expect(screen.getByText('In Spare')).toBeTruthy()
+  })
+
+  test("the Crew tab reads the server's status: a ▲, the problem, and a link to the sheet", async () => {
+    const seats = [seatRow('seat-rook'), seatRow('seat-vex')]
+    setQueryAnswers(gameAnswers(seats))
+    const view = await renderDashboard()
+    expect(screen.getByRole('tab', { name: 'Crew' })).toBeTruthy()
+    expect(queryCalls()).toContainEqual({ name: 'crew:vitals', args: { gameId: GAME_ID } })
+
+    setQueryAnswers(gameAnswers(seats, { 'crew:vitals': crewAnswer(seats, true) }))
+    await act(async () => {
+      view.rerender(
+        <ConnectionContext.Provider value={connection('connected')}>
+          <Dashboard pilotId="seat-rook" />
+        </ConnectionContext.Provider>
+      )
+    })
+    await openTab('Crew needs attention')
+    const crew = screen.getByRole('tabpanel')
+    expect(within(crew).getByText('Injured')).toBeTruthy()
+    expect(within(crew).getByText('HP 3/10 · AP 5/5')).toBeTruthy()
+    const vex = within(crew).getByRole('link', { name: /Vex/ })
+    expect(vex.getAttribute('href')).toBe('/sheet/pilot/seat-vex')
   })
 
   test('a reload mid-resolve keeps the roll, and a new roll is written to the seat', async () => {
