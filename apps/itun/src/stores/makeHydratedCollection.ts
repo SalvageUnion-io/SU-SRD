@@ -5,8 +5,9 @@
  * encounterStore and patternStore both follow the same
  * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read and
  * write-through persistence (server, then db, then in-memory set()). Another
- * tab's writes arrive through this tab's own Convex subscription (`ShelfSync`
- * adopts them), not through a tab-to-tab channel.
+ * tab's writes arrive through this tab's own Convex subscription: `ShelfSync`
+ * adopts its creates and edits and forgets its deletes. There is no tab-to-tab
+ * channel.
  * Before this factory each store hand-rolled that skeleton (~650 lines
  * across three copies) — which is exactly how mechPatterns ended up
  * BYPASSING the layer entirely (direct db reads).
@@ -67,6 +68,14 @@ export type HydratedCollectionActions<T, CreateInput> = {
    * it read-only.
    */
   adopt: (record: T) => Promise<T>
+  /**
+   * Drops this browser's copy **without deleting it anywhere else** — the
+   * inverse of `adopt`, as `entityStore.forget` is. `ShelfSync` calls it for a
+   * row the server no longer returns: the row is already gone there, and a
+   * mirrored delete would be a destructive write against whatever the server
+   * does hold. No `requireWritableBackend()`, for `adopt`'s reason.
+   */
+  forget: (id: string) => Promise<void>
 }
 
 type SliceConfig<K extends string, T, CreateInput> = {
@@ -157,6 +166,11 @@ export function makeHydratedCollectionSlice<
           })(),
         })
         return cached
+      },
+
+      async forget(id) {
+        await db.delete(id)
+        set({ [key]: records().filter((r) => r.id !== id) })
       },
 
       async create(input) {

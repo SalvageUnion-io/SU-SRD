@@ -25,20 +25,22 @@
  *
  * ## Pruning, and the two conditions that make it safe
  *
- * It also deletes local **shelf** rows the server did not return, which is what
- * finally makes "the cache is a reflection" literally true rather than
- * aspirational. It is the most destructive operation in the codebase, so every
- * guard below is load-bearing and none is obvious.
+ * It also forgets local rows the server did not return, which is what makes
+ * "the cache is a reflection" literally true rather than aspirational. It is
+ * the most destructive operation in the codebase, so every guard below is
+ * load-bearing and none is obvious.
  *
- * **1. Only shelf rows.** A local row absent from `listMine` is ambiguous, and
- * the ambiguity differs by container. `listMine` returns what the caller *owns*,
- * wherever it lives — but a Game's **unclaimed** pre-gens and its communal
- * crawler have no owner at all, and are legitimately cached (`WiringSync`
- * caches the crawler; earlier builds cached pre-gens opened from a roster). So
- * anything with a `gameId` is a cached view of somebody else's container and is
- * never pruned. A shelf row is different: `gameId: null` with no owner is the
- * one combination ADR-030 calls invalid, so every shelf row must be owned, and
- * every owned row is in `listMine`. Absence therefore means deleted.
+ * **1. Only rows known to be the caller's.** A local row absent from `listMine`
+ * is ambiguous, and the ambiguity differs by container. `listMine` returns what
+ * the caller *owns*, wherever it lives — but a Game's **unclaimed** pre-gens
+ * and its communal crawler have no owner at all, and are legitimately cached
+ * (`WiringSync` caches the crawler; earlier builds cached pre-gens opened from a
+ * roster). So a Game row is pruned only when this browser recorded a server
+ * version for it, which only `listMine` or the owner's own write does
+ * (`rowMayBePruned`). A shelf row needs no such record: `gameId: null` with no
+ * owner is the one combination ADR-030 calls invalid, so every shelf row must
+ * be owned, and every owned row is in `listMine`. Patterns and the NPC tray are
+ * personal, so the shelf rule holds for every one of them.
  *
  * **2. Only in a browser that never held a legacy roster.** This is the guard
  * that is easy to miss and fatal to omit. For a pre-ADR-034 user who has signed
@@ -63,8 +65,9 @@
  * writes through `adopt`/`forget`.
  *
  * Every open tab mounts its own `ShelfSync`, so this is also how one tab hears
- * another's writes: the write reaches Convex, and each tab's subscription
- * re-emits. There is no tab-to-tab channel.
+ * another's writes: the write reaches Convex, each tab's subscription re-emits,
+ * and the emission is adopted (a create or an edit) or pruned (a delete) under
+ * the rules above. There is no tab-to-tab channel.
  */
 
 import { useQuery } from 'convex/react'
@@ -84,6 +87,15 @@ import { selectBackend } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { noteVersion, serverVersions } from '../../stores/serverVersions'
+
+/** The body ids a served answer carries. */
+function servedIds(rows: readonly ServedRow[]): Set<string> {
+  return new Set(
+    rows
+      .map((r) => (r.body as { id?: unknown } | null)?.id)
+      .filter((id): id is string => typeof id === 'string')
+  )
+}
 
 function ConnectedShelfSync() {
   // `undefined` while in flight — the Convex convention, not a loading flag.
@@ -171,34 +183,35 @@ function ConnectedShelfSync() {
         }
       }
 
-      // Patterns and NPCs are deliberately NOT pruned below. The prune answers "the
-      // server did not return this, so it was deleted elsewhere", and that
-      // inference is only sound for rows this sync is authoritative over.
-      // Adopting them is what the bug was; deleting them is a separate decision
-      // with a much worse failure mode, and nothing has asked for it.
-
       // Prune only where absence is unambiguous — see the header. Every guard
       // matters; dropping any one turns this into a roster-deleter.
       if (superseded || !mayPrune(legacyLocalDataState())) return
 
+      // `forget`, never `delete`, everywhere below: this removes the local COPY
+      // and must never become a server delete. The row is already gone there —
+      // that is why it is being pruned — and issuing a delete would turn a sync
+      // into a destructive write against whatever the server does hold.
       for (const [kind, rows] of kinds) {
-        const served = new Set(
-          (rows as ServedRow[])
-            .map((r) => (r.body as { id?: unknown } | null)?.id)
-            .filter((id): id is string => typeof id === 'string')
-        )
+        const served = servedIds(rows as ServedRow[])
         for (const local of store.list(kind)) {
-          // `containerOf` rather than a bare `gameId === null`, so a
-          // pre-ADR-030 record that still resolves through `workspaceId` is
-          // classified the same way every other reader classifies it.
-          if (!rowMayBePruned(local)) continue
           if (served.has(local.id)) continue
-          // `forget`, not `delete`: this removes the local COPY and must never
-          // become a server delete. The row is already gone there — that is why
-          // it is being pruned — and issuing a delete would turn a sync into a
-          // destructive write against whatever the server does hold.
+          // A Game crawler is the crew's, never `listMine`'s; `WiringSync`
+          // prunes it.
+          const knownMine = kind !== 'crawler' && serverVersions().has(local.id)
+          if (!rowMayBePruned(local, knownMine)) continue
           await store.forget(kind, local.id)
         }
+      }
+
+      // Patterns and the tray are personal: every one is owned, so every one is
+      // in `listMine`, and absence means deleted — the shelf rule.
+      const servedPatterns = servedIds(mine.mechPatterns as ServedRow[])
+      for (const local of usePatternStore.getState().list()) {
+        if (!servedPatterns.has(local.id)) await patterns.forget(local.id)
+      }
+      const servedNpcs = servedIds(mine.encounterNpcs as ServedRow[])
+      for (const local of useEncounterStore.getState().list()) {
+        if (!servedNpcs.has(local.id)) await npcs.forget(local.id)
       }
     })()
 

@@ -13,9 +13,10 @@
  * the in-memory state is updated atomically via Zustand's set(). On failure
  * the db error propagates to the caller; in-memory state is not mutated.
  *
- * Multi-tab: there is no tab-to-tab channel. Each tab hears every server
- * change, another tab's writes included, through its own Convex subscription
- * (`ShelfSync` adopts them). Crawler-bay edits go through updateCrawlerBay(),
+ * Multi-tab: there is no tab-to-tab channel. Each tab hears another tab's
+ * writes through its own Convex subscription: `ShelfSync` adopts creates and
+ * edits and forgets deletes, the latter only where `lib/db/pruneRules.ts`
+ * lets absence mean deletion. Crawler-bay edits go through updateCrawlerBay(),
  * which merges a single bay entry onto the freshest persisted record instead
  * of replacing the whole array from a possibly-stale in-memory copy.
  *

@@ -38,38 +38,45 @@ describe('rule 1 — a browser that held a legacy roster never prunes', () => {
   })
 })
 
-describe('rule 2 — only shelf rows are prunable', () => {
-  test("a Game's row is never pruned, even though it is absent from listMine", () => {
-    // An unclaimed pre-gen or the communal crawler: cached on purpose by
-    // `GameRoster`, owned by nobody, and therefore never returned by a query
-    // scoped to what the caller owns. Pruning against that absence would empty
-    // every Game view on the next boot.
-    expect(rowMayBePruned({ gameId: 'g1' })).toBe(false)
+describe('rule 2 — a shelf row, or a Game row this browser knows is mine', () => {
+  test('a Game row is not pruned on absence alone', () => {
+    // An unclaimed pre-gen or the communal crawler: owned by nobody, and
+    // therefore never returned by a query scoped to what the caller owns.
+    // Pruning against that absence would empty every Game view on the next boot.
+    expect(rowMayBePruned({ gameId: 'g1' }, false)).toBe(false)
+  })
+
+  test('a Game row this browser knows is mine is prunable', () => {
+    // Its version was recorded from `listMine` or the owner's own write, so its
+    // absence now means it was deleted or released: the copy is not ours to hold.
+    expect(rowMayBePruned({ gameId: 'g1' }, true)).toBe(true)
   })
 
   test('a shelf row is prunable', () => {
-    expect(rowMayBePruned({ gameId: null })).toBe(true)
+    expect(rowMayBePruned({ gameId: null }, false)).toBe(true)
   })
 
   test('a pre-ADR-030 record resolves through workspaceId, like every other reader', () => {
     // `containerOf` rather than a bare `gameId === null` check, so a record
     // written before the container split is classified the same way the rest of
     // the app classifies it — a Game-shaped one is protected.
-    expect(rowMayBePruned({ workspaceId: 'ws-1' })).toBe(false)
-    expect(rowMayBePruned({ workspaceId: 'default-workspace' })).toBe(true)
+    expect(rowMayBePruned({ workspaceId: 'ws-1' }, false)).toBe(false)
+    expect(rowMayBePruned({ workspaceId: 'default-workspace' }, false)).toBe(true)
   })
 })
 
 describe('both rules together', () => {
-  test('a Game row survives even in a prunable browser', () => {
-    expect(mayPrune('absent') && rowMayBePruned({ gameId: 'g1' })).toBe(false)
+  test('a Game row not known to be mine survives even in a prunable browser', () => {
+    expect(mayPrune('absent') && rowMayBePruned({ gameId: 'g1' }, false)).toBe(false)
   })
 
-  test('a shelf row survives in a legacy browser', () => {
-    expect(mayPrune('present') && rowMayBePruned({ gameId: null })).toBe(false)
+  test('a known-mine row survives in a legacy browser', () => {
+    expect(mayPrune('present') && rowMayBePruned({ gameId: null }, false)).toBe(false)
+    expect(mayPrune('present') && rowMayBePruned({ gameId: 'g1' }, true)).toBe(false)
   })
 
-  test('only the intended case deletes', () => {
-    expect(mayPrune('absent') && rowMayBePruned({ gameId: null })).toBe(true)
+  test('only the intended cases delete', () => {
+    expect(mayPrune('absent') && rowMayBePruned({ gameId: null }, false)).toBe(true)
+    expect(mayPrune('absent') && rowMayBePruned({ gameId: 'g1' }, true)).toBe(true)
   })
 })
