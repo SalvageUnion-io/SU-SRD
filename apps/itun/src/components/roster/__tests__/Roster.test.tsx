@@ -33,6 +33,8 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { _clearAllStores, _resetDbSingleton } = await import('../../../lib/db/index')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { Roster } = await import('../Roster')
+const { STARTER_SOFT_LINKS } = await import('../../../lib/starterSet/starterSet')
+const STARTER_LINK_COUNT = STARTER_SOFT_LINKS.length
 
 withSignedInBackend()
 
@@ -315,6 +317,10 @@ describe('Roster — Starter Set (spawned on demand)', () => {
     // Incremental is the intended behaviour, not a regression: a row that saves
     // is saved, where the bulk write lost everything if any part of it failed.
     await settle(() => screen.queryAllByText("Crawler #430 'Tenacity'").length > 0)
+    // The soft links are created after the crawler. Wait for them too, or the
+    // copy is still writing when this file signs back out, and that write is
+    // refused as an unhandled error between tests.
+    await settle(() => useEntityStore.getState().list('softLink').length >= STARTER_LINK_COUNT)
 
     expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
     expect(screen.getAllByText('Bonesaw').length).toBeGreaterThan(0)
