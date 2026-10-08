@@ -65,6 +65,24 @@ describe('appendChangeLog authorization', () => {
     expect(rows[0]?.gameId).toBeNull()
   })
 
+  test('an entry with no before or after key lands, with that side null', async () => {
+    // A field set for the first time has no `before` and a cleared one no
+    // `after`; the Convex client drops the undefined key on the wire. Requiring
+    // it refused the whole batch (ITUN-CONVEX-3/-4).
+    const t = testConvex()
+    const user = await makeUser(t, 'Solo')
+    const { before: _before, ...firstSet } = entry(null)
+    const { after: _after, ...cleared } = entry(null, { field: 'maxHpOverride' })
+
+    await user.as.mutation(api.changeLog.appendChangeLog, { entries: [firstSet, cleared] })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
+    expect(rows.map((r) => [r.field, r.before, r.after])).toEqual([
+      ['name', null, 'b'],
+      ['maxHpOverride', 'a', null],
+    ])
+  })
+
   test('a non-member cannot append to a game they were never in', async () => {
     const t = testConvex()
     const gm = await makeUser(t, 'Mediator')

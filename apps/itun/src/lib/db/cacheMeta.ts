@@ -38,9 +38,9 @@ export const EMPTY_CACHE_META: CacheMeta = { origin: 'cache', userId: null }
 /**
  * The stores whose contents mean "this browser holds a pre-account roster".
  *
- * Only the ones a *person* built. `workspaces` is the retired container and
- * `changeLog` is provenance about entities rather than an entity, so neither
- * makes a browser `legacy` on its own. `softLinks` is out for the same reason:
+ * Only the ones a *person* built. `workspaces` is the retired container, so it
+ * does not make a browser `legacy` on its own, and neither does the device-only
+ * `changeLog` a pre-v18 database still holds. `softLinks` is out for the same reason:
  * a link is wiring between things rather than a thing, and a browser holding
  * only orphaned links has nothing to migrate.
  */

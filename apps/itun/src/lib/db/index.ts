@@ -36,7 +36,6 @@ import { normalizeLegacyPilotRecord, PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
 import type { CacheMeta } from './cacheMeta'
 import { CACHE_META_ID, cacheMetaRecord, parseCacheMeta, writeInitialCacheMeta } from './cacheMeta'
-import { CHANGE_LOG_ENTITY_INDEX, makeChangeLogStore } from './changeLog'
 import { makeStore } from './crud'
 import { runMigrations } from './migrations/index'
 import { STORE_NAMES } from './stores'
@@ -47,18 +46,22 @@ import { flushLegacyUpgrade, noteLegacyUpgrade } from './upgradeTelemetry'
  * (v7 is a version-only bump — it once carried an eager Starter Set seed, now
  * replaced by on-demand seeding (seedStarterSet.ts, since deleted). v8 heals
  * Battle crawlers whose maxSpModifier hand-carried the type's +5 — the bonus
- * is now derived at read from the type's mutations. v9 creates the append-only
- * `changeLog` (provenance) store — creation only, no record rewrite; ADR-022.
+ * is now derived at read from the type's mutations. v9 created a device-only
+ * `changeLog` (provenance) store; v18 drops it, because the Change Log lives
+ * only on the server (`convex/changeLog.ts`, ADR-022).
  * v10 creates the built-in Default workspace and backfills every unassigned
  * pilot/mech/crawler/encounterNpc into it; v13 then maps that onto a Game or
  * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
  * it writes. v17 draws the `mech-to-crawler` link the old two-hop model implied
  * — ADR-037. v18 creates the one-row `meta` store and records whether the
- * rows predate accounts — `cacheMeta.ts`.)
+ * rows predate accounts — `cacheMeta.ts` — and drops `changeLog`.)
  */
 export const DB_VERSION = 18
 
 const DB_NAME = 'itun-v1'
+
+/** The device-only Change Log store v9 created and v18 drops. */
+const RETIRED_CHANGE_LOG_STORE = 'changeLog'
 
 /**
  * How long to wait after a `blocked` event before giving up on the upgrade.
@@ -146,23 +149,16 @@ export function openItunDatabase(
             db.createObjectStore(STORE_NAMES.encounterNpcs, { keyPath: 'id' })
           }
         }
-        // v9 (ADR-022): append-only Change Log (provenance) store. autoIncrement
-        // `seq` primary key (total order) + a `by-entity` index for per-entity
-        // history reads. Store creation only — no record rewrite.
-        if (oldVersion < 9) {
-          if (!db.objectStoreNames.contains(STORE_NAMES.changeLog)) {
-            const changeLogStore = db.createObjectStore(STORE_NAMES.changeLog, {
-              keyPath: 'seq',
-              autoIncrement: true,
-            })
-            changeLogStore.createIndex(CHANGE_LOG_ENTITY_INDEX, 'entityId')
-          }
-        }
         // v18: where the rows came from and whose they are (`cacheMeta.ts`).
         // Created here; its first row is written after the rewrites below.
+        // The device-only Change Log v9 created goes: the log is the server's
+        // (`convex/changeLog.ts`), and no rewrite below reads it.
         if (oldVersion < 18) {
           if (!db.objectStoreNames.contains(STORE_NAMES.meta)) {
             db.createObjectStore(STORE_NAMES.meta, { keyPath: 'id' })
+          }
+          if (db.objectStoreNames.contains(RETIRED_CHANGE_LOG_STORE)) {
+            db.deleteObjectStore(RETIRED_CHANGE_LOG_STORE)
           }
         }
         // v3+: record rewrites live in migrations/ — one file per version.
@@ -302,9 +298,8 @@ export async function writeCacheMeta(meta: CacheMeta): Promise<void> {
  * Empty the cache and hand it to `userId` (`null`: to nobody), in one
  * transaction.
  *
- * Every store goes, the Change Log and the retired `workspaces` included: the
- * cache is one account's, and another account's history is not this one's to
- * read. The meta row is rewritten rather than left, so the result is a `cache`
+ * Every store goes, the retired `workspaces` included: the cache is one
+ * account's, and another account's rows are not this one's to read. The meta row is rewritten rather than left, so the result is a `cache`
  * origin owned by `userId`, never a `legacy` one. A caller that must not
  * destroy an unclaimed pre-account roster checks the origin first
  * (`lib/account/cacheOwner.ts`); this does not.
@@ -442,7 +437,3 @@ export const encounterNpcs = makeStore(getDb, EncounterNpcSchema, STORE_NAMES.en
   hasUpdatedAt: true,
   salvageSchema: deepStrip(EncounterNpcSchema),
 })
-
-// ADR-022: append-only per-entity Change Log (provenance). Not an entity
-// store — no makeStore CRUD; see ./changeLog.ts for its append/list surface.
-export const changeLog = makeChangeLogStore(getDb)

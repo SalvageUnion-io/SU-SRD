@@ -114,12 +114,9 @@ async function seedV15Database(name: string, pilots: unknown[]): Promise<void> {
     upgrade(db) {
       for (const storeName of Object.values(STORE_NAMES)) {
         if (db.objectStoreNames.contains(storeName)) continue
-        if (storeName === STORE_NAMES.changeLog) {
-          db.createObjectStore(storeName, { keyPath: 'seq', autoIncrement: true })
-        } else {
-          db.createObjectStore(storeName, { keyPath: 'id' })
-        }
+        db.createObjectStore(storeName, { keyPath: 'id' })
       }
+      db.createObjectStore('changeLog', { keyPath: 'seq', autoIncrement: true })
     },
   })
   for (const value of pilots) await db.put(STORE_NAMES.pilots, value)

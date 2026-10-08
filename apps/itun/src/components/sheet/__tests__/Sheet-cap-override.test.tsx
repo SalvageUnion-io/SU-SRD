@@ -3,15 +3,38 @@
  * hand-pinned maximum shows an "overridden from N" indicator + a one-click
  * revert, and reverting clears the max*Modifier delta while logging an
  * `override` Change Log entry. Exercises the real store + db against
- * fake-indexeddb (preloaded via bunfig.toml).
+ * fake-indexeddb (preloaded via bunfig.toml), with the Convex client a
+ * recorder of the Change Log batches the store sends.
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { _resetDbSingleton, changeLog, clearCache } from '../../../lib/db/index'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { Sheet } from '../Sheet'
+import type { FunctionReference } from 'convex/server'
+import { getFunctionName } from 'convex/server'
+import { installConvexMocks } from '../../__tests__/convexMock'
+
+const logged: { kind: string; field: string }[] = []
+
+const convexMocks = await installConvexMocks({
+  convexClient: {
+    mutation: async (ref: unknown, args: { entries?: { kind: string; field: string }[] }) => {
+      if (getFunctionName(ref as FunctionReference<'mutation'>) === 'changeLog:appendChangeLog') {
+        logged.push(...(args.entries ?? []))
+        return null
+      }
+      return { updatedAt: 1 }
+    },
+  },
+})
+
+const { _resetDbSingleton, clearCache } = await import('../../../lib/db/index')
+const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
+const { useEntityStore } = await import('../../../stores/entityStore')
+const { Sheet } = await import('../Sheet')
+
+afterAll(() => {
+  convexMocks.restore()
+})
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
@@ -41,6 +64,7 @@ function resetEntityStore(): void {
 }
 
 beforeEach(async () => {
+  logged.length = 0
   _resetDbSingleton()
   await clearCache()
   resetEntityStore()
@@ -69,8 +93,7 @@ describe('Live Sheet — cap override (P2.2)', () => {
     })
 
     // …and the revert is recorded as an `override` Change Log entry.
-    const entries = await changeLog.listForEntity(pilot.id)
-    expect(entries.some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
+    expect(logged.some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
   })
 
   test('a manual adjustment is NOT an override — it contributes to the derivation', async () => {

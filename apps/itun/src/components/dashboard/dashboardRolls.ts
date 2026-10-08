@@ -18,7 +18,6 @@
 
 import type { ContainerFields } from '../../lib/container'
 import { containerOf } from '../../lib/container'
-import { captureException } from '../../lib/observability'
 import { commitChangeLog } from '../../stores/entityBackend'
 
 /** Which roll it was. The Log tab reads `description`; `result` keeps the numbers. */
@@ -67,8 +66,5 @@ export function rollLogEntry<GameId extends string>(
 export function recordRoll(owner: ContainerFields, roll: DashboardRoll): void {
   const container = containerOf(owner)
   if (container.kind !== 'game') return
-  commitChangeLog([rollLogEntry(container.gameId, roll, Date.now())]).catch((err: unknown) => {
-    // The roll already happened and is on screen; only its log row is lost.
-    captureException(err)
-  })
+  void commitChangeLog([rollLogEntry(container.gameId, roll, Date.now())])
 }

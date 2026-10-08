@@ -179,7 +179,6 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
               entityId: chosen.id,
               entityType: chosen.type,
               field: fieldName,
-              before: null,
               after: Number(value),
             }).then(() => setValue(''))
           }}

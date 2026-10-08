@@ -189,9 +189,8 @@ never `navigator.onLine` or an auth flag.
 `apps/itun/src/lib/db/` via `idb` ([ADR-002](#adr-002)):
 database `itun-v1`, `DB_VERSION = 18` (`src/lib/db/index.ts`), stores in
 `src/lib/db/stores.ts`: `pilots`, `mechs`, `crawlers`, `mechPatterns`
-(immutable builds), `encounterNpcs`, `softLinks`, `changeLog` (autoIncrement
-`seq`, `by-entity` index, append-only), the retired `workspaces` (kept for
-migrations v10/v13) and `meta`.
+(immutable builds), `encounterNpcs`, `softLinks`, the retired `workspaces`
+(kept for migrations v10/v13) and `meta`.
 
 - **One account's cache.** `meta` holds one row, `{ origin, userId }`
   (`src/lib/db/cacheMeta.ts`). `origin` is `legacy` only when the v18 upgrade
@@ -245,9 +244,11 @@ the entity rows.
 **Every store reaches Convex:** `commitEntityWrite` (pilots, mechs, crawlers)
 and `commitSoftLink` from `entityStore.ts`, `commitPatternWrite` from
 `patternStore.ts`, `commitNpcWrite` from `encounterStore.ts`,
-`commitChangeLog` from `entityChangeLog.ts`. `apps/itun/test/convex/containerParity.test.ts`
+and `commitChangeLog` from `entityChangeLog.ts` sends the Change Log, whose only
+copy is the Convex `changeLog` table. `apps/itun/test/convex/containerParity.test.ts`
 asserts each store has a table and calls its commit; a new store needs both.
-The Change Log commit is the one fire-and-forget write. If the schema cannot
+The Change Log commit is the one fire-and-forget write, and reports its own
+failure. If the schema cannot
 say where a record lives, the schema moves; nothing is local-only. No change may
 leave data reachable from fewer places than before; a gate asserts the row is
 in Convex, not the mechanism. An anonymous user's way out is export to file.
@@ -469,9 +470,9 @@ Overload, Critical Damage at 0 SP, meltdown). Free Edit sets the same states by
 hand.
 
 Every write goes to the per-entity, append-only Change Log, tagged
-`transaction` / `override` / `manual`, emitted at `entityStore.update`
-(`lib/db/changeLog.ts`, `lib/schemas/changeLog.ts`), read in `ChangeLogDrawer`
-behind the sheet menu. Public sheets show no history; replay is unbuilt. The
+`transaction` / `override` / `manual`, emitted at `entityStore.update` into the
+Convex `changeLog` table (`apps/itun/convex/changeLog.ts`), read in
+`ChangeLogDrawer` behind the sheet menu through `changeLog.forEntity`. Public sheets show no history; replay is unbuilt. The
 overridden-stat marker shows on the Live Sheet only.
 
 **Status:** the Wizard enforces hard (`PilotWizard.tsx`, `MechWizard.tsx`,
@@ -2127,10 +2128,13 @@ a rule is enforced on which surface_:
 
 ### Status
 
-Accepted — **built**: the `changeLog` store (`apps/itun/src/lib/db/changeLog.ts`,
-schema in `lib/schemas/changeLog.ts`) is written at the `entityStore.update`
-chokepoint and read through `ChangeLogDrawer` behind the sheet menu; Live-Sheet
-cap overrides ship with the derived-baseline callout and revert. Replay/time-travel
+Accepted — **built**: the Convex `changeLog` table (`apps/itun/convex/changeLog.ts`)
+is written at the `entityStore.update` chokepoint (`commitChangeLog`) and read
+through `ChangeLogDrawer` (`changeLog.forEntity`) behind the sheet menu; Live-Sheet
+cap overrides ship with the derived-baseline callout and revert.
+
+**Amended 2026-10 (#1130)** — the table is the log's only copy; IndexedDB v18
+drops the device store this ADR first built. Replay/time-travel
 is still unbuilt. Subordinate to
 [ADR-021](#adr-021), which establishes the surface/mode
 model this ADR serves.

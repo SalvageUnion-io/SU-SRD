@@ -7,6 +7,7 @@ import {
   usesServerOfRecord,
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
+import { captureException } from '../lib/observability'
 import type { EntityRef } from '../lib/schemas/entity'
 import type { SoftLink } from '../lib/schemas/softLink'
 import { knownVersion, noteVersion } from './serverVersions'
@@ -319,28 +320,18 @@ export async function commitEntityWrite(
 }
 
 /**
- * Write one soft link, and fail if it does not land.
+ * Mirror a batch of Change Log rows to the server of record, which is the only
+ * copy of the log there is (`changeLog.forEntity` is what the drawer reads).
  *
- * Addressed by its endpoints because the server has no `appId` column for links
- * and needs none — `from.id`/`to.id` already are app ids. That also makes it
- * naturally idempotent, so a repeated write is a no-op rather than a duplicate
- * wire.
- */
-/**
- * Mirror a batch of Change Log rows.
+ * Never throws, and its callers do not await it: the log is provenance ABOUT a
+ * write that has already happened and been committed, and failing the user's
+ * edit because its audit row did not land would trade a real write for a
+ * record of one. A failure is reported here, once, under one fingerprint —
+ * not by each caller, which filed one fault as an issue per call site.
  *
- * The log is ADR-030's "spine of this feature", and it was two disconnected
- * spines: the client appended only to IndexedDB while the server table was
- * written only by `ownership`, `proposals` and `botClient`. Each drawer showed
- * half the history, and clearing site data destroyed the client half because
- * Convex held no copy of it.
- *
- * Deliberately NOT awaited by its caller, unlike every other commit in this
- * file. The log is provenance ABOUT a write that has already happened and been
- * committed; failing the user's edit because its audit row did not land would
- * trade a real write for a record of one. It reports and moves on — which is
- * the fire-and-forget shape ADR-034 removed everywhere else, kept here only
- * because the thing at risk is the annotation rather than the data.
+ * A side that is `undefined` (a field set for the first time, or cleared) is
+ * dropped by the Convex client on the wire; `appendChangeLog` stores it as
+ * `null`.
  */
 export async function commitChangeLog(
   entries: readonly {
@@ -358,27 +349,16 @@ export async function commitChangeLog(
   if (selectBackend() !== 'remote' || convexClient === null) return
   if (entries.length === 0) return
 
-  await convexClient.mutation(api.changeLog.appendChangeLog, {
-    entries: entries.map((e) => ({
-      ...changeLogEntryArgs(e),
-      gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
-    })),
-  })
-}
-
-/**
- * One Change Log row as `appendChangeLog` accepts it.
- *
- * A field set for the first time has no `before`, and a field cleared — the ↺
- * revert of a pinned Max HP — has no `after`; both are `undefined` locally. The
- * Convex client drops undefined object fields when it serialises the args, so
- * the server saw the key missing, refused the whole batch, and every row in it
- * was lost (ITUN-CONVEX-3/-4). An absent side travels as `null`.
- */
-export function changeLogEntryArgs<E extends { before: unknown; after: unknown }>(
-  entry: E
-): Omit<E, 'before' | 'after'> & { before: unknown; after: unknown } {
-  return { ...entry, before: entry.before ?? null, after: entry.after ?? null }
+  try {
+    await convexClient.mutation(api.changeLog.appendChangeLog, {
+      entries: entries.map((e) => ({
+        ...e,
+        gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
+      })),
+    })
+  } catch (err) {
+    captureException(err, undefined, { fingerprint: ['convex', 'changeLog:appendChangeLog'] })
+  }
 }
 
 /**
@@ -422,6 +402,14 @@ export async function commitNpcWrite(
   await convexClient.mutation(api.shelf.upsertEncounterNpc, { body: op.record })
 }
 
+/**
+ * Write one soft link, and fail if it does not land.
+ *
+ * Addressed by its endpoints because the server has no `appId` column for links
+ * and needs none — `from.id`/`to.id` already are app ids. That also makes it
+ * naturally idempotent, so a repeated write is a no-op rather than a duplicate
+ * wire.
+ */
 export async function commitSoftLink(
   kind: 'upsert' | 'delete',
   link: SoftLink | null

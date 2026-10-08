@@ -137,6 +137,44 @@ export async function loadOwnable(
   return doc
 }
 
+/** The three tables a Change Log row's entity lives in. */
+export type LoggedTable = 'pilots' | 'mechs' | 'crawlers'
+
+/**
+ * The id a Change Log row names an entity by: its `appId`, the id the client
+ * addresses it by and the one `appendChangeLog` rows carry, or — for a row
+ * seeded server-side that has none — its row id. Every server-side writer of a
+ * row about an entity (`proposals`, `ownership`) uses this, so one entity's
+ * history is one `entityId` whichever surface wrote it.
+ */
+export function logIdOf(row: Doc<LoggedTable>): string {
+  return row.appId ?? row._id
+}
+
+/**
+ * The row a Change Log `entityId` names, or null: by `appId` first (the oldest
+ * row on a duplicate, as `byAppId` resolves it), then as a row id — which is
+ * what a row seeded without an `appId` is named by, and what every proposal
+ * and ownership row written before `logIdOf` carries.
+ */
+export async function loadLogged(
+  ctx: QueryCtx | MutationCtx,
+  table: LoggedTable,
+  entityId: string
+): Promise<Doc<LoggedTable> | null> {
+  const matches = (await ctx.db
+    .query(table)
+    .withIndex('by_app_id', (q) => q.eq('appId', entityId))
+    .collect()) as Doc<LoggedTable>[]
+  const oldest = matches.reduce<Doc<LoggedTable> | null>(
+    (best, row) => (best === null || row._creationTime < best._creationTime ? row : best),
+    null
+  )
+  if (oldest !== null) return oldest
+  const id = ctx.db.normalizeId(table, entityId)
+  return id === null ? null : await ctx.db.get(id)
+}
+
 /**
  * The id a body carries for itself, or undefined when it carries none.
  *

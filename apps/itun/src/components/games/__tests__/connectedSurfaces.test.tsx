@@ -197,46 +197,28 @@ describe('ProposalInbox', () => {
     expect(container.innerHTML).toBe('')
   })
 
-  test('shows before and after so a mismatch is visible', () => {
+  test('shows the proposed value, with Apply and Decline', () => {
     withQueries({
       'proposals:pending': [
-        {
-          _id: 'c1',
-          entityId: 'm1',
-          entityType: 'mech',
-          field: 'currentSp',
-          before: 10,
-          after: 6,
-          ts: 1,
-        },
+        { _id: 'c1', entityId: 'm1', entityType: 'mech', field: 'currentSp', after: 6, ts: 1 },
       ],
     })
     wrap(<ProposalInbox gameId={'g1' as never} />)
 
-    // The Mediator's `before` is what THEY believed; showing it lets the table
-    // spot a disagreement rather than having the UI paper over it.
-    expect(screen.getByText('10 → 6')).toBeTruthy()
+    expect(screen.getByText('→ 6')).toBeTruthy()
     expect(screen.getByText('Apply')).toBeTruthy()
     // Decline is a peer, not a dismissal.
     expect(screen.getByText('Decline')).toBeTruthy()
   })
 
-  test('a null before renders as a dash rather than "null"', () => {
+  test('a null value renders as a dash rather than "null"', () => {
     withQueries({
       'proposals:pending': [
-        {
-          _id: 'c1',
-          entityId: 'm1',
-          entityType: 'mech',
-          field: 'currentSp',
-          before: null,
-          after: 6,
-          ts: 1,
-        },
+        { _id: 'c1', entityId: 'm1', entityType: 'mech', field: 'currentSp', after: null, ts: 1 },
       ],
     })
     wrap(<ProposalInbox gameId={'g1' as never} />)
-    expect(screen.getByText('— → 6')).toBeTruthy()
+    expect(screen.getByText('→ —')).toBeTruthy()
   })
 })
 

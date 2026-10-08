@@ -3,7 +3,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { mutation } from './model/entities'
+import { logIdOf, mutation } from './model/entities'
 import { discordIdOfUser, mayRedeem, mintInvite, statusOf } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
 import { logOwnershipChange } from './ownership'
@@ -245,7 +245,7 @@ async function seat(
     await ctx.db.patch(doc._id, { ownerId: userId, updatedAt: now })
     await logOwnershipChange(ctx, {
       table: grant.table,
-      entityId: grant.entityId,
+      entityId: logIdOf(doc),
       gameId: invite.gameId,
       before: null,
       after: userId,

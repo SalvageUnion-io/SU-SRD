@@ -73,7 +73,7 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     description: 'crawler-battle-sp-to-derived',
     migrate: (tx) => migrate8CrawlerBattleSpToDerived(tx),
   },
-  // v9 was store creation only (changeLog) — no record rewrite.
+  // v9 was store creation only (changeLog, dropped at v18) — no record rewrite.
   {
     toVersion: 10,
     description: 'workspace-default-backfill',

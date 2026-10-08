@@ -67,14 +67,12 @@ export const softLinkType = v.union(
 )
 
 /**
- * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus
- * `'game'`.
+ * What a Change Log row is about: one of the player entities, or the Game.
  *
- * `'game'` has no local counterpart because it never reaches IndexedDB: a
- * table-wide alert (`proposals.broadcast`), a recorded Discord roll
- * (`botClient.recordRoll`) and a Dashboard roll (`appendChangeLog`, from
- * `dashboardRolls.ts`) are log rows about the Game itself rather than about
- * anybody's sheet. Everything that reads a row's target must therefore handle a
+ * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
+ * recorded Discord roll (`botClient.recordRoll`) and a Dashboard roll
+ * (`appendChangeLog`, from `dashboardRolls.ts`) are log rows about the Game
+ * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
  */
 const changeLogEntityType = v.union(
@@ -85,12 +83,12 @@ const changeLogEntityType = v.union(
   v.literal('game')
 )
 
-/** Mirrors `CHANGE_LOG_KINDS` (src/lib/schemas/changeLog.ts) — ADR-022. */
+/** Mirrors `ChangeLogKind` (src/lib/schemas/changeLog.ts) — ADR-022. */
 const changeLogKind = v.union(v.literal('transaction'), v.literal('override'), v.literal('manual'))
 
 /**
- * Proposal lifecycle (ADR-030 §4). No Zod counterpart: the local-only log has
- * no proposals, so this state machine exists only on the server.
+ * Proposal lifecycle (ADR-030 §4). No Zod counterpart: proposals are made and
+ * answered only on the server.
  */
 const changeLogState = v.union(
   v.literal('applied'),
